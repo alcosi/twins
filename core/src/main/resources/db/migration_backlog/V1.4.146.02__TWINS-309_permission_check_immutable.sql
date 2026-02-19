@@ -35,6 +35,23 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS permission_check(uuid,uuid,uuid,uuid,uuid,uuid,uuid[],uuid,boolean,boolean);
+create or replace function permission_check(permissionSchemaId uuid, businessaccountid uuid, spaceid uuid, permissionidtwin uuid, permissionidtwinclass uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+    permissionIdForUse UUID := permissionIdTwin;
+BEGIN
+    IF permissionIdForUse IS NULL THEN
+        permissionIdForUse = permissionIdTwinClass;
+    END IF;
+    RETURN permission_check(permissionSchemaId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, twinClassId, isAssignee, isCreator);
+END;
+$$;
+
+DROP FUNCTION IF EXISTS permission_check(uuid,uuid,uuid,uuid,uuid, uuid[],uuid,boolean,boolean);
 create or replace function permission_check(domainid uuid, businessaccountid uuid, spaceid uuid, permissionid uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
     volatile
     language plpgsql
@@ -210,7 +227,12 @@ BEGIN
         WHERE permission_schema_id = permissionSchemaId
           AND permission_id = permissionId
           AND twin_class_id = twinClassId
-          AND twin_role_id = ANY(roles)
+          AND (
+            (granted_to_assignee AND 'assignee' = ANY(roles)) OR
+            (granted_to_creator AND 'creator' = ANY(roles)) OR
+            (granted_to_space_assignee AND 'space_assignee' = ANY(roles)) OR
+            (granted_to_space_creator AND 'space_creator' = ANY(roles))
+            )
     ) INTO hasPermission;
 
     RETURN hasPermission;
@@ -273,29 +295,31 @@ create or replace function permission_check_space_role_permissions(permissionsch
 as
 $$
 DECLARE
-    userAssignedToRoleExists INT;
-    groupAssignedToRoleExists INT;
+    userAssignedToRoleExists BOOLEAN;
+    groupAssignedToRoleExists BOOLEAN;
 BEGIN
     -- Check if any space role assigned to the user has the given permission
-    SELECT COUNT(sru.id)
-    INTO userAssignedToRoleExists
-    FROM space_role_user sru
-    WHERE sru.twin_id = spaceId
-      AND sru.user_id = userId
-      AND sru.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId));
+    SELECT EXISTS (
+        SELECT 1
+        FROM space_role_user sru
+        WHERE sru.twin_id = spaceId
+          AND sru.user_id = userId
+          AND sru.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId))
+    ) INTO userAssignedToRoleExists;
 
-    IF userAssignedToRoleExists > 0 THEN
+    IF userAssignedToRoleExists THEN
         RETURN TRUE;
     END IF;
 
     -- Check if any space role assigned to the user's group has the given permission
-    SELECT COUNT(srug.id)
-    INTO groupAssignedToRoleExists
-    FROM space_role_user_group srug
-    WHERE srug.twin_id = spaceId
-      AND srug.user_group_id = ANY (userGroupIdList)
-      AND srug.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId));
+    SELECT EXISTS (
+        SELECT 1
+        FROM space_role_user_group srug
+        WHERE srug.twin_id = spaceId
+          AND srug.user_group_id = ANY (userGroupIdList)
+          AND srug.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId))
+    ) INTO groupAssignedToRoleExists;
 
-    RETURN groupAssignedToRoleExists > 0;
+    RETURN groupAssignedToRoleExists;
 END;
 $$;
