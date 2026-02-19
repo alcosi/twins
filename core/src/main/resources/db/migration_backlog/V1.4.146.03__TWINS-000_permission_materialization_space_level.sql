@@ -310,6 +310,8 @@ create or replace function user_group_map_before_update_wrapper() returns trigge
 as
 $$
 BEGIN
+    PERFORM user_group_map_check_record_on_insert(NEW);
+
     --todo we dont need it
     IF NEW.business_account_id IS DISTINCT FROM OLD.business_account_id THEN
         RAISE EXCEPTION 'It is forbidden to change the [business_account_id] field for table [user_group_map]';
