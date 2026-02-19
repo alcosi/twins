@@ -23,6 +23,7 @@ create table if not exists user_group_map
             references "user"
             on update cascade on delete cascade,
     involves_counter int not null default 0,
+    added_manually boolean not null default ,
     added_at            timestamp default CURRENT_TIMESTAMP,
     added_by_user_id    uuid
         constraint user_group_map_added_user_id_fk
@@ -40,7 +41,7 @@ create index idx_user_group_map_added_by_user_id
 
 
 
-create or replace function user_group_map_check_record_on_insert(NEW user_group_map)
+create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
     returns void
     volatile
     language plpgsql

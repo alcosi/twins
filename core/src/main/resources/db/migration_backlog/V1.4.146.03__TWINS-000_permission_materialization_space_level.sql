@@ -310,12 +310,26 @@ create or replace function user_group_map_before_update_wrapper() returns trigge
 as
 $$
 BEGIN
-    PERFORM user_group_map_check_record_on_insert(NEW);
+    if new.involves_counter is distinct from old.involves_counter and new.added_manually is distinct from old.added_manually then
+        raise exception 'You cant change added_manually & involves_counter fields both together.';
+    end if;
+    PERFORM user_group_map_validate_domain_and_business_account(NEW);
+    RETURN NEW;
+END;
+$$;
 
-    --todo we dont need it
-    IF NEW.business_account_id IS DISTINCT FROM OLD.business_account_id THEN
-        RAISE EXCEPTION 'It is forbidden to change the [business_account_id] field for table [user_group_map]';
-    END IF;
+create or replace function user_group_map_before_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM user_group_map_validate_domain_and_business_account(NEW);
+    if NEW.involves_counter = -9999 then
+        NEW.added_manually = FALSE;
+        NEW.involves_counter = 1;
+    else
+        NEW.added_manually = true;
+    end if;
     RETURN NEW;
 END;
 $$;
@@ -329,13 +343,13 @@ create trigger permission_grant_space_role_after_delete_wrapper_trigger
 execute procedure permission_grant_space_role_after_delete_wrapper();
 drop trigger if exists permission_grant_space_role_after_insert_wrapper_trigger on permission_grant_space_role;
 create trigger permission_grant_space_role_after_insert_wrapper_trigger
-    after delete
+    after insert
     on permission_grant_space_role
     for each row
 execute procedure permission_grant_space_role_after_insert_wrapper();
 drop trigger if exists permission_grant_space_role_after_update_wrapper_trigger on permission_grant_space_role;
 create trigger permission_grant_space_role_after_update_wrapper_trigger
-    after delete
+    after update
     on permission_grant_space_role
     for each row
 execute procedure permission_grant_space_role_after_update_wrapper();
@@ -348,13 +362,13 @@ create trigger space_role_user_group_after_delete_wrapper_trigger
 execute procedure space_role_user_group_after_delete_wrapper();
 drop trigger if exists space_role_user_group_after_insert_wrapper_trigger on space_role_user_group;
 create trigger space_role_user_group_after_insert_wrapper_trigger
-    after delete
+    after insert
     on space_role_user_group
     for each row
 execute procedure space_role_user_group_after_insert_wrapper();
 drop trigger if exists space_role_user_group_after_update_wrapper_trigger on space_role_user_group;
 create trigger space_role_user_group_after_update_wrapper_trigger
-    after delete
+    after update
     on space_role_user_group
     for each row
 execute procedure space_role_user_group_after_update_wrapper();
@@ -367,13 +381,13 @@ create trigger space_role_user_after_delete_wrapper_trigger
 execute procedure space_role_user_after_delete_wrapper();
 drop trigger if exists space_role_user_after_insert_wrapper_trigger on space_role_user;
 create trigger space_role_user_after_insert_wrapper_trigger
-    after delete
+    after insert
     on space_role_user
     for each row
 execute procedure space_role_user_after_insert_wrapper();
 drop trigger if exists space_role_user_after_update_wrapper_trigger on space_role_user;
 create trigger space_role_user_after_update_wrapper_trigger
-    after delete
+    after update
     on space_role_user
     for each row
 execute procedure space_role_user_after_update_wrapper();
@@ -386,19 +400,25 @@ create trigger user_group_map_after_delete_wrapper_trigger
 execute procedure user_group_map_after_delete_wrapper();
 drop trigger if exists user_group_map_after_insert_wrapper_trigger on user_group_map;
 create trigger user_group_map_after_insert_wrapper_trigger
-    after delete
+    after insert
     on user_group_map
     for each row
 execute procedure user_group_map_after_insert_wrapper();
 drop trigger if exists user_group_map_after_update_wrapper_trigger on user_group_map;
 create trigger user_group_map_after_update_wrapper_trigger
-    after delete
+    after update
     on user_group_map
     for each row
 execute procedure user_group_map_after_update_wrapper();
+drop trigger if exists user_group_map_before_insert_wrapper_trigger on user_group_map;
+create trigger user_group_map_before_insert_wrapper_trigger
+    before insert
+    on user_group_map
+    for each row
+execute procedure user_group_map_before_insert_wrapper();
 drop trigger if exists user_group_map_before_update_wrapper_trigger on user_group_map;
 create trigger user_group_map_before_update_wrapper_trigger
-    after delete
+    before update
     on user_group_map
     for each row
 execute procedure user_group_map_before_update_wrapper();

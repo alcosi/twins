@@ -1,4 +1,4 @@
-create or replace function user_group_validate_domain_and_account(
+create or replace function user_group_validate_domain_and_business_account(
     p_type varchar,
     p_domain_id uuid,
     p_business_account_id uuid
@@ -51,19 +51,19 @@ end;
 $$;
 
 
-create or replace function user_group_bi_fn()
+create or replace function user_group_before_insert_wrapper()
     returns trigger
     language plpgsql
 as
 $$
 begin
     -- Use shared validation
-    perform user_group_validate_domain_and_account(new.user_group_type_id, new.domain_id, new.business_account_id);
+    perform user_group_validate_domain_and_business_account(new.user_group_type_id, new.domain_id, new.business_account_id);
     return new;
 end;
 $$;
 
-create or replace function user_group_bu_fn()
+create or replace function user_group_before_update_wrapper()
     returns trigger
     language plpgsql
 as
@@ -75,12 +75,12 @@ begin
     end if;
 
     -- Use shared validation
-    perform user_group_validate_domain_and_account(new.user_group_type_id, new.domain_id, new.business_account_id);
+    perform user_group_validate_domain_and_business_account(new.user_group_type_id, new.domain_id, new.business_account_id);
     return new;
 end;
 $$;
 
-create or replace function user_group_au_fn()
+create or replace function user_group_after_update_wrapper()
     returns trigger
     language plpgsql
 as
@@ -103,3 +103,24 @@ begin
     return null; -- AFTER trigger does not need to return NEW
 end;
 $$;
+
+
+
+drop trigger if exists user_group_before_insert_wrapper_trigger on user_group;
+create trigger user_group_before_insert_wrapper_trigger
+    before insert
+    on user_group
+    for each row
+execute procedure user_group_before_insert_wrapper();
+drop trigger if exists user_group_after_update_wrapper_trigger on user_group;
+create trigger user_group_after_update_wrapper_trigger
+    after update
+    on user_group
+    for each row
+execute procedure user_group_after_update_wrapper();
+drop trigger if exists user_group_before_update_wrapper_trigger on user_group;
+create trigger user_group_before_update_wrapper_trigger
+    before update
+    on user_group
+    for each row
+execute procedure user_group_before_update_wrapper();
