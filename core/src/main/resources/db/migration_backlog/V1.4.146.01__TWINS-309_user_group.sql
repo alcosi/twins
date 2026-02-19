@@ -79,3 +79,27 @@ begin
     return new;
 end;
 $$;
+
+create or replace function user_group_au_fn()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    -- Update domain_id in user_group_map if domain_id changed
+    if new.domain_id is distinct from old.domain_id then
+        update user_group_map
+        set domain_id = new.domain_id
+        where user_group_id = new.id;
+    end if;
+
+    -- Update business_account_id in user_group_map if business_account_id changed
+    if new.business_account_id is distinct from old.business_account_id then
+        update user_group_map
+        set business_account_id = new.business_account_id
+        where user_group_id = new.id;
+    end if;
+
+    return null; -- AFTER trigger does not need to return NEW
+end;
+$$;
