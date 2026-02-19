@@ -296,7 +296,7 @@ DECLARE
     selected_group_business_account uuid := null;
 BEGIN
     select ug.user_group_type_id, ug.domain_id, ug.business_account_id into selected_group_type, selected_group_domain, selected_group_business_account from user_group ug where ug.id = p_group_id;
-
+        -- todo to user_group_map
     if selected_group_type = 'systemScopeDomainManage' then
         if selected_group_domain is not null then
             raise exception 'Cannot add user to group % because group domain is not null and domain id is %', p_group_id, p_domain_id;

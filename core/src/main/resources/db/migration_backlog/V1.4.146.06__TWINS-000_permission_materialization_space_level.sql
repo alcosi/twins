@@ -59,6 +59,7 @@ create or replace function permission_mater_space_level_by_permiss_grant_space_r
     language plpgsql
 as
 $$
+    -- todo check
 BEGIN
     insert into permission_materialization_space_level (twin_id, permission_id, user_id, grants_count)
     select t.id, p_new_permission_id, ugm.user_id from user_group_map ugm
