@@ -6,10 +6,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.search.TwinFieldSearchDate;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
 
@@ -75,7 +77,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
         };
 
-        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
+        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields(), twinSearch.isAllowTwinsWithBothDateFieldsNull())));
     }
 
     protected static <T> Specification<T> checkHierarchyContainsAny(final Set<UUID> hierarchyTreeContainsIdList, String... hierarchyFieldPath) {
@@ -104,18 +106,34 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         };
     }
 
-    protected static Specification[] getTwinSearchFieldsSpecifications(List<TwinFieldSearch> fields) {
+    protected static Specification[] getTwinSearchFieldsSpecifications(List<TwinFieldSearch> fields, boolean showTwinsWithTwoDateIsNull) {
         if (fields == null || fields.isEmpty()) {
             return new Specification[0];
         }
-        Specification[] twinSearchFieldsSpecifications = fields.stream().map(fieldSearch -> {
+
+        List<Specification<TwinEntity>> specs = new ArrayList<>();
+
+        for (TwinFieldSearch fieldSearch : fields) {
             try {
-                return fieldSearch.getFieldTyper().searchBy(fieldSearch);
+                specs.add(fieldSearch.getFieldTyper().searchBy(fieldSearch));
             } catch (ServiceException e) {
                 throw new RuntimeException(e);
             }
-        }).toArray(Specification[]::new);
-        return twinSearchFieldsSpecifications;
+        }
+
+        //todo improve in the future
+        if (!showTwinsWithTwoDateIsNull) {
+            List<TwinFieldSearchDate> dateFields = fields.stream()
+                    .filter(f -> f instanceof TwinFieldSearchDate)
+                    .map(f -> (TwinFieldSearchDate) f)
+                    .toList();
+
+            if (dateFields.size() == 2) {
+                specs.add(TwinSpecification.excludeTwoNullDates(dateFields.get(0), dateFields.get(1)));
+            }
+        }
+
+        return specs.toArray(new Specification[0]);
     }
 
     protected static Specification checkTwinLinks(TwinSearch twinSearch, boolean srcElseDst, String... twinsEntityFieldPath) {

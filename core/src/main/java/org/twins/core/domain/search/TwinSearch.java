@@ -59,6 +59,7 @@ public class TwinSearch {
     private Set<Touch> touchList;
     private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
+    private boolean allowTwinsWithBothDateFieldsNull;
     private DataTimeRange createdAt;
     private TwinSearchEntity configuredSearch;
     private HierarchySearch hierarchyChildrenSearch;

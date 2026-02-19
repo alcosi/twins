@@ -54,6 +54,7 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
                 .setHierarchyChildrenSearch(hierarchySearchRestDTOReverseMapper.convert(src.getHierarchyChildrenSearch()))
                 .setHeadHierarchyCounterDirectChildrenRange(integerRangeDTOReverseMapper.convert(src.getHeadHierarchyCounterDirectChildrenRange()))
+                .setAllowTwinsWithBothDateFieldsNull(src.isAllowTwinsWithBothDateFieldsNull())
                 .setDistinct(src.getDistinct());
         if (src.getLinksAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAnyOfList()) {
