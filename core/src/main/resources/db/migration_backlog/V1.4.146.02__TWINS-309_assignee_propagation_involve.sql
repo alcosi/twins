@@ -117,25 +117,80 @@ BEGIN
 END;
 $$;
 
-
-alter table user_group_map_type2 add if not exists auto_involved boolean default false not null;
-
 create or replace function user_group_add_or_remove_group(p_user_id uuid, p_group_id uuid, p_domain_id uuid, p_business_account_id uuid, p_add_to_group boolean) returns void
     volatile
     language plpgsql
 as
 $$
 DECLARE
-    selected_user_group_id UUID := null;
+    selected_group_type varchar := null;
+    selected_group_domain uuid := null;
+    selected_group_business_account uuid := null;
 BEGIN
+    select ug.user_group_type_id, ug.domain_id, ug.business_account_id into selected_group_type, selected_group_domain, selected_group_business_account from user_group ug where ug.id = p_group_id;
 
-    if p_add_to_group then
-        -- TODO support type1 and type3 groups
-        insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id, auto_involved)
-        VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
-    else
-        delete from user_group_map_type2 where auto_involved and user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
+    if selected_group_type = 'systemScopeDomainManage' then
+        if selected_group_domain is not null then
+            raise exception 'Cannot add user to group % because group domain is not null and domain id is %', p_group_id, p_domain_id;
+        end if;
+        if p_domain_id is null then
+            raise exception 'Cannot add user to group % because domain is null', p_group_id;
+        end if;
+        if p_business_account_id is not null then
+            raise exception 'Cannot add user to group % because ba is not null. ba id= %', p_group_id, p_business_account_id;
+        end;
+        if selected_group_business_account is not null then
+            raise exception 'Cannot add user to group % because group ba is not null. ba id= %', p_group_id, selected_group_business_account;
+        end;
+        if p_add_to_group then
+            insert into user_group_map_type3 (id,user_group_id, domain_id, user_id, added_at, added_by_user_id, auto_involved)
+            VALUES (uuid_generate_v7_custom(), p_group_id, p_domain_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
+        else
+            delete from user_group_map_type3 where auto_involved and user_id = p_user_id and domain_id = p_domain_id and user_group_id = p_group_id;
+        end if;
     end if;
+
+
+    if selected_group_type = 'domainScopeBusinessAccountManage' then
+        if selected_group_domain <> p_domain_id then
+            raise exception 'Cannot add user to group % because it is domain scope and domain id is %', p_group_id, p_domain_id;
+        end if;
+        if p_business_account_id is null then
+            raise exception 'Cannot add user to group % because ba is null.', p_group_id;
+        end;
+        if selected_group_business_account is not null then
+            raise exception 'Cannot add user to group % because group ba is not null. ba id= %', p_group_id, selected_group_business_account;
+        end;
+        if p_add_to_group then
+            insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id, involves_counter)
+            VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
+        else
+            delete from user_group_map_type2 where auto_involved and user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
+        end if;
+    end if;
+
+    if selected_group_type = 'systemScopeDomainManage' then
+        if selected_group_domain is not null then
+            raise exception 'Cannot add user to group % because group domain is not null and domain id is %', p_group_id, p_domain_id;
+        end if;
+        if p_domain_id is null then
+            raise exception 'Cannot add user to group % because domain is null', p_group_id;
+        end if;
+        if p_business_account_id is not null then
+            raise exception 'Cannot add user to group % because ba is not null. ba id= %', p_group_id, p_business_account_id;
+        end;
+        if selected_group_business_account is not null then
+            raise exception 'Cannot add user to group % because group ba is not null. ba id= %', p_group_id, selected_group_business_account;
+        end;
+        if p_add_to_group then
+            insert into user_group_map_type3 (id,user_group_id, domain_id, user_id, added_at, added_by_user_id, auto_involved)
+            VALUES (uuid_generate_v7_custom(), p_group_id, p_domain_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
+        else
+            delete from user_group_map_type3 where auto_involved and user_id = p_user_id and domain_id = p_domain_id and user_group_id = p_group_id;
+        end if;
+    end if;
+
+
 END;
 $$;
 
