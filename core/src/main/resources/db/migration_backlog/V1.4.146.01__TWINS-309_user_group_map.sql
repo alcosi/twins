@@ -40,8 +40,9 @@ create index idx_user_group_map_added_by_user_id
 
 
 
-create or replace function user_group_map_bi_fn()
-    returns trigger
+create or replace function user_group_map_check_record_on_insert(NEW user_group_map)
+    returns void
+    volatile
     language plpgsql
 as
 $$

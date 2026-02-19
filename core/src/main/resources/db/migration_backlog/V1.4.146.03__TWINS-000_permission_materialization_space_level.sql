@@ -21,7 +21,7 @@ drop index if exists idx_permission_materialization_space_level_grants_count;
 create index idx_permission_materialization_space_level_grants_count
     on permission_materialization_space_level (grants_count);
 
-create or replace function permission_mater_space_level_by_user_group_map_type2_insert(p_new_user_group_id uuid, p_new_user_id uuid, p_new_business_account_id uuid) returns void
+create or replace function permission_mater_space_level_by_user_group_map_insert(p_new_user_group_id uuid, p_new_user_id uuid, p_new_business_account_id uuid) returns void
     volatile
     language plpgsql
 as
@@ -37,7 +37,7 @@ BEGIN
 END;
 $$;
 
-create or replace function permission_mater_space_level_by_user_group_map_type2_delete(p_old_user_group_id uuid, p_old_user_id uuid, p_old_business_account_id uuid) returns void
+create or replace function permission_mater_space_level_by_user_group_map_delete(p_old_user_group_id uuid, p_old_user_id uuid, p_old_business_account_id uuid) returns void
     volatile
     language plpgsql
 as
@@ -61,9 +61,9 @@ as
 $$
 BEGIN
     insert into permission_materialization_space_level (twin_id, permission_id, user_id, grants_count)
-    select t.id, p_new_permission_id, t2.user_id from user_group_map_type2 t2
-                                                             join space_role_user_group srug on p_new_space_role_id = srug.space_role_id and srug.user_group_id = t2.user_group_id
-                                                             join twin t on t.owner_business_account_id = t2.business_account_id and t.id = srug.twin_id
+    select t.id, p_new_permission_id, ugm.user_id from user_group_map ugm
+                                                             join space_role_user_group srug on p_new_space_role_id = srug.space_role_id and srug.user_group_id = ugm.user_group_id
+                                                             join twin t on t.owner_business_account_id = ugm.business_account_id and t.id = srug.twin_id
                                                              join space s on s.twin_id = srug.id and s.permission_schema_id = p_new_permission_schema_id
     on conflict do update set grants_count = grants_count + 1;
     insert into permission_materialization_space_level (twin_id, permission_id, user_id, grants_count)
@@ -81,9 +81,9 @@ as
 $$
 BEGIN
     update permission_materialization_space_level set grants_count = grants_count - 1
-    from user_group_map_type2 t2
-             join space_role_user_group srug on p_old_space_role_id = srug.space_role_id and srug.user_group_id = t2.user_group_id                                                          join space s on s.twin_id = srug.id
-             join twin t on t.owner_business_account_id = t2.business_account_id and t.id = srug.twin_id
+    from user_group_map ugm
+             join space_role_user_group srug on p_old_space_role_id = srug.space_role_id and srug.user_group_id = ugm.user_group_id                                                          join space s on s.twin_id = srug.id
+             join twin t on t.owner_business_account_id = ugm.business_account_id and t.id = srug.twin_id
              join space s on s.twin_id = srug.id and s.permission_schema_id = p_old_permission_schema_id
     where permission_id = p_old_permission_id;
 
@@ -102,11 +102,11 @@ as
 $$
 BEGIN
     insert into permission_materialization_space_level (twin_id, permission_id, user_id, grants_count)
-    select p_new_twin_id, pgsr.permission_id, t2.user_id from user_group_map_type2 t2
+    select p_new_twin_id, pgsr.permission_id, ugm.user_id from user_group_map ugm
                                                              join space s on s.twin_id = p_new_twin_id
                                                              join permission_grant_space_role pgsr on pgsr.permission_schema_id = s.permission_schema_id and pgsr.space_role_id = p_new_space_role_id
-                                                             join twin t on t.owner_business_account_id = t2.business_account_id and t.id = p_new_twin_id
-                                                         where t2.user_group_id = p_new_user_group_id
+                                                             join twin t on t.owner_business_account_id = ugm.business_account_id and t.id = p_new_twin_id
+                                                         where ugm.user_group_id = p_new_user_group_id
     on conflict do update set grants_count = grants_count + 1;
 END;
 $$;
@@ -118,11 +118,11 @@ as
 $$
 BEGIN
     update permission_materialization_space_level set grants_count = grants_count - 1
-    from user_group_map_type2 t2
+    from user_group_map ugm
              join space s on s.twin_id = p_old_twin_id
              join permission_grant_space_role pgsr on pgsr.permission_schema_id = s.permission_schema_id and pgsr.space_role_id = p_old_space_role_id
-             join twin t on t.owner_business_account_id = t2.business_account_id and t.id = p_old_twin_id
-    where t2.user_group_id = p_old_user_group_id;
+             join twin t on t.owner_business_account_id = ugm.business_account_id and t.id = p_old_twin_id
+    where ugm.user_group_id = p_old_user_group_id;
 END;
 $$;
 -----------------------------------------------------------------
@@ -268,49 +268,51 @@ BEGIN
 END;
 $$;
 ------------------------------------------------------------------------------
-create or replace function user_group_map_type2_after_insert_wrapper() returns trigger
+create or replace function user_group_map_after_insert_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    PERFORM permission_mater_space_level_by_user_group_map_type2_insert(NEW.user_id, NEW.user_group_id, NEW.business_account_id);
+    PERFORM permission_mater_space_level_by_user_group_map_insert(NEW.user_id, NEW.user_group_id, NEW.business_account_id);
     RETURN NEW;
 END;
 $$;
 
 
-create or replace function user_group_map_type2_after_update_wrapper() returns trigger
+create or replace function user_group_map_after_update_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
+    --todo
     IF NEW.user_id IS DISTINCT FROM OLD.user_id OR
        NEW.user_group_id IS DISTINCT FROM OLD.user_group_id
     THEN
-        PERFORM permission_mater_space_level_by_user_group_map_type2_insert(NEW.user_id, NEW.user_group_id, NEW.business_account_id);
-        PERFORM permission_mater_space_level_by_user_group_map_type2_delete(OLD.user_id, OLD.user_group_id, OLD.business_account_id);
+        PERFORM permission_mater_space_level_by_user_group_map_insert(NEW.user_id, NEW.user_group_id, NEW.business_account_id);
+        PERFORM permission_mater_space_level_by_user_group_map_delete(OLD.user_id, OLD.user_group_id, OLD.business_account_id);
     END IF;
     RETURN NEW;
 END;
 $$;
 
-create or replace function user_group_map_type2_after_delete_wrapper() returns trigger
+create or replace function user_group_map_after_delete_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    PERFORM permission_mater_space_level_by_user_group_map_type2_delete(OLD.user_id, OLD.user_group_id, OLD.business_account_id);
+    PERFORM permission_mater_space_level_by_user_group_map_delete(OLD.user_id, OLD.user_group_id, OLD.business_account_id);
     RETURN OLD;
 END;
 $$;
 
-create or replace function user_group_map_type2_before_update_wrapper() returns trigger
+create or replace function user_group_map_before_update_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
+    --todo we dont need it
     IF NEW.business_account_id IS DISTINCT FROM OLD.business_account_id THEN
-        RAISE EXCEPTION 'It is forbidden to change the [business_account_id] field for table [user_group_map_type2]';
+        RAISE EXCEPTION 'It is forbidden to change the [business_account_id] field for table [user_group_map]';
     END IF;
     RETURN NEW;
 END;
@@ -374,32 +376,32 @@ create trigger space_role_user_after_update_wrapper_trigger
     for each row
 execute procedure space_role_user_after_update_wrapper();
 -----------------------------------------------------------------
-drop trigger if exists user_group_map_type2_after_delete_wrapper_trigger on user_group_map_type2;
-create trigger user_group_map_type2_after_delete_wrapper_trigger
+drop trigger if exists user_group_map_after_delete_wrapper_trigger on user_group_map;
+create trigger user_group_map_after_delete_wrapper_trigger
     after delete
-    on user_group_map_type2
+    on user_group_map
     for each row
-execute procedure user_group_map_type2_after_delete_wrapper();
-drop trigger if exists user_group_map_type2_after_insert_wrapper_trigger on user_group_map_type2;
-create trigger user_group_map_type2_after_insert_wrapper_trigger
+execute procedure user_group_map_after_delete_wrapper();
+drop trigger if exists user_group_map_after_insert_wrapper_trigger on user_group_map;
+create trigger user_group_map_after_insert_wrapper_trigger
     after delete
-    on user_group_map_type2
+    on user_group_map
     for each row
-execute procedure user_group_map_type2_after_insert_wrapper();
-drop trigger if exists user_group_map_type2_after_update_wrapper_trigger on user_group_map_type2;
-create trigger user_group_map_type2_after_update_wrapper_trigger
+execute procedure user_group_map_after_insert_wrapper();
+drop trigger if exists user_group_map_after_update_wrapper_trigger on user_group_map;
+create trigger user_group_map_after_update_wrapper_trigger
     after delete
-    on user_group_map_type2
+    on user_group_map
     for each row
-execute procedure user_group_map_type2_after_update_wrapper();
-drop trigger if exists user_group_map_type2_before_update_wrapper_trigger on user_group_map_type2;
-create trigger user_group_map_type2_before_update_wrapper_trigger
+execute procedure user_group_map_after_update_wrapper();
+drop trigger if exists user_group_map_before_update_wrapper_trigger on user_group_map;
+create trigger user_group_map_before_update_wrapper_trigger
     after delete
-    on user_group_map_type2
+    on user_group_map
     for each row
-execute procedure user_group_map_type2_before_update_wrapper();
+execute procedure user_group_map_before_update_wrapper();
 
-select permission_mater_space_level_by_user_group_map_type2_insert(t2.user_group_id, t2.user_id, t2.business_account_id)
+select permission_mater_space_level_by_user_group_map_insert(t2.user_group_id, t2.user_id, t2.business_account_id)
 from user_group_map_type2 t2;
 select permission_mater_space_level_by_permiss_grant_space_role_insert(permission_schema_id, permission_id, space_role_id)
 from permission_grant_space_role;
