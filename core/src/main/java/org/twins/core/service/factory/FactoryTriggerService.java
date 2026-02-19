@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,6 +38,8 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
     private final TwinFactoryTriggerRepository repository;
     private final TwinFactoryService twinFactoryService;
     private final AuthService authService;
+    private final TwinTriggerService twinTriggerService;
+    private final TwinClassService twinClassService;
 
     @Override
     public CrudRepository<TwinFactoryTriggerEntity, UUID> entityRepository() {
@@ -52,6 +54,9 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
     @Override
     public boolean isEntityReadDenied(TwinFactoryTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        if (entity.getTwinFactory() == null) {
+            loadFactory(entity);
+        }
         return entity.getTwinFactory().getDomainId() != null && !entity.getTwinFactory().getDomainId().equals(apiUser.getDomainId());
     }
 
@@ -125,5 +130,41 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
         updateSafe(changes);
         return allEntities;
+    }
+
+    public void loadFactory(TwinFactoryTriggerEntity src) throws ServiceException {
+        loadFactories(Collections.singleton(src));
+    }
+
+    public void loadFactories(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
+        twinFactoryService.load(srcCollection,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinFactoryId,
+                TwinFactoryTriggerEntity::getTwinFactory,
+                TwinFactoryTriggerEntity::setTwinFactory);
+    }
+
+    public void loadTrigger(TwinFactoryTriggerEntity src) throws ServiceException {
+        loadTriggers(Collections.singleton(src));
+    }
+
+    public void loadTriggers(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
+        twinTriggerService.load(srcCollection,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinTriggerId,
+                TwinFactoryTriggerEntity::getTwinTrigger,
+                TwinFactoryTriggerEntity::setTwinTrigger);
+    }
+
+    public void loadClass(TwinFactoryTriggerEntity src) throws ServiceException {
+        loadClasses(Collections.singleton(src));
+    }
+
+    public void loadClasses(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getInputTwinClassId,
+                TwinFactoryTriggerEntity::getTwinClass,
+                TwinFactoryTriggerEntity::setTwinClass);
     }
 }

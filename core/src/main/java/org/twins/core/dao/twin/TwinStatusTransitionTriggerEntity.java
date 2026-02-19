@@ -46,10 +46,14 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Column(name = "active")
     private Boolean active;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
+    private TwinStatusEntity twinStatus;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinTriggerEntity twinTrigger;
 
     public enum TransitionType {

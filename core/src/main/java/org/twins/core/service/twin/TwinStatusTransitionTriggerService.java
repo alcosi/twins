@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +30,8 @@ import java.util.stream.StreamSupport;
 @AllArgsConstructor
 public class TwinStatusTransitionTriggerService extends EntitySecureFindServiceImpl<TwinStatusTransitionTriggerEntity> {
     private final TwinStatusTransitionTriggerRepository repository;
+    private final TwinTriggerService twinTriggerService;
+    private final TwinStatusService twinStatusService;
 
     @Override
     public CrudRepository<TwinStatusTransitionTriggerEntity, UUID> entityRepository() {
@@ -104,5 +106,29 @@ public class TwinStatusTransitionTriggerService extends EntitySecureFindServiceI
 
         updateSafe(changes);
         return allEntities;
+    }
+
+    public void loadTrigger(TwinStatusTransitionTriggerEntity src) throws ServiceException {
+        loadTriggers(Collections.singleton(src));
+    }
+
+    public void loadTriggers(Collection<TwinStatusTransitionTriggerEntity> srcCollection) throws ServiceException {
+        twinTriggerService.load(srcCollection,
+                TwinStatusTransitionTriggerEntity::getId,
+                TwinStatusTransitionTriggerEntity::getTwinTriggerId,
+                TwinStatusTransitionTriggerEntity::getTwinTrigger,
+                TwinStatusTransitionTriggerEntity::setTwinTrigger);
+    }
+
+    public void loadStatus(TwinStatusTransitionTriggerEntity src) throws ServiceException {
+        loadStatuses(Collections.singleton(src));
+    }
+
+    public void loadStatuses(Collection<TwinStatusTransitionTriggerEntity> srcCollection) throws ServiceException {
+        twinStatusService.load(srcCollection,
+                TwinStatusTransitionTriggerEntity::getId,
+                TwinStatusTransitionTriggerEntity::getTwinStatusId,
+                TwinStatusTransitionTriggerEntity::getTwinStatus,
+                TwinStatusTransitionTriggerEntity::setTwinStatus);
     }
 }

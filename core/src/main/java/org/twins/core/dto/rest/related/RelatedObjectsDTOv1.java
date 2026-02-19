@@ -31,6 +31,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
@@ -46,6 +47,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related statuses map", example = "{twin status map}")
     public Map<UUID, TwinStatusDTOv1> statusMap;
+
+    @Schema(description = "related triggers map", example = "{trigger map}")
+    public Map<UUID, TwinTriggerDTOv1> triggerMap;
 
     @Schema(description = "related users map", example = "{user map}")
     public Map<UUID, UserDTOv1> userMap;
@@ -151,6 +155,8 @@ public class RelatedObjectsDTOv1 {
             return (T) twinMap.get(id);
         } else if (relatedObjectClass == TwinStatusDTOv1.class) {
             return (T) statusMap.get(id);
+        } else if (relatedObjectClass == TwinTriggerDTOv1.class) {
+            return (T) triggerMap.get(id);
         } else if (relatedObjectClass == UserDTOv1.class) {
             return (T) userMap.get(id);
         } else if (relatedObjectClass == UserGroupDTOv1.class) {

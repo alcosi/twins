@@ -8,6 +8,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
@@ -50,11 +52,20 @@ public class TwinFactoryTriggerEntity implements EasyLoggable {
     @Column(name = "async")
     private Boolean async;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity twinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinTriggerEntity twinTrigger;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity twinClass;
 
     @Override
     public String easyLog(Level level) {
