@@ -14,7 +14,7 @@ create table if not exists user_group_map
         constraint user_group_map_domain_id_fk
             references domain
             on update cascade on delete cascade,
-    business_account_id uuid not null
+    business_account_id uuid
         constraint user_group_map_business_account_id_fk
             references business_account
             on update cascade on delete cascade,
@@ -23,7 +23,7 @@ create table if not exists user_group_map
             references "user"
             on update cascade on delete cascade,
     involves_counter int not null default 0,
-    added_manually boolean not null default ,
+    added_manually boolean not null default true,
     added_at            timestamp default CURRENT_TIMESTAMP,
     added_by_user_id    uuid
         constraint user_group_map_added_user_id_fk
@@ -42,7 +42,7 @@ create index idx_user_group_map_added_by_user_id
 
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
-    returns void
+    returns user_group_map
     volatile
     language plpgsql
 as
@@ -145,5 +145,52 @@ begin
 end;
 $$;
 
---todo move all data from type2, type3 maps to new table
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+SELECT
+    t2.id,
+    t2.user_group_id,
+    ug.user_group_type_id,
+    ug.domain_id,
+    t2.business_account_id,
+    t2.user_id,
+    0,
+    true,
+    t2.added_at,
+    t2.added_by_user_id
+FROM user_group_map_type2 t2
+JOIN user_group ug ON t2.user_group_id = ug.id
+ON CONFLICT DO NOTHING;
 
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+SELECT
+    t3.id,
+    t3.user_group_id,
+    ug.user_group_type_id,
+    t3.domain_id,
+    ug.business_account_id,
+    t3.user_id,
+    0,
+    true,
+    t3.added_at,
+    t3.added_by_user_id
+FROM user_group_map_type3 t3
+JOIN user_group ug ON t3.user_group_id = ug.id
+ON CONFLICT DO NOTHING;
+
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+SELECT
+    t1.id,
+    t1.user_group_id,
+    ug.user_group_type_id,
+    ug.domain_id,
+    ug.business_account_id,
+    t1.user_id,
+    0,
+    true,
+    t1.added_at,
+    t1.added_by_user_id
+FROM user_group_map_type1 t1
+JOIN user_group ug ON t1.user_group_id = ug.id
+ON CONFLICT DO NOTHING;
+
+--todo count involves?
