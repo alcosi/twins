@@ -177,6 +177,46 @@ end;
 $$;
 
 
+create or replace function twin_class_prevent_owner_type_change_fn()
+    returns trigger
+    language plpgsql
+as
+$$
+declare
+    v_exists boolean;
+begin
+    -- Check if owner type is being changed
+    if new.twin_class_owner_type_id is distinct from old.twin_class_owner_type_id then
+
+        -- Check if this class is used in propagation table
+        select exists (
+            select 1
+            from user_group_by_assignee_propagation p
+            where p.propagation_by_twin_class_id = old.id
+        )
+        into v_exists;
+
+        if v_exists then
+            raise exception
+                'Cannot change twin_class_owner_type_id because the class is used in user_group_by_assignee_propagation';
+        end if;
+
+    end if;
+
+    return new;
+end;
+$$;
+
+drop trigger if exists twin_class_prevent_owner_type_change_trg
+    on twin_class;
+
+create trigger twin_class_prevent_owner_type_change_trg
+    before update
+    on twin_class
+    for each row
+execute function twin_class_prevent_owner_type_change_fn();
+
+
 drop trigger if exists twin_after_delete_wrapper_trigger on twin;
 -- auto-generated definition
 create trigger twin_after_delete_wrapper_trigger
