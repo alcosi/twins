@@ -44,7 +44,7 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     private Boolean async;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

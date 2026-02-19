@@ -57,6 +57,15 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     @Override
     public boolean validateEntity(TwinFactoryTriggerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinFactoryId() == null) {
+            return logErrorAndReturnFalse(entity.logDetailed() + " twinFactoryId is not specified");
+        }
+        if (entity.getInputTwinClassId() == null) {
+            return logErrorAndReturnFalse(entity.logDetailed() + " inputTwinClassId is not specified");
+        }
+        if (entity.getTwinTriggerId() == null) {
+            return logErrorAndReturnFalse(entity.logDetailed() + " twinTriggerId is not specified");
+        }
         if (entity.getTwinFactory() == null) {
             entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
         }
@@ -71,7 +80,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
         if (CollectionUtils.isEmpty(factoryTriggers)) {
             return Collections.emptyList();
         }
-        validateEntities(factoryTriggers, EntitySmartService.EntityValidateMode.beforeSave);
         return StreamSupport.stream(saveSafe(factoryTriggers).spliterator(), false).toList();
     }
 

@@ -63,6 +63,10 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
     @Override
     public boolean validateEntity(TwinTriggerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinTriggerFeaturerId() == null) {
+            return logErrorAndReturnFalse(entity.logDetailed() + " twinTriggerFeaturerId is not specified");
+        }
+
         return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
     }
 
@@ -98,7 +102,6 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
             triggersToSave.add(triggerEntity);
         }
-        validateEntities(triggersToSave, EntitySmartService.EntityValidateMode.beforeSave);
 
         return StreamSupport.stream(saveSafe(triggersToSave).spliterator(), false).toList();
     }
