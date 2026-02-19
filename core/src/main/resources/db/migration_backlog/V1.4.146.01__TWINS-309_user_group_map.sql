@@ -48,12 +48,12 @@ $$
 declare
     v_group record;
 begin
-    -- 1. Запрет явного задания user_group_type_id
+    -- Prevent explicit setting of user_group_type_id
     if new.user_group_type_id is not null then
         raise exception 'user_group_type_id must not be set explicitly';
     end if;
 
-    -- 2. Получаем группу
+    -- Load user_group by id
     select *
     into v_group
     from user_group
@@ -63,13 +63,14 @@ begin
         raise exception 'user_group not found for id=%', new.user_group_id;
     end if;
 
-    -- 3. Проставляем тип из группы
+    -- Assign type from user_group
     new.user_group_type_id := v_group.user_group_type_id;
 
-    -- 4. Логика по типу
+    -- Apply validation and autofill rules depending on group type
     case v_group.user_group_type_id
 
         when 'systemScopeDomainManage' then
+            -- domain_id must be provided, business_account_id must be null
             if new.domain_id is null then
                 raise exception 'domain_id must be provided for systemScopeDomainManage';
             end if;
@@ -80,6 +81,7 @@ begin
 
 
         when 'businessAccountScopeBusinessAccountManage' then
+            -- domain_id and business_account_id must be null, domain_id taken from group
             if new.domain_id is not null then
                 raise exception 'domain_id must be null for businessAccountScopeBusinessAccountManage';
             end if;
@@ -92,6 +94,7 @@ begin
 
 
         when 'domainScopeDomainManage' then
+            -- domain_id and business_account_id must be null, domain_id taken from group
             if new.domain_id is not null then
                 raise exception 'domain_id must be null for domainScopeDomainManage';
             end if;
@@ -104,6 +107,7 @@ begin
 
 
         when 'domainScopeBusinessAccountManage' then
+            -- domain_id must be null, business_account_id must be provided, domain_id taken from group
             if new.domain_id is not null then
                 raise exception 'domain_id must be null for domainScopeBusinessAccountManage';
             end if;
@@ -116,6 +120,7 @@ begin
 
 
         when 'domainAndBusinessAccountScopeBusinessAccountManage' then
+            -- domain_id and business_account_id must be null, both taken from group
             if new.domain_id is not null then
                 raise exception 'domain_id must be null for domainAndBusinessAccountScopeBusinessAccountManage';
             end if;
