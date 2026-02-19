@@ -154,7 +154,7 @@ public class TwinCreateController extends ApiController {
         return createTwinV2(mapRequest(requestBytes, TwinCreateRqDTOv2.class), filesMap);
     }
 
-    protected ResponseEntity<Response> createTwinV2(TwinCreateRqDTOv2 request, Map<String, MultipartFile> filesMap) {
+    protected ResponseEntity<? extends Response> createTwinV2(TwinCreateRqDTOv2 request, Map<String, MultipartFile> filesMap) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
             attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
@@ -212,7 +212,7 @@ public class TwinCreateController extends ApiController {
         return processBatch(mapRequest(requestBytes, TwinBatchCreateRqDTOv1.class), filesMap, mapperContext);
     }
 
-    protected ResponseEntity<Response> processBatch(TwinBatchCreateRqDTOv1 request, Map<String, MultipartFile> filesMap, MapperContext mapperContext) {
+    protected ResponseEntity<? extends Response> processBatch(TwinBatchCreateRqDTOv1 request, Map<String, MultipartFile> filesMap, MapperContext mapperContext) {
         TwinBatchSaveRsDTOv1 rs = new TwinBatchSaveRsDTOv1();
         try {
             request.getTwins().forEach(twinCreateRqDTOv1 -> {
