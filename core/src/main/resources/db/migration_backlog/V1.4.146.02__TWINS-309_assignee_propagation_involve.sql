@@ -48,6 +48,134 @@ create index idx_user_group_by_assignee_propagation_twin_status_id
     on user_group_by_assignee_propagation (propagation_by_twin_status_id);
 
 
+create or replace function user_group_by_assignee_propagation_validate(
+    p_user_group_id uuid,
+    p_twin_class_id uuid
+)
+    returns void
+    language plpgsql
+as
+$$
+declare
+    v_group_type varchar;
+    v_group_domain_id uuid;
+    v_owner_type varchar;
+    v_class_domain_id uuid;
+begin
+    -- Load user_group type and domain
+    select ug.user_group_type_id,
+           ug.domain_id
+    into v_group_type,
+        v_group_domain_id
+    from user_group ug
+    where ug.id = p_user_group_id;
+
+    if not found then
+        raise exception 'user_group not found: %', p_user_group_id;
+    end if;
+
+    -- Load twin_class owner type and domain
+    select tc.twin_class_owner_type_id,
+           tc.domain_id
+    into v_owner_type,
+        v_class_domain_id
+    from twin_class tc
+    where tc.id = p_twin_class_id;
+
+    if not found then
+        raise exception 'twin_class not found: %', p_twin_class_id;
+    end if;
+
+    -- Validate compatibility between twin_class owner type and user_group type
+    case v_owner_type
+
+        when 'user' then
+            raise exception 'Propagation is not allowed for twin_class owner type=user';
+
+        when 'businessAccount' then
+            if v_group_type <> 'businessAccountScopeBusinessAccountManage' then
+                raise exception 'Only businessAccountScopeBusinessAccountManage groups can access businessAccount classes';
+            end if;
+
+        when 'domainUser' then
+            if v_group_type not in ('domainScopeDomainManage', 'systemScopeDomainManage') then
+                raise exception 'Invalid group type for domainUser class';
+            end if;
+
+            -- For domainScopeDomainManage ensure same domain
+            if v_group_type = 'domainScopeDomainManage'
+                and v_class_domain_id is distinct from v_group_domain_id then
+                raise exception 'Domain mismatch between user_group and twin_class';
+            end if;
+
+        when 'domainBusinessAccount' then
+            if v_group_type not in ('domainScopeBusinessAccountManage',
+                                    'domainAndBusinessAccountScopeBusinessAccountManage') then
+                raise exception 'Invalid group type for domainBusinessAccount class';
+            end if;
+
+            -- Ensure same domain
+            if v_class_domain_id is distinct from v_group_domain_id then
+                raise exception 'Domain mismatch between user_group and twin_class';
+            end if;
+
+        when 'domain' then
+            if v_group_type not in ('domainScopeDomainManage', 'systemScopeDomainManage') then
+                raise exception 'Invalid group type for domain class';
+            end if;
+
+            -- For domainScopeDomainManage ensure same domain
+            if v_group_type = 'domainScopeDomainManage'
+                and v_class_domain_id is distinct from v_group_domain_id then
+                raise exception 'Domain mismatch between user_group and twin_class';
+            end if;
+
+        when 'system' then
+            raise exception 'Propagation is not allowed for twin_class owner type=system';
+
+        else
+            raise exception 'Unsupported twin_class_owner_type_id=%', v_owner_type;
+
+        end case;
+
+end;
+$$;
+
+create or replace function user_group_by_assignee_propagation_bi_fn()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    perform user_group_by_assignee_propagation_validate(
+            new.user_group_id,
+            new.propagation_by_twin_class_id
+            );
+
+    return new;
+end;
+$$;
+
+create or replace function user_group_by_assignee_propagation_bu_fn()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    if new.user_group_id is distinct from old.user_group_id
+        or new.propagation_by_twin_class_id is distinct from old.propagation_by_twin_class_id then
+
+        perform user_group_by_assignee_propagation_validate(
+                new.user_group_id,
+                new.propagation_by_twin_class_id
+                );
+
+    end if;
+
+    return new;
+end;
+$$;
+
 
 drop trigger if exists twin_after_delete_wrapper_trigger on twin;
 -- auto-generated definition
