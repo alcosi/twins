@@ -144,3 +144,6 @@ begin
     return new;
 end;
 $$;
+
+--todo move all data from type2, type3 maps to new table
+
