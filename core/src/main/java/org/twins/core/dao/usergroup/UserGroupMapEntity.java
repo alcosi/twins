@@ -10,10 +10,12 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -83,6 +85,11 @@ public class UserGroupMapEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+    private Set<SpaceRoleUserGroupEntity> spaceRoleUserGroups;
 
     public String easyLog(Level level) {
         return switch (level) {

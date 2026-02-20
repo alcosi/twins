@@ -2,10 +2,13 @@ package org.twins.core.dao.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
+import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.enums.user.UserStatus;
 
 import java.sql.Timestamp;
@@ -45,6 +48,16 @@ public class UserEntity implements EasyLoggable {
     @Column(name = "user_status_id")
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<UserGroupMapEntity> userGroupMaps;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<SpaceRoleUserEntity> spaceRoleUsers;
 
     @Transient
     private Kit<UserGroupEntity, UUID> userGroups;
