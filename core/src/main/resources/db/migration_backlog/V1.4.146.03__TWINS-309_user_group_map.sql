@@ -31,15 +31,17 @@ create table if not exists user_group_map
             on update cascade
 );
 
-drop index if exists user_group_map_user_id_business_account_id_index;
-create unique index user_group_map_user_id_business_account_id_index
-    on user_group_map (user_id, business_account_id, user_group_id);
-
 drop index if exists idx_user_group_map_added_by_user_id;
 create index idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
+drop index if exists idx_ugm_user_group_scope;
+create index idx_ugm_user_group_scope
+    on user_group_map (user_group_id, domain_id, business_account_id, user_id);
 
+drop index if exists idx_ugm_user_scope;
+create index idx_ugm_user_scope
+    on user_group_map (user_id, domain_id, business_account_id);
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
     returns user_group_map

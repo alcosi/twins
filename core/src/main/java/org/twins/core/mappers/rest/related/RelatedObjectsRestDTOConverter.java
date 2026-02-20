@@ -142,7 +142,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
         Map<UUID, UserDTOv1> userMap = new HashMap<>();
-        Map<UUID, UserGroupDTOv1> userGroupMap = new HashMap<>();
+        Map<UUID, UserGroupDTOv1> UserGroupMapEntity = new HashMap<>();
         Map<UUID, TwinClassDTOv1> twinClassMap = new HashMap<>();
         Map<UUID, TwinflowTransitionBaseDTOv1> twinflowTransitionMap = new HashMap<>();
         Map<UUID, DataListDTOv1> dataListMap = new HashMap<>();

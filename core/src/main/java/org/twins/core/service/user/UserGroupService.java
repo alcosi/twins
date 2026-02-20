@@ -30,6 +30,7 @@ import java.util.function.Function;
 public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntity> {
     final UserGroupRepository userGroupRepository;
     final UserGroupTypeRepository userGroupTypeRepository;
+    final UserGroupMapRepository userGroupMapRepository;
     final UserGroupActAsUserInvolveRepository actAsUserInvolveRepository;
     final FeaturerService featurerService;
     @Lazy
@@ -83,19 +84,12 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         if (CollectionUtils.isEmpty(needLoad))
             return;
 
-        UUID businessAccountId = apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : ApiUser.NOT_SPECIFIED; // this will help to call next query
-        List<UserGroupTypeEntity> userGroupTypes = userGroupTypeRepository.findValidTypes(apiUser.getDomainId(), businessAccountId);
-        if (CollectionUtils.isEmpty(userGroupTypes))
+        List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroups(apiUser.getDomainId(), apiUser.getBusinessAccountId(), needLoad.getIdSet());
+        if (CollectionUtils.isNotEmpty(userGroups)) {
             return;
-        List<? extends UserGroupMap> userGroups;
-        for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
-            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturerId(), Slugger.class);
-            userGroups = slugger.getGroups(userGroupTypeEntity.getSluggerParams(), needLoad.getIdSet());
-            if (CollectionUtils.isNotEmpty(userGroups))
-                for (var userGroupMap : userGroups) {
-                    if (slugger.checkConfig(userGroupMap))
-                        needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
-                }
+        }
+        for (var userGroupMap : userGroups) {
+            needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
         userGroupsForActAsUserInvolve();
     }
@@ -160,16 +154,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     }
 
     public Set<UUID> getUsersForGroups(UUID domainId, UUID businessAccountId, Set<UUID> userGroupIds) throws ServiceException {
-        List<UserGroupTypeEntity> userGroupTypes = userGroupTypeRepository.findValidTypes(domainId, businessAccountId);
-        if (CollectionUtils.isEmpty(userGroupTypes))
-            return new HashSet<>();
-
-        Set<UUID> userIds = new HashSet<>();
-        for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
-            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturerId(), Slugger.class);
-            userIds.addAll(slugger.getUsers(userGroupTypeEntity.getSluggerParams(), domainId, businessAccountId, userGroupIds));
-        }
-        return userIds;
+        return userGroupMapRepository.getUsers(domainId, businessAccountId, userGroupIds);
     }
 
 }

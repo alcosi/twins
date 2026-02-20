@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapperV2;
 import org.twins.core.mappers.rest.usergroup.UserGroupSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.permission.UserGroupSearchService;
+import org.twins.core.service.user.UserGroupSearchService;
 
 @Tag(name = ApiTag.USER_GROUP)
 @RestController

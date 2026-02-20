@@ -1,6 +1,8 @@
 package org.twins.core.dao.user;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -8,8 +10,8 @@ import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.enums.user.UserStatus;
 import org.twins.core.domain.search.SpaceSearch;
+import org.twins.core.enums.user.UserStatus;
 
 import java.util.*;
 
@@ -167,13 +169,13 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
             if (CollectionUtils.isEmpty(userGroupIds))
                 return cb.conjunction();
 
-            Root<UserGroupMapType1Entity> userGroupMapRoot = query.from(UserGroupMapType1Entity.class);
+            Root<UserGroupMapEntity> userGroupMapRoot = query.from(UserGroupMapEntity.class);
 
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType1Entity.Fields.userId));
+            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapEntity.Fields.userId));
 
             List<Predicate> groupPredicates = userGroupIds.stream()
                     .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapType1Entity.Fields.userGroupId),
+                            userGroupMapRoot.get(UserGroupMapEntity.Fields.userGroupId),
                             groupId
                     ))
                     .toList();
@@ -191,20 +193,20 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
             if (CollectionUtils.isEmpty(userGroupIds) || businessAccountId == null)
                 return cb.conjunction();
 
-            Root<UserGroupMapType2Entity> userGroupMapRoot = query.from(UserGroupMapType2Entity.class);
+            Root<UserGroupMapEntity> userGroupMapRoot = query.from(UserGroupMapEntity.class);
 
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType2Entity.Fields.userId));
+            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapEntity.Fields.userId));
 
             List<Predicate> groupPredicates = userGroupIds.stream()
                     .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapType2Entity.Fields.userGroupId),
+                            userGroupMapRoot.get(UserGroupMapEntity.Fields.userGroupId),
                             groupId
                     ))
                     .toList();
 
             Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
 
-            Predicate businessAccountCondition = cb.equal(userGroupMapRoot.get(UserGroupMapType2Entity.Fields.businessAccountId), businessAccountId);
+            Predicate businessAccountCondition = cb.equal(userGroupMapRoot.get(UserGroupMapEntity.Fields.businessAccountId), businessAccountId);
 
             Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, businessAccountCondition);
 
@@ -217,13 +219,13 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
             if (CollectionUtils.isEmpty(userGroupIds))
                 return cb.conjunction();
 
-            Root<UserGroupMapType3Entity> userGroupMapRoot = query.from(UserGroupMapType3Entity.class);
+            Root<UserGroupMapEntity> userGroupMapRoot = query.from(UserGroupMapEntity.class);
 
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType3Entity.Fields.userId));
+            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapEntity.Fields.userId));
 
             List<Predicate> groupPredicates = userGroupIds.stream()
                     .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapType3Entity.Fields.userGroupId),
+                            userGroupMapRoot.get(UserGroupMapEntity.Fields.userGroupId),
                             groupId
                     ))
                     .toList();
@@ -231,7 +233,7 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
             Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
 
             Predicate domainCondition = domainId != null
-                    ? cb.equal(userGroupMapRoot.get(UserGroupMapType3Entity.Fields.domainId), domainId)
+                    ? cb.equal(userGroupMapRoot.get(UserGroupMapEntity.Fields.domainId), domainId)
                     : cb.conjunction();
 
             Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, domainCondition);

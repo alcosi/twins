@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
-import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -32,7 +31,7 @@ public class UserGroupRestDTOMapper extends RestSimpleDTOMapper<UserGroupEntity,
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setBusinessAccountId(src.getBusinessAccountId())
-                        .setType(UserGroupType.valueOf(src.getUserGroupTypeId()));
+                        .setType(src.getUserGroupTypeId());
                 break;
         }
     }

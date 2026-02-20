@@ -11,6 +11,7 @@ import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.enums.user.UserGroupType;
 
 import java.util.UUID;
 
@@ -35,7 +36,8 @@ public class UserGroupEntity implements EasyLoggable {
     private UUID businessAccountId;
 
     @Column(name = "user_group_type_id")
-    private String userGroupTypeId;
+    @Enumerated(EnumType.STRING)
+    private UserGroupType userGroupTypeId;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;

@@ -217,8 +217,10 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     }
 
     public Specification<UserEntity> checkUserGroupType(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or, UUID businessAccountId, UUID domainId) throws ServiceException {
-        KitGrouped<UserGroupEntity, UUID, String> userGroupEntities = new KitGrouped<>(userGroupRepository.findByIdIn(userGroupIds), UserGroupEntity::getId, UserGroupEntity::getUserGroupTypeId);
-        for (Map.Entry<String, List<UserGroupEntity>> entry : userGroupEntities.getGroupedMap().entrySet()) {
+        KitGrouped<UserGroupEntity, UUID, UserGroupType> userGroupEntities = new KitGrouped<>(userGroupRepository.findByIdIn(userGroupIds), UserGroupEntity::getId, UserGroupEntity::getUserGroupTypeId);
+        for (Map.Entry<UserGroupType, List<UserGroupEntity>> entry : userGroupEntities.getGroupedMap().entrySet()) {
+            //todo
+            asdf
             if (entry.getKey().equals(UserGroupType.domainScopeDomainManage.name())) {
                 return UserSpecification.checkUserGroupMapType1IdIn(userGroupIds, exclude, or);
             } else if (entry.getKey().equals(UserGroupType.domainScopeBusinessAccountManage.name())) {
