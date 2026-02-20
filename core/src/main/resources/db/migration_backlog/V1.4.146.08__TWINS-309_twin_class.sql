@@ -28,14 +28,14 @@ begin
         -- Check if this class is used in propagation table
         select exists (
             select 1
-            from user_group_by_assignee_propagation p
+            from user_group_involve_assignee p
             where p.propagation_by_twin_class_id = old.id
         )
         into v_exists;
 
         if v_exists then
             raise exception
-                'Cannot change twin_class_owner_type_id because the class is used in user_group_by_assignee_propagation';
+                'Cannot change twin_class_owner_type_id because the class is used in user_group_involve_assignee';
         end if;
 end;
 $$;

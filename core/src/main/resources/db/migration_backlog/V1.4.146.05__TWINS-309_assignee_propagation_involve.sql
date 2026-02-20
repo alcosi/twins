@@ -1,54 +1,54 @@
-drop index if exists idx_user_group_by_assignee_propagation_granted_by_user_id;
-drop index if exists idx_user_group_by_assignee_propagation_user_group_id;
-drop index if exists idx_user_group_by_assignee_propagation_permission_schema_id;
-drop index if exists idx_user_group_by_assignee_propagation_twin_class_id;
-drop index if exists idx_user_group_by_assignee_propagation_twin_status_id;
+drop index if exists idx_user_group_involve_assignee_granted_by_user_id;
+drop index if exists idx_user_group_involve_assignee_user_group_id;
+drop index if exists idx_user_group_involve_assignee_permission_schema_id;
+drop index if exists idx_user_group_involve_assignee_twin_class_id;
+drop index if exists idx_user_group_involve_assignee_twin_status_id;
 
-create table if not exists user_group_by_assignee_propagation
+create table if not exists user_group_involve_assignee
 (
     id                            uuid not null
-        constraint user_group_by_assignee_propagation_pk
+        constraint user_group_involve_assignee_pk
             primary key,
     permission_schema_id          uuid not null
-        constraint user_group_by_assignee_propagation_permission_schema_id_fkey
+        constraint user_group_involve_assignee_permission_schema_id_fkey
             references permission_schema
             on update cascade on delete cascade,
     user_group_id                 uuid not null
-        constraint user_group_by_assignee_propagation_user_group_id_fkey
+        constraint user_group_involve_assignee_user_group_id_fkey
             references user_group
             on update cascade on delete cascade,
     propagation_by_twin_class_id  uuid not null
-        constraint user_group_by_assignee_propagation_twin_class_id_fkey
+        constraint user_group_involve_assignee_twin_class_id_fkey
             references twin_class
             on update cascade on delete cascade,
     propagation_by_twin_status_id uuid
-        constraint user_group_by_assignee_propagation_twin_status_id_fkey
+        constraint user_group_involve_assignee_twin_status_id_fkey
             references twin_status
             on update cascade on delete cascade,
     created_by_user_id            uuid not null
-        constraint user_group_by_assignee_propagation_granted_by_user_id_fkey
+        constraint user_group_involve_assignee_granted_by_user_id_fkey
             references "user"
             on update cascade on delete cascade,
     created_at                    timestamp default CURRENT_TIMESTAMP
 );
 
-create index idx_user_group_by_assignee_propagation_granted_by_user_id
-    on user_group_by_assignee_propagation (created_by_user_id);
+create index idx_user_group_involve_assignee_granted_by_user_id
+    on user_group_involve_assignee (created_by_user_id);
 
-create index idx_user_group_by_assignee_propagation_user_group_id
-    on user_group_by_assignee_propagation (user_group_id);
+create index idx_user_group_involve_assignee_user_group_id
+    on user_group_involve_assignee (user_group_id);
 
-create index idx_user_group_by_assignee_propagation_permission_schema_id
-    on user_group_by_assignee_propagation (permission_schema_id);
+create index idx_user_group_involve_assignee_permission_schema_id
+    on user_group_involve_assignee (permission_schema_id);
 
-create index idx_user_group_by_assignee_propagation_twin_class_id
-    on user_group_by_assignee_propagation (propagation_by_twin_class_id);
+create index idx_user_group_involve_assignee_twin_class_id
+    on user_group_involve_assignee (propagation_by_twin_class_id);
 
-create index idx_user_group_by_assignee_propagation_twin_status_id
-    on user_group_by_assignee_propagation (propagation_by_twin_status_id);
+create index idx_user_group_involve_assignee_twin_status_id
+    on user_group_involve_assignee (propagation_by_twin_status_id);
 
 
-create or replace function user_group_by_assignee_propagation_validate(
+create or replace function user_group_involve_assignee_validate(
     p_user_group_id uuid,
     p_twin_class_id uuid
 )
@@ -147,7 +147,7 @@ create or replace function user_group_by_assignee_propag_before_insert_wrapper()
 as
 $$
 begin
-    perform user_group_by_assignee_propagation_validate(new.user_group_id,new.propagation_by_twin_class_id);
+    perform user_group_involve_assignee_validate(new.user_group_id,new.propagation_by_twin_class_id);
     return new;
 end;
 $$;
@@ -160,7 +160,7 @@ $$
 begin
     if new.user_group_id is distinct from old.user_group_id
            or new.propagation_by_twin_class_id is distinct from old.propagation_by_twin_class_id then
-        perform user_group_by_assignee_propagation_validate(new.user_group_id,new.propagation_by_twin_class_id);
+        perform user_group_involve_assignee_validate(new.user_group_id,new.propagation_by_twin_class_id);
     end if;
     return new;
 end;
@@ -169,13 +169,13 @@ $$;
 drop trigger if exists user_group_by_assignee_propag_before_insert_wrapper_trigger on user_group;
 create trigger user_group_by_assignee_propag_before_insert_wrapper_trigger
     before insert
-    on user_group_by_assignee_propagation
+    on user_group_involve_assignee
     for each row
 execute procedure user_group_by_assignee_propag_before_insert_wrapper();
 drop trigger if exists user_group_by_assignee_propag_before_update_wrapper_trigger on user_group;
 create trigger user_group_by_assignee_propag_before_update_wrapper_trigger
     before update
-    on user_group_by_assignee_propagation
+    on user_group_involve_assignee
     for each row
 execute procedure user_group_by_assignee_propag_before_update_wrapper();
 
@@ -304,7 +304,7 @@ DECLARE
 BEGIN
     if p_owner_business_account_id is not null then
 
-        select a.user_group_id, d.id, a.propagation_by_twin_status_id into selected_user_group_id, selected_domain_id, selected_status_id from user_group_by_assignee_propagation a
+        select a.user_group_id, d.id, a.propagation_by_twin_status_id into selected_user_group_id, selected_domain_id, selected_status_id from user_group_involve_assignee a
                                                                                                                                                    join twin_class tc on tc.id = a.propagation_by_twin_class_id
                                                                                                                                                    join domain d on d.id = tc.domain_id
                                                                                                                                                    join domain_business_account db on db.domain_id = d.id and db.business_account_id = p_owner_business_account_id
@@ -314,7 +314,7 @@ BEGIN
             a.permission_schema_id = COALESCE(db.permission_schema_id, d.permission_schema_id);
     end if;
     if p_owner_business_account_id is null then
-        select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_by_assignee_propagation a
+        select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_involve_assignee a
                                                                                               join twin_class tc on tc.id = a.propagation_by_twin_class_id
                                                                                               join domain d on d.id = tc.domain_id
         where
@@ -345,8 +345,8 @@ BEGIN
 END;
 $$;
 drop table if exists permission_grant_assignee_propagation;
-UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_CREATE' WHERE id = '00000000-0000-0004-0020-000000000002';
-UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_MANAGE' WHERE id = '00000000-0000-0004-0020-000000000001';
-UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_UPDATE' WHERE id = '00000000-0000-0004-0020-000000000004';
-UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_DELETE' WHERE id = '00000000-0000-0004-0020-000000000005';
-UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_VIEW' WHERE id = '00000000-0000-0004-0020-000000000003';
+UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_CREATE' WHERE id = '00000000-0000-0004-0020-000000000002';
+UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_MANAGE' WHERE id = '00000000-0000-0004-0020-000000000001';
+UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_UPDATE' WHERE id = '00000000-0000-0004-0020-000000000004';
+UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_DELETE' WHERE id = '00000000-0000-0004-0020-000000000005';
+UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_VIEW' WHERE id = '00000000-0000-0004-0020-000000000003';
