@@ -164,81 +164,69 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
         };
     }
 
-    public static Specification<UserEntity> checkUserGroupMapType1IdIn(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or) {
+    public static Specification<UserEntity> checkUserGroupIdIn(
+            final Collection<UUID> userGroupIds,
+            final boolean exclude,
+            final boolean or,
+            final UUID domainId,
+            final UUID businessAccountId
+    ) {
+
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds))
+
+            // if no groups or domain is null, return always true
+            if (CollectionUtils.isEmpty(userGroupIds) || domainId == null) {
                 return cb.conjunction();
+            }
 
-            Root<UserGroupMapEntity> userGroupMapRoot = query.from(UserGroupMapEntity.class);
+            // join with UserGroupMapEntity
+            Root<UserGroupMapEntity> ugm = query.from(UserGroupMapEntity.class);
 
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapEntity.Fields.userId));
+            // join predicate on user id
+            Predicate userJoin = cb.equal(
+                    root.get(UserEntity.Fields.id),
+                    ugm.get(UserGroupMapEntity.Fields.userId)
+            );
 
-            List<Predicate> groupPredicates = userGroupIds.stream()
-                    .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapEntity.Fields.userGroupId),
-                            groupId
-                    ))
-                    .toList();
+            // predicate for user group ids
+            Predicate groupCondition = ugm
+                    .get(UserGroupMapEntity.Fields.userGroupId)
+                    .in(userGroupIds);
 
-            Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
+            // domain predicate (mandatory)
+            Predicate domainCondition = cb.equal(
+                    ugm.get(UserGroupMapEntity.Fields.domainId),
+                    domainId
+            );
 
-            Predicate combinedCondition = cb.and(joinCondition, groupIdCondition);
+            // hierarchical businessAccount logic
+            Predicate businessCondition;
+            if (businessAccountId != null) {
+                // include both specific businessAccount and domain-only groups
+                businessCondition = cb.or(
+                        cb.isNull(ugm.get(UserGroupMapEntity.Fields.businessAccountId)),
+                        cb.equal(
+                                ugm.get(UserGroupMapEntity.Fields.businessAccountId),
+                                businessAccountId
+                        )
+                );
+            } else {
+                // only domain-only groups
+                businessCondition = cb.isNull(
+                        ugm.get(UserGroupMapEntity.Fields.businessAccountId)
+                );
+            }
 
-            return exclude ? cb.not(combinedCondition) : combinedCondition;
-        };
-    }
+            // combine all predicates
+            Predicate combined = cb.and(
+                    userJoin,
+                    groupCondition,
+                    domainCondition,
+                    businessCondition
+            );
 
-    public static Specification<UserEntity> checkUserGroupMapType2IdIn(final Collection<UUID> userGroupIds, UUID businessAccountId, final boolean exclude, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds) || businessAccountId == null)
-                return cb.conjunction();
-
-            Root<UserGroupMapEntity> userGroupMapRoot = query.from(UserGroupMapEntity.class);
-
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapEntity.Fields.userId));
-
-            List<Predicate> groupPredicates = userGroupIds.stream()
-                    .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapEntity.Fields.userGroupId),
-                            groupId
-                    ))
-                    .toList();
-
-            Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
-
-            Predicate businessAccountCondition = cb.equal(userGroupMapRoot.get(UserGroupMapEntity.Fields.businessAccountId), businessAccountId);
-
-            Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, businessAccountCondition);
-
-            return exclude ? cb.not(combinedCondition) : combinedCondition;
-        };
-    }
-
-    public static Specification<UserEntity> checkUserGroupMapType3IdIn(final Collection<UUID> userGroupIds, UUID domainId, final boolean exclude, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds))
-                return cb.conjunction();
-
-            Root<UserGroupMapEntity> userGroupMapRoot = query.from(UserGroupMapEntity.class);
-
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapEntity.Fields.userId));
-
-            List<Predicate> groupPredicates = userGroupIds.stream()
-                    .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapEntity.Fields.userGroupId),
-                            groupId
-                    ))
-                    .toList();
-
-            Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
-
-            Predicate domainCondition = domainId != null
-                    ? cb.equal(userGroupMapRoot.get(UserGroupMapEntity.Fields.domainId), domainId)
-                    : cb.conjunction();
-
-            Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, domainCondition);
-
-            return exclude ? cb.not(combinedCondition) : combinedCondition;
+            // invert condition if exclude flag is true
+            return exclude ? cb.not(combined) : combined;
         };
     }
 

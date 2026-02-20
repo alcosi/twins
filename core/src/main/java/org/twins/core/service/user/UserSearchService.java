@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
@@ -28,7 +27,6 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
-import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.featurer.user.finder.UserFinder;
 import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.SystemEntityService;
@@ -165,8 +163,8 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
                 checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
                 checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
                 checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
-                checkUserGroupType(search.getUserGroupIdList(), false, true, businessAccountId, domainId),
-                checkUserGroupType(search.getUserGroupIdExcludeList(), true, false, businessAccountId, domainId),
+                checkUserGroupIdIn(search.getUserGroupIdList(), false, true, businessAccountId, domainId),
+                checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true, false, businessAccountId, domainId),
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
                 checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
@@ -214,21 +212,5 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
             }
         }
         return specification;
-    }
-
-    public Specification<UserEntity> checkUserGroupType(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or, UUID businessAccountId, UUID domainId) throws ServiceException {
-        KitGrouped<UserGroupEntity, UUID, UserGroupType> userGroupEntities = new KitGrouped<>(userGroupRepository.findByIdIn(userGroupIds), UserGroupEntity::getId, UserGroupEntity::getUserGroupTypeId);
-        for (Map.Entry<UserGroupType, List<UserGroupEntity>> entry : userGroupEntities.getGroupedMap().entrySet()) {
-            //todo
-            asdf
-            if (entry.getKey().equals(UserGroupType.domainScopeDomainManage.name())) {
-                return UserSpecification.checkUserGroupMapType1IdIn(userGroupIds, exclude, or);
-            } else if (entry.getKey().equals(UserGroupType.domainScopeBusinessAccountManage.name())) {
-                return UserSpecification.checkUserGroupMapType2IdIn(userGroupIds, businessAccountId , exclude, or);
-            } else {
-                return UserSpecification.checkUserGroupMapType3IdIn(userGroupIds, domainId, exclude, or);
-            }
-        }
-        return null;
     }
 }
