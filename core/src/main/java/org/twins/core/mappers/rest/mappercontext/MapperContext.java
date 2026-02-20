@@ -29,6 +29,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.service.SystemEntityService;
@@ -50,6 +51,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinClassEntity>> relatedTwinClassMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinStatusEntity>> relatedTwinStatusMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinTriggerEntity>> relatedTwinTriggerMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinEntity>> relatedTwinMap = new LinkedHashMap<>();
     @Getter
@@ -210,6 +213,8 @@ public class MapperContext {
             smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
             smartPut(relatedTwinStatusMap, twinStatus, twinStatus.getId());
+        else if (relatedObject instanceof TwinTriggerEntity twinTrigger)
+            smartPut(relatedTwinTriggerMap, twinTrigger, twinTrigger.getId());
         else if (relatedObject instanceof TwinEntity twin) {
             if (!SystemEntityService.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
                 smartPut(relatedTwinMap, twin, twin.getId());
@@ -455,6 +460,7 @@ public class MapperContext {
         dstMapperContext.relatedUserGroupMap = srcMapperContext.relatedUserGroupMap;
         dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
         dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
+        dstMapperContext.relatedTwinTriggerMap = srcMapperContext.relatedTwinTriggerMap;
         dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
         dstMapperContext.relatedTwinflowTransitionMap = srcMapperContext.relatedTwinflowTransitionMap;
         dstMapperContext.relatedDataListMap = srcMapperContext.relatedDataListMap;

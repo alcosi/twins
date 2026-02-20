@@ -4,9 +4,13 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.*;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -19,6 +23,8 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
@@ -35,12 +41,14 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
+import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
-import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -64,7 +72,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
     final TwinFactoryEraserRepository twinFactoryEraserRepository;
     final TwinService twinService;
-    final TwinEraserService twinEraserService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final TwinFactoryRepository twinFactoryRepository;
@@ -80,6 +87,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final I18nService i18nService;
     private final TwinflowFactoryRepository twinflowFactoryRepository;
+    private final TwinFactoryTriggerRepository twinFactoryTriggerRepository;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
+    @Lazy
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -197,6 +209,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         runPipelines(factoryEntity, factoryContext);
         runBranches(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
+        runTriggers(factoryEntity, factoryContext);
         factoryContext.currentFactoryBranchLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
     }
@@ -380,6 +393,47 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     action = eraserEntity.getEraserAction();
                 log.info("Eraser action {} was detected for {}", action, eraserInput.logDetailed());
                 eraserInput.setEraseAction(new EraseAction(action, eraserEntity.logDetailed()));
+            }
+        }
+        LoggerUtils.traceTreeLevelUp();
+    }
+
+    private void runTriggers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
+        List<TwinFactoryTriggerEntity> factoryTriggerEntityList = twinFactoryTriggerRepository.findByTwinFactoryId(factoryEntity.getId());
+        log.info("Loaded {} triggers", factoryTriggerEntityList.size());
+        if (CollectionUtils.isEmpty(factoryTriggerEntityList)) {
+            return;
+        }
+        LoggerUtils.traceTreeLevelDown();
+        for (TwinFactoryTriggerEntity factoryTriggerEntity : factoryTriggerEntityList) {
+            if (!factoryTriggerEntity.getActive()) {
+                log.info("Skipping inactive trigger: {}", factoryTriggerEntity.logNormal());
+                continue;
+            }
+            Set<FactoryItem> triggerInputList = getInputItems(factoryContext, factoryTriggerEntity.getInputTwinClassId(),
+                    factoryTriggerEntity.getTwinFactoryConditionSetId(), factoryTriggerEntity.getTwinFactoryConditionInvert());
+            if (CollectionUtils.isEmpty(triggerInputList)) {
+                log.info("Skipping trigger {} because of empty input", factoryTriggerEntity.logShort());
+                continue;
+            }
+            for (FactoryItem triggerInput : triggerInputList) {
+                TwinEntity targetTwin = triggerInput.getTwin();
+                if (targetTwin == null || targetTwin.getId() == null) {
+                    log.info("Skipping trigger {} because twin is not persisted yet", factoryTriggerEntity.logShort());
+                    continue;
+                }
+                if (factoryTriggerEntity.getAsync()) {
+                    factoryContext.getPostponedTriggers().add(
+                            targetTwin.getId(),
+                            targetTwin.getTwinStatusId(),
+                            factoryTriggerEntity.getTwinTriggerId()
+                    );
+                } else {
+                    log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
+                    TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());
+                    TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+                    twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, null, null);
+                }
             }
         }
         LoggerUtils.traceTreeLevelUp();

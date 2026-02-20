@@ -25,6 +25,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
     private final Map<Object, Set<TwinInvalidate>> invalidationMap = new ConcurrentHashMap<>();
     private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedChanges = new ConcurrentHashMap<>();
+    private final PostponedTriggers postponedTriggers = new PostponedTriggers();
 
     public TwinChangesCollector() {
         super();
@@ -118,6 +119,10 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         return this;
     }
 
+    public TwinChangesCollector addPostponedTrigger(UUID twinId, UUID previousTwinStatusId, UUID twinTriggerId) throws ServiceException {
+        postponedTriggers.add(twinId, previousTwinStatusId, twinTriggerId);
+        return this;
+    }
 
     public void clear() {
         super.clear();

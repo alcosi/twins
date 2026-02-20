@@ -37,8 +37,8 @@ public class TransitionTriggerSearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionTriggerEntity.Fields.id),
                 checkUuidIn(search.getTwinflowTransitionIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),
                 checkUuidIn(search.getTwinflowTransitionIdExcludeList(), true, true, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),
-                checkIntegerIn(search.getTransitionTriggerFeaturerIdList(), false, TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId),
-                checkIntegerIn(search.getTransitionTriggerFeaturerIdExcludeList(), true, TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId),
+                checkUuidIn(search.getTwinTriggerIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinTriggerId),
+                checkUuidIn(search.getTwinTriggerIdExcludeList(), true, true, TwinflowTransitionTriggerEntity.Fields.twinTriggerId),
                 checkTernary(search.getActive(), TwinflowTransitionTriggerEntity.Fields.isActive)
         );
     }

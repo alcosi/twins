@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -34,16 +35,19 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -62,8 +66,10 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     private final TwinClassService twinClassService;
     private final TwinStatusService twinStatusService;
     private final I18nService i18nService;
-    @Lazy
     private final FeaturerService featurerService;
+    private final TwinChangesService twinChangesService;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
     @Lazy
     private final AuthService authService;
     @Lazy
@@ -196,26 +202,47 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     @Transactional
     public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        runTwinStatusTransitionTriggers(twinEntity, srcStatusEntity, dstStatusEntity, twinChangesCollector);
+        twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
+    }
+
+    public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         List<TwinStatusTransitionTriggerEntity> triggerEntityList;
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
         UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
         if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
             triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
+            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity, twinChangesCollector);
         }
         if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
             triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
+            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity, twinChangesCollector);
         }
     }
 
-    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
+    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(twinStatusTransitionTriggerEntityList))
             return;
-        for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
-            log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
-            transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
+        for (TwinStatusTransitionTriggerEntity twinStatusTriggerEntity : twinStatusTransitionTriggerEntityList) {
+            log.info(twinStatusTriggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
+            TwinTriggerEntity twinTriggerEntity = twinStatusTriggerEntity.getTwinTrigger();
+            if (twinTriggerEntity == null || !twinStatusTriggerEntity.getTwinTriggerId().equals(twinTriggerEntity.getId())) {
+                twinTriggerEntity = twinTriggerService.findEntitySafe(twinStatusTriggerEntity.getTwinTriggerId());
+                twinStatusTriggerEntity.setTwinTriggerId(twinTriggerEntity.getId())
+                        .setTwinTrigger(twinTriggerEntity);
+            }
+            if (Boolean.TRUE.equals(twinStatusTriggerEntity.getAsync())) {
+                if (twinChangesCollector != null) {
+                    UUID statusId = twinStatusTriggerEntity.getType() == TwinStatusTransitionTriggerEntity.TransitionType.incoming ? srcStatusEntity.getId() : dstStatusEntity.getId();
+                    twinChangesCollector.addPostponedTrigger(twinEntity.getId(), statusId, twinStatusTriggerEntity.getTwinTriggerId());
+                } else {
+                    log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));
+                }
+            } else {
+                TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+                twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), twinEntity, srcStatusEntity, dstStatusEntity);
+            }
         }
     }
 

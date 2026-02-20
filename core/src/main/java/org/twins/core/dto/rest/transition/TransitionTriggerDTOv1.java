@@ -7,7 +7,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -24,14 +23,12 @@ public class TransitionTriggerDTOv1 {
     @Schema(description = "order", example = DTOExamples.INTEGER)
     public Integer order;
 
-    @Schema(description = "[optional] an id of transition trigger featurer", example = DTOExamples.INTEGER)
-    public Integer transitionTriggerFeaturerId;
+    @Schema(description = "[optional] twin trigger id", example = DTOExamples.TRIGGER_ID)
+    public UUID twinTriggerId;
 
-    @Schema(description = "[optional] head hunter featurer params", example = DTOExamples.FACTORY_PARAMS_MAP)
-    public HashMap<String, String> transitionTriggerParams;
+    @Schema(description = "async", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean async;
 
     @Schema(description = "active", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean active;
+    public Boolean active;
 }
-
-

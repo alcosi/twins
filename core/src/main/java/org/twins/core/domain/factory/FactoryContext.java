@@ -8,6 +8,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
@@ -37,6 +38,7 @@ public class FactoryContext {
     Map<UUID, UUID> afterCommitFactories = new HashMap<>();
     private UUID runLimitedByOwnerBusinessAccount; //this will help to protect from multi business_account run
     private UUID requestId; //this will help analyze what exactly launched factory
+    private PostponedTriggers postponedTriggers = new PostponedTriggers(); // for postponed trigger tasks
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;
