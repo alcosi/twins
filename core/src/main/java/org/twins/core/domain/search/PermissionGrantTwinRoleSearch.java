@@ -20,9 +20,9 @@ public class PermissionGrantTwinRoleSearch {
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
     Ternary isAssignee;
-    ...
-    Set<TwinRole> twinRoleList;
-    Set<TwinRole> twinRoleExcludeList;
+    Ternary isSpaceAssignee;
+    Ternary isCreator;
+    Ternary isSpaceCreator;
     Set<UUID> grantedByUserIdList;
     Set<UUID> grantedByUserIdExcludeList;
 }

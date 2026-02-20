@@ -23,8 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 import static org.twins.core.dao.specifications.permission.PermissionGrantTwinRoleSpecification.checkFieldLikeIn;
 
 
@@ -55,8 +54,12 @@ public class PermissionGrantTwinRoleSearchService {
                 checkUuidIn(search.getPermissionIdExcludeList(), true, false, PermissionGrantTwinRoleEntity.Fields.permissionId),
                 checkUuidIn(search.getTwinClassIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinClassIdExcludeList(), true, false, PermissionGrantTwinRoleEntity.Fields.twinClassId),
-                checkFieldLikeIn(safeConvertToString(search.getTwinRoleList()), false, false, PermissionGrantTwinRoleEntity.Fields.twinRole),
-                checkFieldLikeIn(safeConvertToString(search.getTwinRoleExcludeList()), true, false, PermissionGrantTwinRoleEntity.Fields.twinRole),
+
+                checkTernary(search.getIsAssignee(), PermissionGrantTwinRoleEntity.Fields.grantedToAssignee),
+                checkTernary(search.getIsSpaceAssignee(), PermissionGrantTwinRoleEntity.Fields.grantedToSpaceAssignee),
+                checkTernary(search.getIsCreator(), PermissionGrantTwinRoleEntity.Fields.grantedToCreator),
+                checkTernary(search.getIsSpaceCreator(), PermissionGrantTwinRoleEntity.Fields.grantedToSpaceCreator),
+
                 checkUuidIn(search.getGrantedByUserIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.grantedByUserId),
                 checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantTwinRoleEntity.Fields.grantedByUserId));
     }

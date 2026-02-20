@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.dto.rest.Request;
 
@@ -40,11 +42,17 @@ public class PermissionGrantTwinRoleSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id exclude list")
     public Set<UUID> twinClassIdExcludeList;
 
-    @Schema(description = "twin role list")
-    public Set<TwinRole> twinRoleList;
+    @Schema(description = "is assignee", example = DTOExamples.TERNARY)
+    public Ternary isAssignee;
 
-    @Schema(description = "twin role exclude list")
-    public Set<TwinRole> twinRoleExcludeList;
+    @Schema(description = "is space assignee", example = DTOExamples.TERNARY)
+    public Ternary isSpaceAssignee;
+
+    @Schema(description = "is creator", example = DTOExamples.TERNARY)
+    public Ternary isCreator;
+
+    @Schema(description = "is space creator", example = DTOExamples.TERNARY)
+    public Ternary isSpaceCreator;
 
     @Schema(description = "granted by user id list")
     public Set<UUID> grantedByUserIdList;
