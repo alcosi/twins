@@ -7,6 +7,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 
 import java.sql.Timestamp;
@@ -38,6 +39,7 @@ public class HistoryNotificationDTOv1 {
     public Boolean twinValidatorSetInvert;
 
     @Schema(description = "notification schema id")
+    @RelatedObject(type = NotificationSchemaDTOv1.class, name = "notificationSchema")
     public UUID notificationSchemaId;
 
     @Schema(description = "history notification recipient id")
@@ -45,9 +47,11 @@ public class HistoryNotificationDTOv1 {
     public UUID historyNotificationRecipientId;
 
     @Schema(description = "notification channel event id")
+    @RelatedObject(type = NotificationChannelEventDTOv1.class, name = "notificationChannelEvent")
     public UUID notificationChannelEventId;
 
     @Schema(description = "created by user id")
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @Schema(description = "created at")

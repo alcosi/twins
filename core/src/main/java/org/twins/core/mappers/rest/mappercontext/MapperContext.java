@@ -17,6 +17,10 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
+import org.twins.core.dao.notification.NotificationChannelEntity;
+import org.twins.core.dao.notification.NotificationChannelEventEntity;
+import org.twins.core.dao.notification.NotificationContextEntity;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -27,6 +31,7 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -99,6 +104,8 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<TwinValidatorSetEntity>> relatedTwinValidatorSetMap = new LinkedHashMap<>();
+    @Getter
     private Map<UUID, RelatedObject<ProjectionTypeGroupEntity>> relatedProjectionTypeGroupMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<ProjectionTypeEntity>> relatedProjectionTypeMap = new LinkedHashMap<>();
@@ -106,6 +113,14 @@ public class MapperContext {
     private Map<UUID, RelatedObject<SchedulerEntity>> relatedSchedulerMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<HistoryNotificationRecipientEntity>> relatedHistoryNotificationRecipientMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<NotificationSchemaEntity>> relatedNotificationSchemaMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<NotificationChannelEntity>> relatedNotificationChannelMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<NotificationContextEntity>> relatedNotificationContextMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<NotificationChannelEventEntity>> relatedNotificationChannelEventMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -258,6 +273,8 @@ public class MapperContext {
             smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassFieldRuleEntity entity)
             smartPut(relatedClassFieldRuleMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinValidatorSetEntity entity)
+            smartPut(relatedTwinValidatorSetMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassFreezeEntity entity)
             smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
         else if (relatedObject instanceof ProjectionTypeGroupEntity entity)
@@ -268,6 +285,14 @@ public class MapperContext {
             smartPut(relatedSchedulerMap, entity, entity.getId());
         else if (relatedObject instanceof HistoryNotificationRecipientEntity entity)
             smartPut(relatedHistoryNotificationRecipientMap, entity, entity.getId());
+        else if (relatedObject instanceof NotificationSchemaEntity entity)
+            smartPut(relatedNotificationSchemaMap, entity, entity.getId());
+        else if (relatedObject instanceof NotificationChannelEntity entity)
+            smartPut(relatedNotificationChannelMap, entity, entity.getId());
+        else if (relatedObject instanceof NotificationContextEntity entity)
+            smartPut(relatedNotificationContextMap, entity, entity.getId());
+        else if (relatedObject instanceof NotificationChannelEventEntity entity)
+            smartPut(relatedNotificationChannelEventMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -479,10 +504,15 @@ public class MapperContext {
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
         dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
         dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
+        dstMapperContext.relatedTwinValidatorSetMap = srcMapperContext.relatedTwinValidatorSetMap;
         dstMapperContext.relatedProjectionTypeGroupMap = srcMapperContext.relatedProjectionTypeGroupMap;
         dstMapperContext.relatedProjectionTypeMap = srcMapperContext.relatedProjectionTypeMap;
         dstMapperContext.relatedSchedulerMap = srcMapperContext.relatedSchedulerMap;
         dstMapperContext.relatedHistoryNotificationRecipientMap = srcMapperContext.relatedHistoryNotificationRecipientMap;
+        dstMapperContext.relatedNotificationSchemaMap = srcMapperContext.relatedNotificationSchemaMap;
+        dstMapperContext.relatedNotificationChannelMap = srcMapperContext.relatedNotificationChannelMap;
+        dstMapperContext.relatedNotificationContextMap = srcMapperContext.relatedNotificationContextMap;
+        dstMapperContext.relatedNotificationChannelEventMap = srcMapperContext.relatedNotificationChannelEventMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

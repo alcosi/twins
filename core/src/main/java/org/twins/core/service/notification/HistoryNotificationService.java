@@ -18,11 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationRepository;
-import org.twins.core.dao.notification.NotificationChannelEventEntity;
-import org.twins.core.dao.notification.NotificationSchemaEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
@@ -34,6 +29,7 @@ import org.twins.core.service.twin.TwinValidatorSetService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -78,65 +74,43 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     @Override
     public boolean validateEntity(HistoryNotificationEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinClassId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
+        }
         if (entityValidateMode != EntitySmartService.EntityValidateMode.beforeSave) {
             return true;
         }
-        ApiUser apiUser = authService.getApiUser();
-        UUID currentDomainId = apiUser.getDomain().getId();
 
         // Check twinClassId
-        if (entity.getTwinClassId() != null) {
-            TwinClassEntity twinClass = entity.getTwinClass();
-            if (twinClass == null || !twinClass.getId().equals(entity.getTwinClassId())) {
-                twinClass = twinClassService.findEntitySafe(entity.getTwinClassId());
-            }
-            if (twinClass.getDomainId() != null && !twinClass.getDomainId().equals(currentDomainId)) {
-                return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.SHORT) + " twinClass[" + twinClass.easyLog(EasyLoggable.Level.SHORT) + "] is from different domain");
-            }
+        if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
+            entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
         }
 
-        // Check twinClassFieldId (through twinClass)
+        // Check twinClassFieldId
         if (entity.getTwinClassFieldId() != null) {
-            TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(entity.getTwinClassFieldId());
-
-            if (twinClassField.getTwinClass() != null && twinClassField.getTwinClass().getDomainId() != null
-                    && !twinClassField.getTwinClass().getDomainId().equals(currentDomainId)) {
-                return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.SHORT) + " twinClassField[" + twinClassField.easyLog(EasyLoggable.Level.SHORT) + "] is from different domain");
+            if (entity.getTwinClassField() == null || !entity.getTwinClassField().getId().equals(entity.getTwinClassFieldId())) {
+                entity.setTwinClassField(twinClassFieldService.findEntitySafe(entity.getTwinClassFieldId()));
             }
         }
 
         // Check twinValidatorSetId
         if (entity.getTwinValidatorSetId() != null) {
-            TwinValidatorSetEntity twinValidatorSet = entity.getTwinValidatorSet();
-            if (twinValidatorSet == null || !twinValidatorSet.getId().equals(entity.getTwinValidatorSetId())) {
-                twinValidatorSet = twinValidatorSetService.findEntitySafe(entity.getTwinValidatorSetId());
-            }
-            if (twinValidatorSet.getDomainId() != null && !twinValidatorSet.getDomainId().equals(currentDomainId)) {
-                return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.SHORT) + " twinValidatorSet[" + twinValidatorSet.getId() + "] is from different domain");
+            if (entity.getTwinValidatorSet() == null || !entity.getTwinValidatorSet().getId().equals(entity.getTwinValidatorSetId())) {
+                entity.setTwinValidatorSet(twinValidatorSetService.findEntitySafe(entity.getTwinValidatorSetId()));
             }
         }
 
         // Check notificationSchemaId
         if (entity.getNotificationSchemaId() != null) {
-            NotificationSchemaEntity notificationSchema = entity.getNotificationSchema();
-            if (notificationSchema == null || !notificationSchema.getId().equals(entity.getNotificationSchemaId())) {
-                notificationSchema = (notificationSchemaService.findEntitySafe(entity.getNotificationSchemaId()));
-            }
-            if (notificationSchema.getDomainId() != null && !notificationSchema.getDomainId().equals(currentDomainId)) {
-                return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.SHORT) + " notificationSchema[" + notificationSchema.getId() + "] is from different domain");
+            if (entity.getNotificationSchema() == null || !entity.getNotificationSchema().getId().equals(entity.getNotificationSchemaId())) {
+                entity.setNotificationSchema(notificationSchemaService.findEntitySafe(entity.getNotificationSchemaId()));
             }
         }
 
-        // Check notificationChannelEventId (through notificationChannel)
+        // Check notificationChannelEventId
         if (entity.getNotificationChannelEventId() != null) {
-            NotificationChannelEventEntity notificationChannelEvent = entity.getNotificationChannelEvent();
-            if (notificationChannelEvent == null || !notificationChannelEvent.getId().equals(entity.getNotificationChannelEventId())) {
-                notificationChannelEvent = notificationEventServiceService.findEntitySafe(entity.getNotificationChannelEventId());
-            }
-            if (notificationChannelEvent.getNotificationChannel() != null
-                    && notificationChannelEvent.getNotificationChannel().getDomainId() != null
-                    && !notificationChannelEvent.getNotificationChannel().getDomainId().equals(currentDomainId)) {
-                return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.SHORT) + " notificationChannelEvent[" + entity.getNotificationChannelEvent().getId() + "] is from different domain");
+            if (entity.getNotificationChannelEvent() == null || !entity.getNotificationChannelEvent().getId().equals(entity.getNotificationChannelEventId())) {
+                entity.setNotificationChannelEvent(notificationEventServiceService.findEntitySafe(entity.getNotificationChannelEventId()));
             }
         }
 
@@ -193,5 +167,65 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         updateSafe(changes);
 
         return allEntities;
+    }
+
+    public void loadNotificationSchema(HistoryNotificationEntity entity) throws ServiceException {
+        loadNotificationSchema(List.of(entity));
+    }
+
+    public void loadNotificationSchema(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        notificationSchemaService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getNotificationSchemaId,
+                HistoryNotificationEntity::getNotificationSchema,
+                HistoryNotificationEntity::setNotificationSchema);
+    }
+
+    public void loadTwinClass(HistoryNotificationEntity entity) throws ServiceException {
+        loadTwinClass(List.of(entity));
+    }
+
+    public void loadTwinClass(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getTwinClassId,
+                HistoryNotificationEntity::getTwinClass,
+                HistoryNotificationEntity::setTwinClass);
+    }
+
+    public void loadTwinClassField(HistoryNotificationEntity entity) throws ServiceException {
+        loadTwinClassField(List.of(entity));
+    }
+
+    public void loadTwinClassField(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        twinClassFieldService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getTwinClassFieldId,
+                HistoryNotificationEntity::getTwinClassField,
+                HistoryNotificationEntity::setTwinClassField);
+    }
+
+    public void loadNotificationChannelEvent(HistoryNotificationEntity entity) throws ServiceException {
+        loadNotificationChannelEvent(List.of(entity));
+    }
+
+    public void loadNotificationChannelEvent(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        notificationEventServiceService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getNotificationChannelEventId,
+                HistoryNotificationEntity::getNotificationChannelEvent,
+                HistoryNotificationEntity::setNotificationChannelEvent);
+    }
+
+    public void loadTwinValidatorSet(HistoryNotificationEntity entity) throws ServiceException {
+        loadTwinValidatorSet(List.of(entity));
+    }
+
+    public void loadTwinValidatorSet(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        twinValidatorSetService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getTwinValidatorSetId,
+                HistoryNotificationEntity::getTwinValidatorSet,
+                HistoryNotificationEntity::setTwinValidatorSet);
     }
 }
