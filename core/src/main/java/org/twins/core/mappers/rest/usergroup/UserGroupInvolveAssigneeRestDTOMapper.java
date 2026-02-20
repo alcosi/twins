@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.dao.usergroup.UserGroupByAssigneePropagationEntity;
+import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = UserGroupByAssigneePropagationMode.class)
-public class UserGroupByAssigneePropagationRestDTOMapper extends RestSimpleDTOMapper<UserGroupByAssigneePropagationEntity, UserGroupByAssigneePropagationDTOv1> {
+public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<UserGroupInvolveAssigneeEntity, UserGroupByAssigneePropagationDTOv1> {
 
     @MapperModePointerBinding(modes = PermissionSchemaMode.UserGroupByAssigneePropagation2PermissionSchemaMode.class)
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
@@ -35,7 +35,7 @@ public class UserGroupByAssigneePropagationRestDTOMapper extends RestSimpleDTOMa
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
-    public void map(UserGroupByAssigneePropagationEntity src, UserGroupByAssigneePropagationDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(UserGroupInvolveAssigneeEntity src, UserGroupByAssigneePropagationDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(UserGroupByAssigneePropagationMode.DETAILED)) {
             case DETAILED:
                 dst
@@ -82,7 +82,7 @@ public class UserGroupByAssigneePropagationRestDTOMapper extends RestSimpleDTOMa
     }
 
     @Override
-    public String getObjectCacheId(UserGroupByAssigneePropagationEntity src) {
+    public String getObjectCacheId(UserGroupInvolveAssigneeEntity src) {
         return src.getId().toString();
     }
 }

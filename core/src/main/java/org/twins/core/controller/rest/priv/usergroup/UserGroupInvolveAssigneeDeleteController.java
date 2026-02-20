@@ -21,8 +21,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.usergroup.UserGroupByAssigneePropagationService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.usergroup.UserGroupInvolveAssigneeService;
 
 import java.util.UUID;
 
@@ -30,23 +30,23 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_GROUP_BY_ASSIGNEE_PROPAGATION_MANAGE, Permissions.USER_GROUP_BY_ASSIGNEE_PROPAGATION_DELETE})
-public class UserGroupByAssigneePropagationDeleteController extends ApiController {
-    private final UserGroupByAssigneePropagationService userGroupByAssigneePropagationService;
+@ProtectedBy({Permissions.USER_GROUP_INVOLVE_ASSIGNEE_MANAGE, Permissions.USER_GROUP_INVOLVE_ASSIGNEE_DELETE})
+public class UserGroupInvolveAssigneeDeleteController extends ApiController {
+    private final UserGroupInvolveAssigneeService userGroupInvolveAssigneeService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "userGroupByAssigneePropagationDeleteV1", summary = "Delete user group by assignee propagation by id")
+    @Operation(operationId = "userGroupInvolveAssigneeDeleteV1", summary = "Delete user group by assignee propagation by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @DeleteMapping(value = "/private/user_group/assignee_propagation/{userGroupByAssigneePropagationId}/v1")
-    public ResponseEntity<?> userGroupByAssigneePropagationDeleteV1(
-            @Parameter(example = DTOExamples.USER_GROUP_BY_ASSIGNEE_PROPAGATION_ID) @PathVariable UUID userGroupByAssigneePropagationId) {
+    @DeleteMapping(value = "/private/user_group/involve_assignee/{userGroupInvolveAssigneeId}/v1")
+    public ResponseEntity<?> userGroupInvolveAssigneeDeleteV1(
+            @Parameter(example = DTOExamples.USER_GROUP_INVOLVE_ASSIGNEE_ID) @PathVariable UUID userGroupInvolveAssigneeId) {
         Response rs = new Response();
         try {
-            userGroupByAssigneePropagationService.deleteById(userGroupByAssigneePropagationId);
+            userGroupInvolveAssigneeService.deleteById(userGroupInvolveAssigneeId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

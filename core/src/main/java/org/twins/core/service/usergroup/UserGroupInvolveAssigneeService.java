@@ -15,8 +15,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.usergroup.UserGroupByAssigneePropagationEntity;
-import org.twins.core.dao.usergroup.UserGroupByAssigneePropagationRepository;
+import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
+import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twin.TwinStatusService;
@@ -34,9 +34,9 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class UserGroupByAssigneePropagationService extends EntitySecureFindServiceImpl<UserGroupByAssigneePropagationEntity> {
+public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl<UserGroupInvolveAssigneeEntity> {
     @Getter
-    private final UserGroupByAssigneePropagationRepository repository;
+    private final UserGroupInvolveAssigneeRepository repository;
     private final PermissionSchemaService permissionSchemaService;
     private final UserGroupService userGroupService;
     private final AuthService authService;
@@ -45,17 +45,17 @@ public class UserGroupByAssigneePropagationService extends EntitySecureFindServi
     private final UserService userService;
 
     @Override
-    public CrudRepository<UserGroupByAssigneePropagationEntity, UUID> entityRepository() {
+    public CrudRepository<UserGroupInvolveAssigneeEntity, UUID> entityRepository() {
         return repository;
     }
 
     @Override
-    public Function<UserGroupByAssigneePropagationEntity, UUID> entityGetIdFunction() {
-        return UserGroupByAssigneePropagationEntity::getId;
+    public Function<UserGroupInvolveAssigneeEntity, UUID> entityGetIdFunction() {
+        return UserGroupInvolveAssigneeEntity::getId;
     }
 
     @Override
-    public boolean isEntityReadDenied(UserGroupByAssigneePropagationEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(UserGroupInvolveAssigneeEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
         boolean readDenied = !entity.getTwinClass().getDomainId().equals(domain.getId());
         if (readDenied) {
@@ -65,7 +65,7 @@ public class UserGroupByAssigneePropagationService extends EntitySecureFindServi
     }
 
     @Override
-    public boolean validateEntity(UserGroupByAssigneePropagationEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(UserGroupInvolveAssigneeEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getPermissionSchemaId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionSchemaId");
         if (entity.getUserGroupId() == null)
@@ -91,7 +91,7 @@ public class UserGroupByAssigneePropagationService extends EntitySecureFindServi
         return true;
     }
 
-    public UserGroupByAssigneePropagationEntity createUserGroupByAssigneePropagationEntity(UserGroupByAssigneePropagationEntity entity) throws ServiceException {
+    public UserGroupInvolveAssigneeEntity createUserGroupByAssigneePropagationEntity(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
         entity
                 .setCreatedByUserId(authService.getApiUser().getUserId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
@@ -99,18 +99,18 @@ public class UserGroupByAssigneePropagationService extends EntitySecureFindServi
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public UserGroupByAssigneePropagationEntity updateUserGroupByAssigneePropagationEntity(UserGroupByAssigneePropagationEntity entity) throws ServiceException {
-        UserGroupByAssigneePropagationEntity dbEntity = findEntitySafe(entity.getId());
+    public UserGroupInvolveAssigneeEntity updateUserGroupByAssigneePropagationEntity(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
+        UserGroupInvolveAssigneeEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupByAssigneePropagationEntity::getPermissionSchemaId,
-                UserGroupByAssigneePropagationEntity::setPermissionSchemaId, UserGroupByAssigneePropagationEntity.Fields.permissionSchemaId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupByAssigneePropagationEntity::getUserGroupId,
-                UserGroupByAssigneePropagationEntity::setUserGroupId, UserGroupByAssigneePropagationEntity.Fields.userGroupId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupByAssigneePropagationEntity::getPropagationByTwinClassId,
-                UserGroupByAssigneePropagationEntity::setPropagationByTwinClassId, UserGroupByAssigneePropagationEntity.Fields.propagationByTwinClassId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupByAssigneePropagationEntity::getPropagationByTwinStatusId,
-                UserGroupByAssigneePropagationEntity::setPropagationByTwinStatusId, UserGroupByAssigneePropagationEntity.Fields.propagationByTwinStatusId ,changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPermissionSchemaId,
+                UserGroupInvolveAssigneeEntity::setPermissionSchemaId, UserGroupInvolveAssigneeEntity.Fields.permissionSchemaId ,changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getUserGroupId,
+                UserGroupInvolveAssigneeEntity::setUserGroupId, UserGroupInvolveAssigneeEntity.Fields.userGroupId ,changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,
+                UserGroupInvolveAssigneeEntity::setPropagationByTwinClassId, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinClassId ,changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId,
+                UserGroupInvolveAssigneeEntity::setPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinStatusId ,changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
     }

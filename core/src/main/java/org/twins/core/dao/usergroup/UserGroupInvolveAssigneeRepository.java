@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface UserGroupByAssigneePropagationRepository extends CrudRepository<UserGroupByAssigneePropagationEntity, UUID>, JpaSpecificationExecutor<UserGroupByAssigneePropagationEntity> {
+public interface UserGroupInvolveAssigneeRepository extends CrudRepository<UserGroupInvolveAssigneeEntity, UUID>, JpaSpecificationExecutor<UserGroupInvolveAssigneeEntity> {
 }

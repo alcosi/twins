@@ -20,19 +20,19 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.usergroup.UserGroupByAssigneePropagationEntity;
+import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationSearchRqDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationSearchRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.usergroup.UserGroupByAssigneePropagationRestDTOMapper;
-import org.twins.core.mappers.rest.usergroup.UserGroupByAssigneePropagationSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.usergroup.UserGroupByAssigneePropagationSearchService;
-import org.twins.core.service.usergroup.UserGroupByAssigneePropagationService;
+import org.twins.core.mappers.rest.usergroup.UserGroupInvolveAssigneeRestDTOMapper;
+import org.twins.core.mappers.rest.usergroup.UserGroupInvolveAssigneeSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.usergroup.UserGroupInvolveAssigneeSearchService;
+import org.twins.core.service.usergroup.UserGroupInvolveAssigneeService;
 
 import java.util.UUID;
 
@@ -40,34 +40,34 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_GROUP_BY_ASSIGNEE_PROPAGATION_MANAGE, Permissions.USER_GROUP_BY_ASSIGNEE_PROPAGATION_VIEW})
-public class UserGroupByAssigneePropagationSearchController extends ApiController {
+@ProtectedBy({Permissions.USER_GROUP_INVOLVE_ASSIGNEE_MANAGE, Permissions.USER_GROUP_INVOLVE_ASSIGNEE_VIEW})
+public class UserGroupInvolveAssigneeSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final UserGroupByAssigneePropagationSearchService userGroupByAssigneePropagationSearchService;
-    private final UserGroupByAssigneePropagationSearchDTOReverseMapper userGroupByAssigneePropagationSearchDTOReverseMapper;
-    private final UserGroupByAssigneePropagationRestDTOMapper userGroupByAssigneePropagationRestDTOMapper;
-    private final UserGroupByAssigneePropagationService userGroupByAssigneePropagationService;
+    private final UserGroupInvolveAssigneeSearchService userGroupInvolveAssigneeSearchService;
+    private final UserGroupInvolveAssigneeSearchDTOReverseMapper userGroupInvolveAssigneeSearchDTOReverseMapper;
+    private final UserGroupInvolveAssigneeRestDTOMapper userGroupInvolveAssigneeRestDTOMapper;
+    private final UserGroupInvolveAssigneeService userGroupInvolveAssigneeService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "userGroupByAssigneePropagationSearchV1", summary = "User group by assignee propagation search")
+    @Operation(operationId = "userGroupInvolveAssigneeSearchV1", summary = "User group by assignee propagation search")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User group by assignee propagation list", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupByAssigneePropagationSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/assignee_propagation/search/v1")
-    public ResponseEntity<?> userGroupByAssigneePropagationSearchV1(
-            @MapperContextBinding(roots = UserGroupByAssigneePropagationRestDTOMapper.class, response = UserGroupByAssigneePropagationSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    public ResponseEntity<?> userGroupInvolveAssigneeSearchV1(
+            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupByAssigneePropagationSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody UserGroupByAssigneePropagationSearchRqDTOv1 request) {
         UserGroupByAssigneePropagationSearchRsDTOv1 rs = new UserGroupByAssigneePropagationSearchRsDTOv1();
         try {
-            PaginationResult<UserGroupByAssigneePropagationEntity> permissionGrants = userGroupByAssigneePropagationSearchService
-                    .findPermissionAssigneePropagations(userGroupByAssigneePropagationSearchDTOReverseMapper.convert(request), pagination);
+            PaginationResult<UserGroupInvolveAssigneeEntity> permissionGrants = userGroupInvolveAssigneeSearchService
+                    .findPermissionAssigneePropagations(userGroupInvolveAssigneeSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setUserGroupByAssigneePropagations(userGroupByAssigneePropagationRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
+                    .setUserGroupByAssigneePropagations(userGroupInvolveAssigneeRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -79,22 +79,22 @@ public class UserGroupByAssigneePropagationSearchController extends ApiControlle
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "userGroupByAssigneePropagationViewV1", summary = "User group by assignee propagation view")
+    @Operation(operationId = "userGroupInvolveAssigneeViewV1", summary = "User group by assignee propagation view")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User group by assignee propagation", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupByAssigneePropagationViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/assignee_propagation/{grantId}/v1")
-    public ResponseEntity<?> userGroupByAssigneePropagationViewV1(
-            @MapperContextBinding(roots = UserGroupByAssigneePropagationRestDTOMapper.class, response = UserGroupByAssigneePropagationViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.USER_GROUP_BY_ASSIGNEE_PROPAGATION_ID) @PathVariable("grantId") UUID grentId) {
+    public ResponseEntity<?> userGroupInvolveAssigneeViewV1(
+            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupByAssigneePropagationViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.USER_GROUP_INVOLVE_ASSIGNEE_ID) @PathVariable("grantId") UUID grentId) {
         UserGroupByAssigneePropagationViewRsDTOv1 rs = new UserGroupByAssigneePropagationViewRsDTOv1();
         try {
-            UserGroupByAssigneePropagationEntity permissionGrant = userGroupByAssigneePropagationService.findEntitySafe(grentId);
+            UserGroupInvolveAssigneeEntity permissionGrant = userGroupInvolveAssigneeService.findEntitySafe(grentId);
 
             rs
-                    .setUserGroupByAssigneePropagation(userGroupByAssigneePropagationRestDTOMapper.convert(permissionGrant, mapperContext))
+                    .setUserGroupByAssigneePropagation(userGroupInvolveAssigneeRestDTOMapper.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

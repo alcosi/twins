@@ -21,8 +21,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "user_group_by_assignee_propagation")
-public class UserGroupByAssigneePropagationEntity implements EasyLoggable {
+@Table(name = "user_group_involve_assignee")
+public class UserGroupInvolveAssigneeEntity implements EasyLoggable {
     @Id
     private UUID id;
 
