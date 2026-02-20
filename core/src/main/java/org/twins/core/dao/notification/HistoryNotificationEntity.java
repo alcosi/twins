@@ -12,19 +12,21 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
-@Table(name = "history_notification_schema_map")
+@Table(name = "history_notification")
 @DynamicUpdate
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class HistoryNotificationSchemaMapEntity implements EasyLoggable, ContainsTwinValidatorSet {
+public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinValidatorSet {
     @Id
     private UUID id;
 
@@ -57,6 +59,12 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
     @Column(name = "notification_channel_event_id")
     private UUID notificationChannelEventId;
 
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
     @ManyToOne
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false)
     private HistoryTypeEntity historyType;
@@ -71,17 +79,20 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
     @EqualsAndHashCode.Exclude
     private TwinValidatorSetEntity twinValidatorSet;
 
+    @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne
-    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     private NotificationSchemaEntity notificationSchema;
 
+    @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity twinClass;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private TwinClassFieldEntity twinClassField;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -96,6 +107,6 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
     private NotificationChannelEventEntity notificationChannelEvent;
 
     public String easyLog(Level level) {
-        return "historyNotificationSchemaMap[id:" + id + "]";
+        return "historyNotification[id:" + id + "]";
     }
 }

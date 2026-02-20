@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 public class HistoryNotificationTask implements Runnable {
     private final HistoryNotificationTaskEntity historyNotificationEntity;
     @Autowired
-    private HistoryNotificationSchemaMapRepository historyNotificationSchemaMapEntityRepository;
+    private HistoryNotificationRepository historyNotificationRepository;
     @Autowired
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
     @Autowired
@@ -69,15 +69,15 @@ public class HistoryNotificationTask implements Runnable {
             }
             var twin = history.getTwin();
             authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId()); //todo not sure that it's correct to use creator
-            List<HistoryNotificationSchemaMapEntity> configs = getConfigs(history);
+            List<HistoryNotificationEntity> configs = getConfigs(history);
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
             }
-            KitGroupedObj<HistoryNotificationSchemaMapEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
+            KitGroupedObj<HistoryNotificationEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,
-                    HistoryNotificationSchemaMapEntity::getId,
-                    HistoryNotificationSchemaMapEntity::getNotificationChannelEventId,
-                    HistoryNotificationSchemaMapEntity::getNotificationChannelEvent);
+                    HistoryNotificationEntity::getId,
+                    HistoryNotificationEntity::getNotificationChannelEventId,
+                    HistoryNotificationEntity::getNotificationChannelEvent);
 
             int recipientsCount = 0;
             int skippedDuplicatesCount = 0;
@@ -141,17 +141,17 @@ public class HistoryNotificationTask implements Runnable {
         }
     }
 
-    private List<HistoryNotificationSchemaMapEntity> getConfigs(HistoryEntity history) {
-        List<HistoryNotificationSchemaMapEntity> configs;
+    private List<HistoryNotificationEntity> getConfigs(HistoryEntity history) {
+        List<HistoryNotificationEntity> configs;
         HistoryType historyType = history.getHistoryType();
         if (history.getTwinClassFieldId() == null) {
-            configs = historyNotificationSchemaMapEntityRepository
+            configs = historyNotificationRepository
                     .findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
                             historyType.name(),
                             history.getTwin().getTwinClassId(),
                             historyNotificationEntity.getNotificationSchemaId());
         } else {
-            configs = historyNotificationSchemaMapEntityRepository
+            configs = historyNotificationRepository
                     .findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
                             historyType.name(),
                             history.getTwin().getTwinClassId(),
