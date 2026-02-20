@@ -427,6 +427,32 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
+    public static Specification<TwinEntity> excludeTwoNullDates(TwinFieldSearchDate first, TwinFieldSearchDate second) {
+        return (root, query, cb) -> {
+
+            Join<TwinEntity, TwinFieldTimestampEntity> join1 =
+                    root.join(TwinEntity.Fields.fieldsTimestamp, JoinType.LEFT);
+            join1.on(cb.equal(
+                    join1.get(TwinFieldTimestampEntity.Fields.twinClassFieldId),
+                    first.getTwinClassFieldEntity().getId()
+            ));
+
+            Join<TwinEntity, TwinFieldTimestampEntity> join2 =
+                    root.join(TwinEntity.Fields.fieldsTimestamp, JoinType.LEFT);
+            join2.on(cb.equal(
+                    join2.get(TwinFieldTimestampEntity.Fields.twinClassFieldId),
+                    second.getTwinClassFieldEntity().getId()
+            ));
+
+            Predicate bothNull = cb.and(
+                    cb.isNull(join1.get(TwinFieldTimestampEntity.Fields.value)),
+                    cb.isNull(join2.get(TwinFieldTimestampEntity.Fields.value))
+            );
+
+            return cb.not(bothNull);
+        };
+    }
+
     private static Timestamp convertToTimestamp(java.time.LocalDateTime localDateTime) {
         return Timestamp.valueOf(localDateTime);
     }

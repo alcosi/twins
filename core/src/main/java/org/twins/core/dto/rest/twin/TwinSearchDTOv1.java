@@ -130,6 +130,9 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Filter by head hierarchy direct children count (range: from, to)")
     public IntegerRangeDTOv1 headHierarchyCounterDirectChildrenRange;
 
+    @Schema(description = "Allow twins with both date fields set to null.")
+    public boolean allowTwinsWithBothDateFieldsNull = false;
+
     @Schema(description = "apply distinct on query results")
     public Boolean distinct;
 
