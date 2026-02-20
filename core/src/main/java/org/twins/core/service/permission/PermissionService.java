@@ -39,10 +39,10 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserDelegateService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -69,6 +69,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final SpaceUserRoleService spaceUserRoleService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
     private final I18nService i18nService;
+    private final UserDelegateService userDelegateService;
 
     private final TwinRepository twinRepository;
     @Lazy
@@ -320,15 +321,15 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         }
         if (!permissionsSchemaTwinRoleEntities.isEmpty()) {
             for (PermissionGrantTwinRoleEntity permissionGrantTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
-                if (userId.equals(twin.getAssignerUserId()) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.assignee))
-                    result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
-                if (twin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
-                    result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
+                if (userId.equals(twin.getAssignerUserId()) && permissionGrantTwinRoleEntity.getGrantedToAssignee())
+                    result.getGrantedByTwinRoles().add(TwinRole.assignee);
+                if (twin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToCreator())
+                    result.getGrantedByTwinRoles().add(TwinRole.creator);
                 if (null != spaceTwin) {
-                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.space_assignee))
-                        result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
-                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.space_creator))
-                        result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
+                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToSpaceAssignee())
+                        result.getGrantedByTwinRoles().add(TwinRole.space_assignee);
+                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToSpaceCreator())
+                        result.getGrantedByTwinRoles().add(TwinRole.space_creator);
                 }
             }
         }
@@ -449,7 +450,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             if (!apiUser.getMachineUser().getPermissions().contains(Permissions.ACT_AS_USER.getId())) {
                 throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "Current user has not ACT_AS_USER permission");
             }
-            apiUser.setActAsUserStep(ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED);
+            var delegatedUser = userDelegateService.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
+            if (delegatedUser == null) {
+                log.info("Current machine user delegated user configured");
+            } else {
+                apiUser.setMachineDelegatedUser(delegatedUser);
+                log.info("Delegated user was detected: {}", delegatedUser.logShort());
+            }
+            apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
         }
         UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
         user.setDetectedPermissionSchemaId(permissionSchemaId);

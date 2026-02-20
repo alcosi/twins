@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
@@ -15,10 +17,7 @@ import org.twins.core.domain.apiuser.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.ApiUserResolverService;
 
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequestScope
@@ -30,11 +29,15 @@ public class ApiUser {
     private BusinessAccountEntity machineBusinessAccount;
     private UserEntity user;
     private UserEntity machineUser;
+    @Getter
+    private UserEntity machineDelegatedUser;
     private UUID domainId;
     private UUID businessAccountId;
     private UUID userId;
     private UUID machineBusinessAccountId;
     private UUID machineUserId;
+    @Getter
+    private UUID machineDelegatedUserId;
     private DomainResolver domainResolver;
     private Locale locale;
     private LocaleResolver localeResolver;
@@ -50,11 +53,18 @@ public class ApiUser {
     @Getter
     private final UUID requestId = UuidUtils.generate();
 
+    private Set<UUID> permissionCache = null;
+
     public Set<UUID> getPermissions() {
-        if (user != null && user.getPermissions() != null)
-            return user.getPermissions();
-        else
-            return Collections.EMPTY_SET;
+        if (permissionCache != null)
+            return permissionCache;
+        if (user != null && user.getPermissions() != null) {
+            CollectionUtils.safeAdd(permissionCache, user.getPermissions());
+        }
+        if (machineDelegatedUser != null && machineDelegatedUser.getPermissions() != null) {
+            CollectionUtils.safeAdd(permissionCache, machineDelegatedUser.getPermissions());
+        }
+        return Objects.requireNonNullElse(permissionCache, Collections.EMPTY_SET);
     }
 
     public UUID getDetectedPermissionSchemaId() {
@@ -161,6 +171,13 @@ public class ApiUser {
         if (machineUser == null)
             throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN);
         return machineUser;
+    }
+
+    public void setMachineDelegatedUser(UserEntity newMachineDelegatedUser) throws ServiceException {
+        if (machineDelegatedUser != null)
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION);
+        machineDelegatedUser = newMachineDelegatedUser;
+        machineDelegatedUserId = newMachineDelegatedUser.getId();
     }
 
     private void resolveLocale() {
@@ -275,6 +292,10 @@ public class ApiUser {
         return machineUserId != null && !NOT_SPECIFIED.equals(machineUserId);
     }
 
+    public boolean isMachineDelegatedUserSpecified() throws ServiceException {
+        return machineDelegatedUserId != null && !NOT_SPECIFIED.equals(machineDelegatedUserId);
+    }
+
     public UUID getDomainId() throws ServiceException {
         if (isDomainSpecified())
             return getDomain().getId();
@@ -365,8 +386,7 @@ public class ApiUser {
     public enum ActAsUserStep {
         OMITTED(0),
         PERMISSION_CHECK_NEEDED(1),
-        USER_GROUP_INVOLVE_NEEDED(2),
-        READY(3);
+        READY(2);
 
         final int step;
     }

@@ -1,4 +1,4 @@
-package org.twins.core.dao.user;
+package org.twins.core.dao.usergroup;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

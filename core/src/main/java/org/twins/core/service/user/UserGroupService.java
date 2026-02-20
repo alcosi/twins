@@ -15,6 +15,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.*;
+import org.twins.core.dao.usergroup.UserGroupMapEntity;
+import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
@@ -31,7 +33,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupRepository userGroupRepository;
     final UserGroupTypeRepository userGroupTypeRepository;
     final UserGroupMapRepository userGroupMapRepository;
-    final UserGroupActAsUserInvolveRepository actAsUserInvolveRepository;
+    final UserDelegationRepository actAsUserInvolveRepository;
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
@@ -91,24 +93,6 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         for (var userGroupMap : userGroups) {
             needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
-        userGroupsForActAsUserInvolve();
-    }
-
-    private void userGroupsForActAsUserInvolve() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (apiUser.getActAsUserStep() != ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED) {
-            return;
-        }
-        UserEntity actAsUser = apiUser.getUser();
-        List<UserGroupActAsUserInvolveEntity> actAsUserInvolveList = actAsUserInvolveRepository.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
-        if (CollectionUtils.isEmpty(actAsUserInvolveList)) {
-            log.info("Current machine user has not act as user involve");
-            return;
-        }
-        List<UserGroupEntity> involvedInGroups = actAsUserInvolveList.stream().map(UserGroupActAsUserInvolveEntity::getInvolveInUserGroup).toList();
-        actAsUser.getUserGroups().addAll(involvedInGroups);
-        log.info("Act-as-user was involved into: {}", involvedInGroups.size());
-        apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
     }
 
     public void enterGroups(Set<UUID> userGroupIds) throws ServiceException {

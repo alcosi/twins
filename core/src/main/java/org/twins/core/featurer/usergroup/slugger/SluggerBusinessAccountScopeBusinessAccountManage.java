@@ -6,7 +6,11 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.user.*;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.dao.user.UserGroupTypeEntity;
+import org.twins.core.dao.usergroup.UserGroupMapEntity;
+import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;

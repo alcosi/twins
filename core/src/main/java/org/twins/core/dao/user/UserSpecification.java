@@ -10,6 +10,7 @@ import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
+import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.domain.search.SpaceSearch;
 import org.twins.core.enums.user.UserStatus;
 

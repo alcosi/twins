@@ -1,4 +1,4 @@
-package org.twins.core.dao.user;
+package org.twins.core.dao.usergroup;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -10,6 +10,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;

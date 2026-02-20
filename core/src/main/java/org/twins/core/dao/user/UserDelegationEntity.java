@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.dao.domain.DomainEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -16,9 +15,9 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "user_group_act_as_user_involve")
+@Table(name = "user_delegation")
 @FieldNameConstants
-public class UserGroupActAsUserInvolveEntity implements EasyLoggable {
+public class UserDelegationEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -33,8 +32,8 @@ public class UserGroupActAsUserInvolveEntity implements EasyLoggable {
     @Column(name = "machine_user_id")
     private UUID machineUserId;
 
-    @Column(name = "involve_in_user_group_id")
-    private UUID involveInUserGroupId;
+    @Column(name = "delegated_user_id")
+    private UUID delegatedUserId;
 
     @Column(name = "added_at")
     private Timestamp addedAt;
@@ -44,27 +43,21 @@ public class UserGroupActAsUserInvolveEntity implements EasyLoggable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "added_by_user_id", insertable = false, updatable = false)
     private UserEntity addedByUser;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "involve_in_user_group_id", insertable = false, updatable = false, nullable = false)
-    private UserGroupEntity involveInUserGroup;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "delegated_user_id", insertable = false, updatable = false)
+    private UserEntity delegatedUser;
 
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "userGroupActAsUserInvolve[id:" + id + "]";
+            case SHORT -> "userDelegation[id:" + id + "]";
             default ->
-                    "userGroupActAsUserInvolve[id:" + id + ", involveInUserGroupId:" + involveInUserGroupId + ", machineUserId:" + machineUserId + ", domainId:" + domainId + "]";
+                    "userDelegation[id:" + id + ", delegatedUserId:" + delegatedUserId + ", machineUserId:" + machineUserId + ", domainId:" + domainId + "]";
         };
     }
 }
