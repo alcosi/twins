@@ -16,8 +16,6 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
-import org.twins.core.dao.permission.SpacePermissionUserEntity;
-import org.twins.core.dao.permission.SpacePermissionUserGroupEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
@@ -332,26 +330,26 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
 
             // join space_permission_user spu
-            Join<TwinEntity, SpacePermissionUserEntity> spuJoin = joinTwin.join(TwinEntity.Fields.spacePermissionUser, JoinType.LEFT);
-            spuJoin.on(
-                    cb.and(
-                            cb.equal(spuJoin.get(SpacePermissionUserEntity.Fields.userId), userId),
-                            cb.equal(spuJoin.get(SpacePermissionUserEntity.Fields.permissionId), effectivePermissionId)
-                    )
-            );
-
-            // join space_permission_user_group spug
-            Join<TwinEntity, SpacePermissionUserGroupEntity> spugJoin = joinTwin.join(TwinEntity.Fields.spacePermissionUserGroup, JoinType.LEFT);
-            if (!CollectionUtils.isEmpty(userGroups)) {
-                spugJoin.on(
-                        cb.and(
-                                spugJoin.get(SpacePermissionUserGroupEntity.Fields.userGroupId).in(userGroups),
-                                cb.equal(spugJoin.get(SpacePermissionUserGroupEntity.Fields.permissionId), effectivePermissionId)
-                        )
-                );
-            } else {
-                spugJoin.on(cb.disjunction());
-            }
+//            Join<TwinEntity, SpacePermissionUserEntity> spuJoin = joinTwin.join(TwinEntity.Fields.spacePermissionUser, JoinType.LEFT);
+//            spuJoin.on(
+//                    cb.and(
+//                            cb.equal(spuJoin.get(SpacePermissionUserEntity.Fields.userId), userId),
+//                            cb.equal(spuJoin.get(SpacePermissionUserEntity.Fields.permissionId), effectivePermissionId)
+//                    )
+//            );
+//
+//             join space_permission_user_group spug
+//            Join<TwinEntity, SpacePermissionUserGroupEntity> spugJoin = joinTwin.join(TwinEntity.Fields.spacePermissionUserGroup, JoinType.LEFT);
+//            if (!CollectionUtils.isEmpty(userGroups)) {
+//                spugJoin.on(
+//                        cb.and(
+//                                spugJoin.get(SpacePermissionUserGroupEntity.Fields.userGroupId).in(userGroups),
+//                                cb.equal(spugJoin.get(SpacePermissionUserGroupEntity.Fields.permissionId), effectivePermissionId)
+//                        )
+//                );
+//            } else {
+//                spugJoin.on(cb.disjunction());
+//            }
 
 
 
@@ -361,8 +359,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
             return cb.or(
                     globalPermissionCheck,
-                    cb.isNotNull(spuJoin.get(SpacePermissionUserEntity.Fields.id)),
-                    cb.isNotNull(spugJoin.get(SpacePermissionUserGroupEntity.Fields.id)),
+//                    cb.isNotNull(spuJoin.get(SpacePermissionUserEntity.Fields.id)),
+//                    cb.isNotNull(spugJoin.get(SpacePermissionUserGroupEntity.Fields.id)),
                     twinRoleCheck
             );
         };
