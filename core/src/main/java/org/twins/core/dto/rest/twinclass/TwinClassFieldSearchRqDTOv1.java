@@ -61,6 +61,12 @@ public class TwinClassFieldSearchRqDTOv1 extends Request {
     @Schema(description = "field typer id exclude list")
     public Set<Integer> fieldTyperIdExcludeList;
 
+    @Schema(description = "field initiator id list")
+    public Set<Integer> fieldInitiatorIdList;
+
+    @Schema(description = "field initiator id exclude list")
+    public Set<Integer> fieldInitiatorIdExcludeList;
+
     @Schema(description = "view permission id list")
     public Set<UUID> viewPermissionIdList;
 
