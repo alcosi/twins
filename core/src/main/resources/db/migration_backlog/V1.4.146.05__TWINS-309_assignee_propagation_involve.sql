@@ -254,12 +254,7 @@ create or replace function user_group_add_or_remove_group(p_user_id uuid, p_grou
 as
 $$
 DECLARE
-    selected_group_type varchar := null;
-    selected_group_domain uuid := null;
-    selected_group_business_account uuid := null;
 BEGIN
-    select ug.user_group_type_id, ug.domain_id, ug.business_account_id into selected_group_type, selected_group_domain, selected_group_business_account from user_group ug where ug.id = p_group_id;
-
     if p_add_to_group then
 
         insert into user_group_map (id,
@@ -278,16 +273,20 @@ BEGIN
                 p_domain_id,
                 p_business_account_id,
                 p_user_id,
-                -9999, -- flag for trigger to  set counter to 1 and added_manualy false
+                -9999, -- flag for trigger to set counter to 1 and added_manualy false
                 false,
                 now(),
                 '00000000-0000-0000-0000-000000000000')
         on conflict (user_group_id, domain_id, business_account_id, user_id) do update set involves_counter = involves_counter + 1;
 
     else
-        --todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        delete from user_group_map_type2 where auto_involved and user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
 
+        update user_group_map set involves_counter = involves_counter - 1
+            where
+                user_id = p_user_id and
+                user_group_id = p_group_id and
+                ((p_domain_id IS NULL AND domain_id IS NULL) OR domain_id = p_domain_id) and
+                ((p_business_account_id IS NULL AND business_account_id IS NULL) OR business_account_id = p_business_account_id);
     end if;
 
 END;
