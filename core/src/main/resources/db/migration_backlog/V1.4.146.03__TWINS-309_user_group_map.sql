@@ -36,7 +36,7 @@ create index idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
 drop index if exists idx_ugm_user_group_scope;
-create index idx_ugm_user_group_scope
+create unique index idx_ugm_user_group_scope
     on user_group_map (user_group_id, domain_id, business_account_id, user_id);
 
 drop index if exists idx_ugm_user_scope;
@@ -194,5 +194,3 @@ SELECT
 FROM user_group_map_type1 t1
 JOIN user_group ug ON t1.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
-
---todo count involves?

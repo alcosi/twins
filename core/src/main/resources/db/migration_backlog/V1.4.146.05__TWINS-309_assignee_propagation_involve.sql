@@ -141,80 +141,43 @@ begin
 end;
 $$;
 
-create or replace function user_group_by_assignee_propagation_bi_fn()
+create or replace function user_group_by_assignee_propag_before_insert_wrapper()
     returns trigger
     language plpgsql
 as
 $$
 begin
-    perform user_group_by_assignee_propagation_validate(
-            new.user_group_id,
-            new.propagation_by_twin_class_id
-            );
-
+    perform user_group_by_assignee_propagation_validate(new.user_group_id,new.propagation_by_twin_class_id);
     return new;
 end;
 $$;
 
-create or replace function user_group_by_assignee_propagation_bu_fn()
+create or replace function user_group_by_assignee_propag_before_update_wrapper()
     returns trigger
     language plpgsql
 as
 $$
 begin
     if new.user_group_id is distinct from old.user_group_id
-        or new.propagation_by_twin_class_id is distinct from old.propagation_by_twin_class_id then
-
-        perform user_group_by_assignee_propagation_validate(
-                new.user_group_id,
-                new.propagation_by_twin_class_id
-                );
-
+           or new.propagation_by_twin_class_id is distinct from old.propagation_by_twin_class_id then
+        perform user_group_by_assignee_propagation_validate(new.user_group_id,new.propagation_by_twin_class_id);
     end if;
-
     return new;
 end;
 $$;
 
-
-create or replace function twin_class_prevent_owner_type_change_fn()
-    returns trigger
-    language plpgsql
-as
-$$
-declare
-    v_exists boolean;
-begin
-    -- Check if owner type is being changed
-    if new.twin_class_owner_type_id is distinct from old.twin_class_owner_type_id then
-
-        -- Check if this class is used in propagation table
-        select exists (
-            select 1
-            from user_group_by_assignee_propagation p
-            where p.propagation_by_twin_class_id = old.id
-        )
-        into v_exists;
-
-        if v_exists then
-            raise exception
-                'Cannot change twin_class_owner_type_id because the class is used in user_group_by_assignee_propagation';
-        end if;
-
-    end if;
-
-    return new;
-end;
-$$;
-
-drop trigger if exists twin_class_prevent_owner_type_change_trg
-    on twin_class;
-
-create trigger twin_class_prevent_owner_type_change_trg
-    before update
-    on twin_class
+drop trigger if exists user_group_by_assignee_propag_before_insert_wrapper_trigger on user_group;
+create trigger user_group_by_assignee_propag_before_insert_wrapper_trigger
+    before insert
+    on user_group_by_assignee_propagation
     for each row
-execute function twin_class_prevent_owner_type_change_fn();
+execute procedure user_group_by_assignee_propag_before_insert_wrapper();
+drop trigger if exists user_group_by_assignee_propag_before_update_wrapper_trigger on user_group;
+create trigger user_group_by_assignee_propag_before_update_wrapper_trigger
+    before update
+    on user_group_by_assignee_propagation
+    for each row
+execute procedure user_group_by_assignee_propag_before_update_wrapper();
 
 
 drop trigger if exists twin_after_delete_wrapper_trigger on twin;
@@ -296,68 +259,36 @@ DECLARE
     selected_group_business_account uuid := null;
 BEGIN
     select ug.user_group_type_id, ug.domain_id, ug.business_account_id into selected_group_type, selected_group_domain, selected_group_business_account from user_group ug where ug.id = p_group_id;
-        -- todo to user_group_map
-    if selected_group_type = 'systemScopeDomainManage' then
-        if selected_group_domain is not null then
-            raise exception 'Cannot add user to group % because group domain is not null and domain id is %', p_group_id, p_domain_id;
-        end if;
-        if p_domain_id is null then
-            raise exception 'Cannot add user to group % because domain is null', p_group_id;
-        end if;
-        if p_business_account_id is not null then
-            raise exception 'Cannot add user to group % because ba is not null. ba id= %', p_group_id, p_business_account_id;
-        end;
-        if selected_group_business_account is not null then
-            raise exception 'Cannot add user to group % because group ba is not null. ba id= %', p_group_id, selected_group_business_account;
-        end;
-        if p_add_to_group then
-            insert into user_group_map_type3 (id,user_group_id, domain_id, user_id, added_at, added_by_user_id, auto_involved)
-            VALUES (uuid_generate_v7_custom(), p_group_id, p_domain_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
-        else
-            delete from user_group_map_type3 where auto_involved and user_id = p_user_id and domain_id = p_domain_id and user_group_id = p_group_id;
-        end if;
+
+    if p_add_to_group then
+
+        insert into user_group_map (id,
+                                    user_group_id,
+                                    user_group_type_id,
+                                    domain_id,
+                                    business_account_id,
+                                    user_id,
+                                    involves_counter,
+                                    added_manually,
+                                    added_at,
+                                    added_by_user_id)
+        VALUES (uuid_generate_v7_custom(),
+                p_group_id,
+                null, --will be filled by before insert trigger
+                p_domain_id,
+                p_business_account_id,
+                p_user_id,
+                -9999, -- flag for trigger to  set counter to 1 and added_manualy false
+                false,
+                now(),
+                '00000000-0000-0000-0000-000000000000')
+        on conflict (user_group_id, domain_id, business_account_id, user_id) do update set involves_counter = involves_counter + 1;
+
+    else
+        --todo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        delete from user_group_map_type2 where auto_involved and user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
+
     end if;
-
-
-    if selected_group_type = 'domainScopeBusinessAccountManage' then
-        if selected_group_domain <> p_domain_id then
-            raise exception 'Cannot add user to group % because it is domain scope and domain id is %', p_group_id, p_domain_id;
-        end if;
-        if p_business_account_id is null then
-            raise exception 'Cannot add user to group % because ba is null.', p_group_id;
-        end;
-        if selected_group_business_account is not null then
-            raise exception 'Cannot add user to group % because group ba is not null. ba id= %', p_group_id, selected_group_business_account;
-        end;
-        if p_add_to_group then
-            insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id, involves_counter)
-            VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
-        else
-            delete from user_group_map_type2 where auto_involved and user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
-        end if;
-    end if;
-
-    if selected_group_type = 'systemScopeDomainManage' then
-        if selected_group_domain is not null then
-            raise exception 'Cannot add user to group % because group domain is not null and domain id is %', p_group_id, p_domain_id;
-        end if;
-        if p_domain_id is null then
-            raise exception 'Cannot add user to group % because domain is null', p_group_id;
-        end if;
-        if p_business_account_id is not null then
-            raise exception 'Cannot add user to group % because ba is not null. ba id= %', p_group_id, p_business_account_id;
-        end;
-        if selected_group_business_account is not null then
-            raise exception 'Cannot add user to group % because group ba is not null. ba id= %', p_group_id, selected_group_business_account;
-        end;
-        if p_add_to_group then
-            insert into user_group_map_type3 (id,user_group_id, domain_id, user_id, added_at, added_by_user_id, auto_involved)
-            VALUES (uuid_generate_v7_custom(), p_group_id, p_domain_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
-        else
-            delete from user_group_map_type3 where auto_involved and user_id = p_user_id and domain_id = p_domain_id and user_group_id = p_group_id;
-        end if;
-    end if;
-
 
 END;
 $$;
