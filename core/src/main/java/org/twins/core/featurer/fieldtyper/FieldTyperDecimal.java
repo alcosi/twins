@@ -185,6 +185,8 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
                     log.error("FieldTyperNumeric: value[{}] is out of range", value.getValue());
                     throw new Exception();
                 }
+            } else {
+                throw new Exception();
             }
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,

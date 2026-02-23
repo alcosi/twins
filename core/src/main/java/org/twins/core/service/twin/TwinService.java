@@ -874,8 +874,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 newAssignee = changesRecorder.getUpdateEntity().getAssignerUser();
             }
             checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
-            if (changesRecorder.isHistoryCollectorEnabled())
-                changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+            if (changesRecorder.isHistoryCollectorEnabled()) {
+                if (newAssignee != null) {
+                    changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+                } else {
+                    changesRecorder.getHistoryCollector().add(historyService.assigneeUnassigned(changesRecorder.getDbEntity().getAssignerUser()));
+                }
+            }
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
                 draftTwinPersistEntity
                         .setAssignerUserId(changesRecorder.getUpdateEntity().getAssignerUserId()); // we should not nullify value here, because NULLIFY_MARKER will indicate it in draft table

@@ -406,7 +406,8 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         return (root, query, cb) -> {
             if (search.isEmptySearch()) return cb.conjunction();
 
-            Join<TwinEntity, TwinFieldTimestampEntity> join = root.join(TwinEntity.Fields.fieldsTimestamp, JoinType.INNER);
+            JoinType joinType = search.isEmpty() ? JoinType.LEFT : JoinType.INNER;
+            Join<TwinEntity, TwinFieldTimestampEntity> join = root.join(TwinEntity.Fields.fieldsTimestamp, joinType);
             join.on(cb.equal(join.get(TwinFieldTimestampEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 
             Expression<Timestamp> timestampField = join.get(TwinFieldTimestampEntity.Fields.value);
@@ -419,7 +420,10 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             if (search.getMoreThenOrEquals() != null)
                 predicates.add(cb.greaterThanOrEqualTo(timestampField, convertToTimestamp(search.getMoreThenOrEquals())));
 
-            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            Predicate valuePredicate = predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            if (search.isEmpty())
+                return cb.or(valuePredicate, cb.isNull(timestampField));
+            return valuePredicate;
         };
     }
 

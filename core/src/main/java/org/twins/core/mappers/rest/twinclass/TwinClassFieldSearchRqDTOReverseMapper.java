@@ -30,6 +30,8 @@ public class TwinClassFieldSearchRqDTOReverseMapper extends RestSimpleDTOMapper<
                 .setDescriptionI18nNotLikeList(src.getDescriptionI18nNotLikeList())
                 .setFieldTyperIdList(src.getFieldTyperIdList())
                 .setFieldTyperIdExcludeList(src.getFieldTyperIdExcludeList())
+                .setFieldInitiatorIdList(src.getFieldInitiatorIdList())
+                .setFieldInitiatorIdExcludeList(src.getFieldInitiatorIdExcludeList())
                 .setViewPermissionIdList(src.getViewPermissionIdList())
                 .setViewPermissionIdExcludeList(src.getViewPermissionIdExcludeList())
                 .setEditPermissionIdList(src.getEditPermissionIdList())
