@@ -64,7 +64,6 @@ public class TwinSearch {
     private HierarchySearch hierarchyChildrenSearch;
     private Boolean distinct;
     private IntegerRange headHierarchyCounterDirectChildrenRange;
-    private IntegerRange twinClassTwinCounterRange;
     // if true, status check will consider freeze status from twin class (freeze status has priority over native twin status)
     private boolean checkFreezeStatus = true;
 
@@ -109,8 +108,7 @@ public class TwinSearch {
                 (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
                 createdAt == null &&
                 distinct == null &&
-                RangeUtils.isEmpty(headHierarchyCounterDirectChildrenRange) &&
-                RangeUtils.isEmpty(twinClassTwinCounterRange);
+                RangeUtils.isEmpty(headHierarchyCounterDirectChildrenRange);
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {

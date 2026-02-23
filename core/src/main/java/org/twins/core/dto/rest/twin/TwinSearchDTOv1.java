@@ -130,9 +130,6 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Filter by head hierarchy direct children count (range: from, to)")
     public IntegerRangeDTOv1 headHierarchyCounterDirectChildrenRange;
 
-    @Schema(description = "Filter by twin class twin counter (range: from, to)")
-    public IntegerRangeDTOv1 twinClassTwinCounterRange;
-
     @Schema(description = "apply distinct on query results")
     public Boolean distinct;
 
