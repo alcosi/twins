@@ -1,6 +1,5 @@
 drop index if exists idx_user_group_involve_assignee_granted_by_user_id;
 drop index if exists idx_user_group_involve_assignee_user_group_id;
-drop index if exists idx_user_group_involve_assignee_permission_schema_id;
 drop index if exists idx_user_group_involve_assignee_twin_class_id;
 drop index if exists idx_user_group_involve_assignee_twin_status_id;
 
@@ -9,10 +8,6 @@ create table if not exists user_group_involve_assignee
     id                            uuid not null
         constraint user_group_involve_assignee_pk
             primary key,
-    permission_schema_id          uuid not null
-        constraint user_group_involve_assignee_permission_schema_id_fkey
-            references permission_schema
-            on update cascade on delete cascade,
     user_group_id                 uuid not null
         constraint user_group_involve_assignee_user_group_id_fkey
             references user_group
@@ -37,9 +32,6 @@ create index idx_user_group_involve_assignee_granted_by_user_id
 
 create index idx_user_group_involve_assignee_user_group_id
     on user_group_involve_assignee (user_group_id);
-
-create index idx_user_group_involve_assignee_permission_schema_id
-    on user_group_involve_assignee (permission_schema_id);
 
 create index idx_user_group_involve_assignee_twin_class_id
     on user_group_involve_assignee (propagation_by_twin_class_id);
@@ -141,7 +133,7 @@ begin
 end;
 $$;
 
-create or replace function user_group_by_assignee_propag_before_insert_wrapper()
+create or replace function user_group_involve_assignee_before_insert_wrapper()
     returns trigger
     language plpgsql
 as
@@ -152,7 +144,7 @@ begin
 end;
 $$;
 
-create or replace function user_group_by_assignee_propag_before_update_wrapper()
+create or replace function user_group_involve_assignee_before_update_wrapper()
     returns trigger
     language plpgsql
 as
@@ -166,18 +158,76 @@ begin
 end;
 $$;
 
-drop trigger if exists user_group_by_assignee_propag_before_insert_wrapper_trigger on user_group;
-create trigger user_group_by_assignee_propag_before_insert_wrapper_trigger
+create or replace function user_group_involve_assignee_after_insert_wrapper()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    perform user_group_involve_existed_twins_add(new.user_group_id, new.propagation_by_twin_class_id, new.propagation_by_twin_status_id);
+    return new;
+end;
+$$;
+
+create or replace function user_group_involve_assignee_after_delete_wrapper()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    perform user_group_involve_existed_twins_delete(old.user_group_id, old.propagation_by_twin_class_id, old.propagation_by_twin_status_id);
+    return new;
+end;
+$$;
+
+create or replace function user_group_involve_assignee_after_update_wrapper()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    if new.user_group_id is distinct from old.user_group_id or
+       new.propagation_by_twin_class_id is distinct from old.propagation_by_twin_class_id or
+       new.propagation_by_twin_status_id is distinct from old.propagation_by_twin_status_id
+    then
+        perform user_group_involve_existed_twins_delete(old.user_group_id, old.propagation_by_twin_class_id, old.propagation_by_twin_status_id);
+        perform user_group_involve_existed_twins_add(new.user_group_id, new.propagation_by_twin_class_id, new.propagation_by_twin_status_id);
+    end if;
+    return new;
+end;
+$$;
+
+drop trigger if exists user_group_involve_assignee_before_insert_wrapper_trigger on user_group;
+create trigger user_group_involve_assignee_before_insert_wrapper_trigger
     before insert
     on user_group_involve_assignee
     for each row
-execute procedure user_group_by_assignee_propag_before_insert_wrapper();
-drop trigger if exists user_group_by_assignee_propag_before_update_wrapper_trigger on user_group;
-create trigger user_group_by_assignee_propag_before_update_wrapper_trigger
+execute procedure user_group_involve_assignee_before_insert_wrapper();
+drop trigger if exists user_group_involve_assignee_before_update_wrapper_trigger on user_group;
+create trigger user_group_involve_assignee_before_update_wrapper_trigger
     before update
     on user_group_involve_assignee
     for each row
-execute procedure user_group_by_assignee_propag_before_update_wrapper();
+execute procedure user_group_involve_assignee_before_update_wrapper();
+drop trigger if exists user_group_involve_assignee_after_insert_wrapper_trigger on user_group;
+create trigger user_group_involve_assignee_after_insert_wrapper_trigger
+    after insert
+    on user_group_involve_assignee
+    for each row
+execute procedure user_group_involve_assignee_after_insert_wrapper();
+drop trigger if exists user_group_involve_assignee_after_update_wrapper_trigger on user_group;
+create trigger user_group_involve_assignee_after_update_wrapper_trigger
+    after update
+    on user_group_involve_assignee
+    for each row
+execute procedure user_group_involve_assignee_after_update_wrapper();
+drop trigger if exists user_group_involve_assignee_after_delete_wrapper_trigger on user_group;
+create trigger user_group_involve_assignee_after_delete_wrapper_trigger
+    after delete
+    on user_group_involve_assignee
+    for each row
+execute procedure user_group_involve_assignee_after_delete_wrapper();
+
 
 
 drop trigger if exists twin_after_delete_wrapper_trigger on twin;
@@ -216,7 +266,7 @@ as
 $$
 BEGIN
 
-    --todo react on tc and status change
+    --todo react on twin class and status change
     IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id THEN
         PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
     END IF;
@@ -272,46 +322,50 @@ BEGIN
 END;
 $$;
 
-create or replace function user_group_add_or_remove_group(p_user_id uuid, p_group_id uuid, p_domain_id uuid, p_business_account_id uuid, p_add_to_group boolean) returns void
+create or replace function user_group_involved_user_add(p_user_id uuid, p_group_id uuid, p_domain_id uuid, p_business_account_id uuid) returns void
     volatile
     language plpgsql
 as
 $$
 DECLARE
 BEGIN
-    if p_add_to_group then
+    insert into user_group_map (id,
+                                user_group_id,
+                                user_group_type_id,
+                                domain_id,
+                                business_account_id,
+                                user_id,
+                                involves_counter,
+                                added_manually,
+                                added_at,
+                                added_by_user_id)
+    VALUES (uuid_generate_v7_custom(),
+            p_group_id,
+            null, --will be filled by before insert trigger
+            p_domain_id,
+            p_business_account_id,
+            p_user_id,
+            -9999, -- flag for trigger to set counter to 1 and added_manualy false
+            false,
+            now(),
+            '00000000-0000-0000-0000-000000000000')
+    on conflict (user_group_id, domain_id, business_account_id, user_id) do update set involves_counter = involves_counter + 1;
+END;
+$$;
 
-        insert into user_group_map (id,
-                                    user_group_id,
-                                    user_group_type_id,
-                                    domain_id,
-                                    business_account_id,
-                                    user_id,
-                                    involves_counter,
-                                    added_manually,
-                                    added_at,
-                                    added_by_user_id)
-        VALUES (uuid_generate_v7_custom(),
-                p_group_id,
-                null, --will be filled by before insert trigger
-                p_domain_id,
-                p_business_account_id,
-                p_user_id,
-                -9999, -- flag for trigger to set counter to 1 and added_manualy false
-                false,
-                now(),
-                '00000000-0000-0000-0000-000000000000')
-        on conflict (user_group_id, domain_id, business_account_id, user_id) do update set involves_counter = involves_counter + 1;
-
-    else
-
+create or replace function user_group_involved_user_remove(p_user_id uuid, p_group_id uuid, p_domain_id uuid, p_business_account_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+BEGIN
         update user_group_map set involves_counter = involves_counter - 1
-            where
-                user_id = p_user_id and
-                user_group_id = p_group_id and
-                ((p_domain_id IS NULL AND domain_id IS NULL) OR domain_id = p_domain_id) and
-                ((p_business_account_id IS NULL AND business_account_id IS NULL) OR business_account_id = p_business_account_id);
-    end if;
+        where
+            user_id = p_user_id and
+            user_group_id = p_group_id and
+            ((p_domain_id IS NULL AND domain_id IS NULL) OR domain_id = p_domain_id) and
+            ((p_business_account_id IS NULL AND business_account_id IS NULL) OR business_account_id = p_business_account_id);
 
 END;
 $$;
@@ -326,34 +380,20 @@ DECLARE
     selected_domain_id UUID := null;
     selected_status_id UUID := null;
 BEGIN
-    if p_owner_business_account_id is not null then
 
-        select a.user_group_id, d.id, a.propagation_by_twin_status_id into selected_user_group_id, selected_domain_id, selected_status_id from user_group_involve_assignee a
-                                                                                                                                                   join twin_class tc on tc.id = a.propagation_by_twin_class_id
-                                                                                                                                                   join domain d on d.id = tc.domain_id
-                                                                                                                                                   join domain_business_account db on db.domain_id = d.id and db.business_account_id = p_owner_business_account_id
-        where
-            a.propagation_by_twin_class_id = p_twin_class_id and
-            (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
-            a.permission_schema_id = COALESCE(db.permission_schema_id, d.permission_schema_id);
-    end if;
-    if p_owner_business_account_id is null then
-        select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_involve_assignee a
-                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_class_id
-                                                                                              join domain d on d.id = tc.domain_id
-        where
-            a.propagation_by_twin_class_id = p_twin_class_id and
-            (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
-            a.permission_schema_id = d.permission_schema_id;
-    end if;
+    select a.user_group_id, tc.domain_id
+    into selected_user_group_id, selected_domain_id
+    from user_group_involve_assignee a
+             join twin_class tc on tc.id = a.propagation_by_twin_class_id
+    where a.propagation_by_twin_class_id = p_twin_class_id
+      and (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null);
 
     if selected_user_group_id is null then
         RETURN;
     end if;
 
-
     if new_assigner_user_id is not null then
-        perform user_group_add_or_remove_group(new_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id, true);
+        perform user_group_involved_user_add(new_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id);
     end if;
 
     if old_assigner_user_id is not null then
@@ -363,11 +403,75 @@ BEGIN
                          AND (selected_status_id IS NOT NULL AND twin_status_id = selected_status_id)
                          AND (p_owner_business_account_id IS NULL OR owner_business_account_id = p_owner_business_account_id)
                        LIMIT 1) THEN
-            perform user_group_add_or_remove_group(old_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id, false);
+            perform user_group_involved_user_remove(old_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id);
         END IF;
     end if;
 END;
 $$;
+
+create or replace function user_group_involve_existed_twins_add(
+    p_user_group_id uuid,
+    p_twin_class_id uuid,
+    p_twin_status_id uuid
+)
+    returns void
+    language plpgsql
+as
+$$
+begin
+    insert into user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+    select
+        uuid_generate_v7_custom(),
+        p_user_group_id,
+        null, -- триггер заполнит
+        t.domain_id,
+        t.owner_business_account_id,
+        t.assigner_user_id,
+        -9999,
+        false,
+        now(),
+        '00000000-0000-0000-0000-000000000000'
+    from (
+             select distinct t.assigner_user_id, t.owner_business_account_id, t.twin_class_id, tc.domain_id
+             from twin t
+                      join twin_class tc on tc.id = t.twin_class_id
+             where t.assigner_user_id is not null
+               and t.twin_class_id = p_twin_class_id
+               and (p_twin_status_id is null or t.twin_status_id = p_twin_status_id)
+         ) t
+    on conflict (user_group_id, domain_id, business_account_id, user_id)
+        do update set involves_counter = user_group_map.involves_counter + 1;
+end;
+$$;
+
+create or replace function user_group_involve_existed_twins_delete(
+    p_user_group_id uuid,
+    p_twin_class_id uuid,
+    p_twin_status_id uuid
+)
+    returns void
+    language plpgsql
+as
+$$
+begin
+    update user_group_map ugm
+    set involves_counter = involves_counter - 1
+    from (
+             select distinct t.assigner_user_id, t.owner_business_account_id, tc.domain_id
+             from twin t
+                      join twin_class tc on tc.id = t.twin_class_id
+             where t.twin_class_id = p_twin_class_id
+               and (p_twin_status_id is null or t.twin_status_id = p_twin_status_id)
+         ) x
+    where ugm.user_group_id = p_user_group_id
+      and ugm.user_id = x.assigner_user_id
+      and ugm.domain_id = x.domain_id
+      and ((ugm.business_account_id is null and x.owner_business_account_id is null)
+        or ugm.business_account_id = x.owner_business_account_id);
+end;
+$$;
+
+
 drop table if exists permission_grant_assignee_propagation;
 UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_CREATE' WHERE id = '00000000-0000-0004-0020-000000000002';
 UPDATE permission SET key = 'USER_GROUP_INVOLVE_ASSIGNEE_MANAGE' WHERE id = '00000000-0000-0004-0020-000000000001';
