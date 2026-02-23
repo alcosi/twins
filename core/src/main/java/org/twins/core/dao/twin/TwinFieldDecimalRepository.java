@@ -55,24 +55,29 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
 //            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList
 //    );
 
-    @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(cast(tfd.value as double)), count(tfd.id))
-        from TwinFieldDecimalEntity tfd, TwinEntity t
-        where tfd.twinId = t.id and t.headTwinId in :headTwinIdSet and tfd.twinClassFieldId = :twinClassFieldId
-        group by t.headTwinId
-        """)
+    @Query("""
+    select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(tfd.value), count(tfd.id))
+    from TwinFieldDecimalEntity tfd
+    join tfd.twin t
+    where t.headTwinId in :headTwinIdSet
+      and tfd.twinClassFieldId = :twinClassFieldId
+    group by t.headTwinId
+""")
     List<TwinFieldHeadSumCountProjection> sumAndCountByHeadTwinId(
             @Param("headTwinIdSet") Collection<UUID> headTwinIdSet,
-            @Param("twinClassFieldId") UUID twinClassFieldId);
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
 
-    @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldValueProjection(tfd.twinId, cast(tfd.value as double))
-        from TwinFieldDecimalEntity tfd
-        where tfd.twinId in :twinIdSet and tfd.twinClassFieldId = :twinClassFieldId
-        """)
+    @Query("""
+    select new org.twins.core.dao.twin.TwinFieldValueProjection(tfd.twinId, tfd.value)
+    from TwinFieldDecimalEntity tfd
+    where tfd.twinId in :twinIdSet
+      and tfd.twinClassFieldId = :twinClassFieldId
+""")
     List<TwinFieldValueProjection> valueByTwinId(
             @Param("twinIdSet") Collection<UUID> twinIdSet,
-            @Param("twinClassFieldId") UUID twinClassFieldId);
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
 
     @Query(value = """
             select coalesce(sum(field.value), 0)

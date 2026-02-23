@@ -37,22 +37,28 @@ public class StatisterFromFieldPercent extends Statister<TwinStatisticProgressPe
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
         Kit<TwinFieldValueProjection, UUID> twinFieldSimplekit = new Kit<>(TwinFieldValueProjection::headTwinId);
-        List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(forTwinIdSet, twinClassFieldId.extract(properties));
+
+        List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(forTwinIdSet,twinClassFieldId.extract(properties));
+
         twinFieldSimplekit.addAll(forHeadTwinValues);
 
-
         Map<UUID, TwinStatisticProgressPercent> ret = new HashMap<>();
+
         for (UUID twinId : forTwinIdSet) {
             TwinFieldValueProjection twin = twinFieldSimplekit.get(twinId);
+
+            double percent = twin != null && twin.value() != null ? twin.value().doubleValue() : 0.0;
+
             TwinStatisticProgressPercent.Item item = createItem(
-                    (int) (twin.value() * 100),
+                    (int) (percent * 100),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     color.extract(properties)
             );
-            ret.put(twinId, new TwinStatisticProgressPercent()
-                    .setItems(List.of(item)));
+
+            ret.put(twinId, new TwinStatisticProgressPercent().setItems(List.of(item)));
         }
+
         return ret;
     }
 

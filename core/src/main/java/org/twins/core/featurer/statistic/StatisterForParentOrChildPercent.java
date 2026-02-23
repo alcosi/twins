@@ -17,6 +17,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Component
@@ -49,14 +50,25 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
             TwinFieldHeadSumCountProjection headSum = groupingByHead.get(headId);
             if (headSum == null) {
                 needLoad.add(headId);
-            } else {
-                twinAndPercentMap.put(headId, headSum.sum() / headSum.count());
+                continue;
             }
+            BigDecimal sum = headSum.sum();
+            long count = headSum.count();
+
+            if (count == 0 || sum == null) {
+                twinAndPercentMap.put(headId, 0.0);
+                continue;
+            }
+
+            double percent = sum.doubleValue() / count;
+            twinAndPercentMap.put(headId, percent);
         }
         if (CollectionUtils.isNotEmpty(needLoad)) {
-            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(needLoad, headTwinClassFieldId.extract(properties));
+            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId( needLoad, headTwinClassFieldId.extract(properties));
+
             for (TwinFieldValueProjection headTwin : forHeadTwinValues) {
-                twinAndPercentMap.put(headTwin.headTwinId(), headTwin.value());
+                Double value = headTwin.value() != null ? headTwin.value().doubleValue() : 0.0;
+                twinAndPercentMap.put(headTwin.headTwinId(), value);
             }
         }
 
