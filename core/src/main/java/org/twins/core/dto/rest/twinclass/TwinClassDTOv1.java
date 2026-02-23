@@ -160,6 +160,9 @@ public class TwinClassDTOv1 {
     @Schema(description = "how many children by extends")
     public Integer extendsHierarchyCounterDirectChildren;
 
+    @Schema(description = "how many twins of this class")
+    public Integer twinCounter;
+
     @Schema(description = "")
     public Boolean uniqueName;
 
