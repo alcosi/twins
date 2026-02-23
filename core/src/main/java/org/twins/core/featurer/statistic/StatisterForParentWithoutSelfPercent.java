@@ -17,6 +17,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Component
@@ -38,63 +39,89 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
     @FeaturerParam(name = "Color", description = "", order = 5)
     public static final FeaturerParamString colorHex = new FeaturerParamString("colorHex");
     @Autowired
-    private TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private TwinFieldDecimalRepository twinFieldDecimalRepository;
     @Autowired
     private TwinRepository twinRepository;
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
         List<TwinNoRelationsProjection> twinChildProjections = twinRepository.findByHeadTwinIdInAndTwinClassIdIn(forTwinIdSet, ofChildTwinClassIds.extract(properties), TwinNoRelationsProjection.class);
+
         List<UUID> allChildTwinIds = new ArrayList<>();
         Map<UUID, List<UUID>> groupedByParentMap = new HashMap<>();
+
         for (TwinNoRelationsProjection projection : twinChildProjections) {
             groupedByParentMap.computeIfAbsent(projection.headTwinId(), k -> new ArrayList<>()).add(projection.id());
             allChildTwinIds.add(projection.id());
         }
 
         Kit<TwinFieldHeadSumCountProjection, UUID> groupingByHead = new Kit<>(TwinFieldHeadSumCountProjection::headTwinId);
-        groupingByHead.addAll(twinFieldSimpleRepository.sumAndCountByHeadTwinId(allChildTwinIds, grandChildTwinClassFieldId.extract(properties)));
+        groupingByHead.addAll(twinFieldDecimalRepository.sumAndCountByHeadTwinId( allChildTwinIds, grandChildTwinClassFieldId.extract(properties)));
 
         Map<UUID, Double> twinAndPercentMap = new HashMap<>();
         List<UUID> needLoad = new ArrayList<>();
+
         for (UUID headId : allChildTwinIds) {
             TwinFieldHeadSumCountProjection headSum = groupingByHead.get(headId);
             if (headSum == null) {
                 needLoad.add(headId);
-            } else {
-                twinAndPercentMap.put(headId, headSum.sum() / headSum.count());
+                continue;
             }
+
+            BigDecimal sum = headSum.sum();
+            long count = headSum.count();
+
+            if (sum == null || count == 0) {
+                twinAndPercentMap.put(headId, 0.0);
+                continue;
+            }
+
+            double percent = sum.doubleValue() / count;
+            twinAndPercentMap.put(headId, percent);
         }
+
         if (CollectionUtils.isNotEmpty(needLoad)) {
-            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldSimpleRepository.valueByTwinId(needLoad, childTwinClassFieldId.extract(properties));
-            for (TwinFieldValueProjection forHeadTwinValue : forHeadTwinValues) {
-                twinAndPercentMap.put(forHeadTwinValue.headTwinId(), forHeadTwinValue.value());
+            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(needLoad, childTwinClassFieldId.extract(properties));
+
+            for (TwinFieldValueProjection valueProjection : forHeadTwinValues) {
+                double value = valueProjection.value() != null ? valueProjection.value().doubleValue() : 0.0;
+                twinAndPercentMap.put(valueProjection.headTwinId(), value);
             }
         }
 
         Map<UUID, Double> parentTwinAndPercentMap = new HashMap<>();
+
         for (var entry : groupedByParentMap.entrySet()) {
             double sum = 0.0;
             int count = 0;
+
             for (UUID childId : entry.getValue()) {
-                sum += twinAndPercentMap.get(childId);
-                count++;
+                Double value = twinAndPercentMap.get(childId);
+                if (value != null) {
+                    sum += value;
+                    count++;
+                }
             }
-            parentTwinAndPercentMap.put(entry.getKey(), sum / count);
+
+            parentTwinAndPercentMap.put(
+                    entry.getKey(),
+                    count == 0 ? 0.0 : sum / count
+            );
         }
 
         Map<UUID, TwinStatisticProgressPercent> ret = new HashMap<>();
-        for (var headTwin : parentTwinAndPercentMap.entrySet()) {
-            UUID uuid = headTwin.getKey();
+
+        for (var entry : parentTwinAndPercentMap.entrySet()) {
             TwinStatisticProgressPercent.Item item = createItem(
-                    (int) (headTwin.getValue() * 100),
+                    (int) (entry.getValue() * 100),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     colorHex.extract(properties)
             );
-            ret.put(uuid, new TwinStatisticProgressPercent()
-                    .setItems(List.of(item)));
+
+            ret.put(entry.getKey(), new TwinStatisticProgressPercent().setItems(List.of(item)));
         }
+
         return ret;
     }
 
