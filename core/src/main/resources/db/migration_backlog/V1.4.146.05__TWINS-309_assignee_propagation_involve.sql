@@ -197,6 +197,15 @@ begin
         perform user_group_involve_by_assignee_propagation(null, old.assigner_user_id, old.twin_class_id, old.twin_status_id, old.owner_business_account_id);
     END IF;
 
+    IF OLD.head_twin_id IS NOT NULL THEN
+        PERFORM update_twin_head_direct_children_counter(OLD.head_twin_id);
+    END IF;
+
+    -- Update twin_class twin counter
+    IF OLD.twin_class_id IS NOT NULL THEN
+        PERFORM update_twin_class_twin_counter(OLD.twin_class_id);
+    END IF;
+
     return old;
 end;
 $$;
@@ -224,6 +233,16 @@ BEGIN
         END IF;
     END IF;
 
+    -- Update twin_class twin counters if twin_class_id changed
+    IF OLD.twin_class_id IS DISTINCT FROM NEW.twin_class_id THEN
+        IF OLD.twin_class_id IS NOT NULL THEN
+            PERFORM update_twin_class_twin_counter(OLD.twin_class_id);
+        END IF;
+        IF NEW.twin_class_id IS NOT NULL THEN
+            PERFORM update_twin_class_twin_counter(NEW.twin_class_id);
+        END IF;
+    END IF;
+
     RETURN NEW;
 END;
 $$;
@@ -242,6 +261,11 @@ BEGIN
 
     IF NEW.head_twin_id IS NOT NULL THEN
         PERFORM update_twin_head_direct_children_counter(NEW.head_twin_id);
+    END IF;
+
+    -- Update twin_class twin counter
+    IF NEW.twin_class_id IS NOT NULL THEN
+        PERFORM update_twin_class_twin_counter(NEW.twin_class_id);
     END IF;
 
     RETURN NEW;
