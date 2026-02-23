@@ -66,11 +66,16 @@ UPDATE twin t
 SET permission_schema_id = COALESCE(s.permission_schema_id, dbu.permission_schema_id, d.permission_schema_id)
 FROM twin_class tc
          JOIN domain d ON tc.domain_id = d.id
-         LEFT JOIN domain_business_account dbu ON dbu.domain_id = d.id and dbu.business_account_id is not distinct from t.owner_business_account_id
-         LEFT JOIN space s ON s.twin_id is not distinct from t.permission_schema_space_id
-WHERE t.twin_class_id = tc.id;
+         LEFT JOIN domain_business_account dbu ON dbu.domain_id = d.id
+         LEFT JOIN space s ON true -- Здесь мы не можем сослаться на t, поэтому используем фильтр ниже
+WHERE t.twin_class_id = tc.id
+  AND (dbu.business_account_id IS NOT DISTINCT FROM t.owner_business_account_id OR dbu.business_account_id IS NULL)
+  AND (s.twin_id IS NOT DISTINCT FROM t.permission_schema_space_id OR s.twin_id IS NULL);
 
 
 
 ALTER TABLE twin alter COLUMN permission_schema_id set not null;
+
+
+
 
