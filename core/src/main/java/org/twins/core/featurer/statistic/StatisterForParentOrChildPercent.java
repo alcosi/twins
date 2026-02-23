@@ -9,8 +9,8 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twin.TwinFieldHeadSumCountProjection;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twin.TwinFieldValueProjection;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.FeaturerTwins;
@@ -36,12 +36,12 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
     @FeaturerParam(name = "Color", description = "", order = 5)
     public static final FeaturerParamString colorHex = new FeaturerParamString("colorHex");
     @Autowired
-    private TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
         Kit<TwinFieldHeadSumCountProjection, UUID> groupingByHead = new Kit<>(TwinFieldHeadSumCountProjection::headTwinId);
-        groupingByHead.addAll(twinFieldSimpleRepository.sumAndCountByHeadTwinId(forTwinIdSet, childTwinClassFieldId.extract(properties)));
+        groupingByHead.addAll(twinFieldDecimalRepository.sumAndCountByHeadTwinId(forTwinIdSet, childTwinClassFieldId.extract(properties)));
 
         Map<UUID, Double> twinAndPercentMap = new HashMap<>();
         List<UUID> needLoad = new ArrayList<>();
@@ -54,7 +54,7 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
             }
         }
         if (CollectionUtils.isNotEmpty(needLoad)) {
-            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldSimpleRepository.valueByTwinId(needLoad, headTwinClassFieldId.extract(properties));
+            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(needLoad, headTwinClassFieldId.extract(properties));
             for (TwinFieldValueProjection headTwin : forHeadTwinValues) {
                 twinAndPercentMap.put(headTwin.headTwinId(), headTwin.value());
             }

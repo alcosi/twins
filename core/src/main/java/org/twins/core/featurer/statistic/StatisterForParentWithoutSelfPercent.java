@@ -38,7 +38,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
     @FeaturerParam(name = "Color", description = "", order = 5)
     public static final FeaturerParamString colorHex = new FeaturerParamString("colorHex");
     @Autowired
-    private TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private TwinFieldDecimalRepository twinFieldDecimalRepository;
     @Autowired
     private TwinRepository twinRepository;
 
@@ -53,7 +53,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
         }
 
         Kit<TwinFieldHeadSumCountProjection, UUID> groupingByHead = new Kit<>(TwinFieldHeadSumCountProjection::headTwinId);
-        groupingByHead.addAll(twinFieldSimpleRepository.sumAndCountByHeadTwinId(allChildTwinIds, grandChildTwinClassFieldId.extract(properties)));
+        groupingByHead.addAll(twinFieldDecimalRepository.sumAndCountByHeadTwinId(allChildTwinIds, grandChildTwinClassFieldId.extract(properties)));
 
         Map<UUID, Double> twinAndPercentMap = new HashMap<>();
         List<UUID> needLoad = new ArrayList<>();
@@ -66,7 +66,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
             }
         }
         if (CollectionUtils.isNotEmpty(needLoad)) {
-            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldSimpleRepository.valueByTwinId(needLoad, childTwinClassFieldId.extract(properties));
+            List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(needLoad, childTwinClassFieldId.extract(properties));
             for (TwinFieldValueProjection forHeadTwinValue : forHeadTwinValues) {
                 twinAndPercentMap.put(forHeadTwinValue.headTwinId(), forHeadTwinValue.value());
             }
