@@ -74,8 +74,151 @@ WHERE t.twin_class_id = tc.id
 
 
 
-ALTER TABLE twin alter COLUMN permission_schema_id set not null;
+-- ALTER TABLE twin alter COLUMN permission_schema_id set not null;
 
 
+DROP TRIGGER IF EXISTS tiers_domain_business_account_tier_id_update_trigger ON domain_business_account;
+DROP TRIGGER IF EXISTS domain_business_account_after_update_trigger ON domain_business_account;
+drop function if exists tiers_update_business_account_properties_on_self_tier_id_change();
+drop function if exists tiers_update_business_account_properties_on_tier_change();
 
+---------------------------------------------------------------
+-----------------------------DBU AU---------------------------
+---------------------------------------------------------------
+create function domain_business_account_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id THEN
+        PERFORM
+    END IF;
+    IF OLD.tier_id IS DISTINCT FROM NEW.tier_id THEN
+        PERFORM business_account_properties_update_on_tier_change(NEW.tier_id);
+    END IF;
 
+    RETURN NULL;
+END;
+$$;
+
+create trigger domain_business_account_after_update_trigger
+    after update
+    on domain_business_account
+    for each row
+execute procedure domain_business_account_after_update_wrapper();
+
+---------------------------------------------------------------
+-----------------------------TIER AU---------------------------
+---------------------------------------------------------------
+drop function if exists  business_account_update_all(uuid, uuid, uuid, uuid, uuid, uuid, boolean);
+create or replace function domain_business_account_update_props_on_update_tier(p_tier_id uuid, p_domain_id uuid, p_permission_schema_id uuid, p_twinflow_schema_id uuid, p_twin_class_schema_id uuid, p_notification_schema_id uuid, p_custom boolean) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    IF p_custom THEN
+        RETURN;
+    END IF;
+
+    UPDATE domain_business_account ba
+    SET
+        permission_schema_id = p_permission_schema_id,
+        twinflow_schema_id = p_twinflow_schema_id,
+        twin_class_schema_id = p_twin_class_schema_id,
+        notification_schema_id = p_notification_schema_id
+    WHERE ba.tier_id = p_tier_id
+      AND ba.domain_id = p_domain_id;
+END;
+$$;
+
+create or replace function tier_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id OR
+       OLD.twinflow_schema_id IS DISTINCT FROM NEW.twinflow_schema_id OR
+       OLD.twin_class_schema_id IS DISTINCT FROM NEW.twin_class_schema_id OR
+       OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
+       (OLD.custom IS DISTINCT FROM NEW.custom AND NOT NEW.custom) THEN
+
+        PERFORM domain_business_account_update_props_on_update_tier(
+                NEW.id,
+                NEW.domain_id,
+                NEW.permission_schema_id,
+                NEW.twinflow_schema_id,
+                NEW.twin_class_schema_id,
+                NEW.notification_schema_id,
+                NEW.custom
+                );
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+---------------------------------------------------------------
+-----------------------------DOMAIN AU---------------------------
+---------------------------------------------------------------
+create or replace function domain_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.permission_schema_id IS DISTINCT FROM OLD.permission_schema_id THEN
+        PERFORM
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+drop trigger if exists domain_after_update_wrapper_trigger on domain;
+create trigger domain_after_delete_wrapper_trigger
+    after update
+    on domain
+    for each row
+execute procedure domain_after_update_wrapper();
+---------------------------------------------------------------
+-----------------------------SPACE AU---------------------------
+---------------------------------------------------------------
+create or replace function space_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.permission_schema_id IS DISTINCT FROM OLD.permission_schema_id THEN
+        PERFORM
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+drop trigger if exists space_after_update_wrapper_trigger on space;
+create trigger space_after_delete_wrapper_trigger
+    after update
+    on space
+    for each row
+execute procedure space_after_update_wrapper();
+
+---------------------------------------------------------------
+-----------------------------TWIN AU---------------------------
+---------------------------------------------------------------
+create function twin_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+begin
+    if old.owner_business_account_id is distinct from new.owner_business_account_id then
+        perform ;
+    end if;
+    if old.permission_schema_space_id is distinct from new.permission_schema_space_id then
+        perform ;
+    end if;
+    if old.head_twin_id is distinct from new.head_twin_id then
+        raise notice 'Process update for: %', new.id;
+        perform hierarchyUpdateTreeSoft(new.id, public.hierarchyDetectTree(new.id));
+    end if;
+
+    return new;
+end;
+$$;
