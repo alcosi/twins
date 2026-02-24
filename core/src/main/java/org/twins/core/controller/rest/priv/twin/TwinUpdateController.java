@@ -100,7 +100,7 @@ public class TwinUpdateController extends ApiController {
     }
 
 
-    protected ResponseEntity<? extends Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
+    protected ResponseEntity<Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             if (request.getTwinId() != null && !twinId.equals(request.getTwinId())) {
@@ -125,8 +125,6 @@ public class TwinUpdateController extends ApiController {
             return createErrorRs(bve, rs, null);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
-        } catch (TwinBatchFieldValidationException bve) {
-            return createErrorRs(bve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

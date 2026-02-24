@@ -75,29 +75,21 @@ public abstract class ApiController {
         return createErrorRs(ex, new Response());
     }
 
-    public <T extends TwinSaveRsV1> ResponseEntity<T> createErrorRs(TwinFieldValidationException ex, T rs, HttpStatus overrideHttpStatus) {
+    public ResponseEntity<Response> createErrorRs(TwinFieldValidationException ex, TwinSaveRsV1 rs, HttpStatus overrideHttpStatus) {
         rs.setInvalidTwinFieldErrors(ex.getInvalidFields());
-        createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
-        return new ResponseEntity<>(rs, overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus);
+        return createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
     }
 
-    public <T extends TwinBatchSaveRsDTOv1> ResponseEntity<T> createErrorRs(TwinBatchFieldValidationException ex, T rs, HttpStatus overrideHttpStatus) {
-        rs.setInvalidTwinFieldErrors(ex.getInvalidFields());
-        createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
-        return new ResponseEntity<>(rs, overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus);
-    }
-
-    public ResponseEntity<TwinSaveRsV1> createErrorRs(TwinBatchFieldValidationException ex, TwinSaveRsV1 rs, HttpStatus overrideHttpStatus) {
-        Map<UUID, String> errors = ex.getInvalidFields().values().iterator().next();
-        rs.setInvalidTwinFieldErrors(errors);
-        createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
-        return new ResponseEntity<>(rs, overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus);
+    public ResponseEntity<Response> createErrorRs(TwinBatchFieldValidationException ex, TwinBatchSaveRsDTOv1 rs, HttpStatus overrideHttpStatus) {
+        ResponseEntity<Response> response = createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
+        return response;
     }
 
     public ResponseEntity<Response> createErrorRs(TwinBatchFieldValidationException ex, TwinSaveRsV1 rs, HttpStatus overrideHttpStatus) {
         Map<UUID, String> errors = ex.getInvalidFields().values().iterator().next();
         rs.setInvalidTwinFieldErrors(errors);
-        return createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
+        createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
+        return new ResponseEntity<>(rs, overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus);
     }
 
     protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {
