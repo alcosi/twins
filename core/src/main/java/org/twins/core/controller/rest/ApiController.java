@@ -15,6 +15,8 @@ import org.twins.core.dto.rest.twin.TwinSaveRsV1;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 public abstract class ApiController {
@@ -81,6 +83,13 @@ public abstract class ApiController {
 
     public <T extends TwinBatchSaveRsDTOv1> ResponseEntity<T> createErrorRs(TwinBatchFieldValidationException ex, T rs, HttpStatus overrideHttpStatus) {
         rs.setInvalidTwinFieldErrors(ex.getInvalidFields());
+        createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
+        return new ResponseEntity<>(rs, overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus);
+    }
+
+    public ResponseEntity<TwinSaveRsV1> createErrorRs(TwinBatchFieldValidationException ex, TwinSaveRsV1 rs, HttpStatus overrideHttpStatus) {
+        Map<UUID, String> errors = ex.getInvalidFields().values().iterator().next();
+        rs.setInvalidTwinFieldErrors(errors);
         createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
         return new ResponseEntity<>(rs, overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus);
     }
