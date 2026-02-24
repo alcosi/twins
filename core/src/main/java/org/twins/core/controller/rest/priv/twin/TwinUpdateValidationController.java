@@ -58,7 +58,7 @@ public class TwinUpdateValidationController extends ApiController {
         return validateTwin(request, twinId);
     }
 
-    protected ResponseEntity<Response> validateTwin(TwinUpdateRqDTOv1 request, UUID twinId) {
+    protected ResponseEntity<? extends Response> validateTwin(TwinUpdateRqDTOv1 request, UUID twinId) {
         TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);

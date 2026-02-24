@@ -53,7 +53,7 @@ public class TwinCreateValidationController extends ApiController {
         return validateTwin(request);
     }
 
-    protected ResponseEntity<Response> validateTwin(TwinCreateRqDTOv2 request) {
+    protected ResponseEntity<? extends Response> validateTwin(TwinCreateRqDTOv2 request) {
         TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);

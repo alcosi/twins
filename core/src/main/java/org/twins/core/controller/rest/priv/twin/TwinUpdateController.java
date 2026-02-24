@@ -125,6 +125,8 @@ public class TwinUpdateController extends ApiController {
             return createErrorRs(bve, rs, null);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
+        } catch (TwinBatchFieldValidationException bve) {
+            return createErrorRs(bve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
