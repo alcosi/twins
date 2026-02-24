@@ -100,7 +100,7 @@ public class TwinUpdateController extends ApiController {
     }
 
 
-    protected ResponseEntity<Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
+    protected ResponseEntity<? extends Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             if (request.getTwinId() != null && !twinId.equals(request.getTwinId())) {

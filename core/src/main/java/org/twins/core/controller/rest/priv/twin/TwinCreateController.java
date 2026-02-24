@@ -169,7 +169,7 @@ public class TwinCreateController extends ApiController {
             return createErrorRs(bve, rs, null);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
-        }  catch (ServiceException se) {
+        } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
