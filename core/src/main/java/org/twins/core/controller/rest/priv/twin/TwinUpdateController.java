@@ -121,6 +121,8 @@ public class TwinUpdateController extends ApiController {
             rs
                     .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+        } catch (TwinBatchFieldValidationException bve) {
+            return createErrorRs(bve, rs, null);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
