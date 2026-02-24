@@ -81,8 +81,8 @@ public abstract class ApiController {
     }
 
     public ResponseEntity<Response> createErrorRs(TwinBatchFieldValidationException ex, TwinBatchSaveRsDTOv1 rs, HttpStatus overrideHttpStatus) {
-        ResponseEntity<Response> response = createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
-        return response;
+        rs.setInvalidTwinFieldErrors(ex.getInvalidFields());
+        return createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
     }
 
     public ResponseEntity<Response> createErrorRs(TwinBatchFieldValidationException ex, TwinSaveRsV1 rs, HttpStatus overrideHttpStatus) {
