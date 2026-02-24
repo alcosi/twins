@@ -26,18 +26,17 @@ create or replace function twin_class_before_update_wrapper() returns trigger
 as
 $$
 begin
-
-    if new.domain_id is distinct from old.domain_id then
-        raise exception
-            'Its forbidden to change twin_class.domain_id';
-    end if;
-
     if new.twin_class_owner_type_id is distinct from old.twin_class_owner_type_id then
         perform twin_class_prevent_owner_type_change(old);
     end if;
 
     if new.extends_hierarchy_tree is distinct from old.extends_hierarchy_tree and old.extends_hierarchy_tree is not null then
         new := twin_class_update_extends_hierarchy_tree(old, new);
+    end if;
+
+    if new.domain_id is distinct from old.domain_id then
+--         raise exception
+--             'Its forbidden to change twin_class.domain_id';
     end if;
 
     return new;

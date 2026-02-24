@@ -81,10 +81,30 @@ DROP TRIGGER IF EXISTS tiers_domain_business_account_tier_id_update_trigger ON d
 DROP TRIGGER IF EXISTS domain_business_account_after_update_trigger ON domain_business_account;
 drop function if exists tiers_update_business_account_properties_on_self_tier_id_change();
 drop function if exists tiers_update_business_account_properties_on_tier_change();
+drop function if exists business_account_properties_update_on_tier_change(uuid);
 
 ---------------------------------------------------------------
 -----------------------------DBU AU---------------------------
 ---------------------------------------------------------------
+create or replace function domain_business_account_properties_update_on_tier_id_change(p_tier_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    UPDATE domain_business_account ba
+    SET
+        permission_schema_id = t.permission_schema_id,
+        twinflow_schema_id = t.twinflow_schema_id,
+        twin_class_schema_id = t.twin_class_schema_id,
+        notification_schema_id = t.notification_schema_id
+    FROM tier t
+    WHERE ba.tier_id = p_tier_id
+      AND t.id = p_tier_id;
+END;
+$$;
+
+
 create function domain_business_account_after_update_wrapper() returns trigger
     language plpgsql
 as
@@ -94,7 +114,7 @@ BEGIN
         PERFORM
     END IF;
     IF OLD.tier_id IS DISTINCT FROM NEW.tier_id THEN
-        PERFORM business_account_properties_update_on_tier_change(NEW.tier_id);
+        PERFORM domain_business_account_properties_update_on_tier_id_change(NEW.tier_id);
     END IF;
 
     RETURN NULL;
@@ -208,15 +228,16 @@ create function twin_after_update_wrapper() returns trigger
 as
 $$
 begin
-    if old.owner_business_account_id is distinct from new.owner_business_account_id then
-        perform ;
-    end if;
     if old.permission_schema_space_id is distinct from new.permission_schema_space_id then
         perform ;
     end if;
     if old.head_twin_id is distinct from new.head_twin_id then
         raise notice 'Process update for: %', new.id;
         perform hierarchyUpdateTreeSoft(new.id, public.hierarchyDetectTree(new.id));
+    end if;
+    if old.owner_business_account_id is distinct from new.owner_business_account_id then
+                raise exception
+                    'Its forbidden to change twin.owner_business_account_id';
     end if;
 
     return new;
