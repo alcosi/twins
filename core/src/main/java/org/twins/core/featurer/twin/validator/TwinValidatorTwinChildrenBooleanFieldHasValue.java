@@ -60,7 +60,7 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
                                 .setTwinClassFieldEntity(fieldEntity)
                 ));
 
-        boolean isValid = twinSearchService.count(basicSearch) > 0;
+        boolean isValid = twinSearchService.exists(basicSearch);
 
         return buildResult(
                 isValid,
