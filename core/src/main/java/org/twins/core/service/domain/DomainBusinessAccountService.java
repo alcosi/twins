@@ -24,6 +24,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -43,11 +44,13 @@ import org.twins.core.service.user.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+//import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpecification.*;
 
 @Slf4j
@@ -213,6 +216,9 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
                         .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
                         .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
                         .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId));
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTierIdList(), false, false, DomainBusinessAccountEntity.Fields.tierId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTierIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.tierId))
+                        .and(CommonSpecification.checkFieldLocalDateTimeBetween(domainBusinessAccountSearch.getCreatedAtFrom(), domainBusinessAccountSearch.getCreatedAtTo(), DomainBusinessAccountEntity.Fields.createdAt));
     }
 }

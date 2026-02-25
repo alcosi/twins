@@ -7,6 +7,8 @@ import org.twins.core.dto.rest.domain.DomainBusinessAccountSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
+import java.sql.Timestamp;
+
 import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
 @Component
@@ -26,6 +28,8 @@ public class DomainBusinessAccountSearchRestDTOReverseMapper extends RestSimpleD
                 .setTwinflowSchemaIdExcludeList(convertToSetSafe(src.getTwinflowSchemaIdExcludeList()))
                 .setTwinClassSchemaIdList(convertToSetSafe(src.getTwinClassSchemaIdList()))
                 .setTwinClassSchemaIdExcludeList(convertToSetSafe(src.getTwinClassSchemaIdExcludeList()))
-        ;
+                .setTierIdList(convertToSetSafe(src.getTierIdList()))
+                .setCreatedAtFrom(Timestamp.valueOf(src.getCreatedAt().from))
+                .setCreatedAtTo(Timestamp.valueOf(src.getCreatedAt().to));
     }
 }

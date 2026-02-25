@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 import org.twins.core.dto.rest.Request;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -45,4 +47,12 @@ public class DomainBusinessAccountSearchRqDTOv1 extends Request {
     @Schema(description = "business account twin class schema id exclude list")
     public List<UUID> twinClassSchemaIdExcludeList;
 
+    @Schema(description = "")
+    Set<UUID> tierIdList;
+
+    @Schema(description = "")
+    Set<UUID> tierIdExcludeList;
+
+    @Schema(description = "")
+    DataTimeRangeDTOv1 createdAt;
 }

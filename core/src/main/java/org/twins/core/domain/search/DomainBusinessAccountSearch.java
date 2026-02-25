@@ -3,7 +3,10 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.domain.DataTimeRange;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -22,6 +25,10 @@ public class DomainBusinessAccountSearch {
     Set<UUID> twinflowSchemaIdExcludeList;
     Set<UUID> twinClassSchemaIdList;
     Set<UUID> twinClassSchemaIdExcludeList;
+    Set<UUID> tierIdList;
+    Set<UUID> tierIdExcludeList;
+    Timestamp createdAtFrom;
+    Timestamp createdAtTo;
 
     public DomainBusinessAccountSearch addBusinessAccountId(Collection<UUID> ids, boolean exclude) {
         if (!exclude) businessAccountIdList = CollectionUtils.safeAdd(businessAccountIdList, ids);
@@ -53,5 +60,10 @@ public class DomainBusinessAccountSearch {
         return this;
     }
 
+    public DomainBusinessAccountSearch addTierIdList(Collection<UUID> ids, boolean exclude){
+        if (!exclude) tierIdList = CollectionUtils.safeAdd(tierIdList, ids);
+        else tierIdExcludeList = CollectionUtils.safeAdd(tierIdList, ids);
+        return this;
+    }
 
 }
