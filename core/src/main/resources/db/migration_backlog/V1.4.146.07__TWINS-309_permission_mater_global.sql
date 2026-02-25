@@ -1,4 +1,9 @@
-create table permission_mater_global
+drop index if exists permission_grant_global_user_group_id_permission_id_uindex;
+create unique index permission_grant_global_user_group_id_permission_id_uindex
+    on public.permission_grant_global (user_group_id, permission_id);
+
+
+create table if not exists permission_mater_global
 (
     permission_id           uuid   not null
         references permission
@@ -40,13 +45,12 @@ begin
         count(*) as grt_count
     from permission_grant_global g
              join user_group_footprint_map m
-                  on g.user_group_id = m.user_group_id and m.user_group_id = p_footprint
+                  on g.user_group_id = m.user_group_id and m.user_group_footprint_id = p_footprint
     group by
         g.permission_id,
-        p_footprint
+        m.user_group_id
     on conflict (permission_id, user_group_footprint_id)
-        do update
-        set grants_count = permission_mater_global.grants_count + excluded.grants_count;
+        do nothing ;
 
     -- 3 Release advisory lock
     perform pg_advisory_unlock(v_lock_key);
@@ -60,7 +64,22 @@ create or replace function permission_mater_global_by_perm_grant_global_insert(p
 as
 $$
 begin
-
+    insert into permission_mater_global(
+        permission_id,
+        user_group_footprint_id,
+        grants_count
+    )
+    select
+        p_permission_id,
+        m.user_group_footprint_id,
+        1
+    from user_group_footprint_map m
+    where m.user_group_id = p_user_group_id
+    on conflict (permission_id, user_group_footprint_id)
+        do update
+        set grants_count =
+                permission_mater_global.grants_count
+                    + excluded.grants_count;
 end;
 $$;
 
@@ -69,7 +88,18 @@ create or replace function permission_mater_global_by_perm_grant_global_delete(p
 as
 $$
 begin
+    -- 1. Decrement grants_count for all affected footprints
+    update permission_mater_global pgm
+    set grants_count = pgm.grants_count - 1
+    from user_group_footprint_map m
+    where pgm.permission_id = p_permission_id
+      and pgm.user_group_footprint_id = m.user_group_footprint_id
+      and m.user_group_id = p_user_group_id;
 
+    -- 2. Remove rows where counter dropped to zero
+--     delete from permission_mater_global
+--     where permission_id = p_permission_id
+--       and grants_count <= 0;
 end;
 $$;
 

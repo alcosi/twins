@@ -139,6 +139,8 @@ begin
         insert into user_group_footprint_map(user_group_footprint_id, user_group_id)
         select v_hash, g
         from unnest(p_group_ids) as g;
+
+        PERFORM permission_mater_global_init(v_hash);
     end if;
 
     -- 5 Возвращаем ID footprint

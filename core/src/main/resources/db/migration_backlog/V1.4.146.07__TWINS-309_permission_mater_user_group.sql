@@ -1,4 +1,4 @@
-create table if not exists permission_materialization_schema_level
+create table if not exists permission_mater_user_group
 (
     user_group_footprint_registry_id uuid not null
         references user_group_footprint_registry(id)
@@ -56,7 +56,7 @@ begin
       and user_group_footprint_id = p_footprint;
 
     -- 3 Materialize permissions from user_group grants (join with footprint map)
-    insert into permission_materialization_schema_level(
+    insert into permission_mater_user_group(
         user_group_footprint_registry_id,
         permission_schema_id,
         permission_id,
@@ -84,39 +84,10 @@ begin
         p_footprint
     on conflict (permission_schema_id, permission_id, user_group_footprint_id)
         do update
-        set grants_count = permission_materialization_schema_level.grants_count + excluded.grants_count;
+        set grants_count = permission_mater_user_group.grants_count + excluded.grants_count;
 
-    -- 4 Materialize permissions from global grants (join with footprint map)
-    insert into permission_materialization_schema_level(
-        user_group_footprint_registry_id,
-        permission_schema_id,
-        permission_id,
-        user_group_footprint_id,
-        grants_count
-    )
-    select
-        v_registry_id,
-        s.id,
-        g.permission_id,
-        p_footprint,
-        count(*) as grt_count
-    from permission_schema s
-             join user_group_footprint_map m
-                  on m.user_group_footprint_id = p_footprint
-             join permission_grant_global g
-                  on g.user_group_id = m.user_group_id
-    where s.domain_id = p_domain_id
-      and (s.business_account_id is null or s.business_account_id = p_business_account_id)
-    group by
-        v_registry_id,
-        s.id,
-        g.permission_id,
-        p_footprint
-    on conflict (permission_schema_id, permission_id, user_group_footprint_id)
-        do update
-        set grants_count = permission_materialization_schema_level.grants_count + excluded.grants_count;
 
-    -- 5 Release advisory lock
+    -- 4 Release advisory lock
     perform pg_advisory_unlock(v_lock_key);
 
 end;
@@ -166,7 +137,7 @@ create or replace function permission_mater_schema_level_by_perm_grant_user_grou
 as
 $$
 begin
-    insert into permission_materialization_schema_level (
+    insert into permission_mater_user_group (
         user_group_footprint_registry_id,
         permission_schema_id,
         permission_id,
@@ -185,7 +156,7 @@ begin
     where m.user_group_id = p_user_group_id
     on conflict (permission_schema_id, permission_id, user_group_footprint_id)
         do update
-        set grants_count = permission_materialization_schema_level.grants_count + 1;
+        set grants_count = permission_mater_user_group.grants_count + 1;
 end;
 $$;
 
@@ -200,7 +171,7 @@ as
 $$
 begin
     -- 1 Decrement grants_count for all footprints containing the user group
-    update permission_materialization_schema_level pmsl
+    update permission_mater_user_group pmsl
     set grants_count = pmsl.grants_count - 1
     from user_group_footprint_map m
              join user_group_footprint_registry r
@@ -212,39 +183,11 @@ begin
       and m.user_group_id = p_user_group_id;
 
 --     -- 2 Remove rows where grants_count <= 0 commented for debugging. <0 will indicated that some bug is present
---     delete from permission_materialization_schema_level
+--     delete from permission_mater_user_group
 --     where permission_schema_id = p_schema_id
 --       and permission_id = p_permission_id
 --       and grants_count <= 0;
 
-end;
-$$;
-
-
-
-create or replace function permission_mater_schema_level_by_perm_grant_global_insert(p_permission_id uuid, p_user_group_id uuid) returns void
-    language plpgsql
-as
-$$
-begin
-
-end;
-$$;
-
-create or replace function permission_mater_schema_level_by_perm_grant_global_delete(p_permission_id uuid, p_user_group_id uuid) returns void
-    language plpgsql
-as
-$$
-begin
-    update permission_materialization_schema_level pmsl
-    set grants_count = grants_count - 1
-    from user_group_map ugm
-             join domain d
-                  on d.id = ugm.domain_id
-    where ugm.user_group_id = p_user_group_id
-      and pmsl.user_id = ugm.user_id
-      and pmsl.permission_schema_id = d.permission_schema_id
-      and pmsl.permission_id = p_permission_id;
 end;
 $$;
 
