@@ -25,9 +25,8 @@ create table if not exists permission_mater_user_group
 
 
 create or replace function permission_mater_user_group_init(
-    p_footprint uuid,
     p_domain_id uuid,
-    p_business_account_id uuid
+    p_footprint uuid
 )
     returns void
     language plpgsql
@@ -38,21 +37,20 @@ declare
     v_lock_key bigint;
 begin
     -- 0 Compute advisory lock key from domain + business_account + footprint
-    v_lock_key := hashtext('permission_mater_user_group_init- ' || p_domain_id::text || '-' || coalesce(p_business_account_id::text,'') || '-' || p_footprint::text)::bigint;
+    v_lock_key := hashtext('permission_mater_user_group_init- ' || p_domain_id::text || '-' || '-' || p_footprint::text)::bigint;
 
     -- 1 Acquire session-level advisory lock
     perform pg_advisory_lock(v_lock_key);
 
     -- 2 Insert footprint into registry if not exists
-    insert into user_group_footprint_registry(id, domain_id, business_account_id, user_group_footprint_id)
-    values (gen_random_uuid(), p_domain_id, p_business_account_id, p_footprint)
-    on conflict (domain_id, business_account_id, user_group_footprint_id) do nothing;
+    insert into user_group_footprint_registry(id, domain_id, user_group_footprint_id)
+    values (gen_random_uuid(), p_domain_id, p_footprint)
+    on conflict (domain_id, user_group_footprint_id) do nothing;
 
     -- Retrieve registry_id
     select id into v_registry_id
     from user_group_footprint_registry
     where domain_id = p_domain_id
-      and business_account_id is not distinct from p_business_account_id
       and user_group_footprint_id = p_footprint;
 
     -- 3 Materialize permissions from user_group grants (join with footprint map)
@@ -76,7 +74,6 @@ begin
                   on m.user_group_footprint_id = p_footprint
                       and m.user_group_id = g.user_group_id
     where s.domain_id = p_domain_id
-      and (s.business_account_id is null or s.business_account_id = p_business_account_id)
     group by
         v_registry_id,
         s.id,

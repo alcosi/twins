@@ -32,17 +32,12 @@ create table if not exists user_group_footprint_registry
             on update cascade
             on delete cascade,
 
-    business_account_id uuid null
-        references business_account
-            on update cascade
-            on delete cascade,
-
     user_group_footprint_id uuid not null
         references user_group_footprint
             on update cascade
             on delete cascade,
 
-    unique (domain_id, business_account_id, user_group_footprint_id)
+    unique (domain_id, user_group_footprint_id)
 );
 
 
@@ -145,5 +140,33 @@ begin
 
     -- 5 Возвращаем ID footprint
     return v_hash;
+end;
+$$;
+
+create or replace function user_group_footprint_get(p_domain_id uuid, p_group_ids uuid[])
+    returns uuid
+    language plpgsql
+    volatile
+as
+$$
+declare
+    v_footprint uuid;
+    v_exists    boolean;
+begin
+    -- 1 Вычисляем footprint ID через immutable функцию
+    v_footprint := user_group_footprint_create(p_group_ids);
+
+    -- 2 Проверяем, существует ли уже footprint
+    select exists(select 1
+                  from user_group_footprint_registry
+                  where user_group_footprint_id = v_footprint and domain_id = p_domain_id)
+    into v_exists;
+
+    if not v_exists then
+        perform permission_mater_user_group_init(p_domain_id, v_footprint);
+    end if;
+
+    -- 3 Возвращаем ID footprint
+    return v_footprint;
 end;
 $$;
