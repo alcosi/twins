@@ -50,6 +50,7 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
     private final TwinValidatorSetService twinValidatorSetService;
     private final NotificationSchemaService notificationSchemaService;
     private final NotificationEventServiceService notificationEventServiceService;
+    private final HistoryNotificationRecipientService historyNotificationRecipientService;
 
     @Override
     public CrudRepository<HistoryNotificationEntity, UUID> entityRepository() {
@@ -77,6 +78,15 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         if (entity.getTwinClassId() == null) {
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
         }
+        if (entity.getNotificationSchemaId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty notificationSchemaId");
+        }
+        if (entity.getHistoryNotificationRecipientId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty historyNotificationRecipientId");
+        }
+        if (entity.getNotificationChannelEventId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty notificationChannelEventId");
+        }
         if (entityValidateMode != EntitySmartService.EntityValidateMode.beforeSave) {
             return true;
         }
@@ -84,6 +94,21 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         // Check twinClassId
         if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
             entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+        }
+
+        // Check historyNotificationRecipientId
+        if (entity.getHistoryNotificationRecipient() == null || !entity.getHistoryNotificationRecipient().getId().equals(entity.getHistoryNotificationRecipientId())) {
+            entity.setHistoryNotificationRecipient(historyNotificationRecipientService.findEntitySafe(entity.getHistoryNotificationRecipientId()));
+        }
+
+        // Check notificationSchemaId
+        if (entity.getNotificationSchema() == null || !entity.getNotificationSchema().getId().equals(entity.getNotificationSchemaId())) {
+            entity.setNotificationSchema(notificationSchemaService.findEntitySafe(entity.getNotificationSchemaId()));
+        }
+
+        // Check notificationChannelEventId
+        if (entity.getNotificationChannelEvent() == null || !entity.getNotificationChannelEvent().getId().equals(entity.getNotificationChannelEventId())) {
+            entity.setNotificationChannelEvent(notificationEventServiceService.findEntitySafe(entity.getNotificationChannelEventId()));
         }
 
         // Check twinClassFieldId
@@ -97,20 +122,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         if (entity.getTwinValidatorSetId() != null) {
             if (entity.getTwinValidatorSet() == null || !entity.getTwinValidatorSet().getId().equals(entity.getTwinValidatorSetId())) {
                 entity.setTwinValidatorSet(twinValidatorSetService.findEntitySafe(entity.getTwinValidatorSetId()));
-            }
-        }
-
-        // Check notificationSchemaId
-        if (entity.getNotificationSchemaId() != null) {
-            if (entity.getNotificationSchema() == null || !entity.getNotificationSchema().getId().equals(entity.getNotificationSchemaId())) {
-                entity.setNotificationSchema(notificationSchemaService.findEntitySafe(entity.getNotificationSchemaId()));
-            }
-        }
-
-        // Check notificationChannelEventId
-        if (entity.getNotificationChannelEventId() != null) {
-            if (entity.getNotificationChannelEvent() == null || !entity.getNotificationChannelEvent().getId().equals(entity.getNotificationChannelEventId())) {
-                entity.setNotificationChannelEvent(notificationEventServiceService.findEntitySafe(entity.getNotificationChannelEventId()));
             }
         }
 
