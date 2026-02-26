@@ -79,7 +79,7 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
 
         TwinFieldSearch fieldSearch = new TwinFieldSearchBoolean()
                 .setValue(expectedValue)
-                .setTwinClassFieldEntity(fieldEntity)
+                .setTwinClassFieldEntity(fieldEntity);
         fieldSearch.setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
 
         BasicSearch basicSearch = new BasicSearch();
