@@ -42,7 +42,6 @@ import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserDelegateService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -69,7 +68,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final SpaceUserRoleService spaceUserRoleService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
     private final I18nService i18nService;
-    private final UserDelegateService userDelegateService;
 
     private final TwinRepository twinRepository;
     @Lazy
@@ -450,14 +448,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             if (!apiUser.getMachineUser().getPermissions().contains(Permissions.ACT_AS_USER.getId())) {
                 throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "Current user has not ACT_AS_USER permission");
             }
-            var delegatedUser = userDelegateService.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
-            if (delegatedUser == null) {
-                log.info("Current machine user delegated user configured");
-            } else {
-                apiUser.setMachineDelegatedUser(delegatedUser);
-                log.info("Delegated user was detected: {}", delegatedUser.logShort());
-            }
-            apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
+            apiUser.setActAsUserStep(ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED);
         }
         UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
         user.setDetectedPermissionSchemaId(permissionSchemaId);

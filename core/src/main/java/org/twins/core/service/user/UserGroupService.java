@@ -33,7 +33,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupRepository userGroupRepository;
     final UserGroupTypeRepository userGroupTypeRepository;
     final UserGroupMapRepository userGroupMapRepository;
-    final UserDelegationRepository actAsUserInvolveRepository;
+    final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
@@ -93,6 +93,23 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         for (var userGroupMap : userGroups) {
             needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
+        userGroupsForActAsUserInvolve();
+    }
+
+    private void userGroupsForActAsUserInvolve() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.getActAsUserStep() != ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED) {
+            return;
+        }
+        UserEntity actAsUser = apiUser.getUser();
+        var involvedInGroups = userGroupInvolveActAsUserService.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
+        if (CollectionUtils.isEmpty(involvedInGroups)) {
+            log.info("Current machine user has not act as user involve");
+            return;
+        }
+        actAsUser.getUserGroups().addAll(involvedInGroups);
+        log.info("Act-as-user was involved into: {}", involvedInGroups.size());
+        apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
     }
 
     public void enterGroups(Set<UUID> userGroupIds) throws ServiceException {
