@@ -1,3 +1,13 @@
+alter table permission_schema alter column domain_id drop not null;
+alter table twin_class_schema alter column domain_id drop not null;
+alter table twinflow_schema alter column domain_id drop not null;
+INSERT INTO permission_schema (id, domain_id, business_account_id, name, description, created_by_user_id, created_at)
+VALUES ('00000000-0000-0000-0012-000000000001', null, null, 'System permission schema', null, '00000000-0000-0000-0000-000000000000', '2026-02-25 12:29:56.000000') on conflict (id) do nothing;
+INSERT INTO twinflow_schema (id, domain_id, business_account_id, name, description, created_by_user_id, created_at)
+VALUES ('00000000-0000-0000-0013-000000000001', null, null, 'System twinflow schema', null, '00000000-0000-0000-0000-000000000000', '2026-02-25 12:38:16.000000') on conflict (id) do nothing;
+INSERT INTO twin_class_schema (id, domain_id, name, description, created_by_user_id, created_at)
+VALUES ('00000000-0000-0000-0014-000000000001', null, 'System twinclass schema', null, '00000000-0000-0000-0000-000000000000', '2026-02-25 12:39:07.000000') on conflict (id) do nothing;
+
 UPDATE domain_business_account dba
 SET
     permission_schema_id = COALESCE(dba.permission_schema_id, d.permission_schema_id),
@@ -17,17 +27,73 @@ ALTER TABLE domain_business_account
     ALTER COLUMN twin_class_schema_id SET NOT NULL;
 
 ALTER TABLE twin ADD COLUMN IF NOT EXISTS permission_schema_id UUID DEFAULT null;
+alter table twin drop constraint if exists fk_twin_permission_schema_id;
 
-ALTER TABLE twin ADD COLUMN IF NOT EXISTS custom_view_permission_id boolean DEFAULT false;
+alter table twin add constraint fk_twin_permission_schema_id
+    foreign key (permission_schema_id) references permission_schema
+        on update cascade on delete restrict;
+
+
+ALTER TABLE twin ADD COLUMN IF NOT EXISTS view_permission_custom boolean DEFAULT false;
+
+-- todo test method, I REView & ai generate test-cases
+CREATE OR REPLACE FUNCTION permission_schema_detect(
+    p_permission_schema_space_id uuid,
+    p_business_account_id uuid,
+    p_twin_class_id uuid
+) RETURNS uuid
+    STABLE
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_schema_id UUID;
+BEGIN
+    if p_business_account_id IS NOT NULL then
+    SELECT
+        COALESCE(
+                s.permission_schema_id,
+                dba.permission_schema_id,
+                d.permission_schema_id,
+                '00000000-0000-0000-0012-000000000001'::uuid)
+    INTO v_schema_id
+    FROM public.twin_class tc
+             LEFT JOIN public.space s ON s.twin_id = p_permission_schema_space_id AND p_permission_schema_space_id IS NOT NULL
+             LEFT JOIN public.domain d ON d.id = tc.domain_id
+             LEFT JOIN public.domain_business_account dba ON dba.domain_id = tc.domain_id AND dba.business_account_id = p_business_account_id
+    WHERE tc.id = p_twin_class_id;
+    else
+        SELECT
+            COALESCE(
+                    s.permission_schema_id,
+                    d.permission_schema_id,
+                    '00000000-0000-0000-0012-000000000001'::uuid)
+        INTO v_schema_id
+        FROM public.twin_class tc
+                 LEFT JOIN public.space s ON s.twin_id = p_permission_schema_space_id AND p_permission_schema_space_id IS NOT NULL
+                 LEFT JOIN public.domain d ON d.id = tc.domain_id
+        WHERE tc.id = p_twin_class_id;
+    end if;
+    RETURN v_schema_id;
+END;
+$$;
+
 
 create or replace function twin_before_update_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    IF NEW.custom_view_permission_id IS DISTINCT FROM OLD.custom_view_permission_id and new.custom_view_permission_id THEN
+    --todo logic: засетать схему нового БА если твин не в спэйсе в AU
+    if old.owner_business_account_id is distinct from new.owner_business_account_id then
+        raise exception 'Its forbidden to change twin.owner_business_account_id';
+    end if;
+    IF NEW.view_permission_custom IS DISTINCT FROM OLD.view_permission_custom and not new.view_permission_custom THEN
         SELECT view_permission_id INTO NEW.view_permission_id FROM twin_class WHERE id = NEW.twin_class_id;
     END IF;
+    if old.permission_schema_space_id is distinct from new.permission_schema_space_id then
+        NEW.permission_schema_id = permission_schema_detect(NEW.permission_schema_space_id, new.owner_business_account_id, new.twin_class_id);
+    end if;
 
     RETURN NEW;
 END;
@@ -48,7 +114,7 @@ $$
 BEGIN
     -- fn's if view_permission_id changed
     IF NEW.view_permission_id IS DISTINCT FROM OLD.view_permission_id THEN
-        UPDATE twin t SET view_permission_id = NEW.view_permission_id FROM twin_class tc WHERE not t.custom_view_permission_id and t.twin_class_id = NEW.id;
+        UPDATE twin t SET view_permission_id = NEW.view_permission_id FROM twin_class tc WHERE not t.view_permission_custom and t.twin_class_id = NEW.id;
     END IF;
 
     -- Update tree if extends_twin_class_id changed
@@ -135,14 +201,14 @@ $$;
 UPDATE twin t
 SET view_permission_id = tc.view_permission_id
 FROM twin_class tc
-WHERE not t.custom_view_permission_id and
+WHERE not t.view_permission_custom and
       t.twin_class_id = tc.id and
       t.view_permission_id is null;
 
 UPDATE twin t
-SET custom_view_permission_id = true
+SET view_permission_custom = true
 FROM twin_class tc
-WHERE not t.custom_view_permission_id and
+WHERE not t.view_permission_custom and
       t.twin_class_id = tc.id and
       t.view_permission_id is not null and
       t.view_permission_id is distinct from tc.view_permission_id;
@@ -294,18 +360,31 @@ $$;
 
 
 
--- if domain ps_id changes - trigger -> dbu.permission_schema_id update if not custom?
--- todo!!!!!!!!!!!! update all twins
-UPDATE twin t
-SET permission_schema_id = COALESCE(s.permission_schema_id, dbu.permission_schema_id, d.permission_schema_id, '00000000-0000-0000-0012-000000000001')
-FROM twin_class tc
-         JOIN domain d ON tc.domain_id = d.id
-         LEFT JOIN domain_business_account dbu ON dbu.domain_id = d.id
-         LEFT JOIN space s ON true -- Здесь мы не можем сослаться на t, поэтому используем фильтр ниже
-WHERE t.twin_class_id = tc.id
-  AND (dbu.business_account_id IS NOT DISTINCT FROM t.owner_business_account_id OR t.owner_business_account_id IS NULL)
-  AND (s.twin_id IS NOT DISTINCT FROM t.permission_schema_space_id OR t.permission_schema_space_id IS NULL);
+UPDATE twin
+SET permission_schema_id = '00000000-0000-0000-0012-000000000001'
+WHERE permission_schema_id IS NULL;
 
+UPDATE twin t
+SET permission_schema_id = sub.calculated_schema_id
+FROM (
+         SELECT
+             t_inner.id,
+             COALESCE(s.permission_schema_id, dbu.permission_schema_id, d.permission_schema_id) AS calculated_schema_id
+         FROM twin t_inner
+                  JOIN twin_class tc ON t_inner.twin_class_id = tc.id
+                  LEFT JOIN domain d ON tc.domain_id = d.id
+                  LEFT JOIN domain_business_account dbu ON (
+             dbu.domain_id = d.id AND
+             dbu.business_account_id IS NOT DISTINCT FROM t_inner.owner_business_account_id
+             )
+                  LEFT JOIN space s ON (
+             s.twin_id = t_inner.permission_schema_space_id
+             )
+         WHERE COALESCE(s.permission_schema_id, dbu.permission_schema_id, d.permission_schema_id) IS NOT NULL
+     ) AS sub
+WHERE t.id = sub.id;
+
+ALTER TABLE twin ALTER COLUMN permission_schema_id SET NOT NULL;
 
 -- ALTER TABLE twin alter COLUMN permission_schema_id set not null;
 
@@ -317,7 +396,7 @@ drop function if exists tiers_update_business_account_properties_on_tier_change(
 drop function if exists business_account_properties_update_on_tier_change(uuid);
 
 ---------------------------------------------------------------
------------------------------DBU AU---------------------------
+-----------------------------DBU AU & BU---------------------------
 ---------------------------------------------------------------
 create or replace function domain_business_account_properties_update_on_tier_id_change(p_tier_id uuid) returns void
     volatile
@@ -337,39 +416,56 @@ BEGIN
 END;
 $$;
 
--- todo
-CREATE OR REPLACE FUNCTION twin_permission_schema_id_update_by_dbu(p_new_permission_schema_id uuid, p_old_permission_schema_id uuid, p_business_account_id uuid) RETURNS void
+CREATE OR REPLACE FUNCTION twin_permission_schema_id_update_by_dba(p_new_permission_schema_id uuid, p_old_permission_schema_id uuid, p_business_account_id uuid) RETURNS void
     VOLATILE
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
     UPDATE twin t
-    SET
-        permission_schema_id = p_new_permission_schema_id
-
-    WHERE
-        t.permission_schema_space_id IS NULL
+    SET permission_schema_id = p_new_permission_schema_id
+    FROM twin t2
+             LEFT JOIN space s ON s.twin_id = t2.permission_schema_space_id
+    WHERE t.id = t2.id
+      AND t.owner_business_account_id = p_business_account_id
       AND t.permission_schema_id = p_old_permission_schema_id
-      AND t.owner_business_account_id != p_business_account_id;
+      AND (t2.permission_schema_space_id IS NULL OR s.permission_schema_id IS NULL);
 END;
 $$;
 
+create or replace function domain_business_account_before_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    if old.business_account_id is distinct from new.business_account_id or old.domain_id is distinct from new.domain_id then
+        raise exception
+            'Its forbidden to change domain_business_account.business_account_id or domain_business_account.domain_id';
+    end if;
+
+    RETURN NEW;
+END;
+$$;
+
+create trigger domain_business_account_before_update_trigger
+    before update
+    on domain_business_account
+    for each row
+execute procedure domain_business_account_before_update_wrapper();
 
 create function domain_business_account_after_update_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    -- todo what happens if dba deleted - cascade? or on business_account changes?(restrict)
     IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id and NEW.permission_schema_id is not null THEN
-        PERFORM twin_permission_schema_id_update_by_dbu(NEW.permission_schema_id, OLD.permission_schema_id, NEW.business_account_id);
+        PERFORM twin_permission_schema_id_update_by_dba(NEW.permission_schema_id, OLD.permission_schema_id, NEW.business_account_id);
     END IF;
     IF OLD.tier_id IS DISTINCT FROM NEW.tier_id THEN
         PERFORM domain_business_account_properties_update_on_tier_id_change(NEW.tier_id);
     END IF;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
 $$;
 
@@ -432,13 +528,32 @@ $$;
 ---------------------------------------------------------------
 -----------------------------DOMAIN AU---------------------------
 ---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION twin_permission_schema_id_update_by_domain(p_new_permission_schema_id uuid, p_old_permission_schema_id uuid, p_domain_id uuid) RETURNS void
+    VOLATILE
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    UPDATE twin t
+    SET permission_schema_id = p_new_permission_schema_id
+    FROM twin t2
+             JOIN twin_class tc ON t2.twin_class_id = tc.id
+             LEFT JOIN space s ON s.twin_id = t2.permission_schema_space_id
+    WHERE t.id = t2.id
+      AND tc.domain_id = p_domain_id
+      AND t.owner_business_account_id is null
+      AND t.permission_schema_id = p_old_permission_schema_id
+      AND (t2.permission_schema_space_id IS NULL OR s.permission_schema_id IS NULL);
+END;
+$$;
+
 create or replace function domain_after_update_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    IF NEW.permission_schema_id IS DISTINCT FROM OLD.permission_schema_id THEN
-        PERFORM
+    IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id and NEW.permission_schema_id is not null THEN
+        PERFORM twin_permission_schema_id_update_by_domain(NEW.permission_schema_id, OLD.permission_schema_id, NEW.id);
     END IF;
     RETURN NEW;
 END;
@@ -453,45 +568,36 @@ execute procedure domain_after_update_wrapper();
 ---------------------------------------------------------------
 -----------------------------SPACE AU---------------------------
 ---------------------------------------------------------------
+CREATE OR REPLACE FUNCTION twin_permission_schema_id_update_by_space(p_new_permission_schema_id uuid, p_twin_id uuid) RETURNS void
+    VOLATILE
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    UPDATE twin t
+    SET permission_schema_id = p_new_permission_schema_id
+    WHERE t.permission_schema_space_id = p_twin_id;
+END;
+$$;
+
 create or replace function space_after_update_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    IF NEW.permission_schema_id IS DISTINCT FROM OLD.permission_schema_id THEN
-        PERFORM
+    IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id and NEW.permission_schema_id is not null THEN
+        PERFORM twin_permission_schema_id_update_by_space(NEW.permission_schema_id, OLD.permission_schema_id, NEW.twin_id);
     END IF;
     RETURN NEW;
 END;
 $$;
 
 drop trigger if exists space_after_update_wrapper_trigger on space;
-create trigger space_after_delete_wrapper_trigger
+create trigger space_after_update_wrapper_trigger
     after update
     on space
     for each row
 execute procedure space_after_update_wrapper();
 
----------------------------------------------------------------
------------------------------TWIN AU---------------------------
----------------------------------------------------------------
-create function twin_after_update_wrapper() returns trigger
-    language plpgsql
-as
-$$
-begin
-    if old.permission_schema_space_id is distinct from new.permission_schema_space_id then
-        perform ;
-    end if;
-    if old.head_twin_id is distinct from new.head_twin_id then
-        raise notice 'Process update for: %', new.id;
-        perform hierarchyUpdateTreeSoft(new.id, public.hierarchyDetectTree(new.id));
-    end if;
-    if old.owner_business_account_id is distinct from new.owner_business_account_id then
-        raise exception
-            'Its forbidden to change twin.owner_business_account_id';
-    end if;
 
-    return new;
-end;
-$$;
+
