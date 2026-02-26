@@ -13,8 +13,10 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinFieldSearchBoolean;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinSearchService;
@@ -48,15 +50,16 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
 
         TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(fieldId);
 
+        TwinFieldSearch fieldSearch = new TwinFieldSearchBoolean()
+                .setValue(expectedValue)
+                .setTwinClassFieldEntity(fieldEntity);
+        fieldSearch.setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
+
         BasicSearch basicSearch = new BasicSearch();
         basicSearch
                 .addHeadTwinId(twinEntity.getId())
                 .setTwinClassExtendsHierarchyContainsIdList(childrenTwinClassId.extract(properties))
-                .setFields(List.of(
-                        new TwinFieldSearchBoolean()
-                                .setValue(expectedValue)
-                                .setTwinClassFieldEntity(fieldEntity)
-                ));
+                .setFields(List.of(fieldSearch));
 
         boolean isValid = twinSearchService.exists(basicSearch);
 
@@ -74,15 +77,16 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
 
         TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(fieldId);
 
+        TwinFieldSearch fieldSearch = new TwinFieldSearchBoolean()
+                .setValue(expectedValue)
+                .setTwinClassFieldEntity(fieldEntity)
+        fieldSearch.setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
+
         BasicSearch basicSearch = new BasicSearch();
         basicSearch
                 .addHeadTwinId(twinEntityCollection.stream().map(TwinEntity::getId).toList())
                 .setTwinClassExtendsHierarchyContainsIdList(childrenTwinClassId.extract(properties))
-                .setFields(List.of(
-                        new TwinFieldSearchBoolean()
-                                .setValue(expectedValue)
-                                .setTwinClassFieldEntity(fieldEntity)
-                ));
+                .setFields(List.of(fieldSearch));
 
         Map<UUID, Long> headTwinIdToChildrenCount = twinSearchService.countGroupBy(
                 basicSearch,
