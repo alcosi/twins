@@ -35,11 +35,12 @@ create table if not exists user_group_footprint_registry
     user_group_footprint_id uuid not null
         references user_group_footprint
             on update cascade
-            on delete cascade,
-
-    unique (domain_id, user_group_footprint_id)
+            on delete cascade
 );
 
+drop index if exists uidx_user_group_footprint_registry;
+create unique index uidx_user_group_footprint_registry
+    on public.user_group_footprint_registry (domain_id, user_group_footprint_id);
 
 create or replace function user_group_footprint_generate(p_group_ids uuid[])
     returns uuid
@@ -50,6 +51,73 @@ $$
 select md5(array_to_string(array_agg(g order by g), ','))::uuid
 from unnest(p_group_ids) as g;
 $$;
+
+create or replace function user_group_footprint_create(p_group_ids uuid[])
+    returns uuid
+    language plpgsql
+    volatile
+as
+$$
+declare
+    v_hash uuid;
+    v_exists boolean;
+begin
+    -- 1 Вычисляем footprint ID через immutable функцию
+    v_hash := user_group_footprint_generate(p_group_ids);
+
+    -- 2 Проверяем, существует ли уже footprint
+    select exists(select 1 from user_group_footprint where id = v_hash)
+    into v_exists;
+
+    if not v_exists then
+        -- 3 Вставляем footprint
+        insert into user_group_footprint(id)
+        values (v_hash);
+
+        perform set_config('app.user_group_footprint_map_insert', 'on', true);
+        -- 4 Вставляем map для всех групп
+        insert into user_group_footprint_map(user_group_footprint_id, user_group_id)
+        select v_hash, g
+        from unnest(p_group_ids) as g;
+
+        perform set_config('app.user_group_footprint_map_insert', 'off', true);
+
+        PERFORM permission_mater_global_init(v_hash);
+    end if;
+
+    -- 5 Возвращаем ID footprint
+    return v_hash;
+end;
+$$;
+
+create or replace function user_group_footprint_get(p_domain_id uuid, p_group_ids uuid[])
+    returns uuid
+    language plpgsql
+    volatile
+as
+$$
+declare
+    v_footprint uuid;
+    v_exists    boolean;
+begin
+    -- 1 Вычисляем footprint ID через immutable функцию
+    v_footprint := user_group_footprint_create(p_group_ids);
+
+    -- 2 Проверяем, существует ли уже footprint
+    select exists(select 1
+                  from user_group_footprint_registry
+                  where user_group_footprint_id = v_footprint and domain_id = p_domain_id)
+    into v_exists;
+
+    if not v_exists then
+        perform permission_mater_user_group_init(p_domain_id, v_footprint);
+    end if;
+
+    -- 3 Возвращаем ID footprint
+    return v_footprint;
+end;
+$$;
+
 
 create or replace function user_group_footprint_map_before_update_wrapper()
     returns trigger
@@ -95,6 +163,27 @@ begin
 end;
 $$;
 
+create or replace function user_group_footprint_before_insert_wrapper()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    if current_setting('app.user_group_footprint_map_insert', true) is distinct from 'on'
+    then
+        raise exception
+            'Direct insert into user_group_footprint_map is forbidden. Use user_group_footprint_create().';
+    end if;
+    return new;
+end;
+$$;
+
+drop trigger if exists user_group_footprint_map_before_insert_wrapper_trigger on user_group_footprint_map;
+create trigger user_group_footprint_map_before_insert_wrapper_trigger
+    before insert on user_group_footprint_map
+    for each row
+execute function user_group_footprint_before_insert_wrapper();
+
 drop trigger if exists user_group_footprint_map_after_delete_wrapper_trigger on user_group_footprint_map;
 create trigger user_group_footprint_map_after_delete_wrapper_trigger
     after delete on user_group_footprint_map
@@ -106,67 +195,3 @@ create trigger user_group_footprint_map_after_update_wrapper_trigger
     after update on user_group_footprint_map
     for each row
 execute function user_group_footprint_invalidate_wrapper();
-
-
-create or replace function user_group_footprint_create(p_group_ids uuid[])
-    returns uuid
-    language plpgsql
-    volatile
-as
-$$
-declare
-    v_hash uuid;
-    v_exists boolean;
-begin
-    -- 1 Вычисляем footprint ID через immutable функцию
-    v_hash := user_group_footprint_generate(p_group_ids);
-
-    -- 2 Проверяем, существует ли уже footprint
-    select exists(select 1 from user_group_footprint where id = v_hash)
-    into v_exists;
-
-    if not v_exists then
-        -- 3 Вставляем footprint
-        insert into user_group_footprint(id)
-        values (v_hash);
-
-        -- 4 Вставляем map для всех групп
-        insert into user_group_footprint_map(user_group_footprint_id, user_group_id)
-        select v_hash, g
-        from unnest(p_group_ids) as g;
-
-        PERFORM permission_mater_global_init(v_hash);
-    end if;
-
-    -- 5 Возвращаем ID footprint
-    return v_hash;
-end;
-$$;
-
-create or replace function user_group_footprint_get(p_domain_id uuid, p_group_ids uuid[])
-    returns uuid
-    language plpgsql
-    volatile
-as
-$$
-declare
-    v_footprint uuid;
-    v_exists    boolean;
-begin
-    -- 1 Вычисляем footprint ID через immutable функцию
-    v_footprint := user_group_footprint_create(p_group_ids);
-
-    -- 2 Проверяем, существует ли уже footprint
-    select exists(select 1
-                  from user_group_footprint_registry
-                  where user_group_footprint_id = v_footprint and domain_id = p_domain_id)
-    into v_exists;
-
-    if not v_exists then
-        perform permission_mater_user_group_init(p_domain_id, v_footprint);
-    end if;
-
-    -- 3 Возвращаем ID footprint
-    return v_footprint;
-end;
-$$;

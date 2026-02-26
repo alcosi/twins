@@ -36,24 +36,38 @@ declare
     v_registry_id uuid;
     v_lock_key bigint;
 begin
-    -- 0 Compute advisory lock key from domain + business_account + footprint
-    v_lock_key := hashtext('permission_mater_user_group_init- ' || p_domain_id::text || '-' || '-' || p_footprint::text)::bigint;
-
-    -- 1 Acquire session-level advisory lock
-    perform pg_advisory_lock(v_lock_key);
-
-    -- 2 Insert footprint into registry if not exists
-    insert into user_group_footprint_registry(id, domain_id, user_group_footprint_id)
-    values (gen_random_uuid(), p_domain_id, p_footprint)
-    on conflict (domain_id, user_group_footprint_id) do nothing;
-
-    -- Retrieve registry_id
+    -- 0 Retrieve registry_id ti check if it's already initiated
     select id into v_registry_id
     from user_group_footprint_registry
     where domain_id = p_domain_id
       and user_group_footprint_id = p_footprint;
 
-    -- 3 Materialize permissions from user_group grants (join with footprint map)
+    if v_registry_id is not null then
+        return;
+    end if;
+
+    -- 1 Compute advisory lock key from domain + business_account + footprint
+    v_lock_key := hashtext('permission_mater_user_group_init- ' || p_domain_id::text || '-' || '-' || p_footprint::text)::bigint;
+
+    -- 2 Acquire session-level advisory lock
+    perform pg_advisory_lock(v_lock_key);
+
+    -- 3 Retrieve registry_id one more time if some other thread overtakes the current
+    select id into v_registry_id
+    from user_group_footprint_registry
+    where domain_id = p_domain_id
+      and user_group_footprint_id = p_footprint;
+
+    if v_registry_id is not null then
+        return;
+    end if;
+
+    v_registry_id = gen_random_uuid();
+    -- 4 Insert footprint into registry if not exists
+    insert into user_group_footprint_registry(id, domain_id, user_group_footprint_id)
+    values (v_registry_id, p_domain_id, p_footprint);
+
+    -- 5 Materialize permissions from user_group grants (join with footprint map)
     insert into permission_mater_user_group(
         user_group_footprint_registry_id,
         permission_schema_id,
@@ -84,7 +98,7 @@ begin
         set grants_count = permission_mater_user_group.grants_count + excluded.grants_count;
 
 
-    -- 4 Release advisory lock
+    -- 6 Release advisory lock
     perform pg_advisory_unlock(v_lock_key);
 
 end;
