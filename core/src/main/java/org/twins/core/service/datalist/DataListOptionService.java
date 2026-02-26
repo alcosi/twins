@@ -104,6 +104,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
+
+        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         //todo save description
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
             DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
@@ -118,6 +120,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom())) {
+                dataListOption.setCustom(true);
+                dataListOption.setBusinessAccountId(businessAccountId);
+            } else {
+                dataListOption.setCustom(false);
+            }
+
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
