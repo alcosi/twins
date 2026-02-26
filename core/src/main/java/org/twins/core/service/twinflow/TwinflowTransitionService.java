@@ -249,6 +249,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             detectKey = entry.getKey();
             twinflowTransitionEntityList = twinflowTransitionRepository.findValidTransitions(
                     detectKey.twinflowId,
+                    detectKey.getPermissionSchemaId(),
                     detectKey.srcStatusId,
                     apiUser.getDomainId(),
                     TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
@@ -274,6 +275,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     twinEntity.getTwinflow().getId(),
                     twinEntity.getTwinStatusId(),
                     twinEntity.getPermissionSchemaSpaceId(),
+                    twinEntity.getPermissionSchemaId(),
                     TwinService.isAssignee(twinEntity, apiUser),
                     TwinService.isCreator(twinEntity, apiUser),
                     twinEntity.getTwinClassId());
@@ -497,6 +499,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         final UUID twinflowId;
         final UUID srcStatusId;
         final UUID permissionSpaceId;
+        final UUID permissionSchemaId;
         final boolean isAssignee;
         final boolean isCreator;
         final UUID twinClassId;
@@ -513,6 +516,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         userGroupService.loadGroupsForCurrentUser();
         TwinflowTransitionEntity transition = twinflowTransitionRepository.findTransition(
                 transitionId,
+                twinEntity.getPermissionSchemaId(),
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
                 TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
@@ -541,6 +545,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             detectKey = entry.getKey();
             transition = twinflowTransitionRepository.findTransition(
                     transitionId,
+                    detectKey.getPermissionSchemaId(),
                     apiUser.getDomainId(),
                     TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
                     TypedParameterTwins.uuidNullable(detectKey.permissionSpaceId),
@@ -603,6 +608,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         userGroupService.loadGroupsForCurrentUser();
         TwinflowTransitionEntity transition = twinflowTransitionRepository.findTransitionByAlias(
                 twinEntity.getTwinflow().getId(),
+                twinEntity.getPermissionSchemaId(),
                 twinEntity.getTwinStatusId(),
                 transitionAlias,
                 apiUser.getDomainId(),
@@ -634,6 +640,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             detectKey = entry.getKey();
             transition = twinflowTransitionRepository.findTransitionByAlias(
                     detectKey.twinflowId,
+                    detectKey.getPermissionSchemaId(),
                     detectKey.srcStatusId,
                     transitionAlias,
                     apiUser.getDomainId(),

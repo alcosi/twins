@@ -156,6 +156,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return hasPermission(
                 new PermissionDetectKey(
                         twinEntity.getTwinClassId(),
+                        twinEntity.getPermissionSchemaId(),
                         twinEntity.getPermissionSchemaSpaceId(),
                         TwinService.isAssignee(twinEntity, apiUser),
                         TwinService.isCreator(twinEntity, apiUser)),
@@ -168,6 +169,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             return true;
         userGroupService.loadGroupsForCurrentUser();
         return twinRepository.hasPermission(
+                permissionDetectKey.getPermissionSchemaId(),
                 permissionId,
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
@@ -186,6 +188,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         for (TwinEntity twinEntity : twinEntities) {
             detectKey = new PermissionDetectKey(
                     twinEntity.getTwinClassId(),
+                    twinEntity.getPermissionSchemaId(),
                     twinEntity.getPermissionSchemaSpaceId(),
                     TwinService.isAssignee(twinEntity, apiUser),
                     TwinService.isCreator(twinEntity, apiUser));
@@ -372,6 +375,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     @EqualsAndHashCode
     public static class PermissionDetectKey {
         final UUID twinClassId;
+        final UUID permissionSchemaId;
         final UUID permissionSchemaSpaceId;
         final boolean isAssignee;
         final boolean isCreator;

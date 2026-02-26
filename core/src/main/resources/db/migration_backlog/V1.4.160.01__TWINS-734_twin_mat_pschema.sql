@@ -1,3 +1,154 @@
+CREATE OR REPLACE FUNCTION detect_permission_schema_mismatches()
+    RETURNS TABLE (
+                      twin_id UUID,
+                      current_schema_id UUID,
+                      detected_schema_id UUID,
+                      detection_function TEXT
+                  ) AS $$
+BEGIN
+    RETURN QUERY
+        WITH twin_data AS (
+            SELECT
+                t.id,
+                t.permission_schema_id,
+                t.permission_schema_space_id,
+                t.owner_business_account_id,
+                t.twin_class_id,
+                tc.domain_id
+            FROM public.twin t
+                     JOIN public.twin_class tc ON t.twin_class_id = tc.id
+        )
+        SELECT * FROM (
+                          SELECT
+                              td.id as twin_id,
+                              td.permission_schema_id as current_schema_id,
+                              permission_schema_detect(td.permission_schema_space_id, td.owner_business_account_id, td.twin_class_id) as detected_schema_id,
+                              'permission_schema_detect'::TEXT as detection_function
+                          FROM twin_data td
+                          UNION ALL
+                          SELECT
+                              td.id as twin_id,
+                              td.permission_schema_id as current_schema_id,
+                              permission_detect_schema(td.domain_id, td.owner_business_account_id, td.permission_schema_space_id) as detected_schema_id,
+                              'permission_detect_schema'::TEXT as detection_function
+                          FROM twin_data td
+                      ) AS results
+        WHERE results.current_schema_id IS DISTINCT FROM results.detected_schema_id
+        ORDER BY results.twin_id;
+END;
+$$ LANGUAGE plpgsql;
+
+
+drop function if exists public.permission_check(uuid, uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
+drop function if exists public.permission_check(uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
+
+create or replace function permission_check(domainid uuid, businessaccountid uuid, spaceid uuid, permissionSchemaId uuid, permissionid uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
+    stable
+    language plpgsql
+as
+$$
+
+DECLARE
+    roles                     VARCHAR[] := '{}';
+    isSpaceAssignee           BOOLEAN DEFAULT FALSE;
+    isSpaceCreator            BOOLEAN DEFAULT FALSE;
+BEGIN
+    --- PERMISSION IS ABSENT
+    IF permissionId IS NULL THEN
+        RETURN TRUE;
+    END IF;
+
+    --- DENY_ALL permission
+    IF permissionId = '00000000-0000-0000-0004-000000000001' THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Exit if no permission schema found
+    IF permissionSchemaId IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Check direct user or user group permissions
+    IF permission_check_by_group_or_user(permissionSchemaId, permissionId, userId, userGroupIdList, domainId, businessAccountId) THEN
+        RETURN TRUE;
+    END IF;
+
+    IF isAssignee THEN
+        roles := array_append(roles, 'assignee');
+    END IF;
+
+    IF isCreator THEN
+        roles := array_append(roles, 'creator');
+    END IF;
+
+    SELECT * INTO isSpaceAssignee, isSpaceCreator FROM permission_check_space_assignee_and_creator(spaceId, userId);
+
+    IF isSpaceAssignee THEN
+        roles := array_append(roles, 'space_assignee');
+    END IF;
+
+    IF isSpaceCreator THEN
+        roles := array_append(roles, 'space_creator');
+    END IF;
+
+    -- Check twin-role permissions
+    IF permission_check_twin_role(permissionSchemaId, permissionId, roles, twinClassId) THEN
+        RETURN TRUE;
+    END IF;
+
+    -- check propagation
+    IF permission_check_assignee_propagation(permissionSchemaId, permissionId, businessAccountId, spaceId, userId) THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Exit if spaceId is NULL, indicating no further hierarchy to check
+    IF spaceId IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Check space-role and space-role-group permissions
+    RETURN permission_check_space_role_permissions(permissionSchemaId, permissionId, spaceId, userId, userGroupIdList);
+
+END;
+$$;
+
+
+
+create or replace function permission_detect_schema(domainid uuid, businessaccountid uuid, spaceid uuid) returns uuid
+    stable
+    language plpgsql
+as
+$$
+DECLARE
+    schemaId UUID;
+BEGIN
+    -- twin in space
+    IF spaceId IS NOT NULL THEN
+        SELECT permission_schema_id INTO schemaId FROM space WHERE twin_id = spaceId;
+        IF FOUND THEN
+            RETURN schemaId;
+        END IF;
+    END IF;
+
+    -- twin in BA
+    IF businessAccountId IS NOT NULL THEN
+        SELECT permission_schema_id INTO schemaId
+        FROM domain_business_account
+        WHERE domain_id = domainId AND business_account_id = businessAccountId;
+        IF FOUND THEN
+            RETURN schemaId;
+        END IF;
+    END IF;
+
+    -- return domain schema, if twin not in space, and not in BA
+    SELECT permission_schema_id INTO schemaId FROM domain WHERE id = domainId;
+    RETURN coalesce(schemaId, '00000000-0000-0000-0012-000000000001'::uuid);
+EXCEPTION WHEN OTHERS THEN
+    RETURN NULL;
+END;
+$$;
+
+
 alter table permission_schema alter column domain_id drop not null;
 alter table twin_class_schema alter column domain_id drop not null;
 alter table twinflow_schema alter column domain_id drop not null;
@@ -28,15 +179,20 @@ ALTER TABLE domain_business_account
 
 ALTER TABLE twin ADD COLUMN IF NOT EXISTS permission_schema_id UUID DEFAULT null;
 alter table twin drop constraint if exists fk_twin_permission_schema_id;
-
 alter table twin add constraint fk_twin_permission_schema_id
     foreign key (permission_schema_id) references permission_schema
         on update cascade on delete restrict;
-
-
 ALTER TABLE twin ADD COLUMN IF NOT EXISTS view_permission_custom boolean DEFAULT false;
 
--- todo test method, I REView & ai generate test-cases
+-- todo????????
+ALTER TABLE draft_twin_persist ADD COLUMN IF NOT EXISTS permission_schema_id UUID DEFAULT null;
+alter table draft_twin_persist drop constraint if exists fk_draft_twin_persist_permission_schema_id;
+alter table draft_twin_persist add constraint fk_draft_twin_persist_permission_schema_id
+    foreign key (permission_schema_id) references permission_schema
+        on update cascade on delete cascade;
+ALTER TABLE draft_twin_persist ADD COLUMN IF NOT EXISTS view_permission_custom boolean DEFAULT false;
+
+-- todo test method, I REView & ai generate test-cases, code changes
 CREATE OR REPLACE FUNCTION permission_schema_detect(
     p_permission_schema_space_id uuid,
     p_business_account_id uuid,
@@ -447,13 +603,14 @@ BEGIN
 END;
 $$;
 
+drop trigger if exists domain_business_account_before_update_trigger on domain_business_account;
 create trigger domain_business_account_before_update_trigger
     before update
     on domain_business_account
     for each row
 execute procedure domain_business_account_before_update_wrapper();
 
-create function domain_business_account_after_update_wrapper() returns trigger
+create or replace function domain_business_account_after_update_wrapper() returns trigger
     language plpgsql
 as
 $$
@@ -469,6 +626,7 @@ BEGIN
 END;
 $$;
 
+drop trigger if exists domain_business_account_after_update_trigger on domain_business_account;
 create trigger domain_business_account_after_update_trigger
     after update
     on domain_business_account
@@ -560,7 +718,7 @@ END;
 $$;
 
 drop trigger if exists domain_after_update_wrapper_trigger on domain;
-create trigger domain_after_delete_wrapper_trigger
+create trigger domain_after_update_wrapper_trigger
     after update
     on domain
     for each row
@@ -586,7 +744,7 @@ as
 $$
 BEGIN
     IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id and NEW.permission_schema_id is not null THEN
-        PERFORM twin_permission_schema_id_update_by_space(NEW.permission_schema_id, OLD.permission_schema_id, NEW.twin_id);
+        PERFORM twin_permission_schema_id_update_by_space(NEW.permission_schema_id, NEW.twin_id);
     END IF;
     RETURN NEW;
 END;
