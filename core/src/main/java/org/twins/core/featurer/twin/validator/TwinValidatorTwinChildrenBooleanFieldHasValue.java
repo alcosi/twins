@@ -20,9 +20,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -67,5 +65,40 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
                 invert,
                 twinEntity.logShort() + " has no children twin field of class[" + fieldId + "] with value [" + expectedValue + "]",
                 twinEntity.logShort() + " has children twin field of class[" + fieldId + "] with value [" + expectedValue + "]");
+    }
+
+    @Override
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        UUID fieldId = twinClassFieldId.extract(properties);
+        boolean expectedValue = value.extract(properties);
+
+        TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(fieldId);
+
+        BasicSearch basicSearch = new BasicSearch();
+        basicSearch
+                .addHeadTwinId(twinEntityCollection.stream().map(TwinEntity::getId).toList())
+                .setTwinClassExtendsHierarchyContainsIdList(childrenTwinClassId.extract(properties))
+                .setFields(List.of(
+                        new TwinFieldSearchBoolean()
+                                .setValue(expectedValue)
+                                .setTwinClassFieldEntity(fieldEntity)
+                ));
+
+        Map<UUID, Long> headTwinIdToChildrenCount = twinSearchService.countGroupBy(
+                basicSearch,
+                TwinEntity.Fields.headTwinId
+        );
+
+        CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
+        for (TwinEntity twinEntity : twinEntityCollection) {
+            boolean isValid = headTwinIdToChildrenCount.getOrDefault(twinEntity.getId(), 0L) > 0;
+            ValidationResult result = buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " has no children twin field of class[" + fieldId + "] with value [" + expectedValue + "]",
+                    twinEntity.logShort() + " has children twin field of class[" + fieldId + "] with value [" + expectedValue + "]");
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), result);
+        }
+        return collectionValidationResult;
     }
 }
