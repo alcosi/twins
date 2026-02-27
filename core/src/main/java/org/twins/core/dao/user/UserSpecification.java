@@ -83,9 +83,9 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
 
             Predicate directRolesCombined = cb.or(directRolePredicates.toArray(new Predicate[0]));
 
-            // --- Join for roles via groups ---
             Join<UserEntity, UserGroupMapEntity> ugmJoin = root.join(UserEntity.Fields.userGroupMaps, JoinType.LEFT);
-            Join<UserGroupMapEntity, SpaceRoleUserGroupEntity> groupRolesJoin = ugmJoin.join(UserGroupMapEntity.Fields.spaceRoleUserGroups, JoinType.LEFT);
+            Join<UserGroupMapEntity, UserGroupEntity> ugJoin = ugmJoin.join(UserGroupMapEntity.Fields.userGroup, JoinType.LEFT);
+            Join<UserGroupEntity, SpaceRoleUserGroupEntity> groupRolesJoin = ugJoin.join(UserGroupEntity.Fields.spaceRoleUserGroups, JoinType.LEFT);
 
             List<Predicate> groupRolePredicates = spaceRoles.stream()
                     .filter(Objects::nonNull)

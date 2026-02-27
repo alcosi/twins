@@ -22,7 +22,7 @@ create table if not exists user_group_map
         constraint user_group_map_user_id_fk
             references "user"
             on update cascade on delete cascade,
-    involves_counter int not null default 0,
+    involves_count int not null default 0,
     added_manually boolean not null default true,
     added_at            timestamp default CURRENT_TIMESTAMP,
     added_by_user_id    uuid
@@ -35,9 +35,13 @@ drop index if exists idx_user_group_map_added_by_user_id;
 create index idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
-drop index if exists idx_ugm_user_group_scope;
-create unique index idx_ugm_user_group_scope
-    on user_group_map (user_group_id, domain_id, business_account_id, user_id);
+create unique index idx_ugm_scope_without_ba
+    on user_group_map (user_group_id, domain_id, user_id)
+    where business_account_id is null;
+
+create unique index idx_ugm_scope_with_ba
+    on user_group_map (user_group_id, domain_id, business_account_id, user_id)
+    where business_account_id is not null;
 
 drop index if exists idx_ugm_user_scope;
 create index idx_ugm_user_scope
@@ -74,6 +78,7 @@ begin
     case v_group.user_group_type_id
 
         when 'systemScopeDomainManage' then
+            -- domain_id in map represents user context, not group property.
             -- domain_id must be provided, business_account_id must be null
             if new.domain_id is null then
                 raise exception 'domain_id must be provided for systemScopeDomainManage';
@@ -147,7 +152,7 @@ begin
 end;
 $$;
 
-INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t2.id,
     t2.user_group_id,
@@ -163,7 +168,7 @@ FROM user_group_map_type2 t2
 JOIN user_group ug ON t2.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t3.id,
     t3.user_group_id,
@@ -179,7 +184,7 @@ FROM user_group_map_type3 t3
 JOIN user_group ug ON t3.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t1.id,
     t1.user_group_id,
@@ -194,3 +199,54 @@ SELECT
 FROM user_group_map_type1 t1
 JOIN user_group ug ON t1.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
+
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+create or replace function user_group_map_before_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    if new.involves_count is distinct from old.involves_count and new.added_manually is distinct from old.added_manually then
+        raise exception 'You cant change added_manually & involves_count fields both together.';
+    end if;
+    NEW := user_group_map_validate_domain_and_business_account(NEW);
+    RETURN NEW;
+END;
+$$;
+
+create or replace function user_group_map_before_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+declare
+    v_flag text;
+begin
+    v_flag := current_setting('app.user_group_map_auto', true);
+
+    NEW := user_group_map_validate_domain_and_business_account(NEW);
+
+    if v_flag = 'on' then
+        NEW.added_manually := false;
+        NEW.involves_count := 1;
+    else
+        NEW.added_manually := true;
+    end if;
+
+    return NEW;
+end;
+$$;
+
+drop trigger if exists user_group_map_before_insert_wrapper_trigger on user_group_map;
+create trigger user_group_map_before_insert_wrapper_trigger
+    before insert
+    on user_group_map
+    for each row
+execute procedure user_group_map_before_insert_wrapper();
+drop trigger if exists user_group_map_before_update_wrapper_trigger on user_group_map;
+create trigger user_group_map_before_update_wrapper_trigger
+    before update
+    on user_group_map
+    for each row
+execute procedure user_group_map_before_update_wrapper();
