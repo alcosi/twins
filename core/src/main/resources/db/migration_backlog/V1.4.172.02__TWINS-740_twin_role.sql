@@ -13,7 +13,6 @@ ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_creator SET NOT N
 ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_space_assignee SET NOT NULL;
 ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_space_creator SET NOT NULL;
 
-ALTER TABLE permission_grant_twin_role DROP COLUMN IF EXISTS twin_role_id;
 
 drop index if exists idx_permission_schema_twin_role_twinclass_schema_and_perm_id;
 create unique index idx_permission_schema_twin_role_twinclass_schema_and_perm_id
@@ -47,4 +46,39 @@ END;
 $$;
 
 
+CREATE TEMP TABLE permission_grant_twin_role_collapsed AS
+SELECT
+    uuid_generate_v7_custom() as id,
+    permission_schema_id,
+    permission_id,
+    twin_class_id,
+    bool_or(granted_to_assignee) as granted_to_assignee,
+    bool_or(granted_to_creator) as granted_to_creator,
+    bool_or(granted_to_space_assignee) as granted_to_space_assignee,
+    bool_or(granted_to_space_creator) as granted_to_space_creator,
+    min(granted_by_user_id::text)::uuid as granted_by_user_id, -- Исправлено для UUID
+    min(granted_at) as granted_at                               -- Для даты min работает
+FROM permission_grant_twin_role
+GROUP BY permission_schema_id, permission_id, twin_class_id;
 
+-- 2. Очищаем исходную таблицу
+DELETE FROM permission_grant_twin_role;
+ALTER TABLE permission_grant_twin_role DROP COLUMN IF EXISTS twin_role_id;
+
+-- 3. Вставляем схлопнутые записи обратно
+INSERT INTO permission_grant_twin_role (
+    id,
+    permission_schema_id,
+    permission_id,
+    twin_class_id,
+    granted_to_assignee,
+    granted_to_creator,
+    granted_to_space_assignee,
+    granted_to_space_creator,
+    granted_by_user_id,
+    granted_at
+)
+SELECT * FROM permission_grant_twin_role_collapsed;
+
+-- 4. Удаляем временную таблицу
+DROP TABLE permission_grant_twin_role_collapsed;
