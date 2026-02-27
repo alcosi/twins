@@ -152,7 +152,18 @@ begin
 end;
 $$;
 
-create or replace function user_group_footprint_invalidate_wrapper()
+create or replace function user_group_footprint_map_after_delete_wrapper()
+    returns trigger
+    language plpgsql
+as
+$$
+begin
+    perform user_group_footprint_invalidate(old.user_group_footprint_id);
+    return old;
+end;
+$$;
+
+create or replace function user_group_footprint_map_after_update_wrapper()
     returns trigger
     language plpgsql
 as
@@ -188,10 +199,10 @@ drop trigger if exists user_group_footprint_map_after_delete_wrapper_trigger on 
 create trigger user_group_footprint_map_after_delete_wrapper_trigger
     after delete on user_group_footprint_map
     for each row
-execute function user_group_footprint_invalidate_wrapper();
+execute function user_group_footprint_map_after_delete_wrapper();
 
 drop trigger if exists user_group_footprint_map_after_update_wrapper_trigger on user_group_footprint_map;
 create trigger user_group_footprint_map_after_update_wrapper_trigger
     after update on user_group_footprint_map
     for each row
-execute function user_group_footprint_invalidate_wrapper();
+execute function user_group_footprint_map_after_update_wrapper();
