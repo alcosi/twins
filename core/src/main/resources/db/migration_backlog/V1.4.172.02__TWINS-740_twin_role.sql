@@ -15,8 +15,7 @@ ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_space_creator SET
 
 
 drop index if exists idx_permission_schema_twin_role_twinclass_schema_and_perm_id;
-create unique index idx_permission_schema_twin_role_twinclass_schema_and_perm_id
-    on permission_grant_twin_role (twin_class_id, permission_schema_id, permission_id);
+
 
 
 create or replace function permission_check_twin_role(permissionschemaid uuid, permissionid uuid, roles character varying[], twinclassid uuid) returns boolean
@@ -82,3 +81,5 @@ SELECT * FROM permission_grant_twin_role_collapsed;
 
 -- 4. Удаляем временную таблицу
 DROP TABLE permission_grant_twin_role_collapsed;
+create unique index idx_permission_schema_twin_role_twinclass_schema_and_perm_id
+    on permission_grant_twin_role (twin_class_id, permission_schema_id, permission_id);
