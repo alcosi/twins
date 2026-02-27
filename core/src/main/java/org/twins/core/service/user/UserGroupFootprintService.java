@@ -9,6 +9,8 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.user.UserGroupFootprintEntity;
 import org.twins.core.dao.user.UserGroupFootprintRepository;
 import org.twins.core.service.auth.AuthService;
@@ -47,6 +49,7 @@ public class UserGroupFootprintService extends EntitySecureFindServiceImpl<UserG
         return true;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public UUID getOrCreateFootprint(Set<UUID> userGroupIds) throws ServiceException {
         return repository.getOrCreateFootprint(authService.getApiUser().getDomainId(), collectionUuidsToSqlArray(userGroupIds));
     }
