@@ -41,6 +41,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.twins.core.domain.ApiUser.NOT_SPECIFIED;
+
 //Log calls that took more then 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
@@ -120,7 +122,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom())) {
+            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && !(businessAccountId == null || businessAccountId.equals(NOT_SPECIFIED)))) {
                 dataListOption.setCustom(true);
                 dataListOption.setBusinessAccountId(businessAccountId);
             } else {
