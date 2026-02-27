@@ -14,11 +14,12 @@ import java.util.UUID;
 
 @Repository
 public interface PermissionRepository extends CrudRepository<PermissionEntity, UUID>, JpaSpecificationExecutor<PermissionEntity> {
-    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :isAssignee, :isCreator, :twinClassId)")
+    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, :permissionId, :userId, :userGroupId, :isAssignee, :isCreator, :twinClassId)")
     boolean permissionCheck(
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") UUID businessAccountId,
             @Param("permissionSpaceId") UUID permissionSpaceId,
+            @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("permissionId") UUID permissionId,
             @Param("userId") UUID userId,
             @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,

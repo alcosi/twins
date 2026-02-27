@@ -35,8 +35,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
     int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
-    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     boolean hasPermission(
+            @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("permissionId") UUID permissionId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
@@ -66,4 +67,6 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select h from TwinEntity t, TwinEntity h where t.id = :twinId and t.headTwinId = h.id")
     TwinEntity findHeadTwin(@Param("twinId") UUID twinId);
 
+    @Query(value = "select count(p) from permission_schema_detect_mismatches() p", nativeQuery = true)
+    long countPermissionSchemaMismatches();
 }

@@ -21,9 +21,10 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
         This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
         */
     @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
-            " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+            " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     List<TwinflowTransitionEntity> findValidTransitions(
             @Param("twinflowId") UUID twinflowId,
+            @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
@@ -35,9 +36,10 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("isCreator") boolean isCreator);
 
     @Query(value = "select tt from TwinflowTransitionEntity tt where tt.id = :transitionId " +
-            " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+            " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransition(
             @Param("transitionId") UUID transitionId,
+            @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
             @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
@@ -51,9 +53,10 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
             "and tt.twinflowTransitionAlias.alias = :alias " +
             "and tt.twinflowTransitionTypeId != :twinflowTransitionType " +
-            "and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+            "and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
+            @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("alias") String alias,
             @Param("domainId") UUID domainId,

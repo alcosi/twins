@@ -1694,6 +1694,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return false;
     }
 
+    public long countPermissionSchemaMismatches() {
+        return twinRepository.countPermissionSchemaMismatches();
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {
