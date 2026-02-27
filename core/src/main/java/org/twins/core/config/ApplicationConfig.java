@@ -223,6 +223,17 @@ public class ApplicationConfig {
         return Executors.newFixedThreadPool(10);
     }
 
+    @Bean
+    public TaskExecutor twinTriggerTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("twinTriggerTaskExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
 //    @Bean(name = "cacheManagerRequestScope")
 //    @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 //    public CacheManager getCacheManager(){

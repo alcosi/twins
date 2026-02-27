@@ -332,9 +332,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         createTwin(twinCreate, twinChangesCollector);
-        twinChangesService.applyChanges(twinChangesCollector);
         TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
@@ -367,13 +367,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
-        twinChangesService.applyChanges(twinChangesCollector);
         List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             twins.add(twinEntity);
-            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
         }
+        twinChangesService.applyChanges(twinChangesCollector);
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return twins;
     }
@@ -414,7 +414,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwinEntity(twinCreate, twinChangesCollector);
         loadFieldEditability(twinEntity);
         initFields(twinEntity, twinCreate.getFields());
-        runFactoryOnCreate(twinCreate);
+        runFactoryOnCreate(twinCreate, twinChangesCollector);
         validateFields(twinEntity, twinCreate.getFields(), true);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -750,7 +750,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinClass(twinUpdate.getDbTwinEntity().getTwinClass());
         }
         tryToFinalizeSketch(twinUpdate);
-        runFactoryOnUpdate(twinUpdate);
+        runFactoryOnUpdate(twinUpdate, twinChangesCollector);
         checkNameUniqueness(twinUpdate.getTwinEntity());
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
@@ -809,12 +809,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return true;
     }
 
-    private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
+    private void runFactoryOnCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
         }
         FactoryLauncher factoryLauncher = twinCreate.isSketchMode() ? FactoryLauncher.onSketchCreate : FactoryLauncher.onTwinCreate;
-        twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher);
+        twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher, twinChangesCollector);
     }
 
     private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -825,7 +825,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
     }
 
-    private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+    private void runFactoryOnUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinUpdate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
         }
@@ -837,7 +837,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         };
         if (factoryLauncher == null)
             return;
-        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher);
+        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher, twinChangesCollector);
         if (factoryLauncher.equals(FactoryLauncher.onSketchFinalize)
                 && twinUpdate.getTwinEntity().isSketch()) {
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);
@@ -1226,8 +1226,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
+        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus(), twinDuplicate.getChangesCollector());
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
-        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());
     }
 
     public UserEntity getTwinAssignee(UUID twinId) {

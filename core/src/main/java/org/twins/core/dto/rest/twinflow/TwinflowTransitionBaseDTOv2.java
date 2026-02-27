@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.validator.TransitionValidatorRuleBaseDTOv1;
@@ -56,7 +57,7 @@ public class TwinflowTransitionBaseDTOv2 extends TwinflowTransitionBaseDTOv1 {
 
     @Deprecated
     @Schema(description = "triggers")
-    public List<TriggerDTOv1> triggers;
+    public List<TwinTriggerDTOv1> triggers;
 }
 
 

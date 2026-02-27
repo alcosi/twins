@@ -56,11 +56,11 @@ public class TransitionCreateController extends ApiController {
             @RequestBody TransitionCreateRqDTOv1 request) {
         TransitionCreateRsDTOv1 rs = new TransitionCreateRsDTOv1();
         try {
-            request.setTwinflowId(twinflowId);
-            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            request.getTransition().setTwinflowId(twinflowId);
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getTransition().getNameI18n());
+            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getTransition().getDescriptionI18n());
 
-            TwinflowTransitionEntity twinflowTransitionEntity = transitionCreateRestDTOReverseMapper.convert(request);
+            TwinflowTransitionEntity twinflowTransitionEntity = transitionCreateRestDTOReverseMapper.convert(request.getTransition());
             twinflowTransitionEntity = twinflowTransitionService.createTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n);
             rs
                     .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));

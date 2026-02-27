@@ -58,7 +58,7 @@ public class TransitionTriggerUpdateController extends ApiController {
             triggerEntity = transitionTriggerUpdateDTOReverseMapper.convert(request.getTrigger());
             triggerEntity = twinflowTransitionTriggerService.updateTransitionTrigger(triggerEntity);
             rs
-                    .setTrigger(transitionTriggerRestDTOMapper.convert(triggerEntity))
+                    .setTrigger(transitionTriggerRestDTOMapper.convert(triggerEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

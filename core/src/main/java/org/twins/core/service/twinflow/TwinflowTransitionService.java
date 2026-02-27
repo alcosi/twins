@@ -31,6 +31,7 @@ import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
@@ -40,6 +41,7 @@ import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.search.TransitionAliasSearch;
@@ -53,7 +55,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
@@ -61,7 +63,8 @@ import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinValidatorSetService;
@@ -87,6 +90,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
+    @Lazy
+    private final TwinTriggerTaskService twinTriggerTaskService;
     private final TwinClassService twinClassService;
     private final TwinFactoryService twinFactoryService;
     private final TwinStatusService twinStatusService;
@@ -109,13 +116,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final UserService userService;
     private final I18nService i18nService;
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final TwinChangesService twinChangesService;
 
     @Autowired
     private CacheManager cacheManager;
-    @Autowired
-    private TwinChangesService twinChangesService;
-    @Autowired
-    private TwinChangeTaskService twinChangeTaskService;
 
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
@@ -166,7 +171,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                             && entity.getPermission().getPermissionGroup().getTwinClassId() != null
                             && !twinClassService.isInstanceOf(entity.getTwinflow().getTwinClass(), entity.getPermission().getPermissionGroup().getTwinClassId()))
                         return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible twinflow -> permission classes [" + entity.getTwinflowId() + " > " + entity.getPermissionId() + "]");
-                    ;
                 }
         }
         return true;
@@ -429,10 +433,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             dbTriggerEntity = entitySmartService.findById(trigger.getId(), twinflowTransitionTriggerRepository, EntitySmartService.FindMode.ifEmptyThrows);
             if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.order, dbTriggerEntity.getOrder(), trigger.getOrder()))
                 dbTriggerEntity.setOrder(trigger.getOrder());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId, dbTriggerEntity.getTransitionTriggerFeaturerId(), trigger.getTransitionTriggerFeaturerId()))
-                dbTriggerEntity.setTransitionTriggerFeaturerId(trigger.getTransitionTriggerFeaturerId());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerParams, dbTriggerEntity.getTransitionTriggerParams(), trigger.getTransitionTriggerParams()))
-                dbTriggerEntity.setTransitionTriggerParams(trigger.getTransitionTriggerParams());
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.twinTriggerId, dbTriggerEntity.getTwinTriggerId(), trigger.getTwinTriggerId()))
+                dbTriggerEntity.setTwinTriggerId(trigger.getTwinTriggerId());
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.async, dbTriggerEntity.getAsync(), trigger.getAsync()))
+                dbTriggerEntity.setAsync(trigger.getAsync());
             if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbTriggerEntity.getIsActive(), trigger.getIsActive()))
                 dbTriggerEntity.setIsActive(trigger.getIsActive());
             if (changesHelper.hasChanges())
@@ -744,7 +748,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             validateTransition(transitionContext);
             fillAttachmentsTransition(transitionContext);
         }
-        runFactories(transitionContextBatch);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        runFactories(transitionContextBatch, twinChangesCollector);
         DraftCollector draftCollector = draftService.beginDraft();
         try {
             draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());
@@ -782,7 +787,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             validateTransition(transitionContext);
             fillAttachmentsTransition(transitionContext);
         }
-        runFactories(transitionContextBatch);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        runFactories(transitionContextBatch, twinChangesCollector);
         TransitionResult transitionResult = null;
         if (transitionContextBatch.isMustBeDrafted()) { // we will go to drafting
             transitionResult = storeMajorTransition(transitionContextBatch);
@@ -790,7 +796,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             transitionResult = storeMinorTransitions(transitionContextBatch);
         }
         //triggers and after perform factory should be postponed in case of majorTransition, because they should be started only after draft commitment
-        runTriggers(transitionContextBatch);
+        runTriggers(transitionContextBatch, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
         return transitionResult;
     }
 
@@ -812,18 +819,18 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return transitionResultMinor;
     }
 
-    public void runFactories(TransitionContextBatch transitionContextBatch) throws ServiceException {
+    public void runFactories(TransitionContextBatch transitionContextBatch, TwinChangesCollector twinChangesCollector) throws ServiceException {
         for (Map.Entry<TransitionContext, FactoryResultUncommited> entry : transitionContextBatch.getFactoried().entrySet()) {
             if (entry.getValue() != null) //factory is already run
                 continue;
-            FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey());
+            FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey(), twinChangesCollector);
             entry.setValue(factoryResultUncommited); //filling result
             if (twinFactoryService.mustBeDrafted(factoryResultUncommited))
                 transitionContextBatch.setMustBeDrafted(true); //this is batch decision for all results
         }
     }
 
-    private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext) throws ServiceException {
+    private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext, TwinChangesCollector twinChangesCollector) throws ServiceException {
         UUID inbuiltTwinFactoryId = transitionContext.getTransitionEntity().getInbuiltTwinFactoryId();
         FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltTwinFactoryId);
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.transition, factoryBranchId)
@@ -921,7 +928,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     @Transactional
-    public void runTriggers(TransitionContextBatch transitionContextBatch) throws ServiceException {
+    public void runTriggers(TransitionContextBatch transitionContextBatch, TwinChangesCollector twinChangesCollector) throws ServiceException {
         loadTriggers(transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList());
         for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
             TwinflowTransitionEntity transitionEntity = transitionContext.getTransitionEntity();
@@ -933,9 +940,18 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                         continue;
                     }
                     log.info("{} will be triggered", triggerEntity.logDetailed());
-                    //todo run it by TransitionTriggerTask (async)
-                    TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
-                    transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+                    if (triggerEntity.getAsync()) {
+                        twinChangesCollector.addPostponedTrigger(
+                                targetTwin.getId(),
+                                transitionEntity.getSrcTwinStatusId(),
+                                triggerEntity.getTwinTriggerId()
+                        );
+                    } else {
+                        log.info("Executing sync trigger for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
+                        TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(triggerEntity.getTwinTriggerId());
+                        TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+                        twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+                    }
                 }
         }
     }

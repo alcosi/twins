@@ -14,6 +14,7 @@ import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
 
@@ -33,6 +34,8 @@ public class TwinChangeTask implements Runnable {
     private TwinChangeTaskRepository twinChangeTaskRepository;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private TwinChangesService twinChangesService;
 
 
     public TwinChangeTask(TwinChangeTaskEntity twinChangeTaskEntity) {
@@ -67,6 +70,7 @@ public class TwinChangeTask implements Runnable {
                 twinUpdate.setCanTriggerAfterOperationFactory(false);
             }
             twinFactoryService.commitResult(result);
+            twinChangesService.savePostponedTriggers(factoryContext.getPostponedTriggers());
             twinChangeTaskEntity
                     .setStatusId(TwinChangeTaskStatus.DONE)
                     .setDoneAt(Timestamp.from(Instant.now()));
