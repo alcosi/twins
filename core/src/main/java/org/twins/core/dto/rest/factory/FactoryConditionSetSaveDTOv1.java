@@ -23,4 +23,7 @@ public class FactoryConditionSetSaveDTOv1 {
     @Schema(description = "twin factory id")
     public UUID twinFactoryId;
 
+    @Schema(description = "cashable", example = "false")
+    public Boolean cashable;
+
 }

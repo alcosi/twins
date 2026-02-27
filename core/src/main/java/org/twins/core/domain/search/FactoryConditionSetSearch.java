@@ -2,6 +2,7 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
 
 import java.util.Set;
 import java.util.UUID;
@@ -17,4 +18,5 @@ public class FactoryConditionSetSearch {
    Set<String> nameNotLikeList;
    Set<String> descriptionLikeList;
    Set<String> descriptionNotLikeList;
+   Ternary cashable;
 }

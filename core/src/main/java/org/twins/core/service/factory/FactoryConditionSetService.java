@@ -5,11 +5,11 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -82,6 +82,8 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()))
                     .setCreatedByUserId(apiUserId)
                     .setDomainId(domainId);
+            if (twinFactoryConditionSetEntity.getCashable() == null)
+                twinFactoryConditionSetEntity.setCashable(true);
         validateEntityAndThrow(twinFactoryConditionSetEntity, EntitySmartService.EntityValidateMode.beforeSave);
         }
         return StreamSupport.stream(
@@ -119,6 +121,9 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
                     TwinFactoryConditionSetEntity::getTwinFactoryId, TwinFactoryConditionSetEntity::setTwinFactoryId,
                     TwinFactoryConditionSetEntity.Fields.twinFactoryId, changesHelper);
+            updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
+                    TwinFactoryConditionSetEntity::getCashable, TwinFactoryConditionSetEntity::setCashable,
+                    TwinFactoryConditionSetEntity.Fields.cashable, changesHelper);
 
             dbFactoryConditionSetEntity.setUpdatedAt(Timestamp.from(Instant.now()));
             changes.add(dbFactoryConditionSetEntity, changesHelper);

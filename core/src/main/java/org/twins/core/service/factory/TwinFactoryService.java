@@ -67,6 +67,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinEraserService twinEraserService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
+    final FactoryConditionSetService factoryConditionSetService;
     final TwinFactoryRepository twinFactoryRepository;
     @Lazy
     final FeaturerService featurerService;
@@ -453,21 +454,35 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return twinFactoryConditionInvert ? !ret : ret;
     }
 
-    //todo result can be cached in session cache
-//    @Cacheable(value = "TwinFactoryService.checkCondition", key = "{#conditionSetId, #factoryItem.hashCode() }", cacheManager = "cacheManagerRequestScope")
     public boolean checkCondition(UUID conditionSetId, FactoryItem factoryItem) throws ServiceException {
         if (conditionSetId == null)
             return true;
+        // Check cache first
+        if (factoryItem.hasConditionSetResult(conditionSetId)) {
+            return factoryItem.getCachedConditionSetResult(conditionSetId);
+        }
+        // Evaluate and cache (only if cashable)
         List<TwinFactoryConditionEntity> conditionEntityList = twinFactoryConditionRepository.findByTwinFactoryConditionSetIdAndActiveTrue(conditionSetId);
+        boolean result = true;
         for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
             Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturerId(), Conditioner.class);
             boolean conditionerResult = conditioner.check(conditionEntity, factoryItem);
             if (conditionEntity.getInvert())
                 conditionerResult = !conditionerResult;
-            if (!conditionerResult) // no need to check other conditions if one of it is already false
-                return false;
+            if (!conditionerResult) {
+                result = false;
+                break;
+            }
         }
-        return true;
+        cacheConditionSetResultIfNeeded(conditionSetId, factoryItem, result);
+        return result;
+    }
+
+    private void cacheConditionSetResultIfNeeded(UUID conditionSetId, FactoryItem factoryItem, boolean result) throws ServiceException {
+        TwinFactoryConditionSetEntity conditionSet = factoryConditionSetService.findEntitySafe(conditionSetId);
+        if (Boolean.TRUE.equals(conditionSet.getCashable())) {
+            factoryItem.setConditionSetResult(conditionSetId, result);
+        }
     }
 
     public TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId, int depth) {

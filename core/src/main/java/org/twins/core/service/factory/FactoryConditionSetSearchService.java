@@ -43,6 +43,7 @@ public class FactoryConditionSetSearchService {
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryConditionSetEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.id),
                 checkUuidIn(search.getTwinFactoryIdList(), false, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId),
-                checkUuidIn(search.getTwinFactoryIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId));
+                checkUuidIn(search.getTwinFactoryIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId),
+                checkTernary(search.getCashable(), TwinFactoryConditionSetEntity.Fields.cashable));
     }
 }
