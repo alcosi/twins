@@ -1,6 +1,6 @@
 drop index if exists permission_grant_global_user_group_id_permission_id_uindex;
 create unique index permission_grant_global_user_group_id_permission_id_uindex
-    on public.permission_grant_global (user_group_id, permission_id);
+    on permission_grant_global (user_group_id, permission_id);
 
 
 create table if not exists permission_mater_global
