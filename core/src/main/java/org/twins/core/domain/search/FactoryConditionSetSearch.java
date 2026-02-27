@@ -18,5 +18,5 @@ public class FactoryConditionSetSearch {
    Set<String> nameNotLikeList;
    Set<String> descriptionLikeList;
    Set<String> descriptionNotLikeList;
-   Ternary cashable;
+   Ternary cachable;
 }

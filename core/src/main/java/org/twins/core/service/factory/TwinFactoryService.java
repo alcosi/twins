@@ -461,7 +461,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (factoryItem.hasConditionSetResult(conditionSetId)) {
             return factoryItem.getCachedConditionSetResult(conditionSetId);
         }
-        // Evaluate and cache (only if cashable)
+        // Evaluate and cache (only if cachable)
         List<TwinFactoryConditionEntity> conditionEntityList = twinFactoryConditionRepository.findByTwinFactoryConditionSetIdAndActiveTrue(conditionSetId);
         boolean result = true;
         for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
@@ -480,7 +480,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     private void cacheConditionSetResultIfNeeded(UUID conditionSetId, FactoryItem factoryItem, boolean result) throws ServiceException {
         TwinFactoryConditionSetEntity conditionSet = factoryConditionSetService.findEntitySafe(conditionSetId);
-        if (Boolean.TRUE.equals(conditionSet.getCashable())) {
+        if (Boolean.TRUE.equals(conditionSet.getCachable())) {
             factoryItem.setConditionSetResult(conditionSetId, result);
         }
     }

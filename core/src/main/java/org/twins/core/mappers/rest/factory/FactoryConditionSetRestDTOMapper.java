@@ -50,13 +50,13 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
                         .setCreatedAt(convertOrNull(src.getCreatedAt()))
                         .setTwinFactoryId(src.getTwinFactoryId())
-                        .setCashable(src.getCashable());
+                        .setCachable(src.getCachable());
             case SHORT ->
                 dst
                         .setId(src.getId())
                         .setName(src.getName())
                         .setTwinFactoryId(src.getTwinFactoryId())
-                        .setCashable(src.getCashable());
+                        .setCachable(src.getCachable());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryPipelineUsages(src);

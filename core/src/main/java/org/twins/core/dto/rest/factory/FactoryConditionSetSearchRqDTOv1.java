@@ -40,6 +40,6 @@ public class FactoryConditionSetSearchRqDTOv1 extends Request {
     @Schema(description = "description like exclude list")
     public Set<String> descriptionNotLikeList;
 
-    @Schema(description = "cashable", example = DTOExamples.TERNARY)
-    public Ternary cashable;
+    @Schema(description = "cachable", example = DTOExamples.TERNARY)
+    public Ternary cachable;
 }

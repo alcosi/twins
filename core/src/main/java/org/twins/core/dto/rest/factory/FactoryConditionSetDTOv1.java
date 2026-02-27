@@ -33,8 +33,8 @@ public class FactoryConditionSetDTOv1 {
     @RelatedObject(type = FactoryDTOv1.class, name = "twinFactory")
     public UUID twinFactoryId;
 
-    @Schema(description = "cashable", example = "false")
-    public Boolean cashable;
+    @Schema(description = "cachable", example = "false")
+    public Boolean cachable;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)

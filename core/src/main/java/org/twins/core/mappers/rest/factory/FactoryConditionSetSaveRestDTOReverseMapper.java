@@ -17,6 +17,6 @@ public class FactoryConditionSetSaveRestDTOReverseMapper extends RestSimpleDTOMa
                 .setName(src.getName())
                 .setDescription(src.getDescription())
                 .setTwinFactoryId(src.getTwinFactoryId())
-                .setCashable(src.getCashable());
+                .setCachable(src.getCachable());
     }
 }
