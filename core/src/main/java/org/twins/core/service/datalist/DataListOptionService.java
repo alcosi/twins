@@ -41,8 +41,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.twins.core.domain.ApiUser.NOT_SPECIFIED;
-
 //Log calls that took more then 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
@@ -107,7 +105,6 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
 
-        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         ApiUser apiUser = authService.getApiUser();
         //todo save description
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
@@ -125,7 +122,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified())) {
                 dataListOption.setCustom(true);
-                dataListOption.setBusinessAccountId(businessAccountId);
+                dataListOption.setBusinessAccountId(apiUser.getBusinessAccountId());
             } else {
                 dataListOption.setCustom(false);
             }
