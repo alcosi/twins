@@ -14,7 +14,7 @@ $$;
 
 drop trigger if exists twin_before_insert_wrapper_trigger on twin;
 create trigger twin_before_insert_wrapper_trigger
-    before update
+    before insert
     on twin
     for each row
 execute procedure twin_before_insert_wrapper();
