@@ -37,7 +37,7 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     boolean hasPermission(
-            @Param("permissionSchemaId") UUID permissionSchemaId,
+            @Param("permissionSchemaId") TypedParameterValue<UUID> permissionSchemaId,
             @Param("permissionId") UUID permissionId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
