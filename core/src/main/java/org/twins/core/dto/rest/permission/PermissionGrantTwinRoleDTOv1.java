@@ -9,7 +9,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
-import org.twins.core.enums.twin.TwinRole;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -37,8 +36,17 @@ public class PermissionGrantTwinRoleDTOv1 {
     @RelatedObject(type = UserDTOv1.class, name = "grantedByUser")
     public UUID grantedByUserId;
 
-    @Schema(description = "twin role")
-    public TwinRole twinRole;
+    @Schema(description = "is granted to assignee")
+    private Boolean grantedToAssignee;
+
+    @Schema(description = "is granted to space assignee")
+    private Boolean grantedToSpaceAssignee;
+
+    @Schema(description = "is granted to creator")
+    private Boolean grantedToCreator;
+
+    @Schema(description = "is granted to space creator")
+    private Boolean grantedToSpaceCreator;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "granted at", example = DTOExamples.INSTANT)
