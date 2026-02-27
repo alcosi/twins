@@ -1,4 +1,6 @@
-CREATE OR REPLACE FUNCTION detect_permission_schema_mismatches()
+drop function if exists detect_permission_schema_mismatches();
+
+CREATE OR REPLACE FUNCTION permission_schema_detect_mismatches()
     RETURNS TABLE (
                       twin_id UUID,
                       current_schema_id UUID,
@@ -15,8 +17,8 @@ BEGIN
                 t.owner_business_account_id,
                 t.twin_class_id,
                 tc.domain_id
-            FROM public.twin t
-                     JOIN public.twin_class tc ON t.twin_class_id = tc.id
+            FROM twin t
+                     JOIN twin_class tc ON t.twin_class_id = tc.id
         )
         SELECT * FROM (
                           SELECT
@@ -39,8 +41,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-drop function if exists public.permission_check(uuid, uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
-drop function if exists public.permission_check(uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
+drop function if exists permission_check(uuid, uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
+drop function if exists permission_check(uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
 
 create or replace function permission_check(domainid uuid, businessaccountid uuid, spaceid uuid, permissionSchemaId uuid, permissionid uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
     stable
@@ -213,10 +215,10 @@ BEGIN
                 d.permission_schema_id,
                 '00000000-0000-0000-0012-000000000001'::uuid)
     INTO v_schema_id
-    FROM public.twin_class tc
-             LEFT JOIN public.space s ON s.twin_id = p_permission_schema_space_id AND p_permission_schema_space_id IS NOT NULL
-             LEFT JOIN public.domain d ON d.id = tc.domain_id
-             LEFT JOIN public.domain_business_account dba ON dba.domain_id = tc.domain_id AND dba.business_account_id = p_business_account_id
+    FROM twin_class tc
+             LEFT JOIN space s ON s.twin_id = p_permission_schema_space_id AND p_permission_schema_space_id IS NOT NULL
+             LEFT JOIN domain d ON d.id = tc.domain_id
+             LEFT JOIN domain_business_account dba ON dba.domain_id = tc.domain_id AND dba.business_account_id = p_business_account_id
     WHERE tc.id = p_twin_class_id;
     else
         SELECT
@@ -225,9 +227,9 @@ BEGIN
                     d.permission_schema_id,
                     '00000000-0000-0000-0012-000000000001'::uuid)
         INTO v_schema_id
-        FROM public.twin_class tc
-                 LEFT JOIN public.space s ON s.twin_id = p_permission_schema_space_id AND p_permission_schema_space_id IS NOT NULL
-                 LEFT JOIN public.domain d ON d.id = tc.domain_id
+        FROM twin_class tc
+                 LEFT JOIN space s ON s.twin_id = p_permission_schema_space_id AND p_permission_schema_space_id IS NOT NULL
+                 LEFT JOIN domain d ON d.id = tc.domain_id
         WHERE tc.id = p_twin_class_id;
     end if;
     RETURN v_schema_id;
@@ -407,8 +409,8 @@ BEGIN
             local_twinflow_schema_space_enabled,
             local_twin_class_schema_space_enabled,
             local_alias_space_enabled
-        FROM public.twin t
-                 LEFT JOIN public.twin_class tc ON t.twin_class_id = tc.id
+        FROM twin t
+                 LEFT JOIN twin_class tc ON t.twin_class_id = tc.id
         WHERE t.id = current_id;
         -- cycle protection
         IF parent_id = ANY (visited_ids) THEN RAISE EXCEPTION 'Cycle detected in hierarchy for twin_id %', p_twin_id;
@@ -439,17 +441,17 @@ BEGIN
         permission_schema_id,
         twinflow_schema_id,
         twin_class_schema_id
-    FROM public.twin t
+    FROM twin t
         -- нужен domain_id через twin_class
-             JOIN public.twin_class tc ON tc.id = t.twin_class_id
+             JOIN twin_class tc ON tc.id = t.twin_class_id
         -- space level (иерархически вычисленные)
-             LEFT JOIN public.space sp ON sp.twin_id = permission_schema_space_id
-             LEFT JOIN public.space stf ON stf.twin_id = twinflow_schema_space_id
-             LEFT JOIN public.space stc ON stc.twin_id = twin_class_schema_space_id
+             LEFT JOIN space sp ON sp.twin_id = permission_schema_space_id
+             LEFT JOIN space stf ON stf.twin_id = twinflow_schema_space_id
+             LEFT JOIN space stc ON stc.twin_id = twin_class_schema_space_id
         -- domain
-             LEFT JOIN public.domain d ON d.id = tc.domain_id
+             LEFT JOIN domain d ON d.id = tc.domain_id
         -- domain_business_account
-             LEFT JOIN public.domain_business_account dba ON dba.domain_id = tc.domain_id AND dba.business_account_id  is not distinct from t.owner_business_account_id
+             LEFT JOIN domain_business_account dba ON dba.domain_id = tc.domain_id AND dba.business_account_id  is not distinct from t.owner_business_account_id
     WHERE t.id = p_twin_id;
 
     RAISE NOTICE 'Return detected hier. for: %', hierarchy;
@@ -474,7 +476,7 @@ BEGIN
     IF detect_data IS NOT NULL THEN
         data_to_use := detect_data;
     ELSE
-        data_to_use := public.hierarchyDetectTree(p_twin_id);
+        data_to_use := hierarchyDetectTree(p_twin_id);
     END IF;
     RAISE NOTICE 'Update detected hier. for: %', data_to_use.hierarchy;
 
@@ -490,18 +492,18 @@ BEGIN
     -- update hier. and schemas for twin-in children and their children, recursively
     WITH RECURSIVE descendants AS (
         SELECT id, 1 AS depth
-        FROM public.twin
+        FROM twin
         WHERE head_twin_id = p_twin_id
         UNION ALL
         SELECT t.id, d.depth + 1
-        FROM public.twin t
+        FROM twin t
                  INNER JOIN descendants d ON t.head_twin_id = d.id
         WHERE d.depth < 10
     ), updated_data AS (
-        SELECT dt.id, (public.hierarchyDetectTree(dt.id)).* -- use function and expand result
+        SELECT dt.id, (hierarchyDetectTree(dt.id)).* -- use function and expand result
         FROM descendants dt
     )
-    UPDATE public.twin t
+    UPDATE twin t
     SET hierarchy_tree = text2ltree(ud.hierarchy),
         permission_schema_space_id = ud.permission_schema_space_id,
         twinflow_schema_space_id = ud.twinflow_schema_space_id,
