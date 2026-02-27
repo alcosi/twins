@@ -50,6 +50,9 @@ public class UserEntity implements EasyLoggable {
     private Kit<UserGroupEntity, UUID> userGroups;
 
     @Transient
+    private UUID userGroupsFootprint;
+
+    @Transient
     private Set<UUID> permissions;
 
     public String easyLog(Level level) {
