@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -11,6 +12,11 @@ import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DomainBusinessAccountMode;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserService;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +25,8 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
 
     @MapperModePointerBinding(modes = {BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.class})
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
+    private final TwinService twinService;
+    private final UserService userService;
 
     @Override
     public void map(DomainBusinessAccountEntity src, DomainBusinessAccountDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -30,6 +38,12 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
+                        .setTierId(src.getTierId())
+                        .setNotificationSchemaId(src.getNotificationSchemaId())
+                        .setAttachmentsStorageUsedCount(src.getAttachmentsStorageUsedCount())
+                        .setAttachmentsStorageUsedSize(src.getAttachmentsStorageUsedSize())
+                        .setTwinsCount(src.getTwinsCount() != null ? src.getTwinsCount() : 0)
+                        .setActiveUsersCount(src.getTwinsCount() != null ? src.getTwinsCount() : 0)
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
@@ -41,7 +55,19 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
             dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT));
         }
+    }
 
-
+    public void beforeCollectionConversion(Collection<DomainBusinessAccountEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.getModeOrUse(DomainBusinessAccountMode.DETAILED) == DomainBusinessAccountMode.DETAILED) {
+            Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
+            List<EntryCount> twinsCountForBusinessAccountList = twinService.countEntryByOwnerBusinessAccountIdIn(businessAccountIds);
+            Map<UUID, Long> twinsCount = twinsCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
+            List<EntryCount> usersCountForBusinessAccountList = userService.countEntryForBusinessAccount(businessAccountIds);
+            Map<UUID, Long> usersCount = usersCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
+            srcCollection.forEach(it -> {
+                it.setTwinsCount(twinsCount.get(it.getBusinessAccountId()));
+                it.setUsersCount(usersCount.get(it.getBusinessAccountId()));
+            });
+        }
     }
 }

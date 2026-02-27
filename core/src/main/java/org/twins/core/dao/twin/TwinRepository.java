@@ -9,6 +9,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.Collection;
@@ -66,4 +67,7 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select h from TwinEntity t, TwinEntity h where t.id = :twinId and t.headTwinId = h.id")
     TwinEntity findHeadTwin(@Param("twinId") UUID twinId);
 
+    @Query(value = "SELECT t.owner_business_account_id AS id, COUNT(t) AS count FROM twin t WHERE t.owner_business_account_id IN :ids GROUP BY t.owner_business_account_id",
+            nativeQuery = true)
+    List<EntryCount> countEntryByBusinessAccountIn(@Param("ids") Collection<UUID> ids);
 }

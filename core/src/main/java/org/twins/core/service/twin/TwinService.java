@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.error.ErrorEntity;
@@ -1692,6 +1693,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return true;
         }
         return false;
+    }
+
+    public List<EntryCount> countEntryByOwnerBusinessAccountIdIn(Set<UUID> ids){
+        return twinRepository.countEntryByBusinessAccountIn(ids);
     }
 
     @Data

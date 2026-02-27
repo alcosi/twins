@@ -47,12 +47,12 @@ public class DomainBusinessAccountSearchRqDTOv1 extends Request {
     @Schema(description = "business account twin class schema id exclude list")
     public List<UUID> twinClassSchemaIdExcludeList;
 
-    @Schema(description = "")
-    Set<UUID> tierIdList;
+    @Schema(description = "business account tier id list")
+    public Set<UUID> tierIdList;
 
-    @Schema(description = "")
-    Set<UUID> tierIdExcludeList;
+    @Schema(description = "business account tier id exclude list")
+    public Set<UUID> tierIdExcludeList;
 
-    @Schema(description = "")
-    DataTimeRangeDTOv1 createdAt;
+    @Schema(description = "created at range")
+    public DataTimeRangeDTOv1 createdAt;
 }

@@ -100,4 +100,10 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId + "]";
     }
+
+    @Transient
+    private Long twinsCount;
+
+    @Transient
+    private Long usersCount;
 }

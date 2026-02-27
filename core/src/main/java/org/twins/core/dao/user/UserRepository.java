@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.twins.core.dao.EntryCount;
 
 import java.util.Collection;
 import java.util.List;
@@ -103,4 +104,8 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "left join DomainUserEntity du on u.id = du.userId and du.domainId = :domainId " +
             "where u.id in :userIds and (bau.userId is null or du.userId is null)")
     List<UUID> getUsersOutOfDomainAndBusinessAccount(@Param("userIds") Set<UUID> userIds, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    @Query(value = "SELECT ba.business_account_id AS id, COUNT(ba) AS count FROM business_account_user ba INNER JOIN \"user\" u " +
+            "ON u.id = ba.user_id WHERE ba.business_account_id IN :ids AND u.user_status_id = 'ACTIVE' GROUP BY ba.business_account_id", nativeQuery = true)
+    List<EntryCount> countEntryByBusinessAccountIn(@Param("ids") Collection<UUID> ids);
 }

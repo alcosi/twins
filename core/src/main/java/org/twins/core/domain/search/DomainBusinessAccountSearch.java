@@ -27,8 +27,7 @@ public class DomainBusinessAccountSearch {
     Set<UUID> twinClassSchemaIdExcludeList;
     Set<UUID> tierIdList;
     Set<UUID> tierIdExcludeList;
-    Timestamp createdAtFrom;
-    Timestamp createdAtTo;
+    DataTimeRange createAtRange;
 
     public DomainBusinessAccountSearch addBusinessAccountId(Collection<UUID> ids, boolean exclude) {
         if (!exclude) businessAccountIdList = CollectionUtils.safeAdd(businessAccountIdList, ids);

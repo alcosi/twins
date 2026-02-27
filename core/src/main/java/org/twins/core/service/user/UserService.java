@@ -11,6 +11,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
@@ -194,5 +195,9 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public List<EntryCount> countEntryForBusinessAccount(Collection<UUID> ids){
+        return userRepository.countEntryByBusinessAccountIn(ids);
     }
 }
