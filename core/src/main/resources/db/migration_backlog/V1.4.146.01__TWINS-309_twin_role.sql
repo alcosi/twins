@@ -20,4 +20,31 @@ create unique index idx_permission_schema_twin_role_twinclass_schema_and_perm_id
     on permission_grant_twin_role (twin_class_id, permission_schema_id, permission_id);
 
 
+create or replace function permission_check_twin_role(permissionschemaid uuid, permissionid uuid, roles character varying[], twinclassid uuid) returns boolean
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+    hasPermission BOOLEAN := FALSE;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM permission_grant_twin_role
+        WHERE permission_schema_id = permissionSchemaId
+          AND permission_id = permissionId
+          AND twin_class_id = twinClassId
+          AND (
+            (granted_to_assignee AND 'assignee' = ANY(roles)) OR
+            (granted_to_creator AND 'creator' = ANY(roles)) OR
+            (granted_to_space_assignee AND 'space_assignee' = ANY(roles)) OR
+            (granted_to_space_creator AND 'space_creator' = ANY(roles))
+            )
+    ) INTO hasPermission;
+
+    RETURN hasPermission;
+END;
+$$;
+
+
 

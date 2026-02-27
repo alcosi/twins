@@ -329,15 +329,15 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         }
         if (!permissionsSchemaTwinRoleEntities.isEmpty()) {
             for (PermissionGrantTwinRoleEntity permissionGrantTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
-                if (userId.equals(twin.getAssignerUserId()) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.assignee))
-                    result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
-                if (twin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
-                    result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
+                if (userId.equals(twin.getAssignerUserId()) && permissionGrantTwinRoleEntity.getGrantedToAssignee())
+                    result.getGrantedByTwinRoles().add(TwinRole.assignee);
+                if (twin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToCreator())
+                    result.getGrantedByTwinRoles().add(TwinRole.creator);
                 if (null != spaceTwin) {
-                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.space_assignee))
-                        result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
-                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.space_creator))
-                        result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
+                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToSpaceAssignee())
+                        result.getGrantedByTwinRoles().add(TwinRole.space_assignee);
+                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToSpaceCreator())
+                        result.getGrantedByTwinRoles().add(TwinRole.space_creator);
                 }
             }
         }
