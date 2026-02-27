@@ -170,7 +170,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             return true;
         userGroupService.loadGroupsForCurrentUser();
         return twinRepository.hasPermission(
-                permissionDetectKey.getPermissionSchemaId(),
+                TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaId()),
                 permissionId,
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
