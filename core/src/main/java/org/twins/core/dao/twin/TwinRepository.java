@@ -67,4 +67,6 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select h from TwinEntity t, TwinEntity h where t.id = :twinId and t.headTwinId = h.id")
     TwinEntity findHeadTwin(@Param("twinId") UUID twinId);
 
+    @Query(value = "select count(p) from permission_schema_detect_mismatches() p", nativeQuery = true)
+    long countPermissionSchemaMismatches();
 }

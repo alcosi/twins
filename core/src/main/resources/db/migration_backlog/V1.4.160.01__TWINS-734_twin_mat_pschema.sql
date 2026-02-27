@@ -1,3 +1,10 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5012::integer, 50::integer, '', '', '', DEFAULT) on conflict do nothing;
+
+insert into scheduler(id, domain_id, scheduler_featurer_id, scheduler_params, active, log_enabled, cron, fixed_rate, description, created_at, updated_at)
+values
+    ('00000000-0000-0000-0015-000000000013', null, 5012, null, true, true, '7 0 0 * * *', null, 'Scheduler for counting mismatches of permission schema: detected vs materialized in twin', now(), now())
+on conflict do nothing;
+
 drop function if exists detect_permission_schema_mismatches();
 
 CREATE OR REPLACE FUNCTION permission_schema_detect_mismatches()
