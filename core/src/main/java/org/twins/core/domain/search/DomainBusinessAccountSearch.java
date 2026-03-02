@@ -2,6 +2,7 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
@@ -27,6 +28,10 @@ public class DomainBusinessAccountSearch {
     Set<UUID> twinClassSchemaIdExcludeList;
     Set<UUID> tierIdList;
     Set<UUID> tierIdExcludeList;
+    Set<UUID> notificationSchemaIdList;
+    Set<UUID> notificationSchemaIdExcludeList;
+    IntegerRange storageUsedSizeRange;
+    IntegerRange storageUsedCountRange;
     DataTimeRange createAtRange;
 
     public DomainBusinessAccountSearch addBusinessAccountId(Collection<UUID> ids, boolean exclude) {
@@ -61,7 +66,13 @@ public class DomainBusinessAccountSearch {
 
     public DomainBusinessAccountSearch addTierIdList(Collection<UUID> ids, boolean exclude){
         if (!exclude) tierIdList = CollectionUtils.safeAdd(tierIdList, ids);
-        else tierIdExcludeList = CollectionUtils.safeAdd(tierIdList, ids);
+        else tierIdExcludeList = CollectionUtils.safeAdd(tierIdExcludeList, ids);
+        return this;
+    }
+
+    public DomainBusinessAccountSearch addNotificationSchemeIdList(Collection<UUID> ids, boolean exclude){
+        if (!exclude) notificationSchemaIdList = CollectionUtils.safeAdd(notificationSchemaIdList, ids);
+        else notificationSchemaIdExcludeList = CollectionUtils.safeAdd(notificationSchemaIdExcludeList, ids);
         return this;
     }
 

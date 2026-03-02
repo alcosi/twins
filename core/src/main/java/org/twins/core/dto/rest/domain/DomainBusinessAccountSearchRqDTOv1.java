@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 import org.twins.core.dto.rest.Request;
 
 import java.util.List;
@@ -52,6 +54,12 @@ public class DomainBusinessAccountSearchRqDTOv1 extends Request {
 
     @Schema(description = "business account tier id exclude list")
     public Set<UUID> tierIdExcludeList;
+
+    @Schema(description = "used of storage size at range")
+    IntegerRangeDTOv1 storageUsedSizeRange;
+
+    @Schema(description = "used of storage file count at range")
+    IntegerRangeDTOv1 storageUsedCountRange;
 
     @Schema(description = "created at range")
     public DataTimeRangeDTOv1 createdAt;

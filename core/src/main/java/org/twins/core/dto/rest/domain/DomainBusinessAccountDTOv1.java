@@ -54,7 +54,7 @@ public class DomainBusinessAccountDTOv1 {
     public Long twinsCount;
 
     @Schema(description = "count of active users")
-    Long activeUsersCount;
+    public Long activeUsersCount;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
@@ -1637,17 +1638,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (var twinClassField : twinClass.getTwinClassFieldKit()) {
                 var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
                 if (!fieldTyper.canSerialize(twinClassField)) { //this edit blocker flag from field typer
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), false);
                     continue;
                 }
                 if (twinClassField.getEditPermissionId() == null) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), true);
                     continue;
                 }
                 if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), true);
                     continue;
                 }
@@ -1679,9 +1680,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
-       if (isFieldImmutable(twin, twinClassField)) {
+        if (isFieldImmutable(twin, twinClassField)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "{} can not be edited", twinClassField.logNormal());
-       }
+        }
     }
 
     public boolean isFieldImmutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
@@ -1695,8 +1696,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return false;
     }
 
-    public List<EntryCount> countEntryByOwnerBusinessAccountIdIn(Set<UUID> ids){
-        return twinRepository.countEntryByBusinessAccountIn(ids);
+    public void countEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
+        Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
+        List<EntryCount> twinsCountForBusinessAccountList = twinRepository.countTwinsInBusinessAccounts(businessAccountIds);
+        Map<UUID, Long> twinsCount = twinsCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
+        srcCollection.forEach(it -> {
+            Long count = twinsCount.get(it.getBusinessAccountId());
+            it.setTwinsCount(count != null ? count : 0);
+        });
     }
 
     @Data
@@ -1851,5 +1858,4 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         else
             return errorCode.getMessage();
     }
-
 }

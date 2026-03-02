@@ -69,5 +69,5 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Query(value = "SELECT t.owner_business_account_id AS id, COUNT(t) AS count FROM twin t WHERE t.owner_business_account_id IN :ids GROUP BY t.owner_business_account_id",
             nativeQuery = true)
-    List<EntryCount> countEntryByBusinessAccountIn(@Param("ids") Collection<UUID> ids);
+    List<EntryCount> countTwinsInBusinessAccounts(@Param("ids") Collection<UUID> ids);
 }

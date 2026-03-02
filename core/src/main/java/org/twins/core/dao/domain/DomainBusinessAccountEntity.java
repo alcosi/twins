@@ -97,13 +97,14 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
 //    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
 //    private TwinClassSchemaEntity twinClassSchema;
 
-    public String easyLog(Level level) {
-        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId + "]";
-    }
-
     @Transient
     private Long twinsCount;
 
     @Transient
     private Long usersCount;
+
+    public String easyLog(Level level) {
+        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId + "]";
+    }
+
 }

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
@@ -24,11 +25,9 @@ import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -197,7 +196,14 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         return userRepository.findByEmail(email);
     }
 
-    public List<EntryCount> countEntryForBusinessAccount(Collection<UUID> ids){
-        return userRepository.countEntryByBusinessAccountIn(ids);
+    public void countEntryForBusinessAccount(Collection<DomainBusinessAccountEntity> srcCollection) {
+        Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
+        List<EntryCount> usersCountForBusinessAccountList = userRepository.countUsersInBusinessAccounts(businessAccountIds);
+        Map<UUID, Long> usersCount = usersCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
+
+        srcCollection.forEach(it -> {
+            Long count = usersCount.get(it.getBusinessAccountId());
+            it.setUsersCount(count != null ? count : 0);
+        });
     }
 }

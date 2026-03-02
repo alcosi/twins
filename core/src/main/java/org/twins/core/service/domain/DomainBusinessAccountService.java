@@ -16,16 +16,14 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.EntryCount;
+import org.twins.core.controller.rest.priv.domain.DomainBusinessAccountSearchService;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -46,12 +44,8 @@ import org.twins.core.service.user.UserGroupService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpecification.*;
 
 @Slf4j
 @Service
@@ -83,6 +77,7 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     private final UserGroupService userGroupService;
     @Lazy
     private final HistoryService historyService;
+    private final DomainBusinessAccountSearchService domainBusinessAccountSearchService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
@@ -194,31 +189,16 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     public PaginationResult<DomainBusinessAccountEntity> findDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch, SimplePagination pagination) throws ServiceException {
         if (domainBusinessAccountSearch == null)
             domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
-        Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch), PaginationUtils.pageableOffset(pagination));
+        Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository
+                .findAll(domainBusinessAccountSearchService.createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch),
+                        PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(domainBusinessAccountsList, pagination);
     }
 
     public List<DomainBusinessAccountEntity> searchDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
         if (domainBusinessAccountSearch == null)
             domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
-        return domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch));
-    }
-
-    public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        return checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
-                .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
-                .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
-                .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.permissionSchemaId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getTierIdList(), false, false, DomainBusinessAccountEntity.Fields.tierId))
-                .and(checkUuidIn(domainBusinessAccountSearch.getTierIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.tierId))
-                .and(CommonSpecification.checkFieldLocalDateTimeBetween(domainBusinessAccountSearch.getCreateAtRange(), DomainBusinessAccountEntity.Fields.createdAt));
+        return domainBusinessAccountRepository
+                .findAll(domainBusinessAccountSearchService.createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch));
     }
 }
