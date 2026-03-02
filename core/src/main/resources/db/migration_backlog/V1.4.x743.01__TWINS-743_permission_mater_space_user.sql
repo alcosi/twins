@@ -4,6 +4,10 @@ create table permission_mater_space_user
         constraint permission_mater_space_user_twin_id_fk
             references twin
             on update cascade on delete cascade,
+    permission_schema_id uuid not null
+        references permission_schema
+            on update cascade
+            on delete cascade,
     permission_id      uuid not null
         constraint permission_mater_space_user_permission_id_fk
             references permission
@@ -14,13 +18,20 @@ create table permission_mater_space_user
             on update cascade on delete cascade,
     grants_count            int not null default 0,
     constraint permission_mater_space_user_pk
-        primary key (twin_id, permission_id, user_id)
+        primary key (twin_id, permission_id, permission_schema_id, user_id)
 );
-
 
 drop index if exists idx_permission_mater_space_user_grants_count;
 create index idx_permission_mater_space_user_grants_count
     on permission_mater_space_user (grants_count);
+
+drop index if exists idx_permission_mater_space_user_permission_schema_id;
+create index idx_permission_mater_space_user_permission_schema_id
+    on permission_mater_space_user (permission_schema_id);
+
+drop index if exists idx_permission_mater_space_user_user_id;
+create index idx_permission_mater_space_user_user_id
+    on permission_mater_space_user (user_id);
 
 -----------------------------------------------------------------
 create or replace function permission_mater_space_user_by_space_role_user_insert(p_new_twin_id uuid, p_new_space_role_id uuid, p_new_user_id uuid) returns void
@@ -29,12 +40,19 @@ create or replace function permission_mater_space_user_by_space_role_user_insert
 as
 $$
 BEGIN
-    insert into permission_mater_space_user (twin_id, permission_id, user_id, grants_count)
-    select p_new_twin_id, pgsr.permission_id, p_new_user_id
-    from twin t
-             join permission_grant_space_role pgsr
-                  on pgsr.permission_schema_id = t.permission_schema_id and pgsr.space_role_id = p_new_space_role_id
-    where t.id = p_new_twin_id
+    insert into permission_mater_space_user (
+                                             twin_id,
+                                             permission_schema_id,
+                                             permission_id,
+                                             user_id,
+                                             grants_count)
+    select
+        p_new_twin_id,
+        pgsr.permission_schema_id,
+        pgsr.permission_id,
+        p_new_user_id
+    from permission_grant_space_role pgsr
+    where pgsr.space_role_id = p_new_space_role_id
     on conflict do update set grants_count = grants_count + 1;
 END;
 $$;
@@ -45,11 +63,15 @@ create or replace function permission_mater_space_user_by_space_role_user_delete
 as
 $$
 BEGIN
-    update permission_mater_space_user pmsl set grants_count = grants_count - 1
-    from twin t
-             join permission_grant_space_role pgsr
-                 on pgsr.permission_schema_id = t.permission_schema_id and pgsr.space_role_id = p_old_space_role_id
-    where t.id = p_old_twin_id and pmsl.user_id = p_old_user_id;
+    update permission_mater_space_user pmsu
+    set grants_count = pmsu.grants_count - 1
+    from permission_grant_space_role pgsr
+    where pgsr.space_role_id = p_old_space_role_id
+      and pmsu.twin_id = p_old_twin_id
+      and pmsu.user_id = p_old_user_id
+      and pmsu.permission_schema_id = pgsr.permission_schema_id
+      and pmsu.permission_id = pgsr.permission_id;
+
 END;
 $$;
 
