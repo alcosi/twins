@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class TwinClassDynamicMarkerDTOv1 {
     public UUID twinClassId;
 
     @Schema(description = "twin validator set id")
+    @RelatedObject(type = TwinValidatorSetDTOv1.class, name = "twinValidatorSet")
     public UUID twinValidatorSetId;
 
     @Schema(description = "marker data list option id")
