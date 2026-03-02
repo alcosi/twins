@@ -24,7 +24,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     List<TwinflowTransitionEntity> findValidTransitions(
             @Param("twinflowId") UUID twinflowId,
-            @Param("permissionSchemaId") UUID permissionSchemaId,
+            @Param("permissionSchemaId") TypedParameterValue<UUID> permissionSchemaId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
@@ -39,7 +39,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransition(
             @Param("transitionId") UUID transitionId,
-            @Param("permissionSchemaId") UUID permissionSchemaId,
+            @Param("permissionSchemaId") TypedParameterValue<UUID> permissionSchemaId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
             @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
@@ -56,7 +56,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             "and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
-            @Param("permissionSchemaId") UUID permissionSchemaId,
+            @Param("permissionSchemaId") TypedParameterValue<UUID> permissionSchemaId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("alias") String alias,
             @Param("domainId") UUID domainId,
