@@ -1,5 +1,8 @@
 create table permission_mater_space_user_group
 (
+    user_group_footprint_registry_id uuid not null
+        references user_group_footprint_registry(id)
+            on delete cascade,
     twin_id            uuid not null
         constraint permission_mater_space_user_group_twin_id_fk
             references twin
@@ -20,7 +23,7 @@ create table permission_mater_space_user_group
             on update cascade on delete cascade,
     grants_count            int not null default 0,
     constraint permission_mater_space_user_group_pk
-        primary key (twin_id, permission_id, user_group_footprint_id)
+        primary key (twin_id, permission_schema_id, permission_id, user_group_footprint_id)
 );
 
 
@@ -42,27 +45,8 @@ as
 $$
 BEGIN
     insert into permission_mater_space_user_group (
-                                                   twin_id,
-                                                   permission_id,
-                                                   user_group_footprint_id,
-                                                   grants_count)
-    select
-        p_new_twin_id,
-        pgsr.permission_id,
-        ugm.user_id
-    from user_group_map ugm
-             join space s on s.twin_id = p_new_twin_id
-             join permission_grant_space_role pgsr
-                  on pgsr.permission_schema_id = s.permission_schema_id and pgsr.space_role_id = p_new_space_role_id
-             join twin t
-                  on t.owner_business_account_id is not distinct from ugm.business_account_id and t.id = p_new_twin_id
-             join twin_class tc on tc.id = t.twin_class_id and tc.domain_id is not distinct from ugm.domain_id
-    where ugm.user_group_id = p_new_user_group_id
-    on conflict do update set grants_count = grants_count + 1;
-
-
-    insert into permission_mater_user_group (
         user_group_footprint_registry_id,
+        twin_id,
         permission_schema_id,
         permission_id,
         user_group_footprint_id,
@@ -70,17 +54,25 @@ BEGIN
     )
     select
         r.id,
-        p_schema_id,
-        p_permission_id,
+        p_new_twin_id,
+        pgsr.permission_schema_id,
+        pgsr.permission_id,
         r.user_group_footprint_id,
         1
-    from user_group_footprint_map m
+    from twin t
+             join twin_class tc
+                  on tc.id = t.twin_class_id
+             join user_group_footprint_map m
+                  on m.user_group_id = p_new_user_group_id
              join user_group_footprint_registry r
                   on r.user_group_footprint_id = m.user_group_footprint_id
-    where m.user_group_id = p_user_group_id
-    on conflict (permission_schema_id, permission_id, user_group_footprint_id)
+                      and r.domain_id = tc.domain_id  -- that is why twin_class domain change should be restricted
+             join permission_grant_space_role pgsr
+                  on pgsr.space_role_id = p_new_space_role_id
+    where t.id = p_new_twin_id
+    on conflict (twin_id, permission_schema_id, permission_id, user_group_footprint_id)
         do update
-        set grants_count = permission_mater_user_group.grants_count + 1;
+        set grants_count = permission_mater_space_user_group.grants_count + 1;
 END;
 $$;
 
@@ -90,13 +82,23 @@ create or replace function permission_mater_space_level_by_space_role_user_group
 as
 $$
 BEGIN
-    update permission_materialization_space_level set grants_count = grants_count - 1
-    from user_group_map ugm
-             join space s on s.twin_id = p_old_twin_id
-             join permission_grant_space_role pgsr on pgsr.permission_schema_id = s.permission_schema_id and pgsr.space_role_id = p_old_space_role_id
-             join twin t on t.owner_business_account_id is not distinct from  ugm.business_account_id and t.id = p_old_twin_id
-             join twin_class tc on tc.id = t.twin_class_id and tc.domain_id is not distinct from  ugm.domain_id
-    where ugm.user_group_id = p_old_user_group_id;
+    update permission_mater_space_user_group pmsg
+    set grants_count = pmsg.grants_count - 1
+    from twin t
+             join twin_class tc
+                  on tc.id = t.twin_class_id
+             join user_group_footprint_map m
+                  on m.user_group_id = p_old_user_group_id
+             join user_group_footprint_registry r
+                  on r.user_group_footprint_id = m.user_group_footprint_id
+                      and r.domain_id = tc.domain_id
+             join permission_grant_space_role pgsr
+                  on pgsr.space_role_id = p_old_space_role_id
+    where t.id = p_old_twin_id
+      and pmsg.twin_id = p_old_twin_id
+      and pmsg.permission_schema_id = pgsr.permission_schema_id
+      and pmsg.permission_id = pgsr.permission_id
+      and pmsg.user_group_footprint_id = r.user_group_footprint_id;
 END;
 $$;
 
@@ -161,11 +163,6 @@ create trigger space_role_user_group_after_update_wrapper_trigger
 execute procedure space_role_user_group_after_update_wrapper();
 
 
-select permission_mater_space_level_by_user_group_map_insert(ugm.user_group_id, ugm.user_id, ugm.business_account_id, ugm.domain_id)
-from user_group_map ugm;
-select permission_mater_space_level_by_permiss_grant_space_role_insert(permission_schema_id, permission_id, space_role_id)
-from permission_grant_space_role;
 select permission_mater_space_level_by_space_role_user_group_insert(twin_id, space_role_id, user_group_id)
 from space_role_user_group;
-select permission_mater_space_level_by_space_role_user_insert(twin_id, space_role_id, user_id)
-from space_role_user;
+
