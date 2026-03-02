@@ -1,4 +1,4 @@
-create function hierarchyupdatetreehard(p_twin_id uuid, detect_data record) returns void
+create or replace function hierarchyupdatetreehard(p_twin_id uuid, detect_data record) returns void
     language plpgsql
 as
 $$
