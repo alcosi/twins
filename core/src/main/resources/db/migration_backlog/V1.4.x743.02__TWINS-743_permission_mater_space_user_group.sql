@@ -1,4 +1,4 @@
-create table permission_mater_space_user_group
+create table if not exists permission_mater_space_user_group
 (
     user_group_footprint_registry_id uuid not null
         references user_group_footprint_registry(id)

@@ -1,4 +1,4 @@
-create table permission_mater_space_user
+create table if not exists permission_mater_space_user
 (
     twin_id            uuid not null
         constraint permission_mater_space_user_twin_id_fk
@@ -50,10 +50,12 @@ BEGIN
         p_new_twin_id,
         pgsr.permission_schema_id,
         pgsr.permission_id,
-        p_new_user_id
+        p_new_user_id,
+        1
     from permission_grant_space_role pgsr
     where pgsr.space_role_id = p_new_space_role_id
-    on conflict do update set grants_count = grants_count + 1;
+    on conflict (twin_id, permission_id, permission_schema_id, user_id)
+        do update set grants_count = permission_mater_space_user.grants_count + 1;
 END;
 $$;
 
