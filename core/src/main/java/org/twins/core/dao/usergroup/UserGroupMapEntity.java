@@ -1,4 +1,4 @@
-package org.twins.core.dao.user;
+package org.twins.core.dao.usergroup;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,6 +9,9 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -16,9 +19,9 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "user_group_map_type2")
+@Table(name = "user_group_map")
 @FieldNameConstants
-public class UserGroupMapType2Entity implements EasyLoggable, UserGroupMap {
+public class UserGroupMapEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -30,11 +33,20 @@ public class UserGroupMapType2Entity implements EasyLoggable, UserGroupMap {
     @Column(name = "user_group_id")
     private UUID userGroupId;
 
+    @Column(name = "user_group_type_id")
+    private String userGroupTypeId;
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
     @Column(name = "business_account_id")
     private UUID businessAccountId;
 
     @Column(name = "user_id")
     private UUID userId;
+
+    @Column(name = "involves_count", insertable = false, updatable = false)
+    private Integer involvesCount;
 
     @Column(name = "added_at")
     private Timestamp addedAt;
@@ -51,7 +63,13 @@ public class UserGroupMapType2Entity implements EasyLoggable, UserGroupMap {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    private DomainEntity domain;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity user;
 
     @EqualsAndHashCode.Exclude
@@ -66,11 +84,16 @@ public class UserGroupMapType2Entity implements EasyLoggable, UserGroupMap {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
+//    @Deprecated //for specification only
+//    @EqualsAndHashCode.Exclude
+//    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+//    private Set<SpaceRoleUserGroupEntity> spaceRoleUserGroups;
+
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "userGroupMapType2[id:" + id + "]";
+            case SHORT -> "userGroupMap[id:" + id + "]";
             default ->
-                    "userGroupMapType2[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", businessAccountId:" + businessAccountId + "]";
+                    "userGroupMap[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId + "]";
         };
     }
 }

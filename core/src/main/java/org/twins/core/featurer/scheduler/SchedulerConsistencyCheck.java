@@ -18,7 +18,7 @@ public abstract class SchedulerConsistencyCheck extends Scheduler {
                 log.info("No invalid [{}] records detected", consistencyCheckName());
                 return "0 invalid [" + consistencyCheckName() + "] rows were detected";
             } else {
-                LoggerUtils.alertLog.error("Invalid records detected: {}. Please check the logs for details", size);
+                LoggerUtils.alertLog.error("Invalid [{}] records detected: {}. Please check the logs for details", consistencyCheckName(), size);
                 return size + " invalid [" + consistencyCheckName() + "] rows were detected";
             }
         } catch (Exception e) {
