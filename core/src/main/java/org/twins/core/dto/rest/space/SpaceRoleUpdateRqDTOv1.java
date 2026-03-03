@@ -4,15 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
+import org.twins.core.dto.rest.Request;
 
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "SpaceRoleListRsV1")
-public class SpaceRoleListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "SpaceRoleUpdateRqV1")
+public class SpaceRoleUpdateRqDTOv1 extends Request {
     @Schema(description = "space roles")
-    public List<SpaceRoleDTOv1> spaceRoles;
+    public List<SpaceRoleUpdateDTOv1> spaceRoles;
 }
