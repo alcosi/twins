@@ -1703,7 +1703,24 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinsCountOfBusinessAccount.get(domainBusinessAccountEntity.getBusinessAccountId());
     }
 
-    public Map<UUID, Long> loadCountEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
+    public Collection<DomainBusinessAccountEntity> loadTwinsCountForDomainBusinessAccount(Collection<DomainBusinessAccountEntity> srcCollection) {
+        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getId);
+        for (var dba : srcCollection)
+            if (dba.getTwinsCount() == null)
+                needLoad.add(dba);
+
+        if (KitUtils.isEmpty(needLoad))
+            return srcCollection;
+
+        Map<UUID, Long> twinsCountMap = twinRepository.countTwinsInBusinessAccounts(needLoad.getIdSet()).stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
+
+        for (var dba : srcCollection)
+            if (twinsCountMap.containsKey(dba.getId()))
+                dba.setTwinsCount(twinsCountMap.get(dba.getId()) == null ? 0 : twinsCountMap.get(dba.getId()));
+        return srcCollection;
+    }
+
+        public Map<UUID, Long> loadCountEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
         Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
         List<EntryCount> twinsCountForBusinessAccountList = twinRepository.countTwinsInBusinessAccounts(businessAccountIds);
         Map<UUID, Long> twinsCount = twinsCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));

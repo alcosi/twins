@@ -14,7 +14,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.DomainBusinessAccountMode
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -54,12 +56,16 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
             dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT));
         }
+        if (mapperContext.hasMode(DomainBusinessAccountMode.DETAILED)) {
+            dst.setTwinsCount(new ArrayList<>(twinService.loadTwinsCountForDomainBusinessAccount(List.of(src))).getFirst().getTwinsCount());
+            dst.setActiveUsersCount(...);
+        }
     }
 
     public void beforeCollectionConversion(Collection<DomainBusinessAccountEntity> srcCollection, MapperContext mapperContext) throws Exception {
         if (mapperContext.hasMode(DomainBusinessAccountMode.DETAILED)) {
-            twinService.loadCountEntryByOwnerBusinessAccountIdIn(srcCollection);
-            userService.countEntryForBusinessAccount(srcCollection);
+            twinService.loadTwinsCountForDomainBusinessAccount(srcCollection);
+            userService...;
         }
     }
 }
