@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.dto.rest.usergroup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "PermissionGrantAssigneePropagationSearchRqV1")
-public class PermissionGrantAssigneePropagationSearchRqDTOv1 extends Request {
+@Schema(name =  "UserGroupByAssigneePropagationSearchRqV1")
+public class UserGroupByAssigneePropagationSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;
 
@@ -26,11 +26,11 @@ public class PermissionGrantAssigneePropagationSearchRqDTOv1 extends Request {
     @Schema(description = "permission schema id exclude list")
     public Set<UUID> permissionSchemaIdExcludeList;
 
-    @Schema(description = "permission id list")
-    public Set<UUID> permissionIdList;
+    @Schema(description = "user group id list")
+    public Set<UUID> userGroupIdList;
 
-    @Schema(description = "permission id exclude list")
-    public Set<UUID> permissionIdExcludeList;
+    @Schema(description = "user group id exclude list")
+    public Set<UUID> userGroupIdExcludeList;
 
     @Schema(description = "propagation twin class id list")
     public Set<UUID> propagationTwinClassIdList;
@@ -44,9 +44,9 @@ public class PermissionGrantAssigneePropagationSearchRqDTOv1 extends Request {
     @Schema(description = "propagation twin status id exclude list")
     public Set<UUID> propagationTwinStatusIdExcludeList;
 
-    @Schema(description = "granted by user id list")
-    public Set<UUID> grantedByUserIdList;
+    @Schema(description = "created by user id list")
+    public Set<UUID> createdByUserIdList;
 
-    @Schema(description = "granted by user id exclude list")
-    public Set<UUID> grantedByUserIdExcludeList;
+    @Schema(description = "created by user id exclude list")
+    public Set<UUID> createdByUserIdExcludeList;
 }

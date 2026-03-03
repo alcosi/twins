@@ -28,6 +28,7 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
                 select distinct ugm.userId
                 from UserGroupMapEntity ugm
                 where ugm.userGroupId in :groupIds
+                  and (ugm.addedManually or ugm.involvesCount > 0)
                   and ugm.domainId = :domainId
                   and (
                         ugm.businessAccountId is null
@@ -40,6 +41,7 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
                 select ugm
                 from UserGroupMapEntity ugm
                 where ugm.userId in :userIdSet
+                  and (ugm.addedManually or ugm.involvesCount > 0)
                   and ugm.domainId = :domainId
                   and (
                         ugm.businessAccountId is null

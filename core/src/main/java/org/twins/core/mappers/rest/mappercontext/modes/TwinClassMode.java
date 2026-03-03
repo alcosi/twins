@@ -218,7 +218,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum PermissionGrantAssigneePropagation2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum UserGroupByAssigneePropagation2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),

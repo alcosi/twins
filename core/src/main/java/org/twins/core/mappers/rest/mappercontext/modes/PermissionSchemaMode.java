@@ -79,7 +79,7 @@ public enum PermissionSchemaMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum PermissionGrantAssigneePropagation2PermissionSchemaMode implements MapperModePointer<PermissionSchemaMode> {
+    public enum UserGroupByAssigneePropagation2PermissionSchemaMode implements MapperModePointer<PermissionSchemaMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
