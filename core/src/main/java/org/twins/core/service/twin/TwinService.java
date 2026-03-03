@@ -1699,19 +1699,30 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public Long getCountTwinsByBusinessAccount(DomainBusinessAccountEntity domainBusinessAccountEntity) {
         Long twinsCount = domainBusinessAccountEntity.getTwinsCount();
         if (twinsCount != null) return twinsCount;
-        Map<UUID, Long> twinsCountOfBusinessAccount = loadCountEntryByOwnerBusinessAccountIdIn(Collections.singletonList(domainBusinessAccountEntity));
-        return twinsCountOfBusinessAccount.get(domainBusinessAccountEntity.getBusinessAccountId());
+        Collection<DomainBusinessAccountEntity> twinsCountOfBusinessAccount = loadCountEntryByOwnerBusinessAccountIdIn(Collections.singletonList(domainBusinessAccountEntity));
+        return twinsCountOfBusinessAccount.stream()
+                .filter(it -> it.getId().equals(domainBusinessAccountEntity.getId()))
+                .findFirst()
+                .get()
+                .getTwinsCount();
     }
 
-    public Map<UUID, Long> loadCountEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
-        Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
-        List<EntryCount> twinsCountForBusinessAccountList = twinRepository.countTwinsInBusinessAccounts(businessAccountIds);
-        Map<UUID, Long> twinsCount = twinsCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
-        srcCollection.forEach(it -> {
-            Long count = twinsCount.get(it.getBusinessAccountId());
-            it.setTwinsCount(count != null ? count : 0);
-        });
-        return twinsCount;
+    public Collection<DomainBusinessAccountEntity> loadCountEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
+        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getBusinessAccountId);
+        for (var dba : srcCollection) {
+            if (dba.getTwinsCount() == null)
+                needLoad.add(dba);
+        }
+        if (KitUtils.isEmpty(needLoad)) {
+            return srcCollection;
+        }
+        Map<UUID, Long> twinsCountMap = twinRepository.countTwinsInBusinessAccounts(needLoad.getIdSet())
+                .stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
+
+        for (var dba : needLoad.getCollection()) {
+            dba.setTwinsCount(twinsCountMap.get(dba.getBusinessAccountId()) == null ? 0 : twinsCountMap.get(dba.getBusinessAccountId()));
+        }
+        return srcCollection;
     }
 
     @Data
