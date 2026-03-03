@@ -31,9 +31,6 @@ drop index if exists idx_permission_mater_space_user_group_grants_count;
 create index idx_permission_mater_space_user_group_grants_count
     on permission_mater_space_user_group (grants_count);
 
-
-
------------------------------------------------------------------
 -----------------------------------------------------------------
 create or replace function permission_mater_space_level_by_space_role_user_group_insert(
     p_new_twin_id uuid,
