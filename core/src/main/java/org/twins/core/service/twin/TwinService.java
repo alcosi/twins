@@ -1696,7 +1696,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return false;
     }
 
-    public void countEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
+    public Long getCountTwinsByBusinessAccount(DomainBusinessAccountEntity domainBusinessAccountEntity) {
+        Long twinsCount = domainBusinessAccountEntity.getTwinsCount();
+        if (twinsCount != null) return twinsCount;
+        Map<UUID, Long> twinsCountOfBusinessAccount = loadCountEntryByOwnerBusinessAccountIdIn(Collections.singletonList(domainBusinessAccountEntity));
+        return twinsCountOfBusinessAccount.get(domainBusinessAccountEntity.getBusinessAccountId());
+    }
+
+    public Map<UUID, Long> loadCountEntryByOwnerBusinessAccountIdIn(Collection<DomainBusinessAccountEntity> srcCollection) {
         Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
         List<EntryCount> twinsCountForBusinessAccountList = twinRepository.countTwinsInBusinessAccounts(businessAccountIds);
         Map<UUID, Long> twinsCount = twinsCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
@@ -1704,6 +1711,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             Long count = twinsCount.get(it.getBusinessAccountId());
             it.setTwinsCount(count != null ? count : 0);
         });
+        return twinsCount;
     }
 
     @Data

@@ -56,10 +56,10 @@ public class DomainBusinessAccountSearchRqDTOv1 extends Request {
     public Set<UUID> tierIdExcludeList;
 
     @Schema(description = "used of storage size at range")
-    IntegerRangeDTOv1 storageUsedSizeRange;
+    public IntegerRangeDTOv1 storageUsedSizeRange;
 
     @Schema(description = "used of storage file count at range")
-    IntegerRangeDTOv1 storageUsedCountRange;
+    public IntegerRangeDTOv1 storageUsedCountRange;
 
     @Schema(description = "created at range")
     public DataTimeRangeDTOv1 createdAt;

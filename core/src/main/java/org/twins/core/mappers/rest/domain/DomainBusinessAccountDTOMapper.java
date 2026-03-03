@@ -40,9 +40,10 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setAttachmentsStorageUsedCount(src.getAttachmentsStorageUsedCount())
                         .setAttachmentsStorageUsedSize(src.getAttachmentsStorageUsedSize())
-                        .setTwinsCount(src.getTwinsCount())
-                        .setActiveUsersCount(src.getUsersCount())
+                        .setTwinsCount(twinService.getCountTwinsByBusinessAccount(src))
+                        //.setActiveUsersCount(src.getUsersCount())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
+
                 break;
             case SHORT:
                 dst
@@ -56,8 +57,8 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
     }
 
     public void beforeCollectionConversion(Collection<DomainBusinessAccountEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        if (mapperContext.getModeOrUse(DomainBusinessAccountMode.DETAILED) == DomainBusinessAccountMode.DETAILED) {
-            twinService.countEntryByOwnerBusinessAccountIdIn(srcCollection);
+        if (mapperContext.hasMode(DomainBusinessAccountMode.DETAILED)) {
+            twinService.loadCountEntryByOwnerBusinessAccountIdIn(srcCollection);
             userService.countEntryForBusinessAccount(srcCollection);
         }
     }
