@@ -33,7 +33,7 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()))
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
                         .setExternalId(src.getExternalId());
                 if (StringUtils.isNotBlank(src.getAttribute1key()))
@@ -51,7 +51,7 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()))
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
                         .setExternalId(src.getExternalId());
             case SHORT ->

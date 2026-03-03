@@ -78,6 +78,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @Column(name = "view_permission_custom")
+    private Boolean viewPermissionCustom;
+
+    //materialized
+    @Column(name = "permission_schema_id", updatable = false, insertable = false)
+    private UUID permissionSchemaId;
+
     @Column(name = "permission_schema_space_id")
     private UUID permissionSchemaSpaceId;
 
@@ -514,6 +521,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
                 .setTwinClassSchemaSpaceId(twinClassSchemaSpaceId)
                 .setAliasSpaceId(aliasSpaceId)
                 .setViewPermissionId(viewPermissionId)
+                .setViewPermissionCustom(viewPermissionCustom)
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);

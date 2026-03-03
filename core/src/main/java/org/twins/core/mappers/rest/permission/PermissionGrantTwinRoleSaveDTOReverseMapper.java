@@ -16,6 +16,10 @@ public class PermissionGrantTwinRoleSaveDTOReverseMapper extends RestSimpleDTOMa
                 .setPermissionSchemaId(src.getPermissionSchemaId())
                 .setPermissionId(src.getPermissionId())
                 .setTwinClassId(src.getTwinClassId())
-                .setTwinRole(src.getTwinRole());
+                .setGrantedToAssignee(src.getGrantedToAssignee())
+                .setGrantedToCreator(src.getGrantedToCreator())
+                .setGrantedToSpaceAssignee(src.getGrantedToSpaceAssignee())
+                .setGrantedToSpaceCreator(src.getGrantedToSpaceCreator())
+        ;
     }
 }

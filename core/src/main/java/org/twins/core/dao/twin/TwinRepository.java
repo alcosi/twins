@@ -9,7 +9,6 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.Collection;
@@ -36,8 +35,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
     int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
-    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionSchemaId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     boolean hasPermission(
+            @Param("permissionSchemaId") TypedParameterValue<UUID> permissionSchemaId,
             @Param("permissionId") UUID permissionId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
@@ -67,6 +67,8 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select h from TwinEntity t, TwinEntity h where t.id = :twinId and t.headTwinId = h.id")
     TwinEntity findHeadTwin(@Param("twinId") UUID twinId);
 
+    @Query(value = "select count(p) from permission_schema_detect_mismatches() p", nativeQuery = true)
+    long countPermissionSchemaMismatches();
     @Query(value = "SELECT t.owner_business_account_id AS id, COUNT(t) AS count FROM twin t WHERE t.owner_business_account_id IN :ids GROUP BY t.owner_business_account_id",
             nativeQuery = true)
     List<EntryCount> countTwinsInBusinessAccounts(@Param("ids") Collection<UUID> ids);

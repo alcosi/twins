@@ -299,11 +299,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             twinEntityFieldPath) throws ServiceException {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
+            Join<TwinEntity, TwinClassEntity> twinClassJoin = (Join<TwinEntity, TwinClassEntity>) getOrCreateJoin(joinTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
 
             Expression<UUID> spaceId = joinTwin.get(TwinEntity.Fields.permissionSchemaSpaceId);
             Expression<UUID> permissionIdTwin = joinTwin.get(TwinEntity.Fields.viewPermissionId);
-            Expression<UUID> permissionIdTwinClass = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
-            Expression<UUID> twinClassId = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
+            Expression<UUID> permissionSchemaIdTwin = joinTwin.get(TwinEntity.Fields.permissionSchemaId);
+//            Expression<UUID> permissionIdTwinClass = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
+            Expression<UUID> twinClassId = twinClassJoin.get(TwinClassEntity.Fields.id);
 
             Predicate isAssigneePredicate = cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
             Predicate isCreatorPredicate = cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
@@ -312,8 +314,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     cb.literal(domainId),
                     cb.literal(businessAccountId),
                     spaceId,
+                    permissionSchemaIdTwin,
                     permissionIdTwin,
-                    permissionIdTwinClass,
                     cb.literal(userId),
                     cb.literal(collectionUuidsToSqlArray(userGroups)),
                     twinClassId,

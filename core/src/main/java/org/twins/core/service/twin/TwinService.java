@@ -1696,6 +1696,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return false;
     }
 
+    public long countPermissionSchemaMismatches() {
+        return twinRepository.countPermissionSchemaMismatches();
+    }
+
     public Long getCountTwinsByBusinessAccount(DomainBusinessAccountEntity domainBusinessAccountEntity) {
         Long twinsCount = domainBusinessAccountEntity.getTwinsCount();
         if (twinsCount != null) return twinsCount;

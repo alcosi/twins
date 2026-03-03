@@ -42,7 +42,7 @@ public class PermissionGrantTwinRoleDeleteController extends ApiController {
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/permission_grant/twin_role/{permissionGrantTwinRoleId}/v1")
-    public ResponseEntity<?> permissionGrantAssigneePropagationDeleteV1(
+    public ResponseEntity<?> permissionGrantTwinRoleDeleteV1(
             @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID) @PathVariable UUID permissionGrantTwinRoleId) {
         Response rs = new Response();
         try {

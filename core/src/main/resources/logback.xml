@@ -40,6 +40,28 @@
         </encoder>
     </appender>
 
+    <appender name="ALERT-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS_DIR}/twins-alert.log</file>
+
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS_DIR}/twins-alert-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <maxHistory>360</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <charset>UTF-8</charset>
+            <immediateFlush>true</immediateFlush>
+            <pattern>
+                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{traceTree}%replace(%replace(%msg){'"base64":".*"',
+                '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
+            </pattern>
+        </encoder>
+    </appender>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
@@ -66,6 +88,12 @@
         <appender-ref ref="RQ-RS-FILE"/>
     </appender>
 
+    <appender name="ASYNC-ALERT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>100</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="ALERT-FILE"/>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
@@ -80,6 +108,9 @@
     </logger>
     <logger name="RqRsLogger" level="${LOG_RQRS_LEVEL:-INFO}" additivity="false">
         <appender-ref ref="ASYNC-RQ-RS-FILE"/>
+    </logger>
+    <logger name="AlertLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC-ALERT"/>
     </logger>
     <logger name="RqRsLoggerShort" level="${LOG_RQRS_SHORT_LEVEL:-INFO}" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>

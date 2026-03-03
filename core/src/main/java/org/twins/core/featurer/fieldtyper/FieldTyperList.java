@@ -142,7 +142,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         UUID fieldListId = dataListId.extract(properties);
         dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
         var ret = new ValidationResult(true);
-        for (var option : fieldValue.getItems()) {
+        for (var option : fieldValue.getItemsOrEmpty()) {
             // Skip incomplete options (created with externalId but not yet resolved from DB)
             if (option.getId() == null) {
                 continue;

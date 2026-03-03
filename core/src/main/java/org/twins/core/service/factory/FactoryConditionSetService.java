@@ -5,13 +5,16 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
+import static org.cambium.common.util.CacheUtils.evictCache;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,7 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
     private final TwinFactoryConditionSetRepository repository;
     private final AuthService authService;
     private final FactoryService factoryService;
+    private final CacheManager cacheManager;
 
     @Override
     public CrudRepository<TwinFactoryConditionSetEntity, UUID> entityRepository() {
@@ -68,6 +72,11 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
         return true;
     }
 
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.GLOBAL;
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     public List<TwinFactoryConditionSetEntity> createFactoryConditionSet(
             List<TwinFactoryConditionSetEntity> conditionSetCreates
@@ -82,6 +91,8 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()))
                     .setCreatedByUserId(apiUserId)
                     .setDomainId(domainId);
+            if (twinFactoryConditionSetEntity.getCachable() == null)
+                twinFactoryConditionSetEntity.setCachable(true);
         validateEntityAndThrow(twinFactoryConditionSetEntity, EntitySmartService.EntityValidateMode.beforeSave);
         }
         return StreamSupport.stream(
@@ -104,6 +115,7 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
         );
 
         ChangesHelperMulti<TwinFactoryConditionSetEntity> changes = new ChangesHelperMulti<>();
+        CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
         for (TwinFactoryConditionSetEntity twinFactoryConditionSetEntity : conditionSetUpdates) {
             ChangesHelper changesHelper = new ChangesHelper();
@@ -119,11 +131,22 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
                     TwinFactoryConditionSetEntity::getTwinFactoryId, TwinFactoryConditionSetEntity::setTwinFactoryId,
                     TwinFactoryConditionSetEntity.Fields.twinFactoryId, changesHelper);
+            updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
+                    TwinFactoryConditionSetEntity::getCachable, TwinFactoryConditionSetEntity::setCachable,
+                    TwinFactoryConditionSetEntity.Fields.cachable, changesHelper);
 
             dbFactoryConditionSetEntity.setUpdatedAt(Timestamp.from(Instant.now()));
-            changes.add(dbFactoryConditionSetEntity, changesHelper);
+            if (changesHelper.hasChanges()) {
+                changes.add(dbFactoryConditionSetEntity, changesHelper);
+                cacheEvictCollector.add(dbFactoryConditionSetEntity.getId(),
+                        TwinFactoryConditionSetRepository.CACHE_CONDITION_SET_BY_ID,
+                        TwinFactoryConditionSetEntity.class.getSimpleName());
+            }
         }
-        updateSafe(changes);
+        if (!changes.entrySet().isEmpty()) {
+            updateSafe(changes);
+            evictCache(cacheManager, cacheEvictCollector);
+        }
         return dbFactoryConditionSetKit.getList();
     }
 

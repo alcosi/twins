@@ -48,6 +48,9 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
 
+    @Column(name = "cachable")
+    private Boolean cachable;
+
     @Transient
     private TwinFactoryEntity twinFactory;
 

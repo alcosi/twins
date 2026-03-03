@@ -13,6 +13,7 @@ import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KeyUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -44,6 +45,7 @@ import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserGroupFootprintService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -51,8 +53,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 
 @Slf4j
 @Service
@@ -82,6 +82,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final DomainService domainService;
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserGroupService userGroupService;
+    private final UserGroupFootprintService userGroupFootprintService;
     @Lazy
     private final UserService userService;
     @Lazy
@@ -156,6 +157,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return hasPermission(
                 new PermissionDetectKey(
                         twinEntity.getTwinClassId(),
+                        twinEntity.getPermissionSchemaId(),
                         twinEntity.getPermissionSchemaSpaceId(),
                         TwinService.isAssignee(twinEntity, apiUser),
                         TwinService.isCreator(twinEntity, apiUser)),
@@ -168,6 +170,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             return true;
         userGroupService.loadGroupsForCurrentUser();
         return twinRepository.hasPermission(
+                TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaId()),
                 permissionId,
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
@@ -186,6 +189,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         for (TwinEntity twinEntity : twinEntities) {
             detectKey = new PermissionDetectKey(
                     twinEntity.getTwinClassId(),
+                    twinEntity.getPermissionSchemaId(),
                     twinEntity.getPermissionSchemaSpaceId(),
                     TwinService.isAssignee(twinEntity, apiUser),
                     TwinService.isCreator(twinEntity, apiUser));
@@ -325,15 +329,15 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         }
         if (!permissionsSchemaTwinRoleEntities.isEmpty()) {
             for (PermissionGrantTwinRoleEntity permissionGrantTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
-                if (userId.equals(twin.getAssignerUserId()) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.assignee))
-                    result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
-                if (twin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
-                    result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
+                if (userId.equals(twin.getAssignerUserId()) && permissionGrantTwinRoleEntity.getGrantedToAssignee())
+                    result.getGrantedByTwinRoles().add(TwinRole.assignee);
+                if (twin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToCreator())
+                    result.getGrantedByTwinRoles().add(TwinRole.creator);
                 if (null != spaceTwin) {
-                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.space_assignee))
-                        result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
-                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getTwinRole().equals(TwinRole.space_creator))
-                        result.getGrantedByTwinRoles().add(permissionGrantTwinRoleEntity.getTwinRole());
+                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToSpaceAssignee())
+                        result.getGrantedByTwinRoles().add(TwinRole.space_assignee);
+                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionGrantTwinRoleEntity.getGrantedToSpaceCreator())
+                        result.getGrantedByTwinRoles().add(TwinRole.space_creator);
                 }
             }
         }
@@ -372,6 +376,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     @EqualsAndHashCode
     public static class PermissionDetectKey {
         final UUID twinClassId;
+        final UUID permissionSchemaId;
         final UUID permissionSchemaSpaceId;
         final boolean isAssignee;
         final boolean isCreator;
@@ -470,8 +475,15 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         }
         UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
         userGroupService.loadGroups(user);
-        Set<UUID> userGroupIds = user.getUserGroups().getIdSetSafe();
-        List<UUID> permissionList = permissionGrantUserRepository.findAllPermissionsForUser(permissionSchemaId, user.getId(), collectionUuidsToSqlArray(userGroupIds));
+        if (user.getUserGroupsFootprint() == null) {
+            Set<UUID> userGroupIds = user.getUserGroups().getIdSetSafe();
+            if (CollectionUtils.isEmpty(userGroupIds)) {
+                user.setUserGroupsFootprint(UuidUtils.NULLIFY_MARKER);
+            } else {
+                user.setUserGroupsFootprint(userGroupFootprintService.getOrCreateFootprint(userGroupIds));
+            }
+        }
+        List<UUID> permissionList = permissionGrantUserRepository.findAllPermissionsForUser(permissionSchemaId, user.getId(), user.getUserGroupsFootprint());
         user.setPermissions(new HashSet<>(permissionList));
     }
 

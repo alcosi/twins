@@ -211,6 +211,9 @@ public class SystemEntityService {
                     .setHasSegment(false)
                     .setUniqueName(false)
                     .setHasDynamicMarkers(false)
+                    .setHeadHierarchyCounterDirectChildren(0)
+                    .setExtendsHierarchyCounterDirectChildren(0)
+                    .setTwinCounter(0)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
 

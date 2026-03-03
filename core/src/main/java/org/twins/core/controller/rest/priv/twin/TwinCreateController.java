@@ -165,6 +165,8 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (TwinBatchFieldValidationException bve) {
+            return createErrorRs(bve, rs, null);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {

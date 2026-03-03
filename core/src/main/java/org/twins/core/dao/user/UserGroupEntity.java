@@ -11,7 +11,11 @@ import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
+import org.twins.core.dao.usergroup.UserGroupMapEntity;
+import org.twins.core.enums.user.UserGroupType;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -35,7 +39,8 @@ public class UserGroupEntity implements EasyLoggable {
     private UUID businessAccountId;
 
     @Column(name = "user_group_type_id")
-    private String userGroupTypeId;
+    @Enumerated(EnumType.STRING)
+    private UserGroupType userGroupTypeId;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
@@ -74,6 +79,18 @@ public class UserGroupEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
     private UserGroupTypeEntity userGroupType;
+
+    @Deprecated // specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+    private Set<UserGroupMapEntity> userGroupUserGroups;
+
+    @Deprecated // specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+    private Set<SpaceRoleUserGroupEntity> spaceRoleUserGroups;
 
     public String easyLog(Level level) {
         return "userGroup[id:" + id + "]";
