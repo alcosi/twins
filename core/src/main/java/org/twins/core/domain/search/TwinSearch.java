@@ -59,7 +59,7 @@ public class TwinSearch {
     private Set<UUID> markerDataListOptionIdExcludeList;
     private Set<Touch> touchList;
     private Set<Touch> touchExcludeList;
-    private List<TwinFieldSearch> fields;
+    private TwinFieldFilter fields;
     private DataTimeRange createdAt;
     private TwinSearchEntity configuredSearch;
     private HierarchySearch hierarchyChildrenSearch;
@@ -105,7 +105,7 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(markerDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
-                CollectionUtils.isEmpty(fields) &&
+                (fields == null || fields.isEmpty()) &&
                 (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
                 createdAt == null &&
                 distinct == null &&

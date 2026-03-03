@@ -83,43 +83,6 @@ public abstract class TwinSorter extends FeaturerTwins {
         }
     }
 
-    /**
-     * Retrieves an existing JOIN or creates a new LEFT JOIN to the specified field table.
-     *
-     * @param root        The root entity (TwinEntity)
-     * @param cb          The CriteriaBuilder
-     * @param fieldId     The UUID of the twinClassFieldId
-     * @param fieldTable  The name of the field table (e.g., fieldsBoolean, fieldsSimple)
-     * @return The Join object
-     */
-    protected <T> Join<TwinEntity, T> getOrCreateJoin(Root<TwinEntity> root, CriteriaBuilder cb, UUID fieldId, String fieldTable) {
-        Join<TwinEntity, T> tfJoin = null;
-        for (Join<TwinEntity, ?> join : root.getJoins()) {
-            if (join.getAttribute().getName().equals(fieldTable)) {
-                Predicate onPredicate = join.getOn();
-                if (onPredicate instanceof SqmComparisonPredicate) {
-                    SqmComparisonPredicate comparison = (SqmComparisonPredicate) onPredicate;
-                    if (comparison.getLeftHandExpression().toString().contains("twinClassFieldId")) {
-                        SqmExpression<?> rightExpression = comparison.getRightHandExpression();
-                        if (rightExpression instanceof ValueBindJpaCriteriaParameter) {
-                            ValueBindJpaCriteriaParameter<?> param = (ValueBindJpaCriteriaParameter<?>) rightExpression;
-                            Object paramValue = param.getValue();
-                            if (paramValue instanceof UUID && fieldId.equals((UUID) paramValue)) {
-                                tfJoin = (Join<TwinEntity, T>) join;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (tfJoin == null) {
-            tfJoin = root.join(fieldTable, JoinType.LEFT);
-            tfJoin.on(cb.equal(tfJoin.get("twinClassFieldId"), fieldId));
-        }
-        return tfJoin;
-    }
-
     //                TODO
 //    left join
 //        public.twin_field_boolean fb1_0                    search(check it)

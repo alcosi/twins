@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.hibernate.query.SortDirection;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -35,7 +36,7 @@ public class TwinSorterDateField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN to twin_field_timestamp (actual storage for timestamp fields)
-                Join<TwinEntity, TwinFieldTimestampEntity> tfJoin = getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsTimestamp);
+                Join<TwinEntity, TwinFieldTimestampEntity> tfJoin = TwinSpecification.getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsTimestamp);
                 Expression<Timestamp> timestampValue = tfJoin.get(TwinFieldTimestampEntity.Fields.value);
                 // Ensure NULL values are placed at the end
                 addNullsPositionOrder(orders, cb, tfJoin, TwinFieldTimestampEntity.Fields.value, properties);
