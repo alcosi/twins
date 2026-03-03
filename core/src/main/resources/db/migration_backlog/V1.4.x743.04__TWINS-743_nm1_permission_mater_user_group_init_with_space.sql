@@ -48,8 +48,8 @@ begin
         return;
     end if;
 
-    v_registry_id := gen_random_uuid();
-    -- 4 Insert footprint into registry if not exists
+    v_registry_id := uuid_generate_v7_custom();
+    -- 4 Insert a footprint into a registry if not exists
     insert into user_group_footprint_registry(id, domain_id, user_group_footprint_id)
     values (v_registry_id, p_domain_id, p_footprint);
 
