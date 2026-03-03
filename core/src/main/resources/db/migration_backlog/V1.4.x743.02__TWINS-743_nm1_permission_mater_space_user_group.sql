@@ -41,6 +41,9 @@ create or replace function permission_mater_space_level_by_space_role_user_group
 as
 $$
 BEGIN
+    IF current_setting('app.permission_mater_space_user_by_space_role_user_group_trigger', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Function can be called only from trigger';
+    END IF;
     insert into permission_mater_space_user_group (
         user_group_footprint_registry_id,
         twin_id,
@@ -79,6 +82,9 @@ create or replace function permission_mater_space_level_by_space_role_user_group
 as
 $$
 BEGIN
+    IF current_setting('app.permission_mater_space_user_by_space_role_user_group_trigger', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Function can be called only from trigger';
+    END IF;
     update permission_mater_space_user_group pmsg
     set grants_count = pmsg.grants_count - 1
     from twin t
@@ -99,6 +105,46 @@ BEGIN
 END;
 $$;
 
+create or replace function permission_mater_space_level_by_space_role_user_group_init(
+    p_new_twin_id uuid,
+    p_new_space_role_id uuid,
+    p_new_user_group_id uuid
+) returns void
+    language plpgsql
+as
+$$
+begin
+    insert into permission_mater_space_user_group (
+        user_group_footprint_registry_id,
+        twin_id,
+        permission_schema_id,
+        permission_id,
+        user_group_footprint_id,
+        grants_count
+    )
+    select
+        r.id,
+        p_new_twin_id,
+        pgsr.permission_schema_id,
+        pgsr.permission_id,
+        r.user_group_footprint_id,
+        1
+    from twin t
+             join twin_class tc
+                  on tc.id = t.twin_class_id
+             join user_group_footprint_map m
+                  on m.user_group_id = p_new_user_group_id
+             join user_group_footprint_registry r
+                  on r.user_group_footprint_id = m.user_group_footprint_id
+                      and r.domain_id = tc.domain_id
+             join permission_grant_space_role pgsr
+                  on pgsr.space_role_id = p_new_space_role_id
+    where t.id = p_new_twin_id
+    on conflict (twin_id, permission_schema_id, permission_id, user_group_footprint_id)
+        do update
+        set grants_count = permission_mater_space_user_group.grants_count;
+end;
+$$;
 
 ------------------------------------------------------------------------------
 
@@ -107,6 +153,7 @@ create or replace function space_role_user_group_after_insert_wrapper() returns 
 as
 $$
 BEGIN
+    PERFORM set_config('app.permission_mater_space_user_by_space_role_user_group_trigger', 'on', true); -- function has direct call protection
     PERFORM permission_mater_space_level_by_space_role_user_group_insert(NEW.twin_id, NEW.space_role_id, NEW.user_group_id);
     RETURN NEW;
 END;
@@ -121,6 +168,7 @@ BEGIN
        NEW.user_group_id IS DISTINCT FROM OLD.user_group_id OR
        NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
     THEN
+        PERFORM set_config('app.permission_mater_space_user_by_space_role_user_group_trigger', 'on', true); -- function has direct call protection
         PERFORM permission_mater_space_level_by_space_role_user_group_insert(NEW.twin_id, NEW.space_role_id, NEW.user_group_id);
         PERFORM permission_mater_space_level_by_space_role_user_group_delete(OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
     END IF;
@@ -134,6 +182,7 @@ create or replace function space_role_user_group_after_delete_wrapper() returns 
 as
 $$
 BEGIN
+    PERFORM set_config('app.permission_mater_space_user_by_space_role_user_group_trigger', 'on', true); -- function has direct call protection
     PERFORM permission_mater_space_level_by_space_role_user_group_delete(OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
     RETURN OLD;
 END;
@@ -160,6 +209,6 @@ create trigger space_role_user_group_after_update_wrapper_trigger
 execute procedure space_role_user_group_after_update_wrapper();
 
 
-select permission_mater_space_level_by_space_role_user_group_insert(twin_id, space_role_id, user_group_id)
+select permission_mater_space_level_by_space_role_user_group_init(twin_id, space_role_id, user_group_id)
 from space_role_user_group;
 
