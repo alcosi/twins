@@ -123,6 +123,7 @@ $$
 BEGIN
     PERFORM set_config('app.permission_mater_space_user_by_space_role_user_trigger', 'on', true); -- function has direct call protection
     PERFORM permission_mater_space_user_by_space_role_user_insert(NEW.twin_id, NEW.space_role_id, NEW.user_id);
+    PERFORM set_config('app.permission_mater_space_user_by_space_role_user_trigger', 'off', true);
     RETURN NEW;
 END;
 $$;
@@ -139,6 +140,7 @@ BEGIN
         PERFORM set_config('app.permission_mater_space_user_by_space_role_user_trigger', 'on', true); -- function has direct call protection
         PERFORM permission_mater_space_user_by_space_role_user_insert(NEW.twin_id, NEW.space_role_id, NEW.user_id);
         PERFORM permission_mater_space_user_by_space_role_user_delete(OLD.twin_id, OLD.space_role_id, OLD.user_id);
+        PERFORM set_config('app.permission_mater_space_user_by_space_role_user_trigger', 'off', true);
     END IF;
 
     RETURN NEW;
@@ -152,6 +154,7 @@ $$
 BEGIN
     PERFORM set_config('app.permission_mater_space_user_by_space_role_user_trigger', 'on', true); -- function has direct call protection
     PERFORM permission_mater_space_user_by_space_role_user_delete(OLD.twin_id, OLD.space_role_id, OLD.user_id);
+    PERFORM set_config('app.permission_mater_space_user_by_space_role_user_trigger', 'off', true);
     RETURN OLD;
 END;
 $$;
