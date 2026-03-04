@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class UserGroupByAssigneePropagationSearchDTOReverseMapper extends RestSimpleDTOMapper<UserGroupByAssigneePropagationSearchRqDTOv1, UserGroupByAssigneePropagationSearch> {
+public class UserGroupInvolveAssigneeSearchDTOReverseMapper extends RestSimpleDTOMapper<UserGroupByAssigneePropagationSearchRqDTOv1, UserGroupByAssigneePropagationSearch> {
 
     @Override
     public void map(UserGroupByAssigneePropagationSearchRqDTOv1 src, UserGroupByAssigneePropagationSearch dst, MapperContext mapperContext) {
