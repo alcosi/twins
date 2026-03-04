@@ -1,4 +1,5 @@
-drop index if exists idx_user_group_involve_assignee_granted_by_user_id;
+drop index if exists uidx_user_group_involve_assignee;
+drop index if exists idx_user_group_involve_assignee_by_user_id;
 drop index if exists idx_user_group_involve_assignee_user_group_id;
 drop index if exists idx_user_group_involve_assignee_twin_class_id;
 drop index if exists idx_user_group_involve_assignee_twin_status_id;
@@ -21,13 +22,16 @@ create table if not exists user_group_involve_assignee
             references twin_status
             on update cascade on delete cascade,
     created_by_user_id            uuid not null
-        constraint user_group_involve_assignee_granted_by_user_id_fkey
+        constraint user_group_involve_assignee_by_user_id_fkey
             references "user"
             on update cascade on delete cascade,
     created_at                    timestamp default CURRENT_TIMESTAMP
 );
 
-create index idx_user_group_involve_assignee_granted_by_user_id
+create unique index uidx_user_group_involve_assignee
+    on user_group_involve_assignee (user_group_id, propagation_by_twin_class_id, propagation_by_twin_status_id);
+
+create index idx_user_group_involve_assignee_by_user_id
     on user_group_involve_assignee (created_by_user_id);
 
 create index idx_user_group_involve_assignee_user_group_id
@@ -248,7 +252,7 @@ as
 $$
 begin
     IF old.assigner_user_id IS NOT NULL THEN
-        perform user_group_involve_by_assignee_propagation(null, old.assigner_user_id, old.twin_class_id, old.twin_status_id, old.owner_business_account_id);
+        perform user_group_involve_by_assignee_propagation(null, old.assigner_user_id, null, old.twin_class_id, null, old.twin_status_id, old.owner_business_account_id);
     END IF;
 
     IF OLD.head_twin_id IS NOT NULL THEN
@@ -271,8 +275,8 @@ $$
 BEGIN
 
     --todo react on twin class and status change
-    IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id THEN
-        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+    IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id or NEW.twin_class_id IS DISTINCT FROM OLD.twin_class_id or NEW.twin_status_id IS DISTINCT FROM OLd.twin_status_id THEN
+        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, old.twin_class_id, NEW.twin_status_id, old.twin_status_id, NEW.owner_business_account_id);
     END IF;
 
     IF OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id THEN
@@ -310,7 +314,7 @@ BEGIN
     PERFORM hierarchyUpdateTreeHard(new.id, hierarchyDetectTree(new.id));
 
     IF NEW.assigner_user_id IS NOT NULL THEN
-        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, null, NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, null, NEW.twin_class_id, null, NEW.twin_status_id, null, NEW.owner_business_account_id);
     END IF;
 
     IF NEW.head_twin_id IS NOT NULL THEN
@@ -376,44 +380,104 @@ BEGIN
 END;
 $$;
 
-create or replace function user_group_involve_by_assignee_propagation(new_assigner_user_id uuid, old_assigner_user_id uuid, p_twin_class_id uuid, p_twin_status_id uuid, p_owner_business_account_id uuid) returns void
+
+
+create or replace function user_group_involve_by_assignee_propagation(
+    new_assigner_user_id uuid,
+    old_assigner_user_id uuid,
+
+    p_new_twin_class_id uuid,
+    p_old_twin_class_id uuid,
+
+    p_new_twin_status_id uuid,
+    p_old_twin_status_id uuid,
+
+    p_owner_business_account_id uuid
+) returns void
     volatile
     language plpgsql
 as
 $$
 DECLARE
-    selected_user_group_id UUID := null;
-    selected_domain_id UUID := null;
-    selected_status_id UUID := null;
+    new_user_group_id uuid;
+    new_domain_id uuid;
+
+    old_user_group_id uuid;
+    old_domain_id uuid;
+
+    propagation_changed boolean;
 BEGIN
 
-    select a.user_group_id, tc.domain_id
-    into selected_user_group_id, selected_domain_id
-    from user_group_involve_assignee a
-             join twin_class tc on tc.id = a.propagation_by_twin_class_id
-    where a.propagation_by_twin_class_id = p_twin_class_id
-      and (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null);
+    propagation_changed :=
+            p_new_twin_class_id IS DISTINCT FROM p_old_twin_class_id
+                OR
+            p_new_twin_status_id IS DISTINCT FROM p_old_twin_status_id;
 
-    if selected_user_group_id is null then
-        RETURN;
-    end if;
+    ----------------------------------------------------------------
+    -- 1. Resolve NEW propagation only if needed
+    ----------------------------------------------------------------
+    IF new_assigner_user_id IS NOT NULL OR propagation_changed THEN
+        select a.user_group_id, tc.domain_id
+        into new_user_group_id, new_domain_id
+        from user_group_involve_assignee a
+                 join twin_class tc on tc.id = a.propagation_by_twin_class_id
+        where a.propagation_by_twin_class_id = p_new_twin_class_id
+          and (a.propagation_by_twin_status_id = p_new_twin_status_id
+            or a.propagation_by_twin_status_id is null)
+        limit 1;
+    END IF;
 
-    if new_assigner_user_id is not null then
-        perform user_group_involved_user_add(new_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id);
-    end if;
+    ----------------------------------------------------------------
+    -- 2. Resolve OLD propagation only if it changed
+    ----------------------------------------------------------------
+    IF propagation_changed THEN
+        select a.user_group_id, tc.domain_id
+        into old_user_group_id, old_domain_id
+        from user_group_involve_assignee a
+                 join twin_class tc on tc.id = a.propagation_by_twin_class_id
+        where a.propagation_by_twin_class_id = p_old_twin_class_id
+          and (a.propagation_by_twin_status_id = p_old_twin_status_id
+            or a.propagation_by_twin_status_id is null)
+        limit 1;
+    END IF;
 
-    if old_assigner_user_id is not null then
-        IF NOT EXISTS (SELECT 1 FROM twin
-                       WHERE assigner_user_id = old_assigner_user_id
-                         AND twin_class_id = p_twin_class_id
-                         AND (selected_status_id IS NOT NULL AND twin_status_id = selected_status_id)
-                         AND (p_owner_business_account_id IS NULL OR owner_business_account_id = p_owner_business_account_id)
-                       LIMIT 1) THEN
-            perform user_group_involved_user_remove(old_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id);
-        END IF;
-    end if;
+    ----------------------------------------------------------------
+    -- 3. ADD new assigner
+    ----------------------------------------------------------------
+    IF new_assigner_user_id IS NOT NULL
+        AND new_user_group_id IS NOT NULL
+        AND new_assigner_user_id IS DISTINCT FROM old_assigner_user_id
+    THEN
+        perform user_group_involved_user_add(
+                new_assigner_user_id,
+                new_user_group_id,
+                new_domain_id,
+                p_owner_business_account_id
+                );
+    END IF;
+
+    ----------------------------------------------------------------
+    -- 4. REMOVE old assigner
+    ----------------------------------------------------------------
+    IF old_assigner_user_id IS NOT NULL
+        AND old_user_group_id IS NOT NULL
+        AND (
+           old_assigner_user_id IS DISTINCT FROM new_assigner_user_id
+               OR propagation_changed
+           )
+    THEN
+        perform user_group_involved_user_remove(
+                    old_assigner_user_id,
+                    old_user_group_id,
+                    old_domain_id,
+                    p_owner_business_account_id
+                    );
+
+    END IF;
+
 END;
 $$;
+
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
