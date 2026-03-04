@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.Identifiable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;

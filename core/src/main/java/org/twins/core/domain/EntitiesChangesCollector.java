@@ -16,18 +16,11 @@ public class EntitiesChangesCollector {
 
     public EntitiesChangesCollector() {}
 
-    protected UUID getEntityId(Object entity) {
-        try {
-            return (UUID) entity.getClass().getMethod("getId").invoke(entity);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Entity must have getId() method returning UUID: " + entity.getClass(), e);
-        }
-    }
-
+    @SuppressWarnings("unchecked")
     protected ChangesHelper detectChangesHelper(Object entity) {
         //todo perhaps we need to call Hibernate.getClass
         Class<?> entityClass = entity.getClass();
-        UUID entityId = getEntityId(entity);
+        UUID entityId = ((Identifiable) entity).getId();
         EntityKey entityKey = new EntityKey(entityId, entity);
 
         Map<EntityKey, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entityClass, k -> new ConcurrentHashMap<>());
@@ -81,10 +74,11 @@ public class EntitiesChangesCollector {
         return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     public boolean hasChanges(Object entity) {
         if (!hasChanges())
             return false;
-        UUID entityId = getEntityId(entity);
+        UUID entityId = ((Identifiable) entity).getId();
         Map<EntityKey, ChangesHelper> classMap = saveEntityMap.get(entity.getClass());
         if (classMap != null) {
             for (EntityKey key : classMap.keySet()) {
