@@ -23,7 +23,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_attribute")
-public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity> {
+public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity>, Identifiable {
     @Id
     private UUID id;
 

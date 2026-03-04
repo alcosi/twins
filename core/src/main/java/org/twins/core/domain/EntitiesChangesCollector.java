@@ -16,10 +16,10 @@ public class EntitiesChangesCollector {
 
     public EntitiesChangesCollector() {}
 
-    protected ChangesHelper detectChangesHelper(Object entity) {
+    protected ChangesHelper detectChangesHelper(Identifiable entity) {
         //todo perhaps we need to call Hibernate.getClass
         Class<?> entityClass = entity.getClass();
-        UUID entityId = ((Identifiable) entity).getId();
+        UUID entityId = entity.getId();
         EntityKey entityKey = new EntityKey(entityId, entity);
 
         Map<EntityKey, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entityClass, k -> new ConcurrentHashMap<>());
@@ -44,24 +44,24 @@ public class EntitiesChangesCollector {
         return result;
     }
 
-    public EntitiesChangesCollector add(Object entity, String field, Object oldValue, Object newValue) {
+    public EntitiesChangesCollector add(Identifiable entity, String field, Object oldValue, Object newValue) {
         detectChangesHelper(entity).add(field, oldValue, newValue);
         return this;
     }
 
-    public EntitiesChangesCollector add(Object entity) {
+    public EntitiesChangesCollector add(Identifiable entity) {
         detectChangesHelper(entity);
         return this;
     }
 
-    public EntitiesChangesCollector addAll(Collection<?> entities) {
-        for (Object entity : entities) {
+    public EntitiesChangesCollector addAll(Collection<? extends Identifiable> entities) {
+        for (Identifiable entity : entities) {
             detectChangesHelper(entity);
         }
         return this;
     }
 
-    public boolean collectIfChanged(Object entity, String field, Object oldValue, Object newValue) {
+    public boolean collectIfChanged(Identifiable entity, String field, Object oldValue, Object newValue) {
         if (newValue != null && !newValue.equals(oldValue)) {
             detectChangesHelper(entity).addWithNullifySupport(field, oldValue, newValue);
             return true;
@@ -73,29 +73,22 @@ public class EntitiesChangesCollector {
         return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
     }
 
-    public boolean hasChanges(Object entity) {
+    public boolean hasChanges(Identifiable entity) {
         if (!hasChanges())
             return false;
-        UUID entityId = ((Identifiable) entity).getId();
-        Map<EntityKey, ChangesHelper> classMap = saveEntityMap.get(entity.getClass());
-        if (classMap != null) {
-            for (EntityKey key : classMap.keySet()) {
-                if (key.id().equals(entityId)) {
-                    return true;
-                }
-            }
-        }
+        if (saveEntityMap.containsKey(entity.getClass()) && saveEntityMap.get(entity.getClass()).containsKey(new EntityKey(entity.getId(), entity)))
+            return true;
         if (deleteEntityMap.containsKey(entity.getClass()) && deleteEntityMap.get(entity.getClass()).contains(entity))
             return true;
         return false;
     }
 
-    public void deleteAll(Collection<?> entitiesIds) {
-        for (Object entity : entitiesIds)
+    public void deleteAll(Collection<? extends Identifiable> entities) {
+        for (Identifiable entity : entities)
             delete(entity);
     }
 
-    public void delete(Object entity) {
+    public void delete(Identifiable entity) {
         Set<Object> entityClassDeletions = deleteEntityMap.computeIfAbsent(Hibernate.getClass(entity), k -> new HashSet<>());
         entityClassDeletions.add(entity);
     }

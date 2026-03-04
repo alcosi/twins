@@ -176,7 +176,7 @@ public class TwinChangesService {
             // Convert EntityKey map to entity map for EntitySmartService
             Map<T, ChangesHelper> entityMap = new HashMap<>();
             for (var entry : entityKeyMap.entrySet()) {
-                entityMap.put(entityClass.cast(entry.getKey().entity()), entry.getValue());
+                entityMap.put((T) entry.getKey().entity(), entry.getValue());
             }
             changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
@@ -189,7 +189,7 @@ public class TwinChangesService {
             // Convert EntityKey map to entity map for EntitySmartService
             Map<T, ChangesHelper> entityMap = new HashMap<>();
             for (var entry : entityKeyMap.entrySet()) {
-                entityMap.put(entityClass.cast(entry.getKey().entity()), entry.getValue());
+                entityMap.put((T) entry.getKey().entity(), entry.getValue());
             }
             changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);

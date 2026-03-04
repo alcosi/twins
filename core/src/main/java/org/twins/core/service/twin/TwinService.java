@@ -33,6 +33,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.BasicSearch;
@@ -754,7 +755,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         checkNameUniqueness(twinUpdate.getTwinEntity());
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
-            twinChangesCollector.add(twinChangesRecorder.getRecorder());
+            twinChangesCollector.add((Identifiable) twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
             loadFieldEditability(twinUpdate.getDbTwinEntity());
             validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), false);
