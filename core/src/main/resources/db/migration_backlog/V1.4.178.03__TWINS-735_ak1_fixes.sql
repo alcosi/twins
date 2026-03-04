@@ -25,3 +25,10 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+
+update twin set permission_schema_space_id = twin.id
+from twin_class where twin.twin_class_id = twin_class.id and twin_class.permission_schema_space;
+
+update twin set permission_schema_space_id = (select permission_schema_space_id from hierarchydetecttree(twin.id))
+from twin_class where twin.twin_class_id = twin_class.id and not twin_class.permission_schema_space;
