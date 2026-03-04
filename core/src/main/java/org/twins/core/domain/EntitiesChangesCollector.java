@@ -9,36 +9,48 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class EntitiesChangesCollector {
     @Getter
-    Map<Class<?>, Map<UUID, ChangesHelper>> saveEntityMap = new ConcurrentHashMap<>();
-    //needed for drafting
-    Map<Class<?>, Map<UUID, Object>> saveEntityObjects = new ConcurrentHashMap<>();
+    Map<Class<?>, Map<EntityKey, ChangesHelper>> saveEntityMap = new ConcurrentHashMap<>();
     @Getter
     Map<Class<?>, Set<Object>> deleteEntityMap = new ConcurrentHashMap<>();
     //    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
 
     public EntitiesChangesCollector() {}
 
+    @SuppressWarnings("unchecked")
+    protected UUID getEntityId(Object entity) {
+        try {
+            return (UUID) entity.getClass().getMethod("getId").invoke(entity);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Entity must have getId() method returning UUID: " + entity.getClass(), e);
+        }
+    }
+
     protected ChangesHelper detectChangesHelper(Object entity) {
         //todo perhaps we need to call Hibernate.getClass
         Class<?> entityClass = entity.getClass();
-        UUID entityId = ((Identifiable) entity).getId();
+        UUID entityId = getEntityId(entity);
+        EntityKey entityKey = new EntityKey(entityId, entity);
 
-        Map<UUID, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entityClass, k -> new ConcurrentHashMap<>());
-        Map<UUID, Object> entityClassObjects = saveEntityObjects.computeIfAbsent(entityClass, k -> new ConcurrentHashMap<>());
-
-        entityClassObjects.put(entityId, entity);
-        return entityClassChanges.computeIfAbsent(entityId, k -> new ChangesHelper());
+        Map<EntityKey, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entityClass, k -> new ConcurrentHashMap<>());
+        return entityClassChanges.computeIfAbsent(entityKey, k -> new ChangesHelper());
     }
 
     public List<Object> getSaveEntitiesAll() {
         List<Object> ret = new ArrayList<>();
-        saveEntityObjects.forEach((k, v) -> ret.addAll(v.values()));
+        saveEntityMap.forEach((k, v) -> v.keySet().forEach(key -> ret.add(key.entity())));
         return ret;
     }
 
     public <T> Set<T> getSaveEntities(Class<T> entityClass) {
-        Map<UUID, Object> objects = saveEntityObjects.get(entityClass);
-        return objects != null ? (Set<T>) new HashSet<>(objects.values()) : Collections.emptySet();
+        Map<EntityKey, ChangesHelper> map = saveEntityMap.get(entityClass);
+        if (map == null) {
+            return Collections.emptySet();
+        }
+        Set<T> result = new HashSet<>();
+        for (EntityKey key : map.keySet()) {
+            result.add((T) key.entity());
+        }
+        return result;
     }
 
     public EntitiesChangesCollector add(Object entity, String field, Object oldValue, Object newValue) {
@@ -73,8 +85,15 @@ public class EntitiesChangesCollector {
     public boolean hasChanges(Object entity) {
         if (!hasChanges())
             return false;
-        if (saveEntityMap.containsKey(entity.getClass()) && saveEntityMap.get(entity.getClass()).containsKey(((Identifiable) entity).getId()))
-            return true;
+        UUID entityId = getEntityId(entity);
+        Map<EntityKey, ChangesHelper> classMap = saveEntityMap.get(entity.getClass());
+        if (classMap != null) {
+            for (EntityKey key : classMap.keySet()) {
+                if (key.id().equals(entityId)) {
+                    return true;
+                }
+            }
+        }
         if (deleteEntityMap.containsKey(entity.getClass()) && deleteEntityMap.get(entity.getClass()).contains(entity))
             return true;
         return false;
@@ -97,7 +116,6 @@ public class EntitiesChangesCollector {
 
     protected void clear() {
         saveEntityMap.clear();
-        saveEntityObjects.clear();
         deleteEntityMap.clear();
     }
 }

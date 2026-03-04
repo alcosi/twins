@@ -8,7 +8,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -20,7 +19,7 @@ import java.util.UUID;
         name = "UK_twin_attachment_modification",
         columnNames = {"twin_attachment_id", "modification_type"}
 ))
-public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, EasyLoggable, Identifiable {
+public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, EasyLoggable {
     @Id
     private UUID id;
 

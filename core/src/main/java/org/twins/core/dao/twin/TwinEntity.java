@@ -25,7 +25,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
@@ -48,7 +47,7 @@ import java.util.UUID;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState {
     @Id
     private UUID id;
 

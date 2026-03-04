@@ -21,6 +21,7 @@ import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.*;
+import org.twins.core.domain.EntityKey;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
@@ -84,7 +85,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinCommentEntity.class, twinCommentRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
-            for (Map.Entry<Class<?>, Map<UUID, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
+            for (Map.Entry<Class<?>, Map<EntityKey, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
 
@@ -170,17 +171,27 @@ public class TwinChangesService {
     }
 
     private <T> void saveEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<UUID, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
-        if (entities != null) {
-            changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entities, repository));
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        if (entityKeyMap != null) {
+            // Convert EntityKey map to entity map for EntitySmartService
+            Map<T, ChangesHelper> entityMap = new HashMap<>();
+            for (var entry : entityKeyMap.entrySet()) {
+                entityMap.put(entityClass.cast(entry.getKey().entity()), entry.getValue());
+            }
+            changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
         }
     }
 
     private <T> void saveEntitiesAndFlush(TwinChangesCollector twinChangesCollector, Class<T> entityClass, JpaRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<UUID, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
-        if (entities != null) {
-            changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entities, repository));
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        if (entityKeyMap != null) {
+            // Convert EntityKey map to entity map for EntitySmartService
+            Map<T, ChangesHelper> entityMap = new HashMap<>();
+            for (var entry : entityKeyMap.entrySet()) {
+                entityMap.put(entityClass.cast(entry.getKey().entity()), entry.getValue());
+            }
+            changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
         }
     }
