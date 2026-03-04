@@ -168,7 +168,9 @@ create or replace function user_group_involve_assignee_after_insert_wrapper()
 as
 $$
 begin
+    PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'on', true); -- function has direct call protection
     perform user_group_involve_existed_twins_add(new.user_group_id, new.propagation_by_twin_class_id, new.propagation_by_twin_status_id);
+    PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'off', true);
     return new;
 end;
 $$;
@@ -179,7 +181,9 @@ create or replace function user_group_involve_assignee_after_delete_wrapper()
 as
 $$
 begin
+    PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'on', true); -- function has direct call protection
     perform user_group_involve_existed_twins_delete(old.user_group_id, old.propagation_by_twin_class_id, old.propagation_by_twin_status_id);
+    PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'off', true);
     return new;
 end;
 $$;
@@ -194,8 +198,10 @@ begin
        new.propagation_by_twin_class_id is distinct from old.propagation_by_twin_class_id or
        new.propagation_by_twin_status_id is distinct from old.propagation_by_twin_status_id
     then
+        PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'on', true); -- function has direct call protection
         perform user_group_involve_existed_twins_delete(old.user_group_id, old.propagation_by_twin_class_id, old.propagation_by_twin_status_id);
         perform user_group_involve_existed_twins_add(new.user_group_id, new.propagation_by_twin_class_id, new.propagation_by_twin_status_id);
+        PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'off', true);
     end if;
     return new;
 end;
@@ -252,7 +258,9 @@ as
 $$
 begin
     IF old.assigner_user_id IS NOT NULL THEN
+        PERFORM set_config('app.user_group_involve_by_assignee_propagation_trigger', 'on', true); -- function has direct call protection
         perform user_group_involve_by_assignee_propagation(null, old.assigner_user_id, null, old.twin_class_id, null, old.twin_status_id, old.owner_business_account_id);
+        PERFORM set_config('app.user_group_involve_by_assignee_propagation_trigger', 'off', true);
     END IF;
 
     IF OLD.head_twin_id IS NOT NULL THEN
@@ -274,9 +282,12 @@ as
 $$
 BEGIN
 
-    --todo react on twin class and status change
-    IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id or NEW.twin_class_id IS DISTINCT FROM OLD.twin_class_id or NEW.twin_status_id IS DISTINCT FROM OLd.twin_status_id THEN
+    IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id
+           or NEW.twin_class_id IS DISTINCT FROM OLD.twin_class_id
+           or NEW.twin_status_id IS DISTINCT FROM OLd.twin_status_id THEN
+        PERFORM set_config('app.user_group_involve_by_assignee_propagation_trigger', 'on', true); -- function has direct call protection
         PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, old.twin_class_id, NEW.twin_status_id, old.twin_status_id, NEW.owner_business_account_id);
+        PERFORM set_config('app.user_group_involve_by_assignee_propagation_trigger', 'off', true);
     END IF;
 
     IF OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id THEN
@@ -314,7 +325,9 @@ BEGIN
     PERFORM hierarchyUpdateTreeHard(new.id, hierarchyDetectTree(new.id));
 
     IF NEW.assigner_user_id IS NOT NULL THEN
+        PERFORM set_config('app.user_group_involve_by_assignee_propagation_trigger', 'on', true); -- function has direct call protection
         PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, null, NEW.twin_class_id, null, NEW.twin_status_id, null, NEW.owner_business_account_id);
+        PERFORM set_config('app.user_group_involve_by_assignee_propagation_trigger', 'off', true);
     END IF;
 
     IF NEW.head_twin_id IS NOT NULL THEN
@@ -344,7 +357,7 @@ BEGIN
                                 domain_id,
                                 business_account_id,
                                 user_id,
-                                involves_counter,
+                                involves_count,
                                 added_manually,
                                 added_at,
                                 added_by_user_id)
@@ -358,7 +371,7 @@ BEGIN
             false,
             now(),
             '00000000-0000-0000-0000-000000000000')
-    on conflict (user_group_id, domain_id, business_account_id, user_id) do update set involves_counter = involves_counter + 1;
+    on conflict (user_group_id, domain_id, coalesce(business_account_id, '00000000-0000-0000-0000-000000000000'), user_id) do update set involves_count = user_group_map.involves_count + 1;
     PERFORM set_config('app.user_group_map_auto', 'off', true);
 END;
 $$;
@@ -370,7 +383,7 @@ as
 $$
 DECLARE
 BEGIN
-    update user_group_map set involves_counter = involves_counter - 1
+    update user_group_map set involves_count = involves_count - 1
     where
         user_id = p_user_id and
         user_group_id = p_group_id and
@@ -407,6 +420,9 @@ DECLARE
 
     propagation_changed boolean;
 BEGIN
+    IF current_setting('app.user_group_involve_by_assignee_propagation_trigger', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Function can be called only from trigger';
+    END IF;
 
     propagation_changed :=
             p_new_twin_class_id IS DISTINCT FROM p_old_twin_class_id
@@ -479,9 +495,6 @@ END;
 $$;
 
 ------------------------------------------------------------------------------
-------------------------------------------------------------------------------
-------------------------------------------------------------------------------
-------------------------------------------------------------------------------
 create or replace function user_group_involve_existed_twins_add(
     p_user_group_id uuid,
     p_twin_class_id uuid,
@@ -492,8 +505,12 @@ create or replace function user_group_involve_existed_twins_add(
 as
 $$
 begin
+    IF current_setting('app.user_group_involve_existed_twins_trigger', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Function can be called only from trigger';
+    END IF;
+
     PERFORM set_config('app.user_group_map_auto', 'on', true);
-    insert into user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_counter, added_manually, added_at, added_by_user_id)
+    insert into user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
     select
         uuid_generate_v7_custom(),
         p_user_group_id,
@@ -501,20 +518,21 @@ begin
         t.domain_id,
         t.owner_business_account_id,
         t.assigner_user_id,
-        1,
+        t.twins_count,
         false,
         now(),
         '00000000-0000-0000-0000-000000000000'
     from (
-             select distinct t.assigner_user_id, t.owner_business_account_id, t.twin_class_id, tc.domain_id
+             select t.assigner_user_id, t.owner_business_account_id, tc.domain_id, count(*) as twins_count
              from twin t
                       join twin_class tc on tc.id = t.twin_class_id
              where t.assigner_user_id is not null
                and t.twin_class_id = p_twin_class_id
                and (p_twin_status_id is null or t.twin_status_id = p_twin_status_id)
+             group by t.assigner_user_id, t.owner_business_account_id, tc.domain_id
          ) t
-    on conflict (user_group_id, domain_id, business_account_id, user_id)
-        do update set involves_counter = user_group_map.involves_counter + 1;
+    on conflict (user_group_id, domain_id, coalesce(business_account_id, '00000000-0000-0000-0000-000000000000'), user_id)
+        do update set involves_count = user_group_map.involves_count + excluded.involves_count;
     PERFORM set_config('app.user_group_map_auto', 'off', true);
 end;
 $$;
@@ -529,20 +547,53 @@ create or replace function user_group_involve_existed_twins_delete(
 as
 $$
 begin
+    IF current_setting('app.user_group_involve_existed_twins_trigger', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Function can be called only from trigger';
+    END IF;
     update user_group_map ugm
-    set involves_counter = involves_counter - 1
+    set involves_count = involves_count - x.twins_count
     from (
-             select distinct t.assigner_user_id, t.owner_business_account_id, tc.domain_id
+             select  t.assigner_user_id, t.owner_business_account_id, tc.domain_id, count(*) as twins_count
              from twin t
                       join twin_class tc on tc.id = t.twin_class_id
              where t.twin_class_id = p_twin_class_id
                and (p_twin_status_id is null or t.twin_status_id = p_twin_status_id)
+             group by t.assigner_user_id, t.owner_business_account_id, tc.domain_id
          ) x
     where ugm.user_group_id = p_user_group_id
       and ugm.user_id = x.assigner_user_id
       and ugm.domain_id = x.domain_id
       and ((ugm.business_account_id is null and x.owner_business_account_id is null)
         or ugm.business_account_id = x.owner_business_account_id);
+end;
+$$;
+
+create or replace function user_group_involve_reinit()
+    returns void
+    language plpgsql
+as
+$$
+declare
+    r record;
+begin
+    update user_group_map
+    set involves_count = 0
+    where involves_count <> 0;
+
+    PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'on', true); -- function has direct call protection
+    for r in
+        select user_group_id,
+               propagation_by_twin_class_id,
+               propagation_by_twin_status_id
+        from user_group_involve_assignee
+        loop
+            perform user_group_involve_existed_twins_add(
+                    r.user_group_id,
+                    r.propagation_by_twin_class_id,
+                    r.propagation_by_twin_status_id
+                    );
+        end loop;
+    PERFORM set_config('app.user_group_involve_existed_twins_trigger', 'off', true);
 end;
 $$;
 
