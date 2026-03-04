@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "UserGroupInvolveAssigneeViewRsV1")
 public class UserGroupInvolveAssigneeViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - user group by assignee propagation")
-    public UserGroupInvolveAssigneeDTOv1 userGroupByAssigneePropagation;
+    public UserGroupInvolveAssigneeDTOv1 userGroupInvolveAssignee;
 }

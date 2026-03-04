@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "UserGroupInvolveAssigneeCreateRqV1")
 public class UserGroupInvolveAssigneeCreateRqDTOv1 extends Request {
     @Schema(description = "user group by assignee propagation create")
-    public UserGroupInvolveAssigneeCreateDTOv1 userGroupByAssigneePropagation;
+    public UserGroupInvolveAssigneeCreateDTOv1 userGroupInvolveAssignee;
 }

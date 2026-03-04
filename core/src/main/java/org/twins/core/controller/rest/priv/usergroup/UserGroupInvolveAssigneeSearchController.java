@@ -67,7 +67,7 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
             PaginationResult<UserGroupInvolveAssigneeEntity> permissionGrants = userGroupInvolveAssigneeSearchService
                     .findPermissionAssigneePropagations(userGroupInvolveAssigneeSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setUserGroupByAssigneePropagations(userGroupInvolveAssigneeRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
+                    .setUserGroupInvolveAssignee(userGroupInvolveAssigneeRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -94,7 +94,7 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
             UserGroupInvolveAssigneeEntity permissionGrant = userGroupInvolveAssigneeService.findEntitySafe(grentId);
 
             rs
-                    .setUserGroupByAssigneePropagation(userGroupInvolveAssigneeRestDTOMapper.convert(permissionGrant, mapperContext))
+                    .setUserGroupInvolveAssignee(userGroupInvolveAssigneeRestDTOMapper.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

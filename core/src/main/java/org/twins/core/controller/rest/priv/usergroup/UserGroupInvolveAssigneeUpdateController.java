@@ -56,12 +56,12 @@ public class UserGroupInvolveAssigneeUpdateController extends ApiController {
 
         UserGroupInvolveAssigneeRsDTOv1 rs = new UserGroupInvolveAssigneeRsDTOv1();
         try {
-            UserGroupInvolveAssigneeEntity userGroupInvolveAssignee = userGroupInvolveAssigneeUpdateDTOReverseMapper.convert(request.getUserGroupByAssigneePropagation())
+            UserGroupInvolveAssigneeEntity userGroupInvolveAssignee = userGroupInvolveAssigneeUpdateDTOReverseMapper.convert(request.getUserGroupInvolveAssignee())
                     .setId(userGroupInvolveAssigneeId);
             userGroupInvolveAssignee = userGroupInvolveAssigneeService.update(userGroupInvolveAssignee);
 
             rs
-                    .setUserGroupByAssigneePropagation(userGroupInvolveAssigneeRestDTOMapper.convert(userGroupInvolveAssignee, mapperContext))
+                    .setUserGroupInvolveAssignee(userGroupInvolveAssigneeRestDTOMapper.convert(userGroupInvolveAssignee, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -81,6 +81,6 @@ public class UserGroupInvolveAssigneeEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "userGroupByAssigneePropagation[id:" + id + "]";
+        return "userGroupInvolveAssignee[id:" + id + "]";
     }
 }

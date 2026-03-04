@@ -54,9 +54,9 @@ public class UserGroupInvolveAssigneeCreateController extends ApiController {
         UserGroupInvolveAssigneeRsDTOv1 rs = new UserGroupInvolveAssigneeRsDTOv1();
         try {
             UserGroupInvolveAssigneeEntity userGroupInvolveAssignee = userGroupInvolveAssigneeService.create
-                    (userGroupInvolveAssigneeCreateDTOReverseMapper.convert(request.getUserGroupByAssigneePropagation()));
+                    (userGroupInvolveAssigneeCreateDTOReverseMapper.convert(request.getUserGroupInvolveAssignee()));
             rs
-                    .setUserGroupByAssigneePropagation(userGroupInvolveAssigneeRestDTOMapper.convert(userGroupInvolveAssignee, mapperContext))
+                    .setUserGroupInvolveAssignee(userGroupInvolveAssigneeRestDTOMapper.convert(userGroupInvolveAssignee, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

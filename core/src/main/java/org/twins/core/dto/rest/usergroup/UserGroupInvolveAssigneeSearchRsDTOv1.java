@@ -18,5 +18,5 @@ public class UserGroupInvolveAssigneeSearchRsDTOv1 extends ResponseRelatedObject
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - user group by assignee propagation list")
-    public List<UserGroupInvolveAssigneeDTOv1> userGroupByAssigneePropagations;
+    public List<UserGroupInvolveAssigneeDTOv1> userGroupInvolveAssignee;
 }
