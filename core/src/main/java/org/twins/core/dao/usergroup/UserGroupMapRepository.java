@@ -11,6 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntity, UUID>, JpaSpecificationExecutor<UserGroupMapEntity> {
+    @Query(value = "select count(ugm) from UserGroupMapEntity ugm where ugm.involvesCount < 0")
+    long countInvalidIvolvesCount();
+
     @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId = :type")
     List<UUID> findAllByBusinessAccountIdAndDomainIdAndType(UUID businessAccountId, UUID domainId, String type);
 
