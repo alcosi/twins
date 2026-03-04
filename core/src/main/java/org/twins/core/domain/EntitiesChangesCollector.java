@@ -76,9 +76,9 @@ public class EntitiesChangesCollector {
     public boolean hasChanges(Identifiable entity) {
         if (!hasChanges())
             return false;
-        if (saveEntityMap.containsKey(entity.getClass()) && saveEntityMap.get(entity.getClass()).containsKey(new EntityKey(entity.getId(), entity)))
+        if (saveEntityMap.containsKey(Hibernate.getClass(entity)) && saveEntityMap.get(Hibernate.getClass(entity)).containsKey(new EntityKey(entity.getId(), entity)))
             return true;
-        if (deleteEntityMap.containsKey(entity.getClass()) && deleteEntityMap.get(entity.getClass()).contains(entity))
+        if (deleteEntityMap.containsKey(Hibernate.getClass(entity)) && deleteEntityMap.get(Hibernate.getClass(entity)).contains(entity))
             return true;
         return false;
     }
