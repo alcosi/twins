@@ -197,31 +197,35 @@ begin
 end;
 $$;
 
-drop trigger if exists user_group_involve_assignee_before_insert_wrapper_trigger on user_group;
+drop trigger if exists user_group_involve_assignee_before_insert_wrapper_trigger on user_group_involve_assignee;
 create trigger user_group_involve_assignee_before_insert_wrapper_trigger
     before insert
     on user_group_involve_assignee
     for each row
 execute procedure user_group_involve_assignee_before_insert_wrapper();
-drop trigger if exists user_group_involve_assignee_before_update_wrapper_trigger on user_group;
+
+drop trigger if exists user_group_involve_assignee_before_update_wrapper_trigger on user_group_involve_assignee;
 create trigger user_group_involve_assignee_before_update_wrapper_trigger
     before update
     on user_group_involve_assignee
     for each row
 execute procedure user_group_involve_assignee_before_update_wrapper();
-drop trigger if exists user_group_involve_assignee_after_insert_wrapper_trigger on user_group;
+
+drop trigger if exists user_group_involve_assignee_after_insert_wrapper_trigger on user_group_involve_assignee;
 create trigger user_group_involve_assignee_after_insert_wrapper_trigger
     after insert
     on user_group_involve_assignee
     for each row
 execute procedure user_group_involve_assignee_after_insert_wrapper();
-drop trigger if exists user_group_involve_assignee_after_update_wrapper_trigger on user_group;
+
+drop trigger if exists user_group_involve_assignee_after_update_wrapper_trigger on user_group_involve_assignee;
 create trigger user_group_involve_assignee_after_update_wrapper_trigger
     after update
     on user_group_involve_assignee
     for each row
 execute procedure user_group_involve_assignee_after_update_wrapper();
-drop trigger if exists user_group_involve_assignee_after_delete_wrapper_trigger on user_group;
+
+drop trigger if exists user_group_involve_assignee_after_delete_wrapper_trigger on user_group_involve_assignee;
 create trigger user_group_involve_assignee_after_delete_wrapper_trigger
     after delete
     on user_group_involve_assignee
