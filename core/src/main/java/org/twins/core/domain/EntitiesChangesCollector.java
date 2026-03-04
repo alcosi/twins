@@ -73,8 +73,7 @@ public class EntitiesChangesCollector {
     public boolean hasChanges(Object entity) {
         if (!hasChanges())
             return false;
-        UUID entityId = ((Identifiable) entity).getId();
-        if (saveEntityMap.containsKey(entity.getClass()) && saveEntityMap.get(entity.getClass()).containsKey(entityId))
+        if (saveEntityMap.containsKey(entity.getClass()) && saveEntityMap.get(entity.getClass()).containsKey(((Identifiable) entity).getId()))
             return true;
         if (deleteEntityMap.containsKey(entity.getClass()) && deleteEntityMap.get(entity.getClass()).contains(entity))
             return true;
