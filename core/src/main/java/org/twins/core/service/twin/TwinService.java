@@ -1706,24 +1706,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public Collection<DomainBusinessAccountEntity> loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
-        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getBusinessAccountId);
-        Map<UUID, Long> twinsCountMap = new HashMap<>();
-        for (var dba : srcCollection) {
+        KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
+        for (var dba : srcCollection)
             if (dba.getTwinsCount() == null) {
+                dba.setTwinsCount(0L);
                 needLoad.add(dba);
-                twinsCountMap.put(dba.getBusinessAccountId(), 0L);
             }
-        }
+
         if (KitUtils.isEmpty(needLoad))
             return srcCollection;
 
-        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.getIdSet());
+        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.getGroupedKeySet());
         for (EntryCount entryCount : entryCounts)
-            twinsCountMap.put(entryCount.id(), entryCount.count());
+            for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
+                dba.setTwinsCount(entryCount.count());
 
         for (var dba : srcCollection)
-            if (twinsCountMap.containsKey(dba.getBusinessAccountId()))
-                dba.setTwinsCount(twinsCountMap.get(dba.getBusinessAccountId()));
+            if (needLoad.containsKey(dba.getId()))
+                dba.setTwinsCount(needLoad.get(dba.getId()).getTwinsCount());
+
         return srcCollection;
     }
 

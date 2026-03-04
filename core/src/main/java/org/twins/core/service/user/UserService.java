@@ -5,7 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -21,15 +21,12 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,10 +37,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     private final UserRepository userRepository;
     private final EntitySmartService entitySmartService;
-    private final SystemEntityService systemEntityService;
 
-    @Lazy
-    private final TwinService twinService;
     @Lazy
     private final AuthService authService;
 
@@ -202,38 +196,27 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         return new ArrayList<>(loadUserCountForDomainBusinessAccounts(List.of(dba))).getFirst();
     }
 
-
     public Collection<DomainBusinessAccountEntity> loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
-        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getBusinessAccountId);
-        Map<UUID, Long> userCountMap = new HashMap<>();
-        for (var dba : srcCollection) {
+        KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
+        for (var dba : srcCollection)
             if (dba.getUsersCount() == null) {
+                dba.setUsersCount(0L);
                 needLoad.add(dba);
-                userCountMap.put(dba.getBusinessAccountId(), 0L);
             }
-        }
 
         if (KitUtils.isEmpty(needLoad))
             return srcCollection;
 
-        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getIdSet());
+        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getGroupedKeySet());
         for (EntryCount entryCount : entryCounts)
-            userCountMap.put(entryCount.id(), entryCount.count());
+            for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
+                dba.setUsersCount(entryCount.count());
 
         for (var dba : srcCollection)
-            if (userCountMap.containsKey(dba.getBusinessAccountId()))
-                dba.setUsersCount(userCountMap.get(dba.getBusinessAccountId()));
+            if (needLoad.containsKey(dba.getId()))
+                dba.setUsersCount(needLoad.get(dba.getId()).getUsersCount());
+
         return srcCollection;
     }
 
-    public void countEntryForBusinessAccount(Collection<DomainBusinessAccountEntity> srcCollection) {
-        Set<UUID> businessAccountIds = srcCollection.stream().map(DomainBusinessAccountEntity::getBusinessAccountId).collect(Collectors.toSet());
-        List<EntryCount> usersCountForBusinessAccountList = userRepository.countUsersInBusinessAccounts(businessAccountIds);
-        Map<UUID, Long> usersCount = usersCountForBusinessAccountList.stream().collect(Collectors.toMap(EntryCount::id, EntryCount::count));
-
-        srcCollection.forEach(it -> {
-            Long count = usersCount.get(it.getBusinessAccountId());
-            it.setUsersCount(count != null ? count : 0);
-        });
-    }
 }
