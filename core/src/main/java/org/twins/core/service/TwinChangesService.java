@@ -84,7 +84,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinCommentEntity.class, twinCommentRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
-            for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
+            for (Map.Entry<Class<?>, Map<UUID, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
 
@@ -170,7 +170,7 @@ public class TwinChangesService {
     }
 
     private <T> void saveEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<Object, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        Map<UUID, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
         if (entities != null) {
             changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entities, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
@@ -178,7 +178,7 @@ public class TwinChangesService {
     }
 
     private <T> void saveEntitiesAndFlush(TwinChangesCollector twinChangesCollector, Class<T> entityClass, JpaRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<Object, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        Map<UUID, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
         if (entities != null) {
             changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entities, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);

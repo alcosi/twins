@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.dao.twinclass.TwinClassFieldAttributeEntity;
 
 import java.sql.Timestamp;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_attribute")
-public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity> {
+public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity>, Identifiable {
     @Id
     private UUID id;
 

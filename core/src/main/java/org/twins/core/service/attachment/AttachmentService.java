@@ -404,7 +404,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             dbAttachmentEntity = dbAttachmentKit.get(attachmentEntity.getId());
             attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
-            boolean anyChanges = false;
 
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.twinId, dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED, "This attachment belongs to another twin");
@@ -415,35 +414,29 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.description, dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
                 historyItem.getContext().setNewDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
-                anyChanges = true;
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.title, dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
-                anyChanges = true;
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.order, dbAttachmentEntity.getOrder(), attachmentEntity.getOrder())) {
                 historyItem.getContext().setNewOrder(attachmentEntity.getOrder());
                 dbAttachmentEntity.setOrder(attachmentEntity.getOrder());
-                anyChanges = true;
             }
             if (attachmentEntity.isFileChanged() || twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
                 deleteFile(dbAttachmentEntity);
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
-                anyChanges = true;
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
-                anyChanges = true;
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
-                anyChanges = true;
             }
-            if (anyChanges && twinChangesCollector.isHistoryCollectorEnabled()) {
+            if (twinChangesCollector.hasChanges(dbAttachmentEntity) && twinChangesCollector.isHistoryCollectorEnabled()) {
                 twinChangesCollector.getHistoryCollector(dbAttachmentEntity.getTwin()).add(historyItem);
             }
         }

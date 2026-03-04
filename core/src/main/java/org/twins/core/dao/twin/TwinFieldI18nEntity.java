@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.LocaleConverter;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Locale;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_i18n")
-public class TwinFieldI18nEntity implements EasyLoggable {
+public class TwinFieldI18nEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

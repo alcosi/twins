@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_timestamp")
-public class TwinFieldTimestampEntity implements EasyLoggable {
+public class TwinFieldTimestampEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

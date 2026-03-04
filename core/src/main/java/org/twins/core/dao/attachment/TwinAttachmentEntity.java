@@ -18,6 +18,7 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 
@@ -30,7 +31,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable {
+public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
