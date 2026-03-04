@@ -17,6 +17,10 @@ public class TwinFieldSearchDate extends TwinFieldSearch {
     private boolean empty;
 
     public boolean isEmptySearch() {
+        // If empty=false, this is a "is not null" search, not empty
+        if (!empty) {
+            return false;
+        }
         return ObjectUtils.isEmpty(lessThenOrEquals) &&
                 ObjectUtils.isEmpty(moreThenOrEquals) &&
                 ObjectUtils.isEmpty(equals);

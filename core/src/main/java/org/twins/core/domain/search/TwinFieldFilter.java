@@ -14,7 +14,7 @@ public class TwinFieldFilter {
     private List<TwinFieldClause> clauses;
 
     public TwinFieldFilter addClause(TwinFieldClause clause) {
-        CollectionUtils.safeAdd(clauses, clause);
+        clauses = CollectionUtils.safeAdd(clauses, clause);
         return this;
     }
 

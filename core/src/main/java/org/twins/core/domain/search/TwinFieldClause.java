@@ -13,7 +13,7 @@ public class TwinFieldClause {
     private List<TwinFieldSearch> conditions;
 
     public TwinFieldClause addCondition(TwinFieldSearch condition) {
-        CollectionUtils.safeAdd(conditions, condition);
+        conditions = CollectionUtils.safeAdd(conditions, condition);
         return this;
     }
 }

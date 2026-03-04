@@ -398,9 +398,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldTimestamp(TwinFieldSearchDate search) {
         return (root, query, cb) -> {
-            if (search.isEmptySearch()) return cb.conjunction();
+            // Special case: empty=false with no parameters means "is not null" search
+            boolean isNotNullSearch = !search.isEmpty() && search.getEquals() == null &&
+                    search.getLessThenOrEquals() == null && search.getMoreThenOrEquals() == null;
 
-            JoinType joinType = search.isEmpty() ? JoinType.LEFT : JoinType.INNER;
+            JoinType joinType = (search.isEmpty() || isNotNullSearch) ? JoinType.LEFT : JoinType.INNER;
             Join<TwinEntity, TwinFieldTimestampEntity> join = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsTimestamp, joinType);
 
             Expression<Timestamp> timestampField = join.get(TwinFieldTimestampEntity.Fields.value);
@@ -412,6 +414,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 predicates.add(cb.lessThanOrEqualTo(timestampField, convertToTimestamp(search.getLessThenOrEquals())));
             if (search.getMoreThenOrEquals() != null)
                 predicates.add(cb.greaterThanOrEqualTo(timestampField, convertToTimestamp(search.getMoreThenOrEquals())));
+
+            // For isNotNullSearch (empty=false with no parameters), add isNotNull check
+            if (isNotNullSearch) {
+                return cb.isNotNull(timestampField);
+            }
 
             Predicate valuePredicate = predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
             if (search.isEmpty())

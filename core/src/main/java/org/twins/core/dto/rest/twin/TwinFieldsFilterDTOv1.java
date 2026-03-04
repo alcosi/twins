@@ -15,7 +15,7 @@ public class TwinFieldsFilterDTOv1 {
     public List<TwinFieldClauseDTOv1> clauses;
 
     public TwinFieldsFilterDTOv1 and(TwinFieldClauseDTOv1 clause) {
-        CollectionUtils.safeAdd(clauses, clause);
+        clauses = CollectionUtils.safeAdd(clauses, clause);
         return this;
     }
 }
