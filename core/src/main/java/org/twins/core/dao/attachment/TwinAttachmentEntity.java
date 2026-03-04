@@ -31,7 +31,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable {
+public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

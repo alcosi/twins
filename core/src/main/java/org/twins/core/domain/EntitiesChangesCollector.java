@@ -16,7 +16,6 @@ public class EntitiesChangesCollector {
 
     public EntitiesChangesCollector() {}
 
-    @SuppressWarnings("unchecked")
     protected ChangesHelper detectChangesHelper(Object entity) {
         //todo perhaps we need to call Hibernate.getClass
         Class<?> entityClass = entity.getClass();
@@ -74,7 +73,6 @@ public class EntitiesChangesCollector {
         return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
     }
 
-    @SuppressWarnings("unchecked")
     public boolean hasChanges(Object entity) {
         if (!hasChanges())
             return false;
