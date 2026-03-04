@@ -1706,15 +1706,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public Collection<DomainBusinessAccountEntity> loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
-        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getId);
+        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getBusinessAccountId);
         Map<UUID, Long> twinsCountMap = new HashMap<>();
         for (var dba : srcCollection) {
             if (dba.getTwinsCount() == null) {
                 needLoad.add(dba);
-                twinsCountMap.put(dba.getId(), 0L);
+                twinsCountMap.put(dba.getBusinessAccountId(), 0L);
             }
         }
-
         if (KitUtils.isEmpty(needLoad))
             return srcCollection;
 
@@ -1723,8 +1722,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinsCountMap.put(entryCount.id(), entryCount.count());
 
         for (var dba : srcCollection)
-            if (twinsCountMap.containsKey(dba.getId()))
-                dba.setTwinsCount(twinsCountMap.get(dba.getId()) == null ? 0 : twinsCountMap.get(dba.getId()));
+            if (twinsCountMap.containsKey(dba.getBusinessAccountId()))
+                dba.setTwinsCount(twinsCountMap.get(dba.getBusinessAccountId()));
         return srcCollection;
     }
 

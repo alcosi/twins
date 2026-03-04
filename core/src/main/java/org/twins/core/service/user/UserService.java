@@ -5,7 +5,9 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -194,6 +196,34 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    public DomainBusinessAccountEntity loadUserCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) {
+        return new ArrayList<>(loadUserCountForDomainBusinessAccounts(List.of(dba))).getFirst();
+    }
+
+
+    public Collection<DomainBusinessAccountEntity> loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
+        Kit<DomainBusinessAccountEntity, UUID> needLoad = new Kit<>(DomainBusinessAccountEntity::getBusinessAccountId);
+        Map<UUID, Long> userCountMap = new HashMap<>();
+        for (var dba : srcCollection) {
+            if (dba.getUsersCount() == null) {
+                needLoad.add(dba);
+                userCountMap.put(dba.getBusinessAccountId(), 0L);
+            }
+        }
+
+        if (KitUtils.isEmpty(needLoad))
+            return srcCollection;
+
+        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getIdSet());
+        for (EntryCount entryCount : entryCounts)
+            userCountMap.put(entryCount.id(), entryCount.count());
+
+        for (var dba : srcCollection)
+            if (userCountMap.containsKey(dba.getBusinessAccountId()))
+                dba.setUsersCount(userCountMap.get(dba.getBusinessAccountId()));
+        return srcCollection;
     }
 
     public void countEntryForBusinessAccount(Collection<DomainBusinessAccountEntity> srcCollection) {

@@ -40,7 +40,7 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
                         .setTierId(src.getTierId())
                         .setTwinsCount(twinService.loadTwinCountForDomainBusinessAccount(src).getTwinsCount())
-                        .setActiveUsersCount(userService.loadUserCountForDomainBusinessAccount(src).getUserCount())
+                        .setActiveUsersCount(userService.loadUserCountForDomainBusinessAccount(src).getUsersCount())
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setAttachmentsStorageUsedCount(src.getAttachmentsStorageUsedCount())
                         .setAttachmentsStorageUsedSize(src.getAttachmentsStorageUsedSize())
