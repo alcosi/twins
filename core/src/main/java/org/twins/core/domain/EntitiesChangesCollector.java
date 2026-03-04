@@ -16,7 +16,6 @@ public class EntitiesChangesCollector {
 
     public EntitiesChangesCollector() {}
 
-    @SuppressWarnings("unchecked")
     protected UUID getEntityId(Object entity) {
         try {
             return (UUID) entity.getClass().getMethod("getId").invoke(entity);
