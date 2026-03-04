@@ -13,11 +13,8 @@ as
 $$
 BEGIN
     IF NEW.permission_schema_id IS NULL THEN
---         permission_schema_id will recalculatred in after_update_wrapper.detecthierarchy
+--         permission_schema_id will recalculated in after_update_wrapper.detecthierarchy
         NEW.permission_schema_id = permission_schema_detect(NEW.permission_schema_space_id, new.owner_business_account_id, new.twin_class_id);
-    end if;
-    IF new.view_permission_custom is null THEN
-        new.view_permission_custom = false; -- delete me in f'yuche
     end if;
     IF not new.view_permission_custom THEN
         SELECT view_permission_id INTO NEW.view_permission_id FROM twin_class WHERE id = NEW.twin_class_id;
