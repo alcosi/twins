@@ -20,8 +20,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationCreateRqDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationRsDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeCreateRqDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.usergroup.UserGroupInvolveAssigneeCreateDTOReverseMapper;
@@ -45,15 +45,15 @@ public class UserGroupInvolveAssigneeCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "user group by assignee propagation add", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupByAssigneePropagationRsDTOv1.class))}),
+                    @Schema(implementation = UserGroupInvolveAssigneeRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/user_group/involve_assignee/v1")
     public ResponseEntity<?> userGroupInvolveAssigneeCreateV1(
-            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupByAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody UserGroupByAssigneePropagationCreateRqDTOv1 request) {
-        UserGroupByAssigneePropagationRsDTOv1 rs = new UserGroupByAssigneePropagationRsDTOv1();
+            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody UserGroupInvolveAssigneeCreateRqDTOv1 request) {
+        UserGroupInvolveAssigneeRsDTOv1 rs = new UserGroupInvolveAssigneeRsDTOv1();
         try {
-            UserGroupInvolveAssigneeEntity userGroupInvolveAssignee = userGroupInvolveAssigneeService.createUserGroupByAssigneePropagationEntity
+            UserGroupInvolveAssigneeEntity userGroupInvolveAssignee = userGroupInvolveAssigneeService.create
                     (userGroupInvolveAssigneeCreateDTOReverseMapper.convert(request.getUserGroupByAssigneePropagation()));
             rs
                     .setUserGroupByAssigneePropagation(userGroupInvolveAssigneeRestDTOMapper.convert(userGroupInvolveAssignee, mapperContext))

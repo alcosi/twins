@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -16,27 +16,27 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = UserGroupByAssigneePropagationMode.class)
-public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<UserGroupInvolveAssigneeEntity, UserGroupByAssigneePropagationDTOv1> {
+@MapperModeBinding(modes = UserGroupInvolveAssigneeMode.class)
+public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<UserGroupInvolveAssigneeEntity, UserGroupInvolveAssigneeDTOv1> {
 
-    @MapperModePointerBinding(modes = PermissionSchemaMode.UserGroupByAssigneePropagation2PermissionSchemaMode.class)
+    @MapperModePointerBinding(modes = PermissionSchemaMode.UserGroupInvolveAssignee2PermissionSchemaMode.class)
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
 
-    @MapperModePointerBinding(modes = UserGroupMode.UserGroupByAssigneePropagation2UserGroupMode.class)
+    @MapperModePointerBinding(modes = UserGroupMode.UserGroupInvolveAssignee2UserGroupMode.class)
     private final UserGroupRestDTOMapper userGroupRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinClassMode.UserGroupByAssigneePropagation2TwinClassMode.class)
+    @MapperModePointerBinding(modes = TwinClassMode.UserGroupInvolveAssignee2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = StatusMode.PropagationTwinStatus2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
-    @MapperModePointerBinding(modes = UserMode.UserGroupByAssigneePropagation2UserMode.class)
+    @MapperModePointerBinding(modes = UserMode.UserGroupInvolveAssignee2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
-    public void map(UserGroupInvolveAssigneeEntity src, UserGroupByAssigneePropagationDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(UserGroupByAssigneePropagationMode.DETAILED)) {
+    public void map(UserGroupInvolveAssigneeEntity src, UserGroupInvolveAssigneeDTOv1 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(UserGroupInvolveAssigneeMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -55,19 +55,19 @@ public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<U
                 break;
         }
 
-        if (mapperContext.hasModeButNot(PermissionSchemaMode.UserGroupByAssigneePropagation2PermissionSchemaMode.HIDE)) {
+        if (mapperContext.hasModeButNot(PermissionSchemaMode.UserGroupInvolveAssignee2PermissionSchemaMode.HIDE)) {
             dst.setPermissionSchemaId(src.getPermissionSchemaId());
-            permissionSchemaRestDTOMapper.postpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.UserGroupByAssigneePropagation2PermissionSchemaMode.SHORT));
+            permissionSchemaRestDTOMapper.postpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.UserGroupInvolveAssignee2PermissionSchemaMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(UserGroupMode.UserGroupByAssigneePropagation2UserGroupMode.HIDE)) {
+        if (mapperContext.hasModeButNot(UserGroupMode.UserGroupInvolveAssignee2UserGroupMode.HIDE)) {
             dst.setPermissionSchemaId(src.getUserGroupId());
-            userGroupRestDTOMapper.postpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.UserGroupByAssigneePropagation2UserGroupMode.SHORT));
+            userGroupRestDTOMapper.postpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.UserGroupInvolveAssignee2UserGroupMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(TwinClassMode.UserGroupByAssigneePropagation2TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.UserGroupInvolveAssignee2TwinClassMode.HIDE)) {
             dst.setPropagationTwinClassId(src.getPropagationByTwinClassId());
-            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.UserGroupByAssigneePropagation2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.UserGroupInvolveAssignee2TwinClassMode.SHORT));
         }
 
         if (mapperContext.hasModeButNot(StatusMode.PropagationTwinStatus2StatusMode.HIDE)) {
@@ -75,9 +75,9 @@ public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<U
             twinStatusRestDTOMapper.postpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.PropagationTwinStatus2StatusMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(UserMode.UserGroupByAssigneePropagation2UserMode.HIDE)) {
+        if (mapperContext.hasModeButNot(UserMode.UserGroupInvolveAssignee2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
-            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.UserGroupByAssigneePropagation2UserMode.SHORT));
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.UserGroupInvolveAssignee2UserMode.SHORT));
         }
     }
 

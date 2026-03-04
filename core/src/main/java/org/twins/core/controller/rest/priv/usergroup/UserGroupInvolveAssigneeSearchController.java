@@ -22,9 +22,9 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationSearchRqDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationSearchRsDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationViewRsDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeSearchRqDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeSearchRsDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -55,14 +55,14 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User group by assignee propagation list", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupByAssigneePropagationSearchRsDTOv1.class))}),
+                    @Schema(implementation = UserGroupInvolveAssigneeSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/assignee_propagation/search/v1")
     public ResponseEntity<?> userGroupInvolveAssigneeSearchV1(
-            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupByAssigneePropagationSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody UserGroupByAssigneePropagationSearchRqDTOv1 request) {
-        UserGroupByAssigneePropagationSearchRsDTOv1 rs = new UserGroupByAssigneePropagationSearchRsDTOv1();
+            @RequestBody UserGroupInvolveAssigneeSearchRqDTOv1 request) {
+        UserGroupInvolveAssigneeSearchRsDTOv1 rs = new UserGroupInvolveAssigneeSearchRsDTOv1();
         try {
             PaginationResult<UserGroupInvolveAssigneeEntity> permissionGrants = userGroupInvolveAssigneeSearchService
                     .findPermissionAssigneePropagations(userGroupInvolveAssigneeSearchDTOReverseMapper.convert(request), pagination);
@@ -83,13 +83,13 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User group by assignee propagation", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupByAssigneePropagationViewRsDTOv1.class))}),
+                    @Schema(implementation = UserGroupInvolveAssigneeViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/assignee_propagation/{grantId}/v1")
     public ResponseEntity<?> userGroupInvolveAssigneeViewV1(
-            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupByAssigneePropagationViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_GROUP_INVOLVE_ASSIGNEE_ID) @PathVariable("grantId") UUID grentId) {
-        UserGroupByAssigneePropagationViewRsDTOv1 rs = new UserGroupByAssigneePropagationViewRsDTOv1();
+        UserGroupInvolveAssigneeViewRsDTOv1 rs = new UserGroupInvolveAssigneeViewRsDTOv1();
         try {
             UserGroupInvolveAssigneeEntity permissionGrant = userGroupInvolveAssigneeService.findEntitySafe(grentId);
 

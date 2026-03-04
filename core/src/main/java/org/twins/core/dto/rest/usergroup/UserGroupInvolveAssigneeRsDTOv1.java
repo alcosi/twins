@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "UserGroupByAssigneePropagationRsV1")
-public class UserGroupByAssigneePropagationRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "UserGroupInvolveAssigneeRsV1")
+public class UserGroupInvolveAssigneeRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results -  user group by assignee propagation")
-    public UserGroupByAssigneePropagationDTOv1 userGroupByAssigneePropagation;
+    public UserGroupInvolveAssigneeDTOv1 userGroupByAssigneePropagation;
 }

@@ -39,7 +39,7 @@ public enum UserGroupMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum UserGroupByAssigneePropagation2UserGroupMode implements MapperModePointer<UserGroupMode> {
+    public enum UserGroupInvolveAssignee2UserGroupMode implements MapperModePointer<UserGroupMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

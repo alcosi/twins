@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "UserGroupByAssigneePropagationSaveV1")
-public class UserGroupByAssigneePropagationSaveDTOv1 {
+@Schema(name = "UserGroupInvolveAssigneeSaveV1")
+public class UserGroupInvolveAssigneeSaveDTOv1 {
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
     public UUID permissionSchemaId;
 

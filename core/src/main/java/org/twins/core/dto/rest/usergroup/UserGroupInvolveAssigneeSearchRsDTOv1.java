@@ -12,11 +12,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "UserGroupByAssigneePropagationSearchRsV1")
-public class UserGroupByAssigneePropagationSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "UserGroupInvolveAssigneeSearchRsV1")
+public class UserGroupInvolveAssigneeSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - user group by assignee propagation list")
-    public List<UserGroupByAssigneePropagationDTOv1> userGroupByAssigneePropagations;
+    public List<UserGroupInvolveAssigneeDTOv1> userGroupByAssigneePropagations;
 }

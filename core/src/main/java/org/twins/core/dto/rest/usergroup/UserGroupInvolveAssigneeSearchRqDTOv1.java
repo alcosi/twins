@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "UserGroupByAssigneePropagationSearchRqV1")
-public class UserGroupByAssigneePropagationSearchRqDTOv1 extends Request {
+@Schema(name =  "UserGroupInvolveAssigneeSearchRqV1")
+public class UserGroupInvolveAssigneeSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;
 

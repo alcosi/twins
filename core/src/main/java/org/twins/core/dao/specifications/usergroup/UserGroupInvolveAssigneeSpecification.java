@@ -5,7 +5,7 @@ import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 
 @Slf4j
-public class UserGroupByAssigneePropagationSpecification extends CommonSpecification<UserGroupInvolveAssigneeEntity> {
+public class UserGroupInvolveAssigneeSpecification extends CommonSpecification<UserGroupInvolveAssigneeEntity> {
 
 
 

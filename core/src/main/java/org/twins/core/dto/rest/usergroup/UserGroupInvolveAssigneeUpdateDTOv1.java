@@ -8,6 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "UserGroupByAssigneePropagationCreateCreateV1")
-public class UserGroupByAssigneePropagationCreateDTOv1 extends UserGroupByAssigneePropagationSaveDTOv1 {
+@Schema(name = "UserGroupInvolveAssigneeUpdateV1")
+public class UserGroupInvolveAssigneeUpdateDTOv1 extends UserGroupInvolveAssigneeSaveDTOv1 {
 }

@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "UserGroupByAssigneePropagationUpdateRqV1")
-public class UserGroupByAssigneePropagationUpdateRqDTOv1 extends Request {
-    @Schema(description = "user group by assignee propagation")
-    public UserGroupByAssigneePropagationUpdateDTOv1 userGroupByAssigneePropagation;
+@Schema(name = "UserGroupInvolveAssigneeCreateRqV1")
+public class UserGroupInvolveAssigneeCreateRqDTOv1 extends Request {
+    @Schema(description = "user group by assignee propagation create")
+    public UserGroupInvolveAssigneeCreateDTOv1 userGroupByAssigneePropagation;
 }

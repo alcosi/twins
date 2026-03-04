@@ -17,8 +17,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "UserGroupByAssigneePropagationV1")
-public class UserGroupByAssigneePropagationDTOv1 {
+@Schema(name = "UserGroupInvolveAssigneeV1")
+public class UserGroupInvolveAssigneeDTOv1 {
     @Schema(description = "id", example = DTOExamples.USER_GROUP_ID)
     public UUID id;
 

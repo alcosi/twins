@@ -19,8 +19,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationRsDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupByAssigneePropagationUpdateRqDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeRsDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.usergroup.UserGroupInvolveAssigneeRestDTOMapper;
@@ -46,19 +46,19 @@ public class UserGroupInvolveAssigneeUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User group by assignee propagation update", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupByAssigneePropagationRsDTOv1.class))}),
+                    @Schema(implementation = UserGroupInvolveAssigneeRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/user_group/involve_assignee/{userGroupInvolveAssigneeId}/v1")
     public ResponseEntity<?> userGroupInvolveAssigneeUpdateV1(
-            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupByAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_GROUP_INVOLVE_ASSIGNEE_ID) @PathVariable UUID userGroupInvolveAssigneeId,
-            @RequestBody UserGroupByAssigneePropagationUpdateRqDTOv1 request) {
+            @RequestBody UserGroupInvolveAssigneeUpdateRqDTOv1 request) {
 
-        UserGroupByAssigneePropagationRsDTOv1 rs = new UserGroupByAssigneePropagationRsDTOv1();
+        UserGroupInvolveAssigneeRsDTOv1 rs = new UserGroupInvolveAssigneeRsDTOv1();
         try {
             UserGroupInvolveAssigneeEntity userGroupInvolveAssignee = userGroupInvolveAssigneeUpdateDTOReverseMapper.convert(request.getUserGroupByAssigneePropagation())
                     .setId(userGroupInvolveAssigneeId);
-            userGroupInvolveAssignee = userGroupInvolveAssigneeService.updateUserGroupByAssigneePropagationEntity(userGroupInvolveAssignee);
+            userGroupInvolveAssignee = userGroupInvolveAssigneeService.update(userGroupInvolveAssignee);
 
             rs
                     .setUserGroupByAssigneePropagation(userGroupInvolveAssigneeRestDTOMapper.convert(userGroupInvolveAssignee, mapperContext))
