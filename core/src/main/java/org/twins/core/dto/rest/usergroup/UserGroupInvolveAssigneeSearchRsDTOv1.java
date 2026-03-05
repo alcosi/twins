@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.dto.rest.usergroup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,11 +12,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantAssigneePropagationSearchRsV1")
-public class PermissionGrantAssigneePropagationSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "UserGroupInvolveAssigneeSearchRsV1")
+public class UserGroupInvolveAssigneeSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "results - permission assignee propagation list")
-    public List<PermissionGrantAssigneePropagationDTOv1> permissionGrantAssigneePropagations;
+    @Schema(description = "results - user group by assignee propagation list")
+    public List<UserGroupInvolveAssigneeDTOv1> userGroupInvolveAssignee;
 }

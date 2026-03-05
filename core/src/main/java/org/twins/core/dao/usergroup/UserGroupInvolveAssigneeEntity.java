@@ -1,4 +1,4 @@
-package org.twins.core.dao.permission;
+package org.twins.core.dao.usergroup;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,6 +11,7 @@ import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -19,8 +20,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "permission_grant_assignee_propagation")
-public class PermissionGrantAssigneePropagationEntity implements EasyLoggable {
+@Table(name = "user_group_involve_assignee")
+public class UserGroupInvolveAssigneeEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -29,11 +30,8 @@ public class PermissionGrantAssigneePropagationEntity implements EasyLoggable {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "permission_schema_id")
-    private UUID permissionSchemaId;
-
-    @Column(name = "permission_id")
-    private UUID permissionId;
+    @Column(name = "user_group_id")
+    private UUID userGroupId;
 
     @Column(name = "propagation_by_twin_class_id")
     private UUID propagationByTwinClassId;
@@ -41,20 +39,11 @@ public class PermissionGrantAssigneePropagationEntity implements EasyLoggable {
     @Column(name = "propagation_by_twin_status_id")
     private UUID propagationByTwinStatusId;
 
-    @Column(name = "in_space_only")
-    private Boolean inSpaceOnly;
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
 
-    @Column(name = "granted_by_user_id")
-    private UUID grantedByUserId;
-
-    @Column(name = "granted_at")
-    private Timestamp grantedAt;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
-    private PermissionSchemaEntity permissionSchema;
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -71,17 +60,17 @@ public class PermissionGrantAssigneePropagationEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "permission_id", insertable = false, updatable = false, nullable = false)
-    private PermissionEntity permission;
+    @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
+    private UserGroupEntity userGroup;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity grantedByUser;
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUser;
 
     @Override
     public String easyLog(Level level) {
-        return "permissionGrantAssigneePropagation[id:" + id + "]";
+        return "userGroupInvolveAssignee[id:" + id + "]";
     }
 }

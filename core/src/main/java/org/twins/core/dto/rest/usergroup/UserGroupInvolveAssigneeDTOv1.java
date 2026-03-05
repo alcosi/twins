@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.dto.rest.usergroup;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -16,18 +16,14 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "PermissionGrantAssigneePropagationV1")
-public class PermissionGrantAssigneePropagationDTOv1 {
-    @Schema(description = "id", example = DTOExamples.PERMISSION_GRANT_USER_ID)
+@Schema(name = "UserGroupInvolveAssigneeV1")
+public class UserGroupInvolveAssigneeDTOv1 {
+    @Schema(description = "id", example = DTOExamples.USER_GROUP_ID)
     public UUID id;
 
-    @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
-    public UUID permissionSchemaId;
-
-    @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
-    @RelatedObject(type = PermissionDTOv1.class, name = "permission")
-    public UUID permissionId;
+    @Schema(description = "user group id", example = DTOExamples.USER_GROUP_ID)
+    @RelatedObject(type = UserGroupDTOv1.class, name = "userGroup")
+    public UUID userGroupId;
 
     @Schema(description = "propagation twin class id", example = DTOExamples.TWIN_CLASS_ID)
     @RelatedObject(type = TwinClassDTOv1.class, name = "propagationTwinClass")
@@ -37,11 +33,11 @@ public class PermissionGrantAssigneePropagationDTOv1 {
     @RelatedObject(type = TwinStatusDTOv1.class, name = "propagationTwinStatus")
     public UUID propagationTwinStatusId;
 
-    @Schema(description = "granted by user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = UserDTOv1.class, name = "grantedByUser")
-    public UUID grantedByUserId;
+    @Schema(description = "created by user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
+    public UUID createdByUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
-    @Schema(description = "granted at", example = DTOExamples.INSTANT)
-    public LocalDateTime grantedAt;
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
 }

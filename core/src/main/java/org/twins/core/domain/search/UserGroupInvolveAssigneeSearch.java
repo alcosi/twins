@@ -8,17 +8,15 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class PermissionGrantAssigneePropagationSearch {
+public class UserGroupInvolveAssigneeSearch {
    Set<UUID> idList;
    Set<UUID> idExcludeList;
-   Set<UUID> permissionSchemaIdList;
-   Set<UUID> permissionSchemaIdExcludeList;
-   Set<UUID> permissionIdList;
-   Set<UUID> permissionIdExcludeList;
+   Set<UUID> userGroupIdList;
+   Set<UUID> userGroupIdExcludeList;
    Set<UUID> propagationTwinClassIdList;
    Set<UUID> propagationTwinClassIdExcludeList;
    Set<UUID> propagationTwinStatusIdList;
    Set<UUID> propagationTwinStatusIdExcludeList;
-   Set<UUID> grantedByUserIdList;
-   Set<UUID> grantedByUserIdExcludeList;
+   Set<UUID> createdByUserIdList;
+   Set<UUID> createdByUserIdExcludeList;
 }

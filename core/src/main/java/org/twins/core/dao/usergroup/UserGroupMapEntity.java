@@ -51,6 +51,9 @@ public class UserGroupMapEntity implements EasyLoggable {
     @Column(name = "added_at")
     private Timestamp addedAt;
 
+    @Column(name = "added_manually")
+    private Boolean addedManually;
+
     @Column(name = "added_by_user_id")
     private UUID addedByUserId;
 
