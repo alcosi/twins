@@ -34,21 +34,19 @@ create table if not exists user_group_map
 );
 
 drop index if exists idx_user_group_map_added_by_user_id;
-create index if not exists idx_user_group_map_added_by_user_id
+create index idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
-drop index if exists idx_ugm_scope_without_ba;
-create unique index if not exists idx_ugm_scope_without_ba
+create unique index idx_ugm_scope_without_ba
     on user_group_map (user_group_id, domain_id, user_id)
     where business_account_id is null;
 
-drop index if exists idx_ugm_scope_with_ba;
-create unique index if not exists idx_ugm_scope_with_ba
+create unique index idx_ugm_scope_with_ba
     on user_group_map (user_group_id, domain_id, business_account_id, user_id)
     where business_account_id is not null;
 
 drop index if exists idx_ugm_user_scope;
-create index if not exists idx_ugm_user_scope
+create index idx_ugm_user_scope
     on user_group_map (user_id, domain_id, business_account_id);
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
@@ -160,7 +158,7 @@ INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, bu
 SELECT
     t2.id,
     t2.user_group_id,
-    null,
+    ug.user_group_type_id,
     ug.domain_id,
     t2.business_account_id,
     t2.user_id,
@@ -176,7 +174,7 @@ INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, bu
 SELECT
     t3.id,
     t3.user_group_id,
-    null,
+    ug.user_group_type_id,
     t3.domain_id,
     ug.business_account_id,
     t3.user_id,
@@ -192,7 +190,7 @@ INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, bu
 SELECT
     t1.id,
     t1.user_group_id,
-    null,
+    ug.user_group_type_id,
     ug.domain_id,
     ug.business_account_id,
     t1.user_id,
@@ -204,8 +202,9 @@ FROM user_group_map_type1 t1
          JOIN user_group ug ON t1.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-
-
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 create or replace function user_group_map_before_update_wrapper() returns trigger
     language plpgsql
 as
