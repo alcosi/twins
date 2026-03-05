@@ -197,7 +197,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", referencedColumnName = "permission_schema_space_id", insertable = false, updatable = false)
+    @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
     private TwinEntity permissionSchemaSpace;
 
     //needed for specification
