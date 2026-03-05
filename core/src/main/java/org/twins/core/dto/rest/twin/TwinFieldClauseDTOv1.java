@@ -11,7 +11,20 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "TwinFieldClauseV1")
 public class TwinFieldClauseDTOv1 {
-    @Schema(description = "List of conditions. Will be joined with OR operation ")
+    @Schema(description = "List of conditions. Will be joined with OR operation ", type = "object", additionalPropertiesSchema = TwinFieldSearchDTOv1.class, example = """
+            {
+                "550e8400-e29b-41d4-a716-446655440000": {
+                    "type": "TwinFieldSearchNumericV1",
+                    "lessThen": "10",
+                    "moreThen": "5",
+                    "equals": "7"
+                },
+                "550e8400-e29b-41d4-a716-446655440001": {
+                    "type": "TwinFieldSearchTextV1",
+                    "valueLikeAllOfList": ["test%"]
+                }
+            }
+            """)
     public List<TwinFieldConditionDTOv1> conditions;
 
     public TwinFieldClauseDTOv1 or(TwinFieldConditionDTOv1 condition) {

@@ -9,8 +9,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.HierarchySearch;
-import org.twins.core.domain.search.TwinFieldClause;
-import org.twins.core.domain.search.TwinFieldFilter;
+import org.twins.core.domain.TwinFieldClause;
+import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
 
@@ -79,7 +79,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
         };
 
-        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
+        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFieldsFilter())));
     }
 
     protected static <T> Specification<T> checkHierarchyContainsAny(final Set<UUID> hierarchyTreeContainsIdList, String... hierarchyFieldPath) {

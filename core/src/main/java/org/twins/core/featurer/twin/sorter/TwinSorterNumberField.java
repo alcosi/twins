@@ -35,7 +35,7 @@ public class TwinSorterNumberField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN
-                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = TwinSpecification.getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
+                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
                 // Convert string value to Double for numeric sorting
                 Expression<String> stringValue = tfJoin.get(TwinFieldSimpleEntity.Fields.value);
                 Expression<Double> numericValue = cb.function("text2double", Double.class, stringValue);

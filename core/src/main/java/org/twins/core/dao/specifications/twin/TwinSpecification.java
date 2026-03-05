@@ -113,7 +113,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
-            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             // convert string to double in DB for math compare
             Expression<Double> numericValue = cb.function("text2double", Double.class, twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value));
 
@@ -149,7 +149,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     public static Specification<TwinEntity> checkFieldDecimal(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
-            Join<TwinEntity, TwinFieldDecimalEntity> twinFieldDecimalJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsDecimal, JoinType.INNER);
+            Join<TwinEntity, TwinFieldDecimalEntity> twinFieldDecimalJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsDecimal, JoinType.INNER);
             Expression<BigDecimal> decimalValue = twinFieldDecimalJoin.get(TwinFieldDecimalEntity.Fields.value);
 
             List<Predicate> predicates = new ArrayList<>();
@@ -185,7 +185,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         return (root, query, cb) -> {
             if (search.isEmptySearch()) return cb.conjunction();
 
-            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsSimple, JoinType.INNER);
 
             Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
             Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, stringValue);
@@ -246,7 +246,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             if(search.isEmptySearch()) return cb.conjunction();
             Path<String> fieldExpression;
             if (fieldPath.length > 0 && TwinEntity.Fields.fieldsSimple.equals(fieldPath[0])) {
-                Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), fieldPath[0], JoinType.INNER);
+                Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), fieldPath[0], JoinType.INNER);
                 fieldExpression = twinFieldSimpleJoin.get(fieldPath[1]);
             } else if(fieldPath.length > 0) {
                 fieldExpression = getFieldPath(root, JoinType.INNER, fieldPath);
@@ -301,7 +301,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
-            Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsList, JoinType.INNER);
+            Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsList, JoinType.INNER);
 
             Predicate includeAny = cb.conjunction();
             if (CollectionUtils.isNotEmpty(search.getOptionsAnyOfList()))
@@ -367,7 +367,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 return cb.conjunction();
             } else if (search.getValue().equals(defaultValue)) {
                 //  left join twin_field_boolean
-                Join<TwinEntity, TwinFieldBooleanEntity> tfbJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsBoolean, JoinType.LEFT);
+                Join<TwinEntity, TwinFieldBooleanEntity> tfbJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsBoolean, JoinType.LEFT);
 
                 Predicate missingBooleanRecord = cb.isNull(tfbJoin.get(TwinFieldBooleanEntity.Fields.twinId));
                 Predicate valueEqualsSearch = cb.equal(tfbJoin.get(TwinFieldBooleanEntity.Fields.value), search.getValue());
@@ -389,7 +389,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     }
 
     private static Predicate getPredicateForBoolean(Root<TwinEntity> root, CriteriaBuilder cb, final TwinFieldSearchBoolean search) {
-        Join<TwinEntity, TwinFieldBooleanEntity> twinFieldBooleanJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsBoolean, JoinType.INNER);
+        Join<TwinEntity, TwinFieldBooleanEntity> twinFieldBooleanJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsBoolean, JoinType.INNER);
 
         Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
 
@@ -403,7 +403,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                     search.getLessThenOrEquals() == null && search.getMoreThenOrEquals() == null;
 
             JoinType joinType = (search.isEmpty() || isNotNullSearch) ? JoinType.LEFT : JoinType.INNER;
-            Join<TwinEntity, TwinFieldTimestampEntity> join = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsTimestamp, joinType);
+            Join<TwinEntity, TwinFieldTimestampEntity> join = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsTimestamp, joinType);
 
             Expression<Timestamp> timestampField = join.get(TwinFieldTimestampEntity.Fields.value);
             java.util.List<Predicate> predicates = new java.util.ArrayList<>();
@@ -437,7 +437,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 return cb.conjunction();
             }
 
-            Join<TwinEntity, TwinFieldTwinClassEntity> twinFieldTwinClassJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsTwinClassList, JoinType.INNER);
+            Join<TwinEntity, TwinFieldTwinClassEntity> twinFieldTwinClassJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsTwinClassList, JoinType.INNER);
 
             Predicate includeAny;
             if (CollectionUtils.isNotEmpty(search.getIdIncludeAnySet())) {
@@ -511,7 +511,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     public static Specification<TwinEntity> checkFieldUser(final TwinFieldSearchUser search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
-            Join<TwinEntity, TwinFieldUserEntity> twinFieldUserJoin = getOrCreateJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsUser, JoinType.INNER);
+            Join<TwinEntity, TwinFieldUserEntity> twinFieldUserJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsUser, JoinType.INNER);
 
             Predicate include;
             if (CollectionUtils.isNotEmpty(search.getIdList())) {
@@ -570,8 +570,8 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
      * @param fieldTable  The name of the field table (e.g., fieldsBoolean, fieldsSimple)
      * @return The Join object
      */
-    public static <T> Join<TwinEntity, T> getOrCreateJoin(Root<TwinEntity> root, CriteriaBuilder cb, UUID fieldId, String fieldTable) {
-        return getOrCreateJoin(root, cb, fieldId, fieldTable, JoinType.LEFT);
+    public static <T> Join<TwinEntity, T> getOrCreateFieldJoin(Root<TwinEntity> root, CriteriaBuilder cb, UUID fieldId, String fieldTable) {
+        return getOrCreateFieldJoin(root, cb, fieldId, fieldTable, JoinType.LEFT);
     }
 
     /**
@@ -585,7 +585,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
      * @param joinType    INNER or LEFT
      * @return The Join object
      */
-    public static <T> Join<TwinEntity, T> getOrCreateJoin(Root<TwinEntity> root, CriteriaBuilder cb, UUID fieldId, String fieldTable, JoinType joinType) {
+    public static <T> Join<TwinEntity, T> getOrCreateFieldJoin(Root<TwinEntity> root, CriteriaBuilder cb, UUID fieldId, String fieldTable, JoinType joinType) {
         Join<TwinEntity, T> tfJoin = null;
         for (Join<TwinEntity, ?> join : root.getJoins()) {
             if (join.getAttribute().getName().equals(fieldTable)) {

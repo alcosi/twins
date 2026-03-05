@@ -35,7 +35,7 @@ public class TwinSorterTextField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN
-                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = TwinSpecification.getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
+                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
                 // Get text value for sorting
                 Expression<String> value = tfJoin.get(TwinFieldSimpleEntity.Fields.value);
                 // Ensure NULL values are placed at the end

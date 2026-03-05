@@ -36,7 +36,7 @@ public class TwinSorterBooleanField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN
-                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = TwinSpecification.getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsBoolean);
+                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsBoolean);
                 // Get boolean value for sorting
                 Expression<Boolean> value = tfJoin.get(TwinFieldBooleanEntity.Fields.value);
                 // Ensure NULL values are placed at the end

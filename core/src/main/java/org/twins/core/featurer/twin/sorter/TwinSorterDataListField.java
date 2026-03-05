@@ -34,7 +34,7 @@ public class TwinSorterDataListField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN to twin_field_data_list
-                Join<TwinEntity, TwinFieldDataListEntity> tfJoin = TwinSpecification.getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsList);
+                Join<TwinEntity, TwinFieldDataListEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsList);
                 // Join to data_list_option to get order field
                 Join<TwinFieldDataListEntity, DataListOptionEntity> dloJoin = tfJoin.join(TwinFieldDataListEntity.Fields.dataListOption, JoinType.LEFT);
                 // Get order field for sorting

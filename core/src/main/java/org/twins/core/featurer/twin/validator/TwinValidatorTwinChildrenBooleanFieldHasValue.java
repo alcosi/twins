@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.domain.search.TwinFieldClause;
-import org.twins.core.domain.search.TwinFieldFilter;
+import org.twins.core.domain.TwinFieldClause;
+import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinFieldSearchBoolean;
 import org.twins.core.featurer.FeaturerTwins;
@@ -61,7 +61,7 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
         basicSearch
                 .addHeadTwinId(twinEntity.getId())
                 .setTwinClassExtendsHierarchyContainsIdList(childrenTwinClassId.extract(properties))
-                .setFields(new TwinFieldFilter().addClause(new TwinFieldClause().addCondition(fieldSearch)));
+                .setFieldsFilter(new TwinFieldFilter().addClause(new TwinFieldClause().addCondition(fieldSearch)));
 
         boolean isValid = twinSearchService.exists(basicSearch);
 
@@ -88,7 +88,7 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
         basicSearch
                 .addHeadTwinId(twinEntityCollection.stream().map(TwinEntity::getId).toList())
                 .setTwinClassExtendsHierarchyContainsIdList(childrenTwinClassId.extract(properties))
-                .setFields(new TwinFieldFilter().addClause(new TwinFieldClause().addCondition(fieldSearch)));
+                .setFieldsFilter(new TwinFieldFilter().addClause(new TwinFieldClause().addCondition(fieldSearch)));
 
         Map<UUID, Long> headTwinIdToChildrenCount = twinSearchService.countGroupBy(
                 basicSearch,

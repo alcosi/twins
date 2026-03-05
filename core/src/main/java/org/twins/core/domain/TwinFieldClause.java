@@ -1,7 +1,8 @@
-package org.twins.core.domain.search;
+package org.twins.core.domain;
 
 import lombok.Data;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.domain.search.TwinFieldSearch;
 
 import java.util.List;
 
