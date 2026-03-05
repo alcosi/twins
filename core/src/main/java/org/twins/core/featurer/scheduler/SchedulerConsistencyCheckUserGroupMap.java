@@ -3,7 +3,6 @@ package org.twins.core.featurer.scheduler;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.permission.PermissionMaterUserGroupRepository;
 import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -18,7 +17,7 @@ public class SchedulerConsistencyCheckUserGroupMap extends SchedulerConsistencyC
     private final UserGroupMapRepository userGroupMapRepository;
     @Override
     protected long invalidRecordsCount() {
-        return userGroupMapRepository.countInvalidIvolvesCount();
+        return userGroupMapRepository.countInvalidInvolvesCount();
     }
 
     @Override
