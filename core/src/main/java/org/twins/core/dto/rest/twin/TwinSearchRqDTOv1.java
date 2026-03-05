@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.enums.twin.Touch;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -194,13 +193,6 @@ public class TwinSearchRqDTOv1 extends TwinSearchExtendedDTOv1 {
     @Override
     public TwinSearchRqDTOv1 addTouchExcludeListItem(Touch item) {
         this.touchExcludeList = CollectionUtils.safeAdd(this.touchExcludeList, item);
-        return this;
-    }
-
-    @Override
-    public TwinSearchRqDTOv1 putFieldsItem(UUID key, TwinFieldSearchDTOv1 item) {
-        if (this.fields == null) this.fields = new HashMap<>();
-        this.fields.put(key, item);
         return this;
     }
 

@@ -1,15 +1,18 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.dto.rest.twin.TwinSearchByLinkDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
+import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.HierarchySearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
@@ -17,7 +20,7 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 @RequiredArgsConstructor
 public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
 
-    private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
+    private final TwinFieldsFilterDTOReverseMapper twinFieldsFilterDTOReverseMapper;
     private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
     private final HierarchySearchRestDTOReverseMapper hierarchySearchRestDTOReverseMapper;
     private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
@@ -91,6 +94,22 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                     dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
                 }
             }
-        dst.setFields(twinFieldSearchMapDTOReverseMapper.convert(src.getFields()));
+        if (CollectionUtils.isEmpty(src.getFields())) {
+            dst
+                    .setFieldsFilter(twinFieldsFilterDTOReverseMapper.convert(src.getFieldsFilter()));
+        } else {
+            //todo backward compatibility (cut me when transfer all filed on new impl)
+            List<TwinFieldClauseDTOv1> clause = new ArrayList<>();
+            for (var field : src.getFields().entrySet()) {
+                clause
+                        .add(new TwinFieldClauseDTOv1()
+                                .or(new TwinFieldConditionDTOv1()
+                                        .setTwinClassFieldId(field.getKey())
+                                        .setTwinFieldSearch(field.getValue()))
+                        );
+            }
+            dst
+                    .setFieldsFilter(twinFieldsFilterDTOReverseMapper.convert(new TwinFieldsFilterDTOv1().setClauses(clause)));
+        }
     }
 }

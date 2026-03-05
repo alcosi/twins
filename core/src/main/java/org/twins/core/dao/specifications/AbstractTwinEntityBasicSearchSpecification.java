@@ -9,7 +9,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.HierarchySearch;
-import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.TwinFieldClause;
+import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
 
@@ -78,7 +79,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
         };
 
-        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
+        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFieldsFilter())));
     }
 
     protected static <T> Specification<T> checkHierarchyContainsAny(final Set<UUID> hierarchyTreeContainsIdList, String... hierarchyFieldPath) {
@@ -107,18 +108,32 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         };
     }
 
-    protected static Specification[] getTwinSearchFieldsSpecifications(List<TwinFieldSearch> fields) {
-        if (fields == null || fields.isEmpty()) {
+    protected static Specification[] getTwinSearchFieldsSpecifications(TwinFieldFilter fieldsFilter) {
+        if (fieldsFilter == null || fieldsFilter.isEmpty()) {
             return new Specification[0];
         }
-        Specification[] twinSearchFieldsSpecifications = fields.stream().map(fieldSearch -> {
-            try {
-                return fieldSearch.getFieldTyper().searchBy(fieldSearch);
-            } catch (ServiceException e) {
-                throw new RuntimeException(e);
+        List<TwinFieldClause> clauses = fieldsFilter.getClauses();
+        if (clauses == null || clauses.isEmpty()) {
+            return new Specification[0];
+        }
+        List<Specification> result = new ArrayList<>();
+        for (TwinFieldClause clause : clauses) {
+            if (CollectionUtils.isEmpty(clause.getConditions())) {
+                continue;
             }
-        }).toArray(Specification[]::new);
-        return twinSearchFieldsSpecifications;
+            Specification clauseSpec = clause.getConditions().stream()
+                    .map(fieldSearch -> {
+                        try {
+                            return fieldSearch.getFieldTyper().searchBy(fieldSearch);
+                        } catch (ServiceException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .reduce(Specification::or)
+                    .orElse((root, query, cb) -> cb.conjunction());
+            result.add(clauseSpec);
+        }
+        return result.toArray(new Specification[0]);
     }
 
     protected static Specification checkTwinLinks(TwinSearch twinSearch, boolean srcElseDst, String... twinsEntityFieldPath) {
