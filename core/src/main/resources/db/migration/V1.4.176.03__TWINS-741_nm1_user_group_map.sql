@@ -154,78 +154,56 @@ begin
 end;
 $$;
 
--- user_group_type_id не указываем: триггер подставит из user_group.
--- domain_id и business_account_id подставляем по правилам триггера для каждого типа группы.
-INSERT INTO user_group_map (id, user_group_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t2.id,
     t2.user_group_id,
-    CASE ug.user_group_type_id
-        WHEN 'systemScopeDomainManage' THEN ug.domain_id
-        ELSE NULL
-    END,
-    CASE ug.user_group_type_id
-        WHEN 'domainScopeBusinessAccountManage' THEN t2.business_account_id
-        ELSE NULL
-    END,
+    null,
+    ug.domain_id,
+    t2.business_account_id,
     t2.user_id,
     0,
     true,
     t2.added_at,
     t2.added_by_user_id
 FROM user_group_map_type2 t2
-JOIN user_group ug ON t2.user_group_id = ug.id
+         JOIN user_group ug ON t2.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_group_map (id, user_group_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t3.id,
     t3.user_group_id,
-    CASE ug.user_group_type_id
-        WHEN 'systemScopeDomainManage' THEN t3.domain_id
-        WHEN 'domainScopeDomainManage' THEN NULL
-        WHEN 'domainScopeBusinessAccountManage' THEN NULL
-        WHEN 'businessAccountScopeBusinessAccountManage' THEN NULL
-        WHEN 'domainAndBusinessAccountScopeBusinessAccountManage' THEN NULL
-        ELSE t3.domain_id
-    END,
-    CASE ug.user_group_type_id
-        WHEN 'domainScopeBusinessAccountManage' THEN ug.business_account_id
-        ELSE NULL
-    END,
+    null,
+    t3.domain_id,
+    ug.business_account_id,
     t3.user_id,
     0,
     true,
     t3.added_at,
     t3.added_by_user_id
 FROM user_group_map_type3 t3
-JOIN user_group ug ON t3.user_group_id = ug.id
+         JOIN user_group ug ON t3.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_group_map (id, user_group_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t1.id,
     t1.user_group_id,
-    CASE ug.user_group_type_id
-        WHEN 'systemScopeDomainManage' THEN ug.domain_id
-        ELSE NULL
-    END,
-    CASE ug.user_group_type_id
-        WHEN 'domainScopeBusinessAccountManage' THEN ug.business_account_id
-        ELSE NULL
-    END,
+    null,
+    ug.domain_id,
+    ug.business_account_id,
     t1.user_id,
     0,
     true,
     t1.added_at,
     t1.added_by_user_id
 FROM user_group_map_type1 t1
-JOIN user_group ug ON t1.user_group_id = ug.id
+         JOIN user_group ug ON t1.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------------
+
+
 create or replace function user_group_map_before_update_wrapper() returns trigger
     language plpgsql
 as
