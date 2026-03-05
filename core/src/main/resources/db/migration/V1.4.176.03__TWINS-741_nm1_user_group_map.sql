@@ -32,19 +32,21 @@ create table if not exists user_group_map
 );
 
 drop index if exists idx_user_group_map_added_by_user_id;
-create index idx_user_group_map_added_by_user_id
+create index if not exists idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
-create unique index idx_ugm_scope_without_ba
+drop index if exists idx_ugm_scope_without_ba;
+create unique index if not exists idx_ugm_scope_without_ba
     on user_group_map (user_group_id, domain_id, user_id)
     where business_account_id is null;
 
-create unique index idx_ugm_scope_with_ba
+drop index if exists idx_ugm_scope_with_ba;
+create unique index if not exists idx_ugm_scope_with_ba
     on user_group_map (user_group_id, domain_id, business_account_id, user_id)
     where business_account_id is not null;
 
 drop index if exists idx_ugm_user_scope;
-create index idx_ugm_user_scope
+create index if not exists idx_ugm_user_scope
     on user_group_map (user_id, domain_id, business_account_id);
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
@@ -152,13 +154,20 @@ begin
 end;
 $$;
 
-INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
+-- user_group_type_id не указываем: триггер подставит из user_group.
+-- domain_id и business_account_id подставляем по правилам триггера для каждого типа группы.
+INSERT INTO user_group_map (id, user_group_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t2.id,
     t2.user_group_id,
-    ug.user_group_type_id,
-    ug.domain_id,
-    t2.business_account_id,
+    CASE ug.user_group_type_id
+        WHEN 'systemScopeDomainManage' THEN ug.domain_id
+        ELSE NULL
+    END,
+    CASE ug.user_group_type_id
+        WHEN 'domainScopeBusinessAccountManage' THEN t2.business_account_id
+        ELSE NULL
+    END,
     t2.user_id,
     0,
     true,
@@ -168,13 +177,22 @@ FROM user_group_map_type2 t2
 JOIN user_group ug ON t2.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t3.id,
     t3.user_group_id,
-    ug.user_group_type_id,
-    t3.domain_id,
-    ug.business_account_id,
+    CASE ug.user_group_type_id
+        WHEN 'systemScopeDomainManage' THEN t3.domain_id
+        WHEN 'domainScopeDomainManage' THEN NULL
+        WHEN 'domainScopeBusinessAccountManage' THEN NULL
+        WHEN 'businessAccountScopeBusinessAccountManage' THEN NULL
+        WHEN 'domainAndBusinessAccountScopeBusinessAccountManage' THEN NULL
+        ELSE t3.domain_id
+    END,
+    CASE ug.user_group_type_id
+        WHEN 'domainScopeBusinessAccountManage' THEN ug.business_account_id
+        ELSE NULL
+    END,
     t3.user_id,
     0,
     true,
@@ -184,13 +202,18 @@ FROM user_group_map_type3 t3
 JOIN user_group ug ON t3.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
+INSERT INTO user_group_map (id, user_group_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
 SELECT
     t1.id,
     t1.user_group_id,
-    ug.user_group_type_id,
-    ug.domain_id,
-    ug.business_account_id,
+    CASE ug.user_group_type_id
+        WHEN 'systemScopeDomainManage' THEN ug.domain_id
+        ELSE NULL
+    END,
+    CASE ug.user_group_type_id
+        WHEN 'domainScopeBusinessAccountManage' THEN ug.business_account_id
+        ELSE NULL
+    END,
     t1.user_id,
     0,
     true,
