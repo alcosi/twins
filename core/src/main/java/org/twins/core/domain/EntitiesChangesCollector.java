@@ -17,8 +17,7 @@ public class EntitiesChangesCollector {
     public EntitiesChangesCollector() {}
 
     protected ChangesHelper detectChangesHelper(Identifiable entity) {
-        //todo perhaps we need to call Hibernate.getClass
-        Class<?> entityClass = entity.getClass();
+        Class<?> entityClass = Hibernate.getClass(entity);
         UUID entityId = entity.getId();
         EntityKey entityKey = new EntityKey(entityId, entity);
 
@@ -76,9 +75,10 @@ public class EntitiesChangesCollector {
     public boolean hasChanges(Identifiable entity) {
         if (!hasChanges())
             return false;
-        if (saveEntityMap.containsKey(Hibernate.getClass(entity)) && saveEntityMap.get(Hibernate.getClass(entity)).containsKey(new EntityKey(entity.getId(), entity)))
+        Class<?> entityClass = Hibernate.getClass(entity);
+        if (saveEntityMap.containsKey(entityClass) && saveEntityMap.get(entityClass).containsKey(new EntityKey(entity.getId(), entity)))
             return true;
-        if (deleteEntityMap.containsKey(Hibernate.getClass(entity)) && deleteEntityMap.get(Hibernate.getClass(entity)).contains(entity))
+        if (deleteEntityMap.containsKey(entityClass) && deleteEntityMap.get(entityClass).contains(entity))
             return true;
         return false;
     }
