@@ -67,7 +67,7 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
     @Query("""
                 select distinct ugm.userId
                 from UserGroupMapEntity ugm
-                where ugm.userGroupId in :groupIds
+                where ugm.userGroupId in :userGroupIds
                   and (ugm.addedManually or ugm.involvesCount > 0)
                   and ugm.domainId = :domainId
                   and (
