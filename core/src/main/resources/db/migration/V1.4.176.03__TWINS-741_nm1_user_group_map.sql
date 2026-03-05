@@ -34,19 +34,21 @@ create table if not exists user_group_map
 );
 
 drop index if exists idx_user_group_map_added_by_user_id;
-create index idx_user_group_map_added_by_user_id
+create index if not exists idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
-create unique index idx_ugm_scope_without_ba
+drop index if exists idx_ugm_scope_without_ba;
+create unique index if not exists idx_ugm_scope_without_ba
     on user_group_map (user_group_id, domain_id, user_id)
     where business_account_id is null;
 
-create unique index idx_ugm_scope_with_ba
+drop index if exists idx_ugm_scope_with_ba;
+create unique index if not exists idx_ugm_scope_with_ba
     on user_group_map (user_group_id, domain_id, business_account_id, user_id)
     where business_account_id is not null;
 
 drop index if exists idx_ugm_user_scope;
-create index idx_ugm_user_scope
+create index if not exists idx_ugm_user_scope
     on user_group_map (user_id, domain_id, business_account_id);
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
