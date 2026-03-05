@@ -1700,12 +1700,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinRepository.countPermissionSchemaMismatches();
     }
 
-    public DomainBusinessAccountEntity loadTwinCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) {
-        return new ArrayList<>(loadTwinCountForDomainBusinessAccounts(List.of(dba))).getFirst();
+    public void loadTwinCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) {
+        loadTwinCountForDomainBusinessAccounts(Collections.singletonList(dba));
     }
 
 
-    public Collection<DomainBusinessAccountEntity> loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
+    public void loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
         KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
         for (var dba : srcCollection)
             if (dba.getTwinsCount() == null) {
@@ -1714,14 +1714,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
 
         if (KitUtils.isEmpty(needLoad))
-            return srcCollection;
+            return;
 
         List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.getGroupedKeySet());
         for (EntryCount entryCount : entryCounts)
             for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
                 dba.setTwinsCount(entryCount.count());
-
-        return srcCollection;
     }
 
     @Data

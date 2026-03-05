@@ -32,6 +32,8 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
     public void map(DomainBusinessAccountEntity src, DomainBusinessAccountDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(DomainBusinessAccountMode.DETAILED)) {
             case DETAILED:
+                twinService.loadTwinCountForDomainBusinessAccount(src);
+                userService.loadUserCountForDomainBusinessAccount(src);
                 dst
                         .setId(src.getId())
                         .setBusinessAccountId(src.getBusinessAccountId())
@@ -39,8 +41,8 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
                         .setTierId(src.getTierId())
-                        .setTwinsCount(twinService.loadTwinCountForDomainBusinessAccount(src).getTwinsCount())
-                        .setActiveUsersCount(userService.loadUserCountForDomainBusinessAccount(src).getUsersCount())
+                        .setTwinsCount(src.getTwinsCount())
+                        .setActiveUsersCount(src.getUsersCount())
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setAttachmentsStorageUsedCount(src.getAttachmentsStorageUsedCount())
                         .setAttachmentsStorageUsedSize(src.getAttachmentsStorageUsedSize())
