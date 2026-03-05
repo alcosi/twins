@@ -80,7 +80,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     private UUID viewPermissionId;
 
     @Column(name = "view_permission_custom")
-    private Boolean viewPermissionCustom;
+    private Boolean viewPermissionCustom = false;
 
     //materialized
     @Column(name = "permission_schema_id", updatable = false, insertable = false)

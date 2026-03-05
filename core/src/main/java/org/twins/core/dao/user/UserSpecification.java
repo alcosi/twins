@@ -62,62 +62,69 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
             boolean exclude
     ) {
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(spaceRoles)) {
+            if (query == null || CollectionUtils.isEmpty(spaceRoles)) {
                 return cb.conjunction();
             }
 
-            // --- Join for direct user roles ---
-            Join<UserEntity, SpaceRoleUserEntity> userRolesJoin = root.join(UserEntity.Fields.spaceRoleUsers, JoinType.LEFT);
+            Subquery<SpaceRoleUserEntity> userSubquery = query.subquery(SpaceRoleUserEntity.class);
+            Root<SpaceRoleUserEntity> userRoleRoot = userSubquery.from(SpaceRoleUserEntity.class);
+            Predicate userMatch = cb.equal(userRoleRoot.get(SpaceRoleUserEntity.Fields.userId), root.get(UserEntity.Fields.id));
 
-            List<Predicate> directRolePredicates = spaceRoles.stream()
-                    .filter(Objects::nonNull)
-                    .map(spaceRole -> cb.and(
-                            spaceRole.getSpaceId() != null
-                                    ? cb.equal(userRolesJoin.get(SpaceRoleUserEntity.Fields.twinId), spaceRole.getSpaceId())
-                                    : cb.conjunction(),
-                            spaceRole.getRoleId() != null
-                                    ? cb.equal(userRolesJoin.get(SpaceRoleUserEntity.Fields.spaceRoleId), spaceRole.getRoleId())
-                                    : cb.conjunction()
-                    ))
-                    .toList();
+            List<Predicate> userRolePredicates = new ArrayList<>();
+            for (SpaceSearch spaceRole : spaceRoles) {
+                if (spaceRole == null) continue;
+                userRolePredicates.add(cb.and(
+                        spaceRole.getSpaceId() != null ?
+                                cb.equal(userRoleRoot.get(SpaceRoleUserEntity.Fields.twinId), spaceRole.getSpaceId()) :
+                                cb.conjunction(),
+                        spaceRole.getRoleId() != null ?
+                                cb.equal(userRoleRoot.get(SpaceRoleUserEntity.Fields.spaceRoleId), spaceRole.getRoleId()) :
+                                cb.conjunction()
+                ));
+            }
+            userSubquery.select(userRoleRoot)
+                    .where(cb.and(userMatch, cb.or(userRolePredicates.toArray(new Predicate[0]))));
 
-            Predicate directRolesCombined = cb.or(directRolePredicates.toArray(new Predicate[0]));
+            Subquery<SpaceRoleUserGroupEntity> groupSubquery = query.subquery(SpaceRoleUserGroupEntity.class);
+            Root<SpaceRoleUserGroupEntity> groupRoleRoot = groupSubquery.from(SpaceRoleUserGroupEntity.class);
 
-            Join<UserEntity, UserGroupMapEntity> ugmJoin = root.join(UserEntity.Fields.userGroupMaps, JoinType.LEFT);
-            Join<UserGroupMapEntity, UserGroupEntity> ugJoin = ugmJoin.join(UserGroupMapEntity.Fields.userGroup, JoinType.LEFT);
-            Join<UserGroupEntity, SpaceRoleUserGroupEntity> groupRolesJoin = ugJoin.join(UserGroupEntity.Fields.spaceRoleUserGroups, JoinType.LEFT);
+            Subquery<UserGroupMapEntity> ugmSubquery = query.subquery(UserGroupMapEntity.class);
+            Root<UserGroupMapEntity> ugmRoot = ugmSubquery.from(UserGroupMapEntity.class);
 
-            List<Predicate> groupRolePredicates = spaceRoles.stream()
-                    .filter(Objects::nonNull)
-                    .map(spaceRole -> cb.and(
-                            spaceRole.getSpaceId() != null
-                                    ? cb.equal(groupRolesJoin.get(SpaceRoleUserGroupEntity.Fields.twinId), spaceRole.getSpaceId())
-                                    : cb.conjunction(),
-                            spaceRole.getRoleId() != null
-                                    ? cb.equal(groupRolesJoin.get(SpaceRoleUserGroupEntity.Fields.spaceRoleId), spaceRole.getRoleId())
-                                    : cb.conjunction()
-                    ))
-                    .toList();
-
-            Predicate domainPredicate = domainId != null
-                    ? cb.equal(ugmJoin.get(UserGroupMapEntity.Fields.domainId), domainId)
-                    : cb.isNull(ugmJoin.get(UserGroupMapEntity.Fields.domainId));
-
-            Predicate businessPredicate = businessAccountId != null
-                    ? cb.or(
-                    cb.isNull(ugmJoin.get(UserGroupMapEntity.Fields.businessAccountId)),
-                    cb.equal(ugmJoin.get(UserGroupMapEntity.Fields.businessAccountId), businessAccountId)
-            )
-                    : cb.isNull(ugmJoin.get(UserGroupMapEntity.Fields.businessAccountId));
-
-            Predicate groupRolesCombined = cb.and(
-                    cb.or(groupRolePredicates.toArray(new Predicate[0])),
-                    domainPredicate,
-                    businessPredicate
+            Predicate ugmPredicate = cb.and(
+                    cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.userId), root.get(UserEntity.Fields.id)),
+                    cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.userGroupId), groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.userGroupId)),
+                    cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.domainId), domainId),
+                    cb.or(
+                            cb.isNull(ugmRoot.get(UserGroupMapEntity.Fields.businessAccountId)),
+                            cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.businessAccountId), businessAccountId)
+                    )
             );
+            ugmSubquery.select(ugmRoot).where(ugmPredicate);
 
-            // --- Combine direct and group roles ---
-            Predicate combined = cb.or(directRolesCombined, groupRolesCombined);
+            List<Predicate> groupRolePredicates = new ArrayList<>();
+            for (SpaceSearch spaceRole : spaceRoles) {
+                if (spaceRole == null) continue;
+                groupRolePredicates.add(cb.and(
+                        spaceRole.getSpaceId() != null ?
+                                cb.equal(groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.twinId), spaceRole.getSpaceId()) :
+                                cb.conjunction(),
+                        spaceRole.getRoleId() != null ?
+                                cb.equal(groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.spaceRoleId), spaceRole.getRoleId()) :
+                                cb.conjunction()
+                ));
+            }
+
+            groupSubquery.select(groupRoleRoot)
+                    .where(cb.and(
+                            cb.or(groupRolePredicates.toArray(new Predicate[0])),
+                            cb.exists(ugmSubquery)
+                    ));
+
+            Predicate combined = cb.or(
+                    cb.exists(userSubquery),
+                    cb.exists(groupSubquery)
+            );
 
             return exclude ? cb.not(combined) : combined;
         };
