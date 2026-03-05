@@ -1,14 +1,14 @@
 drop index if exists idx_ugm_scope_without_ba;
-
 drop index if exists idx_ugm_scope_with_ba;
+drop index if exists idx_ugm_scope;
 
 create unique index idx_ugm_scope
     on user_group_map (
                        user_group_id,
                        domain_id,
-                       coalesce(business_account_id, '00000000-0000-0000-0000-000000000000'),
+                       business_account_id,
                        user_id
-        );
+        ) nulls not distinct;
 
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
@@ -114,5 +114,28 @@ begin
         end case;
 
     return new;
+end;
+$$;
+
+
+create or replace function user_group_map_before_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+declare
+    v_flag text;
+begin
+    v_flag := current_setting('app.user_group_map_auto', true);
+
+    NEW := user_group_map_validate_domain_and_business_account(NEW);
+
+    if v_flag IS DISTINCT FROM  'on' then
+        NEW.added_manually := true;
+        NEW.involves_count := 1;
+    else
+        NEW.added_manually := false;
+    end if;
+
+    return NEW;
 end;
 $$;

@@ -29,7 +29,8 @@ create table if not exists user_group_involve_assignee
 );
 
 create unique index uidx_user_group_involve_assignee
-    on user_group_involve_assignee (user_group_id, propagation_by_twin_class_id, propagation_by_twin_status_id);
+    on user_group_involve_assignee (user_group_id, propagation_by_twin_class_id, propagation_by_twin_status_id)
+    nulls not distinct;
 
 create index idx_user_group_involve_assignee_by_user_id
     on user_group_involve_assignee (created_by_user_id);
@@ -371,7 +372,7 @@ BEGIN
             false,
             now(),
             '00000000-0000-0000-0000-000000000000')
-    on conflict (user_group_id, domain_id, coalesce(business_account_id, '00000000-0000-0000-0000-000000000000'), user_id) do update set involves_count = user_group_map.involves_count + 1;
+    on conflict (user_group_id, domain_id, business_account_id, user_id) do update set involves_count = user_group_map.involves_count + 1;
     PERFORM set_config('app.user_group_map_auto', 'off', true);
 END;
 $$;
@@ -455,6 +456,9 @@ BEGIN
           and (a.propagation_by_twin_status_id = p_old_twin_status_id
             or a.propagation_by_twin_status_id is null)
         limit 1;
+    ELSE
+        old_user_group_id := new_user_group_id;
+        old_domain_id := new_domain_id;
     END IF;
 
     ----------------------------------------------------------------
@@ -531,7 +535,7 @@ begin
                and (p_twin_status_id is null or t.twin_status_id = p_twin_status_id)
              group by t.assigner_user_id, t.owner_business_account_id, tc.domain_id
          ) t
-    on conflict (user_group_id, domain_id, coalesce(business_account_id, '00000000-0000-0000-0000-000000000000'), user_id)
+    on conflict (user_group_id, domain_id, business_account_id, user_id)
         do update set involves_count = user_group_map.involves_count + excluded.involves_count;
     PERFORM set_config('app.user_group_map_auto', 'off', true);
 end;
