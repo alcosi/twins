@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -21,10 +20,6 @@ import java.util.UUID;
 public class UserGroupInvolveAssigneeDTOv1 {
     @Schema(description = "id", example = DTOExamples.USER_GROUP_ID)
     public UUID id;
-
-    @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
-    public UUID permissionSchemaId;
 
     @Schema(description = "user group id", example = DTOExamples.USER_GROUP_ID)
     @RelatedObject(type = UserGroupDTOv1.class, name = "userGroup")

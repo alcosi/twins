@@ -13,7 +13,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
@@ -56,11 +55,8 @@ public class UserGroupInvolveAssigneeSearchService {
 
     private Specification<UserGroupInvolveAssigneeEntity> createPermissionAssigneePropagationSearchSpecification(UserGroupInvolveAssigneeSearch search, UUID domainId) {
         return Specification.allOf(
-                checkFieldUuid(domainId, UserGroupInvolveAssigneeEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, UserGroupInvolveAssigneeEntity.Fields.id),
-                checkUuidIn(search.getPermissionSchemaIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.permissionSchemaId),
-                checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, false, UserGroupInvolveAssigneeEntity.Fields.permissionSchemaId),
                 checkUuidIn(search.getUserGroupIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.userGroupId),
                 checkUuidIn(search.getUserGroupIdExcludeList(), true, false, UserGroupInvolveAssigneeEntity.Fields.userGroupId),
                 checkUuidIn(search.getPropagationTwinClassIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinClassId),

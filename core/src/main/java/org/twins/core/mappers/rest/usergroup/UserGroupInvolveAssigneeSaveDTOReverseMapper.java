@@ -13,7 +13,6 @@ public class UserGroupInvolveAssigneeSaveDTOReverseMapper extends RestSimpleDTOM
     @Override
     public void map(UserGroupInvolveAssigneeSaveDTOv1 src, UserGroupInvolveAssigneeEntity dst, MapperContext mapperContext) throws Exception {
         dst
-                .setPermissionSchemaId(src.getPermissionSchemaId())
                 .setUserGroupId(src.getUserGroupId())
                 .setPropagationByTwinClassId(src.getPropagationByTwinClassId())
                 .setPropagationByTwinStatusId(src.getPropagationByTwinStatusId());

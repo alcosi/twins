@@ -11,9 +11,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "UserGroupInvolveAssigneeSaveV1")
 public class UserGroupInvolveAssigneeSaveDTOv1 {
-    @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    public UUID permissionSchemaId;
-
     @Schema(description = "user group id", example = DTOExamples.USER_GROUP_ID)
     public UUID userGroupId;
 

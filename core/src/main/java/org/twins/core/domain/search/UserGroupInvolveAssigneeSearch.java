@@ -11,8 +11,6 @@ import java.util.UUID;
 public class UserGroupInvolveAssigneeSearch {
    Set<UUID> idList;
    Set<UUID> idExcludeList;
-   Set<UUID> permissionSchemaIdList;
-   Set<UUID> permissionSchemaIdExcludeList;
    Set<UUID> userGroupIdList;
    Set<UUID> userGroupIdExcludeList;
    Set<UUID> propagationTwinClassIdList;

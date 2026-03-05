@@ -66,8 +66,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean validateEntity(UserGroupInvolveAssigneeEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if (entity.getPermissionSchemaId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionSchemaId");
         if (entity.getUserGroupId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty userGroupsId");
         if (entity.getPropagationByTwinClassId() == null)
@@ -77,8 +75,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId()))
-                    entity.setPermissionSchema(permissionSchemaService.findEntitySafe(entity.getPermissionSchemaId()));
                 if (entity.getUserGroup() == null || !entity.getUserGroup().getId().equals(entity.getUserGroupId()))
                     entity.setUserGroup(userGroupService.findEntitySafe(entity.getUserGroupId()));
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getPropagationByTwinClassId()))
@@ -103,8 +99,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         UserGroupInvolveAssigneeEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPermissionSchemaId,
-                UserGroupInvolveAssigneeEntity::setPermissionSchemaId, UserGroupInvolveAssigneeEntity.Fields.permissionSchemaId ,changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getUserGroupId,
                 UserGroupInvolveAssigneeEntity::setUserGroupId, UserGroupInvolveAssigneeEntity.Fields.userGroupId ,changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,

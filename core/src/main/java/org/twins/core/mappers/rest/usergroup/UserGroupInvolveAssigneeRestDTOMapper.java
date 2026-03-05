@@ -40,7 +40,6 @@ public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<U
             case DETAILED:
                 dst
                         .setId(src.getId())
-                        .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setUserGroupId(src.getUserGroupId())
                         .setPropagationTwinClassId(src.getPropagationByTwinClassId())
                         .setPropagationTwinStatusId(src.getPropagationByTwinStatusId())
@@ -53,16 +52,6 @@ public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<U
                         .setUserGroupId(src.getUserGroupId())
                         .setPropagationTwinClassId(src.getPropagationByTwinClassId());
                 break;
-        }
-
-        if (mapperContext.hasModeButNot(PermissionSchemaMode.UserGroupInvolveAssignee2PermissionSchemaMode.HIDE)) {
-            dst.setPermissionSchemaId(src.getPermissionSchemaId());
-            permissionSchemaRestDTOMapper.postpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.UserGroupInvolveAssignee2PermissionSchemaMode.SHORT));
-        }
-
-        if (mapperContext.hasModeButNot(UserGroupMode.UserGroupInvolveAssignee2UserGroupMode.HIDE)) {
-            dst.setPermissionSchemaId(src.getUserGroupId());
-            userGroupRestDTOMapper.postpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.UserGroupInvolveAssignee2UserGroupMode.SHORT));
         }
 
         if (mapperContext.hasModeButNot(TwinClassMode.UserGroupInvolveAssignee2TwinClassMode.HIDE)) {

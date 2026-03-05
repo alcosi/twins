@@ -16,8 +16,6 @@ public class UserGroupInvolveAssigneeSearchDTOReverseMapper extends RestSimpleDT
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
-                .setPermissionSchemaIdList(src.getPermissionSchemaIdList())
-                .setPermissionSchemaIdExcludeList(src.getPermissionSchemaIdExcludeList())
                 .setUserGroupIdList(src.getUserGroupIdList())
                 .setUserGroupIdExcludeList(src.getUserGroupIdExcludeList())
                 .setPropagationTwinClassIdList(src.getPropagationTwinClassIdList())

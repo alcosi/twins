@@ -20,12 +20,6 @@ public class UserGroupInvolveAssigneeSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "permission schema id list")
-    public Set<UUID> permissionSchemaIdList;
-
-    @Schema(description = "permission schema id exclude list")
-    public Set<UUID> permissionSchemaIdExcludeList;
-
     @Schema(description = "user group id list")
     public Set<UUID> userGroupIdList;
 
