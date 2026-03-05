@@ -2,6 +2,7 @@ package org.twins.core.domain;
 
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.Hibernate;
 
 import java.util.*;
@@ -17,6 +18,9 @@ public class EntitiesChangesCollector {
     public EntitiesChangesCollector() {}
 
     protected ChangesHelper detectChangesHelper(Identifiable entity) {
+        if (entity.getId() == null) {
+            entity.setId(UuidUtils.generate());
+        }
         Class<?> entityClass = Hibernate.getClass(entity);
         UUID entityId = entity.getId();
         EntityKey entityKey = new EntityKey(entityId, entity);
