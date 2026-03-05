@@ -20,6 +20,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -190,6 +191,54 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 //    @JoinColumn(name = "id", referencedColumnName = "head_twin_id", insertable = false, updatable = false)
 //    @EqualsAndHashCode.Exclude
 //    private Collection<TwinEntity> childrenTwins;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id", referencedColumnName = "permission_schema_space_id", insertable = false, updatable = false)
+    private TwinEntity permissionSchemaSpace;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
+    private Collection<PermissionMaterGlobalEntity> permissionMaterGlobals;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
+    private Collection<PermissionMaterUserGroupEntity> permissionMaterUserGroups;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
+    private Collection<PermissionMaterSpaceUserEntity> permissionMaterSpaceUsers;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
+    private Collection<PermissionMaterSpaceUserGroupEntity> permissionMaterSpaceUserGroups;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
+    private Collection<PermissionGrantTwinRoleEntity> permissionGrantTwinRoles;
 
     //needed for specification
     @Deprecated
