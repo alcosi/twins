@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.Identifiable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_marker", uniqueConstraints = {@UniqueConstraint(columnNames = {"twin_id", "marker_data_list_option_id"}, name = "idx_twin_marker_unique")})
 @FieldNameConstants
-public class TwinMarkerEntity implements EasyLoggable {
+public class TwinMarkerEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

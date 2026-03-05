@@ -9,7 +9,7 @@ public class DetachedTwinChangesCollector extends TwinChangesCollector {
         this.entityManager = entityManager;
     }
     @Override
-    protected ChangesHelper detectChangesHelper(Object entity) {
+    protected ChangesHelper detectChangesHelper(Identifiable entity) {
         entityManager.detach(entity);
         return super.detectChangesHelper(entity);
     }

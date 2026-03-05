@@ -40,18 +40,18 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     }
 
     @Override
-    protected ChangesHelper detectChangesHelper(Object entity) {
+    protected ChangesHelper detectChangesHelper(Identifiable entity) {
         markForInvalidate(entity);
         return super.detectChangesHelper(entity);
     }
 
     @Override
-    public void delete(Object entity) {
+    public void delete(Identifiable entity) {
         markForInvalidate(entity);
         super.delete(entity);
     }
 
-    private void markForInvalidate(Object entity) {
+    private void markForInvalidate(Identifiable entity) {
         Set<TwinInvalidate> invalidates;
         if (entity instanceof TwinMarkerEntity twinMarkerEntity) {
             invalidationMap.computeIfAbsent(twinMarkerEntity.getTwin(), k -> ConcurrentHashMap.newKeySet())

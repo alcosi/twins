@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Entity
 @Table(name = "draft_twin_persist")
-public class DraftTwinPersistEntity {
+public class DraftTwinPersistEntity implements Identifiable {
     @Id
     private UUID id;
 
