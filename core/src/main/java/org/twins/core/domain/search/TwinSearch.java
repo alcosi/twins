@@ -42,6 +42,7 @@ public class TwinSearch {
     private Set<UUID> createdByUserIdExcludeList;
     private Set<UUID> ownerUserIdList;
     private Set<UUID> ownerBusinessAccountIdList;
+    private Set<UUID> ownerBusinessAccountIdExcludeList;
     private Map<UUID, Set<UUID>> dstLinksAnyOfList;
     private Map<UUID, Set<UUID>> dstLinksNoAnyOfList;
     private Map<UUID, Set<UUID>> dstLinksAllOfList;

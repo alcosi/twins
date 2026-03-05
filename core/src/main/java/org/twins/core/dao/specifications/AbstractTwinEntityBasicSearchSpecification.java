@@ -29,6 +29,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
+        String[] ownerBusinessAccountIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.ownerBusinessAccountId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
@@ -57,6 +58,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
+                checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),
+                checkUuidIn(twinSearch.getOwnerBusinessAccountIdExcludeList(), true, true, ownerBusinessAccountIdFieldPath),
                 checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), twinSearch.isCheckFreezeStatus()),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
