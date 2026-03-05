@@ -1,3 +1,5 @@
+drop trigger if exists user_group_map_before_insert_wrapper_trigger on user_group_map;
+
 create table if not exists user_group_map
 (
     id                  uuid not null
@@ -239,7 +241,6 @@ begin
 end;
 $$;
 
-drop trigger if exists user_group_map_before_insert_wrapper_trigger on user_group_map;
 create trigger user_group_map_before_insert_wrapper_trigger
     before insert
     on user_group_map
