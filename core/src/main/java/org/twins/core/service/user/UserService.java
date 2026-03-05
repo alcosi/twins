@@ -212,10 +212,6 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
             for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
                 dba.setUsersCount(entryCount.count());
 
-        for (var dba : srcCollection)
-            if (needLoad.containsKey(dba.getId()))
-                dba.setUsersCount(needLoad.get(dba.getId()).getUsersCount());
-
         return srcCollection;
     }
 

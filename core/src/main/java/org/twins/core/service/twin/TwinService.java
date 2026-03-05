@@ -1721,10 +1721,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
                 dba.setTwinsCount(entryCount.count());
 
-        for (var dba : srcCollection)
-            if (needLoad.containsKey(dba.getId()))
-                dba.setTwinsCount(needLoad.get(dba.getId()).getTwinsCount());
-
         return srcCollection;
     }
 
