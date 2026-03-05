@@ -24,7 +24,6 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
     private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
     private final HierarchySearchRestDTOReverseMapper hierarchySearchRestDTOReverseMapper;
     private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
-    private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
 
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {

@@ -64,7 +64,6 @@ public abstract class TwinSorter extends FeaturerTwins {
         query.orderBy(current);
     }
 
-
     protected void addNullsPositionOrder(List<Order> orders, CriteriaBuilder cb, Join<TwinEntity, ?> tfJoin, String field, Properties properties) {
         boolean isNullsLast = nullsLast.extract(properties);
         if (isNullsLast) {
@@ -82,22 +81,4 @@ public abstract class TwinSorter extends FeaturerTwins {
             orders.add(cb.desc(cb.selectCase().when(cb.isNull(root.get(field)), 1).otherwise(0)));
         }
     }
-
-    //                TODO
-//    left join
-//        public.twin_field_boolean fb1_0                    search(check it)
-//            on te1_0.id=fb1_0.twin_id
-//            and fb1_0.twin_class_field_id=?
-//    left join
-//        public.twin_field_boolean fb2_0                    sort
-//            on te1_0.id=fb2_0.twin_id
-//            and fb2_0.twin_class_field_id=?
-//    left join
-//        public.twin_field_simple fs1_0
-//            on te1_0.id=fs1_0.twin_id
-//            and fs1_0.twin_class_field_id=?
-//
-//
-//
-
 }
