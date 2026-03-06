@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.ValidationResult;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,12 +114,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         initializeField(twin, value);
-        if (!validate(twin, value).isValid()) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
-        }
         if (value.isUndefined()) {
             log.info("{} is undefined, serialization will be skipped", value.getTwinClassField().logNormal());
             return;
+        }
+        if (!validate(twin, value).isValid()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
         serializeValue(properties, twin, value, twinChangesCollector);
     }
@@ -175,9 +176,18 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isValidated()) { // already validated, no need to validate again
             return value.getValidationResult();
         }
+        if (value.isUndefined()) {
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "{} is undefined and can not be validate", value.getTwinClassField().logNormal());
+        }
         if (updateRestricted(twin, value)) {
             log.error("{} value can not be edited", value.getTwinClassField().logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField())));
+        }
+        if (!twin.isSketch() // check required for non-sketch twins
+                && value.getTwinClassField().getRequired()
+                && value.isEmpty()) {
+            log.error("{} is required", value.getTwinClassField().logNormal());
+            return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField())));
         }
         if (value.isCleared()) {
             log.info("{} is cleared, extra value validation will be skipped", value.getTwinClassField().logNormal());
@@ -191,12 +201,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId())) {
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField())));
-        }
-        if (!twin.isSketch() // check required for non-sketch twins
-                && value.getTwinClassField().getRequired()
-                && value.isEmpty()) {
-            log.error("{} is required", value.getTwinClassField().logNormal());
-            return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField())));
         }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         ValidationResult validationResult = validate(properties, twin, value);
