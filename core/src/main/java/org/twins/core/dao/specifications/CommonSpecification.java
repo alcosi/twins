@@ -370,6 +370,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
 
             return cb.or(
+                    cb.isNull(joinTwin.get(TwinEntity.Fields.viewPermissionId)),
                     cb.isNotNull(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.permissionId)),
                     cb.isNotNull(permissionMaterUserGroupJoin.get(PermissionMaterUserGroupEntity.Fields.permissionId)),
                     cb.isNotNull(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.permissionId)),
