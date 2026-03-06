@@ -1267,6 +1267,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         FieldValue fieldValue = null;
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueText.class)
             fieldValue = new FieldValueText(twinClassFieldEntity);
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueTextBlankStringNullify.class)
+            fieldValue = new FieldValueTextBlankStringNullify(twinClassFieldEntity);
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueColorHEX.class)
             fieldValue = new FieldValueColorHEX(twinClassFieldEntity);
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueDate.class)
