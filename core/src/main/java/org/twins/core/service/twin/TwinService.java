@@ -23,7 +23,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
@@ -1637,17 +1639,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (var twinClassField : twinClass.getTwinClassFieldKit()) {
                 var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
                 if (!fieldTyper.canSerialize(twinClassField)) { //this edit blocker flag from field typer
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), false);
                     continue;
                 }
                 if (twinClassField.getEditPermissionId() == null) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), true);
                     continue;
                 }
                 if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), true);
                     continue;
                 }
@@ -1679,9 +1681,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
-       if (isFieldImmutable(twin, twinClassField)) {
+        if (isFieldImmutable(twin, twinClassField)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "{} can not be edited", twinClassField.logNormal());
-       }
+        }
     }
 
     public boolean isFieldImmutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
@@ -1697,6 +1699,30 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public long countPermissionSchemaMismatches() {
         return twinRepository.countPermissionSchemaMismatches();
+    }
+
+    public void loadTwinCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
+        loadTwinCountForDomainBusinessAccounts(Collections.singletonList(dba));
+    }
+
+
+    public void loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+        KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
+        for (var dba : srcCollection)
+            if (dba.getTwinsCount() == null) {
+                dba.setTwinsCount(0L);
+                needLoad.add(dba);
+            }
+
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.getGroupedKeySet(), domainId);
+        for (EntryCount entryCount : entryCounts)
+            for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
+                dba.setTwinsCount(entryCount.count());
     }
 
     @Data
@@ -1851,5 +1877,4 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         else
             return errorCode.getMessage();
     }
-
 }

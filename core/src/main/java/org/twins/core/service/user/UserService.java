@@ -5,28 +5,27 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -38,10 +37,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     private final UserRepository userRepository;
     private final EntitySmartService entitySmartService;
-    private final SystemEntityService systemEntityService;
 
-    @Lazy
-    private final TwinService twinService;
     @Lazy
     private final AuthService authService;
 
@@ -195,4 +191,26 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public void loadUserCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) {
+        loadUserCountForDomainBusinessAccounts(Collections.singletonList(dba));
+    }
+
+    public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
+        KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
+        for (var dba : srcCollection)
+            if (dba.getUsersCount() == null) {
+                dba.setUsersCount(0L);
+                needLoad.add(dba);
+            }
+
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getGroupedKeySet());
+        for (EntryCount entryCount : entryCounts)
+            for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
+                dba.setUsersCount(entryCount.count());
+    }
+
 }

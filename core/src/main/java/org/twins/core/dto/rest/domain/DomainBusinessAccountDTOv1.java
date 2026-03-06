@@ -12,6 +12,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -36,6 +37,24 @@ public class DomainBusinessAccountDTOv1 {
     @Schema(description = "", example = DTOExamples.TWIN_CLASS_SCHEMA_ID)
     @RelatedObject(type = TwinClassSchemaDTOv1.class, name = "twinClassSchema")
     public UUID twinClassSchemaId;
+
+    @Schema(description = "business account tier id")
+    public UUID tierId;
+
+    @Schema(description = "")
+    public UUID notificationSchemaId;
+
+    @Schema(description = "")
+    public Long attachmentsStorageUsedCount;
+
+    @Schema(description = "used Storage space by files")
+    public Long attachmentsStorageUsedSize;
+
+    @Schema(description = "count of twins, belong to given businessAccount")
+    public Long twinsCount;
+
+    @Schema(description = "count of active users")
+    public Long activeUsersCount;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)

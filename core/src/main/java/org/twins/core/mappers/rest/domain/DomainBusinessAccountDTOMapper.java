@@ -11,6 +11,12 @@ import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DomainBusinessAccountMode;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserService;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -19,18 +25,29 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
 
     @MapperModePointerBinding(modes = {BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.class})
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
+    private final TwinService twinService;
+    private final UserService userService;
 
     @Override
     public void map(DomainBusinessAccountEntity src, DomainBusinessAccountDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(DomainBusinessAccountMode.DETAILED)) {
             case DETAILED:
+                twinService.loadTwinCountForDomainBusinessAccount(src);
+                userService.loadUserCountForDomainBusinessAccount(src);
                 dst
                         .setId(src.getId())
                         .setBusinessAccountId(src.getBusinessAccountId())
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
+                        .setTierId(src.getTierId())
+                        .setTwinsCount(src.getTwinsCount())
+                        .setActiveUsersCount(src.getUsersCount())
+                        .setNotificationSchemaId(src.getNotificationSchemaId())
+                        .setAttachmentsStorageUsedCount(src.getAttachmentsStorageUsedCount())
+                        .setAttachmentsStorageUsedSize(src.getAttachmentsStorageUsedSize())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
+
                 break;
             case SHORT:
                 dst
@@ -41,7 +58,12 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
             dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT));
         }
+    }
 
-
+    public void beforeCollectionConversion(Collection<DomainBusinessAccountEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasMode(DomainBusinessAccountMode.DETAILED)) {
+            twinService.loadTwinCountForDomainBusinessAccounts(srcCollection);
+            userService.loadUserCountForDomainBusinessAccounts(srcCollection);
+        }
     }
 }
