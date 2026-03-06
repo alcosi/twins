@@ -113,12 +113,8 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         initializeField(twin, value);
-        if (value.isCleared()) {
-            //todo some common clear logic
-        } else {
-            if (!validate(twin, value).isValid()) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
-            }
+        if (!validate(twin, value).isValid()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
         if (value.isUndefined()) {
             log.info("{} is undefined, serialization will be skipped", value.getTwinClassField().logNormal());
@@ -179,29 +175,37 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isValidated()) { // already validated, no need to validate again
             return value.getValidationResult();
         }
-        if (value.isNotEmpty() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField())) {
+        if (updateRestricted(twin, value)) {
             log.error("{} value can not be edited", value.getTwinClassField().logNormal());
-            return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField()));
+            return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField())));
+        }
+        if (value.isCleared()) {
+            log.info("{} is cleared, extra value validation will be skipped", value.getTwinClassField().logNormal());
+            return value.initValidationResult(ValidationResult.VALID);
         }
         if (!valueType.isInstance(value)) {
             log.error("{} incorrect value type", value.getTwinClassField().logNormal());
-            return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField()));
+            return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField())));
         }
         //todo - correct after merging TWINS-418 branch (pluggable fields logic)
         if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId())) {
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
-            return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField()));
+            return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField())));
         }
         if (!twin.isSketch() // check required for non-sketch twins
                 && value.getTwinClassField().getRequired()
                 && value.isEmpty()) {
             log.error("{} is required", value.getTwinClassField().logNormal());
-            return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField()));
+            return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField())));
         }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         ValidationResult validationResult = validate(properties, twin, value);
         value.setValidationResult(validationResult);
         return validationResult;
+    }
+
+    public boolean updateRestricted(TwinEntity twin, T value) throws ServiceException {
+        return value.isDefined() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField());
     }
 
     //If field is already initiated this will be checked later.
@@ -215,7 +219,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
      * Override this method if you want to validate a field value.
      */
     protected ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
-        return new ValidationResult(true);
+        return ValidationResult.VALID;
     }
 
 }
