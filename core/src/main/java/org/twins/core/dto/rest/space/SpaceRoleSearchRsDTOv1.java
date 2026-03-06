@@ -17,6 +17,6 @@ public class SpaceRoleSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "permission list")
+    @Schema(description = "space role list")
     public List<SpaceRoleDTOv1> spaceRoles;
 }
