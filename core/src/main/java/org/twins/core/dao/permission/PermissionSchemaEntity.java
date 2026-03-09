@@ -50,7 +50,7 @@ public class PermissionSchemaEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
     @EqualsAndHashCode.Exclude
