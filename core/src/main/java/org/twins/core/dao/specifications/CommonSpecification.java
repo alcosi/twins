@@ -303,7 +303,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
             Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpace, JoinType.LEFT);
 
-            Join<TwinEntity, PermissionMaterGlobalEntity> permissionMaterGlobalJoin = joinTwin.join(TwinEntity.Fields.permissionMaterGlobals, JoinType.LEFT);
+            Join<TwinEntity, PermissionEntity> viewPermissionJoin = joinTwin.join(TwinEntity.Fields.viewPermission, JoinType.LEFT);
+
+            Join<PermissionEntity, PermissionMaterGlobalEntity> permissionMaterGlobalJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterGlobals, JoinType.LEFT);
             permissionMaterGlobalJoin.on(
                     cb.and(
                         cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
@@ -311,7 +313,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     )
             );
 
-            Join<TwinEntity, PermissionMaterUserGroupEntity> permissionMaterUserGroupJoin = joinTwin.join(TwinEntity.Fields.permissionMaterUserGroups, JoinType.LEFT);
+            Join<PermissionEntity, PermissionMaterUserGroupEntity> permissionMaterUserGroupJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterUserGroups, JoinType.LEFT);
             permissionMaterUserGroupJoin.on(
                     cb.and(
                             cb.equal(permissionMaterUserGroupJoin.get(PermissionMaterUserGroupEntity.Fields.userGroupFootprintId), userGroupsFootprint),
@@ -320,7 +322,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     )
             );
 
-            Join<TwinEntity, PermissionMaterSpaceUserEntity> permissionMaterSpaceUserJoin = joinTwin.join(TwinEntity.Fields.permissionMaterSpaceUsers, JoinType.LEFT);
+            Join<PermissionEntity, PermissionMaterSpaceUserEntity> permissionMaterSpaceUserJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterSpaceUsers, JoinType.LEFT);
             permissionMaterSpaceUserJoin.on(
                     cb.and(
                             cb.equal(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),
@@ -330,7 +332,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     )
             );
 
-            Join<TwinEntity, PermissionMaterSpaceUserGroupEntity> permissionMaterSpaceUserGroupJoin = joinTwin.join(TwinEntity.Fields.permissionMaterSpaceUserGroups, JoinType.LEFT);
+            Join<PermissionEntity, PermissionMaterSpaceUserGroupEntity> permissionMaterSpaceUserGroupJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterSpaceUserGroups, JoinType.LEFT);
             permissionMaterSpaceUserGroupJoin.on(
                     cb.and(
                             cb.equal(permissionMaterSpaceUserGroupJoin.get(PermissionMaterSpaceUserGroupEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),
@@ -340,7 +342,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     )
             );
 
-            Join<TwinEntity, PermissionGrantTwinRoleEntity> permissionGrantTwinRoleJoin = joinTwin.join(TwinEntity.Fields.permissionGrantTwinRoles, JoinType.LEFT);
+            Join<PermissionEntity, PermissionGrantTwinRoleEntity> permissionGrantTwinRoleJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionGrantTwinRoles, JoinType.LEFT);
             permissionGrantTwinRoleJoin.on(
                     cb.and(
                             cb.equal(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),

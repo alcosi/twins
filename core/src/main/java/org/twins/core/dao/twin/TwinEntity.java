@@ -80,6 +80,12 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    private PermissionEntity viewPermission;
+
     @Column(name = "view_permission_custom")
     private Boolean viewPermissionCustom = false;
 
@@ -199,46 +205,6 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
     private TwinEntity permissionSchemaSpace;
-
-    //needed for specification
-    @Deprecated
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
-    private Collection<PermissionMaterGlobalEntity> permissionMaterGlobals;
-
-    //needed for specification
-    @Deprecated
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
-    private Collection<PermissionMaterUserGroupEntity> permissionMaterUserGroups;
-
-    //needed for specification
-    @Deprecated
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
-    private Collection<PermissionMaterSpaceUserEntity> permissionMaterSpaceUsers;
-
-    //needed for specification
-    @Deprecated
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
-    private Collection<PermissionMaterSpaceUserGroupEntity> permissionMaterSpaceUserGroups;
-
-    //needed for specification
-    @Deprecated
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", referencedColumnName = "view_permission_id", insertable = false, updatable = false)
-    private Collection<PermissionGrantTwinRoleEntity> permissionGrantTwinRoles;
 
     //needed for specification
     @Deprecated

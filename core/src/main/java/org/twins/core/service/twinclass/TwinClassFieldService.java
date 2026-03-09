@@ -5,6 +5,8 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -381,19 +383,26 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         final List<TwinClassFieldEntity> fieldsToCreate = new ArrayList<>(twinClassFieldSaves.size());
         final CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
+        MultiValuedMap<UUID, String> duplicateKeyCheck = new HashSetValuedHashMap<>();
         for (TwinClassFieldSave save : twinClassFieldSaves) {
             TwinClassFieldEntity field = save.getField();
+
+            if (field.getTwinClassId() == null) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
+            }
 
             String fieldKey = KeyUtils.lowerCaseNullSafe(field.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT);
             field.setKey(fieldKey);
 
             if (twinClassFieldRepository.existsByKeyAndTwinClassId(fieldKey, field.getTwinClassId())) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT,
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE,
                         "Field key already exists: [" + fieldKey + "] for twin class [" + field.getTwinClassId() + "]");
             }
-
-            if (field.getTwinClassId() == null) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
+            if (duplicateKeyCheck.containsMapping(field.getTwinClassId(), fieldKey)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE,
+                        "Duplicate key: [" + fieldKey + "] for twin class [" + field.getTwinClassId() + "] in create request");
+            } else {
+                duplicateKeyCheck.put(field.getTwinClassId(), fieldKey);
             }
 
             if (field.getViewPermissionId() != null &&
@@ -434,6 +443,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             if (field.getSystem() == null) {
                 field.setSystem(false);
+            }
+            if (field.getRequired() == null) {
+                field.setRequired(false);
             }
             field
                     .setDependentField(false)

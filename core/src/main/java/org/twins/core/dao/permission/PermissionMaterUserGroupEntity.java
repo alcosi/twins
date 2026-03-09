@@ -33,6 +33,10 @@ public class PermissionMaterUserGroupEntity implements EasyLoggable {
     @Column(name = "grants_count")
     private Integer grantsCount;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
+    private PermissionEntity permission;
+
     public record Pk(
             UUID permissionSchemaId,
             UUID permissionId,
