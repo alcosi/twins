@@ -201,21 +201,21 @@ public class SystemEntityService {
                 .setName("System permission schema")
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        permissionSchemaRepository.save(permissionSchema);
+        entitySmartService.save(PERMISSION_SCHEME, permissionSchema, permissionSchemaRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinClassSchemaEntity twinClassSchemaEntity = new TwinClassSchemaEntity()
                 .setId(TWIN_CLASS_SCHEME)
                 .setName("System twinclass schema")
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        twinClassSchemaRepository.save(twinClassSchemaEntity);
+        entitySmartService.save(TWIN_CLASS_SCHEME, twinClassSchemaEntity, twinClassSchemaRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinflowSchemaEntity twinflowSchemaEntity = new TwinflowSchemaEntity()
                 .setId(TWINFLOW_SCHEME)
                 .setName("System twinflow schema")
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        twinflowSchemaRepository.save(twinflowSchemaEntity);
+        entitySmartService.save(TWINFLOW_SCHEME, twinflowSchemaEntity, twinflowSchemaRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         UserEntity systemUser = new UserEntity()
                 .setId(USER_SYSTEM)
