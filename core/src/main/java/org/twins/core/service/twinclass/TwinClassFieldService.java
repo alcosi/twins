@@ -444,6 +444,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (field.getSystem() == null) {
                 field.setSystem(false);
             }
+            if (field.getRequired() == null) {
+                field.setRequired(false);
+            }
             field
                     .setDependentField(false)
                     .setHasDependentFields(false)
