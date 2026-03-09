@@ -37,6 +37,10 @@ public class PermissionMaterSpaceUserEntity implements EasyLoggable {
     @Column(name = "grants_count")
     private Integer grantsCount;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
+    private PermissionEntity permission;
+
     public record Pk(
             UUID twinId,
             UUID permissionSchemaId,
