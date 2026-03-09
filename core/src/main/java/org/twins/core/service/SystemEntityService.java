@@ -133,9 +133,9 @@ public class SystemEntityService {
     public static final UUID USER_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000004");
     public static final UUID DATA_LIST_OPTION_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000005");
 
-    public static final UUID TWIN_CLASS_SCHEME = UUID.fromString("00000000-0000-0000-0014-000000000001");
-    public static final UUID TWINFLOW_SCHEME = UUID.fromString("00000000-0000-0000-0013-000000000001");
-    public static final UUID PERMISSION_SCHEME = UUID.fromString("00000000-0000-0000-0012-000000000001");
+    public static final UUID PERMISSION_SCHEME = UUID.fromString("00000000-0000-0000-0016-000000000001");
+    public static final UUID TWINFLOW_SCHEME = UUID.fromString("00000000-0000-0000-0017-000000000001");
+    public static final UUID TWIN_CLASS_SCHEME = UUID.fromString("00000000-0000-0000-0018-000000000001");
 
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
