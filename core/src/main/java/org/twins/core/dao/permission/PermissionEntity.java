@@ -10,6 +10,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -55,6 +57,31 @@ public class PermissionEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
     private PermissionGroupEntity permissionGroup;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = PermissionGrantTwinRoleEntity.Fields.permission, fetch = FetchType.LAZY)
+    private Set<PermissionGrantTwinRoleEntity> permissionGrantTwinRoles;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = PermissionMaterGlobalEntity.Fields.permission, fetch = FetchType.LAZY)
+    private Set<PermissionMaterGlobalEntity> permissionMaterGlobals;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = PermissionMaterUserGroupEntity.Fields.permission, fetch = FetchType.LAZY)
+    private Set<PermissionMaterUserGroupEntity> permissionMaterUserGroups;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = PermissionMaterSpaceUserEntity.Fields.permission, fetch = FetchType.LAZY)
+    private Set<PermissionMaterSpaceUserEntity> permissionMaterSpaceUsers;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = PermissionMaterSpaceUserGroupEntity.Fields.permission, fetch = FetchType.LAZY)
+    private Set<PermissionMaterSpaceUserGroupEntity> permissionMaterSpaceUserGroups;
 
     public String easyLog(Level level) {
         return "permission[id:" + id + ", key:" + key + "]";
