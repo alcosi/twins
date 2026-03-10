@@ -76,7 +76,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied=!entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
+        boolean readDenied = !entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
         if (readDenied) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
         }
@@ -85,7 +85,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean validateEntity(HistoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
@@ -128,6 +128,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UserEntity machineActor = getMachineActor();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -136,7 +138,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context)
-                .setHistoryBatchId(authService.getApiUser().getRequestId());
+                .setHistoryBatchId(apiUser.getRequestId());
+        if (machineActor != null) {
+            historyEntity
+                    .setMachineUser(machineActor)
+                    .setMachineUserId(machineActor.getId());
+        }
         fillHistoryEntity(historyEntity, twinEntity, context);
         return historyEntity;
     }
@@ -169,13 +176,21 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     private UserEntity getActor() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UserEntity actor;
-        if (apiUser != null && apiUser.isMachineUserSpecified())
-            actor = apiUser.getMachineUser();
-        else if (apiUser != null && apiUser.isUserSpecified())
+        if (apiUser != null && apiUser.isUserSpecified())
             actor = apiUser.getUser();
         else
             actor = null; //todo we can have changes not from users but from some system schedulers
         return actor;
+    }
+
+    private UserEntity getMachineActor() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UserEntity machineActor;
+        if (apiUser != null && apiUser.isMachineUserSpecified())
+            machineActor = apiUser.getMachineUser();
+        else
+            machineActor = null;
+        return machineActor;
     }
 
     public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {

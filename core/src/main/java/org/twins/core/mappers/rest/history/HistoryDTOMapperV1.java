@@ -31,6 +31,7 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
         dst
                 .changeDescription(historyService.getChangeFreshestDescription(src))
                 .actorUserId(src.getActorUserId())
+                .machineUserId(src.getMachineUserId())
                 .twinId(src.getTwin().getId())
                 .batchId(src.getHistoryBatchId())
                 .type(src.getHistoryType())
@@ -39,6 +40,9 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
 
         if (mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE))
             dst.actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext
+                    .forkOnPoint(mapperContext.getModeOrUse(UserMode.History2UserMode.SHORT))));
+        if (src.getMachineUser() != null && mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE))
+            dst.machineUser(userRestDTOMapper.convertOrPostpone(src.getMachineUser(), mapperContext
                     .forkOnPoint(mapperContext.getModeOrUse(UserMode.History2UserMode.SHORT))));
         if (mapperContext.hasModeButNot(TwinMode.History2TwinMode.HIDE))
             dst.twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext
