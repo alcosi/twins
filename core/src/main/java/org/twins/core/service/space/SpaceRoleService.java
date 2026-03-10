@@ -93,7 +93,6 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
         for (SpaceRoleCreate spaceRole : spaceRoles) {
             SpaceRoleEntity spaceRoleEntity = new SpaceRoleEntity()
                     .setNameI18NId(spaceRole.getNameI18n().getId())
-                    .setDescriptionI18NId(spaceRole.getDescriptionI18n().getId())
                     .setKey(spaceRole.getSpaceRole().getKey())
                     .setTwinClassId(spaceRole.getSpaceRole().getTwinClassId())
                     .setBusinessAccountId(spaceRole.getSpaceRole().getBusinessAccountId());

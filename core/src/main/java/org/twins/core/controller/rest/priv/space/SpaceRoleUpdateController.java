@@ -44,9 +44,9 @@ public class SpaceRoleUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleUpdateV1", summary = "Update space role")
+    @Operation(operationId = "spaceRoleUpdateV1", summary = "Update batch space role")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {
+            @ApiResponse(responseCode = "200", description = "The space role batch was updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = SpaceRoleListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
