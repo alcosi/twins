@@ -1,21 +1,22 @@
-package org.cambium.featurer.params;
+package org.twins.core.featurer.params;
 
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParamType;
+import org.cambium.featurer.params.FeaturerParam;
 import org.twins.core.domain.twinoperation.TwinOperation;
 
 import java.util.Properties;
 
 @FeaturerParamType(
-        id = "TWIN_OPERATION_LAUNCHER",
+        id = "STRING:TWINS:TWIN_OPERATION_LAUNCHER",
         description = "twin operation launcher",
-        regexp = FeaturerParamStringTwinOperationLauncher.TWIN_OPERATION_LAUNCHER_REGEXP,
+        regexp = FeaturerParamStringTwinsOperationLauncher.TWIN_OPERATION_LAUNCHER_REGEXP,
         example = "direct")
-public class FeaturerParamStringTwinOperationLauncher  extends FeaturerParam<TwinOperation.Launcher> {
+public class FeaturerParamStringTwinsOperationLauncher extends FeaturerParam<TwinOperation.Launcher> {
     public static final String TWIN_OPERATION_LAUNCHER_REGEXP = "direct|transition";
 
-    public FeaturerParamStringTwinOperationLauncher(String key) {
+    public FeaturerParamStringTwinsOperationLauncher(String key) {
         super(key);
     }
 
