@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -22,7 +23,9 @@ import org.twins.core.domain.space.SpaceRoleUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,6 +50,8 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
 
     final SpaceRoleRepository spaceRoleRepository;
     private final I18nService i18nService;
+    private final TwinClassService twinClassService;
+    private final BusinessAccountService businessAccountService;
 
     public void forceDeleteRoles(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -78,6 +83,21 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
 
     @Override
     public boolean validateEntity(SpaceRoleEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinClassId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
+        }
+
+        // Check twinClassId
+        if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
+            entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+        }
+
+        // Check businessAccountId
+        if (entity.getBusinessAccountId() != null) {
+            if (entity.getBusinessAccount() == null || !entity.getBusinessAccount().getId().equals(entity.getBusinessAccountId())) {
+                entity.setBusinessAccount(businessAccountService.findEntitySafe(entity.getBusinessAccountId()));
+            }
+        }
         return true;
     }
 
