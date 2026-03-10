@@ -48,6 +48,11 @@ public abstract class TwinSave extends TwinOperation {
         return this;
     }
 
+    public TwinSave setFields(LinkedHashMap<UUID, FieldValue> newFields) {
+        fields = newFields;
+        return this;
+    }
+
     public TwinSave addMarker(UUID marker) {
         if (markersAdd == null)
             markersAdd = new HashSet<>();

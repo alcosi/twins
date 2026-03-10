@@ -420,7 +420,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
         loadFieldEditability(twinEntity);
-        initFields(twinEntity, twinCreate.getFields());
+        initFields(twinCreate);
         detectSketchMode(twinCreate); // we have to detect mode before calling on-create factory
         detectStatus(twinCreate);
         runFactoryOnCreate(twinCreate);
@@ -485,32 +485,37 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return; //nothing to redetect
 
         if (twinCreate.getSketchMode()) { // now it's a sketch, but before it was no
+            log.info("Status was redetected for sketch");
             setInitSketchStatus(twinEntity);
         } else { // now it's a normal twin, but before it was a sketch
+            log.info("Status was redetected for normal twin");
             setInitStatus(twinEntity);
         }
     }
 
-    private void initFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
-        twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
-        //we will try to init all fields (not only required).
-        //If you want to fill default values only in required fields, check this flag in some fieldInitializer
-        if (fields == null) {
-            fields = new HashMap<>();
+    private void initFields(TwinCreate twinCreate) throws ServiceException {
+        twinClassFieldService.loadTwinClassFields(twinCreate.getTwinEntity().getTwinClass());
+        if (twinCreate.getFields() == null) {
+            twinCreate.setFields(new LinkedHashMap<>());
         }
-        for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
-            initFieldValue(twinEntity, fields, twinClassFieldEntity);
+        // We will try to init all fields (not only required).
+        // If you want to fill default values only in required fields, check this flag in some fieldInitializer
+        for (TwinClassFieldEntity twinClassFieldEntity : twinCreate.getTwinEntity().getTwinClass().getTwinClassFieldKit().getCollection()) {
+            initFieldValue(twinCreate.getTwinEntity(), twinCreate.getFields(), twinClassFieldEntity);
         }
     }
 
     private void initFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         var fieldValue = getFieldValueSafe(fields, twinClassFieldEntity);
-        if (fieldValue == null) { //not sure that this is a good idea
-            fieldValue = createFieldValue(twinClassFieldEntity);
-            fields.put(twinClassFieldEntity.getId(), fieldValue);
-        }
         var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
-        fieldTyper.initializeField(twinEntity, fieldValue);
+        if (fieldValue == null) { //not sure that this is a good idea
+            fieldValue = fieldTyper.tryToInitializeValue(twinEntity, twinClassFieldEntity);
+            if (fieldValue != null && fieldValue.isNotEmpty()) {
+                fields.put(twinClassFieldEntity.getId(), fieldValue);
+            }
+        } else {
+            fieldTyper.tryToOverrideValue(twinEntity, fieldValue);
+        }
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
