@@ -495,6 +495,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         //we will try to init all fields (not only required).
         //If you want to fill default values only in required fields, check this flag in some fieldInitializer
+        if (fields == null) {
+            fields = new HashMap<>();
+        }
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             initFieldValue(twinEntity, fields, twinClassFieldEntity);
         }
