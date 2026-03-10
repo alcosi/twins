@@ -169,7 +169,9 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     private UserEntity getActor() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UserEntity actor;
-        if (apiUser != null && apiUser.isUserSpecified())
+        if (apiUser != null && apiUser.isMachineUserSpecified())
+            actor = apiUser.getMachineUser();
+        else if (apiUser != null && apiUser.isUserSpecified())
             actor = apiUser.getUser();
         else
             actor = null; //todo we can have changes not from users but from some system schedulers
