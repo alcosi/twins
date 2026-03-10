@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Entity
 @Data
 @FieldNameConstants
+@Accessors(chain = true)
 @Table(name = "space_role")
 public class SpaceRoleEntity {
     @Id
