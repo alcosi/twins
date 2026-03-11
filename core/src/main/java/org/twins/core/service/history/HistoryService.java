@@ -129,7 +129,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UUID machineUserId = getMachineUserId();
+        UUID machineUserId = authService.getApiUser().getMachineUserId();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -179,14 +179,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         else
             actor = null; //todo we can have changes not from users but from some system schedulers
         return actor;
-    }
-
-    private UUID getMachineUserId() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (apiUser != null && apiUser.isMachineUserSpecified())
-            return apiUser.getMachineUserId();
-        else
-            return null;
     }
 
     public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {
