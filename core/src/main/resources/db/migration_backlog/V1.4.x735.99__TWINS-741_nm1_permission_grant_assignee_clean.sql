@@ -1,0 +1,1 @@
+drop table if exists permission_grant_assignee_propagation;

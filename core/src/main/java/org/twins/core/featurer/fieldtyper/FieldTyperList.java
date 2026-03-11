@@ -142,7 +142,17 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         UUID fieldListId = dataListId.extract(properties);
         dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
         var ret = new ValidationResult(true);
-        for (var option : fieldValue.getItems()) {
+        for (var option : fieldValue.getItemsOrEmpty()) {
+            // Skip incomplete options (created with externalId but not yet resolved from DB)
+            if (option.getId() == null) {
+                continue;
+            }
+            if (option.getDataListId() == null) {
+                ret
+                        .setValid(false)
+                        .addMessage(fieldValue.getTwinClassField().logNormal() + " optionId[" + option.getId() + "] has null dataListId");
+                continue;
+            }
             if (!option.getDataListId().equals(fieldListId)) {
                 ret
                         .setValid(false)

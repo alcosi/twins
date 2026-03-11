@@ -14,10 +14,7 @@ import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -33,6 +30,9 @@ public class FactoryItem implements EasyLoggable {
     // this will help to detect items, which were passed to factory from launch
     // all other items (created by multipliers) will have this flag set to false)
     private boolean factoryInputItem = false;
+    // cache for condition set evaluation results: conditionSetId -> result
+    @EqualsAndHashCode.Exclude
+    private Map<UUID, Boolean> conditionSetResultCache = new HashMap<>();
 
     public TwinEntity getTwin() {
         if (output == null)
@@ -74,6 +74,18 @@ public class FactoryItem implements EasyLoggable {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "context item size != 1. Please check multiplier");
         else
             return getContextFactoryItemList().get(0);
+    }
+
+    public Boolean getCachedConditionSetResult(UUID conditionSetId) {
+        return conditionSetResultCache.get(conditionSetId);
+    }
+
+    public void setConditionSetResult(UUID conditionSetId, boolean result) {
+        conditionSetResultCache.put(conditionSetId, result);
+    }
+
+    public boolean hasConditionSetResult(UUID conditionSetId) {
+        return conditionSetResultCache.containsKey(conditionSetId);
     }
 
     @Override

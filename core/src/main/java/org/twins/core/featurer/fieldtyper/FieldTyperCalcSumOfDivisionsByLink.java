@@ -6,7 +6,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
@@ -16,8 +16,6 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumOfDivisionsByLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Properties;
 
 @Component
@@ -26,7 +24,8 @@ import java.util.Properties;
         description = "Fields sum of divisions by link twin")
 @RequiredArgsConstructor
 public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLink<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumOfDivisionsByLink, TwinFieldSearchNotImplemented> {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @FeaturerParam(name = "Throw on division by zero", order = 6, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean throwOnDivisionByZero = new FeaturerParamBoolean("throwOnDivisionByZero");
@@ -38,36 +37,23 @@ public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLi
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        Object calcValue = twinField.getTwin().getTwinFieldCalculated().get(twinField.getTwinClassFieldId());
-        if (calcValue == null) {
-            return new FieldValueText(twinField.getTwinClassField()).setValue(null);
-        }
-
-        // Convert to BigDecimal for rounding
-        BigDecimal value;
-        if (calcValue instanceof BigDecimal) {
-            value = (BigDecimal) calcValue;
-        } else {
-            value = new BigDecimal(calcValue.toString());
-        }
-
-        // Apply rounding if parameters are specified
-        Integer scale = decimalPlaces.extract(properties);
-        RoundingMode roundingModeParam = roundingMode.extract(properties);
-
-        if (scale != null) {
-            value = value.setScale(scale, roundingModeParam);
-            value = value.stripTrailingZeros();
-        }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(value.toPlainString());
+        return new FieldValueText(twinField.getTwinClassField())
+                .setValue(
+                        scaleAndRound(
+                                twinField
+                                        .getTwin()
+                                        .getTwinFieldCalculated()
+                                        .get(twinField.getTwinClassFieldId()),
+                                properties
+                        ).toPlainString()
+                );
     }
 
     @Override
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumOfDivisionsByLink(
                 twinClassFieldEntity.getId(),
-                twinFieldSimpleRepository,
+                twinFieldDecimalRepository,
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
                 linkId.extract(properties),
@@ -75,6 +61,7 @@ public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLi
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),
                 statusExclude.extract(properties),
-                throwOnDivisionByZero.extract(properties));
+                throwOnDivisionByZero.extract(properties)
+        );
     }
 }

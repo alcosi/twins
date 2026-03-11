@@ -5,7 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
@@ -24,7 +24,8 @@ import java.util.Properties;
         description = "Sum of fields by link twin")
 @RequiredArgsConstructor
 public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByLink, TwinFieldSearchNotImplemented> implements FieldTyperCalcByLink {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
@@ -44,12 +45,13 @@ public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptor
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumByLink(
                 twinClassFieldEntity.getId(),
-                twinFieldSimpleRepository,
+                twinFieldDecimalRepository,
                 fieldIds.extract(properties),
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),
                 srcElseDst.extract(properties),
                 statusExclude.extract(properties),
-                linkId.extract(properties));
+                linkId.extract(properties)
+        );
     }
 }

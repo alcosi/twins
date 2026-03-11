@@ -33,6 +33,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.BasicSearch;
@@ -64,6 +65,7 @@ import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -94,6 +96,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
@@ -441,6 +444,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         //we will try to init all fields (not only required).
         //If you want to fill default values only in required fields, check this flag in some fieldInitializer
+        if (fields == null) {
+            fields = new HashMap<>();
+        }
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             initFieldValue(twinEntity, fields, twinClassFieldEntity);
         }
@@ -752,7 +758,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         checkNameUniqueness(twinUpdate.getTwinEntity());
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
-            twinChangesCollector.add(twinChangesRecorder.getRecorder());
+            twinChangesCollector.add((Identifiable) twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
             loadFieldEditability(twinUpdate.getDbTwinEntity());
             validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), false);
@@ -872,8 +878,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 newAssignee = changesRecorder.getUpdateEntity().getAssignerUser();
             }
             checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
-            if (changesRecorder.isHistoryCollectorEnabled())
-                changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+            if (changesRecorder.isHistoryCollectorEnabled()) {
+                if (newAssignee != null) {
+                    changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+                } else {
+                    changesRecorder.getHistoryCollector().add(historyService.assigneeUnassigned(changesRecorder.getDbEntity().getAssignerUser()));
+                }
+            }
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
                 draftTwinPersistEntity
                         .setAssignerUserId(changesRecorder.getUpdateEntity().getAssignerUserId()); // we should not nullify value here, because NULLIFY_MARKER will indicate it in draft table
@@ -1143,6 +1154,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldTimestampEntity createTwinFieldTimestampEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, Timestamp value) {
         return new TwinFieldTimestampEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
+    public TwinFieldDecimalEntity createTwinFieldDecimalEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, BigDecimal value) {
+        return new TwinFieldDecimalEntity()
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
@@ -1489,6 +1509,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinFieldBooleanRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
         twinFieldTwinClassListRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
         twinFieldTimestampRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldDecimalRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
 
         log.info("Twin class fields [" + StringUtils.join(twinClassFieldIds, ",") + "] perhaps were deleted from all twins of class[" + twinClassId + "]");
     }
@@ -1516,6 +1537,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         } else if (fieldTyper.getStorageType() == TwinFieldStorageTimestamp.class) {
             twinFieldTimestampRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageDecimal.class) {
+            twinFieldDecimalRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
     }
 
@@ -1673,6 +1696,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return true;
         }
         return false;
+    }
+
+    public long countPermissionSchemaMismatches() {
+        return twinRepository.countPermissionSchemaMismatches();
     }
 
     @Data

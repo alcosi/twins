@@ -21,6 +21,7 @@ public class FactoryConditionSetSearchRqDTOReverseMapper extends RestSimpleDTOMa
                 .setNameLikeList(src.getNameLikeList())
                 .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
-                .setDescriptionNotLikeList(src.getDescriptionNotLikeList());
+                .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
+                .setCachable(src.getCachable());
     }
 }

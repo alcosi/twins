@@ -445,6 +445,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
             twinClass.setHeadHierarchyCounterDirectChildren(0);
             twinClass.setExtendsHierarchyCounterDirectChildren(0);
+            twinClass.setTwinCounter(0);
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
             processIcons(twinClass, iconLight, iconDark);
