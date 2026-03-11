@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.notification.HistoryNotificationDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -41,6 +42,9 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
 
     @MapperModePointerBinding(modes = UserMode.HistoryNotification2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = HistoryTypeMode.HistoryNotification2HistoryTypeMode.class)
+    private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
 
     private final HistoryNotificationService historyNotificationService;
 
@@ -120,6 +124,13 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
             historyNotificationService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.HistoryNotification2UserMode.SHORT)));
+        }
+
+        if (mapperContext.hasModeButNot(HistoryTypeMode.HistoryNotification2HistoryTypeMode.HIDE)) {
+            dst.setHistoryTypeId(src.getHistoryTypeId());
+
+            historyTypeRestDTOMapper.postpone(src.getHistoryType(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryTypeMode.HistoryNotification2HistoryTypeMode.SHORT)));
         }
     }
 
