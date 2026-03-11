@@ -19,7 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "space_role")
-public class SpaceRoleEntity {
+public class SpaceRoleEntity implements EasyLoggable  {
     @Id
     private UUID id;
 
@@ -68,6 +68,10 @@ public class SpaceRoleEntity {
     private I18nEntity descriptionI18n;
 
     public String easyLog(EasyLoggable.Level level) {
-        return "spaceRole[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "spaceRole[" + id + "]";
+            case NORMAL -> "spaceRole[id:" + id + ", key:" + key + "]";
+            default -> "spaceRole[id:" + id + ", key:" + key + ", twinClassId:" + twinClassId + ", businessAccountId:" + businessAccountId + "]";
+        };
     }
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -24,6 +25,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -52,6 +54,7 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
     private final I18nService i18nService;
     private final TwinClassService twinClassService;
     private final BusinessAccountService businessAccountService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
 
     public void forceDeleteRoles(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -74,7 +77,7 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
     public boolean isEntityReadDenied(SpaceRoleEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.getTwinClass().logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
             return true;
         }
         return false;
@@ -86,16 +89,25 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
         }
 
-        // Check twinClassId
-        if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
-            entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
-        }
+        switch (entityValidateMode) {
+            case beforeSave:
+                // Check twinClassId
+                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+                }
 
-        // Check businessAccountId
-        if (entity.getBusinessAccountId() != null) {
-            if (entity.getBusinessAccount() == null || !entity.getBusinessAccount().getId().equals(entity.getBusinessAccountId())) {
-                entity.setBusinessAccount(businessAccountService.findEntitySafe(entity.getBusinessAccountId()));
-            }
+                // Check businessAccountId - ensure it belongs to current domain
+                if (entity.getBusinessAccountId() != null) {
+                    ApiUser apiUser = authService.getApiUser();
+                    UUID domainId = apiUser.getDomainId();
+
+                    // Verify business account is registered in current domain
+                    domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
+
+                    if (entity.getBusinessAccount() == null || !entity.getBusinessAccount().getId().equals(entity.getBusinessAccountId())) {
+                        entity.setBusinessAccount(businessAccountService.findEntitySafe(entity.getBusinessAccountId()));
+                    }
+                }
         }
         return true;
     }
@@ -104,6 +116,14 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
     public List<SpaceRoleEntity> createSpaceRole(List<SpaceRoleCreate> spaceRoles) throws ServiceException {
         if (spaceRoles == null || spaceRoles.isEmpty()) {
             return Collections.emptyList();
+        }
+
+        // Check if any space role has businessAccountId set - this feature is not implemented yet
+        for (SpaceRoleCreate spaceRole : spaceRoles) {
+            if (spaceRole.getSpaceRole().getBusinessAccountId() != null) {
+                throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED,
+                    "Creating custom space role with businessAccountId is not implemented yet");
+            }
         }
 
         i18nService.createI18nAndTranslations(I18nType.SPACE_ROLE_NAME,
