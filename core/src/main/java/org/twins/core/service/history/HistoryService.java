@@ -129,7 +129,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UUID machineUserId = authService.getApiUser().getMachineUserId();
+        UUID machineUserId = apiUser.getMachineUserId();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
