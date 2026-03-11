@@ -22,6 +22,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twin.TwinValidatorSetService;
@@ -45,6 +46,7 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     private final HistoryNotificationRepository repository;
     private final AuthService authService;
+    private final UserService userService;
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinValidatorSetService twinValidatorSetService;
@@ -238,5 +240,17 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
                 HistoryNotificationEntity::getTwinValidatorSetId,
                 HistoryNotificationEntity::getTwinValidatorSet,
                 HistoryNotificationEntity::setTwinValidatorSet);
+    }
+
+    public void loadCreatedByUser(HistoryNotificationEntity entity) throws ServiceException {
+        loadCreatedByUser(List.of(entity));
+    }
+
+    public void loadCreatedByUser(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        userService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getCreatedByUserId,
+                HistoryNotificationEntity::getCreatedByUser,
+                HistoryNotificationEntity::setCreatedByUser);
     }
 }
