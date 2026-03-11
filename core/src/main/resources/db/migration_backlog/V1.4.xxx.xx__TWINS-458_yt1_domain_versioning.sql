@@ -172,4 +172,4 @@ SELECT add_domain_version_column('twinflow_transition_trigger');
 SELECT add_domain_version_column('twinflow_transition_validator_rule');
 
 
-DROP FUNCTION add_domain_version_column(text);
+DROP FUNCTION IF EXISTS add_domain_version_column(text);
