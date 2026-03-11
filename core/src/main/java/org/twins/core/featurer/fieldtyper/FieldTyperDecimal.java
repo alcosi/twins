@@ -38,7 +38,7 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
         name = "Decimal",
         description = "Decimal field with dedicated table storage"
 )
-public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueTextBlankStringNullify, TwinFieldSearchNumeric> {
+public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueTextBlankStringNullify, TwinFieldValueSearchNumeric> {
     
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
