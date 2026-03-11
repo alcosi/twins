@@ -43,6 +43,9 @@ public class HistoryEntity implements EasyLoggable {
     @Column(name = "actor_user_id")
     private UUID actorUserId;
 
+    @Column(name = "machine_user_id")
+    private UUID machineUserId;
+
     @Column(name = "history_type_id")
     @Convert(converter = HistoryTypeConverter.class)
     private HistoryType historyType;
@@ -71,6 +74,12 @@ public class HistoryEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity actorUser;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "machine_user_id", insertable = false, updatable = false)
+    private UserEntity machineUser;
 
     @Override
     public String easyLog(Level level) {
