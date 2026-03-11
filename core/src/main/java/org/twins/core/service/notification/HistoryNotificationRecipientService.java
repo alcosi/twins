@@ -21,10 +21,12 @@ import org.twins.core.domain.notification.HistoryNotificationRecipientUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +42,7 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
     private final HistoryNotificationRecipientRepository repository;
     private final I18nService i18nService;
     private final AuthService authService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<HistoryNotificationRecipientEntity, UUID> entityRepository() {
@@ -119,5 +122,17 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         updateSafe(changes);
 
         return allEntities;
+    }
+
+    public void loadCreatedByUser(HistoryNotificationRecipientEntity entity) throws ServiceException {
+        loadCreatedByUser(List.of(entity));
+    }
+
+    public void loadCreatedByUser(Collection<HistoryNotificationRecipientEntity> entities) throws ServiceException {
+        userService.load(entities,
+                HistoryNotificationRecipientEntity::getId,
+                HistoryNotificationRecipientEntity::getCreatedByUserId,
+                HistoryNotificationRecipientEntity::getCreatedByUser,
+                HistoryNotificationRecipientEntity::setCreatedByUser);
     }
 }

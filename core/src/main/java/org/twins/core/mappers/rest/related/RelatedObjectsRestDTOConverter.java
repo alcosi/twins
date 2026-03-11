@@ -35,6 +35,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
@@ -47,6 +48,7 @@ import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
 import org.twins.core.dto.rest.notification.NotificationChannelDTOv1;
 import org.twins.core.dto.rest.notification.NotificationChannelEventDTOv1;
@@ -81,6 +83,7 @@ import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
@@ -154,6 +157,7 @@ public class RelatedObjectsRestDTOConverter {
     private final NotificationContextRestDTOMapper notificationContextRestDTOMapper;
     private final NotificationChannelEventRestDTOMapper notificationChannelEventRestDTOMapper;
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
+    private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -195,6 +199,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, NotificationChannelDTOv1> notificationChannelMap = new HashMap<>();
         Map<UUID, NotificationContextDTOv1> notificationContextMap = new HashMap<>();
         Map<UUID, NotificationChannelEventDTOv1> notificationChannelEventMap = new HashMap<>();
+        Map<String, HistoryTypeDTOv1> historyTypeMap = new HashMap<>();
         Map<UUID, TwinValidatorSetDTOv1> twinValidatorSetMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
@@ -272,6 +277,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedNotificationChannelEventMap(), notificationChannelEventRestDTOMapper, mapperContextLevel2, notificationChannelEventMap, NotificationChannelEventEntity::getId);
         if (!mapperContext.getRelatedTwinValidatorSetMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel2, twinValidatorSetMap, TwinValidatorSetEntity::getId);
+        if (!mapperContext.getRelatedHistoryTypeMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel2, historyTypeMap, HistoryTypeEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -349,6 +356,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedNotificationChannelEventMap(), notificationChannelEventRestDTOMapper, mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinValidatorSetMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
+        if (!mapperContextLevel2.getRelatedHistoryTypeMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -427,6 +436,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedNotificationChannelEventMap(), notificationChannelEventRestDTOMapper, mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinValidatorSetMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
+        if (!mapperContextLevel3.getRelatedHistoryTypeMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -465,6 +476,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setNotificationChannelMap(notificationChannelMap.isEmpty() ? null : notificationChannelMap)
                 .setNotificationContextMap(notificationContextMap.isEmpty() ? null : notificationContextMap)
                 .setNotificationChannelEventMap(notificationChannelEventMap.isEmpty() ? null : notificationChannelEventMap)
+                .setHistoryTypeMap(historyTypeMap.isEmpty() ? null : historyTypeMap)
                 .setTwinValidatorSetMap(twinValidatorSetMap.isEmpty() ? null : twinValidatorSetMap)
         ;
         return ret;

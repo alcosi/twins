@@ -9,7 +9,10 @@ import org.twins.core.dto.rest.notification.HistoryNotificationDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
 import org.twins.core.service.notification.HistoryNotificationService;
 
@@ -22,6 +25,9 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
     @MapperModePointerBinding(modes = TwinClassMode.HistoryNotification2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
+    @MapperModePointerBinding(modes = TwinClassFieldMode.HistoryNotification2TwinClassFieldMode.class)
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+
     @MapperModePointerBinding(modes = TwinValidatorSetMode.HistoryNotification2TwinValidatorSetMode.class)
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
@@ -33,6 +39,12 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
 
     @MapperModePointerBinding(modes = NotificationChannelEventMode.HistoryNotification2NotificationChannelEventMode.class)
     private final NotificationChannelEventRestDTOMapper notificationChannelEventRestDTOMapper;
+
+    @MapperModePointerBinding(modes = UserMode.HistoryNotification2UserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = HistoryTypeMode.HistoryNotification2HistoryTypeMode.class)
+    private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
 
     private final HistoryNotificationService historyNotificationService;
 
@@ -67,6 +79,14 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.HistoryNotification2TwinClassMode.SHORT)));
         }
 
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.HistoryNotification2TwinClassFieldMode.HIDE)) {
+            dst.setTwinClassFieldId(src.getTwinClassFieldId());
+
+            historyNotificationService.loadTwinClassField(src);
+            twinClassFieldRestDTOMapper.postpone(src.getTwinClassField(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.HistoryNotification2TwinClassFieldMode.SHORT)));
+        }
+
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.HistoryNotification2TwinValidatorSetMode.HIDE)) {
             dst.setTwinValidatorSetId(src.getTwinValidatorSetId());
 
@@ -97,6 +117,21 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
             notificationChannelEventRestDTOMapper.postpone(src.getNotificationChannelEvent(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(NotificationChannelEventMode.HistoryNotification2NotificationChannelEventMode.SHORT)));
         }
+
+        if (mapperContext.hasModeButNot(UserMode.HistoryNotification2UserMode.HIDE)) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+
+            historyNotificationService.loadCreatedByUser(src);
+            userRestDTOMapper.postpone(src.getCreatedByUser(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.HistoryNotification2UserMode.SHORT)));
+        }
+
+        if (mapperContext.hasModeButNot(HistoryTypeMode.HistoryNotification2HistoryTypeMode.HIDE)) {
+            dst.setHistoryTypeId(src.getHistoryTypeId());
+
+            historyTypeRestDTOMapper.postpone(src.getHistoryType(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryTypeMode.HistoryNotification2HistoryTypeMode.SHORT)));
+        }
     }
 
     @Override
@@ -104,6 +139,9 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinClassMode.HistoryNotification2TwinClassMode.HIDE)) {
             historyNotificationService.loadTwinClass(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.HistoryNotification2TwinClassFieldMode.HIDE)) {
+            historyNotificationService.loadTwinClassField(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.HistoryNotification2TwinValidatorSetMode.HIDE)) {
             historyNotificationService.loadTwinValidatorSet(srcCollection);
@@ -113,6 +151,9 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
         }
         if (mapperContext.hasModeButNot(NotificationChannelEventMode.HistoryNotification2NotificationChannelEventMode.HIDE)) {
             historyNotificationService.loadNotificationChannelEvent(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(UserMode.HistoryNotification2UserMode.HIDE)) {
+            historyNotificationService.loadCreatedByUser(srcCollection);
         }
     }
 }

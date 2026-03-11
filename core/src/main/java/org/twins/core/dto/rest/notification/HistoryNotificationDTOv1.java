@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
@@ -21,6 +22,7 @@ public class HistoryNotificationDTOv1 {
     public UUID id;
 
     @Schema(description = "history type id")
+    @RelatedObject(type = HistoryTypeDTOv1.class, name = "historyType")
     public String historyTypeId;
 
     @Schema(description = "twin class id", example = DTOExamples.TWIN_CLASS_ID)
