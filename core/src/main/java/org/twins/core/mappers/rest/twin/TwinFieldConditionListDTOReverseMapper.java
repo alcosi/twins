@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.TwinFieldSearch;
-import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.search.TwinFieldValueSearch;
+import org.twins.core.domain.search.TwinFieldValueSearchNotImplemented;
 import org.twins.core.dto.rest.twin.TwinFieldConditionDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -48,12 +49,14 @@ public class TwinFieldConditionListDTOReverseMapper extends RestSimpleDTOMapper<
             for (var field : src) {
                 TwinFieldSearch search = twinFieldSearchDTOReverseMapper.convert(field.getTwinFieldSearch(), mapperContext);
                 search.setTwinClassFieldEntity(twinClassFieldEntitiesKit.get(field.getTwinClassFieldId()));
-                FieldTyper<?, ?, ?, TwinFieldSearch> fieldTyper = featurerService.getFeaturer(search.getTwinClassFieldEntity().getFieldTyperFeaturerId(), FieldTyper.class);
-                if (fieldTyper.getTwinFieldSearch().equals(TwinFieldSearchNotImplemented.class))
-                    throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
-                if (!fieldTyper.getTwinFieldSearch().equals(search.getClass()))
-                    throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "Incompatible field search type: [" + search.getClass().getSimpleName() + "] for FieldTyper:  [" + fieldTyper.getClass() + "] expected type: [" + fieldTyper.getTwinFieldSearch() + "]");
-                search.setFieldTyper(fieldTyper);
+                if (search instanceof TwinFieldValueSearch valueSearch) {
+                    FieldTyper<?, ?, ?, TwinFieldValueSearch> fieldTyper = featurerService.getFeaturer(search.getTwinClassFieldEntity().getFieldTyperFeaturerId(), FieldTyper.class);
+                    if (TwinFieldValueSearchNotImplemented.class.isAssignableFrom(fieldTyper.getTwinFieldSearch()))
+                        throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
+                    if (!fieldTyper.getTwinFieldSearch().equals(valueSearch.getClass()))
+                        throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "Incompatible field search type: [" + valueSearch.getClass().getSimpleName() + "] for FieldTyper:  [" + fieldTyper.getClass() + "] expected type: [" + fieldTyper.getTwinFieldSearch() + "]");
+                    valueSearch.setFieldTyper(fieldTyper);
+                }
                 dst.add(search);
             }
         }
