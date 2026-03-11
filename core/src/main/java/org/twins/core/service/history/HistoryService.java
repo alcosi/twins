@@ -129,7 +129,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UserEntity machineActor = getMachineActor();
+        UUID machineUserId = getMachineUserId();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -139,10 +139,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setHistoryType(type)
                 .setContext(context)
                 .setHistoryBatchId(apiUser.getRequestId());
-        if (machineActor != null) {
-            historyEntity
-                    .setMachineUser(machineActor)
-                    .setMachineUserId(machineActor.getId());
+        if (machineUserId != null) {
+            historyEntity.setMachineUserId(machineUserId);
         }
         fillHistoryEntity(historyEntity, twinEntity, context);
         return historyEntity;
@@ -183,14 +181,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return actor;
     }
 
-    private UserEntity getMachineActor() throws ServiceException {
+    private UUID getMachineUserId() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UserEntity machineActor;
         if (apiUser != null && apiUser.isMachineUserSpecified())
-            machineActor = apiUser.getMachineUser();
+            return apiUser.getMachineUserId();
         else
-            machineActor = null;
-        return machineActor;
+            return null;
     }
 
     public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {

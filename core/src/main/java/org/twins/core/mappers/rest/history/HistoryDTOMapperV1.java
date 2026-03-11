@@ -12,6 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 
 
 @Component
@@ -25,13 +27,16 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
     private final TwinBaseRestDTOMapper twinBaseV2RestDTOMapper;
 
     private final HistoryService historyService;
+    private final PermissionService permissionService;
 
     @Override
     public void map(HistoryEntity src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {
+        boolean hasMachineUserViewPermission = permissionService.currentUserHasPermission(Permissions.HISTORY_MACHINE_USER_VIEW);
+
         dst
                 .changeDescription(historyService.getChangeFreshestDescription(src))
                 .actorUserId(src.getActorUserId())
-                .machineUserId(src.getMachineUserId())
+                .machineUserId(hasMachineUserViewPermission ? src.getMachineUserId() : null)
                 .twinId(src.getTwin().getId())
                 .batchId(src.getHistoryBatchId())
                 .type(src.getHistoryType())
@@ -41,7 +46,7 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
         if (mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE))
             dst.actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext
                     .forkOnPoint(mapperContext.getModeOrUse(UserMode.History2UserMode.SHORT))));
-        if (src.getMachineUser() != null && mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE))
+        if (hasMachineUserViewPermission && src.getMachineUser() != null && mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE))
             dst.machineUser(userRestDTOMapper.convertOrPostpone(src.getMachineUser(), mapperContext
                     .forkOnPoint(mapperContext.getModeOrUse(UserMode.History2UserMode.SHORT))));
         if (mapperContext.hasModeButNot(TwinMode.History2TwinMode.HIDE))
