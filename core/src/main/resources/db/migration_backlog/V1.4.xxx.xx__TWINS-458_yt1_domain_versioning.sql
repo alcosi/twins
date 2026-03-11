@@ -165,11 +165,36 @@ SELECT add_domain_version_column('twin_status_transition_trigger');
 SELECT add_domain_version_column('twin_validator');
 SELECT add_domain_version_column('twin_validator_set');
 
+SELECT add_domain_version_column('twinflow_schema');
 SELECT add_domain_version_column('twinflow_schema_map');
 
 SELECT add_domain_version_column('twinflow_transition_alias');
 SELECT add_domain_version_column('twinflow_transition_trigger');
 SELECT add_domain_version_column('twinflow_transition_validator_rule');
 
+-- Additional domain tables added later
+SELECT add_domain_version_column('link');
+SELECT add_domain_version_column('face');
+
+-- Permission schema
+SELECT add_domain_version_column('permission_schema');
+
+-- Data list search
+SELECT add_domain_version_column('data_list_option_search');
+
+-- History notification
+SELECT add_domain_version_column('history_notification_recipient');
+
+-- Notification tables
+SELECT add_domain_version_column('notification_channel');
+SELECT add_domain_version_column('notification_context');
+SELECT add_domain_version_column('notification_schema');
+
+-- Projection tables
+SELECT add_domain_version_column('projection_type');
+SELECT add_domain_version_column('projection_type_group');
+
+-- Scheduler
+SELECT add_domain_version_column('scheduler');
 
 DROP FUNCTION IF EXISTS add_domain_version_column(text);
