@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS domain_config_audit_actor_user_id_index
 -- ============================================================================
 
 -- Get current user from session context
-CREATE OR REPLACE FUNCTION get_current_actor_user_id() RETURNS UUID AS $$
+CREATE OR REPLACE FUNCTION current_actor_user_id_get() RETURNS UUID AS $$
 BEGIN
     BEGIN
         RETURN current_setting('app.current_user_id', true)::UUID;
@@ -65,14 +65,14 @@ BEGIN
         changed_at,
         actor_user_id
     ) VALUES (
-        gen_random_uuid(),
+        uuid_generate_v7_custom(),
         v_domain_id,
         p_table_name,
         p_row_id,
         p_operation,
         p_snapshot,
         CURRENT_TIMESTAMP,
-        get_current_actor_user_id()
+        current_actor_user_id_get()
     );
 END;
 $$ LANGUAGE plpgsql;

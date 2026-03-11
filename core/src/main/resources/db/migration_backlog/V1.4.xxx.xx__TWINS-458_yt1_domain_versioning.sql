@@ -60,12 +60,14 @@ CREATE TABLE IF NOT EXISTS domain_version_ghost
     constraint domain_version_ghost_pk
         primary key (domain_id, user_id, table_name)
 );
-Но
+
 -- Function to add domain_version_id column safely
-CREATE OR REPLACE FUNCTION add_domain_version_column(tbl text) RETURNS void AS
+CREATE OR REPLACE FUNCTION add_domain_version_column(tbl text, nullable boolean default true) RETURNS void AS
 $$
+DECLARE
+    v_nullable text := CASE WHEN nullable THEN 'NULL' ELSE 'NOT NULL' END;
 BEGIN
-    EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS domain_version_id UUID', tbl);
+    EXECUTE format('ALTER TABLE %I ADD COLUMN IF NOT EXISTS domain_version_id UUID ' || v_nullable, tbl);
     EXECUTE format('ALTER TABLE %I DROP CONSTRAINT IF EXISTS %I', tbl, tbl || '_domain_version_id_fk');
     EXECUTE format(
             'ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (domain_version_id) REFERENCES domain_version(id) ON DELETE SET NULL',
