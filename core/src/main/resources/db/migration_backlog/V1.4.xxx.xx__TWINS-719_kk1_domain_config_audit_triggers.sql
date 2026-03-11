@@ -297,9 +297,9 @@ BEGIN
         END IF;
     END IF;
 
-    -- Add audit record (only if data actually changed)
-    IF (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') THEN
-        PERFORM domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
+    -- Add audit record (only if data actually changed, excluding counters and timestamps)
+    IF (to_jsonb(OLD) - 'updated_at' - 'twin_counter') != (to_jsonb(NEW) - 'updated_at' - 'twin_counter') THEN
+        PERFORM domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at' - 'twin_counter');
     END IF;
 
     RETURN NEW;
