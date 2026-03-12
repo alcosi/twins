@@ -1,21 +1,22 @@
-package org.cambium.featurer.params;
+package org.twins.core.featurer.params;
 
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParamType;
+import org.cambium.featurer.params.FeaturerParam;
 import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
 
 import java.util.Properties;
 
 @FeaturerParamType(
-        id = "TWIN_CONDITION_OPERATOR_TYPE",
+        id = "STRING:TWINS:TWIN_CONDITION_OPERATOR_TYPE",
         description = "twin condition operator type",
-        regexp = FeaturerParamStringTwinConditionOperatorType.TWIN_CONDITION_OPERATOR_TYPE_REGEXP,
+        regexp = FeaturerParamStringTwinsConditionOperatorType.TWIN_CONDITION_OPERATOR_TYPE_REGEXP,
         example = "eq")
-public class FeaturerParamStringTwinConditionOperatorType extends FeaturerParam<TwinClassFieldConditionOperator> {
+public class FeaturerParamStringTwinsConditionOperatorType extends FeaturerParam<TwinClassFieldConditionOperator> {
     public static final String TWIN_CONDITION_OPERATOR_TYPE_REGEXP = "eq|neq|lt|gt|contains|in";
 
-    public FeaturerParamStringTwinConditionOperatorType(String key) {
+    public FeaturerParamStringTwinsConditionOperatorType(String key) {
         super(key);
     }
 

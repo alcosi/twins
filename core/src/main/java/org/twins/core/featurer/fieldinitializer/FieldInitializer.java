@@ -6,6 +6,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
@@ -16,7 +17,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_53,
@@ -45,17 +45,27 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
             throw new RuntimeException("Can not initialize ");
     }
 
-    public void initValue(TwinEntity twin, T value) throws ServiceException {
-        initValue(twin, value, false);
+    public T tryToInitializeValue(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, twinClassField.getFieldInitializerParams());
+        var value = createFieldValue(properties, twin, twinClassField);
+        if (value != null) {
+            initValue(properties, twin, value);
+            value.setSystemInitialized(true);
+        }
+        return value;
     }
 
-    public void initValue(TwinEntity twin, T value, boolean reinitForce) throws ServiceException {
+    protected T createFieldValue(Properties properties, TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+        return (T) twinService.createFieldValue(twinClassField);
+    }
+
+    public void tryToOverrideValue(TwinEntity twin, T value) throws ServiceException {
         if (!valueType.isInstance(value)) {
             throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "{} incompatible field initiator value type", value.getTwinClassField().logNormal());
         }
         if (value.isSystemInitialized())
             return;
-        if (reinitForce || value.isUndefined()) {
+        if (overrideSupported() || value.isUndefined()) {
             Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldInitializerParams());
             initValue(properties, twin, value);
             value.setSystemInitialized(true);
@@ -68,5 +78,12 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
      * override this if you need to add some data to the descriptor
      */
     public void appendDescriptor(Properties properties, D descriptor) throws ServiceException {
+    }
+
+    /**
+     * override this if force init is needed
+     */
+    protected boolean overrideSupported() {
+        return false;
     }
 }

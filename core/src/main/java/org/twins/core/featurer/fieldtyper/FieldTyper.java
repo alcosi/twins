@@ -113,7 +113,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
-        initializeField(twin, value);
         if (value.isUndefined()) {
             log.info("{} is undefined, serialization will be skipped", value.getTwinClassField().logNormal());
             return;
@@ -214,9 +213,14 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     //If field is already initiated this will be checked later.
     //In some cases, we need to force rewrite value with some defaults. This logic can be done in FieldInitializer
-    public void initializeField(TwinEntity twin, T value) throws ServiceException {
+    public void tryToOverrideValue(TwinEntity twin, T value) throws ServiceException {
         var fieldInitializer = featurerService.getFeaturer(value.getTwinClassField().getFieldInitializerFeaturerId(), FieldInitializer.class);
-        fieldInitializer.initValue(twin, value);
+        fieldInitializer.tryToOverrideValue(twin, value);
+    }
+
+    public T tryToInitializeValue(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+        var fieldInitializer = featurerService.getFeaturer(twinClassField.getFieldInitializerFeaturerId(), FieldInitializer.class);
+        return (T) fieldInitializer.tryToInitializeValue(twin, twinClassField);
     }
 
     /*
