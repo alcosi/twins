@@ -57,7 +57,7 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupInvolveAssigneeSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/permission_grant/assignee_propagation/search/v1")
+    @PostMapping(value = "/private/user_group/involve_assignee/search/v1")
     public ResponseEntity<?> userGroupInvolveAssigneeSearchV1(
             @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
