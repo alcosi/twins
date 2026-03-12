@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "space_role")
-public class SpaceRoleEntity {
+public class SpaceRoleEntity implements EasyLoggable  {
     @Id
     private UUID id;
 
@@ -65,4 +66,12 @@ public class SpaceRoleEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
+
+    public String easyLog(EasyLoggable.Level level) {
+        return switch (level) {
+            case SHORT -> "spaceRole[" + id + "]";
+            case NORMAL -> "spaceRole[id:" + id + ", key:" + key + "]";
+            default -> "spaceRole[id:" + id + ", key:" + key + ", twinClassId:" + twinClassId + ", businessAccountId:" + businessAccountId + "]";
+        };
+    }
 }
