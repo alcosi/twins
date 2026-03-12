@@ -16,6 +16,9 @@ create table if not exists twin_last_change (
             on delete cascade
     );
 
+create index if not exists idx_twin_last_change_field_time
+    on twin_last_change (twin_class_field_id, last_changed_at);
+
 -- twin_last_change maintenance integrated into existing twin wrapper pattern:
 -- existing triggers on `twin` call `twin_after_insert_wrapper()` / `twin_after_update_wrapper()`.
 -- We keep core functions and add PERFORM calls inside those wrappers (without changing their business logic).
