@@ -110,7 +110,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     }
 
 
-    public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
+    public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldValueSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsSimple, JoinType.INNER);
@@ -146,7 +146,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldDecimal(final TwinFieldSearchNumeric search) throws ServiceException {
+    public static Specification<TwinEntity> checkFieldDecimal(final TwinFieldValueSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldDecimalEntity> twinFieldDecimalJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsDecimal, JoinType.INNER);
@@ -181,7 +181,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search, final String... fieldPath) {
+    public static Specification<TwinEntity> checkFieldDate(final TwinFieldValueSearchDate search, final String... fieldPath) {
         return (root, query, cb) -> {
             if (search.isEmptySearch()) return cb.conjunction();
 
@@ -225,7 +225,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     }
 
 
-    public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldSearchId search, final String... fieldPath) {
+    public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldValueSearchId search, final String... fieldPath) {
         return (root, query, cb) -> {
             Path<UUID> fieldExpression = getFieldPath(root, JoinType.INNER, fieldPath);
 
@@ -241,7 +241,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search, final String... fieldPath) {
+    public static Specification<TwinEntity> checkFieldText(final TwinFieldValueSearchText search, final String... fieldPath) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
             Path<String> fieldExpression;
@@ -298,7 +298,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     }
 
     //TODO    Need a load test to compare subquery execution speed with join
-    public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
+    public static Specification<TwinEntity> checkFieldList(final TwinFieldValueSearchList search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsList, JoinType.INNER);
@@ -351,7 +351,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldBoolean(final TwinFieldSearchBoolean search) {
+    public static Specification<TwinEntity> checkFieldBoolean(final TwinFieldValueSearchBoolean search) {
         return (root, query, cb) -> {
             if (search.isEmptySearch()) {
                 return cb.conjunction();
@@ -361,7 +361,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldBooleanWithPhantoms(final TwinFieldSearchBoolean search, Boolean defaultValue) {
+    public static Specification<TwinEntity> checkFieldBooleanWithPhantoms(final TwinFieldValueSearchBoolean search, Boolean defaultValue) {
         return (root, query, cb) -> {
             if (search.isEmptySearch()) {
                 return cb.conjunction();
@@ -388,7 +388,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    private static Predicate getPredicateForBoolean(Root<TwinEntity> root, CriteriaBuilder cb, final TwinFieldSearchBoolean search) {
+    private static Predicate getPredicateForBoolean(Root<TwinEntity> root, CriteriaBuilder cb, final TwinFieldValueSearchBoolean search) {
         Join<TwinEntity, TwinFieldBooleanEntity> twinFieldBooleanJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsBoolean, JoinType.INNER);
 
         Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
@@ -396,7 +396,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         return cb.equal(booleanField, search.getValue());
     }
 
-    public static Specification<TwinEntity> checkFieldTimestamp(TwinFieldSearchDate search) {
+    public static Specification<TwinEntity> checkFieldTimestamp(TwinFieldValueSearchDate search) {
         return (root, query, cb) -> {
             // Special case: empty=false with no parameters means "is not null" search
             boolean isNotNullSearch = !search.isEmpty() && search.getEquals() == null &&
@@ -431,7 +431,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         return Timestamp.valueOf(localDateTime);
     }
 
-    public static Specification<TwinEntity> checkFieldTwinClassList(final TwinFieldSearchTwinClassList search) {
+    public static Specification<TwinEntity> checkFieldTwinClassList(final TwinFieldValueSearchTwinClassList search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) {
                 return cb.conjunction();
@@ -508,7 +508,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldUser(final TwinFieldSearchUser search) {
+    public static Specification<TwinEntity> checkFieldUser(final TwinFieldValueSearchUser search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldUserEntity> twinFieldUserJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsUser, JoinType.INNER);
@@ -531,7 +531,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkSpaceRoleUser(final TwinFieldSearchSpaceRoleUser search) {
+    public static Specification<TwinEntity> checkSpaceRoleUser(final TwinFieldValueSearchSpaceRoleUser search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
 

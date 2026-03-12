@@ -21,7 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchUser;
+import org.twins.core.domain.search.TwinFieldValueSearchUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1311,
         name = "User",
         description = "")
-public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageUser, TwinFieldSearchUser> implements LongList {
+public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageUser, TwinFieldValueSearchUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
@@ -163,7 +163,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchUser search) throws ServiceException {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchUser search) throws ServiceException {
         return TwinSpecification.checkFieldUser(search);
     }
 }

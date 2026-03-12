@@ -20,7 +20,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchSpaceRoleUser;
+import org.twins.core.domain.search.TwinFieldValueSearchSpaceRoleUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
@@ -42,7 +42,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_1332,
         name = "Space role users",
         description = "")
-public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageSpaceRoleUser, TwinFieldSearchSpaceRoleUser> implements LongList {
+public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageSpaceRoleUser, TwinFieldValueSearchSpaceRoleUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
@@ -131,7 +131,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchSpaceRoleUser search) {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchSpaceRoleUser search) {
         return TwinSpecification.checkSpaceRoleUser(search);
     }
 }
