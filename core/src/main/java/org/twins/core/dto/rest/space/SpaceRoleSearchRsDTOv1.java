@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
@@ -15,7 +13,4 @@ import java.util.List;
 public class SpaceRoleSearchRsDTOv1 extends SpaceRoleListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
-
-    @Schema(description = "space role list")
-    public List<SpaceRoleDTOv1> spaceRoles;
 }

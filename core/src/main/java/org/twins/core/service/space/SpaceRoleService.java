@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.space.SpaceRoleRepository;
 import org.twins.core.domain.ApiUser;
@@ -53,7 +54,6 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
     final SpaceRoleRepository spaceRoleRepository;
     private final I18nService i18nService;
     private final TwinClassService twinClassService;
-    private final BusinessAccountService businessAccountService;
     private final DomainBusinessAccountService domainBusinessAccountService;
 
     public void forceDeleteRoles(UUID businessAccountId) throws ServiceException {
@@ -102,10 +102,10 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
                     UUID domainId = apiUser.getDomainId();
 
                     // Verify business account is registered in current domain
-                    domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
+                    DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
 
-                    if (entity.getBusinessAccount() == null || !entity.getBusinessAccount().getId().equals(entity.getBusinessAccountId())) {
-                        entity.setBusinessAccount(businessAccountService.findEntitySafe(entity.getBusinessAccountId()));
+                    if (entity.getBusinessAccount() == null) {
+                        entity.setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount());
                     }
                 }
         }
