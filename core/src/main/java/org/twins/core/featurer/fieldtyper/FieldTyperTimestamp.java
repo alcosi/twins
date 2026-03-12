@@ -14,7 +14,7 @@ import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchDate;
+import org.twins.core.domain.search.TwinFieldValueSearchDate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
@@ -32,7 +32,7 @@ import java.util.Properties;
         name = "Timestamp",
         description = "Timestamp field with dedicated table storage"
 )
-public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldValueDate, TwinFieldStorageTimestamp, TwinFieldSearchDate> implements FieldTyperDateTime{
+public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldValueDate, TwinFieldStorageTimestamp, TwinFieldValueSearchDate> implements FieldTyperDateTime{
 
     @FeaturerParam(name = "HoursPast", description = "max hours in the past", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursPast = new FeaturerParamInt("hoursPast");
@@ -86,7 +86,7 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchDate search) {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchDate search) {
         return TwinSpecification.checkFieldTimestamp(search);
     }
 

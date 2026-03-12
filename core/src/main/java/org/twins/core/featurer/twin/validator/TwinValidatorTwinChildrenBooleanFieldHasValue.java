@@ -16,7 +16,8 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.TwinFieldClause;
 import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.search.TwinFieldSearch;
-import org.twins.core.domain.search.TwinFieldSearchBoolean;
+import org.twins.core.domain.search.TwinFieldValueSearch;
+import org.twins.core.domain.search.TwinFieldValueSearchBoolean;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
@@ -52,10 +53,10 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
 
         TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(fieldId);
 
-        TwinFieldSearch fieldSearch = new TwinFieldSearchBoolean()
+        TwinFieldSearch fieldSearch = new TwinFieldValueSearchBoolean()
                 .setValue(expectedValue)
                 .setTwinClassFieldEntity(fieldEntity);
-        fieldSearch.setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
+        ((TwinFieldValueSearch) fieldSearch).setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
 
         BasicSearch basicSearch = new BasicSearch();
         basicSearch
@@ -79,10 +80,10 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
 
         TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(fieldId);
 
-        TwinFieldSearch fieldSearch = new TwinFieldSearchBoolean()
+        TwinFieldSearch fieldSearch = new TwinFieldValueSearchBoolean()
                 .setValue(expectedValue)
                 .setTwinClassFieldEntity(fieldEntity);
-        fieldSearch.setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
+        ((TwinFieldValueSearch) fieldSearch).setFieldTyper(featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class));
 
         BasicSearch basicSearch = new BasicSearch();
         basicSearch

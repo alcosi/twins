@@ -11,7 +11,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.search.TwinFieldValueSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -25,7 +25,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1336,
         name = "Text non indexed field",
         description = "")
-public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> {
+public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<FieldDescriptorText, FieldValueText, TwinFieldValueSearchNotImplemented> {
     @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")

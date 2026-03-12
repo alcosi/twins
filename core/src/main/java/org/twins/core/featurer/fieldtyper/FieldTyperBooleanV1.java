@@ -13,7 +13,7 @@ import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchBoolean;
+import org.twins.core.domain.search.TwinFieldValueSearchBoolean;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorBoolean;
 import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
@@ -26,7 +26,7 @@ import java.util.Properties;
         name = "Boolean",
         description = "")
 @RequiredArgsConstructor
-public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolean, FieldValueBoolean, TwinFieldSearchBoolean> {
+public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolean, FieldValueBoolean, TwinFieldValueSearchBoolean> {
 
     @FeaturerParam(name = "CheckboxType", description = "", order = 1, optional = true, defaultValue = "TOGGLE")
     public static final FeaturerParamStringTwinsCheckboxType checkboxType = new FeaturerParamStringTwinsCheckboxType("checkboxType");
@@ -77,7 +77,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchBoolean twinFieldSearchBoolean) throws ServiceException {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchBoolean twinFieldSearchBoolean) throws ServiceException {
         TwinClassFieldEntity fieldEntity = twinFieldSearchBoolean.getTwinClassFieldEntity();
         Properties properties = featurerService.extractProperties(this, fieldEntity.getFieldTyperParams());
         Boolean isRequired = fieldEntity.getRequired();

@@ -8,13 +8,14 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.search.HierarchySearch;
+import org.twins.core.domain.search.*;
 import org.twins.core.domain.TwinFieldClause;
 import org.twins.core.domain.TwinFieldFilter;
-import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
@@ -124,7 +125,13 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             Specification clauseSpec = clause.getConditions().stream()
                     .map(fieldSearch -> {
                         try {
-                            return fieldSearch.getFieldTyper().searchBy(fieldSearch);
+                            if (fieldSearch instanceof TwinFieldValueSearch valueSearch) {
+                                return valueSearch.getFieldTyper().searchBy(valueSearch);
+                            }
+                            if (fieldSearch instanceof TwinFieldLastChangeSearch lastChangeSearch) {
+                                return checkTwinFieldLastChange(lastChangeSearch);
+                            }
+                            return (Specification<TwinEntity>) (root, query, cb) -> cb.conjunction();
                         } catch (ServiceException e) {
                             throw new RuntimeException(e);
                         }
@@ -134,6 +141,40 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             result.add(clauseSpec);
         }
         return result.toArray(new Specification[0]);
+    }
+
+    protected static Specification<TwinEntity> checkTwinFieldLastChange(final TwinFieldLastChangeSearch search) {
+        return (root, query, cb) -> {
+            if (search == null) {
+                return cb.conjunction();
+            }
+
+            Join<TwinEntity, TwinLastChangeEntity> join = root.join(TwinEntity.Fields.lastChanges, JoinType.INNER);
+            join.on(cb.equal(join.get(TwinLastChangeEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+            Path<Timestamp> lastChangedAt = join.get(TwinLastChangeEntity.Fields.lastChangedAt);
+
+            if (search instanceof TwinFieldLastChangeSearchRange range) {
+                List<Predicate> predicates = new ArrayList<>();
+                if (range.getEquals() != null) {
+                    predicates.add(cb.equal(lastChangedAt, Timestamp.valueOf(range.getEquals())));
+                }
+                if (range.getLessThenOrEquals() != null) {
+                    predicates.add(cb.lessThanOrEqualTo(lastChangedAt, Timestamp.valueOf(range.getLessThenOrEquals())));
+                }
+                if (range.getMoreThenOrEquals() != null) {
+                    predicates.add(cb.greaterThanOrEqualTo(lastChangedAt, Timestamp.valueOf(range.getMoreThenOrEquals())));
+                }
+                return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            }
+
+            if (search instanceof TwinFieldLastChangeSearchBefore before) {
+                LocalDateTime threshold = LocalDateTime.now().minusSeconds(before.getLessThenSecondsAgo());
+                return cb.greaterThanOrEqualTo(lastChangedAt, Timestamp.valueOf(threshold));
+            }
+
+            return cb.conjunction();
+        };
     }
 
     protected static Specification checkTwinLinks(TwinSearch twinSearch, boolean srcElseDst, String... twinsEntityFieldPath) {

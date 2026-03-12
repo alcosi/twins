@@ -13,7 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldinitializer.FieldInitializer;
@@ -36,7 +36,7 @@ import java.util.Properties;
         name = "FieldTyper",
         description = "Customize format of twin class field")
 @Slf4j
-public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldSearch> extends FeaturerTwins {
+public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldValueSearch> extends FeaturerTwins {
     @Lazy
     @Autowired
     HistoryService historyService;
@@ -77,7 +77,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
                 valueType = (Class<T>) cl;
             if (TwinFieldStorage.class.isAssignableFrom(cl) && storageType == null)
                 storageType = (Class<S>) cl;
-            if (TwinFieldSearch.class.isAssignableFrom(cl) && twinFieldSearchType == null)
+            if (TwinFieldValueSearch.class.isAssignableFrom(cl) && twinFieldSearchType == null)
                 twinFieldSearchType = (Class<A>) cl;
         }
         if (descriptorType == null || valueType == null || storageType == null || twinFieldSearchType == null)

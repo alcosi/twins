@@ -310,6 +310,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
 
+    //needed for specification (search by last change time)
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinLastChangeEntity> lastChanges;
+
     //needed for specification (USER & BA twins)
     @Deprecated
     @EqualsAndHashCode.Exclude

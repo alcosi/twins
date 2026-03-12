@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -55,6 +56,11 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private UserEntity createdByUser;
 
     public String easyLog(Level level) {
         return "historyNotificationRecipient[id:" + id + "]";
