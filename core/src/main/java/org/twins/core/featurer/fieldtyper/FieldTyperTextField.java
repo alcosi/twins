@@ -107,6 +107,6 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
         } catch (ServiceException e) {
             return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
         }
-        return new ValidationResult(true);
+        return ValidationResult.VALID;
     }
 }
