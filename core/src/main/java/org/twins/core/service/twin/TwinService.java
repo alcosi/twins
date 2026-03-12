@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.*;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -1752,8 +1751,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public boolean isFieldImmutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
         loadFieldEditability(twin);
-        if (twinClassField.isBaseField() && twinClassFieldService.notSerializable(twinClassField)) { // base fields is not loaded
-            return true;
+        if (twinClassField.isBaseField()) { // base fields is not loaded
+            return twinClassFieldService.notSerializable(twinClassField);
         } else if (twin.getTwinFieldEditability().get(twinClassField.getId()) == null) {
             log.warn("undetected editability for field {}", twinClassField.logNormal());
             return true;

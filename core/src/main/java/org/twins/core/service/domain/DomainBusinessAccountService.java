@@ -28,7 +28,6 @@ import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiato
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.notification.NotificationSchemaService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.permission.PermissionService;
@@ -76,9 +75,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     @Lazy
     private final DataListService dataListService;
     private final UserGroupService userGroupService;
-    @Lazy
-    private final HistoryService historyService;
-    private final DomainBusinessAccountSearchService domainBusinessAccountSearchService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
