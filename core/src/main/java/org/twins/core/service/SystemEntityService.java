@@ -11,21 +11,24 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nRepository;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.permission.PermissionSchemaService;
 
+import java.security.Permission;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -45,6 +48,9 @@ public class SystemEntityService {
     final EntitySmartService entitySmartService;
     private final I18nRepository i18nRepository;
     private final I18nTranslationRepository i18nTranslationRepository;
+    private final TwinClassSchemaRepository twinClassSchemaRepository;
+    private final PermissionSchemaRepository permissionSchemaRepository;
+    private final TwinflowSchemaRepository twinflowSchemaRepository;
 
     // last type.id = 0015
     public static final UUID USER_SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -127,9 +133,12 @@ public class SystemEntityService {
     public static final UUID USER_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000004");
     public static final UUID DATA_LIST_OPTION_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000005");
 
+    public static final UUID PERMISSION_SCHEME = UUID.fromString("00000000-0000-0000-0016-000000000001");
+    public static final UUID TWINFLOW_SCHEME = UUID.fromString("00000000-0000-0000-0017-000000000001");
+    public static final UUID TWIN_CLASS_SCHEME = UUID.fromString("00000000-0000-0000-0018-000000000001");
+
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
-
     static {
         SYSTEM_CLASSES = Collections.unmodifiableList(Arrays.asList(
                 new SystemClass(
@@ -184,9 +193,30 @@ public class SystemEntityService {
                 )
         ));
     }
-
     @PostConstruct
     public void postConstruct() throws ServiceException {
+
+        PermissionSchemaEntity permissionSchema = new PermissionSchemaEntity()
+                .setId(PERMISSION_SCHEME)
+                .setName("System permission schema")
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        entitySmartService.save(PERMISSION_SCHEME, permissionSchema, permissionSchemaRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+
+        TwinClassSchemaEntity twinClassSchemaEntity = new TwinClassSchemaEntity()
+                .setId(TWIN_CLASS_SCHEME)
+                .setName("System twinclass schema")
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        entitySmartService.save(TWIN_CLASS_SCHEME, twinClassSchemaEntity, twinClassSchemaRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+
+        TwinflowSchemaEntity twinflowSchemaEntity = new TwinflowSchemaEntity()
+                .setId(TWINFLOW_SCHEME)
+                .setName("System twinflow schema")
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        entitySmartService.save(TWINFLOW_SCHEME, twinflowSchemaEntity, twinflowSchemaRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+
         UserEntity systemUser = new UserEntity()
                 .setId(USER_SYSTEM)
                 .setName("SYSTEM")

@@ -57,7 +57,7 @@ public class TwinCreateValidationController extends ApiController {
         TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
-            twinService.validateFields(twinCreate);
+            twinService.validateFieldsOnCreate(twinCreate);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, HttpStatus.OK);
         } catch (ServiceException se) {

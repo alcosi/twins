@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinFieldSearchUserDTOv1.class, name = TwinFieldSearchUserDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinFieldSearchSpaceRoleUserDTOv1.class, name = TwinFieldSearchSpaceRoleUserDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinFieldSearchTwinClassListDTOv1.class, name = TwinFieldSearchTwinClassListDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinFieldLastChangeSearchRangeDTOv1.class, name = TwinFieldLastChangeSearchRangeDTOv1.KEY),
 })
 @Schema(
         additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
@@ -30,6 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
                 TwinFieldSearchUserDTOv1.class,
                 TwinFieldSearchSpaceRoleUserDTOv1.class,
                 TwinFieldSearchTwinClassListDTOv1.class,
+                TwinFieldLastChangeSearchRangeDTOv1.class,
         }
 )
 public interface TwinFieldSearchDTOv1 {

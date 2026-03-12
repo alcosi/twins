@@ -5,10 +5,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringTwinConditionOperatorType;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsConditionOperatorType;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
     @FeaturerParam(name = "ValueToCompareWith", description = "", order = 1)
     public static final FeaturerParamString valueToCompareWith = new FeaturerParamString("valueToCompareWith");; // cmp_value VARCHAR NULL,
     @FeaturerParam(name = "ConditionOperator", description = "", order =2)
-    public static final FeaturerParamStringTwinConditionOperatorType conditionOperator = new FeaturerParamStringTwinConditionOperatorType("conditionOperator");;
+    public static final FeaturerParamStringTwinsConditionOperatorType conditionOperator = new FeaturerParamStringTwinsConditionOperatorType("conditionOperator");;
 
 
     public ConditionEvaluator() {

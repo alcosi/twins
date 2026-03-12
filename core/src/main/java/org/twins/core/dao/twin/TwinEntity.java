@@ -20,11 +20,13 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
@@ -47,7 +49,7 @@ import java.util.UUID;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable {
     @Id
     private UUID id;
 
@@ -78,8 +80,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    private PermissionEntity viewPermission;
+
     @Column(name = "view_permission_custom")
-    private Boolean viewPermissionCustom;
+    private Boolean viewPermissionCustom = false;
 
     //materialized
     @Column(name = "permission_schema_id", updatable = false, insertable = false)
@@ -194,6 +202,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Deprecated
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
+    private TwinEntity permissionSchemaSpace;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTagEntity> tags;
@@ -293,6 +309,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
+
+    //needed for specification (search by last change time)
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinLastChangeEntity> lastChanges;
 
     //needed for specification (USER & BA twins)
     @Deprecated

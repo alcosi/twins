@@ -23,36 +23,36 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
     @Override
     public TwinFieldSearch convert(TwinFieldSearchDTOv1 twinFieldSearchDTOv1, MapperContext mapperContext) throws Exception {
         if (twinFieldSearchDTOv1 instanceof TwinFieldSearchTextDTOv1 text) {
-            return new TwinFieldSearchText()
+            return new TwinFieldValueSearchText()
                     .setValueLikeAnyOfList(text.valueLikeAnyOfList())
                     .setValueLikeAllOfList(text.valueLikeAllOfList())
                     .setValueLikeNoAnyOfList(text.valueLikeNoAnyOfList())
                     .setValueLikeNoAllOfList(text.valueLikeNoAllOfList());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchListDTOv1 list) {
-            return new TwinFieldSearchList()
+            return new TwinFieldValueSearchList()
                     .setOptionsAnyOfList(list.optionsAnyOfList())
                     .setOptionsAllOfList(list.optionsAllOfList())
                     .setOptionsNoAnyOfList(list.optionsNoAnyOfList())
                     .setOptionsNoAllOfList(list.optionsNoAllOfList());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchDateDTOv1 date) {
-            return new TwinFieldSearchDate()
+            return new TwinFieldValueSearchDate()
                     .setLessThenOrEquals(date.lessThenOrEquals())
                     .setMoreThenOrEquals(date.moreThenOrEquals())
                     .setEquals(date.equals())
                     .setEmpty(date.empty());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchBooleanDTOv1 booleanDto) {
-          return new TwinFieldSearchBoolean()
+          return new TwinFieldValueSearchBoolean()
                   .setValue(booleanDto.value());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchIdDTOv1 user) {
-            return new TwinFieldSearchId()
+            return new TwinFieldValueSearchId()
                     .setIdList(user.idList())
                     .setIdExcludeList(user.idExcludeList());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchUserDTOv1 user) {
-            return new TwinFieldSearchUser()
+            return new TwinFieldValueSearchUser()
                     .setIdList(user.idList())
                     .setIdExcludeList(user.idExcludeList());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchSpaceRoleUserDTOv1 user) {
-            return new TwinFieldSearchSpaceRoleUser()
+            return new TwinFieldValueSearchSpaceRoleUser()
                     .setRoleIdList(user.roleIdList())
                     .setRoleIdExcludeList(user.roleIdExcludeList())
                     .setUserIdList(user.userIdList())
@@ -79,16 +79,21 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
                 } catch (NumberFormatException e) {
                     throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, "Incorrect value for EQ compare with field: [" + numeric.equals() + "]");
                 }
-            return new TwinFieldSearchNumeric()
+            return new TwinFieldValueSearchNumeric()
                     .setLessThen(less)
                     .setMoreThen(more)
                     .setEquals(equals);
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchTwinClassListDTOv1 dto) {
-            return new TwinFieldSearchTwinClassList()
+            return new TwinFieldValueSearchTwinClassList()
                     .setIdExcludeAllSet(dto.idExcludeAllSet())
                     .setIdIncludeAllSet(dto.idIncludeAllSet())
                     .setIdExcludeAnySet(dto.idExcludeAnySet())
                     .setIdIncludeAnySet(dto.idIncludeAnySet());
+        } else if (twinFieldSearchDTOv1 instanceof TwinFieldLastChangeSearchRangeDTOv1 dto) {
+            return new TwinFieldLastChangeSearchRange()
+                    .setLessThenOrEquals(dto.lessThenOrEquals())
+                    .setMoreThenOrEquals(dto.moreThenOrEquals())
+                    .setEquals(dto.equals());
         } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, "Invalid search field type: " + twinFieldSearchDTOv1.type());
         }

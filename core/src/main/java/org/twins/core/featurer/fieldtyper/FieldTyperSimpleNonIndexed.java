@@ -6,14 +6,14 @@ import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimpleNonIndex;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.Properties;
 
-public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageSimpleNonIndex, A> {
+public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch> extends FieldTyper<D, T, TwinFieldStorageSimpleNonIndex, A> {
 
     protected void detectValueChange(TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity, TwinChangesCollector twinChangesCollector, String newValue) {
         if (twinChangesCollector.collectIfChanged(twinFieldSimpleNonIndexedEntity, "field[" + twinFieldSimpleNonIndexedEntity.getTwinClassField().getKey() + "]", twinFieldSimpleNonIndexedEntity.getValue(), newValue)) {

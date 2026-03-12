@@ -8,12 +8,14 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.search.HierarchySearch;
-import org.twins.core.domain.search.TwinFieldSearch;
-import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.domain.search.*;
+import org.twins.core.domain.TwinFieldClause;
+import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
@@ -29,6 +31,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
+        String[] ownerBusinessAccountIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.ownerBusinessAccountId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
@@ -57,6 +60,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
+                checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),
+                checkUuidIn(twinSearch.getOwnerBusinessAccountIdExcludeList(), true, true, ownerBusinessAccountIdFieldPath),
                 checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), twinSearch.isCheckFreezeStatus()),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
@@ -75,7 +80,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
         };
 
-        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
+        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFieldsFilter())));
     }
 
     protected static <T> Specification<T> checkHierarchyContainsAny(final Set<UUID> hierarchyTreeContainsIdList, String... hierarchyFieldPath) {
@@ -104,18 +109,72 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         };
     }
 
-    protected static Specification[] getTwinSearchFieldsSpecifications(List<TwinFieldSearch> fields) {
-        if (fields == null || fields.isEmpty()) {
+    protected static Specification[] getTwinSearchFieldsSpecifications(TwinFieldFilter fieldsFilter) {
+        if (fieldsFilter == null || fieldsFilter.isEmpty()) {
             return new Specification[0];
         }
-        Specification[] twinSearchFieldsSpecifications = fields.stream().map(fieldSearch -> {
-            try {
-                return fieldSearch.getFieldTyper().searchBy(fieldSearch);
-            } catch (ServiceException e) {
-                throw new RuntimeException(e);
+        List<TwinFieldClause> clauses = fieldsFilter.getClauses();
+        if (clauses == null || clauses.isEmpty()) {
+            return new Specification[0];
+        }
+        List<Specification> result = new ArrayList<>();
+        for (TwinFieldClause clause : clauses) {
+            if (CollectionUtils.isEmpty(clause.getConditions())) {
+                continue;
             }
-        }).toArray(Specification[]::new);
-        return twinSearchFieldsSpecifications;
+            Specification clauseSpec = clause.getConditions().stream()
+                    .map(fieldSearch -> {
+                        try {
+                            if (fieldSearch instanceof TwinFieldValueSearch valueSearch) {
+                                return valueSearch.getFieldTyper().searchBy(valueSearch);
+                            }
+                            if (fieldSearch instanceof TwinFieldLastChangeSearch lastChangeSearch) {
+                                return checkTwinFieldLastChange(lastChangeSearch);
+                            }
+                            return (Specification<TwinEntity>) (root, query, cb) -> cb.conjunction();
+                        } catch (ServiceException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .reduce(Specification::or)
+                    .orElse((root, query, cb) -> cb.conjunction());
+            result.add(clauseSpec);
+        }
+        return result.toArray(new Specification[0]);
+    }
+
+    protected static Specification<TwinEntity> checkTwinFieldLastChange(final TwinFieldLastChangeSearch search) {
+        return (root, query, cb) -> {
+            if (search == null) {
+                return cb.conjunction();
+            }
+
+            Join<TwinEntity, TwinLastChangeEntity> join = root.join(TwinEntity.Fields.lastChanges, JoinType.INNER);
+            join.on(cb.equal(join.get(TwinLastChangeEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+            Path<Timestamp> lastChangedAt = join.get(TwinLastChangeEntity.Fields.lastChangedAt);
+
+            if (search instanceof TwinFieldLastChangeSearchRange range) {
+                List<Predicate> predicates = new ArrayList<>();
+                if (range.getEquals() != null) {
+                    predicates.add(cb.equal(lastChangedAt, Timestamp.valueOf(range.getEquals())));
+                }
+                if (range.getLessThenOrEquals() != null) {
+                    predicates.add(cb.lessThanOrEqualTo(lastChangedAt, Timestamp.valueOf(range.getLessThenOrEquals())));
+                }
+                if (range.getMoreThenOrEquals() != null) {
+                    predicates.add(cb.greaterThanOrEqualTo(lastChangedAt, Timestamp.valueOf(range.getMoreThenOrEquals())));
+                }
+                return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+            }
+
+            if (search instanceof TwinFieldLastChangeSearchBefore before) {
+                LocalDateTime threshold = LocalDateTime.now().minusSeconds(before.getLessThenSecondsAgo());
+                return cb.greaterThanOrEqualTo(lastChangedAt, Timestamp.valueOf(threshold));
+            }
+
+            return cb.conjunction();
+        };
     }
 
     protected static Specification checkTwinLinks(TwinSearch twinSearch, boolean srcElseDst, String... twinsEntityFieldPath) {

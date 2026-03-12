@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.enums.twin.TwinCreateStrategy;
 
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +51,12 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "external id")
     public String externalId;
 
+    @Deprecated
     @Schema(description = "is sketch being created")
     public Boolean isSketch;
+
+    @Schema(description = "twin create strategy (isSketch flag replacement)")
+    public TwinCreateStrategy createStrategy;
 
     @Schema(description = "field attributes")
     public List<TwinFieldAttributeCreateDTOv1> fieldAttributes;

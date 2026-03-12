@@ -1,3 +1,5 @@
+drop trigger if exists user_group_map_before_insert_wrapper_trigger on user_group_map;
+
 create table if not exists user_group_map
 (
     id                  uuid not null
@@ -32,19 +34,21 @@ create table if not exists user_group_map
 );
 
 drop index if exists idx_user_group_map_added_by_user_id;
-create index idx_user_group_map_added_by_user_id
+create index if not exists idx_user_group_map_added_by_user_id
     on user_group_map (added_by_user_id);
 
-create unique index idx_ugm_scope_without_ba
+drop index if exists idx_ugm_scope_without_ba;
+create unique index if not exists idx_ugm_scope_without_ba
     on user_group_map (user_group_id, domain_id, user_id)
     where business_account_id is null;
 
-create unique index idx_ugm_scope_with_ba
+drop index if exists idx_ugm_scope_with_ba;
+create unique index if not exists idx_ugm_scope_with_ba
     on user_group_map (user_group_id, domain_id, business_account_id, user_id)
     where business_account_id is not null;
 
 drop index if exists idx_ugm_user_scope;
-create index idx_ugm_user_scope
+create index if not exists idx_ugm_user_scope
     on user_group_map (user_id, domain_id, business_account_id);
 
 create or replace function user_group_map_validate_domain_and_business_account(NEW user_group_map)
@@ -165,7 +169,7 @@ SELECT
     t2.added_at,
     t2.added_by_user_id
 FROM user_group_map_type2 t2
-JOIN user_group ug ON t2.user_group_id = ug.id
+         JOIN user_group ug ON t2.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
 INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
@@ -181,7 +185,7 @@ SELECT
     t3.added_at,
     t3.added_by_user_id
 FROM user_group_map_type3 t3
-JOIN user_group ug ON t3.user_group_id = ug.id
+         JOIN user_group ug ON t3.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
 INSERT INTO user_group_map (id, user_group_id, user_group_type_id, domain_id, business_account_id, user_id, involves_count, added_manually, added_at, added_by_user_id)
@@ -197,7 +201,7 @@ SELECT
     t1.added_at,
     t1.added_by_user_id
 FROM user_group_map_type1 t1
-JOIN user_group ug ON t1.user_group_id = ug.id
+         JOIN user_group ug ON t1.user_group_id = ug.id
 ON CONFLICT DO NOTHING;
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -238,7 +242,6 @@ begin
 end;
 $$;
 
-drop trigger if exists user_group_map_before_insert_wrapper_trigger on user_group_map;
 create trigger user_group_map_before_insert_wrapper_trigger
     before insert
     on user_group_map
