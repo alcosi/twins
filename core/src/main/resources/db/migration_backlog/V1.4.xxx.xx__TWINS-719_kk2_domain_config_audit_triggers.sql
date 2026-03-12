@@ -57,6 +57,24 @@ INSERT INTO domain_config_audit_resolve (table_name, resolve_sql) VALUES
 ('twin_action_permission', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
 ('twin_action_validator_rule', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
 
+-- twin_class_dynamic_marker: resolve through twin_class.domain_id
+('twin_class_dynamic_marker', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+
+-- twin_class_field_attribute: resolve through twin_class.domain_id
+('twin_class_field_attribute', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+
+-- twin_class_field_rule_map: resolve through twin_class_field -> twin_class.domain_id
+('twin_class_field_rule_map', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''twin_class_field_id'')::UUID'),
+
+-- twin_class_field_search_predicate: resolve through twin_class_field_search -> twin_class.domain_id
+('twin_class_field_search_predicate', 'SELECT tc.domain_id FROM twin_class_field_search tcfs JOIN twin_class_field tcf ON tcfs.twin_class_field_id = tcf.id JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcfs.id = ($1->>''id'')::UUID'),
+
+-- twin_class_search_predicate: resolve through twin_class_search.domain_id
+('twin_class_search_predicate', 'SELECT domain_id FROM twin_class_search WHERE id = ($1->>''twin_class_search_id'')::UUID'),
+
+-- twin_class_freeze: resolve through twin_status -> twin_class.domain_id
+('twin_class_freeze', 'SELECT tc.domain_id FROM twin_status ts JOIN twin_class tc ON ts.twin_class_id = tc.id WHERE ts.id = ($1->>''twin_status_id'')::UUID'),
+
 -- twin_pointer_validator_rule: resolve through twin_pointer_id -> twin_pointer -> twin_class
 ('twin_pointer_validator_rule', 'SELECT tc.domain_id FROM twin_pointer tp JOIN twin_class tc ON tp.twin_class_id = tc.id WHERE tp.id = ($1->>''twin_pointer_id'')::UUID'),
 
@@ -78,22 +96,119 @@ INSERT INTO domain_config_audit_resolve (table_name, resolve_sql) VALUES
 
 -- twin_factory tables
 ('twin_factory_branch', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-('twin_factory_condition', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+('twin_factory_condition', 'SELECT domain_id FROM twin_factory_condition_set WHERE id = ($1->>''twin_factory_condition_set_id'')::UUID'),
 ('twin_factory_eraser', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
 ('twin_factory_multiplier', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
 ('twin_factory_multiplier_filter', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-('twin_factory_pipeline', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-('twin_factory_pipeline_step', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+('twin_factory_pipeline', 'SELECT domain_id FROM twin_factory WHERE id = ($1->>''twin_factory_id'')::UUID'),
+('twin_factory_pipeline_step', 'SELECT domain_id FROM twin_factory WHERE id = (SELECT tfp.twin_factory_id FROM twin_factory_pipeline tfp WHERE tfp.id = ($1->>''twin_factory_pipeline_id'')::UUID)'),
 
 -- twin_validator tables
-('twin_validator', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-('twin_validator_set', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+('twin_validator', 'SELECT domain_id FROM twin_validator_set WHERE id = ($1->>''twin_validator_set_id'')::UUID'),
 
 -- twinflow tables
+('twinflow', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+('twinflow_factory', 'SELECT tc.domain_id FROM twinflow tf JOIN twin_class tc ON tf.twin_class_id = tc.id WHERE tf.id = ($1->>''twinflow_id'')::UUID'),
 ('twinflow_schema_map', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+('twinflow_transition', 'SELECT domain_id FROM twin_class WHERE id = (SELECT tf.twin_class_id FROM twinflow tf WHERE tf.id = ($1->>''twinflow_id'')::UUID)'),
+('twinflow_transition_trigger', 'SELECT domain_id FROM twin_class WHERE id = (SELECT tf.twin_class_id FROM twinflow tf JOIN twinflow_transition tt ON tt.twinflow_id = tf.id WHERE tt.id = ($1->>''twinflow_transition_id'')::UUID)'),
 ('twinflow_transition_alias', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-('twinflow_transition_trigger', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-('twinflow_transition_validator_rule', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID');
+('twinflow_transition_validator_rule', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+
+-- Data list tables: resolve through data_list_option_search (has domain_id directly)
+('data_list_option_search_predicate', 'SELECT domain_id FROM data_list_option_search WHERE id = ($1->>''data_list_option_search_id'')::UUID'),
+
+-- Projection tables: resolve through projection_type.domain_id
+('data_list_option_projection', 'SELECT pt.domain_id FROM projection_type pt WHERE pt.id = ($1->>''projection_type_id'')::UUID'),
+('projection', 'SELECT pt.domain_id FROM projection_type pt WHERE pt.id = ($1->>''projection_type_id'')::UUID'),
+
+-- Data list tables: resolve through data_list.domain_id
+('data_list_option', 'SELECT dl.domain_id FROM data_list dl WHERE dl.id = ($1->>''data_list_id'')::UUID'),
+
+-- Data list subset tables: resolve through data_list_subset -> data_list.domain_id
+('data_list_subset', 'SELECT dl.domain_id FROM data_list WHERE dl.id = (SELECT data_list_id FROM data_list_subset WHERE id = ($1->>''id'')::UUID)'),
+('data_list_subset_option', 'SELECT dl.domain_id FROM data_list dl WHERE dl.id = (SELECT dls.data_list_id FROM data_list_subset dls WHERE dls.id = ($1->>''data_list_subset_id'')::UUID)'),
+
+-- Eraseflow tables: resolve through twin_class.domain_id
+('eraseflow', 'SELECT tc.domain_id FROM twin_class tc WHERE tc.id = ($1->>''twin_class_id'')::UUID'),
+('eraseflow_link_cascade', 'SELECT tc.domain_id FROM twin_class tc WHERE tc.id = (SELECT e.twin_class_id FROM eraseflow e WHERE e.id = ($1->>''eraseflow_id'')::UUID)'),
+
+-- Face variant tables: resolve through face.domain_id
+('face_bc001', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_bc001_item', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT fb.face_id FROM face_bc001 fb WHERE fb.id = ($1->>''face_bc001_id'')::UUID)'),
+('face_navbar_nb001', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+
+-- Face menu items: resolve through face.domain_id
+('face_navbar_nb001_menu_item', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+
+-- Face pg001 tables: resolve through face.domain_id
+('face_pg001', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_pg001_widget', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+
+-- Face pg002 tables: resolve through face.domain_id
+('face_pg002', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_pg002_tab', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT fp.face_id FROM face_pg002 fp WHERE fp.id = ($1->>''face_pg002_id'')::UUID)'),
+('face_pg002_widget', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''widget_face_id'')::UUID'),
+
+-- Face tc001 tables: resolve through face.domain_id
+('face_tc001', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_tc001_option', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT ft.face_id FROM face_tc001 ft WHERE ft.id = ($1->>''face_tc001_id'')::UUID)'),
+
+-- Face tw001 tables: resolve through face.domain_id
+('face_tw001', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+
+-- Face tw002 tables: resolve through face.domain_id
+('face_tw002', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_tw002_accordion_item', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT ft.face_id FROM face_tw002 ft WHERE ft.id = ($1->>''face_tw002_id'')::UUID)'),
+
+-- Face tw004, tw005, tw006, wt001, wt002, wt003: resolve through face.domain_id
+('face_tw004', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_tw005', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_tw005_button', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT ft.face_id FROM face_tw005 ft WHERE ft.id = ($1->>''face_tw005_id'')::UUID)'),
+('face_tw006', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_tw006_action', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT ft.face_id FROM face_tw006 ft WHERE ft.id = ($1->>''face_tw006_id'')::UUID)'),
+('face_tw007', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_wt001', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_wt001_column', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT fw.face_id FROM face_wt001 fw WHERE fw.id = ($1->>''face_wt001_id'')::UUID)'),
+('face_wt002', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+('face_wt002_button', 'SELECT f.domain_id FROM face f WHERE f.id = (SELECT fw.face_id FROM face_wt002 fw WHERE fw.id = ($1->>''face_wt002_id'')::UUID)'),
+('face_wt003', 'SELECT f.domain_id FROM face f WHERE f.id = ($1->>''face_id'')::UUID'),
+
+-- History notification collector: resolve through history_notification_recipient.domain_id
+('history_notification_recipient_collector', 'SELECT domain_id FROM history_notification_recipient WHERE id = ($1->>''history_notification_recipient_id'')::UUID'),
+
+-- History type config tables: resolve through twin_class -> domain_id
+('history_type_config_twin_class_field', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''twin_class_field_id'')::UUID'),
+
+-- Link tables: resolve through link.domain_id
+('link_trigger', 'SELECT domain_id FROM link WHERE id = ($1->>''link_id'')::UUID'),
+('link_validator', 'SELECT domain_id FROM link WHERE id = ($1->>''link_id'')::UUID'),
+
+-- Notification channel event: resolve through notification_channel.domain_id
+('notification_channel_event', 'SELECT domain_id FROM notification_channel WHERE id = ($1->>''notification_channel_id'')::UUID'),
+
+-- Notification context collector: resolve through notification_context.domain_id
+('notification_context_collector', 'SELECT domain_id FROM notification_context WHERE id = ($1->>''notification_context_id'')::UUID'),
+
+-- Permission: resolve through permission_group.domain_id
+('permission', 'SELECT domain_id FROM permission_group WHERE id = ($1->>''permission_group_id'')::UUID'),
+
+-- twin_status_group_map: resolve through twin_status -> twin_class.domain_id
+('twin_status_group_map', 'SELECT tc.domain_id FROM twin_status ts JOIN twin_class tc ON ts.twin_class_id = tc.id WHERE ts.id = ($1->>''twin_status_id'')::UUID'),
+
+-- twin_status_transition_trigger: resolve through twin_status -> twin_class.domain_id
+('twin_status_transition_trigger', 'SELECT tc.domain_id FROM twin_status ts JOIN twin_class tc ON ts.twin_class_id = tc.id WHERE ts.id = ($1->>''twin_status_id'')::UUID'),
+
+-- Permission grant tables: resolve through permission_schema.domain_id
+('permission_grant_assignee_propagation', 'SELECT domain_id FROM permission_schema WHERE id = ($1->>''permission_schema_id'')::UUID'),
+('permission_grant_space_role', 'SELECT domain_id FROM permission_schema WHERE id = ($1->>''permission_schema_id'')::UUID'),
+('permission_grant_twin_role', 'SELECT domain_id FROM permission_schema WHERE id = ($1->>''permission_schema_id'')::UUID'),
+
+-- Space role: resolve through twin_class.domain_id
+('space_role', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+
+-- User search tables: resolve through user_search.domain_id
+('user_search_predicate', 'SELECT domain_id FROM user_search WHERE id = ($1->>''user_search_id'')::UUID');
 
 -- Write audit record
 CREATE OR REPLACE FUNCTION domain_config_audit_write(
@@ -604,32 +719,185 @@ SELECT create_domain_config_audit_wrapper('permission_schema');
 SELECT create_domain_config_audit_wrapper('data_list');
 SELECT create_domain_config_audit_wrapper('data_list_option');
 SELECT create_domain_config_audit_wrapper('data_list_option_search');
-SELECT create_domain_config_audit_wrapper('data_list_subset');
-SELECT create_domain_config_audit_wrapper('data_list_subset_option');
+SELECT create_domain_config_audit_wrapper('data_list_option_search_predicate');
+SELECT create_domain_config_audit_wrapper('data_list_option_projection');
+
+-- User search tables (domain config - user search configuration within a domain)
+SELECT create_domain_config_audit_wrapper('user_search');
+SELECT create_domain_config_audit_wrapper('user_search_predicate');
+
+-- data_list_subset and data_list_subset_option have composite/subtle PK, custom wrappers
+CREATE OR REPLACE FUNCTION data_list_subset_after_insert_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write('data_list_subset', 'INSERT', NEW.id, to_jsonb(NEW));
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION data_list_subset_after_update_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
+        perform domain_config_audit_write('data_list_subset', 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
+    end if;
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION data_list_subset_after_delete_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write('data_list_subset', 'DELETE', OLD.id, to_jsonb(OLD));
+    return old;
+end;
+$$;
+
+DROP TRIGGER IF EXISTS data_list_subset_after_insert_wrapper_trigger ON data_list_subset;
+CREATE TRIGGER data_list_subset_after_insert_wrapper_trigger
+    AFTER INSERT ON data_list_subset
+    FOR EACH ROW
+    EXECUTE FUNCTION data_list_subset_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_after_update_wrapper_trigger ON data_list_subset;
+CREATE TRIGGER data_list_subset_after_update_wrapper_trigger
+    AFTER UPDATE ON data_list_subset
+    FOR EACH ROW
+    EXECUTE FUNCTION data_list_subset_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_after_delete_wrapper_trigger ON data_list_subset;
+CREATE TRIGGER data_list_subset_after_delete_wrapper_trigger
+    AFTER DELETE ON data_list_subset
+    FOR EACH ROW
+    EXECUTE FUNCTION data_list_subset_after_delete_wrapper();
+
+CREATE OR REPLACE FUNCTION data_list_subset_option_after_insert_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write('data_list_subset_option', 'INSERT', NEW.data_list_subset_id, to_jsonb(NEW));
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION data_list_subset_option_after_update_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
+        perform domain_config_audit_write('data_list_subset_option', 'UPDATE', NEW.data_list_subset_id, to_jsonb(NEW) - 'updated_at');
+    end if;
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION data_list_subset_option_after_delete_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write('data_list_subset_option', 'DELETE', OLD.data_list_subset_id, to_jsonb(OLD));
+    return old;
+end;
+$$;
+
+DROP TRIGGER IF EXISTS data_list_subset_option_after_insert_wrapper_trigger ON data_list_subset_option;
+CREATE TRIGGER data_list_subset_option_after_insert_wrapper_trigger
+    AFTER INSERT ON data_list_subset_option
+    FOR EACH ROW
+    EXECUTE FUNCTION data_list_subset_option_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_option_after_update_wrapper_trigger ON data_list_subset_option;
+CREATE TRIGGER data_list_subset_option_after_update_wrapper_trigger
+    AFTER UPDATE ON data_list_subset_option
+    FOR EACH ROW
+    EXECUTE FUNCTION data_list_subset_option_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_option_after_delete_wrapper_trigger ON data_list_subset_option;
+CREATE TRIGGER data_list_subset_option_after_delete_wrapper_trigger
+    AFTER DELETE ON data_list_subset_option
+    FOR EACH ROW
+    EXECUTE FUNCTION data_list_subset_option_after_delete_wrapper();
 
 -- Domain tables
 SELECT create_domain_config_audit_wrapper('domain_locale');
 
--- Error tables
-SELECT create_domain_config_audit_wrapper('error');
-
 -- Face tables
 SELECT create_domain_config_audit_wrapper('face');
-SELECT create_domain_config_audit_wrapper('face_navbar_nb001');
+SELECT create_domain_config_audit_wrapper('face_bc001');
+SELECT create_domain_config_audit_wrapper('face_bc001_item');
+
+-- face_navbar_nb001 has composite PK (face_id), custom wrapper using face_id as row_id
+DROP FUNCTION IF EXISTS face_navbar_nb001_after_insert_wrapper CASCADE;
+DROP FUNCTION IF EXISTS face_navbar_nb001_after_update_wrapper CASCADE;
+DROP FUNCTION IF EXISTS face_navbar_nb001_after_delete_wrapper CASCADE;
+
+CREATE OR REPLACE FUNCTION face_navbar_nb001_after_insert_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write('face_navbar_nb001', 'INSERT', NEW.face_id, to_jsonb(NEW));
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION face_navbar_nb001_after_update_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
+        perform domain_config_audit_write('face_navbar_nb001', 'UPDATE', NEW.face_id, to_jsonb(NEW) - 'updated_at');
+    end if;
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION face_navbar_nb001_after_delete_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write('face_navbar_nb001', 'DELETE', OLD.face_id, to_jsonb(OLD));
+    return old;
+end;
+$$;
+
+DROP TRIGGER IF EXISTS face_navbar_nb001_after_insert_wrapper_trigger ON face_navbar_nb001;
+CREATE TRIGGER face_navbar_nb001_after_insert_wrapper_trigger
+    AFTER INSERT ON face_navbar_nb001
+    FOR EACH ROW
+    EXECUTE FUNCTION face_navbar_nb001_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS face_navbar_nb001_after_update_wrapper_trigger ON face_navbar_nb001;
+CREATE TRIGGER face_navbar_nb001_after_update_wrapper_trigger
+    AFTER UPDATE ON face_navbar_nb001
+    FOR EACH ROW
+    EXECUTE FUNCTION face_navbar_nb001_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS face_navbar_nb001_after_delete_wrapper_trigger ON face_navbar_nb001;
+CREATE TRIGGER face_navbar_nb001_after_delete_wrapper_trigger
+    AFTER DELETE ON face_navbar_nb001
+    FOR EACH ROW
+    EXECUTE FUNCTION face_navbar_nb001_after_delete_wrapper();
+
 SELECT create_domain_config_audit_wrapper('face_navbar_nb001_menu_item');
 SELECT create_domain_config_audit_wrapper('face_pg001');
 SELECT create_domain_config_audit_wrapper('face_pg001_widget');
 SELECT create_domain_config_audit_wrapper('face_pg002');
-SELECT create_domain_config_audit_wrapper('face_pg002_layout');
 SELECT create_domain_config_audit_wrapper('face_pg002_tab');
 SELECT create_domain_config_audit_wrapper('face_pg002_widget');
 SELECT create_domain_config_audit_wrapper('face_tc001');
+SELECT create_domain_config_audit_wrapper('face_tc001_option');
 SELECT create_domain_config_audit_wrapper('face_tw001');
 SELECT create_domain_config_audit_wrapper('face_tw002');
 SELECT create_domain_config_audit_wrapper('face_tw002_accordion_item');
 SELECT create_domain_config_audit_wrapper('face_tw004');
 SELECT create_domain_config_audit_wrapper('face_tw005');
 SELECT create_domain_config_audit_wrapper('face_tw005_button');
+SELECT create_domain_config_audit_wrapper('face_tw006');
+SELECT create_domain_config_audit_wrapper('face_tw006_action');
+SELECT create_domain_config_audit_wrapper('face_tw007');
 SELECT create_domain_config_audit_wrapper('face_wt001');
 SELECT create_domain_config_audit_wrapper('face_wt001_column');
 SELECT create_domain_config_audit_wrapper('face_wt002');
@@ -641,6 +909,7 @@ SELECT create_domain_config_audit_wrapper('history_type_config_domain');
 SELECT create_domain_config_audit_wrapper('history_type_config_twin_class');
 SELECT create_domain_config_audit_wrapper('history_type_config_twin_class_field');
 SELECT create_domain_config_audit_wrapper('history_notification_recipient');
+SELECT create_domain_config_audit_wrapper('history_notification_recipient_collector');
 
 -- I18n tables
 SELECT create_domain_config_audit_wrapper('i18n');
@@ -744,11 +1013,6 @@ CREATE TRIGGER i18n_translation_bin_after_delete_wrapper_trigger
 -- i18n_translation_style has single id column, can use generic wrapper
 SELECT create_domain_config_audit_wrapper('i18n_translation_style');
 
--- Identity provider tables
-SELECT create_domain_config_audit_wrapper('identity_provider');
-SELECT create_domain_config_audit_wrapper('identity_provider_internal_token');
-SELECT create_domain_config_audit_wrapper('identity_provider_internal_user');
-
 -- Link tables
 SELECT create_domain_config_audit_wrapper('link');
 SELECT create_domain_config_audit_wrapper('link_trigger');
@@ -756,17 +1020,16 @@ SELECT create_domain_config_audit_wrapper('link_validator');
 
 -- Notification tables
 SELECT create_domain_config_audit_wrapper('notification_channel');
+SELECT create_domain_config_audit_wrapper('notification_channel_event');
 SELECT create_domain_config_audit_wrapper('notification_context');
+SELECT create_domain_config_audit_wrapper('notification_context_collector');
 SELECT create_domain_config_audit_wrapper('notification_email');
 SELECT create_domain_config_audit_wrapper('notification_schema');
 
 -- Permission grant tables
 SELECT create_domain_config_audit_wrapper('permission_grant_assignee_propagation');
-SELECT create_domain_config_audit_wrapper('permission_grant_global');
 SELECT create_domain_config_audit_wrapper('permission_grant_space_role');
 SELECT create_domain_config_audit_wrapper('permission_grant_twin_role');
-SELECT create_domain_config_audit_wrapper('permission_grant_user');
-SELECT create_domain_config_audit_wrapper('permission_grant_user_group');
 
 -- Resource tables
 SELECT create_domain_config_audit_wrapper('resource');
@@ -774,15 +1037,10 @@ SELECT create_domain_config_audit_wrapper('resource');
 -- Projection tables
 SELECT create_domain_config_audit_wrapper('projection_type');
 SELECT create_domain_config_audit_wrapper('projection_type_group');
-
--- Search tables
-SELECT create_domain_config_audit_wrapper('twin_search');
-SELECT create_domain_config_audit_wrapper('twin_search_alias');
-SELECT create_domain_config_audit_wrapper('twin_search_predicate');
+SELECT create_domain_config_audit_wrapper('projection');
 
 -- Space tables
 SELECT create_domain_config_audit_wrapper('space_role');
-SELECT create_domain_config_audit_wrapper('space_role_user_group');
 
 -- Storage tables
 SELECT create_domain_config_audit_wrapper('storage');
@@ -837,10 +1095,37 @@ SELECT create_domain_config_audit_wrapper('twin_status_transition_trigger');
 -- Twin validator tables
 SELECT create_domain_config_audit_wrapper('twin_validator');
 SELECT create_domain_config_audit_wrapper('twin_validator_set');
+SELECT create_domain_config_audit_wrapper('twin_statistic');
+
+-- Twin class tables (direct domainId)
+-- Note: twin_class has custom wrappers (twin_class_after_insert/update/delete_wrapper) with audit
+SELECT create_domain_config_audit_wrapper('twin_class_schema');
+SELECT create_domain_config_audit_wrapper('twin_class_dynamic_marker');
+SELECT create_domain_config_audit_wrapper('twin_class_field_attribute');
+SELECT create_domain_config_audit_wrapper('twin_class_field_rule_map');
+SELECT create_domain_config_audit_wrapper('twin_class_field_search');
+SELECT create_domain_config_audit_wrapper('twin_class_field_search_predicate');
+SELECT create_domain_config_audit_wrapper('twin_class_freeze');
+SELECT create_domain_config_audit_wrapper('twin_class_search');
+SELECT create_domain_config_audit_wrapper('twin_class_search_predicate');
+
+-- Twin factory tables (direct domainId)
+SELECT create_domain_config_audit_wrapper('twin_factory');
+SELECT create_domain_config_audit_wrapper('twin_factory_condition_set');
+
+-- History type tables (direct domainId)
+SELECT create_domain_config_audit_wrapper('history_type_domain_template');
+
+-- Eraseflow tables (domain config through twin_class)
+SELECT create_domain_config_audit_wrapper('eraseflow');
+SELECT create_domain_config_audit_wrapper('eraseflow_link_cascade');
 
 -- Twinflow tables
+SELECT create_domain_config_audit_wrapper('twinflow');
+SELECT create_domain_config_audit_wrapper('twinflow_factory');
 SELECT create_domain_config_audit_wrapper('twinflow_schema');
 SELECT create_domain_config_audit_wrapper('twinflow_schema_map');
+SELECT create_domain_config_audit_wrapper('twinflow_transition');
 SELECT create_domain_config_audit_wrapper('twinflow_transition_alias');
 SELECT create_domain_config_audit_wrapper('twinflow_transition_trigger');
 SELECT create_domain_config_audit_wrapper('twinflow_transition_validator_rule');

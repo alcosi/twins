@@ -86,22 +86,24 @@ SELECT add_domain_version_column('data_list_subset');
 SELECT add_domain_version_column('data_list_subset_option');
 SELECT add_domain_version_column('domain_locale');
 SELECT add_domain_version_column('email_sender');
-SELECT add_domain_version_column('error');
 SELECT add_domain_version_column('face_navbar_nb001');
 SELECT add_domain_version_column('face_navbar_nb001_menu_item');
 SELECT add_domain_version_column('face_pg001');
 SELECT add_domain_version_column('face_pg001_widget');
 SELECT add_domain_version_column('face_pg002');
-SELECT add_domain_version_column('face_pg002_layout');
 SELECT add_domain_version_column('face_pg002_tab');
 SELECT add_domain_version_column('face_pg002_widget');
 SELECT add_domain_version_column('face_tc001');
+SELECT add_domain_version_column('face_tc001_option');
 SELECT add_domain_version_column('face_tw001');
 SELECT add_domain_version_column('face_tw002');
 SELECT add_domain_version_column('face_tw002_accordion_item');
 SELECT add_domain_version_column('face_tw004');
 SELECT add_domain_version_column('face_tw005');
 SELECT add_domain_version_column('face_tw005_button');
+SELECT add_domain_version_column('face_tw006');
+SELECT add_domain_version_column('face_tw006_action');
+SELECT add_domain_version_column('face_tw007');
 SELECT add_domain_version_column('face_wt001');
 SELECT add_domain_version_column('face_wt001_column');
 SELECT add_domain_version_column('face_wt002');
@@ -115,26 +117,16 @@ SELECT add_domain_version_column('i18n');
 SELECT add_domain_version_column('i18n_translation');
 SELECT add_domain_version_column('i18n_translation_bin');
 SELECT add_domain_version_column('i18n_translation_style');
-SELECT add_domain_version_column('identity_provider');
-SELECT add_domain_version_column('identity_provider_internal_token');
-SELECT add_domain_version_column('identity_provider_internal_user');
 SELECT add_domain_version_column('link_trigger');
 SELECT add_domain_version_column('link_validator');
 SELECT add_domain_version_column('notification_email');
 SELECT add_domain_version_column('permission_grant_assignee_propagation');
-SELECT add_domain_version_column('permission_grant_global');
 SELECT add_domain_version_column('permission_grant_space_role');
 SELECT add_domain_version_column('permission_grant_twin_role');
-SELECT add_domain_version_column('permission_grant_user');
-SELECT add_domain_version_column('permission_grant_user_group');
 SELECT add_domain_version_column('permission_group');
 
 SELECT add_domain_version_column('resource');
-SELECT add_domain_version_column('twin_search');
-SELECT add_domain_version_column('twin_search_alias');
-SELECT add_domain_version_column('twin_search_predicate');
 SELECT add_domain_version_column('space_role');
-SELECT add_domain_version_column('space_role_user_group');
 SELECT add_domain_version_column('storage');
 SELECT add_domain_version_column('template_generator');
 SELECT add_domain_version_column('tier');
@@ -164,7 +156,10 @@ SELECT add_domain_version_column('twin_status_group_map');
 SELECT add_domain_version_column('twin_status_transition_trigger');
 SELECT add_domain_version_column('twin_validator');
 SELECT add_domain_version_column('twin_validator_set');
+SELECT add_domain_version_column('twin_statistic');
 
+SELECT add_domain_version_column('twinflow');
+SELECT add_domain_version_column('twinflow_factory');
 SELECT add_domain_version_column('twinflow_schema');
 SELECT add_domain_version_column('twinflow_schema_map');
 
@@ -175,6 +170,8 @@ SELECT add_domain_version_column('twinflow_transition_validator_rule');
 -- Additional domain tables added later
 SELECT add_domain_version_column('link');
 SELECT add_domain_version_column('face');
+SELECT add_domain_version_column('face_bc001');
+SELECT add_domain_version_column('face_bc001_item');
 
 -- Permission schema
 SELECT add_domain_version_column('permission_schema');
@@ -184,10 +181,13 @@ SELECT add_domain_version_column('data_list_option_search');
 
 -- History notification
 SELECT add_domain_version_column('history_notification_recipient');
+SELECT add_domain_version_column('history_notification_recipient_collector');
 
 -- Notification tables
 SELECT add_domain_version_column('notification_channel');
+SELECT add_domain_version_column('notification_channel_event');
 SELECT add_domain_version_column('notification_context');
+SELECT add_domain_version_column('notification_context_collector');
 SELECT add_domain_version_column('notification_schema');
 
 -- Projection tables
@@ -196,5 +196,39 @@ SELECT add_domain_version_column('projection_type_group');
 
 -- Scheduler
 SELECT add_domain_version_column('scheduler');
+
+-- Twin class tables (critical)
+SELECT add_domain_version_column('twin_class');
+SELECT add_domain_version_column('twin_class_dynamic_marker');
+SELECT add_domain_version_column('twin_class_field_attribute');
+SELECT add_domain_version_column('twin_class_field_rule_map');
+SELECT add_domain_version_column('twin_class_field_search');
+SELECT add_domain_version_column('twin_class_field_search_predicate');
+SELECT add_domain_version_column('twin_class_freeze');
+SELECT add_domain_version_column('twin_class_schema');
+SELECT add_domain_version_column('twin_class_search');
+SELECT add_domain_version_column('twin_class_search_predicate');
+
+-- Twin factory tables
+SELECT add_domain_version_column('twin_factory');
+SELECT add_domain_version_column('twin_factory_condition_set');
+
+-- History type tables
+SELECT add_domain_version_column('history_type_domain_template');
+
+-- Data list search predicates
+SELECT add_domain_version_column('data_list_option_search_predicate');
+SELECT add_domain_version_column('data_list_option_projection');
+
+-- Projection
+SELECT add_domain_version_column('projection');
+
+-- Eraseflow tables (domain config through twin_class)
+SELECT add_domain_version_column('eraseflow');
+SELECT add_domain_version_column('eraseflow_link_cascade');
+
+-- User search tables (domain config - user search configuration within a domain)
+SELECT add_domain_version_column('user_search');
+SELECT add_domain_version_column('user_search_predicate');
 
 DROP FUNCTION IF EXISTS add_domain_version_column(text);
