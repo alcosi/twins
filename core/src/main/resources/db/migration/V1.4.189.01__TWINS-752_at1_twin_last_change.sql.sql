@@ -1,3 +1,21 @@
+create table if not exists twin_last_change (
+        twin_id uuid not null,
+        twin_class_field_id uuid not null,
+        last_changed_at timestamp not null,
+        constraint twin_last_change_pk
+        primary key (twin_id, twin_class_field_id),
+    constraint twin_last_change_twin_fk
+        foreign key (twin_id)
+        references twin(id)
+            on update cascade
+            on delete cascade,
+    constraint twin_last_change_field_fk
+        foreign key (twin_class_field_id)
+        references twin_class_field(id)
+            on update cascade
+            on delete cascade
+    );
+
 -- twin_last_change maintenance integrated into existing twin wrapper pattern:
 -- existing triggers on `twin` call `twin_after_insert_wrapper()` / `twin_after_update_wrapper()`.
 -- We keep core functions and add PERFORM calls inside those wrappers (without changing their business logic).
