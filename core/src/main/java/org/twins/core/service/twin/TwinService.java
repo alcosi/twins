@@ -1640,8 +1640,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         var twinLevelPermissionCheckNeeded = new HashMap<UUID, List<TwinClassFieldEntity>>(); // classId -> classFieldId
         for (var twinClass : needLoad.getGroupingObjectMap().values()) {
             for (var twinClassField : twinClass.getTwinClassFieldKit()) {
-                var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-                if (!fieldTyper.canSerialize(twinClassField)) { //this edit blocker flag from field typer
+                if (twinClassFieldService.notSerializable(twinClassField)) { //this edit blocker flag from field typer
                     classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
                             .put(twinClassField.getId(), false);
                     continue;
@@ -1691,7 +1690,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public boolean isFieldImmutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
         loadFieldEditability(twin);
-        if (twin.getTwinFieldEditability().get(twinClassField.getId()) == null) {
+        if (twinClassField.isBaseField() && twinClassFieldService.notSerializable(twinClassField)) { // base fields is not loaded
+            return true;
+        } else if (twin.getTwinFieldEditability().get(twinClassField.getId()) == null) {
             log.warn("undetected editability for field {}", twinClassField.logNormal());
             return true;
         } else if (Boolean.FALSE.equals(twin.getTwinFieldEditability().get(twinClassField.getId()))) {
