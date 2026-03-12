@@ -14,12 +14,9 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
-import org.twins.core.dao.notification.NotificationChannelEntity;
-import org.twins.core.dao.notification.NotificationChannelEventEntity;
-import org.twins.core.dao.notification.NotificationContextEntity;
-import org.twins.core.dao.notification.NotificationSchemaEntity;
+import org.twins.core.dao.notification.*;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -30,12 +27,12 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
-import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
-import org.twins.core.dao.history.HistoryTypeEntity;
+import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
@@ -47,14 +44,9 @@ import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
-import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
-import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
-import org.twins.core.dto.rest.notification.NotificationChannelDTOv1;
-import org.twins.core.dto.rest.notification.NotificationChannelEventDTOv1;
-import org.twins.core.dto.rest.notification.NotificationContextDTOv1;
-import org.twins.core.dto.rest.notification.NotificationSchemaDTOv1;
-import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
+import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.notification.*;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
@@ -67,10 +59,12 @@ import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
+import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentRestrictionRestDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
@@ -87,12 +81,7 @@ import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
-import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
-import org.twins.core.mappers.rest.notification.NotificationChannelEventRestDTOMapper;
-import org.twins.core.mappers.rest.notification.NotificationChannelRestDTOMapper;
-import org.twins.core.mappers.rest.notification.NotificationContextRestDTOMapper;
-import org.twins.core.mappers.rest.notification.NotificationSchemaRestDTOMapper;
-import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
+import org.twins.core.mappers.rest.notification.*;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
@@ -105,9 +94,11 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.*;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
+import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -135,6 +126,7 @@ public class RelatedObjectsRestDTOConverter {
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
     private final TwinClassSchemaDTOMapper twinClassSchemaDTOMapper;
+    private final TwinflowSchemaRestDTOMapper twinflowSchemaRestDTOMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
     private final FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
@@ -185,6 +177,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, CommentDTOv1> commentMap = new HashMap<>();
         Map<UUID, I18nDTOv1> i18nMap = new HashMap<>();
         Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap = new HashMap<>();
+        Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap = new HashMap<>();
         Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
         Map<UUID, TwinClassFieldDTOv1> twinClassFiledMap = new HashMap<>();
         Map<UUID, TierDTOv1> tierMap = new HashMap<>();
@@ -251,6 +244,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel2, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContext.getRelatedTwinClassSchemaMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinClassSchemaMap(), twinClassSchemaDTOMapper, mapperContextLevel2, twinClassSchemaMap, TwinClassSchemaEntity::getId);
+        if (!mapperContext.getRelatedTwinflowSchemaMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), twinflowSchemaRestDTOMapper, mapperContextLevel2, twinflowSchemaMap, TwinflowSchemaEntity::getId);
         if (!mapperContext.getRelatedTierMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel2, tierMap, TierEntity::getId);
         if (!mapperContext.getRelatedAttachmentRestrictionMap().isEmpty())
@@ -330,6 +325,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassSchemaMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinClassSchemaMap(), twinClassSchemaDTOMapper, mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
+        if (!mapperContextLevel2.getRelatedTwinflowSchemaMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), twinflowSchemaRestDTOMapper, mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedTierMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel3, tierMap, TierEntity::getId);
         if (!mapperContextLevel2.getRelatedAttachmentRestrictionMap().isEmpty())
@@ -410,6 +407,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassSchemaMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinClassSchemaMap(), twinClassSchemaDTOMapper, mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
+        if (!mapperContextLevel3.getRelatedTwinflowSchemaMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), twinflowSchemaRestDTOMapper, mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTierMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel3, tierMap, TierEntity::getId);
         if (!mapperContextLevel3.getRelatedAttachmentRestrictionMap().isEmpty())
@@ -464,6 +463,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setI18nMap(i18nMap.isEmpty() ? null : i18nMap)
                 .setTwinClassFieldMap(twinClassFiledMap.isEmpty() ? null : twinClassFiledMap)
                 .setTwinClassSchemaMap(twinClassSchemaMap.isEmpty() ? null : twinClassSchemaMap)
+                .setTwinflowSchemaMap(twinflowSchemaMap.isEmpty() ? null : twinflowSchemaMap)
                 .setTierMap(tierMap.isEmpty() ? null : tierMap)
                 .setAttachmentRestrictionMap(attachmentRestrictionMap.isEmpty() ? null : attachmentRestrictionMap)
                 .setTwinClassFreezeMap(twinClassFreezeMap.isEmpty() ? null : twinClassFreezeMap)

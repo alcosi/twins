@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -11,22 +12,20 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -35,13 +34,9 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
-
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserRepository userRepository;
-    private final EntitySmartService entitySmartService;
-    private final SystemEntityService systemEntityService;
 
-    @Lazy
-    private final TwinService twinService;
     @Lazy
     private final AuthService authService;
 
@@ -195,4 +190,20 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
+
+    public void loadUserCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
+        loadUserCountForDomainBusinessAccounts(Collections.singletonList(dba));
+    }
+
+    public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getUsersCount);
+        if (MapUtils.isEmpty(needLoad))
+            return;
+
+        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
+        for (EntryCount entryCount : entryCounts) {
+            needLoad.get(entryCount.id()).setUsersCount(entryCount.count());
+        }
+    }
+
 }

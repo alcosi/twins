@@ -35,4 +35,24 @@ public enum NotificationSchemaMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainBusinessAccount2NotificationSchemaMode implements MapperModePointer<NotificationSchemaMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public NotificationSchemaMode point() {
+            return switch (this) {
+                case HIDE -> NotificationSchemaMode.HIDE;
+                case SHORT -> NotificationSchemaMode.SHORT;
+                case DETAILED -> NotificationSchemaMode.DETAILED;
+            };
+        }
+    }
 }

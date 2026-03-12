@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.*;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -23,7 +22,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
@@ -54,6 +55,7 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -137,6 +139,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     @Autowired
     private ErrorRepository errorRepository;
+    @Autowired
+    private DomainBusinessAccountService domainBusinessAccountService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -1694,17 +1698,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (var twinClass : needLoad.getGroupingObjectMap().values()) {
             for (var twinClassField : twinClass.getTwinClassFieldKit()) {
                 if (twinClassFieldService.notSerializable(twinClassField)) { //this edit blocker flag from field typer
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), false);
                     continue;
                 }
                 if (twinClassField.getEditPermissionId() == null) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), true);
                     continue;
                 }
                 if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
                             .put(twinClassField.getId(), true);
                     continue;
                 }
@@ -1736,9 +1740,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
-       if (isFieldImmutable(twin, twinClassField)) {
+        if (isFieldImmutable(twin, twinClassField)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "{} can not be edited", twinClassField.logNormal());
-       }
+        }
     }
 
     public boolean isFieldMutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
@@ -1747,8 +1751,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public boolean isFieldImmutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
         loadFieldEditability(twin);
-        if (twinClassField.isBaseField() && twinClassFieldService.notSerializable(twinClassField)) { // base fields is not loaded
-            return true;
+        if (twinClassField.isBaseField()) { // base fields is not loaded
+            return twinClassFieldService.notSerializable(twinClassField);
         } else if (twin.getTwinFieldEditability().get(twinClassField.getId()) == null) {
             log.warn("undetected editability for field {}", twinClassField.logNormal());
             return true;
@@ -1760,6 +1764,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public long countPermissionSchemaMismatches() {
         return twinRepository.countPermissionSchemaMismatches();
+    }
+
+    public void loadTwinCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
+        loadTwinCountForDomainBusinessAccounts(Collections.singletonList(dba));
+    }
+
+
+    public void loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getTwinsCount);
+        if (MapUtils.isEmpty(needLoad))
+            return;
+        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
+        for (var entryCount : entryCounts) {
+            needLoad.get(entryCount.id()).setTwinsCount(entryCount.count());
+        }
     }
 
     @Data
@@ -1936,5 +1955,4 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         else
             return errorCode.getMessage();
     }
-
 }

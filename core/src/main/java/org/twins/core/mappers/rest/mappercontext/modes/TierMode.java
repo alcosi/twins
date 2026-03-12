@@ -35,4 +35,24 @@ public enum TierMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainBusinessAccount2TierMode implements MapperModePointer<TierMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TierMode point() {
+            return switch (this) {
+                case HIDE -> TierMode.HIDE;
+                case SHORT -> TierMode.SHORT;
+                case DETAILED -> TierMode.DETAILED;
+            };
+        }
+    }
 }

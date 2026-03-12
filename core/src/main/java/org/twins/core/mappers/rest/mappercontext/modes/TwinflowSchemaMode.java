@@ -35,4 +35,24 @@ public enum TwinflowSchemaMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainBusinessAccount2TwinflowSchemaMode implements MapperModePointer<TwinflowSchemaMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinflowSchemaMode point() {
+            return switch (this) {
+                case HIDE -> TwinflowSchemaMode.HIDE;
+                case SHORT -> TwinflowSchemaMode.SHORT;
+                case DETAILED -> TwinflowSchemaMode.DETAILED;
+            };
+        }
+    }
 }
