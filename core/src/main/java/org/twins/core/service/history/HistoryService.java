@@ -76,7 +76,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied=!entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
+        boolean readDenied = !entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
         if (readDenied) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
         }
@@ -85,7 +85,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean validateEntity(HistoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
@@ -128,6 +128,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -136,7 +137,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context)
-                .setHistoryBatchId(authService.getApiUser().getRequestId());
+                .setHistoryBatchId(apiUser.getRequestId());
+        if (apiUser.isMachineUserSpecified()) {
+            historyEntity.setMachineUserId(apiUser.getMachineUserId());
+        }
         fillHistoryEntity(historyEntity, twinEntity, context);
         return historyEntity;
     }

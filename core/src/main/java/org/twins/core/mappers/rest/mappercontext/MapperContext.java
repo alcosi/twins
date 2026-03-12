@@ -36,6 +36,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.*;
@@ -121,6 +122,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<NotificationContextEntity>> relatedNotificationContextMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<NotificationChannelEventEntity>> relatedNotificationChannelEventMap = new LinkedHashMap<>();
+    @Getter
+    private Map<String, RelatedObject<HistoryTypeEntity>> relatedHistoryTypeMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -293,6 +296,8 @@ public class MapperContext {
             smartPut(relatedNotificationContextMap, entity, entity.getId());
         else if (relatedObject instanceof NotificationChannelEventEntity entity)
             smartPut(relatedNotificationChannelEventMap, entity, entity.getId());
+        else if (relatedObject instanceof HistoryTypeEntity historyType)
+            smartPut(relatedHistoryTypeMap, historyType, historyType.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -513,6 +518,7 @@ public class MapperContext {
         dstMapperContext.relatedNotificationChannelMap = srcMapperContext.relatedNotificationChannelMap;
         dstMapperContext.relatedNotificationContextMap = srcMapperContext.relatedNotificationContextMap;
         dstMapperContext.relatedNotificationChannelEventMap = srcMapperContext.relatedNotificationChannelEventMap;
+        dstMapperContext.relatedHistoryTypeMap = srcMapperContext.relatedHistoryTypeMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

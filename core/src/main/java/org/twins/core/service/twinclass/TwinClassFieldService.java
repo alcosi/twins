@@ -680,6 +680,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return defaultValue;
     }
 
+    public boolean notSerializable(TwinClassFieldEntity twinClassField) throws ServiceException {
+        var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        return !fieldTyper.canSerialize(twinClassField);
+    }
+
     public String getDateFieldPattern(TwinClassFieldEntity twinClassField) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
         if (!(fieldTyper instanceof FieldTyperDateTime fieldTyperDateTime))

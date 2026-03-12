@@ -13,6 +13,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
@@ -93,6 +94,11 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity twinClassField;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private UserEntity createdByUser;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

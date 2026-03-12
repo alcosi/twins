@@ -10,7 +10,7 @@ import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchNumeric;
+import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -24,7 +24,7 @@ import java.util.Properties;
         name = "Sum children field values",
         description = "Save sum of child.fields.values on serializeValue, and return saved total from database"
 )
-public class FieldTyperCalcChildrenFieldV2 extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> implements FieldTyperCalcChildrenField {
+public class FieldTyperCalcChildrenFieldV2 extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcChildrenField {
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @Override
