@@ -1,4 +1,4 @@
-package org.twins.core.service.user;
+package org.twins.core.service.usergroup;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
@@ -21,6 +21,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
 import java.util.*;
 import java.util.function.Function;

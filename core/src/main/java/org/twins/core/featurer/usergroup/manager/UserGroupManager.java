@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.HashMap;
 import java.util.Properties;

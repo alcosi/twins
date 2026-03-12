@@ -25,8 +25,8 @@ import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.UUID;
 

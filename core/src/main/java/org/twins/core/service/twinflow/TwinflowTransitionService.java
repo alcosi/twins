@@ -66,8 +66,8 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupService;
 import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;

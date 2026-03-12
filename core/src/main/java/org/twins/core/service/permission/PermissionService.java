@@ -44,9 +44,9 @@ import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserGroupFootprintService;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupFootprintService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiFunction;

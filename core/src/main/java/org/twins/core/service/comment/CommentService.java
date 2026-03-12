@@ -42,7 +42,7 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;

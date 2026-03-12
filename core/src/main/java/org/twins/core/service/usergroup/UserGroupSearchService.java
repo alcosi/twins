@@ -1,4 +1,4 @@
-package org.twins.core.service.user;
+package org.twins.core.service.usergroup;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;

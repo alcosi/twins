@@ -38,7 +38,7 @@ import org.twins.core.service.twinclass.TwinClassSchemaService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowSchemaService;
 import org.twins.core.service.twinflow.TwinflowService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;

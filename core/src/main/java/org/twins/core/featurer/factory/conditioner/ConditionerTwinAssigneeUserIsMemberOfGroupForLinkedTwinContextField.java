@@ -15,7 +15,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsUserGroupId;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.Map;
 import java.util.Properties;

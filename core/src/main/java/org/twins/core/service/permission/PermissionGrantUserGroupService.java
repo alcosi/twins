@@ -18,8 +18,8 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
