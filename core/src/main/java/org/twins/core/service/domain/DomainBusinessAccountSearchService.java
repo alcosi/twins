@@ -1,14 +1,19 @@
-package org.twins.core.controller.rest.priv.domain;
+package org.twins.core.service.domain;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.service.auth.AuthService;
@@ -24,7 +29,7 @@ import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpec
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
 public class DomainBusinessAccountSearchService {
-
+    private final DomainBusinessAccountRepository domainBusinessAccountRepository;
     private final AuthService authService;
 
     public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
@@ -47,5 +52,14 @@ public class DomainBusinessAccountSearchService {
                 .and(CommonSpecification.checkFieldIntegerRange(domainBusinessAccountSearch.getStorageUsedSizeRange(), DomainBusinessAccountEntity.Fields.attachmentsStorageUsedSize))
                 .and(CommonSpecification.checkFieldIntegerRange(domainBusinessAccountSearch.getStorageUsedCountRange(), DomainBusinessAccountEntity.Fields.attachmentsStorageUsedCount))
                 .and(CommonSpecification.checkFieldLocalDateTimeBetween(domainBusinessAccountSearch.getCreateAtRange(), DomainBusinessAccountEntity.Fields.createdAt));
+    }
+
+    public PaginationResult<DomainBusinessAccountEntity> findDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch, SimplePagination pagination) throws ServiceException {
+        if (domainBusinessAccountSearch == null)
+            domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
+        Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository
+                .findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch),
+                        PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(domainBusinessAccountsList, pagination);
     }
 }

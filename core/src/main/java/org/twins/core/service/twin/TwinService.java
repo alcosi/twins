@@ -54,6 +54,7 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -137,6 +138,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     @Autowired
     private ErrorRepository errorRepository;
+    @Autowired
+    private DomainBusinessAccountService domainBusinessAccountService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -1706,22 +1709,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public void loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-        KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
-        for (var dba : srcCollection)
-            if (dba.getTwinsCount() == null) {
-                dba.setTwinsCount(0L);
-                needLoad.add(dba);
-            }
-
-        if (KitUtils.isEmpty(needLoad))
+        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getTwinsCount);
+        if (MapUtils.isEmpty(needLoad))
             return;
-
-        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.getGroupedKeySet(), domainId);
-        for (EntryCount entryCount : entryCounts)
-            for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
-                dba.setTwinsCount(entryCount.count());
+        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
+        for (var entryCount : entryCounts) {
+            needLoad.get(entryCount.id()).setTwinsCount(entryCount.count());
+        }
     }
 
     @Data

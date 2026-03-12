@@ -4,10 +4,9 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -22,6 +21,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -34,9 +34,8 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
-
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserRepository userRepository;
-    private final EntitySmartService entitySmartService;
 
     @Lazy
     private final AuthService authService;
@@ -197,22 +196,14 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     }
 
     public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-        KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
-        for (var dba : srcCollection)
-            if (dba.getUsersCount() == null) {
-                dba.setUsersCount(0L);
-                needLoad.add(dba);
-            }
-
-        if (KitUtils.isEmpty(needLoad))
+        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getUsersCount);
+        if (MapUtils.isEmpty(needLoad))
             return;
 
-        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getGroupedKeySet(), domainId);
-        for (EntryCount entryCount : entryCounts)
-            for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
-                dba.setUsersCount(entryCount.count());
+        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
+        for (EntryCount entryCount : entryCounts) {
+            needLoad.get(entryCount.id()).setUsersCount(entryCount.count());
+        }
     }
 
 }
