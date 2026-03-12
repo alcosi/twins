@@ -192,11 +192,13 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         return userRepository.findByEmail(email);
     }
 
-    public void loadUserCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) {
+    public void loadUserCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
         loadUserCountForDomainBusinessAccounts(Collections.singletonList(dba));
     }
 
-    public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) {
+    public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
         KitGrouped<DomainBusinessAccountEntity, UUID, UUID> needLoad = new KitGrouped<>(DomainBusinessAccountEntity::getId, DomainBusinessAccountEntity::getBusinessAccountId);
         for (var dba : srcCollection)
             if (dba.getUsersCount() == null) {
@@ -207,7 +209,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getGroupedKeySet());
+        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.getGroupedKeySet(), domainId);
         for (EntryCount entryCount : entryCounts)
             for (DomainBusinessAccountEntity dba : needLoad.getGrouped(entryCount.id()))
                 dba.setUsersCount(entryCount.count());
