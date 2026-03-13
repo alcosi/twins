@@ -25,27 +25,6 @@ ALTER TABLE domain
             references domain_version
             on update cascade on delete restrict;
 
-CREATE TABLE IF NOT EXISTS domain_version_changes
-(
-    id                uuid
-        constraint domain_version_changes_pk
-            primary key,
-    domain_version_id uuid     not null
-        constraint domain_version_changes_domain_version_id_fk
-            references domain_version
-            on update cascade on delete cascade,
-    time_in_ms        integer  not null,
-    table_name        varchar  not null,
-    operation         smallint not null,
-    row_id            varchar  not null
-);
-
-CREATE INDEX IF NOT EXISTS domain_version_changes_domain_version_id_index
-    ON domain_version_changes (domain_version_id);
-
-CREATE INDEX IF NOT EXISTS domain_version_changes_table_name_index
-    ON domain_version_changes (table_name);
-
 CREATE TABLE IF NOT EXISTS domain_version_ghost
 (
     domain_id  uuid        not null

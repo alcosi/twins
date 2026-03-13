@@ -646,6 +646,39 @@ CREATE TRIGGER tier_after_delete_wrapper_trigger
 -- Helper to create wrapper and trigger for a table
 CREATE OR REPLACE FUNCTION create_domain_config_audit_wrapper(p_table_name TEXT) RETURNS void AS $$
 BEGIN
+    -- Check if table already has custom wrapper triggers with business logic (protection from accidental override)
+    -- tgtype: bitmask (4=INSERT, 8=UPDATE, 16=DELETE)
+    IF EXISTS (
+        SELECT 1 FROM pg_trigger t
+        JOIN pg_proc p ON t.tgfoid = p.oid
+        WHERE t.tgrelid = p_table_name::regclass
+        AND NOT t.tgisinternal  -- Not internal trigger
+        AND (
+            -- Check INSERT triggers (bit 4)
+            ((t.tgtype & 4) > 0 AND (
+                p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
+                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
+                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
+            ))
+            OR
+            -- Check UPDATE triggers (bit 8)
+            ((t.tgtype & 8) > 0 AND (
+                p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
+                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
+                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
+            ))
+            OR
+            -- Check DELETE triggers (bit 16)
+            ((t.tgtype & 16) > 0 AND (
+                p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
+                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
+                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
+            ))
+        )
+    ) THEN
+        RAISE EXCEPTION 'Table % already has custom wrapper triggers with business logic. Cannot use create_domain_config_audit_wrapper() - use custom wrapper definition instead.', p_table_name;
+    END IF;
+
     -- Create insert wrapper
     EXECUTE format('
         CREATE OR REPLACE FUNCTION %I_after_insert_wrapper() returns trigger
@@ -681,30 +714,17 @@ BEGIN
         end;
         $func$;', p_table_name, p_table_name);
 
-    -- Create triggers
-    EXECUTE format('
-        DROP TRIGGER IF EXISTS %I_after_insert_wrapper_trigger ON %I;
-        CREATE TRIGGER %I_after_insert_wrapper_trigger
-            AFTER INSERT ON %I
-            FOR EACH ROW
-            EXECUTE FUNCTION %I_after_insert_wrapper();',
-        p_table_name, p_table_name, p_table_name, p_table_name, p_table_name);
+    -- Create insert trigger (handles PostgreSQL 63 char name limit)
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_insert_wrapper_trigger ON %I;', p_table_name, p_table_name);
+    EXECUTE format('CREATE TRIGGER %I_after_insert_wrapper_trigger AFTER INSERT ON %I FOR EACH ROW EXECUTE FUNCTION %I_after_insert_wrapper();', p_table_name, p_table_name, p_table_name);
 
-    EXECUTE format('
-        DROP TRIGGER IF EXISTS %I_after_update_wrapper_trigger ON %I;
-        CREATE TRIGGER %I_after_update_wrapper_trigger
-            AFTER UPDATE ON %I
-            FOR EACH ROW
-            EXECUTE FUNCTION %I_after_update_wrapper();',
-        p_table_name, p_table_name, p_table_name, p_table_name, p_table_name);
+    -- Create update trigger (handles PostgreSQL 63 char name limit)
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_update_wrapper_trigger ON %I;', p_table_name, p_table_name);
+    EXECUTE format('CREATE TRIGGER %I_after_update_wrapper_trigger AFTER UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION %I_after_update_wrapper();', p_table_name, p_table_name, p_table_name);
 
-    EXECUTE format('
-        DROP TRIGGER IF EXISTS %I_after_delete_wrapper_trigger ON %I;
-        CREATE TRIGGER %I_after_delete_wrapper_trigger
-            AFTER DELETE ON %I
-            FOR EACH ROW
-            EXECUTE FUNCTION %I_after_delete_wrapper();',
-        p_table_name, p_table_name, p_table_name, p_table_name, p_table_name);
+    -- Create delete trigger (handles PostgreSQL 63 char name limit)
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_delete_wrapper_trigger ON %I;', p_table_name, p_table_name);
+    EXECUTE format('CREATE TRIGGER %I_after_delete_wrapper_trigger AFTER DELETE ON %I FOR EACH ROW EXECUTE FUNCTION %I_after_delete_wrapper();', p_table_name, p_table_name, p_table_name);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -1028,7 +1048,7 @@ SELECT create_domain_config_audit_wrapper('notification_schema');
 
 -- Permission grant tables
 SELECT create_domain_config_audit_wrapper('permission_grant_assignee_propagation');
-SELECT create_domain_config_audit_wrapper('permission_grant_space_role');
+-- permission_grant_space_role - updated manually to preserve business logic + audit
 SELECT create_domain_config_audit_wrapper('permission_grant_twin_role');
 
 -- Resource tables
@@ -1037,7 +1057,7 @@ SELECT create_domain_config_audit_wrapper('resource');
 -- Projection tables
 SELECT create_domain_config_audit_wrapper('projection_type');
 SELECT create_domain_config_audit_wrapper('projection_type_group');
-SELECT create_domain_config_audit_wrapper('projection');
+-- projection - updated manually to preserve business logic + audit
 
 -- Space tables
 SELECT create_domain_config_audit_wrapper('space_role');
@@ -1102,7 +1122,7 @@ SELECT create_domain_config_audit_wrapper('twin_statistic');
 SELECT create_domain_config_audit_wrapper('twin_class_schema');
 SELECT create_domain_config_audit_wrapper('twin_class_dynamic_marker');
 SELECT create_domain_config_audit_wrapper('twin_class_field_attribute');
-SELECT create_domain_config_audit_wrapper('twin_class_field_rule_map');
+-- twin_class_field_rule_map - updated manually to preserve business logic + audit
 SELECT create_domain_config_audit_wrapper('twin_class_field_search');
 SELECT create_domain_config_audit_wrapper('twin_class_field_search_predicate');
 SELECT create_domain_config_audit_wrapper('twin_class_freeze');
@@ -1133,5 +1153,180 @@ SELECT create_domain_config_audit_wrapper('twinflow_transition_validator_rule');
 -- Email sender
 SELECT create_domain_config_audit_wrapper('email_sender');
 
--- Clean up helper function
-DROP FUNCTION create_domain_config_audit_wrapper(TEXT);
+-- NOTE: Helper function create_domain_config_audit_wrapper() is kept for future migrations
+-- to add audit triggers to new domain configuration tables.
+
+-- ============================================================================
+-- Update existing wrapper functions with audit (preserve business logic)
+-- ============================================================================
+
+-- permission_grant_space_role wrappers - preserve existing logic + audit
+CREATE OR REPLACE FUNCTION permission_grant_space_role_after_insert_wrapper() returns trigger
+    language plpgsql
+as $func$
+begin
+    PERFORM permission_mater_space_by_permiss_grant_space_role_insert(
+        NEW.permission_schema_id,
+        NEW.permission_id,
+        NEW.space_role_id
+    );
+    PERFORM domain_config_audit_write('permission_grant_space_role', 'INSERT', NEW.id, to_jsonb(NEW));
+    return NEW;
+end;
+$func$;
+
+CREATE OR REPLACE FUNCTION permission_grant_space_role_after_update_wrapper() returns trigger
+    language plpgsql
+as $func$
+begin
+    if NEW.permission_schema_id is distinct from OLD.permission_schema_id
+        or NEW.permission_id is distinct from OLD.permission_id
+        or NEW.space_role_id is distinct from OLD.space_role_id
+    then
+        PERFORM permission_mater_space_by_permiss_grant_space_role_insert(
+                NEW.permission_schema_id,
+                NEW.permission_id,
+                NEW.space_role_id
+                );
+        PERFORM permission_mater_space_by_permiss_grant_space_role_delete(
+                OLD.permission_schema_id,
+                OLD.permission_id,
+                OLD.space_role_id
+                );
+    end if;
+    PERFORM domain_config_audit_write('permission_grant_space_role', 'UPDATE', NEW.id, to_jsonb(NEW));
+    return NEW;
+end;
+$func$;
+
+CREATE OR REPLACE FUNCTION permission_grant_space_role_after_delete_wrapper() returns trigger
+    language plpgsql
+as $func$
+begin
+    PERFORM permission_mater_space_by_permiss_grant_space_role_delete(
+            OLD.permission_schema_id,
+            OLD.permission_id,
+            OLD.space_role_id
+            );
+    PERFORM domain_config_audit_write('permission_grant_space_role', 'DELETE', OLD.id, to_jsonb(OLD));
+    return OLD;
+end;
+$func$;
+
+-- projection wrappers - preserve existing logic + audit
+CREATE OR REPLACE FUNCTION projection_after_insert_wrapper() returns trigger
+    language plpgsql
+as $func$
+begin
+    update twin_class_field
+        set has_projected_fields=true
+    where id=new.src_twin_class_field_id;
+
+    update twin_class_field
+        set projection_field=true
+    where id=new.dst_twin_class_field_id;
+
+    PERFORM domain_config_audit_write('projection', 'INSERT', NEW.id, to_jsonb(NEW));
+    return NEW;
+end;
+$func$;
+
+CREATE OR REPLACE FUNCTION projection_after_update_wrapper() returns trigger
+    language plpgsql
+as $func$
+begin
+    update twin_class_field
+    set has_projected_fields=true
+    where id=new.src_twin_class_field_id;
+
+    update twin_class_field
+    set projection_field=true
+    where id=new.dst_twin_class_field_id;
+
+    PERFORM domain_config_audit_write('projection', 'UPDATE', NEW.id, to_jsonb(NEW));
+    return NEW;
+end;
+$func$;
+
+-- twin_class_field_rule_map wrappers - preserve existing logic + audit
+CREATE OR REPLACE FUNCTION twin_class_field_rule_map_after_insert_wrapper() returns trigger
+    language plpgsql
+as $func$
+BEGIN
+    PERFORM twin_class_field_is_dependent_field_check(NEW.twin_class_field_id);
+    PERFORM domain_config_audit_write('twin_class_field_rule_map', 'INSERT', NEW.id, to_jsonb(NEW));
+    RETURN NEW;
+END;
+$func$;
+
+CREATE OR REPLACE FUNCTION twin_class_field_rule_map_after_update_wrapper() returns trigger
+    language plpgsql
+as $func$
+BEGIN
+    PERFORM twin_class_field_is_dependent_field_check(NEW.twin_class_field_id);
+    PERFORM twin_class_field_is_dependent_field_check(OLD.twin_class_field_id);
+    PERFORM domain_config_audit_write('twin_class_field_rule_map', 'UPDATE', NEW.id, to_jsonb(NEW));
+    RETURN NEW;
+END;
+$func$;
+
+CREATE OR REPLACE FUNCTION twin_class_field_rule_map_after_delete_wrapper() returns trigger
+    language plpgsql
+as $func$
+BEGIN
+    PERFORM twin_class_field_is_dependent_field_check(OLD.twin_class_field_id);
+    PERFORM domain_config_audit_write('twin_class_field_rule_map', 'DELETE', OLD.id, to_jsonb(OLD));
+    RETURN OLD;
+END;
+$func$;
+
+-- Triggers for permission_grant_space_role
+DROP TRIGGER IF EXISTS permission_grant_space_role_after_insert_wrapper_trigger ON permission_grant_space_role;
+CREATE TRIGGER permission_grant_space_role_after_insert_wrapper_trigger
+    AFTER INSERT ON permission_grant_space_role
+    FOR EACH ROW
+    EXECUTE FUNCTION permission_grant_space_role_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS permission_grant_space_role_after_update_wrapper_trigger ON permission_grant_space_role;
+CREATE TRIGGER permission_grant_space_role_after_update_wrapper_trigger
+    AFTER UPDATE ON permission_grant_space_role
+    FOR EACH ROW
+    EXECUTE FUNCTION permission_grant_space_role_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS permission_grant_space_role_after_delete_wrapper_trigger ON permission_grant_space_role;
+CREATE TRIGGER permission_grant_space_role_after_delete_wrapper_trigger
+    AFTER DELETE ON permission_grant_space_role
+    FOR EACH ROW
+    EXECUTE FUNCTION permission_grant_space_role_after_delete_wrapper();
+
+-- Triggers for projection
+DROP TRIGGER IF EXISTS projection_after_insert_wrapper_trigger ON projection;
+CREATE TRIGGER projection_after_insert_wrapper_trigger
+    AFTER INSERT ON projection
+    FOR EACH ROW
+    EXECUTE FUNCTION projection_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS projection_after_update_wrapper_trigger ON projection;
+CREATE TRIGGER projection_after_update_wrapper_trigger
+    AFTER UPDATE ON projection
+    FOR EACH ROW
+    EXECUTE FUNCTION projection_after_update_wrapper();
+
+-- Triggers for twin_class_field_rule_map
+DROP TRIGGER IF EXISTS twin_class_field_rule_map_after_insert_wrapper_trigger ON twin_class_field_rule_map;
+CREATE TRIGGER twin_class_field_rule_map_after_insert_wrapper_trigger
+    AFTER INSERT ON twin_class_field_rule_map
+    FOR EACH ROW
+    EXECUTE FUNCTION twin_class_field_rule_map_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_rule_map_after_update_wrapper_trigger ON twin_class_field_rule_map;
+CREATE TRIGGER twin_class_field_rule_map_after_update_wrapper_trigger
+    AFTER UPDATE ON twin_class_field_rule_map
+    FOR EACH ROW
+    EXECUTE FUNCTION twin_class_field_rule_map_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_rule_map_after_delete_wrapper_trigger ON twin_class_field_rule_map;
+CREATE TRIGGER twin_class_field_rule_map_after_delete_wrapper_trigger
+    AFTER DELETE ON twin_class_field_rule_map
+    FOR EACH ROW
+    EXECUTE FUNCTION twin_class_field_rule_map_after_delete_wrapper();
