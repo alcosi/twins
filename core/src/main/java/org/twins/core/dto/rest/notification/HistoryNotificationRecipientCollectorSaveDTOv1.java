@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -18,7 +18,7 @@ public class HistoryNotificationRecipientCollectorSaveDTOv1 {
     public Integer recipientResolverFeaturerId;
 
     @Schema(description = "recipient resolver params")
-    public Map<String, String> recipientResolverParams;
+    public HashMap<String, String> recipientResolverParams;
 
     @Schema(description = "exclude")
     public Boolean exclude;

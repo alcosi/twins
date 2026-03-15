@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
-import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -25,7 +25,7 @@ public class HistoryNotificationRecipientCollectorDTOv1 {
     public Integer recipientResolverFeaturerId;
 
     @Schema(description = "recipient resolver params")
-    public Map<String, String> recipientResolverParams;
+    public HashMap<String, String> recipientResolverParams;
 
     @Schema(description = "exclude")
     public Boolean exclude;

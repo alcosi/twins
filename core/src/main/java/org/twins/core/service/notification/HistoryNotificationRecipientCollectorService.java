@@ -117,7 +117,7 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
             updateEntityFieldByValue(recipientCollector.getExclude(), entity,
                     HistoryNotificationRecipientCollectorEntity::getExclude, HistoryNotificationRecipientCollectorEntity::setExclude,
                     HistoryNotificationRecipientCollectorEntity.Fields.exclude, changesHelper);
-            updateFieldRecipientResolverFeaturerId(entity, recipientCollector.getRecipientResolverFeaturerId(), new HashMap<>(recipientCollector.getRecipientResolverParams()),changesHelper);
+            updateFieldRecipientResolverFeaturerId(entity, recipientCollector.getRecipientResolverFeaturerId(), recipientCollector.getRecipientResolverParams(),changesHelper);
 
             changes.add(entity, changesHelper);
         }
