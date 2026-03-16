@@ -70,19 +70,12 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
             return Collections.emptyList();
         }
 
-        i18nService.createI18nAndTranslations(I18nType.HISTORY_NOTIFICATION_RECIPIENT_NAME,
-                recipients
-                        .stream().map(HistoryNotificationRecipientCreate::getNameI18n)
-                        .toList());
-
-        //todo save description
-
         List<HistoryNotificationRecipientEntity> recipientsToSave = new ArrayList<>();
 
         for (HistoryNotificationRecipientCreate recipient : recipients) {
             HistoryNotificationRecipientEntity recipientEntity = new HistoryNotificationRecipientEntity()
-                    .setNameI18nId(recipient.getHistoryNotificationRecipient().getNameI18n().getId())
-                    .setDescriptionI18nId(recipient.getHistoryNotificationRecipient().getDescriptionI18n().getId())
+                    .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.HISTORY_NOTIFICATION_RECIPIENT_NAME, recipient.getNameI18n()).getId())
+                    .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.HISTORY_NOTIFICATION_RECIPIENT_DESCRIPTION, recipient.getDescriptionI18n()).getId())
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(authService.getApiUser().getUserId())
                     .setDomainId(recipient.getHistoryNotificationRecipient().getNameI18n().getDomainId());

@@ -126,18 +126,12 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
             }
         }
 
-        i18nService.createI18nAndTranslations(I18nType.SPACE_ROLE_NAME,
-                spaceRoles
-                        .stream().map(SpaceRoleCreate::getNameI18n)
-                        .toList());
-
-        //todo save description
-
         List<SpaceRoleEntity> spaceRolesToSave = new ArrayList<>();
 
         for (SpaceRoleCreate spaceRole : spaceRoles) {
             SpaceRoleEntity spaceRoleEntity = new SpaceRoleEntity()
-                    .setNameI18NId(spaceRole.getNameI18n().getId())
+                    .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.SPACE_ROLE_NAME, spaceRole.getNameI18n()).getId())
+                    .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.SPACE_ROLE_DESCRIPTION, spaceRole.getDescriptionI18n()).getId())
                     .setKey(spaceRole.getSpaceRole().getKey())
                     .setTwinClassId(spaceRole.getSpaceRole().getTwinClassId())
                     .setBusinessAccountId(spaceRole.getSpaceRole().getBusinessAccountId());
