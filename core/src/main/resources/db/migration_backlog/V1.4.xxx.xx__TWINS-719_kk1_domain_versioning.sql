@@ -214,6 +214,10 @@ SELECT add_domain_version_column('eraseflow');
 SELECT add_domain_version_column('eraseflow_link_cascade');
 SELECT add_domain_version_column('user_search');
 SELECT add_domain_version_column('user_search_predicate');
+-- user_group and permission_grant_user_group support conditional domain versioning
+-- (only when business_account_id IS NULL)
+SELECT add_domain_version_column('user_group');
+SELECT add_domain_version_column('permission_grant_user_group');
 
 DROP FUNCTION IF EXISTS add_domain_version_column(text);
 

@@ -81,9 +81,8 @@ INSERT INTO domain_config_audit_resolve (table_name, resolve_sql) VALUES
 ('twin_class_field_condition', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''base_twin_class_field_id'')::UUID'),
 
 
--- TODO incorrect select twin_class_field_rule
--- twin_class_field_rule: resolve through twin_class_field_id -> twin_class_field -> twin_class
-('twin_class_field_rule', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''twin_class_field_id'')::UUID'),
+-- twin_class_field_rule: resolve through twin_class_field_rule_map -> twin_class_field -> twin_class
+('twin_class_field_rule', 'SELECT tc.domain_id FROM twin_class_field_rule_map tcfrm JOIN twin_class_field tcf ON tcfrm.twin_class_field_id = tcf.id JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcfrm.twin_class_field_rule_id = ($1->>''id'')::UUID'),
 
 -- twin_comment tables
 ('twin_comment_action_alien_permission', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
@@ -207,6 +206,9 @@ INSERT INTO domain_config_audit_resolve (table_name, resolve_sql) VALUES
 
 -- Space role: resolve through twin_class.domain_id
 ('space_role', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
+
+-- User group tables: resolve through user_group.domain_id
+('permission_grant_user_group', 'SELECT domain_id FROM user_group WHERE id = ($1->>''user_group_id'')::UUID'),
 
 -- User search tables: resolve through user_search.domain_id
 ('user_search_predicate', 'SELECT domain_id FROM user_search WHERE id = ($1->>''user_search_id'')::UUID');
@@ -740,7 +742,6 @@ BEGIN
 END;
 $$ language plpgsql;
 
--- TODO add primary key to table
 create or replace function data_list_subset_option_after_insert_wrapper() returns trigger
     language plpgsql
 as $$
@@ -935,6 +936,147 @@ begin
     return NEW;
 end;
 $$;
+
+create or replace function user_group_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+begin
+    -- Only audit domain-level groups (business_account_id IS NULL)
+    if new.business_account_id is null then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
+end if;
+return new;
+end;
+$$;
+
+create or replace function user_group_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+begin
+    -- Update domain_id in user_group_map if domain_id changed
+    if new.domain_id is distinct from old.domain_id then
+update user_group_map
+set domain_id = new.domain_id
+where user_group_id = new.id;
+end if;
+
+    -- Update business_account_id in user_group_map if business_account_id changed
+    if new.business_account_id is distinct from old.business_account_id then
+update user_group_map
+set business_account_id = new.business_account_id
+where user_group_id = new.id;
+end if;
+
+    -- Only audit domain-level groups (business_account_id IS NULL)
+    if new.business_account_id is null then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
+end if;
+return new;
+end;
+$$;
+
+create or replace function user_group_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+begin
+    -- Only audit domain-level groups (business_account_id IS NULL)
+    if old.business_account_id is null then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
+end if;
+return old;
+end;
+$$;
+
+create or replace function permission_grant_user_group_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+declare
+v_business_account_id uuid;
+begin
+    -- Call existing business logic
+    perform set_config('app.permission_mater_space_user_by_perm_grant_user_group_trigger', 'on', true);
+    perform permission_mater_schema_level_by_perm_grant_user_group_insert(new.permission_schema_id, new.permission_id, new.user_group_id);
+    PERFORM set_config('app.permission_mater_space_user_by_perm_grant_user_group_trigger', 'off', true);
+
+    -- Only audit domain-level groups (business_account_id IS NULL)
+select business_account_id into v_business_account_id
+from user_group
+where id = new.user_group_id;
+
+if v_business_account_id is null then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
+end if;
+
+return new;
+end;
+$$;
+
+create or replace function permission_grant_user_group_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+declare
+v_old_business_account_id uuid;
+    v_new_business_account_id uuid;
+begin
+    -- Call existing business logic
+    if new.permission_schema_id is distinct from old.permission_schema_id
+        or new.permission_id is distinct from old.permission_id
+        or new.user_group_id is distinct from old.user_group_id
+    then
+        perform set_config('app.permission_mater_space_user_by_perm_grant_user_group_trigger', 'on', true);
+        perform permission_mater_schema_level_by_perm_grant_user_group_insert(new.permission_schema_id, new.permission_id, new.user_group_id);
+        perform permission_mater_schema_level_by_perm_grant_user_group_delete(old.permission_schema_id, old.permission_id, old.user_group_id);
+        PERFORM set_config('app.permission_mater_space_user_by_perm_grant_user_group_trigger', 'off', true);
+end if;
+
+    -- Only audit domain-level groups (business_account_id IS NULL)
+select business_account_id into v_old_business_account_id
+from user_group
+where id = old.user_group_id;
+
+select business_account_id into v_new_business_account_id
+from user_group
+where id = new.user_group_id;
+
+-- Audit if either old or new group is domain-level
+if v_old_business_account_id is null or v_new_business_account_id is null then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
+end if;
+
+return new;
+end;
+$$;
+
+create or replace function permission_grant_user_group_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+declare
+v_business_account_id uuid;
+begin
+    -- Call existing business logic
+    perform set_config('app.permission_mater_space_user_by_perm_grant_user_group_trigger', 'on', true);
+    perform permission_mater_schema_level_by_perm_grant_user_group_delete(old.permission_schema_id, old.permission_id, old.user_group_id);
+    PERFORM set_config('app.permission_mater_space_user_by_perm_grant_user_group_trigger', 'off', true);
+
+    -- Only audit domain-level groups (business_account_id IS NULL)
+select business_account_id into v_business_account_id
+from user_group
+where id = old.user_group_id;
+
+if v_business_account_id is null then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
+end if;
+
+return old;
+end;
+$$;
+
 
 DROP TRIGGER IF EXISTS tier_after_insert_wrapper_trigger ON tier;
 CREATE TRIGGER tier_after_insert_wrapper_trigger
@@ -1141,3 +1283,39 @@ CREATE TRIGGER twin_class_field_rule_map_after_delete_wrapper_trigger
     AFTER DELETE ON twin_class_field_rule_map
     FOR EACH ROW
     EXECUTE FUNCTION twin_class_field_rule_map_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS user_group_after_insert_wrapper_trigger ON user_group;
+CREATE TRIGGER user_group_after_insert_wrapper_trigger
+    AFTER INSERT ON user_group
+    FOR EACH ROW
+    EXECUTE FUNCTION user_group_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS user_group_after_update_wrapper_trigger ON user_group;
+CREATE TRIGGER user_group_after_update_wrapper_trigger
+    AFTER UPDATE ON user_group
+    FOR EACH ROW
+    EXECUTE FUNCTION user_group_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS user_group_after_delete_wrapper_trigger ON user_group;
+CREATE TRIGGER user_group_after_delete_wrapper_trigger
+    AFTER DELETE ON user_group
+    FOR EACH ROW
+    EXECUTE FUNCTION user_group_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS permission_grant_user_group_after_insert_wrapper_trigger ON permission_grant_user_group;
+CREATE TRIGGER permission_grant_user_group_after_insert_wrapper_trigger
+    AFTER INSERT ON permission_grant_user_group
+    FOR EACH ROW
+    EXECUTE FUNCTION permission_grant_user_group_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS permission_grant_user_group_after_update_wrapper_trigger ON permission_grant_user_group;
+CREATE TRIGGER permission_grant_user_group_after_update_wrapper_trigger
+    AFTER UPDATE ON permission_grant_user_group
+    FOR EACH ROW
+    EXECUTE FUNCTION permission_grant_user_group_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS permission_grant_user_group_after_delete_wrapper_trigger ON permission_grant_user_group;
+CREATE TRIGGER permission_grant_user_group_after_delete_wrapper_trigger
+    AFTER DELETE ON permission_grant_user_group
+    FOR EACH ROW
+    EXECUTE FUNCTION permission_grant_user_group_after_delete_wrapper();
