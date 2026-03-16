@@ -62,7 +62,6 @@ INSERT INTO domain_config_audit_resolve (table_name, resolve_sql) VALUES
 
 -- twin_class_field_attribute: resolve through twin_class.domain_id
 ('twin_class_field_attribute', 'SELECT domain_id FROM twin_class WHERE id = ($1->>''twin_class_id'')::UUID'),
-
 -- twin_class_field_rule_map: resolve through twin_class_field -> twin_class.domain_id
 ('twin_class_field_rule_map', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''twin_class_field_id'')::UUID'),
 
@@ -81,6 +80,8 @@ INSERT INTO domain_config_audit_resolve (table_name, resolve_sql) VALUES
 -- twin_class_field_condition: resolve through base_twin_class_field_id -> twin_class_field -> twin_class
 ('twin_class_field_condition', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''base_twin_class_field_id'')::UUID'),
 
+
+-- TODO incorrect select twin_class_field_rule
 -- twin_class_field_rule: resolve through twin_class_field_id -> twin_class_field -> twin_class
 ('twin_class_field_rule', 'SELECT tc.domain_id FROM twin_class_field tcf JOIN twin_class tc ON tcf.twin_class_id = tc.id WHERE tcf.id = ($1->>''twin_class_field_id'')::UUID'),
 
@@ -267,14 +268,305 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- ============================================================================
--- 2. Update EXISTING wrapper functions - add audit at the END (from V1.4.130.01 + V1.4.170.01)
--- ============================================================================
+CREATE OR REPLACE FUNCTION create_domain_config_audit_insert_wrapper(p_table_name TEXT) RETURNS void AS $$
+BEGIN
+    -- Create insert wrapper function
+    EXECUTE format('
+        CREATE OR REPLACE FUNCTION %I_after_insert_wrapper() returns trigger
+        language plpgsql
+        as $func$
+        begin
+            perform domain_config_audit_write(%L, ''INSERT'', NEW.id, to_jsonb(NEW));
+            return new;
+        end;
+        $func$;', p_table_name, p_table_name);
 
--- twin_class_after_insert_wrapper (from V1.4.130.01) + audit
-CREATE OR REPLACE FUNCTION twin_class_after_insert_wrapper() RETURNS trigger
-    LANGUAGE plpgsql
-AS
+    -- Create insert trigger
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_insert_wrapper_trigger ON %I;', p_table_name, p_table_name);
+    EXECUTE format('
+        CREATE TRIGGER %I_after_insert_wrapper_trigger
+        AFTER INSERT ON %I
+        FOR EACH ROW
+        EXECUTE FUNCTION %I_after_insert_wrapper();',
+                   p_table_name, p_table_name, p_table_name);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION create_domain_config_audit_update_wrapper(p_table_name TEXT) RETURNS void AS $$
+BEGIN
+    -- Create update wrapper function
+    EXECUTE format('
+        CREATE OR REPLACE FUNCTION %I_after_update_wrapper() returns trigger
+        language plpgsql
+        as $func$
+        begin
+            if (to_jsonb(OLD) - ''updated_at'') != (to_jsonb(NEW) - ''updated_at'') then
+                perform domain_config_audit_write(%L, ''UPDATE'', NEW.id, to_jsonb(NEW) - ''updated_at'');
+            end if;
+            return new;
+        end;
+        $func$;', p_table_name, p_table_name);
+
+    -- Create update trigger
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_update_wrapper_trigger ON %I;', p_table_name, p_table_name);
+    EXECUTE format('
+        CREATE TRIGGER %I_after_update_wrapper_trigger
+        AFTER UPDATE ON %I
+        FOR EACH ROW
+        EXECUTE FUNCTION %I_after_update_wrapper();',
+                   p_table_name, p_table_name, p_table_name);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION create_domain_config_audit_delete_wrapper(p_table_name TEXT) RETURNS void AS $$
+BEGIN
+    -- Create delete wrapper function
+    EXECUTE format('
+        CREATE OR REPLACE FUNCTION %I_after_delete_wrapper() returns trigger
+        language plpgsql
+        as $func$
+        begin
+            perform domain_config_audit_write(%L, ''DELETE'', OLD.id, to_jsonb(OLD));
+            return old;
+        end;
+        $func$;', p_table_name, p_table_name);
+
+    -- Create delete trigger
+    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_delete_wrapper_trigger ON %I;', p_table_name, p_table_name);
+    EXECUTE format('
+        CREATE TRIGGER %I_after_delete_wrapper_trigger
+        AFTER DELETE ON %I
+        FOR EACH ROW
+        EXECUTE FUNCTION %I_after_delete_wrapper();',
+                   p_table_name, p_table_name, p_table_name);
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION create_domain_config_audit_wrapper(p_table_name TEXT) RETURNS void AS $$
+BEGIN
+    -- Protection: check if table already has custom triggers with business logic
+    IF EXISTS (
+        SELECT 1
+        FROM pg_trigger t
+                 JOIN pg_proc p ON t.tgfoid = p.oid
+        WHERE t.tgrelid = p_table_name::regclass
+          AND NOT t.tgisinternal
+          AND (
+            p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
+                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
+                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
+            )
+    ) THEN
+        RAISE EXCEPTION
+            'Table % already has custom wrapper triggers with business logic. Cannot use create_domain_config_audit_wrapper() - use custom wrapper definition instead.',
+            p_table_name;
+    END IF;
+
+    -- Create wrappers
+    PERFORM create_domain_config_audit_insert_wrapper(p_table_name);
+    PERFORM create_domain_config_audit_update_wrapper(p_table_name);
+    PERFORM create_domain_config_audit_delete_wrapper(p_table_name);
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT create_domain_config_audit_wrapper('domain_locale');
+SELECT create_domain_config_audit_wrapper('face');
+SELECT create_domain_config_audit_wrapper('face_bc001');
+SELECT create_domain_config_audit_wrapper('face_bc001_item');
+SELECT create_domain_config_audit_wrapper('i18n');
+SELECT create_domain_config_audit_wrapper('permission');
+SELECT create_domain_config_audit_wrapper('permission_group');
+SELECT create_domain_config_audit_wrapper('permission_schema');
+SELECT create_domain_config_audit_wrapper('data_list');
+SELECT create_domain_config_audit_wrapper('data_list_subset');
+SELECT create_domain_config_audit_wrapper('data_list_option');
+SELECT create_domain_config_audit_wrapper('data_list_option_search');
+SELECT create_domain_config_audit_wrapper('data_list_option_search_predicate');
+SELECT create_domain_config_audit_wrapper('data_list_option_projection');
+SELECT create_domain_config_audit_wrapper('user_search');
+SELECT create_domain_config_audit_wrapper('user_search_predicate');
+SELECT create_domain_config_audit_wrapper('face_navbar_nb001_menu_item');
+SELECT create_domain_config_audit_wrapper('face_pg001');
+SELECT create_domain_config_audit_wrapper('face_pg001_widget');
+SELECT create_domain_config_audit_wrapper('face_pg002');
+SELECT create_domain_config_audit_wrapper('face_pg002_tab');
+SELECT create_domain_config_audit_wrapper('face_pg002_widget');
+SELECT create_domain_config_audit_wrapper('face_tc001');
+SELECT create_domain_config_audit_wrapper('face_tc001_option');
+SELECT create_domain_config_audit_wrapper('face_tw001');
+SELECT create_domain_config_audit_wrapper('face_tw002');
+SELECT create_domain_config_audit_wrapper('face_tw002_accordion_item');
+SELECT create_domain_config_audit_wrapper('face_tw004');
+SELECT create_domain_config_audit_wrapper('face_tw005');
+SELECT create_domain_config_audit_wrapper('face_tw005_button');
+SELECT create_domain_config_audit_wrapper('face_tw006');
+SELECT create_domain_config_audit_wrapper('face_tw006_action');
+SELECT create_domain_config_audit_wrapper('face_tw007');
+SELECT create_domain_config_audit_wrapper('face_wt001');
+SELECT create_domain_config_audit_wrapper('face_wt001_column');
+SELECT create_domain_config_audit_wrapper('face_wt002');
+SELECT create_domain_config_audit_wrapper('face_wt002_button');
+SELECT create_domain_config_audit_wrapper('face_wt003');
+SELECT create_domain_config_audit_wrapper('history_type_config_domain');
+SELECT create_domain_config_audit_wrapper('history_type_config_twin_class');
+SELECT create_domain_config_audit_wrapper('history_type_config_twin_class_field');
+SELECT create_domain_config_audit_wrapper('history_notification_recipient');
+SELECT create_domain_config_audit_wrapper('history_notification_recipient_collector');
+SELECT create_domain_config_audit_wrapper('i18n_translation_style');
+SELECT create_domain_config_audit_wrapper('link');
+SELECT create_domain_config_audit_wrapper('link_trigger');
+SELECT create_domain_config_audit_wrapper('link_validator');
+SELECT create_domain_config_audit_wrapper('notification_channel');
+SELECT create_domain_config_audit_wrapper('notification_channel_event');
+SELECT create_domain_config_audit_wrapper('notification_context');
+SELECT create_domain_config_audit_wrapper('notification_context_collector');
+SELECT create_domain_config_audit_wrapper('notification_email');
+SELECT create_domain_config_audit_wrapper('notification_schema');
+SELECT create_domain_config_audit_wrapper('permission_grant_assignee_propagation');
+SELECT create_domain_config_audit_wrapper('permission_grant_twin_role');
+SELECT create_domain_config_audit_wrapper('resource');
+SELECT create_domain_config_audit_wrapper('projection_type');
+SELECT create_domain_config_audit_wrapper('projection_type_group');
+SELECT create_domain_config_audit_wrapper('space_role');
+SELECT create_domain_config_audit_wrapper('storage');
+SELECT create_domain_config_audit_wrapper('template_generator');
+SELECT create_domain_config_audit_wrapper('scheduler');
+SELECT create_domain_config_audit_wrapper('twin_action_permission');
+SELECT create_domain_config_audit_wrapper('twin_action_validator_rule');
+SELECT create_domain_config_audit_wrapper('twin_attachment_action_alien_permission');
+SELECT create_domain_config_audit_wrapper('twin_attachment_action_alien_validator_rule');
+SELECT create_domain_config_audit_wrapper('twin_attachment_action_self_validator_rule');
+SELECT create_domain_config_audit_wrapper('twin_attachment_restriction');
+SELECT create_domain_config_audit_wrapper('twin_class_field');
+SELECT create_domain_config_audit_wrapper('twin_class_schema_map');
+SELECT create_domain_config_audit_wrapper('twin_comment_action_alien_permission');
+SELECT create_domain_config_audit_wrapper('twin_comment_action_alien_validator_rule');
+SELECT create_domain_config_audit_wrapper('twin_comment_action_self');
+SELECT create_domain_config_audit_wrapper('twin_factory_branch');
+SELECT create_domain_config_audit_wrapper('twin_factory_condition');
+SELECT create_domain_config_audit_wrapper('twin_factory_eraser');
+SELECT create_domain_config_audit_wrapper('twin_factory_multiplier');
+SELECT create_domain_config_audit_wrapper('twin_factory_multiplier_filter');
+SELECT create_domain_config_audit_wrapper('twin_factory_pipeline');
+SELECT create_domain_config_audit_wrapper('twin_factory_pipeline_step');
+SELECT create_domain_config_audit_wrapper('twin_pointer');
+SELECT create_domain_config_audit_wrapper('twin_pointer_validator_rule');
+SELECT create_domain_config_audit_wrapper('twin_status');
+SELECT create_domain_config_audit_wrapper('twin_status_group');
+SELECT create_domain_config_audit_wrapper('twin_status_group_map');
+SELECT create_domain_config_audit_wrapper('twin_status_transition_trigger');
+SELECT create_domain_config_audit_wrapper('twin_validator');
+SELECT create_domain_config_audit_wrapper('twin_validator_set');
+SELECT create_domain_config_audit_wrapper('twin_statistic');
+SELECT create_domain_config_audit_wrapper('twin_class_schema');
+SELECT create_domain_config_audit_wrapper('twin_class_dynamic_marker');
+SELECT create_domain_config_audit_wrapper('twin_class_field_attribute');
+SELECT create_domain_config_audit_wrapper('twin_class_field_search');
+SELECT create_domain_config_audit_wrapper('twin_class_field_search_predicate');
+SELECT create_domain_config_audit_wrapper('twin_class_field_rule');
+SELECT create_domain_config_audit_wrapper('twin_class_freeze');
+SELECT create_domain_config_audit_wrapper('twin_class_search');
+SELECT create_domain_config_audit_wrapper('twin_class_search_predicate');
+SELECT create_domain_config_audit_wrapper('twin_factory');
+SELECT create_domain_config_audit_wrapper('twin_factory_condition_set');
+SELECT create_domain_config_audit_wrapper('history_type_domain_template');
+SELECT create_domain_config_audit_wrapper('eraseflow');
+SELECT create_domain_config_audit_wrapper('eraseflow_link_cascade');
+SELECT create_domain_config_audit_wrapper('twinflow');
+SELECT create_domain_config_audit_wrapper('twinflow_factory');
+SELECT create_domain_config_audit_wrapper('twinflow_schema');
+SELECT create_domain_config_audit_wrapper('twinflow_schema_map');
+SELECT create_domain_config_audit_wrapper('twinflow_transition');
+SELECT create_domain_config_audit_wrapper('twinflow_transition_alias');
+SELECT create_domain_config_audit_wrapper('twinflow_transition_trigger');
+SELECT create_domain_config_audit_wrapper('twinflow_transition_validator_rule');
+SELECT create_domain_config_audit_wrapper('email_sender');
+
+SELECT create_domain_config_audit_insert_wrapper('tier');
+SELECT create_domain_config_audit_delete_wrapper('tier');
+
+
+create or replace function twin_class_field_condition_after_delete_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform twin_class_field_has_dependent_fields_check(old.base_twin_class_field_id);
+
+    -- Add audit record
+    perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
+
+    return old;
+end;
+$$;
+
+create or replace function twin_class_field_condition_after_insert_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform twin_class_field_has_dependent_fields_check(new.base_twin_class_field_id);
+
+    -- Add audit record
+    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
+
+    return new;
+end;
+$$;
+
+create or replace function twin_class_field_condition_after_update_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    if new.base_twin_class_field_id is distinct from old.base_twin_class_field_id then
+        perform twin_class_field_has_dependent_fields_check(old.base_twin_class_field_id);
+        perform twin_class_field_has_dependent_fields_check(new.base_twin_class_field_id);
+    end if;
+
+    -- Add audit record (only if data actually changed)
+    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
+        perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
+    end if;
+
+    return new;
+end;
+$$;
+
+create or replace function twin_class_field_rule_map_after_insert_wrapper() returns trigger
+    language plpgsql
+as $$
+BEGIN
+    PERFORM twin_class_field_is_dependent_field_check(NEW.twin_class_field_id);
+    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
+    RETURN NEW;
+END;
+$$;
+
+create or replace function twin_class_field_rule_map_after_update_wrapper() returns trigger
+    language plpgsql
+as $$
+BEGIN
+    PERFORM twin_class_field_is_dependent_field_check(NEW.twin_class_field_id);
+    PERFORM twin_class_field_is_dependent_field_check(OLD.twin_class_field_id);
+    perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
+    RETURN NEW;
+END;
+$$;
+
+create or replace function twin_class_field_rule_map_after_delete_wrapper() returns trigger
+    language plpgsql
+as $$
+BEGIN
+    PERFORM twin_class_field_is_dependent_field_check(OLD.twin_class_field_id);
+    perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
+    RETURN OLD;
+END;
+$$;
+
+create or replace function twin_class_after_insert_wrapper() returns trigger
+    language plpgsql
+as
 $$
 BEGIN
     -- Call tree update on insert when extends_twin_class_id is set
@@ -297,10 +589,9 @@ BEGIN
 END;
 $$;
 
--- twin_class_after_delete_wrapper (from V1.4.130.01) + audit
-CREATE OR REPLACE FUNCTION twin_class_after_delete_wrapper() RETURNS trigger
-    LANGUAGE plpgsql
-AS
+create or replace function twin_class_after_delete_wrapper() returns trigger
+    language plpgsql
+as
 $$
 BEGIN
     -- Remove i18n and translations for deleted twin_class
@@ -323,8 +614,7 @@ BEGIN
 END;
 $$;
 
--- twin_class_after_update_wrapper (from V1.4.170.01) + audit
-CREATE OR REPLACE FUNCTION twin_class_after_update_wrapper()
+create or replace function twin_class_after_update_wrapper()
     returns trigger
     language plpgsql
 as
@@ -421,157 +711,8 @@ BEGIN
 END;
 $$;
 
--- twin_class_field_condition wrappers - preserve existing logic
-CREATE OR REPLACE FUNCTION twin_class_field_condition_after_insert_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform twin_class_field_has_dependent_fields_check(new.base_twin_class_field_id);
-
-    -- Add audit record
-    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
-
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION twin_class_field_condition_after_update_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    if new.base_twin_class_field_id is distinct from old.base_twin_class_field_id then
-        perform twin_class_field_has_dependent_fields_check(old.base_twin_class_field_id);
-        perform twin_class_field_has_dependent_fields_check(new.base_twin_class_field_id);
-    end if;
-
-    -- Add audit record (only if data actually changed)
-    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
-        perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
-    end if;
-
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION twin_class_field_condition_after_delete_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform twin_class_field_has_dependent_fields_check(old.base_twin_class_field_id);
-
-    -- Add audit record
-    perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
-
-    return old;
-end;
-$$;
-
--- twin_class_field_rule wrappers - preserve existing logic
-CREATE OR REPLACE FUNCTION twin_class_field_rule_after_insert_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform twin_class_field_is_dependent_field_check(new.twin_class_field_id);
-
-    -- Add audit record
-    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
-
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION twin_class_field_rule_after_update_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    if new.twin_class_field_id is distinct from old.twin_class_field_id then
-        perform twin_class_field_is_dependent_field_check(old.twin_class_field_id);
-        perform twin_class_field_is_dependent_field_check(new.twin_class_field_id);
-    end if;
-
-    -- Add audit record (only if data actually changed)
-    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
-        perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
-    end if;
-
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION twin_class_field_rule_after_delete_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform twin_class_field_is_dependent_field_check(old.twin_class_field_id);
-
-    -- Add audit record
-    perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
-
-    return old;
-end;
-$$;
-
--- ============================================================================
--- Create triggers for updated wrapper functions
--- ============================================================================
-
-DROP TRIGGER IF EXISTS twin_class_after_insert_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_after_insert_wrapper_trigger
-    AFTER INSERT ON twin_class
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_after_update_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_after_update_wrapper_trigger
-    AFTER UPDATE ON twin_class
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_after_delete_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_after_delete_wrapper_trigger
-    AFTER DELETE ON twin_class
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_after_delete_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_field_condition_after_insert_wrapper_trigger ON twin_class_field_condition;
-CREATE TRIGGER twin_class_field_condition_after_insert_wrapper_trigger
-    AFTER INSERT ON twin_class_field_condition
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_field_condition_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_field_condition_after_update_wrapper_trigger ON twin_class_field_condition;
-CREATE TRIGGER twin_class_field_condition_after_update_wrapper_trigger
-    AFTER UPDATE ON twin_class_field_condition
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_field_condition_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_field_condition_after_delete_wrapper_trigger ON twin_class_field_condition;
-CREATE TRIGGER twin_class_field_condition_after_delete_wrapper_trigger
-    AFTER DELETE ON twin_class_field_condition
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_field_condition_after_delete_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_field_rule_after_insert_wrapper_trigger ON twin_class_field_rule;
-CREATE TRIGGER twin_class_field_rule_after_insert_wrapper_trigger
-    AFTER INSERT ON twin_class_field_rule
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_field_rule_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_field_rule_after_update_wrapper_trigger ON twin_class_field_rule;
-CREATE TRIGGER twin_class_field_rule_after_update_wrapper_trigger
-    AFTER UPDATE ON twin_class_field_rule
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_field_rule_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_field_rule_after_delete_wrapper_trigger ON twin_class_field_rule;
-CREATE TRIGGER twin_class_field_rule_after_delete_wrapper_trigger
-    AFTER DELETE ON twin_class_field_rule
-    FOR EACH ROW
-    EXECUTE FUNCTION twin_class_field_rule_after_delete_wrapper();
-
--- tier_after_update_wrapper (from V1.4.50.01) + audit
-CREATE OR REPLACE FUNCTION tier_after_update_wrapper()
-    RETURNS TRIGGER AS $$
+create or replace function tier_after_update_wrapper()
+    returns trigger as $$
 BEGIN
     IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id OR
        OLD.twinflow_schema_id IS DISTINCT FROM NEW.twinflow_schema_id OR
@@ -579,7 +720,7 @@ BEGIN
        OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
        (OLD.custom IS DISTINCT FROM NEW.custom AND NOT NEW.custom) THEN
 
-        PERFORM business_account_update_all(
+        PERFORM domain_business_account_update_props_on_update_tier(
                 NEW.id,
                 NEW.domain_id,
                 NEW.permission_schema_id,
@@ -595,266 +736,38 @@ BEGIN
         PERFORM domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
     END IF;
 
-    RETURN NULL;
+    RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ language plpgsql;
 
--- tier insert and delete wrappers (no insert/delete wrappers exist, only update in V1.4.50.01)
-CREATE OR REPLACE FUNCTION tier_after_insert_wrapper() returns trigger
+-- TODO add primary key to table
+create or replace function data_list_subset_option_after_insert_wrapper() returns trigger
     language plpgsql
 as $$
 begin
-    -- Add audit record
-    PERFORM domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
-
+    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.data_list_subset_id, to_jsonb(NEW));
     return new;
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION tier_after_delete_wrapper() returns trigger
+create or replace function data_list_subset_option_after_update_wrapper() returns trigger
     language plpgsql
 as $$
 begin
-    -- Add audit record
-    PERFORM domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
+    perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.data_list_subset_id, to_jsonb(NEW) - 'updated_at');
+end;
+$$;
 
+create or replace function data_list_subset_option_after_delete_wrapper() returns trigger
+    language plpgsql
+as $$
+begin
+    perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.data_list_subset_id, to_jsonb(OLD));
     return old;
 end;
 $$;
 
-DROP TRIGGER IF EXISTS tier_after_insert_wrapper_trigger ON tier;
-CREATE TRIGGER tier_after_insert_wrapper_trigger
-    AFTER INSERT ON tier
-    FOR EACH ROW
-    EXECUTE FUNCTION tier_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS tier_after_delete_wrapper_trigger ON tier;
-CREATE TRIGGER tier_after_delete_wrapper_trigger
-    AFTER DELETE ON tier
-    FOR EACH ROW
-    EXECUTE FUNCTION tier_after_delete_wrapper();
-
--- Note: tier_after_update_wrapper trigger already exists in V1.4.50.01
--- and was updated above with audit logic
-
--- Note: twin_class_field_condition and twin_class_field_rule triggers already exist in V1.3.451.01
-
--- ============================================================================
--- 3. Create NEW wrapper functions + triggers for remaining tables
--- ============================================================================
-
--- Helper to create wrapper and trigger for a table
-CREATE OR REPLACE FUNCTION create_domain_config_audit_wrapper(p_table_name TEXT) RETURNS void AS $$
-BEGIN
-    -- Check if table already has custom wrapper triggers with business logic (protection from accidental override)
-    -- tgtype: bitmask (4=INSERT, 8=UPDATE, 16=DELETE)
-    IF EXISTS (
-        SELECT 1 FROM pg_trigger t
-        JOIN pg_proc p ON t.tgfoid = p.oid
-        WHERE t.tgrelid = p_table_name::regclass
-        AND NOT t.tgisinternal  -- Not internal trigger
-        AND (
-            -- Check INSERT triggers (bit 4)
-            ((t.tgtype & 4) > 0 AND (
-                p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
-                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
-                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
-            ))
-            OR
-            -- Check UPDATE triggers (bit 8)
-            ((t.tgtype & 8) > 0 AND (
-                p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
-                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
-                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
-            ))
-            OR
-            -- Check DELETE triggers (bit 16)
-            ((t.tgtype & 16) > 0 AND (
-                p.prosrc ~* '(UPDATE|DELETE\s+FROM|INSERT\s+INTO)'
-                OR p.prosrc ~* 'PERFORM\s+(?!domain_config_audit_write)'
-                OR p.prosrc ~* 'permission_mater|twin_class_field_is_dependent'
-            ))
-        )
-    ) THEN
-        RAISE EXCEPTION 'Table % already has custom wrapper triggers with business logic. Cannot use create_domain_config_audit_wrapper() - use custom wrapper definition instead.', p_table_name;
-    END IF;
-
-    -- Create insert wrapper
-    EXECUTE format('
-        CREATE OR REPLACE FUNCTION %I_after_insert_wrapper() returns trigger
-            language plpgsql
-        as $func$
-        begin
-            perform domain_config_audit_write(%L, ''INSERT'', NEW.id, to_jsonb(NEW));
-            return new;
-        end;
-        $func$;', p_table_name, p_table_name);
-
-    -- Create update wrapper
-    EXECUTE format('
-        CREATE OR REPLACE FUNCTION %I_after_update_wrapper() returns trigger
-            language plpgsql
-        as $func$
-        begin
-            if (to_jsonb(OLD) - ''updated_at'') != (to_jsonb(NEW) - ''updated_at'') then
-                perform domain_config_audit_write(%L, ''UPDATE'', NEW.id, to_jsonb(NEW) - ''updated_at'');
-            end if;
-            return new;
-        end;
-        $func$;', p_table_name, p_table_name);
-
-    -- Create delete wrapper
-    EXECUTE format('
-        CREATE OR REPLACE FUNCTION %I_after_delete_wrapper() returns trigger
-            language plpgsql
-        as $func$
-        begin
-            perform domain_config_audit_write(%L, ''DELETE'', OLD.id, to_jsonb(OLD));
-            return old;
-        end;
-        $func$;', p_table_name, p_table_name);
-
-    -- Create insert trigger (handles PostgreSQL 63 char name limit)
-    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_insert_wrapper_trigger ON %I;', p_table_name, p_table_name);
-    EXECUTE format('CREATE TRIGGER %I_after_insert_wrapper_trigger AFTER INSERT ON %I FOR EACH ROW EXECUTE FUNCTION %I_after_insert_wrapper();', p_table_name, p_table_name, p_table_name);
-
-    -- Create update trigger (handles PostgreSQL 63 char name limit)
-    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_update_wrapper_trigger ON %I;', p_table_name, p_table_name);
-    EXECUTE format('CREATE TRIGGER %I_after_update_wrapper_trigger AFTER UPDATE ON %I FOR EACH ROW EXECUTE FUNCTION %I_after_update_wrapper();', p_table_name, p_table_name, p_table_name);
-
-    -- Create delete trigger (handles PostgreSQL 63 char name limit)
-    EXECUTE format('DROP TRIGGER IF EXISTS %I_after_delete_wrapper_trigger ON %I;', p_table_name, p_table_name);
-    EXECUTE format('CREATE TRIGGER %I_after_delete_wrapper_trigger AFTER DELETE ON %I FOR EACH ROW EXECUTE FUNCTION %I_after_delete_wrapper();', p_table_name, p_table_name, p_table_name);
-END;
-$$ LANGUAGE plpgsql;
-
--- Create wrappers for all remaining domain config tables
-
--- Permission tables
-SELECT create_domain_config_audit_wrapper('permission');
-SELECT create_domain_config_audit_wrapper('permission_group');
-SELECT create_domain_config_audit_wrapper('permission_schema');
-
--- Data list tables
-SELECT create_domain_config_audit_wrapper('data_list');
-SELECT create_domain_config_audit_wrapper('data_list_option');
-SELECT create_domain_config_audit_wrapper('data_list_option_search');
-SELECT create_domain_config_audit_wrapper('data_list_option_search_predicate');
-SELECT create_domain_config_audit_wrapper('data_list_option_projection');
-
--- User search tables (domain config - user search configuration within a domain)
-SELECT create_domain_config_audit_wrapper('user_search');
-SELECT create_domain_config_audit_wrapper('user_search_predicate');
-
--- data_list_subset and data_list_subset_option have composite/subtle PK, custom wrappers
-CREATE OR REPLACE FUNCTION data_list_subset_after_insert_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform domain_config_audit_write('data_list_subset', 'INSERT', NEW.id, to_jsonb(NEW));
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION data_list_subset_after_update_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
-        perform domain_config_audit_write('data_list_subset', 'UPDATE', NEW.id, to_jsonb(NEW) - 'updated_at');
-    end if;
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION data_list_subset_after_delete_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform domain_config_audit_write('data_list_subset', 'DELETE', OLD.id, to_jsonb(OLD));
-    return old;
-end;
-$$;
-
-DROP TRIGGER IF EXISTS data_list_subset_after_insert_wrapper_trigger ON data_list_subset;
-CREATE TRIGGER data_list_subset_after_insert_wrapper_trigger
-    AFTER INSERT ON data_list_subset
-    FOR EACH ROW
-    EXECUTE FUNCTION data_list_subset_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS data_list_subset_after_update_wrapper_trigger ON data_list_subset;
-CREATE TRIGGER data_list_subset_after_update_wrapper_trigger
-    AFTER UPDATE ON data_list_subset
-    FOR EACH ROW
-    EXECUTE FUNCTION data_list_subset_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS data_list_subset_after_delete_wrapper_trigger ON data_list_subset;
-CREATE TRIGGER data_list_subset_after_delete_wrapper_trigger
-    AFTER DELETE ON data_list_subset
-    FOR EACH ROW
-    EXECUTE FUNCTION data_list_subset_after_delete_wrapper();
-
-CREATE OR REPLACE FUNCTION data_list_subset_option_after_insert_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform domain_config_audit_write('data_list_subset_option', 'INSERT', NEW.data_list_subset_id, to_jsonb(NEW));
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION data_list_subset_option_after_update_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
-        perform domain_config_audit_write('data_list_subset_option', 'UPDATE', NEW.data_list_subset_id, to_jsonb(NEW) - 'updated_at');
-    end if;
-    return new;
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION data_list_subset_option_after_delete_wrapper() returns trigger
-    language plpgsql
-as $$
-begin
-    perform domain_config_audit_write('data_list_subset_option', 'DELETE', OLD.data_list_subset_id, to_jsonb(OLD));
-    return old;
-end;
-$$;
-
-DROP TRIGGER IF EXISTS data_list_subset_option_after_insert_wrapper_trigger ON data_list_subset_option;
-CREATE TRIGGER data_list_subset_option_after_insert_wrapper_trigger
-    AFTER INSERT ON data_list_subset_option
-    FOR EACH ROW
-    EXECUTE FUNCTION data_list_subset_option_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS data_list_subset_option_after_update_wrapper_trigger ON data_list_subset_option;
-CREATE TRIGGER data_list_subset_option_after_update_wrapper_trigger
-    AFTER UPDATE ON data_list_subset_option
-    FOR EACH ROW
-    EXECUTE FUNCTION data_list_subset_option_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS data_list_subset_option_after_delete_wrapper_trigger ON data_list_subset_option;
-CREATE TRIGGER data_list_subset_option_after_delete_wrapper_trigger
-    AFTER DELETE ON data_list_subset_option
-    FOR EACH ROW
-    EXECUTE FUNCTION data_list_subset_option_after_delete_wrapper();
-
--- Domain tables
-SELECT create_domain_config_audit_wrapper('domain_locale');
-
--- Face tables
-SELECT create_domain_config_audit_wrapper('face');
-SELECT create_domain_config_audit_wrapper('face_bc001');
-SELECT create_domain_config_audit_wrapper('face_bc001_item');
-
--- face_navbar_nb001 has composite PK (face_id), custom wrapper using face_id as row_id
-DROP FUNCTION IF EXISTS face_navbar_nb001_after_insert_wrapper CASCADE;
-DROP FUNCTION IF EXISTS face_navbar_nb001_after_update_wrapper CASCADE;
-DROP FUNCTION IF EXISTS face_navbar_nb001_after_delete_wrapper CASCADE;
-
-CREATE OR REPLACE FUNCTION face_navbar_nb001_after_insert_wrapper() returns trigger
+create or replace function face_navbar_nb001_after_insert_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -863,18 +776,16 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION face_navbar_nb001_after_update_wrapper() returns trigger
+create or replace function face_navbar_nb001_after_update_wrapper() returns trigger
     language plpgsql
 as $$
 begin
-    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
-        perform domain_config_audit_write('face_navbar_nb001', 'UPDATE', NEW.face_id, to_jsonb(NEW) - 'updated_at');
-    end if;
+    perform domain_config_audit_write('face_navbar_nb001', 'UPDATE', NEW.face_id, to_jsonb(NEW) - 'updated_at');
     return new;
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION face_navbar_nb001_after_delete_wrapper() returns trigger
+create or replace function face_navbar_nb001_after_delete_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -883,60 +794,7 @@ begin
 end;
 $$;
 
-DROP TRIGGER IF EXISTS face_navbar_nb001_after_insert_wrapper_trigger ON face_navbar_nb001;
-CREATE TRIGGER face_navbar_nb001_after_insert_wrapper_trigger
-    AFTER INSERT ON face_navbar_nb001
-    FOR EACH ROW
-    EXECUTE FUNCTION face_navbar_nb001_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS face_navbar_nb001_after_update_wrapper_trigger ON face_navbar_nb001;
-CREATE TRIGGER face_navbar_nb001_after_update_wrapper_trigger
-    AFTER UPDATE ON face_navbar_nb001
-    FOR EACH ROW
-    EXECUTE FUNCTION face_navbar_nb001_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS face_navbar_nb001_after_delete_wrapper_trigger ON face_navbar_nb001;
-CREATE TRIGGER face_navbar_nb001_after_delete_wrapper_trigger
-    AFTER DELETE ON face_navbar_nb001
-    FOR EACH ROW
-    EXECUTE FUNCTION face_navbar_nb001_after_delete_wrapper();
-
-SELECT create_domain_config_audit_wrapper('face_navbar_nb001_menu_item');
-SELECT create_domain_config_audit_wrapper('face_pg001');
-SELECT create_domain_config_audit_wrapper('face_pg001_widget');
-SELECT create_domain_config_audit_wrapper('face_pg002');
-SELECT create_domain_config_audit_wrapper('face_pg002_tab');
-SELECT create_domain_config_audit_wrapper('face_pg002_widget');
-SELECT create_domain_config_audit_wrapper('face_tc001');
-SELECT create_domain_config_audit_wrapper('face_tc001_option');
-SELECT create_domain_config_audit_wrapper('face_tw001');
-SELECT create_domain_config_audit_wrapper('face_tw002');
-SELECT create_domain_config_audit_wrapper('face_tw002_accordion_item');
-SELECT create_domain_config_audit_wrapper('face_tw004');
-SELECT create_domain_config_audit_wrapper('face_tw005');
-SELECT create_domain_config_audit_wrapper('face_tw005_button');
-SELECT create_domain_config_audit_wrapper('face_tw006');
-SELECT create_domain_config_audit_wrapper('face_tw006_action');
-SELECT create_domain_config_audit_wrapper('face_tw007');
-SELECT create_domain_config_audit_wrapper('face_wt001');
-SELECT create_domain_config_audit_wrapper('face_wt001_column');
-SELECT create_domain_config_audit_wrapper('face_wt002');
-SELECT create_domain_config_audit_wrapper('face_wt002_button');
-SELECT create_domain_config_audit_wrapper('face_wt003');
-
--- History type tables
-SELECT create_domain_config_audit_wrapper('history_type_config_domain');
-SELECT create_domain_config_audit_wrapper('history_type_config_twin_class');
-SELECT create_domain_config_audit_wrapper('history_type_config_twin_class_field');
-SELECT create_domain_config_audit_wrapper('history_notification_recipient');
-SELECT create_domain_config_audit_wrapper('history_notification_recipient_collector');
-
--- I18n tables
-SELECT create_domain_config_audit_wrapper('i18n');
-
--- i18n_translation and i18n_translation_bin have composite PK (i18n_id + locale), no single id column
--- Custom wrappers using i18n_id as row_id
-CREATE OR REPLACE FUNCTION i18n_translation_after_insert_wrapper() returns trigger
+create or replace function i18n_translation_after_insert_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -945,7 +803,7 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION i18n_translation_after_update_wrapper() returns trigger
+create or replace function i18n_translation_after_update_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -956,7 +814,7 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION i18n_translation_after_delete_wrapper() returns trigger
+create or replace function i18n_translation_after_delete_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -965,25 +823,7 @@ begin
 end;
 $$;
 
-DROP TRIGGER IF EXISTS i18n_translation_after_insert_wrapper_trigger ON i18n_translation;
-CREATE TRIGGER i18n_translation_after_insert_wrapper_trigger
-    AFTER INSERT ON i18n_translation
-    FOR EACH ROW
-    EXECUTE FUNCTION i18n_translation_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS i18n_translation_after_update_wrapper_trigger ON i18n_translation;
-CREATE TRIGGER i18n_translation_after_update_wrapper_trigger
-    AFTER UPDATE ON i18n_translation
-    FOR EACH ROW
-    EXECUTE FUNCTION i18n_translation_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS i18n_translation_after_delete_wrapper_trigger ON i18n_translation;
-CREATE TRIGGER i18n_translation_after_delete_wrapper_trigger
-    AFTER DELETE ON i18n_translation
-    FOR EACH ROW
-    EXECUTE FUNCTION i18n_translation_after_delete_wrapper();
-
-CREATE OR REPLACE FUNCTION i18n_translation_bin_after_insert_wrapper() returns trigger
+create or replace function i18n_translation_bin_after_insert_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -992,18 +832,16 @@ begin
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION i18n_translation_bin_after_update_wrapper() returns trigger
+create or replace function i18n_translation_bin_after_update_wrapper() returns trigger
     language plpgsql
 as $$
 begin
-    if (to_jsonb(OLD) - 'updated_at') != (to_jsonb(NEW) - 'updated_at') then
-        perform domain_config_audit_write('i18n_translation_bin', 'UPDATE', NEW.i18n_id, to_jsonb(NEW) - 'updated_at');
-    end if;
+    perform domain_config_audit_write('i18n_translation_bin', 'UPDATE', NEW.i18n_id, to_jsonb(NEW) - 'updated_at');
     return new;
 end;
 $$;
 
-CREATE OR REPLACE FUNCTION i18n_translation_bin_after_delete_wrapper() returns trigger
+create or replace function i18n_translation_bin_after_delete_wrapper() returns trigger
     language plpgsql
 as $$
 begin
@@ -1012,172 +850,37 @@ begin
 end;
 $$;
 
-DROP TRIGGER IF EXISTS i18n_translation_bin_after_insert_wrapper_trigger ON i18n_translation_bin;
-CREATE TRIGGER i18n_translation_bin_after_insert_wrapper_trigger
-    AFTER INSERT ON i18n_translation_bin
-    FOR EACH ROW
-    EXECUTE FUNCTION i18n_translation_bin_after_insert_wrapper();
-
-DROP TRIGGER IF EXISTS i18n_translation_bin_after_update_wrapper_trigger ON i18n_translation_bin;
-CREATE TRIGGER i18n_translation_bin_after_update_wrapper_trigger
-    AFTER UPDATE ON i18n_translation_bin
-    FOR EACH ROW
-    EXECUTE FUNCTION i18n_translation_bin_after_update_wrapper();
-
-DROP TRIGGER IF EXISTS i18n_translation_bin_after_delete_wrapper_trigger ON i18n_translation_bin;
-CREATE TRIGGER i18n_translation_bin_after_delete_wrapper_trigger
-    AFTER DELETE ON i18n_translation_bin
-    FOR EACH ROW
-    EXECUTE FUNCTION i18n_translation_bin_after_delete_wrapper();
-
--- i18n_translation_style has single id column, can use generic wrapper
-SELECT create_domain_config_audit_wrapper('i18n_translation_style');
-
--- Link tables
-SELECT create_domain_config_audit_wrapper('link');
-SELECT create_domain_config_audit_wrapper('link_trigger');
-SELECT create_domain_config_audit_wrapper('link_validator');
-
--- Notification tables
-SELECT create_domain_config_audit_wrapper('notification_channel');
-SELECT create_domain_config_audit_wrapper('notification_channel_event');
-SELECT create_domain_config_audit_wrapper('notification_context');
-SELECT create_domain_config_audit_wrapper('notification_context_collector');
-SELECT create_domain_config_audit_wrapper('notification_email');
-SELECT create_domain_config_audit_wrapper('notification_schema');
-
--- Permission grant tables
-SELECT create_domain_config_audit_wrapper('permission_grant_assignee_propagation');
--- permission_grant_space_role - updated manually to preserve business logic + audit
-SELECT create_domain_config_audit_wrapper('permission_grant_twin_role');
-
--- Resource tables
-SELECT create_domain_config_audit_wrapper('resource');
-
--- Projection tables
-SELECT create_domain_config_audit_wrapper('projection_type');
-SELECT create_domain_config_audit_wrapper('projection_type_group');
--- projection - updated manually to preserve business logic + audit
-
--- Space tables
-SELECT create_domain_config_audit_wrapper('space_role');
-
--- Storage tables
-SELECT create_domain_config_audit_wrapper('storage');
-
--- Template tables
-SELECT create_domain_config_audit_wrapper('template_generator');
-
--- Scheduler tables
-SELECT create_domain_config_audit_wrapper('scheduler');
-
--- Tier tables (updated separately above - tier_after_update_wrapper from V1.4.50.01 + audit)
--- Note: tier only has update wrapper in V1.4.50.01, insert/delete wrappers created below
-
--- Twin action tables
-SELECT create_domain_config_audit_wrapper('twin_action_permission');
-SELECT create_domain_config_audit_wrapper('twin_action_validator_rule');
-
--- Twin attachment tables
-SELECT create_domain_config_audit_wrapper('twin_attachment_action_alien_permission');
-SELECT create_domain_config_audit_wrapper('twin_attachment_action_alien_validator_rule');
-SELECT create_domain_config_audit_wrapper('twin_attachment_action_self_validator_rule');
-SELECT create_domain_config_audit_wrapper('twin_attachment_restriction');
-
--- Twin class tables
-SELECT create_domain_config_audit_wrapper('twin_class_field');
-SELECT create_domain_config_audit_wrapper('twin_class_schema_map');
-
--- Twin comment tables
-SELECT create_domain_config_audit_wrapper('twin_comment_action_alien_permission');
-SELECT create_domain_config_audit_wrapper('twin_comment_action_alien_validator_rule');
-SELECT create_domain_config_audit_wrapper('twin_comment_action_self');
-
--- Twin factory tables
-SELECT create_domain_config_audit_wrapper('twin_factory_branch');
-SELECT create_domain_config_audit_wrapper('twin_factory_condition');
-SELECT create_domain_config_audit_wrapper('twin_factory_eraser');
-SELECT create_domain_config_audit_wrapper('twin_factory_multiplier');
-SELECT create_domain_config_audit_wrapper('twin_factory_multiplier_filter');
-SELECT create_domain_config_audit_wrapper('twin_factory_pipeline');
-SELECT create_domain_config_audit_wrapper('twin_factory_pipeline_step');
-
--- Twin pointer tables
-SELECT create_domain_config_audit_wrapper('twin_pointer');
-SELECT create_domain_config_audit_wrapper('twin_pointer_validator_rule');
-
--- Twin status tables
-SELECT create_domain_config_audit_wrapper('twin_status');
-SELECT create_domain_config_audit_wrapper('twin_status_group');
-SELECT create_domain_config_audit_wrapper('twin_status_group_map');
-SELECT create_domain_config_audit_wrapper('twin_status_transition_trigger');
-
--- Twin validator tables
-SELECT create_domain_config_audit_wrapper('twin_validator');
-SELECT create_domain_config_audit_wrapper('twin_validator_set');
-SELECT create_domain_config_audit_wrapper('twin_statistic');
-
--- Twin class tables (direct domainId)
--- Note: twin_class has custom wrappers (twin_class_after_insert/update/delete_wrapper) with audit
-SELECT create_domain_config_audit_wrapper('twin_class_schema');
-SELECT create_domain_config_audit_wrapper('twin_class_dynamic_marker');
-SELECT create_domain_config_audit_wrapper('twin_class_field_attribute');
--- twin_class_field_rule_map - updated manually to preserve business logic + audit
-SELECT create_domain_config_audit_wrapper('twin_class_field_search');
-SELECT create_domain_config_audit_wrapper('twin_class_field_search_predicate');
-SELECT create_domain_config_audit_wrapper('twin_class_freeze');
-SELECT create_domain_config_audit_wrapper('twin_class_search');
-SELECT create_domain_config_audit_wrapper('twin_class_search_predicate');
-
--- Twin factory tables (direct domainId)
-SELECT create_domain_config_audit_wrapper('twin_factory');
-SELECT create_domain_config_audit_wrapper('twin_factory_condition_set');
-
--- History type tables (direct domainId)
-SELECT create_domain_config_audit_wrapper('history_type_domain_template');
-
--- Eraseflow tables (domain config through twin_class)
-SELECT create_domain_config_audit_wrapper('eraseflow');
-SELECT create_domain_config_audit_wrapper('eraseflow_link_cascade');
-
--- Twinflow tables
-SELECT create_domain_config_audit_wrapper('twinflow');
-SELECT create_domain_config_audit_wrapper('twinflow_factory');
-SELECT create_domain_config_audit_wrapper('twinflow_schema');
-SELECT create_domain_config_audit_wrapper('twinflow_schema_map');
-SELECT create_domain_config_audit_wrapper('twinflow_transition');
-SELECT create_domain_config_audit_wrapper('twinflow_transition_alias');
-SELECT create_domain_config_audit_wrapper('twinflow_transition_trigger');
-SELECT create_domain_config_audit_wrapper('twinflow_transition_validator_rule');
-
--- Email sender
-SELECT create_domain_config_audit_wrapper('email_sender');
-
--- NOTE: Helper function create_domain_config_audit_wrapper() is kept for future migrations
--- to add audit triggers to new domain configuration tables.
-
--- ============================================================================
--- Update existing wrapper functions with audit (preserve business logic)
--- ============================================================================
-
--- permission_grant_space_role wrappers - preserve existing logic + audit
-CREATE OR REPLACE FUNCTION permission_grant_space_role_after_insert_wrapper() returns trigger
+create or replace function permission_grant_space_role_after_insert_wrapper() returns trigger
     language plpgsql
-as $func$
+as $$
 begin
     PERFORM permission_mater_space_by_permiss_grant_space_role_insert(
-        NEW.permission_schema_id,
-        NEW.permission_id,
-        NEW.space_role_id
-    );
-    PERFORM domain_config_audit_write('permission_grant_space_role', 'INSERT', NEW.id, to_jsonb(NEW));
+            NEW.permission_schema_id,
+            NEW.permission_id,
+            NEW.space_role_id
+            );
+    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
     return NEW;
 end;
-$func$;
+$$;
 
-CREATE OR REPLACE FUNCTION permission_grant_space_role_after_update_wrapper() returns trigger
+create or replace function permission_grant_space_role_after_delete_wrapper() returns trigger
     language plpgsql
-as $func$
+as $$
+begin
+    PERFORM permission_mater_space_by_permiss_grant_space_role_delete(
+            OLD.permission_schema_id,
+            OLD.permission_id,
+            OLD.space_role_id
+            );
+    perform domain_config_audit_write(TG_TABLE_NAME, 'DELETE', OLD.id, to_jsonb(OLD));
+    return OLD;
+end;
+$$;
+
+create or replace function permission_grant_space_role_after_update_wrapper() returns trigger
+    language plpgsql
+as $$
 begin
     if NEW.permission_schema_id is distinct from OLD.permission_schema_id
         or NEW.permission_id is distinct from OLD.permission_id
@@ -1194,46 +897,14 @@ begin
                 OLD.space_role_id
                 );
     end if;
-    PERFORM domain_config_audit_write('permission_grant_space_role', 'UPDATE', NEW.id, to_jsonb(NEW));
+    perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
     return NEW;
 end;
-$func$;
+$$;
 
-CREATE OR REPLACE FUNCTION permission_grant_space_role_after_delete_wrapper() returns trigger
+create or replace function projection_after_insert_wrapper() returns trigger
     language plpgsql
-as $func$
-begin
-    PERFORM permission_mater_space_by_permiss_grant_space_role_delete(
-            OLD.permission_schema_id,
-            OLD.permission_id,
-            OLD.space_role_id
-            );
-    PERFORM domain_config_audit_write('permission_grant_space_role', 'DELETE', OLD.id, to_jsonb(OLD));
-    return OLD;
-end;
-$func$;
-
--- projection wrappers - preserve existing logic + audit
-CREATE OR REPLACE FUNCTION projection_after_insert_wrapper() returns trigger
-    language plpgsql
-as $func$
-begin
-    update twin_class_field
-        set has_projected_fields=true
-    where id=new.src_twin_class_field_id;
-
-    update twin_class_field
-        set projection_field=true
-    where id=new.dst_twin_class_field_id;
-
-    PERFORM domain_config_audit_write('projection', 'INSERT', NEW.id, to_jsonb(NEW));
-    return NEW;
-end;
-$func$;
-
-CREATE OR REPLACE FUNCTION projection_after_update_wrapper() returns trigger
-    language plpgsql
-as $func$
+as $$
 begin
     update twin_class_field
     set has_projected_fields=true
@@ -1243,44 +914,184 @@ begin
     set projection_field=true
     where id=new.dst_twin_class_field_id;
 
-    PERFORM domain_config_audit_write('projection', 'UPDATE', NEW.id, to_jsonb(NEW));
+    perform domain_config_audit_write(TG_TABLE_NAME, 'INSERT', NEW.id, to_jsonb(NEW));
     return NEW;
 end;
-$func$;
+$$;
 
--- twin_class_field_rule_map wrappers - preserve existing logic + audit
-CREATE OR REPLACE FUNCTION twin_class_field_rule_map_after_insert_wrapper() returns trigger
+create or replace function projection_after_update_wrapper() returns trigger
     language plpgsql
-as $func$
-BEGIN
-    PERFORM twin_class_field_is_dependent_field_check(NEW.twin_class_field_id);
-    PERFORM domain_config_audit_write('twin_class_field_rule_map', 'INSERT', NEW.id, to_jsonb(NEW));
-    RETURN NEW;
-END;
-$func$;
+as $$
+begin
+    update twin_class_field
+    set has_projected_fields=true
+    where id=new.src_twin_class_field_id;
 
-CREATE OR REPLACE FUNCTION twin_class_field_rule_map_after_update_wrapper() returns trigger
-    language plpgsql
-as $func$
-BEGIN
-    PERFORM twin_class_field_is_dependent_field_check(NEW.twin_class_field_id);
-    PERFORM twin_class_field_is_dependent_field_check(OLD.twin_class_field_id);
-    PERFORM domain_config_audit_write('twin_class_field_rule_map', 'UPDATE', NEW.id, to_jsonb(NEW));
-    RETURN NEW;
-END;
-$func$;
+    update twin_class_field
+    set projection_field=true
+    where id=new.dst_twin_class_field_id;
 
-CREATE OR REPLACE FUNCTION twin_class_field_rule_map_after_delete_wrapper() returns trigger
-    language plpgsql
-as $func$
-BEGIN
-    PERFORM twin_class_field_is_dependent_field_check(OLD.twin_class_field_id);
-    PERFORM domain_config_audit_write('twin_class_field_rule_map', 'DELETE', OLD.id, to_jsonb(OLD));
-    RETURN OLD;
-END;
-$func$;
+    perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
+    return NEW;
+end;
+$$;
 
--- Triggers for permission_grant_space_role
+DROP TRIGGER IF EXISTS tier_after_insert_wrapper_trigger ON tier;
+CREATE TRIGGER tier_after_insert_wrapper_trigger
+    AFTER INSERT ON tier
+    FOR EACH ROW
+EXECUTE FUNCTION tier_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS tier_after_delete_wrapper_trigger ON tier;
+CREATE TRIGGER tier_after_delete_wrapper_trigger
+    AFTER DELETE ON tier
+    FOR EACH ROW
+EXECUTE FUNCTION tier_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_after_insert_wrapper_trigger ON twin_class;
+CREATE TRIGGER twin_class_after_insert_wrapper_trigger
+    AFTER INSERT ON twin_class
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_after_update_wrapper_trigger ON twin_class;
+CREATE TRIGGER twin_class_after_update_wrapper_trigger
+    AFTER UPDATE ON twin_class
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_after_delete_wrapper_trigger ON twin_class;
+CREATE TRIGGER twin_class_after_delete_wrapper_trigger
+    AFTER DELETE ON twin_class
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_condition_after_insert_wrapper_trigger ON twin_class_field_condition;
+CREATE TRIGGER twin_class_field_condition_after_insert_wrapper_trigger
+    AFTER INSERT ON twin_class_field_condition
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_field_condition_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_condition_after_update_wrapper_trigger ON twin_class_field_condition;
+CREATE TRIGGER twin_class_field_condition_after_update_wrapper_trigger
+    AFTER UPDATE ON twin_class_field_condition
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_field_condition_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_condition_after_delete_wrapper_trigger ON twin_class_field_condition;
+CREATE TRIGGER twin_class_field_condition_after_delete_wrapper_trigger
+    AFTER DELETE ON twin_class_field_condition
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_field_condition_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_rule_after_insert_wrapper_trigger ON twin_class_field_rule;
+CREATE TRIGGER twin_class_field_rule_after_insert_wrapper_trigger
+    AFTER INSERT ON twin_class_field_rule
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_field_rule_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_rule_after_update_wrapper_trigger ON twin_class_field_rule;
+CREATE TRIGGER twin_class_field_rule_after_update_wrapper_trigger
+    AFTER UPDATE ON twin_class_field_rule
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_field_rule_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS twin_class_field_rule_after_delete_wrapper_trigger ON twin_class_field_rule;
+CREATE TRIGGER twin_class_field_rule_after_delete_wrapper_trigger
+    AFTER DELETE ON twin_class_field_rule
+    FOR EACH ROW
+EXECUTE FUNCTION twin_class_field_rule_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_after_insert_wrapper_trigger ON data_list_subset;
+CREATE TRIGGER data_list_subset_after_insert_wrapper_trigger
+    AFTER INSERT ON data_list_subset
+    FOR EACH ROW
+EXECUTE FUNCTION data_list_subset_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_after_update_wrapper_trigger ON data_list_subset;
+CREATE TRIGGER data_list_subset_after_update_wrapper_trigger
+    AFTER UPDATE ON data_list_subset
+    FOR EACH ROW
+EXECUTE FUNCTION data_list_subset_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_after_delete_wrapper_trigger ON data_list_subset;
+CREATE TRIGGER data_list_subset_after_delete_wrapper_trigger
+    AFTER DELETE ON data_list_subset
+    FOR EACH ROW
+EXECUTE FUNCTION data_list_subset_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_option_after_insert_wrapper_trigger ON data_list_subset_option;
+CREATE TRIGGER data_list_subset_option_after_insert_wrapper_trigger
+    AFTER INSERT ON data_list_subset_option
+    FOR EACH ROW
+EXECUTE FUNCTION data_list_subset_option_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_option_after_update_wrapper_trigger ON data_list_subset_option;
+CREATE TRIGGER data_list_subset_option_after_update_wrapper_trigger
+    AFTER UPDATE ON data_list_subset_option
+    FOR EACH ROW
+EXECUTE FUNCTION data_list_subset_option_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS data_list_subset_option_after_delete_wrapper_trigger ON data_list_subset_option;
+CREATE TRIGGER data_list_subset_option_after_delete_wrapper_trigger
+    AFTER DELETE ON data_list_subset_option
+    FOR EACH ROW
+EXECUTE FUNCTION data_list_subset_option_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS face_navbar_nb001_after_insert_wrapper_trigger ON face_navbar_nb001;
+CREATE TRIGGER face_navbar_nb001_after_insert_wrapper_trigger
+    AFTER INSERT ON face_navbar_nb001
+    FOR EACH ROW
+EXECUTE FUNCTION face_navbar_nb001_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS face_navbar_nb001_after_update_wrapper_trigger ON face_navbar_nb001;
+CREATE TRIGGER face_navbar_nb001_after_update_wrapper_trigger
+    AFTER UPDATE ON face_navbar_nb001
+    FOR EACH ROW
+EXECUTE FUNCTION face_navbar_nb001_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS face_navbar_nb001_after_delete_wrapper_trigger ON face_navbar_nb001;
+CREATE TRIGGER face_navbar_nb001_after_delete_wrapper_trigger
+    AFTER DELETE ON face_navbar_nb001
+    FOR EACH ROW
+EXECUTE FUNCTION face_navbar_nb001_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS i18n_translation_after_insert_wrapper_trigger ON i18n_translation;
+CREATE TRIGGER i18n_translation_after_insert_wrapper_trigger
+    AFTER INSERT ON i18n_translation
+    FOR EACH ROW
+EXECUTE FUNCTION i18n_translation_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS i18n_translation_after_update_wrapper_trigger ON i18n_translation;
+CREATE TRIGGER i18n_translation_after_update_wrapper_trigger
+    AFTER UPDATE ON i18n_translation
+    FOR EACH ROW
+EXECUTE FUNCTION i18n_translation_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS i18n_translation_after_delete_wrapper_trigger ON i18n_translation;
+CREATE TRIGGER i18n_translation_after_delete_wrapper_trigger
+    AFTER DELETE ON i18n_translation
+    FOR EACH ROW
+EXECUTE FUNCTION i18n_translation_after_delete_wrapper();
+
+DROP TRIGGER IF EXISTS i18n_translation_bin_after_insert_wrapper_trigger ON i18n_translation_bin;
+CREATE TRIGGER i18n_translation_bin_after_insert_wrapper_trigger
+    AFTER INSERT ON i18n_translation_bin
+    FOR EACH ROW
+EXECUTE FUNCTION i18n_translation_bin_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS i18n_translation_bin_after_update_wrapper_trigger ON i18n_translation_bin;
+CREATE TRIGGER i18n_translation_bin_after_update_wrapper_trigger
+    AFTER UPDATE ON i18n_translation_bin
+    FOR EACH ROW
+EXECUTE FUNCTION i18n_translation_bin_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS i18n_translation_bin_after_delete_wrapper_trigger ON i18n_translation_bin;
+CREATE TRIGGER i18n_translation_bin_after_delete_wrapper_trigger
+    AFTER DELETE ON i18n_translation_bin
+    FOR EACH ROW
+EXECUTE FUNCTION i18n_translation_bin_after_delete_wrapper();
+
 DROP TRIGGER IF EXISTS permission_grant_space_role_after_insert_wrapper_trigger ON permission_grant_space_role;
 CREATE TRIGGER permission_grant_space_role_after_insert_wrapper_trigger
     AFTER INSERT ON permission_grant_space_role
