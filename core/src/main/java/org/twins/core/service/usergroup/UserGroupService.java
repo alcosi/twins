@@ -18,13 +18,17 @@ import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.usergroup.UserGroupCreate;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -36,6 +40,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupMapRepository userGroupMapRepository;
     final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
+    private final I18nService i18nService;
     @Lazy
     final AuthService authService;
     @Lazy
@@ -159,4 +164,31 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         return userGroupMapRepository.getUsers(domainId, businessAccountId, userGroupIds);
     }
 
+    public List<UserGroupEntity> createUserGroup(Collection<UserGroupCreate> entities) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+        i18nService.createI18nAndTranslations(I18nType.USER_GROUP_NAME,
+                entities.stream().map(UserGroupCreate::getNameI18n)
+                        .toList());
+        i18nService.createI18nAndTranslations(I18nType.USER_GROUP_DESCRIPTION,
+                entities.stream().map(UserGroupCreate::getDescriptionI18n)
+                        .toList());
+
+        List<UserGroupEntity> entitiesToSave = new ArrayList<>();
+
+        for (UserGroupCreate userGroup : entities) {
+            UserGroupEntity entity = new UserGroupEntity();
+            entity.setUserGroupType(userGroup.getUserGroupTypeId())
+                    .setDomainId(domainId)
+                    .setBusinessAccountId(userGroup.getBusinessAccountId())
+                    .setNameI18NId(userGroup.getNameI18n() != null ? userGroup.getNameI18n().getId() : null)
+                    .setDescriptionI18NId(userGroup.getDescriptionI18n() != null ? userGroup.getDescriptionI18n().getId() : null);
+            entitiesToSave.add(entity);
+        }
+
+        return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+    }
 }
