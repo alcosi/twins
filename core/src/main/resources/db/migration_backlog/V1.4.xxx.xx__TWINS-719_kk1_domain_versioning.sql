@@ -1,20 +1,57 @@
-
-
-
 -- Domain versioning tables (from TWINS-458)
+CREATE TABLE IF NOT EXISTS domain_version_status(
+    id varchar PRIMARY KEY
+);
+
+INSERT INTO domain_version_status (id) VALUES
+                                           ('OPEN'),
+                                           ('LOCKED'),
+                                           ('RELEASED')
+ON CONFLICT DO NOTHING;
+
+-- domain versions
 CREATE TABLE IF NOT EXISTS domain_version
 (
-    id          uuid                                not null
-        constraint domain_version_pk
-            primary key,
-    domain_id   uuid                                not null
-        constraint domain_version_domain_id_fk
-            references domain
-            on update cascade on delete cascade,
-    name        varchar,
-    created_at  timestamp default CURRENT_TIMESTAMP not null,
-    released_at timestamp
+    id                         uuid                                NOT NULL
+        CONSTRAINT domain_version_pk
+            PRIMARY KEY,
+    domain_id                  uuid                                NOT NULL
+        CONSTRAINT domain_version_domain_id_fk
+            REFERENCES domain
+            ON UPDATE CASCADE ON DELETE CASCADE,
+    name                       varchar,
+    version                    varchar,
+    domain_version_status_id   varchar                             NOT NULL
+        CONSTRAINT domain_version_status_fk
+            REFERENCES domain_version_status (id)
+            ON UPDATE CASCADE ON DELETE RESTRICT,
+    json_file                  jsonb,
+    hash                       varchar,
+    previous_domain_version_id uuid
+        CONSTRAINT domain_version_prev_version_fk
+            REFERENCES domain_version
+            ON UPDATE CASCADE ON DELETE SET NULL,
+    created_at                 timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    released_at                timestamp,
+    release_duration           bigint
 );
+
+-- only one OPEN version per domain
+CREATE UNIQUE INDEX IF NOT EXISTS domain_version_one_open_per_domain
+    ON domain_version (domain_id)
+    WHERE domain_version_status_id = 'OPEN';
+
+-- unique version inside domain
+CREATE UNIQUE INDEX IF NOT EXISTS domain_version_unique
+    ON domain_version (domain_id, version);
+
+-- fast navigation between versions
+CREATE INDEX IF NOT EXISTS domain_version_prev_idx
+    ON domain_version (previous_domain_version_id);
+
+-- often useful for getting latest released version
+CREATE INDEX IF NOT EXISTS domain_version_released_idx
+    ON domain_version (domain_id, released_at DESC);
 
 CREATE INDEX IF NOT EXISTS domain_version_domain_id_index
     ON domain_version (domain_id);
@@ -58,7 +95,6 @@ $$ LANGUAGE plpgsql;
 
 SELECT add_domain_version_column('twin_status');
 SELECT add_domain_version_column('permission');
-
 SELECT add_domain_version_column('data_list');
 SELECT add_domain_version_column('data_list_option');
 SELECT add_domain_version_column('data_list_subset');
@@ -91,7 +127,6 @@ SELECT add_domain_version_column('face_wt003');
 SELECT add_domain_version_column('history_type_config_domain');
 SELECT add_domain_version_column('history_type_config_twin_class');
 SELECT add_domain_version_column('history_type_config_twin_class_field');
-
 SELECT add_domain_version_column('i18n');
 SELECT add_domain_version_column('i18n_translation');
 SELECT add_domain_version_column('i18n_translation_bin');
@@ -103,13 +138,11 @@ SELECT add_domain_version_column('permission_grant_assignee_propagation');
 SELECT add_domain_version_column('permission_grant_space_role');
 SELECT add_domain_version_column('permission_grant_twin_role');
 SELECT add_domain_version_column('permission_group');
-
 SELECT add_domain_version_column('resource');
 SELECT add_domain_version_column('space_role');
 SELECT add_domain_version_column('storage');
 SELECT add_domain_version_column('template_generator');
 SELECT add_domain_version_column('tier');
-
 SELECT add_domain_version_column('twin_action_permission');
 SELECT add_domain_version_column('twin_action_validator_rule');
 SELECT add_domain_version_column('twin_attachment_action_alien_permission');
@@ -136,47 +169,29 @@ SELECT add_domain_version_column('twin_status_transition_trigger');
 SELECT add_domain_version_column('twin_validator');
 SELECT add_domain_version_column('twin_validator_set');
 SELECT add_domain_version_column('twin_statistic');
-
 SELECT add_domain_version_column('twinflow');
 SELECT add_domain_version_column('twinflow_factory');
 SELECT add_domain_version_column('twinflow_schema');
 SELECT add_domain_version_column('twinflow_schema_map');
-
 SELECT add_domain_version_column('twinflow_transition_alias');
 SELECT add_domain_version_column('twinflow_transition_trigger');
 SELECT add_domain_version_column('twinflow_transition_validator_rule');
-
--- Additional domain tables added later
 SELECT add_domain_version_column('link');
 SELECT add_domain_version_column('face');
 SELECT add_domain_version_column('face_bc001');
 SELECT add_domain_version_column('face_bc001_item');
-
--- Permission schema
 SELECT add_domain_version_column('permission_schema');
-
--- Data list search
 SELECT add_domain_version_column('data_list_option_search');
-
--- History notification
 SELECT add_domain_version_column('history_notification_recipient');
 SELECT add_domain_version_column('history_notification_recipient_collector');
-
--- Notification tables
 SELECT add_domain_version_column('notification_channel');
 SELECT add_domain_version_column('notification_channel_event');
 SELECT add_domain_version_column('notification_context');
 SELECT add_domain_version_column('notification_context_collector');
 SELECT add_domain_version_column('notification_schema');
-
--- Projection tables
 SELECT add_domain_version_column('projection_type');
 SELECT add_domain_version_column('projection_type_group');
-
--- Scheduler
 SELECT add_domain_version_column('scheduler');
-
--- Twin class tables (critical)
 SELECT add_domain_version_column('twin_class');
 SELECT add_domain_version_column('twin_class_dynamic_marker');
 SELECT add_domain_version_column('twin_class_field_attribute');
@@ -187,26 +202,14 @@ SELECT add_domain_version_column('twin_class_freeze');
 SELECT add_domain_version_column('twin_class_schema');
 SELECT add_domain_version_column('twin_class_search');
 SELECT add_domain_version_column('twin_class_search_predicate');
-
--- Twin factory tables
 SELECT add_domain_version_column('twin_factory');
 SELECT add_domain_version_column('twin_factory_condition_set');
-
--- History type tables
 SELECT add_domain_version_column('history_type_domain_template');
-
--- Data list search predicates
 SELECT add_domain_version_column('data_list_option_search_predicate');
 SELECT add_domain_version_column('data_list_option_projection');
-
--- Projection
 SELECT add_domain_version_column('projection');
-
--- Eraseflow tables (domain config through twin_class)
 SELECT add_domain_version_column('eraseflow');
 SELECT add_domain_version_column('eraseflow_link_cascade');
-
--- User search tables (domain config - user search configuration within a domain)
 SELECT add_domain_version_column('user_search');
 SELECT add_domain_version_column('user_search_predicate');
 
