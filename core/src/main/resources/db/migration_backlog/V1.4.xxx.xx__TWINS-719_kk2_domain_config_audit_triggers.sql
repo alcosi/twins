@@ -1035,16 +1035,13 @@ begin
 end if;
 
     -- Only audit domain-level groups (business_account_id IS NULL)
-select business_account_id into v_old_business_account_id
-from user_group
-where id = old.user_group_id;
+    SELECT
+        (SELECT business_account_id FROM user_group WHERE id = old.user_group_id),
+        (SELECT business_account_id FROM user_group WHERE id = new.user_group_id)
+    INTO v_old_business_account_id, v_new_business_account_id;
 
-select business_account_id into v_new_business_account_id
-from user_group
-where id = new.user_group_id;
-
--- Audit if either old or new group is domain-level
-if v_old_business_account_id is null or v_new_business_account_id is null then
+    -- Audit if either old or new group is domain-level
+    if v_old_business_account_id is null or v_new_business_account_id is null then
         perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
 end if;
 
