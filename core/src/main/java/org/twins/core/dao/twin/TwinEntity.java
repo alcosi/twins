@@ -11,7 +11,9 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -90,18 +92,23 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     private Boolean viewPermissionCustom = false;
 
     //materialized
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "permission_schema_id", updatable = false, insertable = false)
     private UUID permissionSchemaId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "permission_schema_space_id")
     private UUID permissionSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twinflow_schema_space_id")
     private UUID twinflowSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twin_class_schema_space_id")
     private UUID twinClassSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "alias_space_id")
     private UUID aliasSpaceId;
 
