@@ -3,13 +3,13 @@ package org.twins.core.domain.usergroup;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.user.UserGroupType;
 
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class UserGroupCreate extends UserGroupSave {
+public class UserGroupUpdate extends UserGroupSave{
 
-    UserGroupType userGroupTypeId;
+    UUID id;
 }

@@ -13,6 +13,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
@@ -164,6 +165,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         return userGroupMapRepository.getUsers(domainId, businessAccountId, userGroupIds);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public List<UserGroupEntity> createUserGroup(Collection<UserGroupCreate> entities) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
 
@@ -181,7 +183,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
         for (UserGroupCreate userGroup : entities) {
             UserGroupEntity entity = new UserGroupEntity();
-            entity.setUserGroupType(userGroup.getUserGroupTypeId())
+            entity.setUserGroupTypeId(userGroup.getUserGroupTypeId())
                     .setDomainId(domainId)
                     .setBusinessAccountId(userGroup.getBusinessAccountId())
                     .setNameI18NId(userGroup.getNameI18n() != null ? userGroup.getNameI18n().getId() : null)

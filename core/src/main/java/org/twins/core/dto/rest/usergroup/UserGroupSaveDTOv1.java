@@ -12,11 +12,11 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "UserGroupSaveV1")
 public class UserGroupSaveDTOv1 {
-    //@Schema(description = "user group id", example = DTOExamples.USER_GROUP_ID)
+    @Schema(description = "Translation for name", example = DTOExamples.TRANSLATION)
     public I18nSaveDTOv1 nameI18n;
-
+    @Schema(description = "Translation description", example = DTOExamples.USER_GROUP_ID)
     public I18nSaveDTOv1 descriptionI18n;
-
+    @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     public UUID businessAccountId;
 
 

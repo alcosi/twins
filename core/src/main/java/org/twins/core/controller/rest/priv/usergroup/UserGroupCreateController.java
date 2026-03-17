@@ -22,7 +22,6 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.usergroup.UserGroupCreate;
 import org.twins.core.dto.rest.usergroup.UserGroupCreateRqDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupCreateDTOReverseMapper;
@@ -48,7 +47,7 @@ public class UserGroupCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "add user group", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupInvolveAssigneeRsDTOv1.class))}),
+                    @Schema(implementation = UserGroupListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/user_group/v1")
     public ResponseEntity<?> userGroupBatchCreateV1(
