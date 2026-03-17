@@ -146,13 +146,13 @@ public class HistoryNotificationTask implements Runnable {
         HistoryType historyType = history.getHistoryType();
         if (history.getTwinClassFieldId() == null) {
             configs = historyNotificationRepository
-                    .findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
+                    .findByHistoryTypeIdAndTwinClassIdExtendsHierarchyAndNotificationSchemaId(
                             historyType.name(),
                             history.getTwin().getTwinClassId(),
                             historyNotificationEntity.getNotificationSchemaId());
         } else {
             configs = historyNotificationRepository
-                    .findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
+                    .findByHistoryTypeIdAndTwinClassIdExtendsHierarchyAndTwinClassFieldIdAndNotificationSchemaId(
                             historyType.name(),
                             history.getTwin().getTwinClassId(),
                             history.getTwinClassFieldId(),

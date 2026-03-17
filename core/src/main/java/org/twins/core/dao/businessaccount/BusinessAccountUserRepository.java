@@ -13,4 +13,6 @@ public interface BusinessAccountUserRepository extends CrudRepository<BusinessAc
     <T> T findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId, Class<T> type);
 
     List<BusinessAccountUserEntity> findByUserIdIn(Set<UUID> users);
+
+    List<BusinessAccountUserEntity> findByBusinessAccountId(UUID businessAccountId);
 }
