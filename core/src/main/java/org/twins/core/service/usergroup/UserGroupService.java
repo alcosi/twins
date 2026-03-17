@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -15,11 +17,14 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.domain.usergroup.UserGroupCreate;
+import org.twins.core.domain.usergroup.UserGroupUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
@@ -192,5 +197,36 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         }
 
         return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<UserGroupEntity> updateUserGroup(Collection<UserGroupUpdate> entities) throws ServiceException {
+        if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+
+        ChangesHelperMulti<UserGroupEntity> changes = new ChangesHelperMulti<>();
+        Kit<UserGroupEntity, UUID> entitiesKit = findEntitiesSafe(entities.stream().map(UserGroupUpdate::getId).toList());
+        List<UserGroupEntity> allEntities = new ArrayList<>(entities.size());
+
+        for (UserGroupUpdate userGroup : entities) {
+            UserGroupEntity entity = entitiesKit.get(userGroup.getId());
+            allEntities.add(entity);
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            i18nService.updateI18nFieldForEntity(userGroup.getNameI18n(), I18nType.USER_GROUP_NAME, entity,
+                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18N, changesHelper);
+            i18nService.updateI18nFieldForEntity(userGroup.getDescriptionI18n(), I18nType.USER_GROUP_DESCRIPTION, entity,
+                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18N, changesHelper);
+
+            updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
+//            updateEntityFieldByValue(sourceEntity.getTwinClassId(), entity, HistoryNotificationEntity::getTwinClassId, HistoryNotificationEntity::setTwinClassId, HistoryNotificationEntity.Fields.twinClassId, changesHelper);
+
+            changes.add(entity, changesHelper);
+        }
+
+        updateSafe(changes);
+
+        return allEntities;
     }
 }
