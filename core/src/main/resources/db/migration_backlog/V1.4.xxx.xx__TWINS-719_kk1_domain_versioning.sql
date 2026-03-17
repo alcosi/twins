@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS domain_version_ghost
         primary key (domain_id, user_id, table_name)
 );
 
--- Function to add domain_version_id column safely
+
 CREATE OR REPLACE FUNCTION add_domain_version_column(tbl text, nullable boolean default true) RETURNS void AS
 $$
 DECLARE
@@ -233,6 +233,10 @@ DECLARE
     v_started_at timestamptz;
     v_duration_ms bigint;
 BEGIN
+    -- for core rows
+    IF p_domain_id IS NULL THEN
+        return NULL;
+    end if;
 
     -- Get current version in a single join
     SELECT dv.id, dv.domain_version_status_id, dv.hash, dv.json_file
