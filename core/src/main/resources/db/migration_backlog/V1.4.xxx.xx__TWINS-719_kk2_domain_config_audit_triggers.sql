@@ -1019,9 +1019,6 @@ create or replace function permission_grant_user_group_after_update_wrapper() re
     language plpgsql
 as
 $$
-declare
-v_old_business_account_id uuid;
-    v_new_business_account_id uuid;
 begin
     -- Call existing business logic
     if new.permission_schema_id is distinct from old.permission_schema_id
@@ -1035,15 +1032,14 @@ begin
 end if;
 
     -- Only audit domain-level groups (business_account_id IS NULL)
-    SELECT
-        (SELECT business_account_id FROM user_group WHERE id = old.user_group_id),
-        (SELECT business_account_id FROM user_group WHERE id = new.user_group_id)
-    INTO v_old_business_account_id, v_new_business_account_id;
-
-    -- Audit if either old or new group is domain-level
-    if v_old_business_account_id is null or v_new_business_account_id is null then
-        perform domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
-end if;
+    IF EXISTS (
+        SELECT 1
+        FROM user_group
+        WHERE id IN (old.user_group_id, new.user_group_id)
+          AND business_account_id IS NULL
+    ) THEN
+        PERFORM domain_config_audit_write(TG_TABLE_NAME, 'UPDATE', NEW.id, to_jsonb(NEW));
+    END IF;
 
 return new;
 end;
