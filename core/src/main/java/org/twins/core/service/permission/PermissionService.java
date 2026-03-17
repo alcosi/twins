@@ -44,9 +44,9 @@ import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserGroupFootprintService;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupFootprintService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -167,15 +167,13 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (currentUserHasPermission(permissionId))
             return true;
         userGroupService.loadGroupsForCurrentUser();
-        return twinRepository.hasPermission(
-                TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaId()),
+        return permissionRepository.hasPermission(
+                permissionDetectKey.getPermissionSchemaId(),
                 permissionId,
-                apiUser.getDomainId(),
-                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaSpaceId()),
-                apiUser.getUser().getId(),
-                TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
-                TypedParameterTwins.uuidNullable(permissionDetectKey.getTwinClassId()),
+                apiUser.getUserId(),
+                apiUser.getUser().getUserGroupsFootprint(),
+                permissionDetectKey.getTwinClassId(),
                 permissionDetectKey.isAssignee,
                 permissionDetectKey.isCreator);
     }

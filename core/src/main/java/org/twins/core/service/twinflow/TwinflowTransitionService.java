@@ -66,8 +66,8 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupService;
 import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
@@ -249,14 +249,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             detectKey = entry.getKey();
             twinflowTransitionEntityList = twinflowTransitionRepository.findValidTransitions(
                     detectKey.twinflowId,
-                    TypedParameterTwins.uuidNullable(detectKey.getPermissionSchemaId()),
                     detectKey.srcStatusId,
-                    apiUser.getDomainId(),
-                    TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                    detectKey.permissionSchemaId,
                     TypedParameterTwins.uuidNullable(detectKey.permissionSpaceId),
                     apiUser.getUser().getId(),
-                    TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
-                    TypedParameterTwins.uuidNullable(detectKey.twinClassId),
+                    apiUser.getUser().getUserGroupsFootprint(),
+                    detectKey.twinClassId,
                     detectKey.isAssignee,
                     detectKey.isCreator);
             for (TwinEntity twinEntity : entry.getValue()) {
@@ -516,13 +514,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         userGroupService.loadGroupsForCurrentUser();
         TwinflowTransitionEntity transition = twinflowTransitionRepository.findTransition(
                 transitionId,
-                TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaId()),
-                apiUser.getDomainId(),
-                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                twinEntity.getPermissionSchemaId(),
                 TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
                 apiUser.getUserId(),
-                TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
-                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
+                apiUser.getUser().getUserGroupsFootprint(),
+                twinEntity.getTwinClassId(),
                 TwinService.isAssignee(twinEntity, apiUser),
                 TwinService.isCreator(twinEntity, apiUser));
         checkTransitionValid(transitionId.toString(), transition, twinEntity);
@@ -545,13 +541,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             detectKey = entry.getKey();
             transition = twinflowTransitionRepository.findTransition(
                     transitionId,
-                    TypedParameterTwins.uuidNullable(detectKey.getPermissionSchemaId()),
-                    apiUser.getDomainId(),
-                    TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                    detectKey.permissionSchemaId,
                     TypedParameterTwins.uuidNullable(detectKey.permissionSpaceId),
                     apiUser.getUserId(),
-                    TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
-                    TypedParameterTwins.uuidNullable(detectKey.twinClassId),
+                    apiUser.getUser().getUserGroupsFootprint(),
+                    detectKey.twinClassId,
                     detectKey.isAssignee,
                     detectKey.isCreator);
             checkTransitionValid(transitionId.toString(), transition, entry);
@@ -608,16 +602,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         userGroupService.loadGroupsForCurrentUser();
         TwinflowTransitionEntity transition = twinflowTransitionRepository.findTransitionByAlias(
                 twinEntity.getTwinflow().getId(),
-                TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaId()),
-                twinEntity.getTwinStatusId(),
-                transitionAlias,
-                apiUser.getDomainId(),
-                TwinflowTransitionType.MARKETING,
-                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                twinEntity.getTwinStatusId(), transitionAlias, TwinflowTransitionType.MARKETING,
+                twinEntity.getPermissionSchemaId(),
                 TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
                 apiUser.getUserId(),
-                TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
-                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
+                apiUser.getUser().getUserGroupsFootprint(),
+                twinEntity.getTwinClassId(),
                 TwinService.isAssignee(twinEntity, apiUser),
                 TwinService.isCreator(twinEntity, apiUser));
         checkTransitionValid(transitionAlias, transition, twinEntity);
@@ -640,16 +630,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             detectKey = entry.getKey();
             transition = twinflowTransitionRepository.findTransitionByAlias(
                     detectKey.twinflowId,
-                    TypedParameterTwins.uuidNullable(detectKey.getPermissionSchemaId()),
                     detectKey.srcStatusId,
                     transitionAlias,
-                    apiUser.getDomainId(),
                     TwinflowTransitionType.MARKETING,
-                    TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                    detectKey.permissionSchemaId,
                     TypedParameterTwins.uuidNullable(detectKey.permissionSpaceId),
                     apiUser.getUserId(),
-                    TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
-                    TypedParameterTwins.uuidNullable(detectKey.twinClassId),
+                    apiUser.getUser().getUserGroupsFootprint(),
+                    detectKey.twinClassId,
                     detectKey.isAssignee,
                     detectKey.isCreator);
             checkTransitionValid(transitionAlias, transition, entry);

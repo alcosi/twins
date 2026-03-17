@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.Properties;
 import java.util.Set;

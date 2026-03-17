@@ -1,14 +1,15 @@
-package org.cambium.featurer.params;
+package org.twins.core.featurer.params;
 
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParamType;
+import org.cambium.featurer.params.FeaturerParam;
 import org.twins.core.enums.twinclass.FieldTextEditorType;
 
 import java.util.Properties;
 
 @FeaturerParamType(
-        id = "EDITOR_TYPE",
+        id = "STRING:TWINS:EDITOR_TYPE",
         description = "string twins editor type",
         regexp = FeaturerParamStringTwinsEditorType.EDITOR_TYPE_REGEXP,
         example = "PLAIN")

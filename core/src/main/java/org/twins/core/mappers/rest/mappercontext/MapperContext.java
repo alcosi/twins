@@ -15,12 +15,9 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
-import org.twins.core.dao.notification.NotificationChannelEntity;
-import org.twins.core.dao.notification.NotificationChannelEventEntity;
-import org.twins.core.dao.notification.NotificationContextEntity;
-import org.twins.core.dao.notification.NotificationSchemaEntity;
+import org.twins.core.dao.notification.*;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -31,12 +28,12 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
-import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
-import org.twins.core.dao.history.HistoryTypeEntity;
+import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.*;
@@ -96,6 +93,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinCommentEntity>> relatedCommentMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinClassSchemaEntity>> relatedTwinClassSchemaMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinflowSchemaEntity>> relatedTwinflowSchemaMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TierEntity>> relatedTierMap = new LinkedHashMap<>();
     @Getter
@@ -270,6 +269,8 @@ public class MapperContext {
             smartPut(relatedCommentMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassSchemaEntity twinClassSchema)
             smartPut(relatedTwinClassSchemaMap, twinClassSchema, twinClassSchema.getId());
+        else if (relatedObject instanceof TwinflowSchemaEntity twinflowSchemaEntity)
+            smartPut(relatedTwinflowSchemaMap, twinflowSchemaEntity, twinflowSchemaEntity.getId());
         else if (relatedObject instanceof TierEntity tier)
             smartPut(relatedTierMap, tier, tier.getId());
         else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
@@ -505,6 +506,7 @@ public class MapperContext {
         dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
+        dstMapperContext.relatedTwinflowSchemaMap = srcMapperContext.relatedTwinflowSchemaMap;
         dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
         dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;

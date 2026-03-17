@@ -3,7 +3,6 @@ package org.twins.core.featurer.factory.multiplier;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsCreateStrategy;
 import org.twins.core.service.twinclass.TwinClassSearchService;
 
 import java.sql.Timestamp;
@@ -28,8 +28,8 @@ import java.util.*;
         description = "New output twin for each input. Output class is child of context twin's class")
 public class MultiplierIsolatedOnContextTwinChildClass extends Multiplier {
 
-    @FeaturerParam(name = "Create twin sketch", description = "If true, create twin sketch instead of twin", order = 1, optional = true, defaultValue = "false")
-    public static final FeaturerParamBoolean sketchMode = new FeaturerParamBoolean("sketchMode");
+    @FeaturerParam(name = "Create twin strategy", description = "Twin create strategy", order = 1, optional = true, defaultValue = "false")
+    public static final FeaturerParamStringTwinsCreateStrategy createStrategy = new FeaturerParamStringTwinsCreateStrategy("createStrategy");
 
     @Lazy
     @Autowired
@@ -69,7 +69,7 @@ public class MultiplierIsolatedOnContextTwinChildClass extends Multiplier {
 
             TwinCreate twinCreate = new TwinCreate();
             twinCreate
-                    .setSketchMode(sketchMode.extract(properties))
+                    .setCreateStrategy(createStrategy.extract(properties))
                     .setTwinEntity(twinEntity);
 
             ret.add(new FactoryItem().setOutput(twinCreate));

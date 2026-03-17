@@ -7,6 +7,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.enums.twin.TwinCreateStrategy;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,7 +20,8 @@ public class TwinCreate extends TwinSave {
     private List<TwinLinkEntity> linksEntityList;
     private List<TwinFieldAttributeEntity> twinFieldAttributeEntityList;
     private boolean checkCreatePermission = false;
-    private boolean sketchMode = false;
+    private Boolean sketchMode; // this flag will be set after processing createStrategy
+    private TwinCreateStrategy createStrategy = TwinCreateStrategy.STRICT;
 
     public TwinCreate addLink(TwinLinkEntity link) {
         linksEntityList = CollectionUtils.safeAdd(linksEntityList, link);

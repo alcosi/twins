@@ -1,4 +1,4 @@
-package org.twins.core.service.user;
+package org.twins.core.service.usergroup;
 
 import lombok.RequiredArgsConstructor;
 

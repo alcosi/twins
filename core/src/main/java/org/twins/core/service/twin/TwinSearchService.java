@@ -44,7 +44,7 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.search.TwinSearchPredicateService;
 import org.twins.core.service.search.TwinSearchSortService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
