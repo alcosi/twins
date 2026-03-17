@@ -16,6 +16,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class DomainBusinessAccountSearch {
 
+    Set<UUID> idList;
+    Set<UUID> idExcludeList;
     Set<UUID> businessAccountIdList;
     Set<UUID> businessAccountIdExcludeList;
     Set<String> businessAccountNameLikeList;

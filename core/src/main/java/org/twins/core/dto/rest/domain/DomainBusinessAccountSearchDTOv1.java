@@ -15,6 +15,12 @@ import java.util.UUID;
 @Schema(name = "DomainBusinessAccountSearchDTOv1")
 public class DomainBusinessAccountSearchDTOv1 {
 
+    @Schema(description = "id list")
+    public Set<UUID> idList;
+
+    @Schema(description = "id exclude list")
+    public Set<UUID> idExcludeList;
+
     @Schema(description = "business account id list")
     public List<UUID> businessAccountIdList;
 

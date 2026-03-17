@@ -35,6 +35,8 @@ public class DomainBusinessAccountSearchService {
     public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         return checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
+                .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(),false, false, DomainBusinessAccountEntity.Fields.id))
+                .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.id))
                 .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
                 .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
                 .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))

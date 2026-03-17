@@ -20,6 +20,8 @@ public class DomainBusinessAccountSearchRestDTOReverseMapper extends RestSimpleD
     @Override
     public void map(DomainBusinessAccountSearchDTOv1 src, DomainBusinessAccountSearch dst, MapperContext mapperContext) throws Exception {
         dst
+                .setIdList(src.getIdList())
+                .setIdExcludeList(src.getIdExcludeList())
                 .setBusinessAccountIdList(convertToSetSafe(src.getBusinessAccountIdList()))
                 .setBusinessAccountIdExcludeList(convertToSetSafe(src.getBusinessAccountIdExcludeList()))
                 .setBusinessAccountNameLikeList(convertToSetSafe(src.getBusinessAccountNameLikeList()))
