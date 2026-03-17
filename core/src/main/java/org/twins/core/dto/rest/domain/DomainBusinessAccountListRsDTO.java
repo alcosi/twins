@@ -12,9 +12,9 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DomainBusinessAccountSearchRsV1")
-public class DomainBusinessAccountSearchRsDTOv1 extends DomainBusinessAccountListRsDTO {
-    @Schema(description = "pagination data")
-    public PaginationDTOv1 pagination;
+@Schema(name = "DomainBusinessAccountSearchList")
+public class DomainBusinessAccountListRsDTO extends ResponseRelatedObjectsDTOv1 {
 
+    @Schema(description = "results - domain business account list")
+    List <DomainBusinessAccountDTOv1> businessAccounts;
 }
