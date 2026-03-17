@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.Request;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,11 +28,11 @@ public class HistoryNotificationSearchRqDTOv1 extends Request {
     @Schema(description = "history type id exclude list")
     public Set<String> historyTypeIdExcludeList;
 
-    @Schema(description = "twin class id list")
-    public Set<UUID> twinClassIdList;
+    @Schema(description = "twin class id map (key=classId, value=includeExtendsHierarchy)")
+    public Map<UUID, Boolean> twinClassIdMap;
 
-    @Schema(description = "twin class id exclude list")
-    public Set<UUID> twinClassIdExcludeList;
+    @Schema(description = "twin class id exclude map (key=classId, value=includeExtendsHierarchy)")
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
 
     @Schema(description = "twin class field id list")
     public Set<UUID> twinClassFieldIdList;

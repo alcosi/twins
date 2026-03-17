@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationRepository;
 import org.twins.core.domain.search.HistoryNotificationSearch;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldIn;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
@@ -25,6 +26,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkTernary
 @Service
 public class HistoryNotificationSearchService {
     private final HistoryNotificationRepository repository;
+    private final TwinClassService twinClassService;
 
     public PaginationResult<HistoryNotificationEntity> findHistoryNotification(HistoryNotificationSearch search, SimplePagination pagination) throws ServiceException {
         Specification<HistoryNotificationEntity> spec = createSearchSpecification(search);
@@ -38,8 +40,8 @@ public class HistoryNotificationSearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, HistoryNotificationEntity.Fields.id),
                 checkFieldIn(search.getHistoryTypeIdList(), false, false, false, HistoryNotificationEntity.Fields.historyTypeId),
                 checkFieldIn(search.getHistoryTypeIdExcludeList(), true, false, false, HistoryNotificationEntity.Fields.historyTypeId),
-                checkUuidIn(search.getTwinClassIdList(), false, false, HistoryNotificationEntity.Fields.twinClassId),
-                checkUuidIn(search.getTwinClassIdExcludeList(), true, false, HistoryNotificationEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, HistoryNotificationEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, HistoryNotificationEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinClassFieldIdList(), false, false, HistoryNotificationEntity.Fields.twinClassFieldId),
                 checkUuidIn(search.getTwinClassFieldIdExcludeList(), true, false, HistoryNotificationEntity.Fields.twinClassFieldId),
                 checkUuidIn(search.getTwinValidatorSetIdList(), false, false, HistoryNotificationEntity.Fields.twinValidatorSetId),
