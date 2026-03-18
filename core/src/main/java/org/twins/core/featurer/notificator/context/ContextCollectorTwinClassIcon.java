@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.resource.ResourceService;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
+@Component
 @Featurer(id = FeaturerTwins.ID_4909,
         name = "Twin Class Icon Context Collector",
         description = "Collects twin class icon URL (dark or light theme).")

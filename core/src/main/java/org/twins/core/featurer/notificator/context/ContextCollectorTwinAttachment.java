@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
@@ -18,6 +19,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Slf4j
+@Component
 @Featurer(id = FeaturerTwins.ID_4908,
         name = "Twin Attachment Context Collector",
         description = "Collects twin attachment URL. Takes first attachment by order.")
