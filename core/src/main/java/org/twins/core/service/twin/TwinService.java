@@ -33,10 +33,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.Identifiable;
-import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.TwinField;
+import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
@@ -344,8 +341,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         createTwin(twinCreate, twinChangesCollector);
-        twinChangesService.applyChanges(twinChangesCollector);
-        TwinEntity twinEntity = twinCreate.getTwinEntity();
+        var result = twinChangesService.applyChanges(twinChangesCollector);
+        TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
@@ -379,10 +376,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
-        twinChangesService.applyChanges(twinChangesCollector);
+        TwinChangesApplyResult result = twinChangesService.applyChanges(twinChangesCollector);
         List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
-            TwinEntity twinEntity = twinCreate.getTwinEntity();
+            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
             twins.add(twinEntity);
             twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         }
@@ -526,13 +523,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getTwinClass().getHeadTwinClassId() != null && twinEntity.getHeadTwinId() == null) {
             throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "head twin is required for " + twinEntity.getTwinClass().logShort());
-        } else if (twinEntity.getTwinClass().getHeadTwinClassId() == null) {
-            return;
+        } else if (twinEntity.getTwinClass().getHeadTwinClassId() != null) {
+            TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
+            twinEntity
+                    .setHeadTwinId(headTwin.getId())
+                    .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin))
+                    .setPermissionSchemaId(headTwin.getPermissionSchemaId());
+        } else {
+            twinEntity.setPermissionSchemaId(authService.getApiUser().getUser().getDetectedPermissionSchemaId());
         }
-        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
-        twinEntity
-                .setHeadTwinId(headTwin.getId())
-                .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
     }
 
 

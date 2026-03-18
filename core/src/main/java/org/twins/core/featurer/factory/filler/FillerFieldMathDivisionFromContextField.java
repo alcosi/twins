@@ -18,6 +18,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.fieldtyper.value.FieldValueTextBlankStringNullify;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -52,10 +53,10 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         FieldValue dividendFieldValue = factoryItem.getOutput().getField(paramDividendTwinClassFieldId);
         if (factoryItem.getOutput() instanceof TwinCreate) {
             if (dividendFieldValue == null) {
-                dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
+                dividendFieldValue = new FieldValueTextBlankStringNullify(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
             } else {
-                if (((FieldValueText) dividendFieldValue).getValue() == null) {
-                    ((FieldValueText) dividendFieldValue).setValue("0.0");
+                if (((FieldValueTextBlankStringNullify) dividendFieldValue).getValue() == null) {
+                    ((FieldValueTextBlankStringNullify) dividendFieldValue).setValue("0.0");
                 }
             }
         }
@@ -64,12 +65,12 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
                 dividendFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
             }
             if (dividendFieldValue == null) {
-                dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
+                dividendFieldValue = new FieldValueTextBlankStringNullify(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
             } else {
-                if (((FieldValueText) dividendFieldValue).getValue() == null) {
-                    ((FieldValueText) dividendFieldValue).setValue("0.0");
+                if (((FieldValueTextBlankStringNullify) dividendFieldValue).getValue() == null) {
+                    ((FieldValueTextBlankStringNullify) dividendFieldValue).setValue("0.0");
                 } else {
-                    FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
+                    FieldValueTextBlankStringNullify fieldValue = (FieldValueTextBlankStringNullify) dividendFieldValue;
                     try {
                         Double.parseDouble(fieldValue.getValue());
                     } catch (NumberFormatException e) {
@@ -86,7 +87,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         if (divisorFieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] can not be detected");
 
-        if (divisorFieldValue instanceof FieldValueText divisorFieldValueText) {
+        if (divisorFieldValue instanceof FieldValueTextBlankStringNullify divisorFieldValueText) {
             BigDecimal dividendNumber = new BigDecimal(((FieldValueText) dividendFieldValue).getValue());
             BigDecimal divisorNumber = new BigDecimal(divisorFieldValueText.getValue() == null ? "0" : divisorFieldValueText.getValue());
             if (divisorNumber.compareTo(BigDecimal.ZERO) == 0) {
@@ -99,12 +100,12 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
 
             FieldValue targetFieldValue = factoryItem.getOutput().getField(paramTargetTwinClassFieldId);
             if (targetFieldValue == null) {
-                targetFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramTargetTwinClassFieldId));
+                targetFieldValue = new FieldValueTextBlankStringNullify(twinClassFieldService.findEntitySafe(paramTargetTwinClassFieldId));
             }
-            if (!(targetFieldValue instanceof FieldValueText)) {
+            if (!(targetFieldValue instanceof FieldValueTextBlankStringNullify)) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "targetTwinClassField[" + paramTargetTwinClassFieldId + "] is not instance of text field and can not be converted to number");
             }
-            factoryItem.getOutput().addField(((FieldValueText) targetFieldValue).setValue(BigDecimalUtil.getProcessedString(division)));
+            factoryItem.getOutput().addField(((FieldValueTextBlankStringNullify) targetFieldValue).setValue(BigDecimalUtil.getProcessedString(division)));
         } else {
             log.warn("Incorrect result detected, skipping division");
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] is not instance of text field and can not be converted to number");
