@@ -65,10 +65,10 @@ public class DomainBusinessAccountListController extends ApiController {
             @RequestBody DomainBusinessAccountSearchRqDTOv1 request) {
         DomainBusinessAccountSearchRsDTOv1 rs = new DomainBusinessAccountSearchRsDTOv1();
         try {
-            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountSearchService.findDomainBusinessAccounts(domainBusinessAccountSearchRestDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountSearchService.findDomainBusinessAccounts(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
-                    .setBusinessAccounts(domainBusinessAccountDTOMapper.convertCollection(domainBusinessAccounts.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainBusinessAccounts))
+                    .setBusinessAccounts(domainBusinessAccountDTOMapper.convertCollection(domainBusinessAccounts.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
