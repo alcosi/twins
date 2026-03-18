@@ -4,9 +4,9 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.businessaccount.BusinessAccountUserService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class RecipientResolverBusinessAccount extends RecipientResolver {
 
     @Autowired
-    private BusinessAccountUserRepository businessAccountUserRepository;
+    private BusinessAccountUserService businessAccountUserService;
 
     @Override
     protected void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException {
@@ -27,8 +27,6 @@ public class RecipientResolverBusinessAccount extends RecipientResolver {
         if (businessAccountId == null) {
             return;
         }
-        businessAccountUserRepository
-                .findByBusinessAccountId(businessAccountId)
-                .forEach(bau -> recipientIds.add(bau.getUserId()));
+        recipientIds.addAll(businessAccountUserService.findUserIdsByBusinessAccountId(businessAccountId));
     }
 }

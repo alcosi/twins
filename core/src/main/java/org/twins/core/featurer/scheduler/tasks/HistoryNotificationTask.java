@@ -8,19 +8,15 @@ import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.common.pagination.SimplePagination;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
-import org.twins.core.domain.search.HistoryNotificationSearch;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryRecipientService;
-import org.twins.core.service.notification.HistoryNotificationSearchService;
 import org.twins.core.service.notification.NotificationContextService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
@@ -39,8 +35,6 @@ public class HistoryNotificationTask implements Runnable {
     private HistoryNotificationRepository historyNotificationRepository;
     @Autowired
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
-    @Autowired
-    private HistoryNotificationSearchService historyNotificationSearchService;
     @Autowired
     private FeaturerService featurerService;
     @Autowired
@@ -146,17 +140,25 @@ public class HistoryNotificationTask implements Runnable {
         }
     }
 
-    private List<HistoryNotificationEntity> getConfigs(HistoryEntity history) throws ServiceException {
-        HistoryNotificationSearch search = new HistoryNotificationSearch()
-                .setHistoryTypeIdList(Set.of(history.getHistoryType().name()))
-                .setTwinClassIdMap(Map.of(history.getTwin().getTwinClassId(), true)) // true = include extends hierarchy
-                .setNotificationSchemaIdList(Set.of(historyNotificationEntity.getNotificationSchemaId()));
+    private List<HistoryNotificationEntity> getConfigs(HistoryEntity history) {
+        Set<UUID> matchingClassIds = new HashSet<>(history.getTwin().getTwinClass().getExtendedClassIdSet());
+        matchingClassIds.add(history.getTwin().getTwinClassId());
 
-        if (history.getTwinClassFieldId() != null) {
-            search.setTwinClassFieldIdList(Set.of(history.getTwinClassFieldId()));
+        List<HistoryNotificationEntity> notifications;
+        if (history.getTwinClassFieldId() == null) {
+            notifications = historyNotificationRepository.findByHistoryTypeIdAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    historyNotificationEntity.getNotificationSchemaId());
+        } else {
+            notifications = historyNotificationRepository.findByHistoryTypeIdAndTwinClassFieldIdAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    history.getTwinClassFieldId(),
+                    historyNotificationEntity.getNotificationSchemaId());
         }
 
-        return historyNotificationSearchService.findHistoryNotification(search, SimplePagination.ALL).getList();
+        return notifications.stream()
+                .filter(n -> matchingClassIds.contains(n.getTwinClassId()))
+                .toList();
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {

@@ -11,4 +11,8 @@ import java.util.UUID;
 public interface HistoryNotificationRepository extends CrudRepository<HistoryNotificationEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationEntity> {
     List<HistoryNotificationEntity> findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(String historyTypeId, UUID twinClassId, UUID twinClassFieldId, UUID notificationSchemaId);
     List<HistoryNotificationEntity> findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(String historyTypeId, UUID twinClassId, UUID schemaId);
+
+    List<HistoryNotificationEntity> findByHistoryTypeIdAndNotificationSchemaId(String historyTypeId, UUID notificationSchemaId);
+
+    List<HistoryNotificationEntity> findByHistoryTypeIdAndTwinClassFieldIdAndNotificationSchemaId(String historyTypeId, UUID twinClassFieldId, UUID notificationSchemaId);
 }
