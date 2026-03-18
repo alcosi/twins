@@ -5,16 +5,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DomainBusinessAccountSearchList")
-public class DomainBusinessAccountListRsDTO extends ResponseRelatedObjectsDTOv1 {
-
+@Schema(name = "DomainBusinessAccountListRsV1")
+public class DomainBusinessAccountListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - domain business account list")
-    List <DomainBusinessAccountDTOv1> businessAccounts;
+    List<DomainBusinessAccountDTOv1> businessAccounts;
 }
