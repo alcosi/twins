@@ -144,21 +144,18 @@ public class HistoryNotificationTask implements Runnable {
         Set<UUID> matchingClassIds = new HashSet<>(history.getTwin().getTwinClass().getExtendedClassIdSet());
         matchingClassIds.add(history.getTwin().getTwinClassId());
 
-        List<HistoryNotificationEntity> notifications;
         if (history.getTwinClassFieldId() == null) {
-            notifications = historyNotificationRepository.findByHistoryTypeIdAndNotificationSchemaId(
+            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndNotificationSchemaId(
                     history.getHistoryType().name(),
+                    matchingClassIds,
                     historyNotificationEntity.getNotificationSchemaId());
         } else {
-            notifications = historyNotificationRepository.findByHistoryTypeIdAndTwinClassFieldIdAndNotificationSchemaId(
+            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndTwinClassFieldIdAndNotificationSchemaId(
                     history.getHistoryType().name(),
+                    matchingClassIds,
                     history.getTwinClassFieldId(),
                     historyNotificationEntity.getNotificationSchemaId());
         }
-
-        return notifications.stream()
-                .filter(n -> matchingClassIds.contains(n.getTwinClassId()))
-                .toList();
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {
