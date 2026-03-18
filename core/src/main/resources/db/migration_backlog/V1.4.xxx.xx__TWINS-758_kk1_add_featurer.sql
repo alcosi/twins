@@ -1,1 +1,3 @@
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4706::integer, 47::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4707::integer, 47::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4708::integer, 47::integer, '', '', '', DEFAULT) on conflict do nothing;
