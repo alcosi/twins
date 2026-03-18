@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4910::integer, 49::integer, '', '', '', DEFAULT) on conflict do nothing;
