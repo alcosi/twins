@@ -523,13 +523,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getTwinClass().getHeadTwinClassId() != null && twinEntity.getHeadTwinId() == null) {
             throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "head twin is required for " + twinEntity.getTwinClass().logShort());
-        } else if (twinEntity.getTwinClass().getHeadTwinClassId() == null) {
-            return;
+        } else if (twinEntity.getTwinClass().getHeadTwinClassId() != null) {
+            TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
+            twinEntity
+                    .setHeadTwinId(headTwin.getId())
+                    .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin))
+                    .setPermissionSchemaId(headTwin.getPermissionSchemaId());
+        } else {
+            twinEntity.setPermissionSchemaId(authService.getApiUser().getUser().getDetectedPermissionSchemaId());
         }
-        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
-        twinEntity
-                .setHeadTwinId(headTwin.getId())
-                .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
     }
 
 
