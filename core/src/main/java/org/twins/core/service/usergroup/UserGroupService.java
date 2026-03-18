@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -64,11 +65,18 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     @Override
     public boolean isEntityReadDenied(UserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (entity.getDomainId() != null //some system twinClasses can be out of any domain
+                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean validateEntity(UserGroupEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        // validation by trigger DB
         return true;
     }
 
@@ -190,7 +198,8 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
             UserGroupEntity entity = new UserGroupEntity();
             entity.setUserGroupTypeId(userGroup.getUserGroupTypeId())
                     .setDomainId(domainId)
-                    .setBusinessAccountId(userGroup.getBusinessAccountId())
+                    //todo think about permissions for user
+                    //.setBusinessAccountId(userGroup.getBusinessAccountId())
                     .setNameI18NId(userGroup.getNameI18n() != null ? userGroup.getNameI18n().getId() : null)
                     .setDescriptionI18NId(userGroup.getDescriptionI18n() != null ? userGroup.getDescriptionI18n().getId() : null);
             entitiesToSave.add(entity);
