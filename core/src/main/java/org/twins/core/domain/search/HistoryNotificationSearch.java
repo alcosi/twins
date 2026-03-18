@@ -5,6 +5,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,8 +17,8 @@ public class HistoryNotificationSearch {
     public Set<UUID> idExcludeList;
     public Set<String> historyTypeIdList;
     public Set<String> historyTypeIdExcludeList;
-    public Set<UUID> twinClassIdList;
-    public Set<UUID> twinClassIdExcludeList;
+    public Map<UUID, Boolean> twinClassIdMap;
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
     public Set<UUID> twinClassFieldIdList;
     public Set<UUID> twinClassFieldIdExcludeList;
     public Set<UUID> twinValidatorSetIdList;
