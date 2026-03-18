@@ -101,6 +101,10 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             mapperContext.setMode(TwinClassMode.DETAILED);
         }
 
+        if (mapperContext.hasMode(TwinClassMode.DETAILED) || mapperContext.hasMode(TwinClassMode.MANAGED)) {
+            resourceService.loadIconResources(src);
+        }
+
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
                 dst
@@ -308,6 +312,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasModeButNot(TwinClassFreezeMode.TwinClass2TwinClassFreezeMode.HIDE)) {
             twinClassService.loadFreeze(srcCollection);
+        }
+        if (mapperContext.hasMode(TwinClassMode.DETAILED) || mapperContext.hasMode(TwinClassMode.MANAGED)) {
+            resourceService.loadIconResources(srcCollection);
         }
     }
 
