@@ -261,6 +261,28 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return twinAttachmentRepository.findByTwinId(twinId);
     }
 
+    public TwinAttachmentEntity findFirstAttachment(TwinEntity twin, UUID twinClassFieldId) {
+        loadAttachments(twin);
+        var attachments = twin.getAttachmentKit();
+        if (CollectionUtils.isEmpty(attachments)) {
+            return null;
+        }
+        return attachments.stream()
+                .filter(a -> {
+                    if (twinClassFieldId == null) {
+                        // Direct twin attachments only
+                        return a.getTwinClassFieldId() == null
+                                && a.getTwinCommentId() == null
+                                && a.getTwinflowTransitionId() == null;
+                    } else {
+                        // Attachments from specific field
+                        return twinClassFieldId.equals(a.getTwinClassFieldId());
+                    }
+                })
+                .min(Comparator.comparingInt(a -> a.getOrder() != null ? a.getOrder() : Integer.MAX_VALUE))
+                .orElse(null);
+    }
+
     public void loadAttachments(TwinEntity twinEntity) {
         loadAttachments(Collections.singletonList(twinEntity));
     }
