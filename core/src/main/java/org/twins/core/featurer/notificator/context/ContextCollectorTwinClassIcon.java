@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_4708,
+@Featurer(id = FeaturerTwins.ID_4909,
         name = "Twin Class Icon Context Collector",
         description = "Collects twin class icon URL (dark or light theme).")
 @RequiredArgsConstructor

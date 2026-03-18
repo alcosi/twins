@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_4707,
+@Featurer(id = FeaturerTwins.ID_4908,
         name = "Twin Attachment Context Collector",
         description = "Collects twin attachment URL. Takes first attachment by order.")
 @RequiredArgsConstructor
