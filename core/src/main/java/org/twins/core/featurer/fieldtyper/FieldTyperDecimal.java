@@ -21,7 +21,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.featurer.fieldtyper.value.FieldValueTextBlankStringNullify;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -38,7 +37,7 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
         name = "Decimal",
         description = "Decimal field with dedicated table storage"
 )
-public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueTextBlankStringNullify, TwinFieldValueSearchNumeric> {
+public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
     
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
@@ -74,7 +73,7 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldDecimalEntity, FieldValueTextBlankStringNullify value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldDecimalEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (value.isUndefined())
             return;
         if (twinFieldDecimalEntity == null && value.isNotEmpty()) {
@@ -95,7 +94,7 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
 
 
     @Override
-    protected FieldValueTextBlankStringNullify deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
         var scale = decimalPlaces.extract(properties);
         var value = "";
 
@@ -105,7 +104,7 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
             value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null;
         }
 
-        return new FieldValueTextBlankStringNullify(twinField.getTwinClassField()).setValue(value);
+        return new FieldValueText(twinField.getTwinClassField()).setValue(value);
     }
 
     @Override
