@@ -4,8 +4,11 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -13,18 +16,24 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.usergroup.UserGroupCreate;
+import org.twins.core.domain.usergroup.UserGroupUpdate;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -36,6 +45,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupMapRepository userGroupMapRepository;
     final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
+    final I18nService i18nService;
     @Lazy
     final AuthService authService;
     @Lazy
@@ -53,11 +63,18 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     @Override
     public boolean isEntityReadDenied(UserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (entity.getDomainId() != null //some User group can be out of any domain
+                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean validateEntity(UserGroupEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        // validation by trigger DB
         return true;
     }
 
@@ -159,4 +176,60 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         return userGroupMapRepository.getUsers(domainId, businessAccountId, userGroupIds);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<UserGroupEntity> createUserGroup(Collection<UserGroupCreate> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+        i18nService.createI18nAndTranslations(I18nType.USER_GROUP_NAME,
+                entities.stream().map(UserGroupCreate::getNameI18n)
+                        .toList());
+        i18nService.createI18nAndTranslations(I18nType.USER_GROUP_DESCRIPTION,
+                entities.stream().map(UserGroupCreate::getDescriptionI18n)
+                        .toList());
+
+        List<UserGroupEntity> entitiesToSave = new ArrayList<>();
+
+        for (UserGroupCreate userGroup : entities) {
+            UserGroupEntity entity = new UserGroupEntity();
+            entity.setUserGroupTypeId(userGroup.getUserGroupTypeId())
+                    .setDomainId(authService.getApiUser().getDomainId())
+                    //todo think about permissions for user
+                    //.setBusinessAccountId(userGroup.getBusinessAccountId())
+                    .setNameI18NId(userGroup.getNameI18n() != null ? userGroup.getNameI18n().getId() : null)
+                    .setDescriptionI18NId(userGroup.getDescriptionI18n() != null ? userGroup.getDescriptionI18n().getId() : null);
+            entitiesToSave.add(entity);
+        }
+
+        return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<UserGroupEntity> updateUserGroup(Collection<UserGroupUpdate> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+
+        ChangesHelperMulti<UserGroupEntity> changes = new ChangesHelperMulti<>();
+        Kit<UserGroupEntity, UUID> entitiesKit = findEntitiesSafe(entities.stream().map(UserGroupUpdate::getId).toList());
+        List<UserGroupEntity> allEntities = new ArrayList<>(entities.size());
+
+        for (UserGroupUpdate userGroup : entities) {
+            UserGroupEntity entity = entitiesKit.get(userGroup.getId());
+            allEntities.add(entity);
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            i18nService.updateI18nFieldForEntity(userGroup.getNameI18n(), I18nType.USER_GROUP_NAME, entity,
+                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18N, changesHelper);
+            i18nService.updateI18nFieldForEntity(userGroup.getDescriptionI18n(), I18nType.USER_GROUP_DESCRIPTION, entity,
+                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18N, changesHelper);
+            // todo for future, as at create
+            // updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
+
+            changes.add(entity, changesHelper);
+        }
+
+        updateSafe(changes);
+        return allEntities;
+    }
 }
