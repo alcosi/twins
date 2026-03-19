@@ -6,7 +6,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueColorHEX extends FieldValueTextBlankStringNullify {
+public class FieldValueColorHEX extends FieldValueSimple<String> {
     public FieldValueColorHEX(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
