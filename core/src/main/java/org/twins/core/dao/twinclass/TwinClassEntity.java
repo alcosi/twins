@@ -213,16 +213,14 @@ public class TwinClassEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconLightResource;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
     @ManyToOne(fetch = FetchType.LAZY)

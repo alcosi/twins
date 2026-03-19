@@ -36,13 +36,16 @@ public class ContextCollectorTwinClassIcon extends ContextCollector {
         String key = collectKey.extract(properties);
         boolean dark = useDarkIcon.extract(properties);
 
-        if (dark && history.getTwin().getTwinClass().getIconDarkResource() != null) {
-            String url = resourceService.getResourceUri(history.getTwin().getTwinClass().getIconDarkResource());
+        var twinClass = history.getTwin().getTwinClass();
+        resourceService.loadIconResources(twinClass);
+
+        if (dark && twinClass.getIconDarkResource() != null) {
+            String url = resourceService.getResourceUri(twinClass.getIconDarkResource());
             if (url != null) {
                 context.put(key, url);
             }
-        } else if (!dark && history.getTwin().getTwinClass().getIconLightResource() != null) {
-            String url = resourceService.getResourceUri(history.getTwin().getTwinClass().getIconLightResource());
+        } else if (!dark && twinClass.getIconLightResource() != null) {
+            String url = resourceService.getResourceUri(twinClass.getIconLightResource());
             if (url != null) {
                 context.put(key, url);
             }
