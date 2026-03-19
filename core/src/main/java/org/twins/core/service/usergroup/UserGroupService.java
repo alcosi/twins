@@ -18,12 +18,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.dao.usergroup.UserGroupMapRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.domain.usergroup.UserGroupCreate;
 import org.twins.core.domain.usergroup.UserGroupUpdate;
 import org.twins.core.enums.i18n.I18nType;
@@ -47,7 +45,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupMapRepository userGroupMapRepository;
     final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
-    private final I18nService i18nService;
+    final I18nService i18nService;
     @Lazy
     final AuthService authService;
     @Lazy
@@ -66,7 +64,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     @Override
     public boolean isEntityReadDenied(UserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null //some system twinClasses can be out of any domain
+        if (entity.getDomainId() != null //some User group can be out of any domain
                 && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
@@ -180,8 +178,6 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     @Transactional(rollbackFor = Throwable.class)
     public List<UserGroupEntity> createUserGroup(Collection<UserGroupCreate> entities) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-
         if (CollectionUtils.isEmpty(entities)) {
             return Collections.emptyList();
         }
@@ -197,7 +193,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         for (UserGroupCreate userGroup : entities) {
             UserGroupEntity entity = new UserGroupEntity();
             entity.setUserGroupTypeId(userGroup.getUserGroupTypeId())
-                    .setDomainId(domainId)
+                    .setDomainId(authService.getApiUser().getDomainId())
                     //todo think about permissions for user
                     //.setBusinessAccountId(userGroup.getBusinessAccountId())
                     .setNameI18NId(userGroup.getNameI18n() != null ? userGroup.getNameI18n().getId() : null)
@@ -210,7 +206,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     @Transactional(rollbackFor = Throwable.class)
     public List<UserGroupEntity> updateUserGroup(Collection<UserGroupUpdate> entities) throws ServiceException {
-        if (org.apache.commons.collections4.CollectionUtils.isEmpty(entities)) {
+        if (CollectionUtils.isEmpty(entities)) {
             return Collections.emptyList();
         }
 
@@ -227,15 +223,13 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
                     UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18N, changesHelper);
             i18nService.updateI18nFieldForEntity(userGroup.getDescriptionI18n(), I18nType.USER_GROUP_DESCRIPTION, entity,
                     UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18N, changesHelper);
-
-            updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
-//            updateEntityFieldByValue(sourceEntity.getTwinClassId(), entity, HistoryNotificationEntity::getTwinClassId, HistoryNotificationEntity::setTwinClassId, HistoryNotificationEntity.Fields.twinClassId, changesHelper);
+            // todo for future, as at create
+            // updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
 
             changes.add(entity, changesHelper);
         }
 
         updateSafe(changes);
-
         return allEntities;
     }
 }

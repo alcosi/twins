@@ -11,6 +11,5 @@ import org.twins.core.enums.user.UserGroupType;
 @Schema(name = "UserGroupCreateV1")
 @EqualsAndHashCode(callSuper = true)
 public class UserGroupCreateDTOv1 extends UserGroupSaveDTOv1 {
-
     public UserGroupType userGroupTypeId;
 }

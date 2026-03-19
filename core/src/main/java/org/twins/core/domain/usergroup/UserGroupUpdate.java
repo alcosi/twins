@@ -10,6 +10,5 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 public class UserGroupUpdate extends UserGroupSave{
-
     UUID id;
 }

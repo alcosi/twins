@@ -9,7 +9,6 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class UserGroupSave {
-
     private I18nEntity nameI18n;
     private I18nEntity descriptionI18n;
     private UUID businessAccountId;

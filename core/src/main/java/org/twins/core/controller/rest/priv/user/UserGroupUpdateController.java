@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.usergroup.UserGroupUpdate;
-import org.twins.core.dto.rest.notification.HistoryNotificationListRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -47,10 +46,10 @@ public class UserGroupUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The user group batch was updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = HistoryNotificationListRsDTOv1.class))}),
+                    @Schema(implementation = UserGroupListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/user_group/v1")
-    public ResponseEntity<?> historyNotificationUpdateV1(
+    public ResponseEntity<?> userGroupBatchUpdateV1(
             @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody UserGroupUpdateRqDTOv1 request) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();

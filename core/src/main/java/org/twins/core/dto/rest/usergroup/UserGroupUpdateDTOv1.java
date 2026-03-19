@@ -12,6 +12,5 @@ import java.util.UUID;
 @Schema(name = "UserGroupUpdateV1")
 @EqualsAndHashCode(callSuper = true)
 public class UserGroupUpdateDTOv1 extends UserGroupSaveDTOv1 {
-
     public UUID id;
 }
