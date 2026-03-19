@@ -1,12 +1,20 @@
--- Domain versioning tables (from TWINS-458)
 CREATE TABLE IF NOT EXISTS domain_version_status (
     id varchar PRIMARY KEY
 );
 
 INSERT INTO domain_version_status (id) VALUES
                                            ('OPEN'),
-                                           ('LOCKED'),
                                            ('RELEASED')
+ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS domain_operation_status (
+                                                     id varchar PRIMARY KEY
+);
+
+INSERT INTO domain_operation_status (id) VALUES
+                                           ('IDLE'),
+                                           ('IMPORTING'),
+                                           ('RELEASING')
 ON CONFLICT DO NOTHING;
 
 -- domain versions
@@ -19,7 +27,7 @@ CREATE TABLE IF NOT EXISTS domain_version
         CONSTRAINT domain_version_domain_id_fk
             REFERENCES domain
             ON UPDATE CASCADE ON DELETE CASCADE,
-    version                    varchar not null,
+    version                    varchar,
     name                       varchar,
     description                varchar,
     domain_version_status_id   varchar not null default 'OPEN'                           NOT NULL
@@ -62,6 +70,12 @@ ALTER TABLE domain
     ADD IF NOT EXISTS current_domain_version_id uuid
         constraint domain_domain_version_id_fk
             references domain_version
+            on update cascade on delete restrict;
+
+ALTER TABLE domain
+    ADD IF NOT EXISTS domain_operation_status_id varchar not null default 'IDLE'
+        constraint domain_domain_operation_status_id_fk
+            references domain_operation_status
             on update cascade on delete restrict;
 
 CREATE TABLE IF NOT EXISTS domain_version_ghost
@@ -225,22 +239,29 @@ CREATE OR REPLACE FUNCTION domain_version_get_current(p_domain_id UUID)
 AS
 $$
 DECLARE
-    v_version_id UUID;
-    v_status     TEXT;
-    v_hash       TEXT;
-    v_json       JSONB;
-    v_new_id     UUID;
-    v_started_at timestamptz;
-    v_duration_ms bigint;
+    v_version_id        UUID;
+    v_version_status    TEXT;
+    v_operation_status  TEXT;
+    v_hash              TEXT;
+    v_json              JSONB;
+    v_new_id            UUID;
 BEGIN
-    -- for core rows
+    -- For core rows
     IF p_domain_id IS NULL THEN
-        return NULL;
-    end if;
+        RETURN NULL;
+    END IF;
 
-    -- Get current version in a single join
-    SELECT dv.id, dv.domain_version_status_id, dv.hash, dv.json_file
-    INTO v_version_id, v_status, v_hash, v_json
+    -- Fast path: read current version and domain operation status in one query
+    SELECT dv.id,
+           dv.domain_version_status_id,
+           d.domain_operation_status_id,
+           dv.hash,
+           dv.json_file
+    INTO v_version_id,
+        v_version_status,
+        v_operation_status,
+        v_hash,
+        v_json
     FROM domain d
              JOIN domain_version dv
                   ON dv.id = d.current_domain_version_id
@@ -250,68 +271,92 @@ BEGIN
         RAISE EXCEPTION 'Current domain version not found for domain %', p_domain_id;
     END IF;
 
-    -- Release in progress
-    IF v_status = 'LOCKED' THEN
+    -- Block user edits while long operation is running
+    IF v_operation_status = 'RELEASING' THEN
         RAISE EXCEPTION 'Domain configuration release is in progress for domain %', p_domain_id;
     END IF;
 
-    -- Fast path: most calls will hit OPEN
-    IF v_status = 'OPEN' THEN
+    IF v_operation_status = 'IMPORTING' THEN
+        RAISE EXCEPTION 'Domain configuration import is in progress for domain %', p_domain_id;
+    END IF;
+
+    -- Most calls should hit OPEN
+    IF v_version_status = 'OPEN' THEN
         RETURN v_version_id;
     END IF;
 
-    -- Slow path: opening new working version
+    -- Slow path: need to open a working version
     -- Lock only when needed
     PERFORM pg_advisory_xact_lock(hashtext(p_domain_id::text));
 
     -- Recheck after lock (double-checked locking)
-    SELECT dv.id, dv.domain_version_status_id, dv.hash, dv.json_file
-    INTO v_version_id, v_status, v_hash, v_json
+    SELECT dv.id,
+           dv.domain_version_status_id,
+           d.domain_operation_status_id,
+           dv.hash,
+           dv.json_file
+    INTO v_version_id,
+        v_version_status,
+        v_operation_status,
+        v_hash,
+        v_json
     FROM domain d
              JOIN domain_version dv
                   ON dv.id = d.current_domain_version_id
     WHERE d.id = p_domain_id;
 
-    IF v_status = 'OPEN' THEN
-        RETURN v_version_id;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Current domain version not found for domain %', p_domain_id;
     END IF;
 
-    IF v_status = 'LOCKED' THEN
+    IF v_operation_status = 'RELEASING' THEN
         RAISE EXCEPTION 'Domain configuration release is in progress for domain %', p_domain_id;
     END IF;
 
-    v_started_at := clock_timestamp();
+    IF v_operation_status = 'IMPORTING' THEN
+        RAISE EXCEPTION 'Domain configuration import is in progress for domain %', p_domain_id;
+    END IF;
 
-    -- Start working version
+    IF v_version_status = 'OPEN' THEN
+        RETURN v_version_id;
+    END IF;
+
+    IF v_version_status <> 'RELEASED' THEN
+        RAISE EXCEPTION 'Unsupported domain version status % for domain %', v_version_status, p_domain_id;
+    END IF;
+
+    -- Open working version
     v_new_id := uuid_generate_v7_custom();
 
-    -- Shift version (PK update → cascades to config tables)
+    -- Shift version id (PK update -> cascades to all FK references)
     UPDATE domain_version
     SET id = v_new_id
     WHERE id = v_version_id;
 
-    v_duration_ms := (extract(epoch from (clock_timestamp() - v_started_at)) * 1000)::bigint;
-
-    -- Create snapshot row
-    INSERT INTO domain_version (id,
-                                domain_id,
-                                name,
-                                version,
-                                domain_version_status_id,
-                                json_file,
-                                hash,
-                                previous_domain_version_id,
-                                started_at,
-                                start_duration,
-                                released_at,
-                                release_duration)
+    -- Recreate previous released snapshot row under old id
+    INSERT INTO domain_version (
+        id,
+        domain_id,
+        version,
+        name,
+        description,
+        domain_version_status_id,
+        json_file,
+        hash,
+        previous_domain_version_id,
+        started_at,
+        start_duration,
+        released_at,
+        release_duration
+    )
     SELECT v_version_id,
            domain_id,
-           name,
            version,
+           name,
+           description,
            'RELEASED',
-           v_json,
-           v_hash,
+           json_file,
+           hash,
            previous_domain_version_id,
            started_at,
            start_duration,
@@ -320,15 +365,72 @@ BEGIN
     FROM domain_version
     WHERE id = v_new_id;
 
-    -- Convert working version
+    -- Convert shifted row into current OPEN working version
     UPDATE domain_version
     SET domain_version_status_id   = 'OPEN',
         json_file                  = NULL,
         hash                       = NULL,
-        version                    = NULL,
-        previous_domain_version_id = v_version_id
+        previous_domain_version_id = v_version_id,
+        started_at                 = CURRENT_TIMESTAMP,
+        start_duration             = NULL,
+        released_at                = NULL,
+        release_duration           = NULL
     WHERE id = v_new_id;
 
     RETURN v_new_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION domain_operation_release_start(p_domain_id UUID)
+    RETURNS UUID
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_version_id       UUID;
+    v_version_status   TEXT;
+    v_operation_status TEXT;
+BEGIN
+    IF p_domain_id IS NULL THEN
+        RAISE EXCEPTION 'Domain id must not be null';
+    END IF;
+
+    -- Serialize all version-changing operations inside one domain
+    PERFORM pg_advisory_xact_lock(hashtext(p_domain_id::text));
+
+    -- Read current state under the advisory lock
+    SELECT dv.id,
+           dv.domain_version_status_id,
+           d.domain_operation_status_id
+    INTO v_version_id,
+        v_version_status,
+        v_operation_status
+    FROM domain d
+             JOIN domain_version dv
+                  ON dv.id = d.current_domain_version_id
+    WHERE d.id = p_domain_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Current domain version not found for domain %', p_domain_id;
+    END IF;
+
+    IF v_operation_status = 'RELEASING' THEN
+        RAISE EXCEPTION 'Domain configuration release is already in progress for domain %', p_domain_id;
+    END IF;
+
+    IF v_operation_status = 'IMPORTING' THEN
+        RAISE EXCEPTION 'Domain configuration import is in progress for domain %', p_domain_id;
+    END IF;
+
+    IF v_version_status <> 'OPEN' THEN
+        RAISE EXCEPTION 'Current domain version % for domain % must be OPEN, but was %',
+            v_version_id, p_domain_id, v_version_status;
+    END IF;
+
+    UPDATE domain
+    SET domain_operation_status_id = 'RELEASING'
+    WHERE id = p_domain_id;
+
+    RETURN v_version_id;
 END;
 $$;
