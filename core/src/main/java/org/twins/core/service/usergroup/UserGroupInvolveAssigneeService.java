@@ -7,7 +7,10 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -22,11 +25,18 @@ import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
+import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -86,26 +96,64 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         return true;
     }
 
-    public UserGroupInvolveAssigneeEntity create(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
-        entity
-                .setCreatedByUserId(authService.getApiUser().getUserId())
-                .setCreatedAt(Timestamp.from(Instant.now()));
-        return saveSafe(entity);
+    @Transactional(rollbackFor = Throwable.class)
+    public List<UserGroupInvolveAssigneeEntity> createUserGroupInvolveAssignee(Collection<UserGroupInvolveAssigneeCreate> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+
+        UUID currentUserId = authService.getApiUser().getUserId();
+        Timestamp currentTime = Timestamp.from(Instant.now());
+
+        List<UserGroupInvolveAssigneeEntity> entitiesToSave = new ArrayList<>(entities.size());
+        for (UserGroupInvolveAssigneeCreate userGroupInvolveAssignee : entities) {
+            UserGroupInvolveAssigneeEntity entity = new UserGroupInvolveAssigneeEntity()
+                    .setUserGroupId(userGroupInvolveAssignee.getUserGroupId())
+                    .setPropagationByTwinClassId(userGroupInvolveAssignee.getPropagationByTwinClassId())
+                    .setPropagationByTwinStatusId(userGroupInvolveAssignee.getPropagationByTwinStatusId())
+                    .setCreatedByUserId(currentUserId)
+                    .setCreatedAt(currentTime);
+            entitiesToSave.add(entity);
+        }
+
+        validateEntitiesAndThrow(entitiesToSave, EntitySmartService.EntityValidateMode.beforeSave);
+
+        return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public UserGroupInvolveAssigneeEntity update(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
-        UserGroupInvolveAssigneeEntity dbEntity = findEntitySafe(entity.getId());
-        ChangesHelper changesHelper = new ChangesHelper();
+    public List<UserGroupInvolveAssigneeEntity> updateUserGroupInvolveAssignee(Collection<UserGroupInvolveAssigneeUpdate> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
 
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getUserGroupId,
-                UserGroupInvolveAssigneeEntity::setUserGroupId, UserGroupInvolveAssigneeEntity.Fields.userGroupId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,
-                UserGroupInvolveAssigneeEntity::setPropagationByTwinClassId, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinClassId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId,
-                UserGroupInvolveAssigneeEntity::setPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinStatusId ,changesHelper);
+        Kit<UserGroupInvolveAssigneeEntity, UUID> entitiesKit = findEntitiesSafe(
+                entities.stream()
+                        .map(UserGroupInvolveAssigneeUpdate::getId)
+                        .toList()
+        );
 
-        return updateSafe(dbEntity, changesHelper);
+        ChangesHelperMulti<UserGroupInvolveAssigneeEntity> changes = new ChangesHelperMulti<>();
+
+        for (UserGroupInvolveAssigneeUpdate userGroupInvolveAssignee : entities) {
+            UserGroupInvolveAssigneeEntity dbEntity = entitiesKit.get(userGroupInvolveAssignee.getId());
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateEntityFieldByValue(userGroupInvolveAssignee.getUserGroupId(), dbEntity,
+                    UserGroupInvolveAssigneeEntity::getUserGroupId, UserGroupInvolveAssigneeEntity::setUserGroupId,
+                    UserGroupInvolveAssigneeEntity.Fields.userGroupId, changesHelper);
+            updateEntityFieldByValue(userGroupInvolveAssignee.getPropagationByTwinClassId(), dbEntity,
+                    UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId, UserGroupInvolveAssigneeEntity::setPropagationByTwinClassId,
+                    UserGroupInvolveAssigneeEntity.Fields.propagationByTwinClassId, changesHelper);
+            updateEntityFieldByValue(userGroupInvolveAssignee.getPropagationByTwinStatusId(), dbEntity,
+                    UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity::setPropagationByTwinStatusId,
+                    UserGroupInvolveAssigneeEntity.Fields.propagationByTwinStatusId, changesHelper);
+
+            changes.add(dbEntity, changesHelper);
+        }
+
+        updateSafe(changes);
+        return entitiesKit.getList();
     }
 
     @Transactional
