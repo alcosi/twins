@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 
 import java.util.UUID;
@@ -23,7 +24,8 @@ public class TransitionTriggerDTOv1 {
     @Schema(description = "order", example = DTOExamples.INTEGER)
     public Integer order;
 
-    @Schema(description = "[optional] twin trigger id", example = DTOExamples.TRIGGER_ID)
+    @Schema(description = "twin trigger id", example = DTOExamples.TRIGGER_ID)
+    @RelatedObject(type = TwinTriggerDTOv1.class, name = "twinTrigger")
     public UUID twinTriggerId;
 
     @Schema(description = "async", example = DTOExamples.BOOLEAN_TRUE)

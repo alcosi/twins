@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.twinstatus.TwinStatusTransitionTriggerUpdateRqDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusTransitionTriggerUpdateRsDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusTransitionTriggerListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusTransitionTriggerRestDTOMapper;
@@ -43,13 +43,13 @@ public class TwinStatusTransitionTriggerUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin status transition triggers updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusTransitionTriggerUpdateRsDTOv1.class))}),
+                    @Schema(implementation = TwinStatusTransitionTriggerListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_status/trigger/v1")
     public ResponseEntity<?> twinStatusTransitionTriggerUpdateV1(
-            @MapperContextBinding(roots = TwinStatusTransitionTriggerRestDTOMapper.class, response = TwinStatusTransitionTriggerUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinStatusTransitionTriggerRestDTOMapper.class, response = TwinStatusTransitionTriggerListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinStatusTransitionTriggerUpdateRqDTOv1 request) {
-        TwinStatusTransitionTriggerUpdateRsDTOv1 rs = new TwinStatusTransitionTriggerUpdateRsDTOv1();
+        TwinStatusTransitionTriggerListRsDTOv1 rs = new TwinStatusTransitionTriggerListRsDTOv1();
         try {
             List<org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity> statusTransitionTriggerEntities = twinStatusTransitionTriggerUpdateDTOReverseMapper.convertCollection(request.getTwinStatusTransitionTriggers());
             statusTransitionTriggerEntities = twinStatusTransitionTriggerService.updateStatusTransitionTriggers(statusTransitionTriggerEntities);

@@ -21,6 +21,7 @@ public class TransitionTriggerSearchDTOReverseMapper extends RestSimpleDTOMapper
                 .setTwinflowTransitionIdExcludeList(src.getTwinflowTransitionIdExcludeList())
                 .setTwinTriggerIdList(src.getTwinTriggerIdList())
                 .setTwinTriggerIdExcludeList(src.getTwinTriggerIdExcludeList())
-                .setActive(src.getActive());
+                .setActive(src.getActive())
+                .setAsync(src.getAsync());
     }
 }

@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "twin_status_transition_trigger")
+@Table(name = "twin_status_trigger")
 public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Id
     private UUID id;
@@ -29,9 +29,8 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
 
-    @Column(name = "twin_status_transition_type_id")
-    @Enumerated(EnumType.STRING)
-    private TransitionType type;
+    @Column(name = "incoming_else_outgoing")
+    private Boolean incomingElseOutgoing;
 
     @Column(name = "`order`")
     @Basic
@@ -56,15 +55,11 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @ToString.Exclude
     private TwinTriggerEntity twinTrigger;
 
-    public enum TransitionType {
-        incoming, outgoing;
-    }
-
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinStatusTransitionTrigger[" + id + "]";
-            case NORMAL -> "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + "]";
-            default -> "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + ", order:" + order + ", twinTriggerId:" + twinTriggerId + "]";
+            case SHORT -> "twinStatusTrigger[" + id + "]";
+            case NORMAL -> "twinStatusTrigger[id:" + id + ", statusId:" + twinStatusId + ", incoming:" + incomingElseOutgoing + "]";
+            default -> "twinStatusTrigger[id:" + id + ", statusId:" + twinStatusId + ", incoming:" + incomingElseOutgoing + ", order:" + order + ", twinTriggerId:" + twinTriggerId + "]";
         };
     }
 }

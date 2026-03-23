@@ -12,7 +12,7 @@ import java.util.Properties;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_15,
-        name = "TransitionTrigger",
+        name = "TwinTrigger",
         description = "")
 @Slf4j
 public abstract class TwinTrigger extends FeaturerTwins {

@@ -9,7 +9,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinTriggerUpdateV1")
+@Schema(name = "TwinTriggerUpdateRqV1")
 public class TwinTriggerUpdateRqDTOv1 extends Request {
     @Schema(description = "trigger")
     public List<TwinTriggerUpdateDTOv1> triggers;

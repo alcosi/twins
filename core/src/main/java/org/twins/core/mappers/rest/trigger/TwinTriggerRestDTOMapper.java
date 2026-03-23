@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.service.trigger.TwinTriggerService;
 
@@ -18,7 +19,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TwinTriggerMode.class)
 public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEntity, TwinTriggerDTOv1> {
-    @MapperModePointerBinding(modes = TwinTriggerMode.TwinTrigger2FeaturerMode.class)
+    @MapperModePointerBinding(modes = FeaturerMode.TwinTrigger2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
     private final TwinTriggerService twinTriggerService;
@@ -38,9 +39,11 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
                     .setName(src.getName());
         }
 
-        if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTrigger2FeaturerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(FeaturerMode.TwinTrigger2FeaturerMode.HIDE)) {
+            twinTriggerService.loadTwinTriggerFeaturer(src);
+            dst.setTriggerFeaturerId(src.getTwinTriggerFeaturerId());
             featurerRestDTOMapper.postpone(src.getTwinTriggerFeaturer(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinTriggerMode.TwinTrigger2FeaturerMode.SHORT)));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinTrigger2FeaturerMode.SHORT)));
         }
     }
 
@@ -57,7 +60,7 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
     @Override
     public void beforeCollectionConversion(Collection<TwinTriggerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTrigger2FeaturerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(FeaturerMode.TwinTrigger2FeaturerMode.HIDE)) {
             twinTriggerService.loadTwinTriggerFeaturer(srcCollection);
         }
     }

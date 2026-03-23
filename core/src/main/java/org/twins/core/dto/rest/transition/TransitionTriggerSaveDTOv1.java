@@ -23,7 +23,6 @@ public class TransitionTriggerSaveDTOv1 {
     public Boolean async;
 
     @Schema(description = "twinflow transition", example = DTOExamples.TWINFLOW_TRANSITION_ID)
-    @RelatedObject(type = TwinflowTransitionBaseDTOv1.class, name = "twinflowTransition")
     public UUID twinflowTransitionId;
 
     @Schema(description = "twin trigger id", example = DTOExamples.TRIGGER_ID)

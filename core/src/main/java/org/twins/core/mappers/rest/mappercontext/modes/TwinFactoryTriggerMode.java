@@ -35,44 +35,4 @@ public enum TwinFactoryTriggerMode implements MapperMode {
             };
         }
     }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinFactoryTrigger2TwinTriggerMode implements MapperModePointer<TwinTriggerMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public TwinTriggerMode point() {
-            return switch (this) {
-                case HIDE -> TwinTriggerMode.HIDE;
-                case SHORT -> TwinTriggerMode.SHORT;
-                case DETAILED -> TwinTriggerMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinFactoryTrigger2TwinClassMode implements MapperModePointer<TwinClassMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public TwinClassMode point() {
-            return switch (this) {
-                case HIDE -> TwinClassMode.HIDE;
-                case SHORT -> TwinClassMode.SHORT;
-                case DETAILED -> TwinClassMode.DETAILED;
-            };
-        }
-    }
 }

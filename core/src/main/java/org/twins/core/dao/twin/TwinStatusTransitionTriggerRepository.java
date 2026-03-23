@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface TwinStatusTransitionTriggerRepository extends CrudRepository<TwinStatusTransitionTriggerEntity, UUID>, JpaSpecificationExecutor<TwinStatusTransitionTriggerEntity> {
 
-    String CACHE_TWIN_STATUS_TRANSITION_TRIGGER = "TwinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder";
-    @Cacheable(value = CACHE_TWIN_STATUS_TRANSITION_TRIGGER, key = "#twinStatusId + '' + #type + '' + #active")
-    List<TwinStatusTransitionTriggerEntity> findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(UUID twinStatusId, TwinStatusTransitionTriggerEntity.TransitionType type, boolean active);
+    String CACHE_TWIN_STATUS_TRANSITION_TRIGGER = "TwinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndIncomingElseOutgoingAndActiveOrderByOrder";
+    @Cacheable(value = CACHE_TWIN_STATUS_TRANSITION_TRIGGER, key = "#twinStatusId + '' + #incomingElseOutgoing + '' + #active")
+    List<TwinStatusTransitionTriggerEntity> findAllByTwinStatusIdAndIncomingElseOutgoingAndActiveOrderByOrder(UUID twinStatusId, Boolean incomingElseOutgoing, boolean active);
 }

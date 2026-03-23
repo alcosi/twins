@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.Collection;
@@ -32,6 +34,7 @@ public class TwinStatusTransitionTriggerService extends EntitySecureFindServiceI
     private final TwinStatusTransitionTriggerRepository repository;
     private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinStatusTransitionTriggerEntity, UUID> entityRepository() {
@@ -45,6 +48,11 @@ public class TwinStatusTransitionTriggerService extends EntitySecureFindServiceI
 
     @Override
     public boolean isEntityReadDenied(TwinStatusTransitionTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        loadTrigger(entity);
+        if (entity.getTwinTrigger().getDomainId() != null) {
+            return !entity.getTwinTrigger().getDomainId().equals(apiUser.getDomainId());
+        }
         return false;
     }
 
@@ -53,8 +61,8 @@ public class TwinStatusTransitionTriggerService extends EntitySecureFindServiceI
         if (entity.getTwinStatusId() == null) {
             return logErrorAndReturnFalse(entity.logDetailed() + " twinStatusId is not specified");
         }
-        if (entity.getType() == null) {
-            return logErrorAndReturnFalse(entity.logDetailed() + " type is not specified");
+        if (entity.getIncomingElseOutgoing() == null) {
+            return logErrorAndReturnFalse(entity.logDetailed() + " incomingElseOutgoing is not specified");
         }
         if (entity.getTwinTriggerId() == null) {
             return logErrorAndReturnFalse(entity.logDetailed() + " twinTriggerId is not specified");
@@ -86,9 +94,9 @@ public class TwinStatusTransitionTriggerService extends EntitySecureFindServiceI
             updateEntityFieldByValue(trigger.getTwinStatusId(), entity,
                     TwinStatusTransitionTriggerEntity::getTwinStatusId, TwinStatusTransitionTriggerEntity::setTwinStatusId,
                     TwinStatusTransitionTriggerEntity.Fields.twinStatusId, changesHelper);
-            updateEntityFieldByValue(trigger.getType(), entity,
-                    TwinStatusTransitionTriggerEntity::getType, TwinStatusTransitionTriggerEntity::setType,
-                    TwinStatusTransitionTriggerEntity.Fields.type, changesHelper);
+            updateEntityFieldByValue(trigger.getIncomingElseOutgoing(), entity,
+                    TwinStatusTransitionTriggerEntity::getIncomingElseOutgoing, TwinStatusTransitionTriggerEntity::setIncomingElseOutgoing,
+                    TwinStatusTransitionTriggerEntity.Fields.incomingElseOutgoing, changesHelper);
             updateEntityFieldByValue(trigger.getOrder(), entity,
                     TwinStatusTransitionTriggerEntity::getOrder, TwinStatusTransitionTriggerEntity::setOrder,
                     TwinStatusTransitionTriggerEntity.Fields.order, changesHelper);

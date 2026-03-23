@@ -17,6 +17,6 @@ public class TransitionCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
 
     @Override
     public void map(TransitionCreateDTOv1 src, TwinflowTransitionEntity dst, MapperContext mapperContext) throws Exception {
-        transitionSaveRestDTOReverseMapper.map(src, dst,  mapperContext);
+        transitionSaveRestDTOReverseMapper.map(src, dst, mapperContext);
     }
 }

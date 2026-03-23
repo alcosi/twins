@@ -168,15 +168,15 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         }
     }
 
-    public void runFactoryOn(TwinSave twinSave, FactoryLauncher factoryLauncher, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public void runFactoryOn(TwinSave twinSave, FactoryLauncher factoryLauncher) throws ServiceException {
         TwinEntity twinEntity = detectTwinEntity(twinSave);
         twinflowService.loadTwinflow(twinEntity);
         loadFactories(twinEntity.getTwinflow());
         TwinflowFactoryEntity twinflowFactory = twinEntity.getTwinflow().getFactoriesKit().get(factoryLauncher);
-        runFactoryOn(twinSave, twinflowFactory, twinChangesCollector);
+        runFactoryOn(twinSave, twinflowFactory);
     }
 
-    public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory) throws ServiceException {
         if (twinflowFactory == null)
             return;
         FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));

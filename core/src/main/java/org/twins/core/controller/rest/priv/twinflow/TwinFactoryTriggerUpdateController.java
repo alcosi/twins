@@ -16,8 +16,9 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
+import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerUpdateRqDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerUpdateRsDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinFactoryTriggerRestDTOMapper;
@@ -43,15 +44,15 @@ public class TwinFactoryTriggerUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin factory triggers updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinFactoryTriggerUpdateRsDTOv1.class))}),
+                    @Schema(implementation = TwinFactoryTriggerListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_factory/trigger/v1")
     public ResponseEntity<?> twinFactoryTriggerUpdateV1(
-            @MapperContextBinding(roots = TwinFactoryTriggerRestDTOMapper.class, response = TwinFactoryTriggerUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinFactoryTriggerRestDTOMapper.class, response = TwinFactoryTriggerListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinFactoryTriggerUpdateRqDTOv1 request) {
-        TwinFactoryTriggerUpdateRsDTOv1 rs = new TwinFactoryTriggerUpdateRsDTOv1();
+        TwinFactoryTriggerListRsDTOv1 rs = new TwinFactoryTriggerListRsDTOv1();
         try {
-            List<org.twins.core.dao.factory.TwinFactoryTriggerEntity> factoryTriggerEntities = twinFactoryTriggerUpdateDTOReverseMapper.convertCollection(request.getTwinFactoryTriggers());
+            List<TwinFactoryTriggerEntity> factoryTriggerEntities = twinFactoryTriggerUpdateDTOReverseMapper.convertCollection(request.getTwinFactoryTriggers());
             factoryTriggerEntities = factoryTriggerService.updateFactoryTriggers(factoryTriggerEntities);
             rs
                     .setTwinFactoryTriggers(twinFactoryTriggerRestDTOMapper.convertCollection(factoryTriggerEntities, mapperContext))

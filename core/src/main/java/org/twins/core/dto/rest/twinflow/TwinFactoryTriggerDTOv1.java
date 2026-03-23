@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -27,6 +28,7 @@ public class TwinFactoryTriggerDTOv1 {
     public UUID inputTwinClassId;
 
     @Schema(description = "twin factory condition set id")
+    @RelatedObject(type = FactoryConditionSetDTOv1.class, name = "twinFactoryConditionSet")
     public UUID twinFactoryConditionSetId;
 
     @Schema(description = "twin factory condition invert", example = DTOExamples.BOOLEAN_TRUE)

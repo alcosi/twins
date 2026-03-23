@@ -9,7 +9,9 @@ import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinFactoryTriggerMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.factory.FactoryTriggerService;
@@ -22,9 +24,9 @@ import java.util.Collection;
 public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryTriggerEntity, TwinFactoryTriggerDTOv1> {
     @MapperModePointerBinding(modes = TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapper;
-    @MapperModePointerBinding(modes = TwinFactoryTriggerMode.TwinFactoryTrigger2TwinTriggerMode.class)
+    @MapperModePointerBinding(modes = TwinTriggerMode.TwinFactoryTrigger2TwinTriggerMode.class)
     private final TwinTriggerRestDTOMapper twinTriggerRestDTOMapper;
-    @MapperModePointerBinding(modes = TwinFactoryTriggerMode.TwinFactoryTrigger2TwinClassMode.class)
+    @MapperModePointerBinding(modes = TwinClassMode.TwinFactoryTrigger2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     private final FactoryTriggerService factoryTriggerService;
@@ -50,18 +52,20 @@ public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFac
         }
 
         if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryMode.HIDE)) {
+            factoryTriggerService.loadFactory(src);
+            dst.setTwinFactoryId(src.getTwinFactoryId());
             factoryRestDTOMapper.postpone(src.getTwinFactory(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryMode.SHORT)));
         }
 
-        if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2TwinTriggerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinTriggerMode.TwinFactoryTrigger2TwinTriggerMode.HIDE)) {
             twinTriggerRestDTOMapper.postpone(src.getTwinTrigger(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinFactoryTriggerMode.TwinFactoryTrigger2TwinTriggerMode.SHORT)));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinTriggerMode.TwinFactoryTrigger2TwinTriggerMode.SHORT)));
         }
 
-        if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinFactoryTrigger2TwinClassMode.HIDE)) {
             twinClassRestDTOMapper.postpone(src.getTwinClass(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinFactoryTriggerMode.TwinFactoryTrigger2TwinClassMode.SHORT)));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinFactoryTrigger2TwinClassMode.SHORT)));
         }
     }
 
@@ -81,10 +85,10 @@ public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFac
         if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryMode.HIDE)) {
             factoryTriggerService.loadFactories(srcCollection);
         }
-        if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2TwinTriggerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinTriggerMode.TwinFactoryTrigger2TwinTriggerMode.HIDE)) {
             factoryTriggerService.loadTriggers(srcCollection);
         }
-        if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinFactoryTrigger2TwinClassMode.HIDE)) {
             factoryTriggerService.loadClasses(srcCollection);
         }
     }

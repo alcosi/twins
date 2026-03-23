@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
+import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerSearchRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -55,7 +56,7 @@ public class TwinFactoryTriggerSearchController extends ApiController {
             @SimplePaginationParams SimplePagination pagination) {
         TwinFactoryTriggerSearchRsDTOv1 rs = new TwinFactoryTriggerSearchRsDTOv1();
         try {
-            PaginationResult<org.twins.core.dao.factory.TwinFactoryTriggerEntity> factoryTriggerList = twinFactoryTriggerSearchService
+            PaginationResult<TwinFactoryTriggerEntity> factoryTriggerList = twinFactoryTriggerSearchService
                     .findFactoryTriggers(twinFactoryTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setPagination(paginationMapper.convert(factoryTriggerList))

@@ -33,4 +33,7 @@ public class TransitionTriggerSearchDTOv1 {
 
     @Schema(description = "active", example = DTOExamples.TERNARY)
     public Ternary active;
+
+    @Schema(description = "async", example = DTOExamples.TERNARY)
+    public Ternary async;
 }

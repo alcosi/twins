@@ -27,11 +27,11 @@ public class TwinStatusTransitionTriggerSearchDTOv1 {
     @Schema(description = "twin status id exclude list")
     public Set<UUID> twinStatusIdExcludeList;
 
-    @Schema(description = "transition type list")
-    public Set<TwinStatusTransitionTriggerEntity.TransitionType> typeList;
+    @Schema(description = "incoming else outgoing")
+    public Ternary incomingElseOutgoing;
 
-    @Schema(description = "transition type exclude list")
-    public Set<TwinStatusTransitionTriggerEntity.TransitionType> typeExcludeList;
+    @Schema(description = "incoming else outgoing exclude")
+    public Ternary incomingElseOutgoingExclude;
 
     @Schema(description = "twin trigger id list")
     public Set<UUID> twinTriggerIdList;

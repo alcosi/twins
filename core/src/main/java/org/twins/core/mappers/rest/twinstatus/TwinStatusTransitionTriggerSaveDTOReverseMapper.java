@@ -13,7 +13,7 @@ public class TwinStatusTransitionTriggerSaveDTOReverseMapper extends RestSimpleD
     public void map(TwinStatusTransitionTriggerSaveDTOv1 src, TwinStatusTransitionTriggerEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinStatusId(src.getTwinStatusId())
-                .setType(src.getType())
+                .setIncomingElseOutgoing(src.getIncomingElseOutgoing())
                 .setOrder(src.getOrder())
                 .setTwinTriggerId(src.getTwinTriggerId())
                 .setAsync(src.getAsync())

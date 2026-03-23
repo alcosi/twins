@@ -21,8 +21,8 @@ public class TwinStatusTransitionTriggerDTOv1 {
     @RelatedObject(type = TwinStatusDTOv1.class, name = "twinStatus")
     public UUID twinStatusId;
 
-    @Schema(description = "transition type", example = "incoming")
-    public TwinStatusTransitionTriggerEntity.TransitionType type;
+    @Schema(description = "incoming else outgoing", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean incomingElseOutgoing;
 
     @Schema(description = "order", example = DTOExamples.INTEGER)
     public Integer order;

@@ -6,12 +6,15 @@ import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TransitionSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
 @Component
 @RequiredArgsConstructor
 public class TransitionSaveRestDTOReverseMapper extends RestSimpleDTOMapper<TransitionSaveDTOv1, TwinflowTransitionEntity> {
+
+    private final I18nSaveRestDTOReverseMapper i18nSaveRestDTOReverseMapper;
 
     @Override
     public void map(TransitionSaveDTOv1 src, TwinflowTransitionEntity dst, MapperContext mapperContext) throws Exception {
@@ -23,7 +26,8 @@ public class TransitionSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Tran
                 .setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId())
                 .setDraftingTwinFactoryId(src.getDraftingTwinFactoryId())
                 .setTwinflowTransitionTypeId(src.getTwinflowTransitionTypeId())
-                .setTwinflowTransitionAlias(new TwinflowTransitionAliasEntity().setAlias(src.getAlias()));
-
+                .setTwinflowTransitionAlias(new TwinflowTransitionAliasEntity().setAlias(src.getAlias()))
+                .setNameI18n(i18nSaveRestDTOReverseMapper.convert(src.getNameI18n()))
+                .setDescriptionI18n(i18nSaveRestDTOReverseMapper.convert(src.getDescriptionI18n()));
     }
 }

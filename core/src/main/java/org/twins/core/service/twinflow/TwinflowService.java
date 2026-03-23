@@ -212,11 +212,11 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
         UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
         if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true);
+            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndIncomingElseOutgoingAndActiveOrderByOrder(srcStatusId, false, true);
             runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity, twinChangesCollector);
         }
         if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true);
+            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndIncomingElseOutgoingAndActiveOrderByOrder(dstStatusId, true, true);
             runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity, twinChangesCollector);
         }
     }
@@ -234,7 +234,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             }
             if (Boolean.TRUE.equals(twinStatusTriggerEntity.getAsync())) {
                 if (twinChangesCollector != null) {
-                    UUID statusId = twinStatusTriggerEntity.getType() == TwinStatusTransitionTriggerEntity.TransitionType.incoming ? srcStatusEntity.getId() : dstStatusEntity.getId();
+                    UUID statusId = Boolean.TRUE.equals(twinStatusTriggerEntity.getIncomingElseOutgoing()) ? dstStatusEntity.getId() : srcStatusEntity.getId();
                     twinChangesCollector.addPostponedTrigger(twinEntity.getId(), statusId, twinStatusTriggerEntity.getTwinTriggerId());
                 } else {
                     log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));

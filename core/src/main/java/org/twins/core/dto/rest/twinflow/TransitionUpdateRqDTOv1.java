@@ -6,11 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(name = "TransitionUpdateRqV1")
 public class TransitionUpdateRqDTOv1 extends Request {
-    @Schema(description = "transition")
-    public TransitionUpdateDTOv1 transition;
+    @Schema(description = "transitions")
+    public List<TransitionUpdateDTOv1> transitions;
 }

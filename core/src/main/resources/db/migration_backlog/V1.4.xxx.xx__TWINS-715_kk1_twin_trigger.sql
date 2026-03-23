@@ -1,17 +1,18 @@
+-- Create twin_trigger table
 CREATE TABLE IF NOT EXISTS twin_trigger (
-     id                       uuid PRIMARY KEY,
-     domain_id                uuid    NOT NULL
-     REFERENCES domain
-     ON UPDATE CASCADE
-     ON DELETE CASCADE,
-     twin_trigger_featurer_id integer NOT NULL
-     REFERENCES featurer
-     ON UPDATE CASCADE
-     ON DELETE CASCADE,
-     twin_trigger_param       hstore,
-     active                   boolean DEFAULT true,
-     name                     varchar,
-     description              varchar
+    id                       uuid PRIMARY KEY,
+    domain_id                uuid    NOT NULL
+    REFERENCES domain
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+    twin_trigger_featurer_id integer NOT NULL
+    REFERENCES featurer
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+    twin_trigger_param       hstore,
+    active                   boolean DEFAULT true,
+    name                     varchar,
+    description              varchar
 );
 
 CREATE INDEX IF NOT EXISTS twin_trigger_domain_id_index
@@ -20,28 +21,17 @@ CREATE INDEX IF NOT EXISTS twin_trigger_domain_id_index
 CREATE INDEX IF NOT EXISTS twin_trigger_twin_trigger_featurer_id_index
     ON twin_trigger (twin_trigger_featurer_id);
 
-CREATE TABLE IF NOT EXISTS twin_trigger_task_status
-(
+-- Create twin_trigger_task_status table
+CREATE TABLE IF NOT EXISTS twin_trigger_task_status (
     id VARCHAR(20) NOT NULL PRIMARY KEY
 );
 
-INSERT INTO twin_trigger_task_status
-VALUES ('NEED_START')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO twin_trigger_task_status VALUES ('NEED_START') ON CONFLICT (id) DO NOTHING;
+INSERT INTO twin_trigger_task_status VALUES ('IN_PROGRESS') ON CONFLICT (id) DO NOTHING;
+INSERT INTO twin_trigger_task_status VALUES ('DONE') ON CONFLICT (id) DO NOTHING;
+INSERT INTO twin_trigger_task_status VALUES ('FAILED') ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO twin_trigger_task_status
-VALUES ('IN_PROGRESS')
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO twin_trigger_task_status
-VALUES ('DONE')
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO twin_trigger_task_status
-VALUES ('FAILED')
-ON CONFLICT (id) DO NOTHING;
-
-
+-- Create twin_trigger_task table
 CREATE TABLE IF NOT EXISTS twin_trigger_task (
     id                       uuid PRIMARY KEY,
     twin_id                  uuid        NOT NULL
@@ -69,7 +59,7 @@ CREATE TABLE IF NOT EXISTS twin_trigger_task (
     status_details           text,
     created_at               timestamp   DEFAULT CURRENT_TIMESTAMP,
     done_at                  timestamp
-    );
+);
 
 CREATE INDEX IF NOT EXISTS twin_trigger_task_twin_id_index
     ON twin_trigger_task (twin_id);
@@ -83,6 +73,7 @@ CREATE INDEX IF NOT EXISTS twin_trigger_task_status_id_index
 CREATE INDEX IF NOT EXISTS twin_trigger_task_created_by_user_id_index
     ON twin_trigger_task (created_by_user_id);
 
+-- Create twin_factory_trigger table
 CREATE TABLE IF NOT EXISTS twin_factory_trigger (
     id                           uuid    PRIMARY KEY,
     twin_factory_id              uuid    NOT NULL
@@ -118,53 +109,122 @@ CREATE INDEX IF NOT EXISTS twin_factory_trigger_twin_factory_condition_set_id_in
 CREATE INDEX IF NOT EXISTS twin_factory_trigger_twin_trigger_id_index
     ON twin_factory_trigger (twin_trigger_id);
 
+-- Migrate twinflow_transition_trigger data
+-- Add new columns
+ALTER TABLE twinflow_transition_trigger
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false,
+    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid;
+
+-- Drop old foreign key constraint
 ALTER TABLE twinflow_transition_trigger
     DROP CONSTRAINT IF EXISTS twinflow_transition_trigger_featurer_id_fk;
 
-ALTER TABLE twinflow_transition_trigger
-    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false;
+-- Migrate data: create twin_trigger records for each unique featurer+params combination
+INSERT INTO twin_trigger (id, domain_id, twin_trigger_featurer_id, twin_trigger_param, active)
+SELECT
+    uuid_generate_v7_custom(),
+    (SELECT domain_id FROM twinflow WHERE id = ttt.twinflow_transition_id LIMIT 1),
+    ttt.transition_trigger_featurer_id,
+    ttt.transition_trigger_params,
+    true
+FROM (SELECT DISTINCT transition_trigger_featurer_id, transition_trigger_params, twinflow_transition_id
+      FROM twinflow_transition_trigger
+      WHERE transition_trigger_featurer_id IS NOT NULL) AS ttt
+ON CONFLICT DO NOTHING;
 
+-- Update twinflow_transition_trigger with new twin_trigger_id
+UPDATE twinflow_transition_trigger ttt
+SET twin_trigger_id = tr.id
+FROM twin_trigger tr
+WHERE ttt.transition_trigger_featurer_id = tr.twin_trigger_featurer_id
+  AND COALESCE(ttt.transition_trigger_params::text, '') = COALESCE(tr.twin_trigger_param::text, '');
+
+-- Add foreign key constraint to twin_trigger
 ALTER TABLE twinflow_transition_trigger
-    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid
-    REFERENCES twin_trigger
+    ADD CONSTRAINT twinflow_transition_trigger_twin_trigger_id_fk
+    FOREIGN KEY (twin_trigger_id) REFERENCES twin_trigger(id)
     ON UPDATE CASCADE
     ON DELETE CASCADE;
 
-ALTER TABLE twinflow_transition_trigger
-    DROP COLUMN IF EXISTS transition_trigger_featurer_id;
+CREATE INDEX IF NOT EXISTS twinflow_transition_trigger_twin_trigger_id_index
+    ON twinflow_transition_trigger (twin_trigger_id);
 
+-- Drop old columns
 ALTER TABLE twinflow_transition_trigger
+    DROP COLUMN IF EXISTS transition_trigger_featurer_id,
     DROP COLUMN IF EXISTS transition_trigger_params;
 
-INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5010::integer, 50::integer, '', '', '', DEFAULT) on conflict do nothing;
+-- Rename twin_status_transition_trigger to twin_status_trigger
+ALTER TABLE twin_status_transition_trigger
+    DROP CONSTRAINT IF EXISTS twin_status_transition_trigger_featurer_id_fk;
+
+ALTER TABLE twin_status_transition_trigger
+    DROP CONSTRAINT IF EXISTS twin_status_transition_type_id_fk;
+
+DROP INDEX IF EXISTS idx_twin_status_transition_type_id;
+
+-- Add new columns (async before twin_trigger_id)
+ALTER TABLE twin_status_transition_trigger
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false,
+    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid;
+
+-- Add boolean incoming_else_outgoing column
+ALTER TABLE twin_status_transition_trigger
+    ADD COLUMN IF NOT EXISTS incoming_else_outgoing boolean;
+
+-- Migrate data from twin_status_transition_type_id to incoming_else_outgoing (incoming=true, outgoing=false)
+UPDATE twin_status_transition_trigger
+SET incoming_else_outgoing = (twin_status_transition_type_id = 'incoming');
+
+-- Drop twin_status_transition_type table
+DROP TABLE IF EXISTS twin_status_transition_type;
+
+-- Drop old column twin_status_transition_type_id
+ALTER TABLE twin_status_transition_trigger
+    DROP COLUMN IF EXISTS twin_status_transition_type_id;
+
+-- Migrate data: create twin_trigger records for twin_status_transition_trigger
+INSERT INTO twin_trigger (id, domain_id, twin_trigger_featurer_id, twin_trigger_param, active)
+SELECT
+    uuid_generate_v7_custom(),
+    (SELECT domain_id FROM twin_status WHERE id = tstt.twin_status_id LIMIT 1),
+    tstt.transition_trigger_featurer_id,
+    tstt.transition_trigger_params,
+    COALESCE(tstt.active, true)
+FROM (SELECT DISTINCT transition_trigger_featurer_id, transition_trigger_params, twin_status_id, active
+      FROM twin_status_transition_trigger
+      WHERE transition_trigger_featurer_id IS NOT NULL) AS tstt
+ON CONFLICT DO NOTHING;
+
+-- Update twin_status_transition_trigger with new twin_trigger_id
+UPDATE twin_status_transition_trigger tstt
+SET twin_trigger_id = tr.id
+FROM twin_trigger tr
+WHERE tstt.transition_trigger_featurer_id = tr.twin_trigger_featurer_id
+  AND COALESCE(tstt.transition_trigger_params::text, '') = COALESCE(tr.twin_trigger_param::text, '');
+
+-- Add foreign key constraint to twin_trigger
+ALTER TABLE twin_status_transition_trigger
+    ADD CONSTRAINT twin_status_transition_trigger_twin_trigger_id_fk
+    FOREIGN KEY (twin_trigger_id) REFERENCES twin_trigger(id)
+    ON UPDATE CASCADE;
+
+CREATE INDEX IF NOT EXISTS twin_status_transition_trigger_twin_trigger_id_index
+    ON twin_status_transition_trigger (twin_trigger_id);
+
+-- Drop old columns
+ALTER TABLE twin_status_transition_trigger
+    DROP COLUMN IF EXISTS transition_trigger_featurer_id,
+    DROP COLUMN IF EXISTS transition_trigger_params;
+
+-- Rename table
+ALTER TABLE twin_status_transition_trigger RENAME TO twin_status_trigger;
+
+-- Add scheduler for executing twin triggers
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (5010::integer, 50::integer, '', '', '', DEFAULT)
+ON CONFLICT DO NOTHING;
 
 INSERT INTO scheduler (id, domain_id, scheduler_featurer_id, cron, active, log_enabled, scheduler_params, fixed_rate, description, created_at, updated_at)
 VALUES ('00000000-0000-0000-0015-00000000000a'::uuid, NULL, 5010, NULL, true, true, NULL, 2000, 'Scheduler for executing twin triggers', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT DO NOTHING;
-
--- Step 1: Add new columns
-ALTER TABLE public.twin_status_transition_trigger
-    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid,
-    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false NOT NULL;
-
--- Step 2: Create foreign key constraint to twin_trigger table
-ALTER TABLE public.twin_status_transition_trigger
-    ADD CONSTRAINT twin_status_transition_trigger_twin_trigger_id_fk
-        FOREIGN KEY (twin_trigger_id) REFERENCES public.twin_trigger(id) ON UPDATE CASCADE;
-
--- Step 3: Create index for the new twin_trigger_id column
-CREATE INDEX IF NOT EXISTS twin_status_transition_trigger_twin_trigger_id_i
-    ON public.twin_status_transition_trigger(twin_trigger_id);
-
--- Step 4: Drop old foreign key constraint to featurer table
-ALTER TABLE public.twin_status_transition_trigger
-DROP CONSTRAINT IF EXISTS twin_status_transition_trigger_featurer_id_fk;
-
--- Step 5: Drop old index on transition_trigger_featurer_id
-DROP INDEX IF EXISTS twin_status_transition_trigger_transition_trigger_featurer_id_i;
-
--- Step 6: Drop old columns
-ALTER TABLE public.twin_status_transition_trigger
-DROP COLUMN IF EXISTS transition_trigger_featurer_id,
-    DROP COLUMN IF EXISTS transition_trigger_params;
-

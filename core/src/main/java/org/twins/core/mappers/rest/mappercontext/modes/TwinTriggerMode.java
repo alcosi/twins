@@ -39,7 +39,7 @@ public enum TwinTriggerMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinTrigger2FeaturerMode implements MapperModePointer<FeaturerMode> {
+    public enum TwinFactoryTrigger2TwinTriggerMode implements MapperModePointer<TwinTriggerMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -47,11 +47,31 @@ public enum TwinTriggerMode implements MapperMode {
         final int priority;
 
         @Override
-        public FeaturerMode point() {
+        public TwinTriggerMode point() {
             return switch (this) {
-                case HIDE -> FeaturerMode.HIDE;
-                case SHORT -> FeaturerMode.SHORT;
-                case DETAILED -> FeaturerMode.DETAILED;
+                case HIDE -> TwinTriggerMode.HIDE;
+                case SHORT -> TwinTriggerMode.SHORT;
+                case DETAILED -> TwinTriggerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinStatusTransitionTrigger2TwinTriggerMode implements MapperModePointer<TwinTriggerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinTriggerMode point() {
+            return switch (this) {
+                case HIDE -> TwinTriggerMode.HIDE;
+                case SHORT -> TwinTriggerMode.SHORT;
+                case DETAILED -> TwinTriggerMode.DETAILED;
             };
         }
     }

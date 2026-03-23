@@ -19,4 +19,5 @@ public class TransitionTriggerSearch {
     private Set<UUID> twinTriggerIdList;
     private Set<UUID> twinTriggerIdExcludeList;
     private Ternary active;
+    private Ternary async;
 }

@@ -16,7 +16,6 @@ import java.util.UUID;
 @Schema(name = "TwinFactoryTriggerSaveV1")
 public class TwinFactoryTriggerSaveDTOv1 {
     @Schema(description = "twin factory id", example = DTOExamples.FACTORY_ID)
-    @RelatedObject(type = FactoryDTOv1.class, name = "twinFactory")
     public UUID twinFactoryId;
 
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)

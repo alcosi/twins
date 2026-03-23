@@ -414,7 +414,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwinEntity(twinCreate, twinChangesCollector);
         loadFieldEditability(twinEntity);
         initFields(twinEntity, twinCreate.getFields());
-        runFactoryOnCreate(twinCreate, twinChangesCollector);
+        runFactoryOnCreate(twinCreate);
         validateFields(twinEntity, twinCreate.getFields(), true);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -809,12 +809,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return true;
     }
 
-    private void runFactoryOnCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
         if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
         }
         FactoryLauncher factoryLauncher = twinCreate.isSketchMode() ? FactoryLauncher.onSketchCreate : FactoryLauncher.onTwinCreate;
-        twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher, twinChangesCollector);
+        twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher);
     }
 
     private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -837,7 +837,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         };
         if (factoryLauncher == null)
             return;
-        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher, twinChangesCollector);
+        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher);
         if (factoryLauncher.equals(FactoryLauncher.onSketchFinalize)
                 && twinUpdate.getTwinEntity().isSketch()) {
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);

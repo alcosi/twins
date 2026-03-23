@@ -9,10 +9,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
-import org.twins.core.dto.rest.validator.TransitionValidatorRuleBaseDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,15 +47,6 @@ public class TwinflowTransitionBaseDTOv2 extends TwinflowTransitionBaseDTOv1 {
     @Schema(description = "drafting factory id", example = DTOExamples.FACTORY_ID)
     @RelatedObject(type = FaceDTOv1.class, name = "draftingTwinFactory")
     public UUID draftingTwinFactoryId;
-
-    // moved from v3
-    @Deprecated
-    @Schema(description = "validators")
-    public List<TransitionValidatorRuleBaseDTOv1> validatorRules;
-
-    @Deprecated
-    @Schema(description = "triggers")
-    public List<TwinTriggerDTOv1> triggers;
 }
 
 

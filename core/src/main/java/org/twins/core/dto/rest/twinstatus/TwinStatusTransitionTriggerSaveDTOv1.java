@@ -16,11 +16,10 @@ import java.util.UUID;
 @Schema(name = "TwinStatusTransitionTriggerSaveV1")
 public class TwinStatusTransitionTriggerSaveDTOv1 {
     @Schema(description = "twin status id", example = DTOExamples.TWIN_STATUS_ID)
-    @RelatedObject(type = TwinStatusDTOv1.class, name = "twinStatus")
     public UUID twinStatusId;
 
-    @Schema(description = "transition type", example = "incoming")
-    public TwinStatusTransitionTriggerEntity.TransitionType type;
+    @Schema(description = "incoming else outgoing", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean incomingElseOutgoing;
 
     @Schema(description = "order", example = DTOExamples.INTEGER)
     public Integer order;

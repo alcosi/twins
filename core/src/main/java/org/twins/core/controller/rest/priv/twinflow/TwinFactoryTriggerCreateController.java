@@ -18,7 +18,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerCreateRqDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerCreateRsDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinFactoryTriggerCreateDTOReverseMapper;
@@ -44,13 +44,13 @@ public class TwinFactoryTriggerCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin factory trigger created successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinFactoryTriggerCreateRsDTOv1.class))}),
+                    @Schema(implementation = TwinFactoryTriggerListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_factory/trigger/v1")
     public ResponseEntity<?> twinFactoryTriggerCreateV1(
-            @MapperContextBinding(roots = TwinFactoryTriggerRestDTOMapper.class, response = TwinFactoryTriggerCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinFactoryTriggerRestDTOMapper.class, response = TwinFactoryTriggerListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinFactoryTriggerCreateRqDTOv1 request) {
-        TwinFactoryTriggerCreateRsDTOv1 rs = new TwinFactoryTriggerCreateRsDTOv1();
+        TwinFactoryTriggerListRsDTOv1 rs = new TwinFactoryTriggerListRsDTOv1();
         try {
             List<TwinFactoryTriggerEntity> factoryTriggerEntities = twinFactoryTriggerCreateDTOReverseMapper.convertCollection(request.getTwinFactoryTriggers());
             factoryTriggerEntities = factoryTriggerService.createFactoryTriggers(factoryTriggerEntities);

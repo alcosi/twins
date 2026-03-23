@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TriggerV1")
+@Schema(name = "TwinTriggerV1")
 public class TwinTriggerDTOv1 {
     @Schema(description = "id", example = DTOExamples.TRIGGER_ID)
     public UUID id;
