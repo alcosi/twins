@@ -6,8 +6,8 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldConditonDescriptorValueV1")
-public class TwinClassFieldConditonDescriptorValueDTOv1 extends TwinClassFieldConditionDescriptorBasicDTOv1 {
+@Schema(name =  "TwinClassFieldConditionDescriptorValueV1")
+public class TwinClassFieldConditionDescriptorValueDTOv1 extends TwinClassFieldConditionDescriptorBasicDTOv1 {
     public static final String KEY = "value";
 
     @Override

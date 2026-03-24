@@ -5,9 +5,11 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorDTO;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorDataListOptionExternalIdDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorParamDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldConditonDescriptorValueDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorValueDTOv1;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
+import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorDataListOptionExternalId;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorParam;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorValue;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -26,7 +28,12 @@ public class TwinClassFieldConditionDescriptorRestDTOMapper extends RestSimpleDT
         if (conditionDescriptor == null)
             return null;
         if (conditionDescriptor instanceof ConditionDescriptorValue descriptor) {
-            return new TwinClassFieldConditonDescriptorValueDTOv1()
+            return new TwinClassFieldConditionDescriptorValueDTOv1()
+                    .valueToCompareWith(descriptor.valueToCompareWith())
+                    .conditionOperator(descriptor.conditionOperator());
+        }
+        if (conditionDescriptor instanceof ConditionDescriptorDataListOptionExternalId descriptor) {
+            return new TwinClassFieldConditionDescriptorDataListOptionExternalIdDTOv1()
                     .valueToCompareWith(descriptor.valueToCompareWith())
                     .conditionOperator(descriptor.conditionOperator());
         }

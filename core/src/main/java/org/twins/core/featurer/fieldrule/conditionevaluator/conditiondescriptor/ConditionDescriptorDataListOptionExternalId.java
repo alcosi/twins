@@ -7,5 +7,5 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
-public class ConditionDescriptorValue extends ConditionDescriptor {
+public class ConditionDescriptorDataListOptionExternalId extends ConditionDescriptor {
 }
