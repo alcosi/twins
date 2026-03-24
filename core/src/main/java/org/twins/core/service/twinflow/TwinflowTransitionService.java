@@ -301,8 +301,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
             if (twinflowTransitionEntity.getTwinflowTransitionTypeId() == null)
                 twinflowTransitionEntity.setTwinflowTransitionTypeId(TwinflowTransitionType.STATUS_CHANGE);
-
-            validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         }
         return IterableUtils.toList(saveSafe(transitionEntities));
     }
