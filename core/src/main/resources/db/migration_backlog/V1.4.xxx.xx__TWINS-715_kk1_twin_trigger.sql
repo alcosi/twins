@@ -112,7 +112,7 @@ CREATE INDEX IF NOT EXISTS twin_factory_trigger_twin_trigger_id_index
 -- Migrate twinflow_transition_trigger data
 -- Add new columns
 ALTER TABLE twinflow_transition_trigger
-    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false,
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT true,
     ADD COLUMN IF NOT EXISTS twin_trigger_id uuid;
 
 -- Drop old foreign key constraint
@@ -123,13 +123,16 @@ ALTER TABLE twinflow_transition_trigger
 INSERT INTO twin_trigger (id, domain_id, twin_trigger_featurer_id, twin_trigger_param, active)
 SELECT
     uuid_generate_v7_custom(),
-    (SELECT domain_id FROM twinflow WHERE id = ttt.twinflow_transition_id LIMIT 1),
+    tclass.domain_id,
     ttt.transition_trigger_featurer_id,
     ttt.transition_trigger_params,
     true
 FROM (SELECT DISTINCT transition_trigger_featurer_id, transition_trigger_params, twinflow_transition_id
       FROM twinflow_transition_trigger
       WHERE transition_trigger_featurer_id IS NOT NULL) AS ttt
+JOIN twinflow_transition tt ON tt.id = ttt.twinflow_transition_id
+JOIN twinflow tf ON tf.id = tt.twinflow_id
+JOIN twin_class tclass ON tclass.id = tf.twin_class_id
 ON CONFLICT DO NOTHING;
 
 -- Update twinflow_transition_trigger with new twin_trigger_id
@@ -165,7 +168,7 @@ DROP INDEX IF EXISTS idx_twin_status_transition_type_id;
 
 -- Add new columns (async before twin_trigger_id)
 ALTER TABLE twin_status_transition_trigger
-    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false,
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT true,
     ADD COLUMN IF NOT EXISTS twin_trigger_id uuid;
 
 -- Add boolean incoming_else_outgoing column
@@ -187,13 +190,15 @@ ALTER TABLE twin_status_transition_trigger
 INSERT INTO twin_trigger (id, domain_id, twin_trigger_featurer_id, twin_trigger_param, active)
 SELECT
     uuid_generate_v7_custom(),
-    (SELECT domain_id FROM twin_status WHERE id = tstt.twin_status_id LIMIT 1),
+    tc.domain_id,
     tstt.transition_trigger_featurer_id,
     tstt.transition_trigger_params,
     COALESCE(tstt.active, true)
 FROM (SELECT DISTINCT transition_trigger_featurer_id, transition_trigger_params, twin_status_id, active
       FROM twin_status_transition_trigger
       WHERE transition_trigger_featurer_id IS NOT NULL) AS tstt
+JOIN twin_status ts ON ts.id = tstt.twin_status_id
+JOIN twin_class tc ON tc.id = ts.twins_class_id
 ON CONFLICT DO NOTHING;
 
 -- Update twin_status_transition_trigger with new twin_trigger_id
@@ -207,7 +212,8 @@ WHERE tstt.transition_trigger_featurer_id = tr.twin_trigger_featurer_id
 ALTER TABLE twin_status_transition_trigger
     ADD CONSTRAINT twin_status_transition_trigger_twin_trigger_id_fk
     FOREIGN KEY (twin_trigger_id) REFERENCES twin_trigger(id)
-    ON UPDATE CASCADE;
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
 
 CREATE INDEX IF NOT EXISTS twin_status_transition_trigger_twin_trigger_id_index
     ON twin_status_transition_trigger (twin_trigger_id);
