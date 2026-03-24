@@ -26,20 +26,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
@@ -196,57 +192,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         for (var twinClass : needLoad.getCollection()) {
             for (var extendedTwinClassId : twinClass.getExtendedClassIdSet()) {
                 twinClass.getTwinflowKit().addAll(loaded.getGrouped(extendedTwinClassId));
-            }
-        }
-    }
-
-    @Transactional
-    public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        runTwinStatusTriggers(twinEntity, srcStatusEntity, dstStatusEntity, twinChangesCollector);
-        twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
-    }
-
-    public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
-        UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
-        List<UUID> statusIds = new ArrayList<>(2);
-        if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) {
-            statusIds.add(srcStatusId);
-        }
-        if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) {
-            statusIds.add(dstStatusId);
-        }
-        if (statusIds.isEmpty()) {
-            return;
-        }
-        List<TwinStatusTriggerEntity> triggers = twinStatusTriggerRepository.findAllByTwinStatusIdInAndActiveTrueOrderByOrder(statusIds);
-        if (!triggers.isEmpty()) {
-            runTriggers(twinEntity, triggers, srcStatusEntity, dstStatusEntity, twinChangesCollector);
-        }
-    }
-
-    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTriggerEntity> twinStatusTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinStatusTriggerEntityList))
-            return;
-        for (TwinStatusTriggerEntity twinStatusTriggerEntity : twinStatusTriggerEntityList) {
-            log.info(twinStatusTriggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TwinTriggerEntity twinTriggerEntity = twinStatusTriggerEntity.getTwinTrigger();
-            if (twinTriggerEntity == null || !twinStatusTriggerEntity.getTwinTriggerId().equals(twinTriggerEntity.getId())) {
-                twinTriggerEntity = twinTriggerService.findEntitySafe(twinStatusTriggerEntity.getTwinTriggerId());
-                twinStatusTriggerEntity.setTwinTriggerId(twinTriggerEntity.getId())
-                        .setTwinTrigger(twinTriggerEntity);
-            }
-            if (Boolean.TRUE.equals(twinStatusTriggerEntity.getAsync())) {
-                if (twinChangesCollector != null) {
-                    UUID statusId = Boolean.TRUE.equals(twinStatusTriggerEntity.getIncomingElseOutgoing()) ? dstStatusEntity.getId() : srcStatusEntity.getId();
-                    twinChangesCollector.addPostponedTrigger(twinEntity.getId(), statusId, twinStatusTriggerEntity.getTwinTriggerId());
-                } else {
-                    log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));
-                }
-            } else {
-                TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-                twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), twinEntity, srcStatusEntity, dstStatusEntity);
             }
         }
     }

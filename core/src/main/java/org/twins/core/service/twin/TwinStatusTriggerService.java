@@ -4,26 +4,30 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.featurer.trigger.TwinTrigger;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -37,6 +41,10 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
     private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;
     private final AuthService authService;
+    @Lazy
+    private final TwinChangesService twinChangesService;
+    @Lazy
+    private final FeaturerService featurerService;
 
     @Override
     public CrudRepository<TwinStatusTriggerEntity, UUID> entityRepository() {
@@ -116,6 +124,52 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
 
         updateSafe(changes);
         return allEntities;
+    }
+
+
+    @Transactional
+    public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        runTwinStatusTriggers(twinEntity, srcStatusEntity, dstStatusEntity, twinChangesCollector);
+        twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
+    }
+
+    public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
+        UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
+        List<UUID> statusIds = new ArrayList<>(2);
+        if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) {
+            statusIds.add(srcStatusId);
+        }
+        if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) {
+            statusIds.add(dstStatusId);
+        }
+        if (statusIds.isEmpty()) {
+            return;
+        }
+        List<TwinStatusTriggerEntity> triggers = repository.findAllByTwinStatusIdInAndActiveTrueOrderByOrder(statusIds);
+        runTriggers(twinEntity, triggers, srcStatusEntity, dstStatusEntity, twinChangesCollector);
+    }
+
+    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTriggerEntity> twinStatusTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinStatusTriggerEntityList))
+            return;
+        loadTriggers(twinStatusTriggerEntityList);
+        for (TwinStatusTriggerEntity twinStatusTriggerEntity : twinStatusTriggerEntityList) {
+            log.info("{} will be triggered", twinStatusTriggerEntity.logDetailed());
+            var twinTriggerEntity = twinStatusTriggerEntity.getTwinTrigger();
+            if (Boolean.TRUE.equals(twinStatusTriggerEntity.getAsync())) {
+                if (twinChangesCollector != null) {
+                    UUID statusId = Boolean.TRUE.equals(twinStatusTriggerEntity.getIncomingElseOutgoing()) ? dstStatusEntity.getId() : srcStatusEntity.getId();
+                    twinChangesCollector.addPostponedTrigger(twinEntity.getId(), statusId, twinStatusTriggerEntity.getTwinTriggerId());
+                } else {
+                    log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));
+                }
+            } else {
+                TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+                twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), twinEntity, srcStatusEntity, dstStatusEntity);
+            }
+        }
     }
 
     public void loadTrigger(TwinStatusTriggerEntity src) throws ServiceException {
