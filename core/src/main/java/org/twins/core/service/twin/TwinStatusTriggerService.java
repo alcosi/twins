@@ -5,6 +5,8 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -83,14 +85,14 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
         if (CollectionUtils.isEmpty(statusTriggers)) {
             return Collections.emptyList();
         }
-        org.cambium.common.util.ChangesHelperMulti<TwinStatusTriggerEntity> changes = new org.cambium.common.util.ChangesHelperMulti<>();
+        ChangesHelperMulti<TwinStatusTriggerEntity> changes = new ChangesHelperMulti<>();
         List<TwinStatusTriggerEntity> allEntities = new java.util.ArrayList<>(statusTriggers.size());
 
         for (TwinStatusTriggerEntity trigger : statusTriggers) {
             TwinStatusTriggerEntity entity = findEntitySafe(trigger.getId());
             allEntities.add(entity);
 
-            org.cambium.common.util.ChangesHelper changesHelper = new org.cambium.common.util.ChangesHelper();
+            ChangesHelper changesHelper = new ChangesHelper();
             updateEntityFieldByValue(trigger.getTwinStatusId(), entity,
                     TwinStatusTriggerEntity::getTwinStatusId, TwinStatusTriggerEntity::setTwinStatusId,
                     TwinStatusTriggerEntity.Fields.twinStatusId, changesHelper);

@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -40,7 +39,6 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.*;
@@ -354,106 +352,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         }
         CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         return allEntities;
-    }
-
-//    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD) throws ServiceException {
-//        if (validatorCUD == null)
-//            return;
-//        if (CollectionUtils.isNotEmpty(validatorCUD.getCreateList())) {
-//            createValidators(dbTwinflowTransitionEntity, validatorCUD.getCreateList());
-//        }
-//        if (CollectionUtils.isNotEmpty(validatorCUD.getUpdateList())) {
-//            updateValidators(dbTwinflowTransitionEntity, validatorCUD.getUpdateList());
-//        }
-//        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
-//            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
-//        }
-//        CacheUtils.evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
-//    }
-
-    @Transactional
-    public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validatorDeleteList) throws ServiceException {
-        entitySmartService.deleteAllEntitiesAndLog(validatorDeleteList, twinflowTransitionValidatorRuleRepository);
-    }
-
-    public List<TwinflowTransitionValidatorRuleEntity> createValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validators) throws ServiceException {
-        for (TwinflowTransitionValidatorRuleEntity validator : validators)
-            validator.setTwinflowTransitionId(dbTwinflowTransitionEntity.getId());
-        return IterableUtils.toList(entitySmartService.saveAllAndLog(validators, twinflowTransitionValidatorRuleRepository));
-    }
-
-    //TODO support new logic with sets for CUD validator
-    public void updateValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validators) throws ServiceException {
-//        ChangesHelper changesHelper = new ChangesHelper();
-//        TwinflowTransitionValidatorEntity dbValidatorEntity;
-//        List<TwinflowTransitionValidatorEntity> saveList = new ArrayList<>();
-//        for (TwinflowTransitionValidatorEntity validator : validators) {
-//            changesHelper.flush();
-//            dbValidatorEntity = entitySmartService.findById(validator.getId(), twinflowTransitionValidatorRepository, EntitySmartService.FindMode.ifEmptyThrows);
-//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.order, dbValidatorEntity.getOrder(), validator.getOrder()))
-//                dbValidatorEntity.setOrder(validator.getOrder());
-//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.invert, dbValidatorEntity.isInvert(), validator.isInvert()))
-//                dbValidatorEntity.setInvert(validator.isInvert());
-//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorFeaturerId, dbValidatorEntity.getTwinValidatorFeaturerId(), validator.getTwinValidatorFeaturerId()))
-//                dbValidatorEntity.setTwinValidatorFeaturerId(validator.getTwinValidatorFeaturerId());
-//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorParams, dbValidatorEntity.getTwinValidatorParams(), validator.getTwinValidatorParams()))
-//                dbValidatorEntity.setTwinValidatorParams(validator.getTwinValidatorParams());
-//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.active, dbValidatorEntity.isActive(), validator.isActive()))
-//                dbValidatorEntity.setActive(validator.isActive());
-//            if (changesHelper.hasChanges())
-//                saveList.add(dbValidatorEntity);
-//        }
-//        if (!CollectionUtils.isEmpty(saveList))
-//            entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
-    }
-
-    @Transactional
-    public void cudTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD) throws ServiceException {
-        if (triggerCUD == null)
-            return;
-        if (CollectionUtils.isNotEmpty(triggerCUD.getCreateList())) {
-            createTriggers(dbTwinflowTransitionEntity, triggerCUD.getCreateList());
-        }
-        if (CollectionUtils.isNotEmpty(triggerCUD.getUpdateList())) {
-            updateTriggers(dbTwinflowTransitionEntity, triggerCUD.getUpdateList());
-        }
-        if (CollectionUtils.isNotEmpty(triggerCUD.getDeleteList())) {
-            deleteTriggers(dbTwinflowTransitionEntity, triggerCUD.getDeleteList());
-        }
-        CacheUtils.evictCache(cacheManager, TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
-    }
-
-    @Transactional
-    public void deleteTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionTriggerEntity> triggerDeleteList) throws ServiceException {
-        entitySmartService.deleteAllEntitiesAndLog(triggerDeleteList, twinflowTransitionTriggerRepository);
-    }
-
-    public List<TwinflowTransitionTriggerEntity> createTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionTriggerEntity> triggers) throws ServiceException {
-        for (TwinflowTransitionTriggerEntity trigger : triggers)
-            trigger.setTwinflowTransitionId(dbTwinflowTransitionEntity.getId());
-        return IterableUtils.toList(entitySmartService.saveAllAndLog(triggers, twinflowTransitionTriggerRepository));
-    }
-
-    public void updateTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionTriggerEntity> triggers) throws ServiceException {
-        ChangesHelper changesHelper = new ChangesHelper();
-        TwinflowTransitionTriggerEntity dbTriggerEntity;
-        List<TwinflowTransitionTriggerEntity> saveList = new ArrayList<>();
-        for (TwinflowTransitionTriggerEntity trigger : triggers) {
-            changesHelper.flush();
-            dbTriggerEntity = entitySmartService.findById(trigger.getId(), twinflowTransitionTriggerRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.order, dbTriggerEntity.getOrder(), trigger.getOrder()))
-                dbTriggerEntity.setOrder(trigger.getOrder());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.twinTriggerId, dbTriggerEntity.getTwinTriggerId(), trigger.getTwinTriggerId()))
-                dbTriggerEntity.setTwinTriggerId(trigger.getTwinTriggerId());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.async, dbTriggerEntity.getAsync(), trigger.getAsync()))
-                dbTriggerEntity.setAsync(trigger.getAsync());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.active, dbTriggerEntity.getActive(), trigger.getActive()))
-                dbTriggerEntity.setActive(trigger.getActive());
-            if (changesHelper.hasChanges())
-                saveList.add(dbTriggerEntity);
-        }
-        if (!CollectionUtils.isEmpty(saveList))
-            entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionTriggerRepository, changesHelper);
     }
 
     public void updateTransitionAlias(TwinflowTransitionEntity dbTwinflowTransitionEntity, TwinflowTransitionAliasEntity twinflowTransitionAliasEntity, ChangesHelper changesHelper) throws ServiceException {

@@ -44,10 +44,10 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -210,7 +210,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
         UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
-        List<UUID> statusIds = new java.util.ArrayList<>(2);
+        List<UUID> statusIds = new ArrayList<>(2);
         if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) {
             statusIds.add(srcStatusId);
         }
