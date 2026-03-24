@@ -3,7 +3,6 @@ package org.twins.core.dto.rest.twinstatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
@@ -12,8 +11,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinStatusTransitionTriggerV1")
-public class TwinStatusTransitionTriggerDTOv1 {
+@Schema(name = "TwinStatusTriggerV1")
+public class TwinStatusTriggerDTOv1 {
     @Schema(description = "id", example = DTOExamples.TRIGGER_ID)
     public UUID id;
 

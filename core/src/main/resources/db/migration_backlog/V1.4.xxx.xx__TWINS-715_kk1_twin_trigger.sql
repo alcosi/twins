@@ -112,8 +112,8 @@ CREATE INDEX IF NOT EXISTS twin_factory_trigger_twin_trigger_id_index
 -- Migrate twinflow_transition_trigger data
 -- Add new columns
 ALTER TABLE twinflow_transition_trigger
-    ADD COLUMN IF NOT EXISTS async boolean DEFAULT true,
-    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid;
+    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid,
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT true;
 
 -- Drop old foreign key constraint
 ALTER TABLE twinflow_transition_trigger
@@ -122,7 +122,8 @@ ALTER TABLE twinflow_transition_trigger
 -- Migrate data: create twin_trigger records for each unique featurer+params combination
 INSERT INTO twin_trigger (id, domain_id, twin_trigger_featurer_id, twin_trigger_param, active)
 SELECT
-    uuid_generate_v7_custom(),
+    uuid_generate_v5('00000000-0000-0000-0000-000000000000'::uuid,
+        tclass.domain_id::text || '|' || ttt.transition_trigger_featurer_id::text || '|' || COALESCE(ttt.transition_trigger_params::text, '')),
     tclass.domain_id,
     ttt.transition_trigger_featurer_id,
     ttt.transition_trigger_params,
@@ -168,8 +169,9 @@ DROP INDEX IF EXISTS idx_twin_status_transition_type_id;
 
 -- Add new columns (async before twin_trigger_id)
 ALTER TABLE twin_status_transition_trigger
-    ADD COLUMN IF NOT EXISTS async boolean DEFAULT true,
-    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid;
+
+    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid,
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT true;
 
 -- Add boolean incoming_else_outgoing column
 ALTER TABLE twin_status_transition_trigger
@@ -189,7 +191,8 @@ ALTER TABLE twin_status_transition_trigger
 -- Migrate data: create twin_trigger records for twin_status_transition_trigger
 INSERT INTO twin_trigger (id, domain_id, twin_trigger_featurer_id, twin_trigger_param, active)
 SELECT
-    uuid_generate_v7_custom(),
+    uuid_generate_v5('00000000-0000-0000-0000-000000000000'::uuid,
+        tc.domain_id::text || '|' || tstt.transition_trigger_featurer_id::text || '|' || COALESCE(tstt.transition_trigger_params::text, '')),
     tc.domain_id,
     tstt.transition_trigger_featurer_id,
     tstt.transition_trigger_params,

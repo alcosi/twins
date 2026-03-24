@@ -29,8 +29,8 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
+import org.twins.core.dao.twin.TwinStatusTriggerEntity;
+import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
@@ -62,7 +62,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     private final TwinflowRepository twinflowRepository;
     private final TwinflowSchemaRepository twinflowSchemaRepository;
     private final TwinflowSchemaMapRepository twinflowSchemaMapRepository;
-    private final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
+    private final TwinStatusTriggerRepository twinStatusTriggerRepository;
     private final TwinClassService twinClassService;
     private final TwinStatusService twinStatusService;
     private final I18nService i18nService;
@@ -201,30 +201,35 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     @Transactional
-    public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
+    public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        runTwinStatusTransitionTriggers(twinEntity, srcStatusEntity, dstStatusEntity, twinChangesCollector);
+        runTwinStatusTriggers(twinEntity, srcStatusEntity, dstStatusEntity, twinChangesCollector);
         twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
     }
 
-    public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        List<TwinStatusTransitionTriggerEntity> triggerEntityList;
+    public void runTwinStatusTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
         UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
-        if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndIncomingElseOutgoingAndActiveOrderByOrder(srcStatusId, false, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity, twinChangesCollector);
+        List<UUID> statusIds = new java.util.ArrayList<>(2);
+        if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) {
+            statusIds.add(srcStatusId);
         }
-        if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndIncomingElseOutgoingAndActiveOrderByOrder(dstStatusId, true, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity, twinChangesCollector);
+        if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) {
+            statusIds.add(dstStatusId);
+        }
+        if (statusIds.isEmpty()) {
+            return;
+        }
+        List<TwinStatusTriggerEntity> triggers = twinStatusTriggerRepository.findAllByTwinStatusIdInAndActiveTrueOrderByOrder(statusIds);
+        if (!triggers.isEmpty()) {
+            runTriggers(twinEntity, triggers, srcStatusEntity, dstStatusEntity, twinChangesCollector);
         }
     }
 
-    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinStatusTransitionTriggerEntityList))
+    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTriggerEntity> twinStatusTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinStatusTriggerEntityList))
             return;
-        for (TwinStatusTransitionTriggerEntity twinStatusTriggerEntity : twinStatusTransitionTriggerEntityList) {
+        for (TwinStatusTriggerEntity twinStatusTriggerEntity : twinStatusTriggerEntityList) {
             log.info(twinStatusTriggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
             TwinTriggerEntity twinTriggerEntity = twinStatusTriggerEntity.getTwinTrigger();
             if (twinTriggerEntity == null || !twinStatusTriggerEntity.getTwinTriggerId().equals(twinTriggerEntity.getId())) {
@@ -330,4 +335,3 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return twinflow.getInitialSketchTwinStatus();
     }
 }
-

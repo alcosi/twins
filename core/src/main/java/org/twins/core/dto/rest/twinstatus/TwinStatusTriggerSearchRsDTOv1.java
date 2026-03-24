@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "TwinStatusTransitionTriggerSearchRsV1")
-public class TwinStatusTransitionTriggerSearchRsDTOv1 extends TwinStatusTransitionTriggerListRsDTOv1 {
+@Schema(name = "TwinStatusTriggerSearchRsV1")
+public class TwinStatusTriggerSearchRsDTOv1 extends TwinStatusTriggerListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

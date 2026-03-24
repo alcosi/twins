@@ -19,7 +19,6 @@ public class TwinFactoryTriggerSaveDTOv1 {
     public UUID twinFactoryId;
 
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinClassDTOv1.class, name = "inputTwinClass")
     public UUID inputTwinClassId;
 
     @Schema(description = "twin factory condition set id")
@@ -35,7 +34,6 @@ public class TwinFactoryTriggerSaveDTOv1 {
     public String description;
 
     @Schema(description = "twin trigger id", example = DTOExamples.TRIGGER_ID)
-    @RelatedObject(type = TwinTriggerDTOv1.class, name = "twinTrigger")
     public UUID twinTriggerId;
 
     @Schema(description = "async")

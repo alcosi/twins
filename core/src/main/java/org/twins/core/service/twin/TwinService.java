@@ -333,7 +333,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         createTwin(twinCreate, twinChangesCollector);
         TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+        twinflowService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
         twinChangesService.applyChanges(twinChangesCollector);
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
@@ -371,7 +371,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             twins.add(twinEntity);
-            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+            twinflowService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
         }
         twinChangesService.applyChanges(twinChangesCollector);
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
@@ -1182,7 +1182,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
-        twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
+        twinflowService.runTwinStatusTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
         return duplicateEntity;
     }
 
@@ -1221,7 +1221,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
-        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus(), twinDuplicate.getChangesCollector());
+        twinflowService.runTwinStatusTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus(), twinDuplicate.getChangesCollector());
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
     }
 

@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -12,7 +11,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinStatusTransitionTriggerSearch {
+public class TwinStatusTriggerSearch {
     public Set<UUID> idList;
     public Set<UUID> idExcludeList;
     public Set<UUID> twinStatusIdList;

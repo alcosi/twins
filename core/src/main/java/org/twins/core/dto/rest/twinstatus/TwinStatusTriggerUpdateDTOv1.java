@@ -10,8 +10,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name = "TwinStatusTransitionTriggerUpdateV1")
-public class TwinStatusTransitionTriggerUpdateDTOv1 extends TwinStatusTransitionTriggerSaveDTOv1 {
+@Schema(name = "TwinStatusTriggerUpdateV1")
+public class TwinStatusTriggerUpdateDTOv1 extends TwinStatusTriggerSaveDTOv1 {
     @Schema(description = "id")
     public UUID id;
 }

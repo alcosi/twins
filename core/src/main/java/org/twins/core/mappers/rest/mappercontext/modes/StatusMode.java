@@ -179,7 +179,7 @@ public enum StatusMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinStatusTransitionTrigger2TwinStatusMode implements MapperModePointer<StatusMode> {
+    public enum TwinStatusTrigger2TwinStatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

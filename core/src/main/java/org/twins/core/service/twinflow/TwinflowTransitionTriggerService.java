@@ -66,7 +66,7 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinflowTransitionTriggerEntity createTransitionTrigger(TwinflowTransitionTriggerEntity transitionTrigger) throws ServiceException {
-        return saveSafe(transitionTrigger.setIsActive(true));
+        return saveSafe(transitionTrigger.setActive(true));
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -97,9 +97,9 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
     }
 
     private void updateActive(TwinflowTransitionTriggerEntity dbEntity, TwinflowTransitionTriggerEntity updateEntity, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbEntity.getIsActive(), updateEntity.getIsActive()))
+        if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.active, dbEntity.getActive(), updateEntity.getActive()))
             return;
-        dbEntity.setIsActive(updateEntity.getIsActive());
+        dbEntity.setActive(updateEntity.getActive());
     }
 
     public void loadTrigger(TwinflowTransitionTriggerEntity src) throws ServiceException {

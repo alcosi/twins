@@ -19,47 +19,47 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dto.rest.twinstatus.TwinStatusTransitionTriggerSearchRqDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusTransitionTriggerSearchRsDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusTriggerSearchRqDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusTriggerSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusTransitionTriggerRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusTransitionTriggerSearchDTOReverseMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusTriggerRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusTriggerSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinStatusTransitionTriggerSearchService;
+import org.twins.core.service.twin.TwinStatusTriggerSearchService;
 
 @Tag(name = ApiTag.TWIN_STATUS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_TRIGGER_MANAGE, Permissions.TWIN_TRIGGER_VIEW})
-public class TwinStatusTransitionTriggerSearchController extends ApiController {
-    private final TwinStatusTransitionTriggerSearchService twinStatusTransitionTriggerSearchService;
-    private final TwinStatusTransitionTriggerRestDTOMapper twinStatusTransitionTriggerRestDTOMapper;
-    private final TwinStatusTransitionTriggerSearchDTOReverseMapper twinStatusTransitionTriggerSearchDTOReverseMapper;
+public class TwinStatusTriggerSearchController extends ApiController {
+    private final TwinStatusTriggerSearchService twinStatusTriggerSearchService;
+    private final TwinStatusTriggerRestDTOMapper twinStatusTriggerRestDTOMapper;
+    private final TwinStatusTriggerSearchDTOReverseMapper twinStatusTriggerSearchDTOReverseMapper;
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinStatusTransitionTriggerSearchV1", summary = "Search twin status transition triggers")
+    @Operation(operationId = "twinStatusTriggerSearchV1", summary = "Search twin status triggers")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusTransitionTriggerSearchRsDTOv1.class))}),
+                    @Schema(implementation = TwinStatusTriggerSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_status/trigger/search/v1")
-    public ResponseEntity<?> twinStatusTransitionTriggerSearchV1(
-            @MapperContextBinding(roots = TwinStatusTransitionTriggerRestDTOMapper.class, response = TwinStatusTransitionTriggerSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinStatusTransitionTriggerSearchRqDTOv1 request,
+    public ResponseEntity<?> twinStatusTriggerSearchV1(
+            @MapperContextBinding(roots = TwinStatusTriggerRestDTOMapper.class, response = TwinStatusTriggerSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody TwinStatusTriggerSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
-        TwinStatusTransitionTriggerSearchRsDTOv1 rs = new TwinStatusTransitionTriggerSearchRsDTOv1();
+        TwinStatusTriggerSearchRsDTOv1 rs = new TwinStatusTriggerSearchRsDTOv1();
         try {
-            PaginationResult<org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity> statusTransitionTriggerList = twinStatusTransitionTriggerSearchService
-                    .findStatusTransitionTriggers(twinStatusTransitionTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+            PaginationResult<org.twins.core.dao.twin.TwinStatusTriggerEntity> statusTriggerList = twinStatusTriggerSearchService
+                    .findStatusTriggers(twinStatusTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
-                    .setPagination(paginationMapper.convert(statusTransitionTriggerList))
-                    .setTwinStatusTransitionTriggers(twinStatusTransitionTriggerRestDTOMapper.convertCollection(statusTransitionTriggerList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(statusTriggerList))
+                    .setTwinStatusTriggers(twinStatusTriggerRestDTOMapper.convertCollection(statusTriggerList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

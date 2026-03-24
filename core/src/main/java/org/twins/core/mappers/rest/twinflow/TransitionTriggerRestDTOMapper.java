@@ -25,7 +25,7 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
     @MapperModePointerBinding(modes = TwinTriggerMode.TransitionTrigger2TwinTriggerMode.class)
     private final TwinTriggerRestDTOMapper twinTriggerRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TransitionTriggerMode.TransitionTrigger2TwinTriggerMode.class)
+    @MapperModePointerBinding(modes = TransitionMode.TransitionTrigger2TransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
     private final TwinflowTransitionTriggerService twinflowTransitionTriggerService;
 
@@ -38,7 +38,7 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
                     .setTwinTriggerId(src.getTwinTriggerId())
                     .setAsync(src.getAsync())
-                    .setActive(src.getIsActive());
+                    .setActive(src.getActive());
             case SHORT -> dst
                     .setId(src.getId())
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
@@ -49,9 +49,9 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
             twinflowTransitionTriggerService.loadTrigger(src);
             twinTriggerRestDTOMapper.postpone(src.getTwinTrigger(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinTriggerMode.TransitionTrigger2TwinTriggerMode.SHORT)));
         }
-        if (mapperContext.hasModeButNot(TransitionTriggerMode.TransitionTrigger2TwinTriggerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TransitionMode.TransitionTrigger2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
-            transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionTriggerMode.TransitionTrigger2TwinTriggerMode.SHORT)));
+            transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.TransitionTrigger2TransitionMode.SHORT)));
         }
     }
 

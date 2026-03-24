@@ -17,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_status_trigger")
-public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
+public class TwinStatusTriggerEntity implements EasyLoggable {
     @Id
     private UUID id;
 

@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -13,8 +12,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "TwinStatusTransitionTriggerSearchV1")
-public class TwinStatusTransitionTriggerSearchDTOv1 {
+@Schema(name = "TwinStatusTriggerSearchV1")
+public class TwinStatusTriggerSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
 

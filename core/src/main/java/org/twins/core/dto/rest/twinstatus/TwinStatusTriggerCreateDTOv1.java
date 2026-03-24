@@ -8,6 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "TwinStatusTransitionTriggerCreateV1")
-public class TwinStatusTransitionTriggerCreateDTOv1 extends TwinStatusTransitionTriggerSaveDTOv1 {
+@Schema(name = "TwinStatusTriggerCreateV1")
+public class TwinStatusTriggerCreateDTOv1 extends TwinStatusTriggerSaveDTOv1 {
 }

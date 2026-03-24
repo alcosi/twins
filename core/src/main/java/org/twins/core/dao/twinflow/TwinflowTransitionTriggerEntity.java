@@ -53,15 +53,15 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     private TwinTriggerEntity twinTrigger;
 
     @Column(name = "active")
-    private Boolean isActive;
+    private Boolean active;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionTrigger[" + id + "]";
             case NORMAL ->
-                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", active: " + active + "]";
             default ->
-                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", twinTriggerId:" + twinTriggerId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", twinTriggerId:" + twinTriggerId + ", active: " + active + "]";
         };
     }
 
@@ -72,6 +72,6 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
                 .setOrder(order)
                 .setTwinTriggerId(twinTriggerId)
                 .setAsync(async)
-                .setIsActive(isActive);
+                .setActive(active);
     }
 }

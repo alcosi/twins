@@ -6,13 +6,11 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
-
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "TwinStatusTransitionTriggerCreateRqV1")
-public class TwinStatusTransitionTriggerCreateRqDTOv1 extends Request {
-    @Schema(description = "twin status transition triggers")
-    public List<TwinStatusTransitionTriggerCreateDTOv1> twinStatusTransitionTriggers;
+@Schema(name = "TwinStatusTriggerSearchRqV1")
+public class TwinStatusTriggerSearchRqDTOv1 extends Request {
+    @Schema(description = "search")
+    public TwinStatusTriggerSearchDTOv1 search;
 }
