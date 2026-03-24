@@ -17,7 +17,6 @@ public class TwinStatusTransitionTriggerSearchDTOReverseMapper extends RestSimpl
                 .setTwinStatusIdList(src.getTwinStatusIdList())
                 .setTwinStatusIdExcludeList(src.getTwinStatusIdExcludeList())
                 .setIncomingElseOutgoing(src.getIncomingElseOutgoing())
-                .setIncomingElseOutgoingExclude(src.getIncomingElseOutgoingExclude())
                 .setTwinTriggerIdList(src.getTwinTriggerIdList())
                 .setTwinTriggerIdExcludeList(src.getTwinTriggerIdExcludeList())
                 .setActive(src.getActive())

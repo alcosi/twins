@@ -18,7 +18,6 @@ public class TwinStatusTransitionTriggerSearch {
     public Set<UUID> twinStatusIdList;
     public Set<UUID> twinStatusIdExcludeList;
     public Ternary incomingElseOutgoing;
-    public Ternary incomingElseOutgoingExclude;
     public Set<UUID> twinTriggerIdList;
     public Set<UUID> twinTriggerIdExcludeList;
     public Ternary active;

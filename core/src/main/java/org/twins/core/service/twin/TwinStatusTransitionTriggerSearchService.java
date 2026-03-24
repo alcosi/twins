@@ -42,7 +42,6 @@ public class TwinStatusTransitionTriggerSearchService {
                 checkUuidIn(search.getTwinStatusIdList(), false, true, TwinStatusTransitionTriggerEntity.Fields.twinStatusId),
                 checkUuidIn(search.getTwinStatusIdExcludeList(), true, true, TwinStatusTransitionTriggerEntity.Fields.twinStatusId),
                 checkTernary(search.getIncomingElseOutgoing(), TwinStatusTransitionTriggerEntity.Fields.incomingElseOutgoing),
-                checkTernary(search.getIncomingElseOutgoingExclude(), TwinStatusTransitionTriggerEntity.Fields.incomingElseOutgoing),
                 checkUuidIn(search.getTwinTriggerIdList(), false, true, TwinStatusTransitionTriggerEntity.Fields.twinTriggerId),
                 checkUuidIn(search.getTwinTriggerIdExcludeList(), true, true, TwinStatusTransitionTriggerEntity.Fields.twinTriggerId),
                 checkTernary(search.getActive(), TwinStatusTransitionTriggerEntity.Fields.active),
