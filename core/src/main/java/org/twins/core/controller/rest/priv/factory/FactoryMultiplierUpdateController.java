@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.MULTIPLIER_UPDATE)
+@ProtectedBy(Permissions.FACTORY_MULTIPLIER_UPDATE)
 public class FactoryMultiplierUpdateController extends ApiController {
     private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
     private final FactoryMultiplierUpdateDTOReverseMapper factoryMultiplierUpdateDTOReverseMapper;

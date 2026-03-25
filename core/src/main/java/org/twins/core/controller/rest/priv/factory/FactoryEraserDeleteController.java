@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ERASER_DELETE)
+@ProtectedBy(Permissions.FACTORY_ERASER_DELETE)
 public class FactoryEraserDeleteController extends ApiController {
     private final FactoryEraserService factoryEraserService;
 

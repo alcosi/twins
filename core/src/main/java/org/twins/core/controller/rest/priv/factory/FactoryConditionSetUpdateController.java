@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.CONDITION_SET_UPDATE)
+@ProtectedBy(Permissions.FACTORY_CONDITION_SET_UPDATE)
 public class FactoryConditionSetUpdateController extends ApiController {
 
     private final FactoryConditionSetService factoryConditionSetService;
