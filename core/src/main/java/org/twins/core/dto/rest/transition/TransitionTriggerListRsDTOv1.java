@@ -4,15 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.List;
 
 @Data
-@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TransitionTriggerUpdateRqV1")
-public class TransitionTriggerUpdateRqDTOv1 extends Request {
+@Accessors(chain = true)
+@Schema(name = "TransitionTriggerListRsV1")
+public class TransitionTriggerListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "transition triggers")
-    public List<TransitionTriggerUpdateDTOv1> transitionTriggers;
+    public List<TransitionTriggerDTOv1> transitionTriggers;
 }

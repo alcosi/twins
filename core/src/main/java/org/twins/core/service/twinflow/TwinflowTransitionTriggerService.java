@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.cambium.common.util.CollectionUtils;
@@ -18,12 +19,14 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.Set;
-import java.util.HashSet;
 
 @Slf4j
 @Service
@@ -90,6 +93,33 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
                 TwinflowTransitionTriggerEntity::setAsync, TwinflowTransitionTriggerEntity.Fields.async, changesHelper);
         updateActive(dbEntity, updateEntity, changesHelper);
         return updateSafe(dbEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinflowTransitionTriggerEntity> updateTransitionTriggers(Collection<TwinflowTransitionTriggerEntity> transitionTriggers) throws ServiceException {
+        if (CollectionUtils.isEmpty(transitionTriggers)) {
+            return Collections.emptyList();
+        }
+        ChangesHelperMulti<TwinflowTransitionTriggerEntity> changes = new ChangesHelperMulti<>();
+        List<TwinflowTransitionTriggerEntity> allEntities = new ArrayList<>(transitionTriggers.size());
+
+        for (TwinflowTransitionTriggerEntity trigger : transitionTriggers) {
+            TwinflowTransitionTriggerEntity entity = findEntitySafe(trigger.getId());
+            allEntities.add(entity);
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateEntityFieldByEntity(trigger, entity, TwinflowTransitionTriggerEntity::getTwinflowTransitionId,
+                    TwinflowTransitionTriggerEntity::setTwinflowTransitionId, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId, changesHelper);
+            updateTwinTrigger(entity, trigger.getTwinTriggerId(), changesHelper);
+            updateEntityFieldByEntity(trigger, entity, TwinflowTransitionTriggerEntity::getOrder,
+                    TwinflowTransitionTriggerEntity::setOrder, TwinflowTransitionTriggerEntity.Fields.order, changesHelper);
+            updateEntityFieldByEntity(trigger, entity, TwinflowTransitionTriggerEntity::getAsync,
+                    TwinflowTransitionTriggerEntity::setAsync, TwinflowTransitionTriggerEntity::async, TwinflowTransitionTriggerEntity.Fields.async, changesHelper);
+            updateActive(entity, trigger, changesHelper);
+            changes.add(entity, changesHelper);
+        }
+        updateSafe(changes);
+        return allEntities;
     }
 
     private void updateTwinTrigger(TwinflowTransitionTriggerEntity dbEntity, UUID newTwinTriggerId, ChangesHelper changesHelper) throws ServiceException {
