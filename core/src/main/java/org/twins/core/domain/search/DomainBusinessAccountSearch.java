@@ -2,8 +2,12 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.domain.DataTimeRange;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -12,6 +16,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class DomainBusinessAccountSearch {
 
+    Set<UUID> idList;
+    Set<UUID> idExcludeList;
     Set<UUID> businessAccountIdList;
     Set<UUID> businessAccountIdExcludeList;
     Set<String> businessAccountNameLikeList;
@@ -22,6 +28,13 @@ public class DomainBusinessAccountSearch {
     Set<UUID> twinflowSchemaIdExcludeList;
     Set<UUID> twinClassSchemaIdList;
     Set<UUID> twinClassSchemaIdExcludeList;
+    Set<UUID> tierIdList;
+    Set<UUID> tierIdExcludeList;
+    Set<UUID> notificationSchemaIdList;
+    Set<UUID> notificationSchemaIdExcludeList;
+    IntegerRange storageUsedSizeRange;
+    IntegerRange storageUsedCountRange;
+    DataTimeRange createAtRange;
 
     public DomainBusinessAccountSearch addBusinessAccountId(Collection<UUID> ids, boolean exclude) {
         if (!exclude) businessAccountIdList = CollectionUtils.safeAdd(businessAccountIdList, ids);
@@ -53,5 +66,16 @@ public class DomainBusinessAccountSearch {
         return this;
     }
 
+    public DomainBusinessAccountSearch addTierIdList(Collection<UUID> ids, boolean exclude){
+        if (!exclude) tierIdList = CollectionUtils.safeAdd(tierIdList, ids);
+        else tierIdExcludeList = CollectionUtils.safeAdd(tierIdExcludeList, ids);
+        return this;
+    }
+
+    public DomainBusinessAccountSearch addNotificationSchemeIdList(Collection<UUID> ids, boolean exclude){
+        if (!exclude) notificationSchemaIdList = CollectionUtils.safeAdd(notificationSchemaIdList, ids);
+        else notificationSchemaIdExcludeList = CollectionUtils.safeAdd(notificationSchemaIdExcludeList, ids);
+        return this;
+    }
 
 }

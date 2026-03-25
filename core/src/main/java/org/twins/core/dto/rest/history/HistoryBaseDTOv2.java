@@ -17,4 +17,7 @@ public class HistoryBaseDTOv2 extends HistoryBaseDTOv1 {
 
     @Schema(description = "actor")
     public UserDTOv1 actorUser;
+
+    @Schema(description = "machine user (real executor)")
+    public UserDTOv1 machineUser;
 }

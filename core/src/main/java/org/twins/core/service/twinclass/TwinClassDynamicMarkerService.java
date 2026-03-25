@@ -14,11 +14,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
-import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinValidatorSetService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +34,7 @@ import java.util.stream.StreamSupport;
 public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<TwinClassDynamicMarkerEntity> {
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
     private final AuthService authService;
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Override
     public CrudRepository<TwinClassDynamicMarkerEntity, UUID> entityRepository() {
@@ -106,5 +106,17 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
         updateSafe(changes);
 
         return dbTwinClassDynamicMarkerEntityKit.getList();
+    }
+
+    public void loadTwinValidatorSet(TwinClassDynamicMarkerEntity entity) throws ServiceException {
+        loadTwinValidatorSet(List.of(entity));
+    }
+
+    public void loadTwinValidatorSet(Collection<TwinClassDynamicMarkerEntity> entities) throws ServiceException {
+        twinValidatorSetService.load(entities,
+                TwinClassDynamicMarkerEntity::getId,
+                TwinClassDynamicMarkerEntity::getTwinValidatorSetId,
+                TwinClassDynamicMarkerEntity::getTwinValidatorSet,
+                TwinClassDynamicMarkerEntity::setTwinValidatorSet);
     }
 }

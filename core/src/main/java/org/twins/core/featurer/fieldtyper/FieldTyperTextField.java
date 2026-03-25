@@ -8,7 +8,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -19,12 +18,13 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchText;
+import org.twins.core.domain.search.TwinFieldValueSearchText;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsEditorType;
 
 import java.util.Properties;
 
@@ -33,7 +33,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1301,
         name = "Text",
         description = "")
-public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
+public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldValueSearchText> {
     @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
@@ -68,7 +68,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchText search) {
         return TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value);
     }
 
@@ -107,6 +107,6 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
         } catch (ServiceException e) {
             return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
         }
-        return new ValidationResult(true);
+        return ValidationResult.VALID;
     }
 }

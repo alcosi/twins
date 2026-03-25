@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.hibernate.query.SortDirection;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -35,7 +36,7 @@ public class TwinSorterBooleanField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN
-                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsBoolean);
+                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsBoolean);
                 // Get boolean value for sorting
                 Expression<Boolean> value = tfJoin.get(TwinFieldBooleanEntity.Fields.value);
                 // Ensure NULL values are placed at the end

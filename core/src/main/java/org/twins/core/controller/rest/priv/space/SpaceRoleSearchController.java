@@ -62,8 +62,8 @@ public class SpaceRoleSearchController extends ApiController {
             PaginationResult<SpaceRoleEntity> spaceRoleList = spaceRoleSearchService
                     .findSpaceRole(spaceRoleSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setSpaceRoles(spaceRoleDTOMapper.convertCollection(spaceRoleList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(spaceRoleList))
+                    .setSpaceRoles(spaceRoleDTOMapper.convertCollection(spaceRoleList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

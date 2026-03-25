@@ -1,7 +1,9 @@
 package org.twins.core.dao.businessaccount;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,4 +15,9 @@ public interface BusinessAccountUserRepository extends CrudRepository<BusinessAc
     <T> T findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId, Class<T> type);
 
     List<BusinessAccountUserEntity> findByUserIdIn(Set<UUID> users);
+
+    List<BusinessAccountUserEntity> findByBusinessAccountId(UUID businessAccountId);
+
+    @Query("select bau.userId from BusinessAccountUserEntity bau where bau.businessAccountId = :businessAccountId")
+    List<UUID> findUserIdByBusinessAccountId(@Param("businessAccountId") UUID businessAccountId);
 }

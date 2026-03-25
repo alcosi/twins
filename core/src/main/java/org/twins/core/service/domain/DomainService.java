@@ -35,8 +35,8 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.storage.StorageService;
-import org.twins.core.service.user.UserGroup;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroup;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.Function;

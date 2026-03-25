@@ -36,6 +36,10 @@ public class HistoryBaseDTOv1 {
     @RelatedObject(type = UserDTOv1.class, name = "actorUser")
     public UUID actorUserId;
 
+    @Schema(description = "history machine user id (real executor)")
+    @RelatedObject(type = UserDTOv1.class, name = "machineUser")
+    public UUID machineUserId;
+
     @Schema()
     public HistoryType type;
 

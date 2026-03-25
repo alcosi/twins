@@ -195,6 +195,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "extends_hierarchy_counter_direct_children", nullable = false)
     private Integer extendsHierarchyCounterDirectChildren;
 
+    @Column(name = "twin_counter", nullable = false)
+    private Integer twinCounter;
+
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "external_properties", columnDefinition = "hstore")
     private Map<String, String> externalProperties;
@@ -210,16 +213,14 @@ public class TwinClassEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconLightResource;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
     @ManyToOne(fetch = FetchType.LAZY)

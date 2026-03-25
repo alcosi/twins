@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.BooleanUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -10,6 +9,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
+import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
@@ -38,7 +38,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
         dst
-                .setSketchMode(BooleanUtils.toBooleanDefaultIfNull(src.isSketch, false))
+                .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
                 .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()))
                 .setTwinEntity(new TwinEntity()
                         .setTwinClassId(src.getClassId())

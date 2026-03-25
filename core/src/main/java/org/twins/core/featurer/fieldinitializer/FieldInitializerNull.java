@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -17,6 +18,11 @@ import java.util.Properties;
         description = "")
 @Slf4j
 public class FieldInitializerNull extends FieldInitializer<FieldDescriptor, FieldValue> {
+    @Override
+    protected FieldValue createFieldValue(Properties properties, TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+        return null;
+    }
+
     @Override
     protected void initValue(Properties properties, TwinEntity twin, FieldValue value) throws ServiceException {
         value.undefine();

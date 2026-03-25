@@ -71,8 +71,6 @@ public class PermissionGrantTwinRoleService extends EntitySecureFindServiceImpl<
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
         if (entity.getGrantedByUserId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty grantedByUserId");
-        if (entity.getTwinRole() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinRole");
 
         switch (entityValidateMode) {
             case beforeSave:
@@ -106,8 +104,14 @@ public class PermissionGrantTwinRoleService extends EntitySecureFindServiceImpl<
                 PermissionGrantTwinRoleEntity::setPermissionId, PermissionGrantTwinRoleEntity.Fields.permissionId, changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getTwinClassId,
                 PermissionGrantTwinRoleEntity::setTwinClassId, PermissionGrantTwinRoleEntity.Fields.twinClassId, changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getTwinRole,
-                PermissionGrantTwinRoleEntity::setTwinRole, PermissionGrantTwinRoleEntity.Fields.twinRole, changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getGrantedToAssignee,
+                PermissionGrantTwinRoleEntity::setGrantedToAssignee, PermissionGrantTwinRoleEntity.Fields.grantedToAssignee, changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getGrantedToCreator,
+                PermissionGrantTwinRoleEntity::setGrantedToCreator, PermissionGrantTwinRoleEntity.Fields.grantedToCreator, changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getGrantedToSpaceAssignee,
+                PermissionGrantTwinRoleEntity::setGrantedToSpaceAssignee, PermissionGrantTwinRoleEntity.Fields.grantedToSpaceAssignee, changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getGrantedToSpaceCreator,
+                PermissionGrantTwinRoleEntity::setGrantedToSpaceCreator, PermissionGrantTwinRoleEntity.Fields.grantedToSpaceCreator, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
     }

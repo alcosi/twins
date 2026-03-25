@@ -17,7 +17,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.businessaccount.BusinessAccountUserService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.Properties;
 import java.util.Set;

@@ -18,11 +18,14 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -205,6 +208,24 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     @Override
     public boolean validateEntity(ResourceEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public void loadIconResources(TwinClassEntity twinClass) throws ServiceException {
+        loadIconResources(Collections.singletonList(twinClass));
+    }
+
+    public void loadIconResources(Collection<TwinClassEntity> twinClasses) throws ServiceException {
+        load(twinClasses,
+                TwinClassEntity::getId,
+                TwinClassEntity::getIconLightResourceId,
+                TwinClassEntity::getIconLightResource,
+                TwinClassEntity::setIconLightResource);
+
+        load(twinClasses,
+                TwinClassEntity::getId,
+                TwinClassEntity::getIconDarkResourceId,
+                TwinClassEntity::getIconDarkResource,
+                TwinClassEntity::setIconDarkResource);
     }
 
 }

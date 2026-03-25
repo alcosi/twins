@@ -55,6 +55,30 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
 //            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList
 //    );
 
+    @Query("""
+    select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(tfd.value), count(tfd.id))
+    from TwinFieldDecimalEntity tfd
+    join tfd.twin t
+    where t.headTwinId in :headTwinIdSet
+      and tfd.twinClassFieldId = :twinClassFieldId
+    group by t.headTwinId
+""")
+    List<TwinFieldHeadSumCountProjection> sumAndCountByHeadTwinId(
+            @Param("headTwinIdSet") Collection<UUID> headTwinIdSet,
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
+
+    @Query("""
+    select new org.twins.core.dao.twin.TwinFieldValueProjection(tfd.twinId, tfd.value)
+    from TwinFieldDecimalEntity tfd
+    where tfd.twinId in :twinIdSet
+      and tfd.twinClassFieldId = :twinClassFieldId
+""")
+    List<TwinFieldValueProjection> valueByTwinId(
+            @Param("twinIdSet") Collection<UUID> twinIdSet,
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
+
     @Query(value = """
             select coalesce(sum(field.value), 0)
             from TwinFieldDecimalEntity field inner join TwinEntity twin on field.twinId = twin.id

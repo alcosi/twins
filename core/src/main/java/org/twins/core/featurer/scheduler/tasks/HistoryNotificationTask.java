@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryRecipientService;
@@ -33,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class HistoryNotificationTask implements Runnable {
     private final HistoryNotificationTaskEntity historyNotificationEntity;
     @Autowired
-    private HistoryNotificationSchemaMapRepository historyNotificationSchemaMapEntityRepository;
+    private HistoryNotificationRepository historyNotificationRepository;
     @Autowired
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
     @Autowired
@@ -69,15 +68,15 @@ public class HistoryNotificationTask implements Runnable {
             }
             var twin = history.getTwin();
             authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId()); //todo not sure that it's correct to use creator
-            List<HistoryNotificationSchemaMapEntity> configs = getConfigs(history);
+            List<HistoryNotificationEntity> configs = getConfigs(history);
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
             }
-            KitGroupedObj<HistoryNotificationSchemaMapEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
+            KitGroupedObj<HistoryNotificationEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,
-                    HistoryNotificationSchemaMapEntity::getId,
-                    HistoryNotificationSchemaMapEntity::getNotificationChannelEventId,
-                    HistoryNotificationSchemaMapEntity::getNotificationChannelEvent);
+                    HistoryNotificationEntity::getId,
+                    HistoryNotificationEntity::getNotificationChannelEventId,
+                    HistoryNotificationEntity::getNotificationChannelEvent);
 
             int recipientsCount = 0;
             int skippedDuplicatesCount = 0;
@@ -141,24 +140,22 @@ public class HistoryNotificationTask implements Runnable {
         }
     }
 
-    private List<HistoryNotificationSchemaMapEntity> getConfigs(HistoryEntity history) {
-        List<HistoryNotificationSchemaMapEntity> configs;
-        HistoryType historyType = history.getHistoryType();
+    private List<HistoryNotificationEntity> getConfigs(HistoryEntity history) {
+        Set<UUID> matchingClassIds = new HashSet<>(history.getTwin().getTwinClass().getExtendedClassIdSet());
+        matchingClassIds.add(history.getTwin().getTwinClassId());
+
         if (history.getTwinClassFieldId() == null) {
-            configs = historyNotificationSchemaMapEntityRepository
-                    .findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
-                            historyType.name(),
-                            history.getTwin().getTwinClassId(),
-                            historyNotificationEntity.getNotificationSchemaId());
+            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    matchingClassIds,
+                    historyNotificationEntity.getNotificationSchemaId());
         } else {
-            configs = historyNotificationSchemaMapEntityRepository
-                    .findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
-                            historyType.name(),
-                            history.getTwin().getTwinClassId(),
-                            history.getTwinClassFieldId(),
-                            historyNotificationEntity.getNotificationSchemaId());
+            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndTwinClassFieldIdAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    matchingClassIds,
+                    history.getTwinClassFieldId(),
+                    historyNotificationEntity.getNotificationSchemaId());
         }
-        return configs;
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {

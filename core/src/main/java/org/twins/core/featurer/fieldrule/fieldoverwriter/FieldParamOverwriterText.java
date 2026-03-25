@@ -5,11 +5,11 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsEditorType;
 
 import java.util.Properties;
 

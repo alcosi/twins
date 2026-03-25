@@ -18,7 +18,7 @@ import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchList;
+import org.twins.core.domain.search.TwinFieldValueSearchList;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
@@ -35,7 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldStorageDatalist, TwinFieldSearchList> {
+public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldStorageDatalist, TwinFieldValueSearchList> {
     @Autowired
     @Lazy
     DataListService dataListService;
@@ -142,7 +142,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         UUID fieldListId = dataListId.extract(properties);
         dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
         var ret = new ValidationResult(true);
-        for (var option : fieldValue.getItems()) {
+        for (var option : fieldValue.getItemsOrEmpty()) {
             // Skip incomplete options (created with externalId but not yet resolved from DB)
             if (option.getId() == null) {
                 continue;
@@ -187,7 +187,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchList search) throws ServiceException {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchList search) throws ServiceException {
         return TwinSpecification.checkFieldList(search);
     }
 

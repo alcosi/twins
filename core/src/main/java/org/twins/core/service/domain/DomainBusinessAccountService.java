@@ -5,18 +5,15 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,31 +21,29 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.search.DomainBusinessAccountSearch;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.notification.NotificationSchemaService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassSchemaService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinflow.TwinflowSchemaService;
 import org.twins.core.service.twinflow.TwinflowService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
-
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpecification.*;
 
 @Slf4j
 @Service
@@ -65,8 +60,10 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     private final BusinessAccountService businessAccountService;
     @Lazy
     private final PermissionService permissionService;
-    @Lazy
     private final PermissionSchemaService permissionSchemaService;
+    private final TwinflowSchemaService twinflowSchemaService;
+    private final TwinClassSchemaService twinClassSchemaService;
+    private final NotificationSchemaService notificationSchemaService;
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
     @Lazy
@@ -78,8 +75,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     @Lazy
     private final DataListService dataListService;
     private final UserGroupService userGroupService;
-    @Lazy
-    private final HistoryService historyService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
@@ -188,31 +183,59 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
-    public PaginationResult<DomainBusinessAccountEntity> findDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch, SimplePagination pagination) throws ServiceException {
-        if (domainBusinessAccountSearch == null)
-            domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
-        Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch), PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(domainBusinessAccountsList, pagination);
+    public Map<UUID, DomainBusinessAccountEntity> getNeedLoad(Collection<DomainBusinessAccountEntity> srcCollection, Function<DomainBusinessAccountEntity, Object> functionGetLoadableValue) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+        Map<UUID, DomainBusinessAccountEntity> needLoad = null;
+        for (var dba : srcCollection) {
+            if (!domainId.equals(dba.getDomainId())) {
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_CROSS_REQUEST);
+            } else if (needLoad != null && needLoad.containsKey(dba.getBusinessAccountId())) {
+                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "DomainBusinessAccounts are not uniq");
+            }
+            if (functionGetLoadableValue.apply(dba) == null) {
+                if (needLoad == null) {
+                    needLoad = new HashMap<>();
+                }
+                needLoad.put(dba.getBusinessAccountId(), dba);
+            }
+        }
+        return MapUtils.isNotEmpty(needLoad) ? needLoad : MapUtils.EMPTY_SORTED_MAP;
     }
 
-    public List<DomainBusinessAccountEntity> searchDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
-        if (domainBusinessAccountSearch == null)
-            domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
-        return domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch));
+    public void loadTwinflowSchema(DomainBusinessAccountEntity src) throws ServiceException {
+        loadTwinflowSchema(Collections.singletonList(src));
     }
 
-    public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        return checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
-                        .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
-                        .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.permissionSchemaId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId));
+    public void loadTwinflowSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        twinflowSchemaService.load(srcCollection,
+                DomainBusinessAccountEntity::getId,
+                DomainBusinessAccountEntity::getTwinflowSchemaId,
+                DomainBusinessAccountEntity::getTwinflowSchema,
+                DomainBusinessAccountEntity::setTwinflowSchema);
+    }
+
+    public void loadTwinClassSchema(DomainBusinessAccountEntity src) throws ServiceException {
+        loadTwinClassSchema(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        twinClassSchemaService.load(srcCollection,
+                DomainBusinessAccountEntity::getId,
+                DomainBusinessAccountEntity::getTwinClassSchemaId,
+                DomainBusinessAccountEntity::getTwinClassSchema,
+                DomainBusinessAccountEntity::setTwinClassSchema);
+    }
+
+    public void loadNotificationSchema(DomainBusinessAccountEntity src) throws ServiceException {
+        loadNotificationSchema(Collections.singletonList(src));
+    }
+
+    public void loadNotificationSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        notificationSchemaService.load(srcCollection,
+                DomainBusinessAccountEntity::getId,
+                DomainBusinessAccountEntity::getNotificationSchemaId,
+                DomainBusinessAccountEntity::getNotificationSchema,
+                DomainBusinessAccountEntity::setNotificationSchema);
     }
 }

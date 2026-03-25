@@ -11,7 +11,9 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -20,11 +22,13 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
@@ -47,7 +51,7 @@ import java.util.UUID;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable {
     @Id
     private UUID id;
 
@@ -78,15 +82,33 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    private PermissionEntity viewPermission;
+
+    @Column(name = "view_permission_custom")
+    private Boolean viewPermissionCustom = false;
+
+    //materialized
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "permission_schema_id", updatable = false, insertable = false)
+    private UUID permissionSchemaId;
+
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "permission_schema_space_id")
     private UUID permissionSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twinflow_schema_space_id")
     private UUID twinflowSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twin_class_schema_space_id")
     private UUID twinClassSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "alias_space_id")
     private UUID aliasSpaceId;
 
@@ -182,6 +204,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 //    @JoinColumn(name = "id", referencedColumnName = "head_twin_id", insertable = false, updatable = false)
 //    @EqualsAndHashCode.Exclude
 //    private Collection<TwinEntity> childrenTwins;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
+    private TwinEntity permissionSchemaSpace;
 
     //needed for specification
     @Deprecated
@@ -286,6 +316,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
+
+    //needed for specification (search by last change time)
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinLastChangeEntity> lastChanges;
 
     //needed for specification (USER & BA twins)
     @Deprecated
@@ -514,6 +552,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
                 .setTwinClassSchemaSpaceId(twinClassSchemaSpaceId)
                 .setAliasSpaceId(aliasSpaceId)
                 .setViewPermissionId(viewPermissionId)
+                .setViewPermissionCustom(viewPermissionCustom)
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);

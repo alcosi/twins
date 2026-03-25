@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchDTOv1;
+import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.HierarchySearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -15,6 +16,7 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassSearchDTOv1, TwinClassSearch> {
 
     private final HierarchySearchRestDTOReverseMapper hierarchySearchRestDTOReverseMapper;
+    private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
 
     @Override
     public void map(TwinClassSearchDTOv1 src, TwinClassSearch dst, MapperContext mapperContext) throws Exception {
@@ -60,6 +62,7 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setAssigneeRequired(src.getAssigneeRequired())
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
+                .setTwinCounterRange(integerRangeDTOReverseMapper.convert(src.getTwinCounterRange()))
         ;
     }
 }

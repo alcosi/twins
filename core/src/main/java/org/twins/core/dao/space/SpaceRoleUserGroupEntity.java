@@ -57,11 +57,16 @@ public class SpaceRoleUserGroupEntity {
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
-    private UserGroupEntity userGroupByUserGroupId;
+    private UserGroupEntity userGroup;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+//    @Deprecated //for specification only
+//    @EqualsAndHashCode.Exclude
+//    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+//    private Set<UserGroupMapEntity> userGroupMaps;
 }

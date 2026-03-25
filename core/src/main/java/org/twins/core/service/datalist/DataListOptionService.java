@@ -104,6 +104,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
+
+        ApiUser apiUser = authService.getApiUser();
         //todo save description
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
             DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
@@ -118,6 +120,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified())) {
+                dataListOption.setCustom(true);
+                dataListOption.setBusinessAccountId(apiUser.getBusinessAccountId());
+            } else {
+                dataListOption.setCustom(false);
+            }
+
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
@@ -234,7 +243,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     public void reloadOptionsOnDataListAbsent(FieldValueSelect valueSelect) throws ServiceException {
         List<UUID> idsForReload = new ArrayList<>();
 
-        for (var option : valueSelect.getItems()) {
+        for (var option : valueSelect.getItemsOrEmpty()) {
             if (option.getId() != null && (null == option.getDataList() || null == option.getDataListId())) {
                 idsForReload.add(option.getId());
             }

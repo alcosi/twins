@@ -24,7 +24,6 @@ import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -42,7 +41,6 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
     @Lazy
     final TwinService twinService;
     final SystemEntityService systemEntityService;
-    final UserService userService;
     @Lazy
     final AuthService authService;
 

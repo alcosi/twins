@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.enums.twinclass.OwnerType;
@@ -56,6 +57,7 @@ public class TwinClassSearch {
     private Set<UUID> editPermissionIdExcludeList;
     private Set<UUID> deletePermissionIdList;
     private Set<UUID> deletePermissionIdExcludeList;
+    private IntegerRange twinCounterRange;
 
     public TwinClassSearch addOwnerTypeExclude() {
         ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, OwnerType.SYSTEM);

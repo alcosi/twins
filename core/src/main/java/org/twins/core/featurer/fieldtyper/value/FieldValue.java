@@ -26,6 +26,11 @@ public abstract class FieldValue implements Cloneable {
     //will help to prevent repeated initialization and identify values set by a system
     private boolean systemInitialized = false;
 
+    public ValidationResult initValidationResult(ValidationResult validationResult) {
+        this.validationResult = validationResult;
+        return this.validationResult;
+    }
+
     public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;
     }
@@ -62,6 +67,10 @@ public abstract class FieldValue implements Cloneable {
 
     public boolean isNotEmpty() {
         return !isEmpty();
+    }
+
+    public boolean isDefined() {
+        return !isUndefined();
     }
 
     public abstract void copyValueTo(FieldValue dst);

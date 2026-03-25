@@ -77,7 +77,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setFieldInitializerFeaturerId(src.getFieldInitializerFeaturerId())
                         .setFieldInitializerParams(src.getFieldInitializerParams())
                         .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
-                        .setTwinSorterParams(src.getFieldTyperParams())
+                        .setTwinSorterParams(src.getTwinSorterParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))

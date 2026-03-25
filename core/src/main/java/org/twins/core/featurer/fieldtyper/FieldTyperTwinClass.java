@@ -14,7 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchTwinClassList;
+import org.twins.core.domain.search.TwinFieldValueSearchTwinClassList;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClassList;
 import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
@@ -31,7 +31,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_1334,
         name = "Twin class list field",
         description = "Field typer for twin class list field")
-public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldStorageTwinClassList, TwinFieldSearchTwinClassList> {
+public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldStorageTwinClassList, TwinFieldValueSearchTwinClassList> {
 
     @Override
     protected FieldDescriptorTwinClassList getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -130,7 +130,7 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchTwinClassList search) {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchTwinClassList search) {
         return TwinSpecification.checkFieldTwinClassList(search);
     }
 }

@@ -16,7 +16,7 @@ import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchNumeric;
+import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
@@ -37,7 +37,7 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
         name = "Decimal",
         description = "Decimal field with dedicated table storage"
 )
-public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
+public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
     
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
@@ -108,7 +108,7 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchNumeric search) throws ServiceException {
         return TwinSpecification.checkFieldDecimal(search);
     }
 
@@ -185,6 +185,8 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
                     log.error("FieldTyperNumeric: value[{}] is out of range", value.getValue());
                     throw new Exception();
                 }
+            } else {
+                throw new Exception();
             }
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,

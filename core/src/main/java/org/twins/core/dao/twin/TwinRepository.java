@@ -1,6 +1,5 @@
 package org.twins.core.dao.twin;
 
-import org.hibernate.query.TypedParameterValue;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,6 +8,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.Collection;
@@ -35,18 +35,6 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
     int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
-    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
-    boolean hasPermission(
-            @Param("permissionId") UUID permissionId,
-            @Param("domainId") UUID domainId,
-            @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
-            @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
-            @Param("userId") UUID userId,
-            @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
-            @Param("twinClassId") TypedParameterValue<UUID> twinClassId,
-            @Param("isAssignee") boolean isAssignee,
-            @Param("isCreator") boolean isCreator);
-
     @Query(value = "select distinct t.headTwinId from TwinEntity t where t.twinClassId = :twinClassId and t.headTwinId is not null")
     Set<UUID> findDistinctHeadTwinIdByTwinClassId(UUID twinClassId);
 
@@ -66,4 +54,10 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select h from TwinEntity t, TwinEntity h where t.id = :twinId and t.headTwinId = h.id")
     TwinEntity findHeadTwin(@Param("twinId") UUID twinId);
 
+    @Query(value = "select count(p) from permission_schema_detect_mismatches() p", nativeQuery = true)
+    long countPermissionSchemaMismatches();
+
+    @Query(value = "SELECT t.owner_business_account_id AS id, COUNT(t) AS count FROM twin t JOIN twin_class tc on t.twin_class_id = tc.id WHERE t.owner_business_account_id IN :businessAccountIds and tc.domain_id = :domainId GROUP BY t.owner_business_account_id",
+            nativeQuery = true)
+    List<EntryCount> countTwinsInBusinessAccounts(@Param("businessAccountIds") Collection<UUID> businessAccountIds, @Param("domainId") UUID domainId);
 }
