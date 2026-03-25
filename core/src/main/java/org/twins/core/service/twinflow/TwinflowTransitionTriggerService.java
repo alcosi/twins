@@ -2,6 +2,7 @@ package org.twins.core.service.twinflow;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
@@ -12,7 +13,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
-import org.twins.core.dao.trigger.TwinTriggerRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.domain.ApiUser;
@@ -22,9 +22,7 @@ import org.twins.core.service.trigger.TwinTriggerService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -76,23 +74,14 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinflowTransitionTriggerEntity createTransitionTrigger(TwinflowTransitionTriggerEntity transitionTrigger) throws ServiceException {
-        return saveSafe(transitionTrigger.setActive(true));
-    }
-
-    @Transactional(rollbackFor = Throwable.class)
-    public TwinflowTransitionTriggerEntity updateTransitionTrigger(TwinflowTransitionTriggerEntity updateEntity) throws ServiceException {
-        TwinflowTransitionTriggerEntity dbEntity = findEntitySafe(updateEntity.getId());
-        ChangesHelper changesHelper = new ChangesHelper();
-        updateEntityFieldByEntity(updateEntity, dbEntity, TwinflowTransitionTriggerEntity::getTwinflowTransitionId,
-                TwinflowTransitionTriggerEntity::setTwinflowTransitionId, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId, changesHelper);
-        updateTwinTrigger(dbEntity, updateEntity.getTwinTriggerId(), changesHelper);
-        updateEntityFieldByEntity(updateEntity, dbEntity, TwinflowTransitionTriggerEntity::getOrder,
-                TwinflowTransitionTriggerEntity::setOrder, TwinflowTransitionTriggerEntity.Fields.order, changesHelper);
-        updateEntityFieldByEntity(updateEntity, dbEntity, TwinflowTransitionTriggerEntity::getAsync,
-                TwinflowTransitionTriggerEntity::setAsync, TwinflowTransitionTriggerEntity.Fields.async, changesHelper);
-        updateActive(dbEntity, updateEntity, changesHelper);
-        return updateSafe(dbEntity, changesHelper);
+    public List<TwinflowTransitionTriggerEntity> createTransitionTriggers(Collection<TwinflowTransitionTriggerEntity> transitionTriggers) throws ServiceException {
+        if (CollectionUtils.isEmpty(transitionTriggers)) {
+            return Collections.emptyList();
+        }
+        for (TwinflowTransitionTriggerEntity trigger : transitionTriggers) {
+            trigger.setActive(true);
+        }
+        return IterableUtils.toList(saveSafe(transitionTriggers));
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -114,8 +103,9 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
             updateEntityFieldByEntity(trigger, entity, TwinflowTransitionTriggerEntity::getOrder,
                     TwinflowTransitionTriggerEntity::setOrder, TwinflowTransitionTriggerEntity.Fields.order, changesHelper);
             updateEntityFieldByEntity(trigger, entity, TwinflowTransitionTriggerEntity::getAsync,
-                    TwinflowTransitionTriggerEntity::setAsync, TwinflowTransitionTriggerEntity::async, TwinflowTransitionTriggerEntity.Fields.async, changesHelper);
-            updateActive(entity, trigger, changesHelper);
+                    TwinflowTransitionTriggerEntity::setAsync, TwinflowTransitionTriggerEntity.Fields.async, changesHelper);
+            updateEntityFieldByEntity(trigger, entity, TwinflowTransitionTriggerEntity::getActive,
+                    TwinflowTransitionTriggerEntity::setActive, TwinflowTransitionTriggerEntity.Fields.active, changesHelper);
             changes.add(entity, changesHelper);
         }
         updateSafe(changes);
@@ -134,34 +124,15 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
         }
     }
 
-    private void updateActive(TwinflowTransitionTriggerEntity dbEntity, TwinflowTransitionTriggerEntity updateEntity, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.active, dbEntity.getActive(), updateEntity.getActive()))
-            return;
-        dbEntity.setActive(updateEntity.getActive());
-    }
-
     public void loadTrigger(TwinflowTransitionTriggerEntity src) throws ServiceException {
         loadTriggers(Collections.singleton(src));
     }
 
     public void loadTriggers(Collection<TwinflowTransitionTriggerEntity> srcCollection) throws ServiceException {
-        // Collect all trigger IDs that need loading
-        Set<UUID> triggerIdsToLoad = new HashSet<>();
-        for (TwinflowTransitionTriggerEntity entity : srcCollection) {
-            if (entity.getTwinTriggerId() != null && entity.getTwinTrigger() == null) {
-                triggerIdsToLoad.add(entity.getTwinTriggerId());
-            }
-        }
-        if (triggerIdsToLoad.isEmpty()) {
-            return;
-        }
-        // Load all triggers
-        var triggers = twinTriggerService.findEntitiesSafe(triggerIdsToLoad);
-        // Set loaded triggers
-        for (TwinflowTransitionTriggerEntity entity : srcCollection) {
-            if (entity.getTwinTriggerId() != null && entity.getTwinTrigger() == null) {
-                entity.setTwinTrigger(triggers.get(entity.getTwinTriggerId()));
-            }
-        }
+        twinTriggerService.load(srcCollection,
+                TwinflowTransitionTriggerEntity::getId,
+                TwinflowTransitionTriggerEntity::getTwinTriggerId,
+                TwinflowTransitionTriggerEntity::getTwinTrigger,
+                TwinflowTransitionTriggerEntity::setTwinTrigger);
     }
 }

@@ -726,14 +726,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         for (Map.Entry<TransitionContext, FactoryResultUncommited> entry : transitionContextBatch.getFactoried().entrySet()) {
             if (entry.getValue() != null) //factory is already run
                 continue;
-            FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey(), twinChangesCollector);
+            FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey());
             entry.setValue(factoryResultUncommited); //filling result
             if (twinFactoryService.mustBeDrafted(factoryResultUncommited))
                 transitionContextBatch.setMustBeDrafted(true); //this is batch decision for all results
         }
     }
 
-    private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext) throws ServiceException {
         UUID inbuiltTwinFactoryId = transitionContext.getTransitionEntity().getInbuiltTwinFactoryId();
         FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltTwinFactoryId);
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.transition, factoryBranchId)

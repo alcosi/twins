@@ -211,16 +211,6 @@ FROM twin_trigger tr
 WHERE tstt.transition_trigger_featurer_id = tr.twin_trigger_featurer_id
   AND COALESCE(tstt.transition_trigger_params::text, '') = COALESCE(tr.twin_trigger_param::text, '');
 
--- Add foreign key constraint to twin_trigger
-ALTER TABLE twin_status_transition_trigger
-    ADD CONSTRAINT twin_status_transition_trigger_twin_trigger_id_fk
-    FOREIGN KEY (twin_trigger_id) REFERENCES twin_trigger(id)
-    ON UPDATE CASCADE
-    ON DELETE CASCADE;
-
-CREATE INDEX IF NOT EXISTS twin_status_transition_trigger_twin_trigger_id_index
-    ON twin_status_transition_trigger (twin_trigger_id);
-
 -- Drop old columns
 ALTER TABLE twin_status_transition_trigger
     DROP COLUMN IF EXISTS transition_trigger_featurer_id,
@@ -228,6 +218,16 @@ ALTER TABLE twin_status_transition_trigger
 
 -- Rename table
 ALTER TABLE twin_status_transition_trigger RENAME TO twin_status_trigger;
+
+-- Add foreign key constraint to twin_trigger
+ALTER TABLE twin_status_trigger
+    ADD CONSTRAINT twin_status_trigger_twin_trigger_id_fk
+    FOREIGN KEY (twin_trigger_id) REFERENCES twin_trigger(id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS twin_status_trigger_twin_trigger_id_index
+    ON twin_status_trigger (twin_trigger_id);
 
 -- Add scheduler for executing twin triggers
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)

@@ -804,7 +804,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinClass(twinUpdate.getDbTwinEntity().getTwinClass());
         }
         tryToFinalizeSketch(twinUpdate);
-        runFactoryOnUpdate(twinUpdate, twinChangesCollector);
+        runFactoryOnUpdate(twinUpdate);
         checkNameUniqueness(twinUpdate.getTwinEntity());
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
@@ -888,7 +888,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
     }
 
-    private void runFactoryOnUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
         if (twinUpdate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
         }
