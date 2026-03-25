@@ -34,7 +34,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionTriggerService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_UPDATE})
+@ProtectedBy(Permissions.TRANSITION_UPDATE)
 public class TransitionTriggerUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TransitionTriggerUpdateDTOReverseMapper transitionTriggerUpdateDTOReverseMapper;

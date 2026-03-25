@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_DYNAMIC_MARKER_MANAGE, Permissions.TWIN_CLASS_DYNAMIC_MARKER_CREATE})
+@ProtectedBy(Permissions.TWIN_CLASS_DYNAMIC_MARKER_CREATE)
 public class TwinClassDynamicMarkerCreateController extends ApiController {
 
     private final TwinClassDynamicMarkerService twinClassDynamicMarkerService;

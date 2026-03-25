@@ -47,7 +47,7 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
+@ProtectedBy(Permissions.TWIN_UPDATE)
 public class TwinUpdateController extends ApiController {
     private final TwinService twinService;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;

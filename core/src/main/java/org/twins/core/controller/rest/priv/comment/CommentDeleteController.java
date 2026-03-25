@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_DELETE})
+@ProtectedBy(Permissions.COMMENT_DELETE)
 public class CommentDeleteController extends ApiController {
     private final CommentService commentService;
 

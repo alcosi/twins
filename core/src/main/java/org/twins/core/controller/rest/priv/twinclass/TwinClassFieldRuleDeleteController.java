@@ -29,7 +29,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_DELETE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_RULE_DELETE)
 public class TwinClassFieldRuleDeleteController extends ApiController {
 
     private final TwinClassFieldRuleService twinClassFieldRuleService;

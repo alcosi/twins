@@ -35,7 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_VALIDATOR_SET_MANAGE, Permissions.TWIN_VALIDATOR_SET_UPDATE})
+@ProtectedBy(Permissions.TWIN_VALIDATOR_SET_UPDATE)
 public class TwinValidatorSetUpdateController extends ApiController {
     private final TwinValidatorSetService twinValidatorSetService;
     private final TwinValidatorSetUpdateRestDTOReverseMapper twinValidatorSetUpdateRestDTOReverseMapper;

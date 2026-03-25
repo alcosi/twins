@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_UPDATE})
+@ProtectedBy(Permissions.DATA_LIST_OPTION_UPDATE)
 public class DataListOptionProjectionUpdateController extends ApiController {
     private final DataListOptionProjectionUpdateDTOReverseMapper dataListOptionProjectionUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;

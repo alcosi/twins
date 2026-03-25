@@ -33,7 +33,7 @@ import org.twins.core.service.usergroup.UserGroupInvolveAssigneeService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_GROUP_INVOLVE_ASSIGNEE_MANAGE, Permissions.USER_GROUP_INVOLVE_ASSIGNEE_CREATE})
+@ProtectedBy(Permissions.USER_GROUP_INVOLVE_ASSIGNEE_CREATE)
 public class UserGroupInvolveAssigneeCreateController extends ApiController {
     private final UserGroupInvolveAssigneeService userGroupInvolveAssigneeService;
     private final UserGroupInvolveAssigneeRestDTOMapper userGroupInvolveAssigneeRestDTOMapper;
