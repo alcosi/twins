@@ -14,6 +14,8 @@ import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.Collection;
@@ -29,6 +31,7 @@ import java.util.HashSet;
 public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImpl<TwinflowTransitionTriggerEntity> {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinTriggerService twinTriggerService;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinflowTransitionTriggerEntity, UUID> entityRepository() {
@@ -42,6 +45,11 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
 
     @Override
     public boolean isEntityReadDenied(TwinflowTransitionTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        loadTrigger(entity);
+        if (entity.getTwinTrigger().getDomainId() != null) {
+            return !entity.getTwinTrigger().getDomainId().equals(apiUser.getDomainId());
+        }
         return false;
     }
 
