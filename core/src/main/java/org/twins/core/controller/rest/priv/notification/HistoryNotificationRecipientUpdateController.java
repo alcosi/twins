@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.HISTORY_NOTIFICATION_MANAGE, Permissions.HISTORY_NOTIFICATION_UPDATE, Permissions.HISTORY_NOTIFICATION_VIEW})
+@ProtectedBy(Permissions.HISTORY_NOTIFICATION_UPDATE)
 public class HistoryNotificationRecipientUpdateController extends ApiController {
     private final HistoryNotificationRecipientUpdateDTOReverseMapper historyNotificationRecipientUpdateDTOReverseMapper;
     private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapperV1;
