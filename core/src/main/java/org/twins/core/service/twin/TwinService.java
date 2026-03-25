@@ -342,9 +342,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         createTwin(twinCreate, twinChangesCollector);
-        TwinEntity twinEntity = twinCreate.getTwinEntity();
+        var result = twinChangesService.applyChanges(twinChangesCollector);
+        TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
         twinStatusTriggerService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
-        twinChangesService.applyChanges(twinChangesCollector);
+        twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
@@ -377,13 +378,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
+        TwinChangesApplyResult result = twinChangesService.applyChanges(twinChangesCollector);
         List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
-            TwinEntity twinEntity = twinCreate.getTwinEntity();
+            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
             twins.add(twinEntity);
             twinStatusTriggerService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
         }
-        twinChangesService.applyChanges(twinChangesCollector);
+        twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return twins;
     }
