@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_CLASS_UPDATE)
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_CREATE)
 public class TwinClassFieldCreateController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
