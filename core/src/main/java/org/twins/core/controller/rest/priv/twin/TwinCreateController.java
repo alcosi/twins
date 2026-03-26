@@ -232,6 +232,8 @@ public class TwinCreateController extends ApiController {
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, new TwinSaveRsV1(), null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
