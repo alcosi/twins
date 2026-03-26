@@ -9,8 +9,6 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorDTO;
-import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
-import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
@@ -53,8 +51,8 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
                         .setParentTwinClassFieldConditionId(src.getParentTwinClassFieldConditionId())
                         .setLogicOperatorId(src.getLogicOperatorId());
                 if (src.getConditionEvaluatorFeaturerId() != null) {
-                    ConditionEvaluator<?> evaluator = featurerService.getFeaturer(src.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
-                    ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src);
+                    twinClassFieldConditionService.loadConditionDescriptors(src);
+                    var descriptor = src.getConditionDescriptor();
                     TwinClassFieldConditionDescriptorDTO dto = conditionDescriptorMapper.convert(descriptor, mapperContext);
                     dst.setConditionDescriptor(dto);
                 }
@@ -72,6 +70,9 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.HIDE)) {
             twinClassFieldConditionService.loadBaseTwinClassFields(srcCollection);
+        }
+        if (mapperContext.hasModeOrEmpty(TwinClassFieldConditionMode.DETAILED)) {
+            twinClassFieldConditionService.loadConditionDescriptors(srcCollection);
         }
     }
 
