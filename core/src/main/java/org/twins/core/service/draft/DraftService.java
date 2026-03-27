@@ -208,7 +208,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 //                draftCollector.add(eraseItem);
                 flush(draftCollector); //we will flush here, because factory also can generate some deletes
             }
-            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseStatus.UNDETECTED);
+            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseStatus.UNDETECTED, DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED);
         }
     }
 
