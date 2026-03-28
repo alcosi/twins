@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_CREATE})
+@ProtectedBy(Permissions.SPACE_ROLE_CREATE)
 public class SpaceRoleCreateController extends ApiController {
 
     private final SpaceRoleService spaceRoleService;

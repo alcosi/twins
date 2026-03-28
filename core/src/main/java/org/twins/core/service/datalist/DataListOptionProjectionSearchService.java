@@ -11,12 +11,14 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
 import org.twins.core.dao.datalist.DataListOptionProjectionRepository;
 import org.twins.core.domain.search.DataListOptionProjectionSearch;
 
 import java.util.List;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLocalDateTimeBetween;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
 // Log calls that took more than 2 seconds
@@ -54,7 +56,9 @@ public class DataListOptionProjectionSearchService {
                 checkUuidIn(search.getDstDataListOptionIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.dstDataListOptionId),
 
                 checkUuidIn(search.getSavedByUserIdList(), false, false, DataListOptionProjectionEntity.Fields.savedByUserId),
-                checkUuidIn(search.getSavedByUserIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.savedByUserId)
+                checkUuidIn(search.getSavedByUserIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.savedByUserId),
+
+                checkFieldLocalDateTimeBetween(search.getChangedAt(), DataListOptionProjectionEntity.Fields.changedAt)
         );
     }
 }
