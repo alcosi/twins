@@ -28,4 +28,7 @@ public class TwinActionPermissionEntity {
 
     @Column(name = "permission_id")
     private UUID permissionId;
+
+    @Column(name = "action_restriction_reason_id")
+    private UUID actionRestrictionReasonId;
 }

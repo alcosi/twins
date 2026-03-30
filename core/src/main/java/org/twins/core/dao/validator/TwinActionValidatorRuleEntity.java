@@ -48,6 +48,9 @@ public class TwinActionValidatorRuleEntity implements ContainsTwinValidatorSet, 
     @EqualsAndHashCode.Exclude
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
+    @Column(name = "action_restriction_reason_id")
+    private UUID actionRestrictionReasonId;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
