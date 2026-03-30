@@ -26,5 +26,3 @@ BEGIN
           AND pmug.grants_count > 0;
 
 END $$;
-
-alter function permissions_get(uuid, uuid, uuid) owner to wnr_twins_dev;
