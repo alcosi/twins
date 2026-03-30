@@ -40,7 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PIPELINE_MANAGE, Permissions.PIPELINE_VIEW})
+@ProtectedBy({Permissions.FACTORY_PIPELINE_MANAGE, Permissions.FACTORY_PIPELINE_VIEW})
 public class FactoryPipelineSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;

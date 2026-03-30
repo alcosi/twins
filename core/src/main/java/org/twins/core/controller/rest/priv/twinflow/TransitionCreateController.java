@@ -32,7 +32,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_CREATE})
+@ProtectedBy(Permissions.TRANSITION_CREATE)
 public class TransitionCreateController extends ApiController {
     private final TransitionCreateRestDTOReverseMapper transitionCreateRestDTOReverseMapper;
     private final TwinflowTransitionService twinflowTransitionService;

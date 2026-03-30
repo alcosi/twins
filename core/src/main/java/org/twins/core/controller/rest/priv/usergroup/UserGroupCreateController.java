@@ -35,7 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_GROUP_MANAGE, Permissions.USER_GROUP_CREATE})
+@ProtectedBy(Permissions.USER_GROUP_CREATE)
 public class UserGroupCreateController extends ApiController {
 
     private final UserGroupService userGroupService;

@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_CREATE})
+@ProtectedBy(Permissions.TRANSITION_CREATE)
 public class TransitionTriggerCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TransitionTriggerCreateDTOReverseMapper transitionTriggerCreateDTOReverseMapper;

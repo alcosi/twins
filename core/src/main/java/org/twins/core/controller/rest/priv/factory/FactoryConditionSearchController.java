@@ -37,7 +37,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.CONDITION_SET_MANAGE, Permissions.CONDITION_SET_VIEW})
+@ProtectedBy({Permissions.FACTORY_CONDITION_SET_MANAGE, Permissions.FACTORY_CONDITION_SET_VIEW})
 public class FactoryConditionSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;

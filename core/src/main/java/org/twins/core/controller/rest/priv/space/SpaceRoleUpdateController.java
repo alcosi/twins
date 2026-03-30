@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_UPDATE})
+@ProtectedBy(Permissions.SPACE_ROLE_UPDATE)
 public class SpaceRoleUpdateController extends ApiController {
     private final SpaceRoleUpdateDTOReverseMapper spaceRoleUpdateDTOReverseMapper;
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;

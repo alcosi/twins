@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_GROUP_INVOLVE_ASSIGNEE_MANAGE, Permissions.USER_GROUP_INVOLVE_ASSIGNEE_UPDATE})
+@ProtectedBy(Permissions.USER_GROUP_INVOLVE_ASSIGNEE_UPDATE)
 public class UserGroupInvolveAssigneeUpdateController extends ApiController {
     private final UserGroupInvolveAssigneeService userGroupInvolveAssigneeService;
     private final UserGroupInvolveAssigneeRestDTOMapper userGroupInvolveAssigneeRestDTOMapper;

@@ -44,7 +44,7 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_STATUS_MANAGE, Permissions.TWIN_STATUS_CREATE})
+@ProtectedBy(Permissions.TWIN_STATUS_CREATE)
 @Slf4j
 public class TwinStatusCreateController extends ApiController {
     private final TwinStatusCreateRestDTOReverseMapper twinStatusCreateRestDTOReverseMapper;

@@ -39,7 +39,7 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_UPDATE})
+@ProtectedBy(Permissions.COMMENT_UPDATE)
 public class CommentUpdateController extends ApiController {
     private final CommentService commentService;
     private final CommentRestDTOMapper commentRestDTOMapper;
