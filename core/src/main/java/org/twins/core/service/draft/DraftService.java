@@ -474,6 +474,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
         twinService.updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
 
+        if (twinChangesCollector.hasChanges()) {
+            draftCollector.add(draftTwinPersistEntity);
+        }
         //todo add recorder to draftCollector
         draftTagsUpdate(draftCollector, twinChangesCollector);
         draftMarkersUpdate(draftCollector, twinChangesCollector);
