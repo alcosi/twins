@@ -465,7 +465,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
         DetachedTwinChangesCollector twinChangesCollector = new DetachedTwinChangesCollector(entityManager);
-        DraftTwinPersistEntity draftTwinPersistEntity = new DraftTwinPersistEntity().setCreateElseUpdate(false);
+        DraftTwinPersistEntity draftTwinPersistEntity = createTwinUpdateDraft(draftCollector.getDraftEntity(), twinUpdate.getDbTwinEntity());
         ChangesRecorder<TwinEntity, DraftTwinPersistEntity> changesRecorder = new ChangesRecorder<>(
                 twinUpdate.getDbTwinEntity(),
                 twinUpdate.getTwinEntity(),
@@ -673,6 +673,15 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setOwnerUserId(twinEntity.getOwnerUserId())
                 .setOwnerBusinessAccountId(twinEntity.getOwnerBusinessAccountId())
                 .setCreateElseUpdate(true);
+    }
+
+    public DraftTwinPersistEntity createTwinUpdateDraft(DraftEntity draftEntity, TwinEntity twinEntity) throws ServiceException {
+        return new DraftTwinPersistEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinEntity.getId())
+                .setCreateElseUpdate(false);
     }
 
     public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseReason reason, EraseAction eraseAction) throws ServiceException {
