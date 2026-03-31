@@ -104,7 +104,7 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
     }
 
     public void loadMachineUser(UserGroupInvolveActAsUserEntity src) throws ServiceException {
-        loadAddedByUser(Collections.singletonList(src));
+        loadMachineUser(Collections.singletonList(src));
     }
 
     public void loadMachineUser(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
