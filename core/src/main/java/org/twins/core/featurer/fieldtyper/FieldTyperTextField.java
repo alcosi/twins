@@ -7,13 +7,11 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import io.github.breninsul.synchronizationstarter.service.SynchronizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import java.util.UUID;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.IntStream;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
@@ -49,16 +47,10 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
 
-    private static final int STRIPE_COUNT = 256;
-    private final Lock[] locks = IntStream.range(0, STRIPE_COUNT)
-            .mapToObj(i -> new ReentrantLock())
-            .toArray(Lock[]::new);
+    @Autowired
+    private SynchronizationService syncService;
 
-    private Lock getLock(UUID key) {
-        int hash = key == null ? 0 : key.hashCode();
-        int index = (hash & Integer.MAX_VALUE) % STRIPE_COUNT;
-        return locks[index];
-    }
+    private record LockKey(UUID ownerId, UUID fieldId) {}
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -92,10 +84,10 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
             case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> twin.getOwnerBusinessAccountId();
             default -> null;
         };
-        UUID lockKey = ownerId != null ? ownerId : value.getTwinClassFieldId();
+        UUID fieldId = value.getTwinClassFieldId();
+        LockKey lockKey = new LockKey(ownerId, fieldId);
 
-        Lock lock = getLock(lockKey);
-        lock.lock();
+        syncService.before(lockKey);
         try {
             OwnerType ownerType = twin.getTwinClass().getOwnerType();
 
@@ -117,7 +109,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
                 }
             }
         } finally {
-            lock.unlock();
+            syncService.after(lockKey);
         }
     }
 
