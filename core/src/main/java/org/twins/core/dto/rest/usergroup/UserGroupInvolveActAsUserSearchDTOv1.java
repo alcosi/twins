@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "UserGroupInvolveActAsUserSearchDTOv1")
+@Schema(name = "UserGroupInvolveActAsUserSearchV1")
 public class UserGroupInvolveActAsUserSearchDTOv1 {
 
     @Schema(description = "id list")
