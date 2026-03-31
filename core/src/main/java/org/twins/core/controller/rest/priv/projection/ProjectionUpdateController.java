@@ -33,7 +33,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PROJECTION_MANAGE, Permissions.PROJECTION_UPDATE})
+@ProtectedBy(Permissions.PROJECTION_UPDATE)
 public class ProjectionUpdateController extends ApiController {
     private final ProjectionService projectionService;
     private final ProjectionUpdateRestDTOReverseMapper projectionUpdateRestDTOReverseMapper;

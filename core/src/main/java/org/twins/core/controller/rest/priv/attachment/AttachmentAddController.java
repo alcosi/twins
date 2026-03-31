@@ -36,7 +36,7 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_CREATE})
+@ProtectedBy(Permissions.ATTACHMENT_CREATE)
 public class AttachmentAddController extends ApiController {
     private final AttachmentService attachmentService;
     private final TwinService twinService;

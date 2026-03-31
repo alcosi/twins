@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface PermissionRepository extends CrudRepository<PermissionEntity, UUID>, JpaSpecificationExecutor<PermissionEntity> {
-    @Query(value = "select function('permission_check_mater', :permissionSchemaId, :permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isAssignee, :isCreator)")
+    @Query(value = "select function('permission_check_mater', :permissionSchemaId, :permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     boolean hasPermission(
             @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("permissionId") UUID permissionId,

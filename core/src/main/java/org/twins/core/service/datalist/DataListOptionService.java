@@ -309,7 +309,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                             .setCustom(true)
                             .setExternalId(missed)
                             .setStatus(DataListStatus.active)
-                            .setOptionI18nId(i18nId);
+                            .setOptionI18nId(i18nId)
+                            .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
                     optionsForSave.add(option);
 
