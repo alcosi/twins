@@ -37,6 +37,7 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
     private final UserGroupInvolveActAsUserRepository repository;
     private final AuthService authService;
     private final UserService userService;
+    private final UserGroupService userGroupService;
 
     @Override
     public CrudRepository<UserGroupInvolveActAsUserEntity, UUID> entityRepository() {
@@ -100,5 +101,41 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
         }
         updateSafe(changes);
         return allEntities;
+    }
+
+    public void loadMachineUser(UserGroupInvolveActAsUserEntity src) throws ServiceException {
+        loadAddedByUser(Collections.singletonList(src));
+    }
+
+    public void loadMachineUser(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                UserGroupInvolveActAsUserEntity::getId,
+                UserGroupInvolveActAsUserEntity::getMachineUserId,
+                UserGroupInvolveActAsUserEntity::getMachineUser,
+                UserGroupInvolveActAsUserEntity::setMachineUser);
+    }
+
+    public void loadAddedByUser(UserGroupInvolveActAsUserEntity src) throws ServiceException {
+        loadAddedByUser(Collections.singletonList(src));
+    }
+
+    public void loadAddedByUser(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                UserGroupInvolveActAsUserEntity::getId,
+                UserGroupInvolveActAsUserEntity::getAddedByUserId,
+                UserGroupInvolveActAsUserEntity::getAddedByUser,
+                UserGroupInvolveActAsUserEntity::setAddedByUser);
+    }
+
+    public void loadUserGroup(UserGroupInvolveActAsUserEntity src) throws ServiceException {
+        loadUserGroup(Collections.singletonList(src));
+    }
+
+    public void loadUserGroup(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
+        userGroupService.load(srcCollection,
+                UserGroupInvolveActAsUserEntity::getId,
+                UserGroupInvolveActAsUserEntity::getUserGroupId,
+                UserGroupInvolveActAsUserEntity::getUserGroup,
+                UserGroupInvolveActAsUserEntity::setUserGroup);
     }
 }
