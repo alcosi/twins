@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "UserGroupInvolveActAsUserCreateRqV1")
+@Schema(name = "UserGroupInvolveActAsUserCreateV1")
 public class UserGroupInvolveActAsUserCreateRqDTOv1 extends Request {
     @Schema(description = "create(batch) user group involve act as user")
     public List<UserGroupInvolveActAsUserCreateDTOv1> userGroupInvolves;

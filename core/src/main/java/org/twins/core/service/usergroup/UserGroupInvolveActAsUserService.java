@@ -21,6 +21,8 @@ import org.twins.core.dao.usergroup.UserGroupInvolveActAsUserRepository;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -71,6 +73,7 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
         entities.forEach(it -> {
             it.setDomainId(domainId);
             it.setAddedByUserId(userId);
+            it.setAddedAt(Timestamp.from(Instant.now()));
         });
 
         return StreamSupport.stream(saveSafe(entities).spliterator(), false).toList();

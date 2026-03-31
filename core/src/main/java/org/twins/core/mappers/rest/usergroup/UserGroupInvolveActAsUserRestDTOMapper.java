@@ -1,10 +1,13 @@
 package org.twins.core.mappers.rest.usergroup;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.kit.Kit;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveActAsUserEntity;
 import org.twins.core.dto.rest.usergroup.UserGroupInvolveActAsUserDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -15,6 +18,11 @@ import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupService;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -35,15 +43,25 @@ public class UserGroupInvolveActAsUserRestDTOMapper extends RestSimpleDTOMapper<
                 .setUserGroupId(src.getUserGroupId());
 
         if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
-            UserEntity userEntity = userService.loadUserAndCheck(src.getMachineUserId());
-            userDTOMapper.convertOrPostpone(userEntity, mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
-            if (mapperContext.hasModeButNot(UserGroupMode.User2UserGroupMode.HIDE)) {
-                userGroupService.loadGroups(userEntity);
-                userGroupRestDTOMapper.postpone(userEntity.getUserGroups(), mapperContext.forkOnPoint(UserGroupMode.User2UserGroupMode.SHORT));
-            }
+            userDTOMapper.convertOrPostpone(src.getAddedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(UserGroupMode.User2UserGroupMode.HIDE)) {
+            userGroupRestDTOMapper.postpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.User2UserGroupMode.SHORT));
         }
     }
 
+    public void beforeCollectionConversion(Collection<UserGroupInvolveActAsUserEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
+            Set<UUID> userIds = srcCollection.stream().map(UserGroupInvolveActAsUserEntity::getMachineUserId).collect(Collectors.toSet());
+            Kit<UserEntity, UUID> users = userService.findEntities(userIds, EntitySmartService.ListFindMode.ifMissedLog, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none);
+            srcCollection.forEach(it -> it.setAddedByUser(users.get(it.getMachineUserId())));
+        }
+        if (mapperContext.hasModeButNot(UserGroupMode.User2UserGroupMode.HIDE)) {
+            Set<UUID> userGroupIds = srcCollection.stream().map(UserGroupInvolveActAsUserEntity::getUserGroupId).collect(Collectors.toSet());
+            Kit<UserGroupEntity, UUID> userGroupEntities = userGroupService.findEntities(userGroupIds, EntitySmartService.ListFindMode.ifMissedLog, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none);
+            srcCollection.forEach(it -> it.setUserGroup(userGroupEntities.get(it.getUserGroupId())));
+        }
+    }
 //    @Override
 //    public boolean hideMode(MapperContext mapperContext) {
 //        return mapperContext.hasModeOrEmpty(UserMode.HIDE);

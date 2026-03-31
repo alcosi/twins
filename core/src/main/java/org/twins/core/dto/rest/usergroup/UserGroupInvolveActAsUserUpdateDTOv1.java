@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "UserGroupUpdateV1")
+@Schema(name = "UserGroupInvolveActAsUserUpdateV1")
 @EqualsAndHashCode(callSuper = true)
 public class UserGroupInvolveActAsUserUpdateDTOv1 extends UserGroupInvolveActAsUserSaveDTOv1 {
     public UUID id;

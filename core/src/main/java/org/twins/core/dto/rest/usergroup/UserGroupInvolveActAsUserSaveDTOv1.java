@@ -13,8 +13,8 @@ import java.util.UUID;
 @Schema(name = "UserGroupInvolveActAsUserSaveV1")
 public class UserGroupInvolveActAsUserSaveDTOv1 {
     @Schema(description = "machine user id")
-    UUID machineUserId;
+    public UUID machineUserId;
 
     @Schema(description = "userGroup id")
-    UUID userGroupId;
+    public UUID userGroupId;
 }

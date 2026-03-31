@@ -35,7 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_GROUP_INVOLVE_ACT_AS_USER_MANAGE, Permissions.USER_GROUP_INVOLVE_ACT_AS_USER_UPDATE})
+@ProtectedBy({Permissions.USER_GROUP_INVOLVE_ACT_AS_USER_UPDATE})
 public class UserGroupInvolveActAsUserUpdateController extends ApiController {
 
     private final UserGroupInvolveActAsUserUpdateDTOReverseMapper userGroupInvolveActAsUserUpdateDTOReverseMapper;

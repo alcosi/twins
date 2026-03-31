@@ -21,7 +21,7 @@ public class UserGroupInvolveActAsUserDTOv1 {
     @RelatedObject(type = UserDTOv1.class, name = "machineUser")
     UUID machineUserId;
 
-    @Schema(description = "userGroup id)")  //SpaceRoleDTOv1
+    @Schema(description = "userGroup id)")
     @RelatedObject(type = UserGroupDTOv1.class,name = "userGroup")
     UUID userGroupId;
 }
