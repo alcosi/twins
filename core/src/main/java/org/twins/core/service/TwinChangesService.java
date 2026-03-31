@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
@@ -64,6 +65,8 @@ public class TwinChangesService {
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
     private final TwinTriggerTaskService twinTriggerTaskService;
+    private final TwinService twinService;
+    private final TwinClassService twinClassService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -146,13 +149,42 @@ public class TwinChangesService {
         if (CollectionUtils.isEmpty(postponedTriggers))
             return;
         List<TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
+        List<TwinEntity> jobTwinsToSave = new ArrayList<>();
+
         for (PostponedTriggers.PostponedTrigger postponedTrigger : postponedTriggers) {
+            UUID jobTwinClassId = postponedTrigger.jobTwinClassId();
+            UUID sourceTwinId = postponedTrigger.twinId();
+            UUID jobTwinId = null;
+
+            if (jobTwinClassId != null) {
+                // Create job twin with the same UUID that will be used for the task
+                jobTwinId = UuidUtils.generate();
+
+                TwinClassEntity twinClass = twinClassService.findEntitySafe(jobTwinClassId);
+                TwinEntity jobTwin = new TwinEntity()
+                        .setId(jobTwinId)
+                        .setTwinClassId(jobTwinClassId)
+                        .setTwinClass(twinClass)
+                        .setDomainId(twinClass.getDomainId());
+
+                jobTwinsToSave.add(jobTwin);
+                log.info("Created job twin[{}] for trigger[{}], class[{}]", jobTwinId, postponedTrigger.triggerId(), jobTwinClassId);
+            }
+
             triggerTaskList.add(new TwinTriggerTaskEntity()
-                    .setTwinId(postponedTrigger.twinId())
+                    .setTwinId(sourceTwinId)
+                    .setJobTwinId(jobTwinId)
                     .setTwinTriggerId(postponedTrigger.triggerId())
                     .setPreviousTwinStatusId(postponedTrigger.statusId())
                     .setStatusId(TwinTriggerTaskStatus.NEED_START));
         }
+
+        // Save job twins first
+        if (!jobTwinsToSave.isEmpty()) {
+            entitySmartService.saveAllAndLog(jobTwinsToSave, twinRepository);
+            log.info("Saved {} job twins for trigger tasks", jobTwinsToSave.size());
+        }
+
         log.info("Saving {} postponed triggers", triggerTaskList.size());
         twinTriggerTaskService.addTasks(triggerTaskList);
     }

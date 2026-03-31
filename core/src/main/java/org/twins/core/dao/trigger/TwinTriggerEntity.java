@@ -48,6 +48,9 @@ public class TwinTriggerEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "job_twin_class_id")
+    private UUID jobTwinClassId;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

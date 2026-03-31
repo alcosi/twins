@@ -48,12 +48,16 @@ public class TwinTriggerRabbitMqSendTwin extends TwinTriggerRabbitMqConnection {
         ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TwinTriggerRabbitMqConnection.url.extract(properties));
 
+        String jobTwinIdStr = properties.getProperty("jobTwinId");
+        UUID jobTwinId = jobTwinIdStr != null ? UUID.fromString(jobTwinIdStr) : null;
+
         RabbitMqMessagePayloadTwin payload = new RabbitMqMessagePayloadTwin(
                 twinEntity.getId(),
                 apiUser.getUserId(),
                 apiUser.getDomainId(),
                 apiUser.getBusinessAccountId(),
-                operation.extract(properties)
+                operation.extract(properties),
+                jobTwinId
         );
         ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
         log.debug("Done sending to Rabbit");

@@ -56,7 +56,14 @@ public class TwinTriggerTask implements Runnable {
             );
 
             TwinTrigger trigger = featurerService.getFeaturer(twinTrigger.getTwinTriggerFeaturerId(), TwinTrigger.class);
-            trigger.run(twinTrigger.getTwinTriggerParam(), twin, previousTwinStatus, null);
+            Properties triggerParams = new Properties();
+            if (twinTrigger.getTwinTriggerParam() != null) {
+                triggerParams.putAll(twinTrigger.getTwinTriggerParam());
+            }
+            if (twinTriggerTaskEntity.getJobTwinId() != null) {
+                triggerParams.put("jobTwinId", twinTriggerTaskEntity.getJobTwinId().toString());
+            }
+            trigger.run(triggerParams, twin, previousTwinStatus, null);
 
             twinTriggerTaskEntity
                     .setStatusId(TwinTriggerTaskStatus.DONE)

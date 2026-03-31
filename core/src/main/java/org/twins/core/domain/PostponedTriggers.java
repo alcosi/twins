@@ -7,11 +7,11 @@ import java.util.UUID;
 
 @Slf4j
 public class PostponedTriggers extends HashSet<PostponedTriggers.PostponedTrigger> {
-    public void add(UUID twinId, UUID statusId, UUID triggerId) {
+    public void add(UUID twinId, UUID statusId, UUID triggerId, UUID jobTwinClassId) {
         log.info("Adding postponed trigger[{}] for twin[{}]", triggerId, twinId);
-        add(new PostponedTrigger(twinId, statusId, triggerId));
+        add(new PostponedTrigger(twinId, statusId, triggerId, jobTwinClassId));
     }
 
-    public record PostponedTrigger(UUID twinId, UUID statusId, UUID triggerId){
+    public record PostponedTrigger(UUID twinId, UUID statusId, UUID triggerId, UUID jobTwinClassId){
     }
 }

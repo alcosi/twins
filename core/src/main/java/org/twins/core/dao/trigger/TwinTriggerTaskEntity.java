@@ -32,6 +32,9 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @Column(name = "twin_id")
     private UUID twinId;
 
+    @Column(name = "job_twin_id")
+    private UUID jobTwinId;
+
     @Column(name = "twin_trigger_id")
     private UUID twinTriggerId;
 
