@@ -13,7 +13,6 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamListOfMaps;
 import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -95,9 +94,6 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             optional = false
     )
     public static final FeaturerParamListOfMaps resizeTasks = new FeaturerParamListOfMaps("resizeTasks");
-
-    private static final Set<String> RESIZABLE_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/jpg");
-    private static final String ORIGINAL_TYPE = "ORIGINAL";
     private final RestTemplate restTemplate;
 
     @Override
@@ -173,87 +169,61 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var storageDir = String.join("/", fileKeyElems);
                 var fileSize = getFileSize(tikaStream, fileSizeLimit);
 
-                if (shouldResize(mimeType)) {
-                    var url = baseUrl + uploadPath;
-                    var tasksParams = resizeTasks.extract(properties);
-                    var tasks = new ArrayList<ResizeTaskDTO>();
+                var url = baseUrl + uploadPath;
+                var tasksParams = resizeTasks.extract(properties);
+                var tasks = new ArrayList<ResizeTaskDTOv2>();
 
-                    try {
-                        for (var taskParams : tasksParams) {
-                            tasks.add(new ResizeTaskDTO(
-                                    Integer.parseInt(taskParams.get("width")),
-                                    Integer.parseInt(taskParams.get("height")),
-                                    taskParams.get("type"),
-                                    Format.valueOf((taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
-                                    fileId,
-                                    Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
-                            ));
-                        }
+                try {
+                    for (var taskParams : tasksParams) {
+                        tasks.add(new ResizeTaskDTOv2(
+                                Integer.parseInt(taskParams.get("width")),
+                                Integer.parseInt(taskParams.get("height")),
+                                taskParams.get("type"),
+                                Format.valueOf((taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
+                                Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
+                        ));
+                    }
 
-                        if (tasks.size() != tasks.stream().map(ResizeTaskDTO::type).distinct().count()) {
-                            log.info("Type field in tasks params is not unique");
-                            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
-                        }
-                    } catch (Throwable t) {
-                        log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
+                    if (tasks.size() != tasks.stream().map(ResizeTaskDTOv2::type).distinct().count()) {
+                        log.info("Type field in tasks params is not unique");
                         throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                     }
-
-                    var rqData = new FileHandlerResizeSaveDataPart(
-                            fileId,
-                            fileName,
-                            ORIGINAL_TYPE,
-                            tasks,
-                            StorageType.S3,
-                            storageDir,
-                            true
-                    );
-
-                    var resp = sendWithRetry(url, rqData, tikaStream, fileName, fileSize, new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
-
-                    if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
-                        log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
-                        throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
-                    }
-
-                    var modifications = new ArrayList<AttachmentModifications>();
-                    var objectLink = "";
-
-                    for (var modification : resp.getBody()) {
-                        if (modification.type().equals(ORIGINAL_TYPE)) {
-                            objectLink = modification.objectLink();
-                        } else {
-                            modifications.add(new AttachmentModifications(
-                                    modification.id(),
-                                    modification.type(),
-                                    prepareObjectLink(modification.objectLink(), properties)
-                            ));
-                        }
-                    }
-
-                    return new AddedFileKey(prepareObjectLink(objectLink, properties), fileSize, modifications);
-                } else {
-                    var url = STR."\{baseUrl}/api/save/synced";
-                    var rqData = new FileHandlerSaveDataPart(fileId, fileName, ORIGINAL_TYPE, StorageType.S3, storageDir);
-
-                    var resp = sendWithRetry(url, rqData, tikaStream, fileName, fileSize, new ParameterizedTypeReference<FileHandlerResizeSaveRsDTO>() {});
-
-                    if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
-                        log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
-                        throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
-                    }
-
-                    return new AddedFileKey(prepareObjectLink(resp.getBody().objectLink(), properties), fileSize, Collections.emptyList());
+                } catch (Throwable t) {
+                    log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
+                    throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                 }
+
+                var rqData = new ResizeRqDTO(
+                        UUID.fromString(fileId),
+                        tasks,
+                        StorageType.S3,
+                        storageDir
+                );
+
+                var resp = sendWithRetry(url, rqData, tikaStream, fileName, fileSize, ResizeRsDTO.class);
+
+                if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+                    log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
+                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+                }
+
+                var body = resp.getBody();
+                var modifications = new ArrayList<AttachmentModifications>();
+
+                for (var modification : body.modifications()) {
+                    modifications.add(new AttachmentModifications(
+                            UUID.fromString(fileId),
+                            modification.type(),
+                            prepareObjectLink(modification.modificationUrl(), properties)
+                    ));
+                }
+
+                return new AddedFileKey(prepareObjectLink(body.originalUrl(), properties), fileSize, modifications);
             }
         } catch (Throwable t) {
             log.info("Unable to save file in file-handler service: {}", t.getMessage(), t);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to save file in file-handler service");
         }
-    }
-
-    private boolean shouldResize(String contentType) {
-        return RESIZABLE_CONTENT_TYPES.contains(contentType);
     }
 
     private String getMimeSubType(String mimeType) {
@@ -351,7 +321,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return size;
     }
 
-    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, long fileSize, ParameterizedTypeReference<T> responseType) {
+    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, long fileSize, Class<T> clazz) {
         var maxRetries = 3;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
@@ -360,7 +330,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                         url,
                         HttpMethod.POST,
                         prepareMultipartRq(rqData, tikaStream, fileName, fileSize),
-                        responseType
+                        clazz
                 );
             } catch (ResourceAccessException e) {
                 log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
