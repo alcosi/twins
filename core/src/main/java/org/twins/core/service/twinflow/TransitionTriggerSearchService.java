@@ -15,9 +15,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.domain.search.TransitionTriggerSearch;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.twinflow.TransitionTriggerSpecification.checkIntegerIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 
 @Slf4j
@@ -39,9 +37,10 @@ public class TransitionTriggerSearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionTriggerEntity.Fields.id),
                 checkUuidIn(search.getTwinflowTransitionIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),
                 checkUuidIn(search.getTwinflowTransitionIdExcludeList(), true, true, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),
-                checkIntegerIn(search.getTransitionTriggerFeaturerIdList(), false, TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId),
-                checkIntegerIn(search.getTransitionTriggerFeaturerIdExcludeList(), true, TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId),
-                checkTernary(search.getActive(), TwinflowTransitionTriggerEntity.Fields.isActive)
+                checkUuidIn(search.getTwinTriggerIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinTriggerId),
+                checkUuidIn(search.getTwinTriggerIdExcludeList(), true, true, TwinflowTransitionTriggerEntity.Fields.twinTriggerId),
+                checkTernary(search.getActive(), TwinflowTransitionTriggerEntity.Fields.active),
+                checkTernary(search.getAsync(), TwinflowTransitionTriggerEntity.Fields.async)
         );
     }
 }

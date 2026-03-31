@@ -105,13 +105,13 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, true, TwinClassEntity.Fields.externalId))
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, true, TwinClassEntity.Fields.externalId))
 
-                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdList(), false, false, headHierarchyChildrenForTwinClassSearch.getDepth()))
-                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildrenForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChildren(headHierarchyChildrenForTwinClassSearch.getIdList(), false, headHierarchyChildrenForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChildren(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, headHierarchyChildrenForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdList(), false, false, headHierarchyParentsForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyParentsForTwinClassSearch.getDepth()))
 
-                        .and(checkExtendsTwinClassChilds(extendsHierarchyChildsForTwinClassSearch.getIdList(), false, false, extendsHierarchyChildsForTwinClassSearch.getDepth()))
-                        .and(checkExtendsTwinClassChilds(extendsHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, true, extendsHierarchyChildsForTwinClassSearch.getDepth()))
+                        .and(checkExtendsTwinClassChildren(extendsHierarchyChildsForTwinClassSearch.getIdList(), false, extendsHierarchyChildsForTwinClassSearch.getDepth()))
+                        .and(checkExtendsTwinClassChildren(extendsHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, extendsHierarchyChildsForTwinClassSearch.getDepth()))
                         .and(checkExtendsTwinClassParents(extendsHierarchyParentsForTwinClassSearch.getIdList(), false, false, extendsHierarchyParentsForTwinClassSearch.getDepth()))
                         .and(checkExtendsTwinClassParents(extendsHierarchyParentsForTwinClassSearch.getIdExcludeList(), true, true, extendsHierarchyParentsForTwinClassSearch.getDepth()))
 
@@ -130,6 +130,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkTernary(twinClassSearch.getAssigneeRequired(), TwinClassEntity.Fields.assigneeRequired))
                         .and(checkTernary(twinClassSearch.getSegment(), TwinClassEntity.Fields.segment))
                         .and(checkTernary(twinClassSearch.getHasSegments(), TwinClassEntity.Fields.hasSegment))
+                        .and(checkTernary(twinClassSearch.getUniqueName(), TwinClassEntity.Fields.uniqueName))
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdList(), false, false, TwinClassEntity.Fields.viewPermissionId))
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.viewPermissionId))
                         .and(checkUuidIn(twinClassSearch.getCreatePermissionIdList(), false, false, TwinClassEntity.Fields.createPermissionId))
@@ -137,7 +138,8 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
                         .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
                         .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
-                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId));
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
+                        .and(checkFieldIntegerRange(twinClassSearch.getTwinCounterRange(), TwinClassEntity.Fields.twinCounter));
     }
 
     protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {

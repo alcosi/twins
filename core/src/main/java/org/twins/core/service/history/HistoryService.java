@@ -43,6 +43,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -75,7 +76,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied=!entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
+        boolean readDenied = !entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
         if (readDenied) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
         }
@@ -84,7 +85,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean validateEntity(HistoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
@@ -127,6 +128,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -135,7 +137,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context)
-                .setHistoryBatchId(authService.getApiUser().getRequestId());
+                .setHistoryBatchId(apiUser.getRequestId());
+        if (apiUser.isMachineUserSpecified()) {
+            historyEntity.setMachineUserId(apiUser.getMachineUserId());
+        }
         fillHistoryEntity(historyEntity, twinEntity, context);
         return historyEntity;
     }
@@ -174,8 +179,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             actor = null; //todo we can have changes not from users but from some system schedulers
         return actor;
     }
-
-
 
     public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -217,6 +220,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.assigneeChanged, new HistoryContextUserChange()
                 .shotFromUser(fromUser)
                 .shotToUser(toUser));
+    }
+
+    public HistoryItem<HistoryContextUserChange> assigneeUnassigned(UserEntity fromUser) {
+        return new HistoryItem<>(HistoryType.assigneeUnassigned, new HistoryContextUserChange()
+                .shotFromUser(fromUser));
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
@@ -277,6 +285,23 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public HistoryItem<HistoryContextStringChange> fieldChangeSimple(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
         HistoryContextStringChange context = new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextTimestampChange> fieldChangeTimestamp(TwinClassFieldEntity twinClassFieldEntity, Timestamp fromValue, Timestamp toValue) {
+        var context = new HistoryContextTimestampChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextDecimalChange> fieldChangeDecimal(TwinClassFieldEntity twinClassFieldEntity, BigDecimal fromValue, BigDecimal toValue) {
+        var context = new HistoryContextDecimalChange()
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
@@ -381,6 +406,31 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.linkUpdated, context);
     }
 
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserAdd(TwinEntity twinEntity, UUID roleId, List<UUID> userIdList) {
+        HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
+                .setRoleId(roleId)
+                .setTargetedUserIds(userIdList);
+        if (twinEntity.isCreateElseUpdate()) {
+            return new HistoryItem<>(HistoryType.spaceRoleUserAddedOnCreate, context);
+        } else {
+            return new HistoryItem<>(HistoryType.spaceRoleUserAdded, context);
+        }
+    }
+
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserAdd(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
+        HistoryItem<HistoryContextSpaceRoleUserChange> historyContextSpaceRoleUserChangeHistoryItem = spaceRoleUserAdd(twin, roleId, userIdList);
+        historyContextSpaceRoleUserChangeHistoryItem.getContext().shotField(twinClassFieldEntity, i18nService);
+        return historyContextSpaceRoleUserChangeHistoryItem;
+    }
+
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserDelete(TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
+        HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
+                .setRoleId(roleId)
+                .setTargetedUserIds(userIdList);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.spaceRoleUserRemoved, context);
+    }
+
     /**
      * 2 change records will be stored. One for each twin (src and dst)
      */
@@ -443,5 +493,9 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                     .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
         }
         return ret;
+    }
+
+    public boolean existsByHistoryBatchIdAndHistoryType(UUID historyBatchId, HistoryType type) {
+        return historyRepository.existsByHistoryBatchIdAndHistoryType(historyBatchId, type);
     }
 }

@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.twin.Touch;
@@ -22,8 +23,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinTouchEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;

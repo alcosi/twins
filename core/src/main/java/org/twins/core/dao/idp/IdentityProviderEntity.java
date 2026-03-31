@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
@@ -22,8 +23,12 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class IdentityProviderEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "identity_provider_status_id")
     @Enumerated(EnumType.STRING)

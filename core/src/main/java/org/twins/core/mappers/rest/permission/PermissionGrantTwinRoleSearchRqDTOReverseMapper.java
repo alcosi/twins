@@ -20,8 +20,10 @@ public class PermissionGrantTwinRoleSearchRqDTOReverseMapper extends RestSimpleD
                 .setPermissionIdExcludeList(src.getPermissionIdExcludeList())
                 .setTwinClassIdList(src.getTwinClassIdList())
                 .setTwinClassIdExcludeList(src.getTwinClassIdExcludeList())
-                .setTwinRoleList(src.getTwinRoleList())
-                .setTwinRoleExcludeList(src.getTwinRoleExcludeList())
+                .setIsAssignee(src.getIsAssignee())
+                .setIsSpaceAssignee(src.getIsSpaceAssignee())
+                .setIsCreator(src.getIsCreator())
+                .setIsSpaceCreator(src.getIsSpaceCreator())
                 .setGrantedByUserIdList(src.getGrantedByUserIdList())
                 .setGrantedByUserIdExcludeList(src.getGrantedByUserIdExcludeList());
     }

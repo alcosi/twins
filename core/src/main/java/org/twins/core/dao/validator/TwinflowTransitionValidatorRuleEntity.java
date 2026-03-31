@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -18,8 +19,12 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;

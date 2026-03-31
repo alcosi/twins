@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -27,8 +28,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinflowTransitionEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twinflow_id")
     private UUID twinflowId;
@@ -158,8 +163,10 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransition[" + id + "]";
-            case NORMAL -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
-            default -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
+            case NORMAL ->
+                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
+            default ->
+                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
         };
     }
 }

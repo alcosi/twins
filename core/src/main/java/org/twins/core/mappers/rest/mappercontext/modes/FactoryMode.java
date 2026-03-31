@@ -155,4 +155,24 @@ public enum FactoryMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum FactoryConditionSet2FactoryMode implements MapperModePointer<FactoryMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FactoryMode point() {
+            return switch (this) {
+                case HIDE -> FactoryMode.HIDE;
+                case SHORT -> FactoryMode.SHORT;
+                case DETAILED -> FactoryMode.DETAILED;
+            };
+        }
+    }
 }

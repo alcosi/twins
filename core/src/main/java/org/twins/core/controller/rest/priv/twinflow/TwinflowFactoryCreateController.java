@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWINFLOW_FACTORY_MANAGE, Permissions.TWINFLOW_FACTORY_CREATE})
+@ProtectedBy(Permissions.TWINFLOW_FACTORY_CREATE)
 public class TwinflowFactoryCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;

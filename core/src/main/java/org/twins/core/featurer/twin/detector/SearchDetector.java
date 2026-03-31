@@ -11,7 +11,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -30,7 +29,7 @@ public abstract class SearchDetector extends FeaturerTwins {
     PermissionService permissionService;
 
     public List<TwinSearchEntity> detect(TwinSearchAliasEntity aliasEntity, List<TwinSearchEntity> allAliasSearches) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, aliasEntity.getTwinSearchDetectorParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, aliasEntity.getTwinSearchDetectorParams());
         return detect(properties, allAliasSearches);
     }
 

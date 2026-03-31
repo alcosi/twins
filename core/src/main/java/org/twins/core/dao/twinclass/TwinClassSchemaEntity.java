@@ -3,6 +3,8 @@ package org.twins.core.dao.twinclass;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.UuidUtils;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -10,11 +12,16 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "twin_class_schema")
 public class TwinClassSchemaEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;

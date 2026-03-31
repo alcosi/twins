@@ -54,7 +54,7 @@ public class TwinClassFreezeDTOMapper extends RestSimpleDTOMapper<TwinClassFreez
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinClassMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TwinClassFreezeMode.HIDE);
     }
 
     @Override

@@ -42,6 +42,7 @@ public class Kit<E, K> implements Collection<E> {
     public boolean add(E e) {
         if (collection == null)
             collection = new ArrayList<>();
+
         boolean ret = collection.add(e);
         if (map != null) {
             map.put(functionGetId.apply(e), e);

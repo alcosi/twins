@@ -2,6 +2,7 @@ package org.twins.core.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -21,9 +22,12 @@ class RestTemplateConfig {
     @RequiredArgsConstructor
     @Service
     public static class LogRequestResponseFilter implements ClientHttpRequestInterceptor {
+
+        private final static int MAX_SIZE = 2000;
+
         @Override
         public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-            UUID id = UUID.randomUUID();
+            UUID id = UuidUtils.generate();
             traceRequest(id, request, body);
             ClientHttpResponse response = execution.execute(request, body);
             traceResponse(id, response, request);
@@ -39,7 +43,18 @@ class RestTemplateConfig {
                     append("=Headers     : {}\n").
                     append("=Request body: {}\n").
                     append("==========================request end================================================");
-            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), new String(body, StandardCharsets.UTF_8));
+
+            String requestBody;
+            String contentType = request.getHeaders().getContentType() != null
+                    ? request.getHeaders().getContentType().toString()
+                    : "";
+
+            if (contentType.toLowerCase().contains("multipart/") && body.length > MAX_SIZE) {
+                requestBody = new String(body, 0, MAX_SIZE, StandardCharsets.UTF_8) + "...\nMultipart body is too big to log";
+            } else {
+                requestBody = new String(body, StandardCharsets.UTF_8);
+            }
+            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), requestBody);
         }
 
         private void traceResponse(UUID id, ClientHttpResponse response, HttpRequest request) throws IOException {

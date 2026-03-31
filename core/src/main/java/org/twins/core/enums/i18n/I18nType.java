@@ -29,6 +29,7 @@ public enum I18nType  {
     TWINFLOW_TRANSITION_NAME("twinflowTransitionName", "Twinflow transition name", Category.TEXT),
     TWINFLOW_TRANSITION_DESCRIPTION("twinflowTransitionDescription", "Twinflow transition description", Category.TEXT),
     SPACE_ROLE_NAME("spaceRoleName", "Space role name", Category.TEXT),
+    SPACE_ROLE_DESCRIPTION("spaceRoleDescription", "Space role description", Category.TEXT),
     PERMISSION_NAME("permissionName", "Permission name", Category.TEXT),
     PERMISSION_DESCRIPTION("permissionDescription", "Permission description", Category.TEXT),
     TWIN_FACTORY_NAME("twinFactoryName", "Twin factory name", Category.TEXT),
@@ -43,7 +44,11 @@ public enum I18nType  {
     FACE_ELEMENT("faceElement", "Face element", Category.TEXT),
     ERROR("error","Error", Category.TEXT),
     NOTIFICATION_EMAIL_SUBJECT("notificationEmailSubject","notification email subject", Category.TEXT),
-    NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT);
+    NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT),
+    NOTIFICATION_SCHEMA_NAME("notificationSchemaName","notification schema name", Category.TEXT),
+    HISTORY_NOTIFICATION_RECIPIENT_NAME("recipientName", "recipient name", Category.TEXT),
+    HISTORY_NOTIFICATION_RECIPIENT_DESCRIPTION("recipientDescription", "recipient description", Category.TEXT)
+    ;
 
     private final String id;
     private final String description;

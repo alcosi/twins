@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Class for twin client to
+ * Class for twin client lib
  */
 @Data
 @Accessors(chain = true)

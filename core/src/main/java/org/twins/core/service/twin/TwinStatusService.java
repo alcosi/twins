@@ -187,20 +187,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             dbEntity.setBackgroundColor(updateEntity.getBackgroundColor());
         if (changesHelper.isChanged(TwinStatusEntity.Fields.fontColor, dbEntity.getFontColor(), updateEntity.getFontColor()))
             dbEntity.setFontColor(updateEntity.getFontColor());
-        if (nameI18n != null) {
-            if (dbEntity.getNameI18nId() != null)
-                nameI18n.setId(dbEntity.getNameI18nId());
-            i18nService.saveTranslations(I18nType.TWIN_STATUS_NAME, nameI18n);
-            if (changesHelper.isChanged(TwinStatusEntity.Fields.nameI18nId, dbEntity.getNameI18nId(), nameI18n.getId()))
-                dbEntity.setNameI18nId(nameI18n.getId()); // if new i18n was added
-        }
-        if (descriptionI18n != null) {
-            if (dbEntity.getDescriptionI18nId() != null)
-                descriptionI18n.setId(dbEntity.getDescriptionI18nId());
-            i18nService.saveTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionI18n);
-            if (changesHelper.isChanged(TwinStatusEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
-                dbEntity.setDescriptionI18nId(descriptionI18n.getId());  // if new i18n was added
-        }
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWIN_STATUS_NAME, dbEntity, TwinStatusEntity::getNameI18nId, TwinStatusEntity::setNameI18nId, TwinStatusEntity.Fields.nameI18nId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWIN_STATUS_DESCRIPTION, dbEntity, TwinStatusEntity::getDescriptionI18nId, TwinStatusEntity::setDescriptionI18nId, TwinStatusEntity.Fields.descriptionI18nId, changesHelper);
         updateTwinStatusIcons(dbEntity, lightIcon, darkIcon, changesHelper);
         dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {

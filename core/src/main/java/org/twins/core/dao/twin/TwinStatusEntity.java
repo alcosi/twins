@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -25,9 +26,7 @@ public class TwinStatusEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twins_class_id") //todo rename to twin_class_id

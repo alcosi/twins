@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
@@ -28,8 +29,12 @@ import java.util.UUID;
 @Table(name = "link")
 public class LinkEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -112,7 +117,8 @@ public class LinkEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "link[" + id + "]";
-            default -> "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
+            default ->
+                    "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
         };
 
     }

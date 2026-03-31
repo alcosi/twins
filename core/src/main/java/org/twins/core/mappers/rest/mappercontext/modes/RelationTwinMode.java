@@ -52,6 +52,18 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
             LinkMode.TwinLink2LinkMode.HIDE,
             TransitionMode.HIDE),
+    @FieldNameConstants.Include LIGHT_GREEN(1,
+            TwinMode.SHORT,
+            TwinFieldCollectionMode.SHOW,
+            TwinFieldCollectionFilterEmptyMode.ONLY_NOT,
+            DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
+            AttachmentMode.HIDE,
+            StatusMode.TwinClass2StatusMode.HIDE,
+            DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
+            TwinLinkMode.Twin2TwinLinkMode.HIDE,
+            LinkMode.TwinLink2LinkMode.HIDE,
+            TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE),
     @FieldNameConstants.Include YELLOW_LIGHT(2,
             TwinMode.DETAILED,
             DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
@@ -89,15 +101,18 @@ public enum RelationTwinMode implements MapperModeCollection {
             DataListOptionMode.TwinField2DataListOptionMode.HIDE,
             UserMode.TwinField2UserMode.HIDE,
             TwinByFieldMode.WHITE,
-            AttachmentMode.HIDE,
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.SHORT,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
+            AttachmentMode.Twin2AttachmentMode.DETAILED,
+            AttachmentCollectionMode.Twin2AttachmentCollectionMode.ALL,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
             LinkMode.TwinLink2LinkMode.HIDE,
-            TransitionMode.HIDE),
+            TransitionMode.HIDE,
+            TwinByHeadMode.GREEN),
     @FieldNameConstants.Include BLACK(4,
             TwinMode.DETAILED,
             DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
@@ -107,14 +122,17 @@ public enum RelationTwinMode implements MapperModeCollection {
             DataListOptionMode.TwinField2DataListOptionMode.HIDE,
             UserMode.TwinField2UserMode.HIDE,
             TwinByFieldMode.WHITE,
-            AttachmentMode.HIDE,
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.DETAILED,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
+            AttachmentMode.Twin2AttachmentMode.DETAILED,
+            AttachmentCollectionMode.Twin2AttachmentCollectionMode.ALL,
             LinkMode.TwinLink2LinkMode.HIDE,
+            TwinByHeadMode.GREEN,
             TransitionMode.HIDE),
     @FieldNameConstants.Include RED (4,
             TwinMode.DETAILED,
@@ -128,6 +146,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.DETAILED,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
@@ -146,6 +165,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.DETAILED,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
@@ -165,6 +185,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinClassFieldCollectionMode.SHOW,
             TwinClassMode.Twin2TwinClassMode.DETAILED,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
@@ -183,6 +204,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.HIDE,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.DETAILED,
@@ -201,6 +223,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.HIDE,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
@@ -220,9 +243,11 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.HIDE,
             StatusMode.TwinClass2StatusMode.HIDE,
+            StatusMode.Twin2StatusMode.DETAILED,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.DETAILED,
+            TwinByHeadMode.LAVENDER,
             LinkMode.TwinLink2LinkMode.DETAILED,
             TransitionMode.HIDE);
 
@@ -243,6 +268,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include WHITE(0),
         @FieldNameConstants.Include GREEN(1),
         @FieldNameConstants.Include FOREST_GREEN(1),
+        @FieldNameConstants.Include LIGHT_GREEN(1),
         @FieldNameConstants.Include YELLOW(2),
         @FieldNameConstants.Include YELLOW_LIGHT(2),
         @FieldNameConstants.Include BLUE(3),
@@ -262,6 +288,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case WHITE -> RelationTwinMode.WHITE;
                 case GREEN -> RelationTwinMode.GREEN;
                 case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
+                case LIGHT_GREEN -> RelationTwinMode.LIGHT_GREEN;
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case YELLOW_LIGHT -> RelationTwinMode.YELLOW_LIGHT;
                 case BLUE -> RelationTwinMode.BLUE;
@@ -284,6 +311,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include WHITE(0),
         @FieldNameConstants.Include GREEN(1),
         @FieldNameConstants.Include FOREST_GREEN(1),
+        @FieldNameConstants.Include LIGHT_GREEN(1),
         @FieldNameConstants.Include YELLOW(2),
         @FieldNameConstants.Include YELLOW_LIGHT(2),
         @FieldNameConstants.Include BLUE(3),
@@ -303,6 +331,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case WHITE -> RelationTwinMode.WHITE;
                 case GREEN -> RelationTwinMode.GREEN;
                 case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
+                case LIGHT_GREEN -> RelationTwinMode.LIGHT_GREEN;
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case YELLOW_LIGHT -> RelationTwinMode.YELLOW_LIGHT;
                 case BLUE -> RelationTwinMode.BLUE;
@@ -325,6 +354,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include WHITE(0),
         @FieldNameConstants.Include GREEN(1),
         @FieldNameConstants.Include FOREST_GREEN(1),
+        @FieldNameConstants.Include LIGHT_GREEN(1),
         @FieldNameConstants.Include YELLOW(2),
         @FieldNameConstants.Include YELLOW_LIGHT(2),
         @FieldNameConstants.Include BLUE(3),
@@ -344,6 +374,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case WHITE -> RelationTwinMode.WHITE;
                 case GREEN -> RelationTwinMode.GREEN;
                 case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
+                case LIGHT_GREEN -> RelationTwinMode.LIGHT_GREEN;
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case YELLOW_LIGHT -> RelationTwinMode.YELLOW_LIGHT;
                 case BLUE -> RelationTwinMode.BLUE;

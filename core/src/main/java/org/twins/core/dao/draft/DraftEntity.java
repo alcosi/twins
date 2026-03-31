@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.draft.DraftCounters;
 import org.twins.core.enums.draft.DraftStatus;
@@ -24,9 +25,7 @@ public class DraftEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")

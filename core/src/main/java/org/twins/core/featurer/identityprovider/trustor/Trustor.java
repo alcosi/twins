@@ -17,14 +17,14 @@ import java.util.Properties;
 @Slf4j
 public abstract class Trustor extends FeaturerTwins {
     public CryptKey.CryptPublicKey getActAsUserPublicKey(HashMap<String, String> trustorParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, trustorParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, trustorParams);
         return getActAsUserPublicKey(properties);
     }
 
     public abstract CryptKey.CryptPublicKey getActAsUserPublicKey(Properties properties) throws ServiceException;
 
     public ActAsUser resolveActAsUser(HashMap<String, String> trustorParams, String actAsUserHeader) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, trustorParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, trustorParams);
         return resolveActAsUser(properties, actAsUserHeader);
     }
 

@@ -68,5 +68,4 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
         List<E> ret = groupedMap.get(key);
         return ret != null ? ret : Collections.EMPTY_LIST;
     }
-
 }

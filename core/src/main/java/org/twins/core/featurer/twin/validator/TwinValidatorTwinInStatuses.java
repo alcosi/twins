@@ -1,5 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.ValidationResult;
@@ -7,10 +8,13 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -21,14 +25,18 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_1609,
         name = "Twin in statuses",
         description = "Validator for checking the statuses of a twin")
+@RequiredArgsConstructor
 public class TwinValidatorTwinInStatuses extends TwinValidator {
     @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
+    @Lazy
+    private final TwinService twinService;
+
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
-        boolean isValid = statusIdSet.contains(twinEntity.getTwinStatusId());
+        boolean isValid = statusIdSet.contains(twinService.getTwinStatusId(twinEntity));
         return buildResult(
                 isValid,
                 invert,

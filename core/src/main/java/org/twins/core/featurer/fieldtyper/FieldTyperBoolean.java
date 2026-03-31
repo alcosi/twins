@@ -6,14 +6,14 @@ import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageBoolean;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.Properties;
 
-public abstract class FieldTyperBoolean<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageBoolean, A> {
+public abstract class FieldTyperBoolean<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch> extends FieldTyper<D, T, TwinFieldStorageBoolean, A> {
 
     protected void detectValueChange(TwinFieldBooleanEntity twinFieldBooleanEntity, TwinChangesCollector twinChangesCollector, Boolean newValue) {
         if (twinChangesCollector.collectIfChanged(twinFieldBooleanEntity, "field[" + twinFieldBooleanEntity.getTwinClassField().getKey() + "]", twinFieldBooleanEntity.getValue(), newValue)) {

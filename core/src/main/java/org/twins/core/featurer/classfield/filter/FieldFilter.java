@@ -19,7 +19,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class FieldFilter extends FeaturerTwins {
     public Kit<TwinClassFieldEntity, UUID> filterFields(HashMap<String, String> fieldFilterParams, List<TwinClassFieldEntity> fields, TwinEntity twin) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fieldFilterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldFilterParams);
         log.info("Running featurer[{}].filterFields with params: {}", this.getClass().getSimpleName(), properties.toString());
         Kit<TwinClassFieldEntity, UUID> fieldsKit = new Kit<>(TwinClassFieldEntity::getId);
         filterFields(properties, fieldsKit, twin, fields);

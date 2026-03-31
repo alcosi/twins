@@ -148,7 +148,7 @@ public class DraftCommitService {
         if (counter == 0)
             return;
         log.info("commiting {} persisted twins", counter);
-        //todo run runTwinStatusTransitionTriggers
+        //todo run runTwinStatusTriggers
         commit(draftEntity, draftEntity.getCounters().getOrZero(PERSIST_CREATE), draftTwinPersistRepository::commitTwinsCreates, "twins: creation");
         commit(draftEntity, draftEntity.getCounters().getOrZero(PERSIST_UPDATE), draftTwinPersistRepository::commitTwinsUpdates, "twins: update");
     }

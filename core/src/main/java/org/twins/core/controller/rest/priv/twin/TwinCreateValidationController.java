@@ -32,7 +32,7 @@ import org.twins.core.service.twin.TwinService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
+@ProtectedBy(Permissions.TWIN_CREATE)
 public class TwinCreateValidationController extends ApiController {
     private final TwinService twinService;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
@@ -57,7 +57,7 @@ public class TwinCreateValidationController extends ApiController {
         TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
-            twinService.validateFields(twinCreate);
+            twinService.validateFieldsOnCreate(twinCreate);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, HttpStatus.OK);
         } catch (ServiceException se) {

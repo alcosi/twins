@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -17,11 +18,14 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -61,7 +65,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity addResource(String originalFileName, String externalResourceUri) throws ServiceException {
-        UUID resourceId = UUID.randomUUID();
+        UUID resourceId = UuidUtils.generate();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
@@ -92,7 +96,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity addResource(String originalFileName, InputStream inputStream) throws ServiceException {
-        UUID resourceId = UUID.randomUUID();
+        UUID resourceId = UuidUtils.generate();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
@@ -142,7 +146,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity transferResource(UUID resourceId, UUID newStorageId) throws ServiceException {
-        UUID newResourceId = UUID.randomUUID();
+        UUID newResourceId = UuidUtils.generate();
 
         var resource = findEntitySafe(resourceId);
         if (resource.getStorageId().equals(newStorageId))
@@ -204,6 +208,24 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     @Override
     public boolean validateEntity(ResourceEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public void loadIconResources(TwinClassEntity twinClass) throws ServiceException {
+        loadIconResources(Collections.singletonList(twinClass));
+    }
+
+    public void loadIconResources(Collection<TwinClassEntity> twinClasses) throws ServiceException {
+        load(twinClasses,
+                TwinClassEntity::getId,
+                TwinClassEntity::getIconLightResourceId,
+                TwinClassEntity::getIconLightResource,
+                TwinClassEntity::setIconLightResource);
+
+        load(twinClasses,
+                TwinClassEntity::getId,
+                TwinClassEntity::getIconDarkResourceId,
+                TwinClassEntity::getIconDarkResource,
+                TwinClassEntity::setIconDarkResource);
     }
 
 }

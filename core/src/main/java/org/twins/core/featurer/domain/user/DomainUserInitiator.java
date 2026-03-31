@@ -32,7 +32,7 @@ public abstract class DomainUserInitiator extends FeaturerTwins {
 
     @Transactional(rollbackFor = Throwable.class)
     public void init(HashMap<String, String> initiatorParams, DomainUserEntity domainUserEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, initiatorParams);
         init(properties, domainUserEntity);
         domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         postInit(properties, domainUserEntity);

@@ -24,6 +24,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionMapRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -37,6 +38,7 @@ import java.util.UUID;
 public class DataListOptionController extends ApiController {
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionViewV1", summary = "Returns list data")
@@ -53,7 +55,8 @@ public class DataListOptionController extends ApiController {
         try {
             DataListOptionEntity dataListOptionEntity = dataListOptionService.findEntitySafe(dataListOptionId);
             rs
-                    .setOption(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
+                    .setOption(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

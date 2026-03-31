@@ -19,7 +19,7 @@ public abstract class FieldFinder extends FeaturerTwins {
     public static final String PARAM_CURRENT_TWIN_ID = "currentTwinId";
 
     public void concatSearch(HashMap<String, String> fieldFinderParams, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fieldFinderParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldFinderParams);
         log.info("Running featurer[{}].findFields with params: {}", this.getClass().getSimpleName(), properties.toString());
         concatSearch(properties, fieldSearch, namedParamsMap);
     }

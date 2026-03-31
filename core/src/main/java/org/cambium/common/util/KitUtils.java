@@ -26,4 +26,9 @@ public class KitUtils {
         }
         return needLoad;
     }
+
+    public static <K, E> E getOrNull(Kit<E, K> kit, K key) {
+        if (isEmpty(kit)) return null;
+        return kit.get(key);
+    }
 }

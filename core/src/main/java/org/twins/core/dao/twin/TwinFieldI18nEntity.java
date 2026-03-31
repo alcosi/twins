@@ -7,6 +7,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.Identifiable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -18,15 +20,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_i18n")
-public class TwinFieldI18nEntity implements EasyLoggable {
+public class TwinFieldI18nEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_id")

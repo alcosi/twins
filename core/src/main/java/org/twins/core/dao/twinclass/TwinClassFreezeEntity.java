@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinStatusEntity;
 
 import java.util.UUID;
@@ -15,17 +16,15 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "twin_class_freeze")
 @FieldNameConstants
+@Table(name = "twin_class_freeze")
 public class TwinClassFreezeEntity implements EasyLoggable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "key")

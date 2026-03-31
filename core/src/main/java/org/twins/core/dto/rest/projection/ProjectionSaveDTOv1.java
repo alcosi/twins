@@ -29,6 +29,9 @@ public class ProjectionSaveDTOv1 {
     @Schema(description = "field projector featurer id")
     public Integer fieldProjectorFeaturerId;
 
+    @Schema(description = "is projection active")
+    public Boolean active;
+
     @Schema(description = "field projector params")
     public HashMap<String, String> fieldProjectorParams;
 }

@@ -1,7 +1,6 @@
 package org.twins.core.featurer.factory.lookuper;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -19,11 +18,11 @@ public class FieldLookuperFromItemOutputLinkedTwinHeadTwinFields extends FieldLo
         FieldValue itemOutputField = getFreshestValue(twinEntity, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item fields");
         if (!(itemOutputField instanceof FieldValueLink itemOutputFieldLink))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is not of type link");
-        if (CollectionUtils.isEmpty(itemOutputFieldLink.getTwinLinks()))
+        if (itemOutputFieldLink.isEmpty())
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is empty for " + twinEntity);
-        if (itemOutputFieldLink.getTwinLinks().size() > 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputFieldLink.getTwinLinks().size() +  " linked twins in  " + twinEntity);
-        TwinEntity itemOutputLinkedTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getTwinLinks().getFirst());
+        if (itemOutputFieldLink.size() > 1)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputFieldLink.size() +  " linked twins in  " + twinEntity);
+        TwinEntity itemOutputLinkedTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getItems().getFirst());
         TwinEntity headTwin = twinService.loadHeadForTwin(itemOutputLinkedTwin);
         if (headTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] can not be loaded from item output linked twin head twin, because head is null");

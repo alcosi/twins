@@ -19,10 +19,13 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2207,
+@Featurer(
+        id = FeaturerTwins.ID_2207,
         name = "Isolated copy",
-        description = "New output twin for each input. Output class will be taken from input twin.")
+        description = "New output twin for each input. Output class will be taken from input twin."
+)
 public class MultiplierIsolatedCopy extends Multiplier {
+
     @FeaturerParam(name = "Copy head", description = "", order = 1)
     public static final FeaturerParamBoolean copyHead = new FeaturerParamBoolean("copyHead");
 
@@ -30,6 +33,7 @@ public class MultiplierIsolatedCopy extends Multiplier {
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         List<FactoryItem> ret = new ArrayList<>();
+
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity newTwin = new TwinEntity()
                     .setName("")
@@ -38,15 +42,20 @@ public class MultiplierIsolatedCopy extends Multiplier {
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
-            if (copyHead.extract(properties))
+
+            if (copyHead.extract(properties)) {
                 newTwin
                         .setHeadTwin(inputItem.getTwin().getHeadTwin())
                         .setHeadTwinId(inputItem.getTwin().getHeadTwinId());
+            }
+
             TwinCreate twinCreate = new TwinCreate();
             twinCreate.setTwinEntity(newTwin);
-            ret.add(new FactoryItem()
-                    .setOutput(twinCreate)
-                    .setContextFactoryItemList(List.of(inputItem)));
+            ret.add(
+                    new FactoryItem()
+                            .setOutput(twinCreate)
+                            .setContextFactoryItemList(List.of(inputItem))
+            );
         }
         return ret;
     }

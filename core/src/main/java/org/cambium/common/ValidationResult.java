@@ -9,6 +9,8 @@ public class ValidationResult {
     boolean valid = false;
     String message;
 
+    public static final ValidationResult VALID = new ValidationResult(true);
+
     public ValidationResult() {
     }
 
@@ -19,5 +21,10 @@ public class ValidationResult {
     public ValidationResult(boolean valid, String message) {
         this.valid = valid;
         this.message = message;
+    }
+
+    public void addMessage(String s) {
+        if (message == null) message = s;
+        else message += s;
     }
 }

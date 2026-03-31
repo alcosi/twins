@@ -16,7 +16,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class WidgetAccessor extends FeaturerTwins {
     public boolean isAvailableForClass(HashMap<String, String> fieldTyperParams, TwinClassEntity twinClassEntity) throws ServiceException {
-        Properties accessorProperties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
+        Properties accessorProperties = featurerService.extractProperties(this, fieldTyperParams);
         return isAvailableForClass(accessorProperties, twinClassEntity);
     }
 

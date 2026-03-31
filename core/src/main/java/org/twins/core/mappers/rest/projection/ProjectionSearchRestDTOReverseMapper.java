@@ -27,6 +27,7 @@ public class ProjectionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Pr
                 .setProjectionTypeIdList(src.getProjectionTypeIdList())
                 .setProjectionTypeIdExcludeList(src.getProjectionTypeIdExcludeList())
                 .setFieldProjectorIdList(src.getFieldProjectorIdList())
-                .setFieldProjectorIdExcludeList(src.getFieldProjectorIdExcludeList());
+                .setFieldProjectorIdExcludeList(src.getFieldProjectorIdExcludeList())
+                .setActive(src.getActive());
     }
 }

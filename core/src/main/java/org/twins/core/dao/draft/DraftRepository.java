@@ -1,5 +1,6 @@
 package org.twins.core.dao.draft;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
@@ -15,11 +16,11 @@ import java.util.UUID;
 
 @Repository
 public interface DraftRepository extends JpaRepository<DraftEntity, UUID>, JpaSpecificationExecutor<DraftEntity> {
-    @Query(value = "select d from DraftEntity d where d.status in (:statusIds)")
-    List<DraftEntity> findByStatusIdIn(@Param("statusIds") Collection<DraftStatus> statusIds);
 
-    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.enums.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
-    List<DraftEntity> findDraftsForCommit();
+    List<DraftEntity> findByStatusIn(Collection<DraftStatus> statusIds);
+    List<DraftEntity> findByStatusIn(Collection<DraftStatus> statusIds, Pageable pageable);
+    List<DraftEntity> findByStatusInAndAutoCommit(List<DraftStatus> statusIds, boolean autoCommit);
+    List<DraftEntity> findByStatusInAndAutoCommit(List<DraftStatus> statusIds, boolean autoCommit, Pageable pageable);
 
     @Transactional
     @Modifying

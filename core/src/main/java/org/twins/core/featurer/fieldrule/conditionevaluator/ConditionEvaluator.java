@@ -5,13 +5,15 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringTwinConditionOperatorType;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsConditionOperatorType;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 @FeaturerType(id = FeaturerTwins.TYPE_45,
         name = "ConditionEvaluator",
@@ -23,7 +25,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
     @FeaturerParam(name = "ValueToCompareWith", description = "", order = 1)
     public static final FeaturerParamString valueToCompareWith = new FeaturerParamString("valueToCompareWith");; // cmp_value VARCHAR NULL,
     @FeaturerParam(name = "ConditionOperator", description = "", order =2)
-    public static final FeaturerParamStringTwinConditionOperatorType conditionOperator = new FeaturerParamStringTwinConditionOperatorType("conditionOperator");;
+    public static final FeaturerParamStringTwinsConditionOperatorType conditionOperator = new FeaturerParamStringTwinsConditionOperatorType("conditionOperator");;
 
 
     public ConditionEvaluator() {
@@ -44,18 +46,9 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
         return descriptorType;
     }
 
-    private static List<Type> collectParameterizedTypes(Class<?> _class, List<Type> collected) {
-        Type t = _class.getGenericSuperclass();
-        if (t instanceof java.lang.reflect.ParameterizedType pt) {
-            collected.addAll(Arrays.asList(pt.getActualTypeArguments()));
-        }
-        if (_class.getSuperclass() == null)
-            return collected;
-        return collectParameterizedTypes(_class.getSuperclass(), collected);
-    }
 
     public D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams());
         return getConditionDescriptor(twinClassFieldConditionEntity, properties);
     }
 

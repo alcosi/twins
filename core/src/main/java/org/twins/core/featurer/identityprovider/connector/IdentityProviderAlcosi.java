@@ -2,6 +2,7 @@ package org.twins.core.featurer.identityprovider.connector;
 
 import com.alcosi.identity.exception.parser.IdentityParserException;
 import com.alcosi.identity.exception.parser.api.*;
+import com.alcosi.identity.exception.parser.ids.IdentityInvalidClientParserException;
 import com.alcosi.identity.exception.parser.ids.IdentityInvalidCredentialsParserException;
 import com.alcosi.identity.exception.parser.ids.IdentityInvalidRefreshTokenParserException;
 import com.alcosi.identity.service.error.IdentityErrorParser;
@@ -400,6 +401,8 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     private void resolveError(String responseBody, int responseStatus) throws ServiceException {
         try {
             parser.processAnyException(responseStatus, () -> responseBody);
+        } catch (IdentityInvalidClientParserException exception) {
+            throw new ServiceException(IDP_INVALID_CLIENT_CREDENTIALS);
         } catch (IdentityInvalidCredentialsParserException exception) {
             throw new ServiceException(IDP_UNAUTHORIZED);
         } catch (IdentityInvalidRefreshTokenParserException exception) {

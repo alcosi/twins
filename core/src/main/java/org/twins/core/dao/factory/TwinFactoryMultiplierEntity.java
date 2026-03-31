@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -21,9 +22,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_factory_multiplier")
 public class TwinFactoryMultiplierEntity implements EasyLoggable {
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
@@ -68,7 +73,8 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinFactoryMultiplier[" + id + "]";
             case NORMAL -> "twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + "]";
-            default -> "**" + description + "** twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + ", twinFactoryId:" + twinFactoryId + "]";
+            default ->
+                    "**" + description + "** twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + ", twinFactoryId:" + twinFactoryId + "]";
         };
     }
 }

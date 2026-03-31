@@ -7,9 +7,12 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.user.UserEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
@@ -20,8 +23,12 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class HistoryNotificationRecipientEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -31,6 +38,12 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18nId;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -43,6 +56,11 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private UserEntity createdByUser;
 
     public String easyLog(Level level) {
         return "historyNotificationRecipient[id:" + id + "]";

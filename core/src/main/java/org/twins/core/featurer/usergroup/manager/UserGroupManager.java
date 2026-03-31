@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -24,8 +24,9 @@ public abstract class UserGroupManager extends FeaturerTwins {
     @Lazy
     @Autowired
     protected UserGroupService userGroupService;
+
     public void manageForUser(HashMap<String, String> params, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, params);
         manageForUser(properties, user, userGroupEnterList, userGroupExitList, apiUser);
     }
 

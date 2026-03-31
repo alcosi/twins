@@ -41,7 +41,7 @@ public class FillerFieldUserFromApiUser extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
-        fieldValue.getUsers().add(apiUser.getUser());
+        fieldValue.add(apiUser.getUser());
         factoryItem.getOutput().addField(fieldValue);
     }
 }

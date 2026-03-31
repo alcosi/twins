@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
@@ -26,8 +27,12 @@ import java.util.UUID;
 @DynamicUpdate
 public class HistoryEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -37,6 +42,9 @@ public class HistoryEntity implements EasyLoggable {
 
     @Column(name = "actor_user_id")
     private UUID actorUserId;
+
+    @Column(name = "machine_user_id")
+    private UUID machineUserId;
 
     @Column(name = "history_type_id")
     @Convert(converter = HistoryTypeConverter.class)
@@ -66,6 +74,12 @@ public class HistoryEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity actorUser;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "machine_user_id", insertable = false, updatable = false)
+    private UserEntity machineUser;
 
     @Override
     public String easyLog(Level level) {

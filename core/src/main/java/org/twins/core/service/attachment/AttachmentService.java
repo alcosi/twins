@@ -12,6 +12,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -23,15 +24,15 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
-import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
+import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
@@ -45,6 +46,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.StructuredTaskScope;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -78,7 +80,18 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         checkAndSetAttachmentTwin(attachments, twinEntity);
-        return addAttachments(attachments);
+
+        EntityCUD<TwinAttachmentEntity> attachmentCUD = new EntityCUD<>();
+        attachmentCUD.setCreateList(attachments);
+
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setAttachmentCUD(attachmentCUD)
+                .setDbTwinEntity(twinEntity)
+                .setLauncher(TwinOperation.Launcher.direct)
+                .setTwinEntity(twinEntity);
+        twinService.updateTwin(twinUpdate);
+        return attachments;
     }
 
     @Transactional
@@ -104,63 +117,74 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             loadTwins(attachments);
             storageService.loadStorages(attachments);
 
-            attachments.forEach(attachmentEntity -> {
-                UUID uuid = UUID.randomUUID();
-                LoggerUtils.logSession(uuid);
-                LoggerUtils.logController("addAttachments$");
-                LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
+            List<TwinEntity> twins = attachments.stream()
+                    .map(TwinAttachmentEntity::getTwin)
+                    .distinct()
+                    .toList();
+            twinActionService.checkAllowed(twins, TwinAction.ATTACHMENT_ADD);
 
-                try {
-                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
+            try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+                // todo somehow rewrite thread-local logic for api user to use scoped values
+                attachments.forEach(attachmentEntity -> scope.fork(() -> {
+                    UUID uuid = UuidUtils.generate();
+                    LoggerUtils.logSession(uuid);
+                    LoggerUtils.logController("addAttachments$");
+                    LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
 
-                    twinActionService.checkAllowed(
-                            attachmentEntity.getTwin(),
-                            TwinAction.ATTACHMENT_ADD
-                    );
+                    try {
+                        // ThreadLocal context
+                        authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
 
-                    saveFile(attachmentEntity, uuid);
+                        saveFile(attachmentEntity, uuid);
 
-                    attachmentEntity
-                            .setId(uuid)
-                            .setCreatedByUserId(userId)
-                            .setCreatedByUser(user);
+                        attachmentEntity
+                                .setId(uuid)
+                                .setCreatedByUserId(userId)
+                                .setCreatedByUser(user);
 
-                    if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                        throw new ServiceException(
-                                ErrorCodeTwins.ATTACHMENTS_NOT_VALID,
-                                "storageFileKey is empty"
-                        );
+                        if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                            throw new ServiceException(
+                                    ErrorCodeTwins.ATTACHMENTS_NOT_VALID,
+                                    "storageFileKey is empty"
+                            );
+                        }
+
+                        twinChangesCollector.add(attachmentEntity);
+
+                        if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                            twinChangesCollector
+                                    .getHistoryCollector(attachmentEntity.getTwin())
+                                    .add(historyService.attachmentCreate(attachmentEntity));
+                        }
+
+                        if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                            attachmentEntity.getModifications().forEach(mod -> {
+                                if (mod.getTwinAttachmentId() == null) {
+                                    mod.setTwinAttachment(attachmentEntity);
+                                    mod.setTwinAttachmentId(uuid);
+                                }
+                            });
+
+                            twinChangesCollector.addAll(attachmentEntity.getModifications());
+                        }
+
+                    } catch (Throwable t) {
+                        log.error("Unable to add attachment {}: {}", attachmentEntity.logNormal(), t.getMessage(), t);
+                        throw t;
+                    } finally {
+                        authService.removeThreadLocalApiUser();
+                        LoggerUtils.cleanMDC();
                     }
 
-                    twinChangesCollector.add(attachmentEntity);
+                    return null;
+                }));
 
-                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                        twinChangesCollector
-                                .getHistoryCollector(attachmentEntity.getTwin())
-                                .add(historyService.attachmentCreate(attachmentEntity));
-                    }
-
-                    if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-                        attachmentEntity.getModifications().forEach(mod -> {
-                            if (mod.getTwinAttachmentId() == null) {
-                                mod.setTwinAttachment(attachmentEntity);
-                                mod.setTwinAttachmentId(uuid);
-                            }
-                        });
-
-                        twinChangesCollector.addAll(attachmentEntity.getModifications());
-                    }
-
-                } catch (ServiceException e) {
-                    log.error("Unable to add attachment {}: {}", attachmentEntity.logNormal(), e.getMessage(), e);
-                    throw new RuntimeException(e); // parallelStream требует unchecked
-                } finally {
-                    authService.removeThreadLocalApiUser();
-                    LoggerUtils.cleanMDC();
-                }
-            });
+                scope.join().throwIfFailed(cause -> {
+                    log.error("One or more attachments failed. First error:", cause);
+                    return new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID);
+                });
+            }
         } catch (Throwable t) {
-            log.error("ERROR before foreach: ", t);
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
     }
@@ -235,6 +259,28 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     public List<TwinAttachmentEntity> findAttachmentByTwinId(UUID twinId) {
         return twinAttachmentRepository.findByTwinId(twinId);
+    }
+
+    public TwinAttachmentEntity findFirstAttachment(TwinEntity twin, UUID twinClassFieldId) {
+        loadAttachments(twin);
+        var attachments = twin.getAttachmentKit();
+        if (CollectionUtils.isEmpty(attachments)) {
+            return null;
+        }
+        return attachments.stream()
+                .filter(a -> {
+                    if (twinClassFieldId == null) {
+                        // Direct twin attachments only
+                        return a.getTwinClassFieldId() == null
+                                && a.getTwinCommentId() == null
+                                && a.getTwinflowTransitionId() == null;
+                    } else {
+                        // Attachments from specific field
+                        return twinClassFieldId.equals(a.getTwinClassFieldId());
+                    }
+                })
+                .min(Comparator.comparingInt(a -> a.getOrder() != null ? a.getOrder() : Integer.MAX_VALUE))
+                .orElse(null);
     }
 
     public void loadAttachments(TwinEntity twinEntity) {
@@ -333,10 +379,17 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         attachmentActionService.checkAllowed(attachement, TwinAttachmentAction.DELETE);
         if (attachement == null)
             return;
-        log.info(attachement.logDetailed() + " will be deleted");
-        entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
-        historyService.saveHistory(attachement.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
-                .shotAttachment(attachement));
+
+        EntityCUD<TwinAttachmentEntity> attachmentCUD = new EntityCUD<>();
+        attachmentCUD.setDeleteList(List.of(attachement));
+
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setAttachmentCUD(attachmentCUD)
+                .setDbTwinEntity(attachement.getTwin())
+                .setLauncher(TwinOperation.Launcher.direct)
+                .setTwinEntity(attachement.getTwin());
+        twinService.updateTwin(twinUpdate);
     }
 
 
@@ -544,7 +597,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public TwinAttachmentEntity transferAttachment(UUID attachmentId, UUID newStorageId) throws ServiceException {
-        UUID newAttachementId = UUID.randomUUID();
+        UUID newAttachementId = UuidUtils.generate();
 
         var attachement = findEntitySafe(attachmentId);
         if (attachement.getStorageId().equals(newStorageId))

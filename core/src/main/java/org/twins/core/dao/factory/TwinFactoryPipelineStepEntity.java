@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
@@ -20,9 +21,13 @@ import java.util.UUID;
 @Entity
 @Table(name = "twin_factory_pipeline_step")
 public class TwinFactoryPipelineStepEntity implements EasyLoggable {
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_factory_pipeline_id")
     private UUID twinFactoryPipelineId;

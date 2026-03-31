@@ -13,6 +13,8 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -36,12 +38,11 @@ import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -68,33 +69,63 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     private final TwinAttachmentRepository attachmentRepository;
     private final CommentActionService commentActionService;
     private final UserGroupService userGroupService;
-    private final DBUService dbuService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
         if (comment.getText() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
         ApiUser apiUser = authService.getApiUser();
-        UUID userId = apiUser.getUser().getId();
+        TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
+
         comment
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(userId)
-                .setCreatedByUser(apiUser.getUser());
-        TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
-        comment.setTwin(twinEntity);
+                .setCreatedByUserId(apiUser.getUserId())
+                .setCreatedByUser(apiUser.getUser())
+                .setTwin(twinEntity);
         saveSafe(comment);
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        if (twinChangesCollector.isHistoryCollectorEnabled()) {
-            twinChangesCollector
-                    .getHistoryCollector(twinEntity)
-                    .add(historyService.commentCreate(comment));
-        }
-        historyService.saveHistory(twinChangesCollector.getHistoryCollector());
+
+        addCommentHistory(comment, twinEntity);
         if (CollectionUtils.isEmpty(attachmentList))
             return comment;
         addCommentIdInAttachments(comment.getId(), attachmentList);
         attachmentService.addAttachments(attachmentList, twinEntity);
         return comment.setAttachmentKit(new Kit<>(attachmentList, TwinAttachmentEntity::getId));
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void createComment(TwinEntity twin, Set<String> comments, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(comments))
+            return;
+        ApiUser apiUser = authService.getApiUser();
+
+        for (var commentText : comments) {
+            if (StringUtils.isEmpty(commentText)) {
+                log.info("Comment text is empty. Skipping comment creation.");
+                continue;
+            }
+            TwinCommentEntity comment = new TwinCommentEntity()
+                    .setId(UuidUtils.generate())
+                    .setText(commentText)
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setCreatedByUserId(apiUser.getUserId())
+                    .setCreatedByUser(apiUser.getUser())
+                    .setTwinId(twin.getId())
+                    .setTwin(twin);
+            twinChangesCollector.add(comment);
+            addCommentHistory(comment, twin, twinChangesCollector);
+        }
+    }
+
+    private void addCommentHistory(TwinCommentEntity comment, TwinEntity twin) throws ServiceException {
+        TwinChangesCollector collector = new TwinChangesCollector();
+        addCommentHistory(comment, twin, collector);
+        historyService.saveHistory(collector.getHistoryCollector());
+    }
+
+    private void addCommentHistory(TwinCommentEntity comment, TwinEntity twin, TwinChangesCollector collector) {
+        if (collector.isHistoryCollectorEnabled()) {
+            collector.getHistoryCollector(twin).add(historyService.commentCreate(comment));
+        }
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -218,7 +249,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             userGroupService.loadGroupsForCurrentUser();
             specification = specification
-                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroups().getIdSetSafe(),TwinCommentEntity.Fields.twin))
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroupsFootprint(),TwinCommentEntity.Fields.twin))
                     .and(checkClass(List.of(), apiUser, DBUMembershipCheck.BLOCKED));
         } else {
             specification = specification

@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dto.rest.transition.TransitionTriggerCreateRqDTOv1;
-import org.twins.core.dto.rest.transition.TransitionTriggerViewRsDTOv1;
+import org.twins.core.dto.rest.transition.TransitionTriggerListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerCreateDTOReverseMapper;
@@ -29,12 +29,14 @@ import org.twins.core.mappers.rest.twinflow.TransitionTriggerRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionTriggerService;
 
+import java.util.List;
+
 
 @Tag(name = ApiTag.TRANSITION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_CREATE})
+@ProtectedBy(Permissions.TRANSITION_CREATE)
 public class TransitionTriggerCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TransitionTriggerCreateDTOReverseMapper transitionTriggerCreateDTOReverseMapper;
@@ -43,23 +45,22 @@ public class TransitionTriggerCreateController extends ApiController {
 
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "transitionTriggerCreateV1", summary = "Create transition trigger")
+    @Operation(operationId = "transitionTriggerCreateV1", summary = "Create transition triggers")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transition trigger successfully created", content = {
+            @ApiResponse(responseCode = "200", description = "Transition triggers successfully created", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TransitionTriggerViewRsDTOv1.class))}),
+                    @Schema(implementation = TransitionTriggerListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition_trigger/v1")
     public ResponseEntity<?> transitionTriggerCreateV1(
-            @MapperContextBinding(roots = TransitionTriggerRestDTOMapper.class, response = TransitionTriggerViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TransitionTriggerRestDTOMapper.class, response = TransitionTriggerListRsDTOv1.class) MapperContext mapperContext,
             @RequestBody TransitionTriggerCreateRqDTOv1 request) {
-        TransitionTriggerViewRsDTOv1 rs = new TransitionTriggerViewRsDTOv1();
-        TwinflowTransitionTriggerEntity trigger;
+        TransitionTriggerListRsDTOv1 rs = new TransitionTriggerListRsDTOv1();
         try {
-            trigger = transitionTriggerCreateDTOReverseMapper.convert(request.getTrigger());
-            trigger = twinflowTransitionTriggerService.createTransitionTrigger(trigger);
+            List<TwinflowTransitionTriggerEntity> triggerEntities = transitionTriggerCreateDTOReverseMapper.convertCollection(request.getTransitionTriggers());
+            triggerEntities = twinflowTransitionTriggerService.createTransitionTriggers(triggerEntities);
             rs
-                    .setTrigger(transitionTriggerRestDTOMapper.convert(trigger, mapperContext))
+                    .setTransitionTriggers(transitionTriggerRestDTOMapper.convertCollection(triggerEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -6,6 +6,7 @@ import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamRes
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponseExtensionKt;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Response;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -19,7 +20,6 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
 
@@ -63,11 +63,8 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
     @Override
     public InputStreamResponse getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
-            HttpResponse<InputStream> response = getInputStreamHttpResponse(toURI(fileKey), params);
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Failed to retrieve the file: HTTP Status " + response.statusCode());
-            }
-            InputStream inputStream = response.body();
+            Response response = getInputStreamHttpResponse(toURI(fileKey), params);
+            InputStream inputStream = response.body().byteStream();
             String fileName = Arrays.stream(fileKey.split("\\/")).toList().getLast();
             return InputStreamResponseExtensionKt.toInputStreamResponse(
                     inputStream,
@@ -109,30 +106,30 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
                 return new AddedFileKey(externalUri, -1, Collections.emptyList());
             }
             //Have to make request
-            HttpResponse<InputStream> response = getInputStreamHttpResponse(toURI(externalUri), params);
-            InputStream fileStream = response.body();
-            Long contentLengthHeader = response.headers().firstValue(HttpHeaders.CONTENT_LENGTH).map(Long::valueOf).orElse(-1L);
-            if (haveToCheckSize && contentLengthHeader > fileSizeLimit) {
-                fileStream.close();
-                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + contentLengthHeader + ")");
-            }
-            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params).fileStream()) {
-                if (contentLengthHeader > -1) {
-                    return new AddedFileKey(externalUri, contentLengthHeader, Collections.emptyList());
+            Response response = getInputStreamHttpResponse(toURI(externalUri), params);
+            try (InputStream fileStream = response.body().byteStream()) {
+                long contentLengthHeader = response.headers(HttpHeaders.CONTENT_LENGTH).stream().findFirst().map(Long::valueOf).orElse(-1L);
+                if (haveToCheckSize && contentLengthHeader > fileSizeLimit) {
+                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + contentLengthHeader + ")");
                 }
-                //Chunked response, have to check content length by downloading file =(
-                CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(is, fileSizeLimit, 0);
-                int byteBufferSize = 16384;
-                //Read all bytes by chunks till the end
-                while (sizeLimitedStream.read() > -1) {
-                    sizeLimitedStream.readNBytes(byteBufferSize);
+                try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params).fileStream()) {
+                    if (contentLengthHeader > -1) {
+                        return new AddedFileKey(externalUri, contentLengthHeader, Collections.emptyList());
+                    }
+                    //Chunked response, have to check content length by downloading file =(
+                    CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(is, fileSizeLimit, 0);
+                    int byteBufferSize = 16384;
+                    //Read all bytes by chunks till the end
+                    while (sizeLimitedStream.read() > -1) {
+                        sizeLimitedStream.readNBytes(byteBufferSize);
+                    }
+                    return new AddedFileKey(externalUri, sizeLimitedStream.bytesRead(), Collections.emptyList());
                 }
-                return new AddedFileKey(externalUri, sizeLimitedStream.bytesRead(), Collections.emptyList());
             }
-
         } catch (ServiceException e) {
             throw e;
         } catch (Throwable t) {
+            log.error(t.getMessage(), t);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to add file");
         }
     }

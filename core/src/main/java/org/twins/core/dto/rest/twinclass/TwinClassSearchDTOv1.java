@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Set;
@@ -82,6 +83,9 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "twin class has segments", example = DTOExamples.TERNARY)
     public Ternary hasSegments;
 
+    @Schema(description = "twin class has uniq name flag", example = DTOExamples.TERNARY)
+    public Ternary uniqueName;
+
     @Schema(description = "twin class has twinflow schema space", example = DTOExamples.TERNARY)
     public Ternary twinflowSchemaSpace;
 
@@ -126,4 +130,7 @@ public class TwinClassSearchDTOv1 {
 
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
+
+    @Schema(description = "Filter by twin class twin counter (range: from, to)")
+    public IntegerRangeDTOv1 twinCounterRange;
 }

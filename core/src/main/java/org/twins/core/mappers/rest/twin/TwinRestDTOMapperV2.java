@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinFieldAttributeDTOv1;
 import org.twins.core.dto.rest.twin.TwinFieldDTOv2;
@@ -32,6 +31,7 @@ import static java.util.function.Predicate.not;
         TwinFieldCollectionFilterEmptyMode.class,
         TwinFieldCollectionFilterSystemMode.class,
         TwinFieldCollectionFilterRequiredMode.class,
+        TwinFieldCollectionFilterFieldScope.class,
         TwinFieldAttributeMode.class})
 public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTOv2> {
 
@@ -58,7 +58,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                         .filter(not(FieldValue::isBaseField));
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterEmptyMode.ANY)) {
                     case ONLY -> fieldsStream.filter(FieldValue::isEmpty); //perhaps we need !isFilled
-                    case ONLY_NOT -> fieldsStream.filter(FieldValue::isFilled);
+                    case ONLY_NOT -> fieldsStream.filter(FieldValue::isNotEmpty);
                     default -> fieldsStream;
                 };
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterRequiredMode.ANY)) {
@@ -69,6 +69,11 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterSystemMode.ANY)) {
                     case ONLY -> fieldsStream.filter(fieldValue -> fieldValue.getTwinClassField().getSystem());
                     case ONLY_NOT -> fieldsStream.filter(fieldValue -> !fieldValue.getTwinClassField().getSystem());
+                    default -> fieldsStream;
+                };
+                fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterFieldScope.ANY)) {
+                    case ONLY_DECLARED -> fieldsStream.filter(fieldValue -> fieldValue.getTwinClassField().getTwinClassId().equals(src.getTwinClassId()));
+                    case ONLY_INHERITED -> fieldsStream.filter(fieldValue -> !fieldValue.getTwinClassField().getTwinClassId().equals(src.getTwinClassId()));
                     default -> fieldsStream;
                 };
                 List<FieldValue> fields = fieldsStream.toList();
@@ -89,6 +94,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             twinFieldAttributeService.loadAttributes(Collections.singletonList(src));
         }
 
+        twinService.loadFieldEditability(src);
         for (var fieldValueText : fieldsValues) {
             UUID fieldId = fieldValueText.getTwinClassField().getId();
             String fieldKey = fieldValueText.getTwinClassField().getKey();
@@ -96,7 +102,8 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
 
             TwinFieldDTOv2 fieldDto = new TwinFieldDTOv2()
                     .setKey(fieldKey)
-                    .setValue(fieldValue);
+                    .setValue(fieldValue)
+                    .setEditable(src.getTwinFieldEditability().get(fieldId));
 
             if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW) && src.getTwinFieldAttributeKit() != null && src.getTwinFieldAttributeKit().containsGroupedKey(fieldId)) {
                 Map<UUID, TwinFieldAttributeDTOv1> fieldAttributesMap = twinFieldAttributeRestDTOMapper.convertCollection(src.getTwinFieldAttributeKit().getGrouped(fieldId), mapperContext)
@@ -121,11 +128,11 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         TwinFieldCollectionMode.legacyConverter(mapperContext);
         if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW)) {
             twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
-
         }
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadAttributes(srcCollection);
         }
+        twinService.loadFieldEditability(srcCollection);
     }
 
     @Override

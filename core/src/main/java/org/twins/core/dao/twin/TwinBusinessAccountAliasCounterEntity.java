@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -14,8 +15,12 @@ import java.util.UUID;
 @Table(name = "twin_business_account_alias_counter")
 public class TwinBusinessAccountAliasCounterEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

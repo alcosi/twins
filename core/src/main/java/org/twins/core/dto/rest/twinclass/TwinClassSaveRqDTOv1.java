@@ -73,6 +73,9 @@ public class TwinClassSaveRqDTOv1 extends Request {
     @Schema(description = "[optional] is segment")
     public Boolean segment;
 
+    @Schema(description = "[optional] is unique name")
+    public Boolean uniqueName;
+
     @Schema(description = "[optional] external id")
     public String externalId;
 

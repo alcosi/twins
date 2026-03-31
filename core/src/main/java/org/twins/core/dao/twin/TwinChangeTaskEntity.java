@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.enums.factory.FactoryLauncher;
 
@@ -20,8 +21,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinChangeTaskEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -64,9 +69,8 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case NORMAL -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + "]";
-            case DETAILED ->
-                    "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
+            case NORMAL -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", statusId:" + statusId + "]";
+            case DETAILED -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
             default -> "twinChangeTask[id:" + id + "]";
         };
     }

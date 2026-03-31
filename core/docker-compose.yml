@@ -1,29 +1,44 @@
-version: "3.9"
 networks:
-  80lvl-dev-network:
+  app-network:
+    name: network_name
     external: true
 services:
   twins:
     image: dockerhub.esas.by/twins:0.1.0-SNAPSHOT
-    container_name: twins-core
-    hostname: twins-core
+    container_name: twins
+    hostname: twins
     environment:
+      USE_ARTHAS: false
+      TWIN_FIELD_PASSWORD_KEY: secret
+      TWIN_FEATURER_PARAM_ENCRYPT_KEY: secret
+      DATABASE_URL: jdbc:postgresql://localhost:5432/twins?reWriteBatchedInserts=true
+      DATABASE_USER: user
+      DATABASE_PASSWORD: pass
       JAVA_TOOL_OPTIONS: "
-      -XX:+UseZGC 
-      -XX:+ZGenerational
-      -Xrunjdwp:transport=dt_socket
-      -address=*:5006 
-      -server=y
-      -suspend=n
+      --enable-preview
+      -XX:+UseG1GC
+      -XX:MaxRAMPercentage=60.0
+      -XX:InitiatingHeapOccupancyPercent=20
+      -XX:MaxGCPauseMillis=200
+      -XX:HeapDumpPath=./logs/hd.hprof
+      -XX:+HeapDumpOnOutOfMemoryError
+      -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
        "
-      JAVA_OPTS: "
-      -Djdk.internal.httpclient.debug=true
-      "
+      LOG_RQRS_LEVEL: "OFF"
+      LOG_RQRS_SHORT_LEVEL: "INFO"
+    deploy:
+      resources:
+        limits:
+          memory: 5G
+        reservations:
+          memory: 4G
     volumes:
+      - ./resource:/opt/twins/resource
       - ./logs:/opt/twins/logs
     ports:
       - "8443:8443"
       - "5006:5006"
+      - "5007:8563"
     restart: always
     networks:
-      - 80lvl-dev-network
+      - network_name

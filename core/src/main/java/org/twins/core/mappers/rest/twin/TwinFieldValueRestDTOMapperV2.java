@@ -5,7 +5,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.JsonUtils;
-import org.cambium.common.util.MapUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -17,10 +17,8 @@ import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
-import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -41,18 +39,22 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @MapperModePointerBinding(modes = StatusMode.TwinField2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
+    @Lazy
+    @MapperModePointerBinding(modes = UserMode.TwinField2UserMode.class)
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByFieldMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
         FieldValueText dst = new FieldValueText(src.getTwinClassField());
-        if (!src.isFilled()) {
+        if (src.isEmpty()) {
             dst.setValue("");
         } else if (src instanceof FieldValueText text) {
             dst.setValue(text.getValue());
         } else if (src instanceof FieldValueColorHEX color) {
-            dst.setValue(color.getHex());
+            dst.setValue(color.getValue());
         } else if (src instanceof FieldValueDate date) {
             dst.setValue(date.getDateStr());
         } else if (src instanceof FieldValueInvisible) {
@@ -68,10 +70,17 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueBoolean fieldValueBoolean) {
             dst.setValue(String.valueOf(fieldValueBoolean.getValue()));
         } else if (src instanceof FieldValueTwinClassList fieldValueTwinClassList) {
-            dst.setValue(String.valueOf(fieldValueTwinClassList.getTwinClassEntities()));
+            StringJoiner stringJoiner = new StringJoiner(",");
+            for (var classEntity : fieldValueTwinClassList.getItems()) {
+                stringJoiner.add(classEntity.getId().toString());
+                if (mapperContext.hasModeButNot(TwinClassMode.TwinField2TwinClassMode.HIDE)) {
+                    twinClassRestDTOMapper.postpone(classEntity, mapperContext.forkOnPoint(TwinClassMode.TwinField2TwinClassMode.HIDE));
+                }
+            }
+            dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueSelect select) {
             StringJoiner stringJoiner = new StringJoiner(",");
-            for (DataListOptionEntity dataListOptionEntity : select.getOptions()) {
+            for (DataListOptionEntity dataListOptionEntity : select.getItems()) {
                 stringJoiner.add(dataListOptionEntity.getId().toString());
                 if (mapperContext.hasModeButNot(DataListOptionMode.TwinField2DataListOptionMode.HIDE)) {
                     dataListOptionRestDTOMapper.postpone(dataListOptionEntity, mapperContext.forkOnPoint(DataListOptionMode.TwinField2DataListOptionMode.SHORT));
@@ -80,7 +89,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueUser userField) {
             StringJoiner stringJoiner = new StringJoiner(",");
-            for (UserEntity userEntity : userField.getUsers()) {
+            for (UserEntity userEntity : userField.getItems()) {
                 stringJoiner.add(userEntity.getId().toString());
                 if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
                     userRestDTOMapper.postpone(userEntity, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
@@ -89,18 +98,18 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueUserSingle userField) {
             if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
-                userRestDTOMapper.postpone(userField.getUser(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                userRestDTOMapper.postpone(userField.getValue(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
             }
-            dst.setValue(userField.getUser().getId().toString());
-        } else if (src instanceof FieldValueStatusSingle statusField) {
+            dst.setValue(userField.getValue().getId().toString());
+        } else if (src instanceof FieldValueStatus statusField) {
             if (mapperContext.hasModeButNot(StatusMode.TwinField2StatusMode.HIDE)) {
-                twinStatusRestDTOMapper.postpone(statusField.getStatus(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
+                twinStatusRestDTOMapper.postpone(statusField.getValue(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
             }
-            dst.setValue(statusField.getStatus().getId().toString());
+            dst.setValue(statusField.getValue().getId().toString());
         } else if (src instanceof FieldValueLink link) {
             StringJoiner stringJoiner = new StringJoiner(",");
             TwinEntity linkedTwin;
-            for (TwinLinkEntity twinLinkEntity : link.getTwinLinks()) {
+            for (TwinLinkEntity twinLinkEntity : link.getItems()) {
                 if (link.isForwardLink())
                     linkedTwin = twinLinkEntity.getDstTwin();
                 else
@@ -113,11 +122,11 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueLinkSingle link) {
             if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
-                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
+                twinBaseRestDTOMapper.postpone(link.getValue(), mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
             }
-            dst.setValue(link.getDstTwin().getId().toString());
+            dst.setValue(link.getValue().getId().toString());
         } else if (src instanceof FieldValueI18n i18nField) {
-            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+            if (i18nField.isNotEmpty()) {
                 String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
                 if (jsonStr == null)
                     throw new ServiceException(
@@ -125,9 +134,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                             src.getTwinClassField().logNormal() + " can't serialize i18n");
                 dst.setValue(jsonStr);
             }
-        } else
+        } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
-
+        }
         return dst;
     }
 

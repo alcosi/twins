@@ -15,6 +15,7 @@ public enum HistoryType {
     descriptionChanged("descriptionChanged"),
     createdByChanged("createdByChanged"),
     assigneeChanged("assigneeChanged"),
+    assigneeUnassigned("assigneeUnassigned"),
     ownerChanged("ownerChanged"),
     externalIdChanged("externalIdChanged"),
 
@@ -34,6 +35,9 @@ public enum HistoryType {
     linkUpdated("linkUpdated"), // 3 history records will be created
     linkDeleted("linkDeleted"), // 2 history records will be created
     twinDeleted("twinDeleted"),
+    spaceRoleUserAdded("spaceRoleUserAdded"),
+    spaceRoleUserAddedOnCreate("spaceRoleUserAddedOnCreate"),
+    spaceRoleUserRemoved("spaceRoleUserRemoved"),
     unknown("unknown");
 
     final String id;

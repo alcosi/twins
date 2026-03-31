@@ -56,8 +56,39 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
-            "and option.id not in (select cast(field.value as uuid) from TwinFieldSimpleEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.headTwinId = :headTwinId ) order by option.order")
+            "and option.id not in (" +
+            "select field.dataListOptionId " +
+            "from TwinFieldDataListEntity field " +
+            "where field.twinClassFieldId = :twinClassFieldId " +
+            "and field.twin.headTwinId = :headTwinId" +
+            ") " +
+            "order by option.order")
     List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId);
+
+    @Query("SELECT option.id " +
+            "FROM DataListOptionEntity option " +
+            "WHERE option.dataListId = :dataListId " +
+            "AND option.id NOT IN (" +
+            "SELECT field.dataListOptionId " +
+            "FROM TwinFieldDataListEntity field " +
+            "WHERE field.twinClassFieldId = :twinClassFieldId " +
+            "AND field.twin.headTwinId = :headTwinId" +
+            ") " +
+            "ORDER BY option.order")
+    Set<UUID> findOptionIdsByDataListIdAndNotUsedInHead(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId);
+
+    @Query("SELECT option.id " +
+            "FROM DataListOptionEntity option " +
+            "WHERE option.dataListId = :dataListId " +
+            "AND option.id NOT IN (" +
+            "SELECT field.dataListOptionId " +
+            "FROM TwinFieldDataListEntity field " +
+            "WHERE field.twinClassFieldId = :twinClassFieldId " +
+            "AND field.twin.headTwinId = :headTwinId " +
+            "AND field.twin.id != :excludeTwinId" +
+            ") " +
+            "ORDER BY option.order")
+    Set<UUID> findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId, @Param("excludeTwinId") UUID excludeTwinId);
 
     @Query("select dlo.id from DataListOptionEntity dlo where dlo.businessAccountId = :businessAccountId and dlo.dataList.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);

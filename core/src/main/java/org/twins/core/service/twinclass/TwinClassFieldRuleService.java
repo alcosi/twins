@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -95,7 +96,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
                 rule.setFieldOverwriterFeaturerId(FIELD_OVERWRITER_STUB_ID);
             }
             if (rule.getId() == null) {
-                rule.setId(UUID.randomUUID()); // change to uuidV7
+                rule.setId(UuidUtils.generate());
             }
 
             if (ruleSave.getTwinClassFieldConditionTrees() != null) {

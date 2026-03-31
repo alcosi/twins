@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +21,6 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationLight;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
@@ -33,6 +29,7 @@ import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
@@ -107,6 +104,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
+
+        ApiUser apiUser = authService.getApiUser();
         //todo save description
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
             DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
@@ -121,6 +120,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
+            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified())) {
+                dataListOption.setCustom(true);
+                dataListOption.setBusinessAccountId(apiUser.getBusinessAccountId());
+            } else {
+                dataListOption.setCustom(false);
+            }
+
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
@@ -174,19 +180,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             loadDataListAttributeAccessors(dbDataList);
 
             ChangesHelper changesHelper = new ChangesHelper();
-            updateDataListOptionName(update.getNameI18n(), dbOption, changesHelper);
-            updateDataListOptionDescription(update.getDescriptionI18n(), dbOption, changesHelper);
+            i18nService.updateI18nFieldForEntity(update.getNameI18n(), I18nType.DATA_LIST_OPTION_VALUE, dbOption, DataListOptionEntity::getOptionI18nId, DataListOptionEntity::setOptionI18nId, DataListOptionEntity.Fields.optionI18nId, changesHelper);
+            i18nService.updateI18nFieldForEntity(update.getDescriptionI18n(), I18nType.DATA_LIST_OPTION_DESCRIPTION, dbOption, DataListOptionEntity::getDescriptionI18nId, DataListOptionEntity::setDescriptionI18nId, DataListOptionEntity.Fields.descriptionI18nId, changesHelper);
             updateAttributes(dbDataList, dbOption, update.getAttributes(), changesHelper);
-            updateEntityFieldByValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon,
-                    DataListOptionEntity::setIcon, DataListOptionEntity.Fields.icon, changesHelper);
-            updateEntityFieldByValue(update.getStatus(), dbOption, DataListOptionEntity::getStatus,
-                    DataListOptionEntity::setStatus, DataListOptionEntity.Fields.status, changesHelper);
-            updateEntityFieldByValue(update.getExternalId(), dbOption, DataListOptionEntity::getExternalId,
-                    DataListOptionEntity::setExternalId, DataListOptionEntity.Fields.externalId, changesHelper);
-            updateEntityFieldByValue(update.getBackgroundColor(), dbOption, DataListOptionEntity::getBackgroundColor,
-                    DataListOptionEntity::setBackgroundColor, DataListOptionEntity.Fields.backgroundColor, changesHelper);
-            updateEntityFieldByValue(update.getFontColor(), dbOption, DataListOptionEntity::getFontColor,
-                    DataListOptionEntity::setFontColor, DataListOptionEntity.Fields.fontColor, changesHelper);
+            updateEntityFieldByValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon, DataListOptionEntity::setIcon, DataListOptionEntity.Fields.icon, changesHelper);
+            updateEntityFieldByValue(update.getStatus(), dbOption, DataListOptionEntity::getStatus, DataListOptionEntity::setStatus, DataListOptionEntity.Fields.status, changesHelper);
+            updateEntityFieldByValue(update.getExternalId(), dbOption, DataListOptionEntity::getExternalId, DataListOptionEntity::setExternalId, DataListOptionEntity.Fields.externalId, changesHelper);
+            updateEntityFieldByValue(update.getBackgroundColor(), dbOption, DataListOptionEntity::getBackgroundColor, DataListOptionEntity::setBackgroundColor, DataListOptionEntity.Fields.backgroundColor, changesHelper);
+            updateEntityFieldByValue(update.getFontColor(), dbOption, DataListOptionEntity::getFontColor, DataListOptionEntity::setFontColor, DataListOptionEntity.Fields.fontColor, changesHelper);
 
             changes.add(dbOption, changesHelper);
         }
@@ -225,28 +226,6 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         dataListEntity.setAttributes(attributes);
     }
 
-    private void updateDataListOptionName(I18nEntity nameI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbEntity.getOptionI18nId() != null)
-            nameI18n.setId(dbEntity.getOptionI18nId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, nameI18n);
-        //todo changesHelper for i18n doesn't work
-        if (changesHelper.isChanged(DataListOptionEntity.Fields.optionI18nId, dbEntity.getOptionI18nId(), nameI18n.getId()))
-            dbEntity.setOptionI18nId(nameI18n.getId());
-    }
-
-    private void updateDataListOptionDescription(I18nEntity descriptionI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbEntity.getDescriptionI18nId() != null)
-            descriptionI18n.setId(dbEntity.getDescriptionI18nId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_DESCRIPTION, descriptionI18n);
-        //todo changesHelper for i18n doesn't work
-        if (changesHelper.isChanged(DataListOptionEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
-            dbEntity.setDescriptionI18nId(descriptionI18n.getId());
-    }
-
     private void updateDataListOptionAttribute(String newAttr, String fieldName, DataListOptionEntity dbEntity, Function<DataListOptionEntity, String> getAttr, BiConsumer<DataListOptionEntity, String> setAttr, ChangesHelper changesHelper) {
         if (newAttr == null)
             return;
@@ -261,21 +240,19 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     //Method for reloading options if dataList is not present in entity;
-    public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) throws ServiceException {
+    public void reloadOptionsOnDataListAbsent(FieldValueSelect valueSelect) throws ServiceException {
         List<UUID> idsForReload = new ArrayList<>();
 
-        for (var option : options) {
-            if (null == option.getDataList() || null == option.getDataListId()) {
+        for (var option : valueSelect.getItemsOrEmpty()) {
+            if (option.getId() != null && (null == option.getDataList() || null == option.getDataListId())) {
                 idsForReload.add(option.getId());
             }
         }
 
         if (!idsForReload.isEmpty()) {
-            options.removeIf(o -> idsForReload.contains(o.getId()));
-            options.addAll(findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead));
+            var loadedOptions = findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead);
+            valueSelect.setItems(loadedOptions);
         }
-
-        return options;
     }
 
     public Kit<DataListOptionEntity, UUID> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
@@ -324,7 +301,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 List<I18nTranslationLight> translationsToSave = new ArrayList<>();
 
                 for (var missed : missedList) {
-                    UUID i18nId = UUID.randomUUID();
+                    UUID i18nId = UuidUtils.generate();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
                             .setBusinessAccountId(businessAccountId)
@@ -332,7 +309,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                             .setCustom(true)
                             .setExternalId(missed)
                             .setStatus(DataListStatus.active)
-                            .setOptionI18nId(i18nId);
+                            .setOptionI18nId(i18nId)
+                            .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
                     optionsForSave.add(option);
 

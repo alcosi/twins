@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -125,7 +126,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         ApiUser apiUser = authService.getApiUser();
         return new DraftCollector(
                 new DraftEntity()
-                        .setId(UUID.randomUUID())
+                        .setId(UuidUtils.generate())
                         .setCreatedAt(Timestamp.from(Instant.now()))
                         .setCreatedByUser(authService.getApiUser().getUser())
                         .setCreatedByUserId(authService.getApiUser().getUserId())
@@ -207,7 +208,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 //                draftCollector.add(eraseItem);
                 flush(draftCollector); //we will flush here, because factory also can generate some deletes
             }
-            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseStatus.UNDETECTED);
+            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseStatus.UNDETECTED, DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED);
         }
     }
 
@@ -230,6 +231,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         };
 
         FactoryContext factoryContext = new FactoryContext(factoryLauncher, FactoryBranchId.root(eraseFactoryId))
+                .setRequestId(authService.getApiUser().getRequestId())
                 .addInputTwin(eraseEntity.getTwin());
         FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
         TwinDelete twinDelete;
@@ -463,7 +465,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
         DetachedTwinChangesCollector twinChangesCollector = new DetachedTwinChangesCollector(entityManager);
-        DraftTwinPersistEntity draftTwinPersistEntity = new DraftTwinPersistEntity().setCreateElseUpdate(false);
+        DraftTwinPersistEntity draftTwinPersistEntity = createTwinUpdateDraft(draftCollector.getDraftEntity(), twinUpdate.getDbTwinEntity());
         ChangesRecorder<TwinEntity, DraftTwinPersistEntity> changesRecorder = new ChangesRecorder<>(
                 twinUpdate.getDbTwinEntity(),
                 twinUpdate.getTwinEntity(),
@@ -472,6 +474,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
         twinService.updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
 
+        if (twinChangesCollector.hasChanges()) {
+            draftCollector.add(draftTwinPersistEntity);
+        }
         //todo add recorder to draftCollector
         draftTagsUpdate(draftCollector, twinChangesCollector);
         draftMarkersUpdate(draftCollector, twinChangesCollector);
@@ -668,6 +673,15 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setOwnerUserId(twinEntity.getOwnerUserId())
                 .setOwnerBusinessAccountId(twinEntity.getOwnerBusinessAccountId())
                 .setCreateElseUpdate(true);
+    }
+
+    public DraftTwinPersistEntity createTwinUpdateDraft(DraftEntity draftEntity, TwinEntity twinEntity) throws ServiceException {
+        return new DraftTwinPersistEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinEntity.getId())
+                .setCreateElseUpdate(false);
     }
 
     public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseReason reason, EraseAction eraseAction) throws ServiceException {

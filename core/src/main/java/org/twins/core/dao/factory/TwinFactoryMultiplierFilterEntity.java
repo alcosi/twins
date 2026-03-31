@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
@@ -17,10 +18,13 @@ import java.util.UUID;
 @Entity
 @Table(name = "twin_factory_multiplier_filter")
 public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
-
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "input_twin_class_id")
     private UUID inputTwinClassId;

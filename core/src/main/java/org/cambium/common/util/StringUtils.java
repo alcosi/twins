@@ -4,8 +4,10 @@ import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
+
     public static String replaceVariables(String str, Map<String, String> map) {
         return replaceVariables(str, StrLookup.mapLookup(map));
     }
@@ -16,14 +18,6 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         s.setVariableSuffix("}");
         s.setVariableResolver(strLookup);
         return s.replace(str);
-    }
-
-    public static String fmt(double d)
-    {
-        if(d == (long) d)
-            return String.format("%d",(long)d);
-        else
-            return String.format("%s",d);
     }
 
     public static String tabs(int i) {
@@ -67,5 +61,14 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
                     .append(parts[i].substring(1));
         }
         return camelCase.toString();
+    }
+
+    public static String collectionToString(Collection<UUID> collection) {
+        if (collection == null || collection.isEmpty()) {
+            return "";
+        }
+        return collection.stream()
+                .map(UUID::toString)
+                .collect(Collectors.joining(","));
     }
 }

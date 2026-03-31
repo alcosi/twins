@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -15,8 +16,12 @@ import java.util.UUID;
 @Table(name = "twin_class_field_attribute")
 public class TwinClassFieldAttributeEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

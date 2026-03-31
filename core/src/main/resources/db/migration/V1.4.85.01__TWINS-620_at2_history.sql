@@ -1,0 +1,2 @@
+INSERT INTO history_type (id, snapshot_message_template, history_type_status_id) VALUES ('spaceRoleUserAdded', 'Users was added', 'softEnabled') on conflict on constraint history_type_pkey do nothing ;
+INSERT INTO history_type (id, snapshot_message_template, history_type_status_id) VALUES ('spaceRoleUserRemoved', 'Users was removed', 'softEnabled') on conflict on constraint history_type_pkey do nothing ;

@@ -24,7 +24,7 @@ public abstract class Filler extends FeaturerTwins {
     FieldLookupers fieldLookupers;
 
     public void fill(HashMap<String, String> fillerParams, FactoryItem factoryItem, TwinEntity templateTwin, String logMsg) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fillerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fillerParams);
         log.info(logMsg + ": running filler[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
         fill(properties, factoryItem, templateTwin);
     }

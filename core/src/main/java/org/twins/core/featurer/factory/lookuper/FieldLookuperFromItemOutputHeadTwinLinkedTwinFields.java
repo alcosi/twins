@@ -1,7 +1,6 @@
 package org.twins.core.featurer.factory.lookuper;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -21,11 +20,11 @@ public class FieldLookuperFromItemOutputHeadTwinLinkedTwinFields extends FieldLo
         FieldValue itemOutputHeadTwinField = getFreshestValue(headTwin, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item head fields");
         if (!(itemOutputHeadTwinField instanceof FieldValueLink itemOutputHeadTwinFieldLink))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is not of type link");
-        if (CollectionUtils.isEmpty(itemOutputHeadTwinFieldLink.getTwinLinks()))
+        if (itemOutputHeadTwinFieldLink.isEmpty())
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is empty for head " + headTwin);
-        if (itemOutputHeadTwinFieldLink.getTwinLinks().size() > 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputHeadTwinFieldLink.getTwinLinks().size() +  " linked twins in  " + headTwin);
-        TwinEntity linkDstTwin = twinLinkService.getDstTwinSafe(itemOutputHeadTwinFieldLink.getTwinLinks().getFirst());
+        if (itemOutputHeadTwinFieldLink.size() > 1)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputHeadTwinFieldLink.size() +  " linked twins in  " + headTwin);
+        TwinEntity linkDstTwin = twinLinkService.getDstTwinSafe(itemOutputHeadTwinFieldLink.getItems().getFirst());
         return getFreshestValue(linkDstTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item head linked twin fields");
     }
 }

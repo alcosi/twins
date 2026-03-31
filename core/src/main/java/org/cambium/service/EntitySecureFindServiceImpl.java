@@ -13,6 +13,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.twins.core.enums.twin.LoadState;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.ParameterizedType;
@@ -283,6 +284,17 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         entitySmartService.deleteAndLog(id, entityRepository());
     }
 
+    public void deleteSafe(Collection<UUID> ids) throws ServiceException {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        Kit<T, UUID> entities = findEntitiesSafe(ids);
+
+        if (entities.isNotEmpty()) {
+            entitySmartService.deleteAllAndLog(entities.getIdSet(), entityRepository());
+        }
+    }
+
     public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
             return entity;
@@ -374,5 +386,42 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             key = functionGetGroupingId.apply(item);
             functionSetGroupingEntity.accept(item, loaded.get(key));
         }
+    }
+
+    public static <T> List<T> loadStart(Collection<T> items, Function<T, LoadState> loadStateGetter, BiConsumer<T, LoadState> loadStateSetter) throws ServiceException {
+        if (CollectionUtils.isEmpty(items)) {
+            return Collections.emptyList();
+        }
+        List<T> filtered = new ArrayList<>();
+        for (var item : items) {
+            var itemState = loadStateGetter.apply(item);
+            switch (itemState) {
+                case LOADING:
+                    throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED);
+                case LOAD_ERROR:
+                    throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED, "previous load was unsuccess");
+                case LOADED:
+                    continue;
+                case NOT_LOADED:
+                    filtered.add(item);
+                    loadStateSetter.accept(item, LoadState.LOADING);
+            }
+        }
+        return filtered;
+    }
+
+    public static <T> void loadFinish(Collection<T> items, BiConsumer<T, LoadState> setter) {
+        loadStateUpdate(items, setter, LoadState.LOADED);
+    }
+
+    public static <T> void loadError(Collection<T> items, BiConsumer<T, LoadState> setter) {
+        loadStateUpdate(items, setter, LoadState.LOAD_ERROR);
+    }
+
+    private static <T> void loadStateUpdate(Collection<T> items, BiConsumer<T, LoadState> setter, LoadState state) {
+        if (CollectionUtils.isEmpty(items)) {
+            return;
+        }
+        items.forEach(item -> setter.accept(item, state));
     }
 }

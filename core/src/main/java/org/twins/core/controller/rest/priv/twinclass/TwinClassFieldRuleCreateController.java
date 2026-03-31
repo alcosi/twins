@@ -43,7 +43,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_CREATE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_RULE_CREATE)
 public class TwinClassFieldRuleCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;

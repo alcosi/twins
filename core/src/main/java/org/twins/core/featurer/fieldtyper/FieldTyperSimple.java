@@ -7,14 +7,14 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.Properties;
 
-public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageSimple, A> {
+public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch> extends FieldTyper<D, T, TwinFieldStorageSimple, A> {
 
     protected void detectValueChange(TwinFieldSimpleEntity twinFieldEntity, TwinChangesCollector twinChangesCollector, String newValue) {
         if (twinChangesCollector.collectIfChanged(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", twinFieldEntity.getValue(), newValue)) {
@@ -52,8 +52,6 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
 
     @Override
     public ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
-        return new ValidationResult(true);
+        return ValidationResult.VALID;
     }
-
-
 }

@@ -32,8 +32,6 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.SocketException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -57,6 +55,15 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             exampleValues = {"http://192.168.7.212:8011", "http://file-handler:8011"}
     )
     public static final FeaturerParamString fileHandlerUri = new FeaturerParamString("fileHandlerUri");
+
+    @FeaturerParam(
+            name = "fileHandlerUploadPath", description = "Upload endpoint",
+            optional = true,
+            defaultValue = "/api/resize/save/synced",
+            exampleValues = {"/api/resize/save/synced", "/api/resize/async/save/synced"}
+    )
+    public static final FeaturerParamString fileHandlerUploadPath = new FeaturerParamString("fileHandlerUploadPath");
+
 
     @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
             description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\n",
@@ -159,6 +166,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             try (tikaStream) {
                 var properties = extractProperties(params, false);
                 var baseUrl = fileHandlerUri.extract(properties);
+                var uploadPath = fileHandlerUploadPath.extract(properties);
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
@@ -166,7 +174,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var fileSize = getFileSize(tikaStream, fileSizeLimit);
 
                 if (shouldResize(mimeType)) {
-                    var url = STR."\{baseUrl}/api/resize/save/synced";
+                    var url = baseUrl + uploadPath;
                     var tasksParams = resizeTasks.extract(properties);
                     var tasks = new ArrayList<ResizeTaskDTO>();
 
@@ -355,20 +363,16 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                         responseType
                 );
             } catch (ResourceAccessException e) {
-                if (e.getCause() instanceof ConnectException || e.getCause() instanceof SocketException) {
-                    log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+                log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
 
-                    if (attempt == maxRetries) {
-                        throw e;
-                    }
+                if (attempt == maxRetries) {
+                    throw e;
+                }
 
-                    try {
-                        Thread.sleep(500L * attempt);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw e;
-                    }
-                } else {
+                try {
+                    Thread.sleep(500L * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
                     throw e;
                 }
             }
@@ -377,4 +381,3 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return null;
     }
 }
-

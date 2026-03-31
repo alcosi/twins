@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
+import org.twins.core.dto.rest.twinclass.HierarchySearchDTOv1;
 import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
@@ -103,25 +105,37 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin touch exclude list ids")
     public List<Touch> touchExcludeList;
 
+    @Deprecated
     @Schema(description = "Twin Field Search. Key TwinClassField id.", type = "object", additionalPropertiesSchema = TwinFieldSearchDTOv1.class, example = """
-            {
-                "550e8400-e29b-41d4-a716-446655440000": {
-                    "type": "TwinFieldSearchNumericV1",
-                    "lessThen": "10",
-                    "moreThen": "5",
-                    "equals": "7"
-                },
-                "550e8400-e29b-41d4-a716-446655440001": {
-                    "type": "TwinFieldSearchTextV1",
-                    "valueLikeAllOfList": ["test%"]
-                }
+        {
+            "550e8400-e29b-41d4-a716-446655440000": {
+                "type": "TwinFieldSearchNumericV1",
+                "lessThen": "10",
+                "moreThen": "5",
+                "equals": "7"
+            },
+            "550e8400-e29b-41d4-a716-446655440001": {
+                "type": "TwinFieldSearchTextV1",
+                "valueLikeAllOfList": ["test%"]
             }
-            """)
+        }
+        """)
     public Map<UUID, TwinFieldSearchDTOv1> fields;
+
+    @Schema(description = "Twin field filter: AND of clauses, each clause is OR of (fieldId, search condition).")
+    public TwinFieldsFilterDTOv1 fieldsFilter;
 
     @Schema(description = "created at")
     public DataTimeRangeDTOv1 createdAt;
 
+    @Schema(description = "hierarchy children search")
+    public HierarchySearchDTOv1 hierarchyChildrenSearch;
+
+    @Schema(description = "Filter by head hierarchy direct children count (range: from, to)")
+    public IntegerRangeDTOv1 headHierarchyCounterDirectChildrenRange;
+
+    @Schema(description = "apply distinct on query results")
+    public Boolean distinct;
 
     public TwinSearchDTOv1 addTwinClassIdListItem(UUID item) {
         this.twinClassIdList = CollectionUtils.safeAdd(this.twinClassIdList, item);
@@ -270,12 +284,6 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addTouchExcludeListItem(Touch item) {
         this.touchExcludeList = CollectionUtils.safeAdd(this.touchExcludeList, item);
-        return this;
-    }
-
-    public TwinSearchDTOv1 putFieldsItem(UUID key, TwinFieldSearchDTOv1 item) {
-        if (this.fields == null) this.fields = new HashMap<>();
-        this.fields.put(key, item);
         return this;
     }
 

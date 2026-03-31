@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
@@ -20,6 +22,12 @@ public class FactoryConditionSetSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
+    @Schema(description = "twin factory id list")
+    public Set<UUID> twinFactoryIdList;
+
+    @Schema(description = "twin factory id exclude list")
+    public Set<UUID> twinFactoryIdExcludeList;
+
     @Schema(description = "name like list")
     public Set<String> nameLikeList;
 
@@ -31,4 +39,7 @@ public class FactoryConditionSetSearchRqDTOv1 extends Request {
 
     @Schema(description = "description like exclude list")
     public Set<String> descriptionNotLikeList;
+
+    @Schema(description = "cachable", example = DTOExamples.TERNARY)
+    public Ternary cachable;
 }

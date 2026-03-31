@@ -31,6 +31,6 @@ public class ConditionerHeadTwinFieldExistsAndValueFilled extends Conditioner {
         } catch (ServiceException e) {
            return false;
         }
-        return fieldValue != null && fieldValue.isFilled();
+        return fieldValue != null && fieldValue.isNotEmpty();
     }
 }

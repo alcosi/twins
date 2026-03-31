@@ -7,6 +7,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.Identifiable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
@@ -16,15 +18,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_boolean")
-public class TwinFieldBooleanEntity implements EasyLoggable {
+public class TwinFieldBooleanEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_id")
@@ -50,7 +50,13 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinFieldBoolean[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinFieldBoolean[" + id + "]";
+            case NORMAL ->
+                    "twinFieldBoolean[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+            default ->
+                    "twinFieldBoolean[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+        };
     }
 
     public TwinFieldBooleanEntity cloneFor(TwinEntity dstTwinEntity) {

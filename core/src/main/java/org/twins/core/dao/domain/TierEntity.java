@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -21,10 +22,13 @@ import java.util.UUID;
 @FieldNameConstants
 @Table(name = "tier")
 public class TierEntity implements EasyLoggable {
-
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -94,7 +98,8 @@ public class TierEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "TierEntity[id:" + id + ", name: " + name + "]";
             case NORMAL -> "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + "]";
-            default -> "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + ", attachmentsStorageQuotaCount: " + attachmentsStorageQuotaCount + ", attachmentsStorageQuotaSize: " + attachmentsStorageQuotaSize + ", userCountQuota: " + userCountQuota + "]";
+            default ->
+                    "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + ", attachmentsStorageQuotaCount: " + attachmentsStorageQuotaCount + ", attachmentsStorageQuotaSize: " + attachmentsStorageQuotaSize + ", userCountQuota: " + userCountQuota + "]";
         };
     }
 

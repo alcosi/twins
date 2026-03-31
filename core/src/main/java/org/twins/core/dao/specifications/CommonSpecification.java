@@ -4,15 +4,18 @@ import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Range;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.math.LongRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
+import org.cambium.common.util.UuidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.permission.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
@@ -36,43 +39,64 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
      * The method supports filtering based on a list of UUIDs, negating the condition,
-     * including null values, and limiting the hierarchy depth.
+     * finding root elements by NULLIFY_MARKER, and limiting the hierarchy depth.
      *
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
      * @param not               A flag indicating whether to negate the result of the condition.
-     * @param includeNullValues A flag indicating whether null values should be included in the results.
      * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
      * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
-    public static <T> Specification<T> checkHierarchyChilds(Collection<UUID> ids, boolean not,
-                                                            boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
-
+    public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... ltreeFieldPath) {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            Range<Integer> range = null;
-            if (depthLimit == null || depthLimit == 0)
-                range = Range.of(1, (int) Short.MAX_VALUE);
-            else if (depthLimit > 0)
-                range = Range.of(1, depthLimit);
-            else if (depthLimit < 0) {
-                range = Range.of(0, (int) Short.MAX_VALUE);
+
+            boolean hasNullifyMarker = ids.contains(UuidUtils.NULLIFY_MARKER);
+
+            List<UUID> regularIds = hasNullifyMarker
+                    ? ids.stream().filter(id -> !UuidUtils.NULLIFY_MARKER.equals(id)).toList()
+                    : new ArrayList<>(ids);
+
+            List<Predicate> allPredicates = new ArrayList<>();
+
+            if (!regularIds.isEmpty()) {
+                Range<Integer> range = null;
+                if (depthLimit == null || depthLimit == 0)
+                    range = Range.of(1, (int) Short.MAX_VALUE);
+                else if (depthLimit > 0)
+                    range = Range.of(1, depthLimit);
+                else if (depthLimit < 0) {
+                    range = Range.of(0, (int) Short.MAX_VALUE);
+                }
+                var preparedIds = LTreeUtils.findChildsLQuery(regularIds.stream().map(UUID::toString).collect(Collectors.toList()), range);
+                Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
+                var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
+                Predicate regularPredicate = not ? cb.isFalse(ltreeIsInFunction) : cb.isTrue(ltreeIsInFunction);
+                allPredicates.add(regularPredicate);
             }
-            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), range);
-            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
-            Predicate idPredicate;
-            var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
-            if (not) {
-                idPredicate = cb.isFalse(ltreeIsInFunction);
-            } else {
-                idPredicate = cb.isTrue(ltreeIsInFunction);
+            if (hasNullifyMarker) {
+                Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
+                var isRootFunction = cb.function("ltree_is_root", Boolean.class, ltreePath);
+
+                Predicate isRootElement = cb.isTrue(isRootFunction);
+                if (not) {
+                    allPredicates.add(cb.isFalse(isRootFunction));
+                } else {
+                    allPredicates.add(isRootElement);
+                }
             }
-            if (includeNullValues) {
-                return cb.or(idPredicate, ltreePath.isNull());
+            if (allPredicates.isEmpty()) {
+                return cb.conjunction();
+            } else if (allPredicates.size() == 1) {
+                return allPredicates.getFirst();
             } else {
-                return idPredicate;
+                if (not) {
+                    return cb.and(allPredicates.toArray(Predicate[]::new));
+                } else {
+                    return cb.or(allPredicates.toArray(Predicate[]::new));
+                }
             }
         };
     }
@@ -149,7 +173,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
         return (root, query, cb) -> {
             From fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
-            Join twinClass = fromTwin.join(TwinEntity.Fields.twinClass);
+            Join twinClass = getOrCreateJoin(fromTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
             Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
             List<Predicate> predicates = List.of(cb.conjunction());
             if (!CollectionUtils.isEmpty(twinClassUuids))
@@ -264,7 +288,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @param domainId            the UUID of the domain within which the permissions are being checked
      * @param businessAccountId   the UUID of the business account associated with the permissions
      * @param userId              the UUID of the user for whom permissions are being checked
-     * @param userGroups          a set of UUIDs representing the groups the user belongs to
+     * @param userGroupsFootprint a set of UUIDs representing the groups the user belongs to
      * @param twinEntityFieldPath an optional array of strings representing the path to navigate and join
      *                            fields for the twin entity
      * @return a JPA {@code Specification} that evaluates whether the user has the necessary permissions,
@@ -272,31 +296,92 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @throws ServiceException if there is an error during specification creation or permission validation
      */
     public static <
-            T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups, String...
+            T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, UUID userGroupsFootprint, String...
             twinEntityFieldPath) throws ServiceException {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
-            Expression<UUID> spaceId = joinTwin.get(TwinEntity.Fields.permissionSchemaSpaceId);
-            Expression<UUID> permissionIdTwin = joinTwin.get(TwinEntity.Fields.viewPermissionId);
-            Expression<UUID> permissionIdTwinClass = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
-            Expression<UUID> twinClassId = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
+            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpace, JoinType.LEFT);
 
-            Predicate isAssigneePredicate = cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
-            Predicate isCreatorPredicate = cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
+            Join<TwinEntity, PermissionEntity> viewPermissionJoin = joinTwin.join(TwinEntity.Fields.viewPermission, JoinType.LEFT);
 
-            return cb.isTrue(cb.function("permission_check", Boolean.class,
-                    cb.literal(domainId),
-                    cb.literal(businessAccountId),
-                    spaceId,
-                    permissionIdTwin,
-                    permissionIdTwinClass,
-                    cb.literal(userId),
-                    cb.literal(collectionUuidsToSqlArray(userGroups)),
-                    twinClassId,
-                    cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
-                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
-            ));
+            Join<PermissionEntity, PermissionMaterGlobalEntity> permissionMaterGlobalJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterGlobals, JoinType.LEFT);
+            permissionMaterGlobalJoin.on(
+                    cb.and(
+                        cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
+                        cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
+                    )
+            );
+
+            Join<PermissionEntity, PermissionMaterUserGroupEntity> permissionMaterUserGroupJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterUserGroups, JoinType.LEFT);
+            permissionMaterUserGroupJoin.on(
+                    cb.and(
+                            cb.equal(permissionMaterUserGroupJoin.get(PermissionMaterUserGroupEntity.Fields.userGroupFootprintId), userGroupsFootprint),
+                            cb.equal(permissionMaterUserGroupJoin.get(PermissionMaterUserGroupEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),
+                            cb.gt(permissionMaterUserGroupJoin.get(PermissionMaterUserGroupEntity.Fields.grantsCount), 0)
+                    )
+            );
+
+            Join<PermissionEntity, PermissionMaterSpaceUserEntity> permissionMaterSpaceUserJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterSpaceUsers, JoinType.LEFT);
+            permissionMaterSpaceUserJoin.on(
+                    cb.and(
+                            cb.equal(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),
+                            cb.equal(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.userId), userId),
+                            cb.equal(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.twinId), joinTwin.get(TwinEntity.Fields.permissionSchemaSpaceId)),
+                            cb.gt(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.grantsCount), 0)
+                    )
+            );
+
+            Join<PermissionEntity, PermissionMaterSpaceUserGroupEntity> permissionMaterSpaceUserGroupJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterSpaceUserGroups, JoinType.LEFT);
+            permissionMaterSpaceUserGroupJoin.on(
+                    cb.and(
+                            cb.equal(permissionMaterSpaceUserGroupJoin.get(PermissionMaterSpaceUserGroupEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),
+                            cb.equal(permissionMaterSpaceUserGroupJoin.get(PermissionMaterSpaceUserGroupEntity.Fields.twinId), joinTwin.get(TwinEntity.Fields.permissionSchemaSpaceId)),
+                            cb.equal(permissionMaterSpaceUserGroupJoin.get(PermissionMaterSpaceUserGroupEntity.Fields.userGroupFootprintId), userGroupsFootprint),
+                            cb.gt(permissionMaterSpaceUserGroupJoin.get(PermissionMaterSpaceUserGroupEntity.Fields.grantsCount), 0)
+                    )
+            );
+
+            Join<PermissionEntity, PermissionGrantTwinRoleEntity> permissionGrantTwinRoleJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionGrantTwinRoles, JoinType.LEFT);
+            permissionGrantTwinRoleJoin.on(
+                    cb.and(
+                            cb.equal(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.permissionSchemaId), joinTwin.get(TwinEntity.Fields.permissionSchemaId)),
+                            cb.equal(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.twinClassId), joinTwin.get(TwinEntity.Fields.twinClassId))
+                    )
+            );
+
+            Predicate twinAssignee = cb.and(
+                    cb.isTrue(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.grantedToAssignee)),
+                    cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), userId)
+            );
+
+            Predicate twinCreator = cb.and(
+                    cb.isTrue(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.grantedToCreator)),
+                    cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), userId)
+            );
+
+            Predicate spaceAssignee = cb.and(
+                    cb.isTrue(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.grantedToSpaceAssignee)),
+                    cb.equal(permissionSchemaSpaceJoin.get(TwinEntity.Fields.assignerUserId), userId)
+            );
+
+            Predicate spaceCreator = cb.and(
+                    cb.isTrue(permissionGrantTwinRoleJoin.get(PermissionGrantTwinRoleEntity.Fields.grantedToSpaceCreator)),
+                    cb.equal(permissionSchemaSpaceJoin.get(TwinEntity.Fields.createdByUserId), userId)
+            );
+
+
+            return cb.or(
+                    cb.isNull(joinTwin.get(TwinEntity.Fields.viewPermissionId)),
+                    cb.isNotNull(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.permissionId)),
+                    cb.isNotNull(permissionMaterUserGroupJoin.get(PermissionMaterUserGroupEntity.Fields.permissionId)),
+                    cb.isNotNull(permissionMaterSpaceUserJoin.get(PermissionMaterSpaceUserEntity.Fields.permissionId)),
+                    cb.isNotNull(permissionMaterSpaceUserGroupJoin.get(PermissionMaterSpaceUserGroupEntity.Fields.permissionId)),
+                    twinAssignee,
+                    twinCreator,
+                    spaceAssignee,
+                    spaceCreator
+            );
         };
     }
 
@@ -349,21 +434,23 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not,
                                                    boolean includeNullValues, final String... uuidFieldPath) {
+        var includeNull = includeNullValues || (uuids != null && uuids.contains(UuidUtils.NULLIFY_MARKER)); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
-            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+            return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
                                                  boolean includeNullValues, final String... uuidFieldPath) {
+        var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
             if (uuid == null) return cb.conjunction();
-            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
-            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+            return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
 
@@ -488,10 +575,42 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkQueryDistinct(Boolean distinct) {
+        return (root, query, cb) -> {
+            if (distinct != null) {
+                query.distinct(distinct);
+            }
+
+            return cb.conjunction();
+        };
+    }
+
     public static <T> Specification<T> checkIntegerIn(final Set<Integer> ids, boolean not, final String field) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
             return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
+        };
+    }
+
+    public static <T> Specification<T> checkFieldIntegerRange(
+            final IntegerRange range,
+            final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
+                return cb.conjunction();
+            }
+
+            List<Predicate> predicates = new ArrayList<>();
+            Path<Integer> field = getFieldPath(root, JoinType.INNER, fieldPath);
+
+            if (range.getFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(field, range.getFrom()));
+            }
+            if (range.getTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(field, range.getTo()));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
 }

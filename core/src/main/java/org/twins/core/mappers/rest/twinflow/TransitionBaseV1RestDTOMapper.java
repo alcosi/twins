@@ -14,7 +14,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -23,7 +22,6 @@ import org.twins.core.service.permission.Permissions;
 @MapperModeBinding(modes = TransitionMode.class)
 public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    private final I18nService i18nService;
     private final PermissionService permissionService;
 
     @Override

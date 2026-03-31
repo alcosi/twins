@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
@@ -16,12 +17,19 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
+import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.*;
+import org.twins.core.domain.PostponedTriggers;
+import org.twins.core.domain.EntityKey;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 
 import java.util.*;
@@ -45,18 +53,24 @@ public class TwinChangesService {
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
+    private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final TwinFieldAttributeRepository twinFieldAttributeRepository;
+    private final TwinCommentRepository twinCommentRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
-        if (!twinChangesCollector.hasChanges())
+        if (!twinChangesCollector.hasChanges() &&
+            twinChangesCollector.getPostponedChanges().isEmpty() &&
+            twinChangesCollector.getPostponedTriggers().isEmpty())
             return changesApplyResult;
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
@@ -71,12 +85,15 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldTimestampEntity.class, twinFieldTimestampRepository, changesApplyResult);
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldDecimalEntity.class, twinFieldDecimalRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinCommentEntity.class, twinCommentRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
-            for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
+            for (Map.Entry<Class<?>, Map<EntityKey, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
 
@@ -92,15 +109,19 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository);
         deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
+        deleteEntities(twinChangesCollector, TwinFieldTimestampEntity.class, twinFieldTimestampRepository);
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
         deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
         deleteEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository);
+        deleteEntities(twinChangesCollector, TwinFieldDecimalEntity.class, twinFieldDecimalRepository);
+        deleteEntities(twinChangesCollector, TwinCommentEntity.class, twinCommentRepository);
 
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
         savePostponedChanges(twinChangesCollector);
+        savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
@@ -121,6 +142,21 @@ public class TwinChangesService {
         twinChangeTaskService.addTasks(changeTaskList);
     }
 
+    public void savePostponedTriggers(PostponedTriggers postponedTriggers) throws ServiceException {
+        if (CollectionUtils.isEmpty(postponedTriggers))
+            return;
+        List<TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
+        for (PostponedTriggers.PostponedTrigger postponedTrigger : postponedTriggers) {
+            triggerTaskList.add(new TwinTriggerTaskEntity()
+                    .setTwinId(postponedTrigger.twinId())
+                    .setTwinTriggerId(postponedTrigger.triggerId())
+                    .setPreviousTwinStatusId(postponedTrigger.statusId())
+                    .setStatusId(TwinTriggerTaskStatus.NEED_START));
+        }
+        log.info("Saving {} postponed triggers", triggerTaskList.size());
+        twinTriggerTaskService.addTasks(triggerTaskList);
+    }
+
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
         for (var entry : invalidationMap.entrySet()) {
             if (entry.getKey() instanceof TwinEntity twinEntity) {
@@ -139,6 +175,7 @@ public class TwinChangesService {
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
                         case twinFieldAttributeKit -> twinEntity.setTwinFieldAttributeKit(null);
+                        case twinFieldTimestampKit -> twinEntity.setTwinFieldTimestampKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {
@@ -158,17 +195,27 @@ public class TwinChangesService {
     }
 
     private <T> void saveEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<Object, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
-        if (entities != null) {
-            changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entities, repository));
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        if (entityKeyMap != null) {
+            // Convert EntityKey map to entity map for EntitySmartService
+            Map<T, ChangesHelper> entityMap = new HashMap<>();
+            for (var entry : entityKeyMap.entrySet()) {
+                entityMap.put((T) entry.getKey().entity(), entry.getValue());
+            }
+            changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
         }
     }
 
     private <T> void saveEntitiesAndFlush(TwinChangesCollector twinChangesCollector, Class<T> entityClass, JpaRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<Object, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
-        if (entities != null) {
-            changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entities, repository));
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        if (entityKeyMap != null) {
+            // Convert EntityKey map to entity map for EntitySmartService
+            Map<T, ChangesHelper> entityMap = new HashMap<>();
+            for (var entry : entityKeyMap.entrySet()) {
+                entityMap.put((T) entry.getKey().entity(), entry.getValue());
+            }
+            changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
         }
     }

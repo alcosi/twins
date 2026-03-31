@@ -16,9 +16,7 @@ import java.util.Properties;
         example = "{\"name\": \"John\", \"surname\": \"Doe\"}")
 public class FeaturerParamMap extends FeaturerParam<Map<String, String>> {
     final ObjectMapper objectMapper = new ObjectMapper();
-    TypeReference<HashMap<String, String>> typeRef
-            = new TypeReference<HashMap<String, String>>() {
-    };
+    TypeReference<HashMap<String, String>> typeRef = new TypeReference<>() {};
 
     public FeaturerParamMap(String key) {
         super(key);
@@ -27,7 +25,6 @@ public class FeaturerParamMap extends FeaturerParam<Map<String, String>> {
     @SneakyThrows
     @Override
     public Map<String, String> extract(Properties properties) {
-        Map<String, String> map = objectMapper.readValue(properties.get(key).toString(), typeRef);
-        return map;
+        return properties.get(key) == null ? new HashMap<>() : objectMapper.readValue(properties.get(key).toString(), typeRef);
     }
 }

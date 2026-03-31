@@ -13,6 +13,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CacheUtils;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -31,6 +32,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -434,5 +436,23 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         i18nTranslationRepository.saveAll(entitiesToSave);
 
         return i18nEntity;
+    }
+
+    @Transactional
+    public <T> void updateI18nFieldForEntity(I18nEntity i18nEntity, I18nType i18nType, T targetEntity, Function<T, UUID> fieldGetter, BiConsumer<T, UUID> fieldSetter, String fieldName, ChangesHelper changesHelper) throws ServiceException {
+        if (i18nEntity == null) {
+            return;
+        }
+        UUID currentI18nId = fieldGetter.apply(targetEntity);
+
+        if (currentI18nId != null) {
+            i18nEntity.setId(currentI18nId);
+        }
+
+        I18nEntity savedI18n = saveTranslations(i18nType, i18nEntity);
+
+        if (changesHelper.isChanged(fieldName, currentI18nId, savedI18n.getId())) {
+            fieldSetter.accept(targetEntity, savedI18n.getId());
+        }
     }
 }

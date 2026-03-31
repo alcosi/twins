@@ -9,28 +9,36 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
+import org.twins.core.enums.twin.LoadState;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Map;
@@ -43,15 +51,13 @@ import java.util.UUID;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_class_id")
@@ -76,15 +82,33 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    private PermissionEntity viewPermission;
+
+    @Column(name = "view_permission_custom")
+    private Boolean viewPermissionCustom = false;
+
+    //materialized
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "permission_schema_id", updatable = false, insertable = false)
+    private UUID permissionSchemaId;
+
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "permission_schema_space_id")
     private UUID permissionSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twinflow_schema_space_id")
     private UUID twinflowSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twin_class_schema_space_id")
     private UUID twinClassSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "alias_space_id")
     private UUID aliasSpaceId;
 
@@ -112,6 +136,9 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
 
+    @Column(name = "head_hierarchy_counter_direct_children", insertable = false, updatable = false)
+    private Integer headHierarchyCounterDirectChildren;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
@@ -132,6 +159,11 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private boolean createElseUpdate = false;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private LoadState markersLoadState = LoadState.NOT_LOADED; // needed for load markers
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
@@ -172,6 +204,14 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 //    @JoinColumn(name = "id", referencedColumnName = "head_twin_id", insertable = false, updatable = false)
 //    @EqualsAndHashCode.Exclude
 //    private Collection<TwinEntity> childrenTwins;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
+    private TwinEntity permissionSchemaSpace;
 
     //needed for specification
     @Deprecated
@@ -235,6 +275,14 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldTimestampEntity> fieldsTimestamp;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification
@@ -259,7 +307,23 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldDecimalEntity> fieldsDecimal;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
+
+    //needed for specification (search by last change time)
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinLastChangeEntity> lastChanges;
 
     //needed for specification (USER & BA twins)
     @Deprecated
@@ -319,7 +383,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Kit<TwinFieldSimpleNonIndexedEntity , UUID> twinFieldSimpleNonIndexedKit;
+    private Kit<TwinFieldSimpleNonIndexedEntity, UUID> twinFieldSimpleNonIndexedKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -330,6 +394,11 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinFieldBooleanEntity, UUID> twinFieldBooleanKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFieldTimestampEntity, UUID> twinFieldTimestampKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
@@ -362,7 +431,17 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Map<UUID, Object> twinFieldCalculated;
+    private Kit<TwinFieldDecimalEntity, UUID> twinFieldDecimalKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, BigDecimal> twinFieldCalculated;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldEditability;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -426,6 +505,11 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @ToString.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<String, Boolean> twinValidatorResultCache;
+
     public boolean isSketch() {
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
     }
@@ -438,8 +522,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twin[" + id + "]";
-            case NORMAL -> "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
-            default -> "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
+            case NORMAL ->
+                    "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
+            default ->
+                    "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
         };
 
     }
@@ -466,8 +552,96 @@ public class TwinEntity implements Cloneable, EasyLoggable {
                 .setTwinClassSchemaSpaceId(twinClassSchemaSpaceId)
                 .setAliasSpaceId(aliasSpaceId)
                 .setViewPermissionId(viewPermissionId)
+                .setViewPermissionCustom(viewPermissionCustom)
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
+    }
+
+    public TwinEntity resetTransientState() {
+        pageFace = null;
+        breadCrumbsFace = null;
+
+        markersLoadState = LoadState.NOT_LOADED;
+
+        spaceTwin = null;
+        if (headTwin != null) {
+            headTwin.resetTransientState();
+            headTwin = null;
+        }
+        twinflow = null;
+
+        // Kits — core fields
+        twinFieldSimpleKit = null;
+        twinFieldSimpleNonIndexedKit = null;
+        twinFieldI18nKit = null;
+        twinFieldBooleanKit = null;
+        twinFieldDatalistKit = null;
+        twinFieldUserKit = null;
+        twinFieldSpaceUserKit = null;
+        twinFieldTwinClassKit = null;
+        twinFieldAttributeKit = null;
+
+        // Calculated
+        twinFieldCalculated = null;
+        fieldValuesKit = null;
+
+        // Links / transitions
+        twinLinks = null;
+        validTransitionsKit = null;
+
+        // Attachments / markers / tags
+        attachmentKit = null;
+        twinMarkerKit = null;
+        twinTagKit = null;
+
+        // Aliases / segments
+        twinAliases = null;
+        twinAliasesArchive = null;
+        segments = null;
+
+        // Actions / counters
+        actions = null;
+        twinAttachmentsCount = null;
+
+        // Permissions / creation helpers
+        creatableChildTwinClasses = null;
+
+        // TwinValidators
+        twinValidatorResultCache = null;
+        return this;
+    }
+
+    public TwinEntity resetLoadedFields() {
+        if (headTwin != null) {
+            headTwin.resetLoadedFields();
+        }
+        // Kits — core fields
+        twinFieldSimpleKit = null;
+        twinFieldSimpleNonIndexedKit = null;
+        twinFieldI18nKit = null;
+        twinFieldBooleanKit = null;
+        twinFieldDatalistKit = null;
+        twinFieldUserKit = null;
+        twinFieldSpaceUserKit = null;
+        twinFieldTwinClassKit = null;
+        twinFieldAttributeKit = null;
+        // Calculated
+        twinFieldCalculated = null;
+        fieldValuesKit = null;
+        // Links
+        twinLinks = null;
+        // todo
+        return this;
+    }
+
+    public TwinEntity resetCalculatedFields() {
+        if (headTwin != null) {
+            headTwin.resetCalculatedFields();
+        }
+        twinFieldCalculated = null;
+        twinFieldAttributeKit = null;
+        fieldValuesKit = null;
+        return this;
     }
 }

@@ -13,12 +13,13 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "HierarchySearchV1")
 public class HierarchySearchDTOv1  {
-    @Schema(description = "twin class id list")
+
+    @Schema(description = "entity id list")
     public Set<UUID> idList;
 
-    @Schema(description = "twin class id exclude list")
+    @Schema(description = "entity id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "Search depth")
+    @Schema(description = "search depth")
     public Integer depth = 1;
 }

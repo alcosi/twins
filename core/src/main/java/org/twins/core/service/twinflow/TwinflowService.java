@@ -28,8 +28,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
+import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
@@ -37,10 +36,11 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -58,12 +58,14 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     private final TwinflowRepository twinflowRepository;
     private final TwinflowSchemaRepository twinflowSchemaRepository;
     private final TwinflowSchemaMapRepository twinflowSchemaMapRepository;
-    private final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
+    private final TwinStatusTriggerRepository twinStatusTriggerRepository;
     private final TwinClassService twinClassService;
     private final TwinStatusService twinStatusService;
     private final I18nService i18nService;
-    @Lazy
     private final FeaturerService featurerService;
+    private final TwinChangesService twinChangesService;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
     @Lazy
     private final AuthService authService;
     @Lazy
@@ -194,31 +196,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
     }
 
-    @Transactional
-    public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
-        List<TwinStatusTransitionTriggerEntity> triggerEntityList;
-        UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
-        UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
-        if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
-        }
-        if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
-        }
-    }
-
-    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinStatusTransitionTriggerEntityList))
-            return;
-        for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
-            log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
-            transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
-        }
-    }
-
     public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
@@ -270,8 +247,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public TwinflowEntity updateTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinflowEntity dbTwinflowEntity = findEntitySafe(twinflowEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateTwinflowName(dbTwinflowEntity, nameI18n, changesHelper);
-        updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWINFLOW_NAME, dbTwinflowEntity, TwinflowEntity::getNameI18NId, TwinflowEntity::setNameI18NId, TwinflowEntity.Fields.nameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWINFLOW_DESCRIPTION, dbTwinflowEntity, TwinflowEntity::getDescriptionI18NId, TwinflowEntity::setDescriptionI18NId, TwinflowEntity.Fields.descriptionI18NId, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
         if (changesHelper.hasChanges()) {
@@ -282,27 +259,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
         return dbTwinflowEntity;
-    }
-
-    public void updateTwinflowDescription(TwinflowEntity dbTwinflowEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbTwinflowEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinflowEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(TwinflowEntity.Fields.descriptionI18NId, dbTwinflowEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinflowEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-
-    public void updateTwinflowName(TwinflowEntity dbTwinflowEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbTwinflowEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinflowEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinflowEntity.Fields.nameI18NId, dbTwinflowEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinflowEntity.setNameI18NId(nameI18n.getId());
     }
 
     public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {
@@ -324,4 +280,3 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return twinflow.getInitialSketchTwinStatus();
     }
 }
-

@@ -6,10 +6,13 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.math.IntegerRange;
+import org.cambium.common.util.RangeUtils;
 import org.twins.core.dao.search.TwinSearchEntity;
-import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -40,6 +43,7 @@ public class TwinSearch {
     private Set<UUID> createdByUserIdExcludeList;
     private Set<UUID> ownerUserIdList;
     private Set<UUID> ownerBusinessAccountIdList;
+    private Set<UUID> ownerBusinessAccountIdExcludeList;
     private Map<UUID, Set<UUID>> dstLinksAnyOfList;
     private Map<UUID, Set<UUID>> dstLinksNoAnyOfList;
     private Map<UUID, Set<UUID>> dstLinksAllOfList;
@@ -57,8 +61,14 @@ public class TwinSearch {
     private Set<Touch> touchList;
     private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
+    private TwinFieldFilter fieldsFilter;
     private DataTimeRange createdAt;
     private TwinSearchEntity configuredSearch;
+    private HierarchySearch hierarchyChildrenSearch;
+    private Boolean distinct;
+    private IntegerRange headHierarchyCounterDirectChildrenRange;
+    // if true, status check will consider freeze status from twin class (freeze status has priority over native twin status)
+    private boolean checkFreezeStatus = true;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -98,7 +108,11 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
-                createdAt == null;
+                (fieldsFilter == null || fieldsFilter.isEmpty()) &&
+                (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
+                createdAt == null &&
+                distinct == null &&
+                RangeUtils.isEmpty(headHierarchyCounterDirectChildrenRange);
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {

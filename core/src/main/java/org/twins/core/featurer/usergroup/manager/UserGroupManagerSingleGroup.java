@@ -28,12 +28,11 @@ import java.util.*;
         description = "")
 @RequiredArgsConstructor
 public class UserGroupManagerSingleGroup extends UserGroupManager {
+    @FeaturerParam(name = "Allow empty", description = "If true, then user can be out of any group", order = 1)
+    public static final FeaturerParamBoolean allowEmpty = new FeaturerParamBoolean("allowEmpty");
     final UserGroupRepository userGroupRepository;
     @Lazy
     final FeaturerService featurerService;
-
-    @FeaturerParam(name = "Allow empty", description = "If true, then user can be out of any group", order = 1)
-    public static final FeaturerParamBoolean allowEmpty = new FeaturerParamBoolean("allowEmpty");
 
     @Override
     public void manageForUser(Properties properties, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {

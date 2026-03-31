@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -17,8 +18,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinClassFieldRuleMapEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_class_field_rule_id")
     private UUID twinClassFieldRuleId;
@@ -42,7 +47,8 @@ public class TwinClassFieldRuleMapEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinClassFieldRuleMapEntity [id=" + id + "]";
-            default -> "twinClassFieldRuleMapEntity [id:" + id + "]" + ", twinClassFieldRuleId=" + twinClassFieldRuleId + "]" + ", twinClassFieldId=" + twinClassFieldId + "]";
+            default ->
+                    "twinClassFieldRuleMapEntity [id:" + id + "]" + ", twinClassFieldRuleId=" + twinClassFieldRuleId + "]" + ", twinClassFieldId=" + twinClassFieldId + "]";
         };
     }
 }

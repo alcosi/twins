@@ -12,7 +12,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -31,7 +30,7 @@ public abstract class Multiplier extends FeaturerTwins {
     AuthService authService;
 
     public List<FactoryItem> multiply(TwinFactoryMultiplierEntity multiplierEntity, List<FactoryItem> input, FactoryContext factoryContext) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, multiplierEntity.getMultiplierParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, multiplierEntity.getMultiplierParams());
 //        log.info("Running multiplier[" + this.getClass().getSimpleName() + "] **" + multiplierEntity.getComment() + "** with params: " + properties.toString());
         List<FactoryItem> ret =  multiply(properties, input, factoryContext);
         for (FactoryItem factoryItem : ret) {

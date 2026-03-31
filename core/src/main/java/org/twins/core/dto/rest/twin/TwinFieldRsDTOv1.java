@@ -20,7 +20,7 @@ public class TwinFieldRsDTOv1 extends Response {
     public UUID twinId;
 
     @Schema(description = "field data")
-    public TwinFieldDTOv1 field;
+    public TwinFieldDTOv4 field;
 }
 
 

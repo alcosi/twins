@@ -34,7 +34,7 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
             case DETAILED -> dst
                     .setId(src.getId())
                     .setChangedAt(src.getChangedAt().toLocalDateTime())
-                    .setDstDataListOptionId(src.getDstDataListOptionId())
+                    .setSrcDataListOptionId(src.getSrcDataListOptionId())
                     .setDstDataListOptionId(src.getDstDataListOptionId())
                     .setSavedByUserId(src.getSavedByUserId())
                     .setProjectionTypeId(src.getProjectionTypeId());

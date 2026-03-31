@@ -44,7 +44,7 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.search.TwinSearchPredicateService;
 import org.twins.core.service.search.TwinSearchSortService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -94,7 +94,7 @@ public class TwinSearchService {
         } else {
             detectSystemClassSearchCheck(basicSearch);
             specification = specification
-                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
+                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroupsFootprint()))
                     .and(checkClass(basicSearch.getTwinClassIdList(), apiUser, basicSearch.getDbuMembershipCheck()));
         }
 
@@ -359,5 +359,6 @@ public class TwinSearchService {
         mainSearch.setDstLinksNoAnyOfList(narrowMapOfSets(mainSearch.getDstLinksNoAnyOfList(), narrowSearch.getDstLinksNoAnyOfList()));
         mainSearch.setSrcLinksAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksAnyOfList(), narrowSearch.getSrcLinksAnyOfList()));
         mainSearch.setSrcLinksNoAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksNoAnyOfList(), narrowSearch.getSrcLinksNoAnyOfList()));
+        // todo add distinct and hierarchyChildrenSearch
     }
 }

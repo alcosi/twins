@@ -28,6 +28,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
@@ -79,6 +80,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinClassSchemaRepository twinClassSchemaRepository;
     private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
+    @Lazy
     private final TwinClassFreezeService twinClassFreezeService;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
@@ -210,6 +212,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setAliasSpace(srcTwinClassEntity.getAliasSpace())
                 .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired())
                 .setAbstractt(srcTwinClassEntity.getAbstractt())
+                .setUniqueName(srcTwinClassEntity.getUniqueName())
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setIconDarkResourceId(srcTwinClassEntity.getIconDarkResourceId())
@@ -348,6 +351,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     }
 
+    public boolean isInstanceOf(TwinEntity twin, UUID ofClass) throws ServiceException {
+        return isInstanceOf(twin.getTwinClass(), ofClass);
+    }
+
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
         if (!instanceClass.getId().equals(ofClass)) {
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
@@ -427,7 +434,18 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (twinClass.getSegment() == null) {
                 twinClass.setSegment(false);
             }
+            if (twinClass.getHasDynamicMarkers() == null) {
+                twinClass.setHasDynamicMarkers(false);
+            }
+            if (twinClass.getUniqueName() == null) {
+                twinClass.setUniqueName(false);
+            }
+
             twinClass.setHasSegment(false);
+
+            twinClass.setHeadHierarchyCounterDirectChildren(0);
+            twinClass.setExtendsHierarchyCounterDirectChildren(0);
+            twinClass.setTwinCounter(0);
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
             processIcons(twinClass, iconLight, iconDark);
@@ -566,6 +584,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             ChangesHelper changesHelper = new ChangesHelper();
 
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAbstractt, TwinClassEntity::setAbstractt, TwinClassEntity.Fields.abstractt, changesHelper);
+            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getUniqueName, TwinClassEntity::setUniqueName, TwinClassEntity.Fields.uniqueName, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassSchemaSpace, TwinClassEntity::setTwinClassSchemaSpace, TwinClassEntity.Fields.twinClassSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinflowSchemaSpace, TwinClassEntity::setTwinflowSchemaSpace, TwinClassEntity.Fields.twinflowSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAliasSpace, TwinClassEntity::setAliasSpace, TwinClassEntity.Fields.aliasSpace, changesHelper);
@@ -583,8 +602,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
 
             updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
-            updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
-            updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
+            i18nService.updateI18nFieldForEntity(twinClassUpdate.getNameI18n(), I18nType.TWIN_CLASS_NAME, dbTwinClassEntity, TwinClassEntity::getNameI18NId, TwinClassEntity::setNameI18NId, TwinClassEntity.Fields.nameI18NId, changesHelper);
+            i18nService.updateI18nFieldForEntity(twinClassUpdate.getDescriptionI18n(), I18nType.TWIN_CLASS_DESCRIPTION, dbTwinClassEntity, TwinClassEntity::getDescriptionI18NId, TwinClassEntity::setDescriptionI18NId, TwinClassEntity.Fields.descriptionI18NId, changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
             updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
@@ -640,27 +659,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             dbTwinClassEntity
                     .setHeadHunterParams(headHunterParams);
         }
-    }
-
-    public void updateTwinClassDescription(TwinClassEntity dbTwinClassEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbTwinClassEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinClassEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(TwinClassEntity.Fields.descriptionI18NId, dbTwinClassEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinClassEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-
-    public void updateTwinClassName(TwinClassEntity dbTwinClassEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbTwinClassEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinClassEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinClassEntity.Fields.nameI18NId, dbTwinClassEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinClassEntity.setNameI18NId(nameI18n.getId());
     }
 
     public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {

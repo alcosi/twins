@@ -7,9 +7,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.Identifiable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -29,15 +31,13 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable {
+public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_id")

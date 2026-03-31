@@ -6,10 +6,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -25,9 +23,7 @@ public class TwinStatisticEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")

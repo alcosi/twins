@@ -1,7 +1,7 @@
 package org.cambium.common.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.MDC;
+import org.slf4j.*;
 
 import java.util.UUID;
 
@@ -11,6 +11,12 @@ public class LoggerUtils {
     private static final String CONTROLLER = "controller";
     private static final String SESSION = "session";
     private static final String TRACE_TREE = "traceTree";
+
+    public static final Logger alertLog = LoggerFactory.getLogger("AlertLogger");
+
+    public static final Marker ALERT =
+            MarkerFactory.getMarker("ALERT");
+
 
     public static void logPrefix(String logPrefix) {
         MDC.put(LOD_PREFIX, logPrefix + " ");
@@ -34,7 +40,7 @@ public class LoggerUtils {
     }
 
     public static void logSession() {
-        logSession(UUID.randomUUID().toString().replace("-", "").toUpperCase());
+        logSession(UuidUtils.generate().toString().replace("-", "").toUpperCase());
     }
 
 

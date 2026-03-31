@@ -34,10 +34,10 @@ import java.util.stream.Collectors;
         description = "Output list of twin relatives for each input. Output twin will be loaded by head and filtered by statusIds")
 public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
 
-    @FeaturerParam(name = "Status ids", description = "", order = 1)
+    @FeaturerParam(name = "Status ids", description = "", order = 1, optional = true)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "Exclude", description = "", order = 2)
+    @FeaturerParam(name = "Exclude", description = "", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Lazy

@@ -35,11 +35,11 @@ public class FieldTyperBaseUserField extends FieldTyper<FieldDescriptorUser, Fie
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUserSingle value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         UUID fieldId = value.getTwinClassField().getId();
         if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER)) {
-            twin.setAssignerUser(value.getUser());
-            twin.setAssignerUserId(value.getUser() != null ? value.getUser().getId() : null);
+            twin.setAssignerUser(value.getValue());
+            twin.setAssignerUserId(value.getValue() != null ? value.getValue().getId() : null);
         } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_OWNER_USER)) {
-            twin.setOwnerUser(value.getUser());
-            twin.setOwnerUserId(value.getUser() != null ? value.getUser().getId() : null);
+            twin.setOwnerUser(value.getValue());
+            twin.setOwnerUserId(value.getValue() != null ? value.getValue().getId() : null);
         } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_CREATOR_USER)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField().logShort() + " can not be changed by field typer");
         } else {
@@ -53,11 +53,11 @@ public class FieldTyperBaseUserField extends FieldTyper<FieldDescriptorUser, Fie
         TwinEntity twin = twinField.getTwin();
         UUID fieldId = twinField.getTwinClassField().getId();
         if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER)) {
-            return new FieldValueUserSingle(twinField.getTwinClassField()).setUser(twin.getAssignerUser());
+            return new FieldValueUserSingle(twinField.getTwinClassField()).setValue(twin.getAssignerUser());
         } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_CREATOR_USER)) {
-            return new FieldValueUserSingle(twinField.getTwinClassField()).setUser(twin.getCreatedByUser());
+            return new FieldValueUserSingle(twinField.getTwinClassField()).setValue(twin.getCreatedByUser());
         } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_OWNER_USER)) {
-            return new FieldValueUserSingle(twinField.getTwinClassField()).setUser(twin.getOwnerUser());
+            return new FieldValueUserSingle(twinField.getTwinClassField()).setValue(twin.getOwnerUser());
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                 "Field [" + twinField.getTwinClassField().logShort() + "] is not a supported base field for " + twin.logNormal());

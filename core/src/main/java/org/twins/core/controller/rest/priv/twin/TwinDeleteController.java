@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_DELETE})
+@ProtectedBy(Permissions.TWIN_DELETE)
 public class TwinDeleteController extends ApiController {
     private final TwinEraserService twinEraserService;
     private final DraftRestDTOMapper draftRestDTOMapper;
@@ -45,7 +45,7 @@ public class TwinDeleteController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
+                    @Schema(implementation = DraftRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinDeleteV1(

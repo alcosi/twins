@@ -42,9 +42,9 @@ public class TwinStatusSearchService {
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(), TwinStatusEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinStatusEntity.Fields.id),
-                checkUuidIn(search.getIdExcludeList(), true, true, TwinStatusEntity.Fields.id),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, true, TwinStatusEntity.Fields.twinClassId),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, true, TwinStatusEntity.Fields.twinClassId),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinStatusEntity.Fields.id),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinStatusEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinStatusEntity.Fields.twinClassId),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
                 joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
