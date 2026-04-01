@@ -125,7 +125,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             var url = STR."\{fileHandlerUri.extract(properties)}/api/delete";
             var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
-            var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
+            var resp = restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
