@@ -32,6 +32,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.bulk.HibernateBulkInserter;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -51,6 +52,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     final AuthService authService;
     private final I18nService i18nService;
     final CacheManager cacheManager;
+    final HibernateBulkInserter hibernateBulkInserter;
 
     @Lazy
     @Autowired
@@ -304,6 +306,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     UUID i18nId = UuidUtils.generate();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
+                            .setId(UuidUtils.generate())
                             .setBusinessAccountId(businessAccountId)
                             .setDataListId(dataListId)
                             .setCustom(true)
@@ -325,8 +328,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 i18nService.createI18nAndTranslationsLight(translationsToSave);
 
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
-                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
-                savedOptions.forEach(options::add);
+                hibernateBulkInserter.insertIgnore(optionsForSave, List.of(DataListOptionEntity.Fields.dataListId, DataListOptionEntity.Fields.externalId, DataListOptionEntity.Fields.businessAccountId));
+
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
                 String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));
