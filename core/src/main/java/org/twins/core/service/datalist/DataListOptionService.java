@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
@@ -32,7 +33,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.bulk.HibernateBulkInserter;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -52,13 +52,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     final AuthService authService;
     private final I18nService i18nService;
     final CacheManager cacheManager;
-    final HibernateBulkInserter hibernateBulkInserter;
 
     @Lazy
     @Autowired
     private DataListService dataListService;
     @Autowired
     private DataListOptionSearchService dataListOptionSearchService;
+    @Autowired
+    private AdvancedEntityManager advancedEntityManager;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -122,7 +123,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified())) {
+            if (dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified()) {
                 dataListOption.setCustom(true);
                 dataListOption.setBusinessAccountId(apiUser.getBusinessAccountId());
             } else {
@@ -328,7 +329,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 i18nService.createI18nAndTranslationsLight(translationsToSave);
 
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
-                hibernateBulkInserter.insertIgnore(optionsForSave, List.of(DataListOptionEntity.Fields.dataListId, DataListOptionEntity.Fields.externalId, DataListOptionEntity.Fields.businessAccountId));
+                advancedEntityManager.insertOnConflictDoNothing(optionsForSave, List.of(DataListOptionEntity.Fields.dataListId, DataListOptionEntity.Fields.externalId, DataListOptionEntity.Fields.businessAccountId));
 
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
