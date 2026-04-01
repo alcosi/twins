@@ -122,7 +122,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
             var properties = extractProperties(params, false);
-            var url = STR."\{fileHandlerUri.extract(properties)}/api/delete/synced";
+            var url = STR."\{fileHandlerUri.extract(properties)}/api/delete";
             var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
