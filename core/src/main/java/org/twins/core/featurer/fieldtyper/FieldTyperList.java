@@ -140,8 +140,15 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             return new ValidationResult(false, fieldValue.getTwinClassField().logNormal() + " multiply options are not allowed");
         }
         UUID fieldListId = dataListId.extract(properties);
-        dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
         var ret = new ValidationResult(true);
+        try {
+            dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
+        } catch (ServiceException e) {
+            ret
+                    .setValid(false)
+                    .addMessage(e.getMessage());
+        }
+
         for (var option : fieldValue.getItemsOrEmpty()) {
             // Skip incomplete options (created with externalId but not yet resolved from DB)
             if (option.getId() == null) {
