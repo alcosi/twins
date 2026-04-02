@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
@@ -57,6 +58,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     private DataListService dataListService;
     @Autowired
     private DataListOptionSearchService dataListOptionSearchService;
+    @Autowired
+    private AdvancedEntityManager advancedEntityManager;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -120,7 +123,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified())) {
+            if (dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified()) {
                 dataListOption.setCustom(true);
                 dataListOption.setBusinessAccountId(apiUser.getBusinessAccountId());
             } else {
@@ -304,6 +307,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     UUID i18nId = UuidUtils.generate();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
+                            .setId(UuidUtils.generate())
                             .setBusinessAccountId(businessAccountId)
                             .setDataListId(dataListId)
                             .setCustom(true)
@@ -325,8 +329,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 i18nService.createI18nAndTranslationsLight(translationsToSave);
 
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
-                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
-                savedOptions.forEach(options::add);
+                advancedEntityManager.insertOnConflictDoNothing(optionsForSave, List.of(DataListOptionEntity.Fields.dataListId, DataListOptionEntity.Fields.externalId, DataListOptionEntity.Fields.businessAccountId));
+
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
                 String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));

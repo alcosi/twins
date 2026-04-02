@@ -130,7 +130,6 @@ dependencies {
     implementation 'org.jasypt:jasypt:1.9.3'
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.01-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
-    implementation 'io.github.breninsul:synchronization-starter:1.0.3'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     runtimeOnly 'io.grpc:grpc-netty-shaded:1.76.0'
     implementation 'io.grpc:grpc-protobuf:1.76.0'

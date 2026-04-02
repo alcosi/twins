@@ -16,7 +16,7 @@ import java.util.Properties;
 public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch> extends FieldTyper<D, T, TwinFieldStorageSimpleNonIndex, A> {
 
     protected void detectValueChange(TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity, TwinChangesCollector twinChangesCollector, String newValue) {
-        if (twinChangesCollector.collectIfChanged(twinFieldSimpleNonIndexedEntity, "field[" + twinFieldSimpleNonIndexedEntity.getTwinClassField().getKey() + "]", twinFieldSimpleNonIndexedEntity.getValue(), newValue)) {
+        if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldSimpleNonIndexedEntity, "field[" + twinFieldSimpleNonIndexedEntity.getTwinClassField().getKey() + "]", twinFieldSimpleNonIndexedEntity.getValue(), newValue)) {
             if (twinChangesCollector.isHistoryCollectorEnabled()) {
                 twinChangesCollector
                         .getHistoryCollector(twinFieldSimpleNonIndexedEntity.getTwin())
