@@ -23,7 +23,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.*;
-import org.twins.core.enums.featurer.storager.Format;
 import org.twins.core.enums.featurer.storager.StorageType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
@@ -180,7 +179,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                                 Integer.parseInt(taskParams.get("width")),
                                 Integer.parseInt(taskParams.get("height")),
                                 taskParams.get("type"),
-                                Format.valueOf((taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
+                                (taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toLowerCase(),
                                 Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
                         ));
                     }
@@ -230,7 +229,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     }
 
     private String getMimeSubType(String mimeType) {
-        return mimeType.split("/")[1].toUpperCase();
+        return mimeType.split("/")[1];
     }
 
     private String prepareObjectLink(String objectLink, Properties properties) throws ServiceException {
