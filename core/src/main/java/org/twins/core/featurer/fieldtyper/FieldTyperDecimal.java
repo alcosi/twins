@@ -116,11 +116,6 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
     @Override
     protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueText fieldValue) throws ServiceException {
         var ret = new ValidationResult(true);
-
-        if (fieldValue.isUndefined() || fieldValue.isCleared()) {
-            return ret;
-        }
-
         try {
             processAndFormatValue(properties, fieldValue);
         } catch (ServiceException e) {
