@@ -250,7 +250,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     }
 
     private String extractDirsToDelete(String fileKey, Properties properties) throws ServiceException {
-        //extracting only relative path (ex. {businessAccountId}/{fileId}/)
+        //extracting only relative path (ex. {businessAccountId}/{fileId})
 
         var parts = new ArrayList<>(List.of(fileKey.split("/")));
         var fileName = parts.removeLast();
@@ -263,13 +263,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 .replace("{businessAccountId}", businessAccountId)
                 .replace("{fileId}", fileId);
 
-        dirs = addSlashAtTheEndIfNeeded(dirs);
+        dirs = deleteSlashAtTheStartIfNeeded(dirs);
+        dirs = deleteSlashAtTheEndIfNeeded(dirs);
 
-        if (dirs.startsWith("/")) {
-            return dirs.substring(1);
-        } else {
-            return dirs;
-        }
+        return dirs;
     }
 
     private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, InputStream fileStream, String fileName, Long fileSize) {
