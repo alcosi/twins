@@ -98,7 +98,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             twin = twinService.findEntitySafe(twinId);
             twinClass = twin.getTwinClass();
             attachmentService.loadAttachmentsCount(twin);
-            twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
+            if (CollectionUtils.isNotEmpty(cud.getCreateList())) {
+                twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
+            }
         } else {
             twinClass = twinClassService.findEntitySafe(twinClassId);
             //todo check permission for class
