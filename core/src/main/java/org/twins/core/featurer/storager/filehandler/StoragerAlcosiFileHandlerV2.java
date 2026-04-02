@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.io.TikaInputStream;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -210,12 +211,14 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var body = resp.getBody();
                 var modifications = new ArrayList<AttachmentModifications>();
 
-                for (var modification : body.modifications()) {
-                    modifications.add(new AttachmentModifications(
-                            UUID.fromString(fileId),
-                            modification.type(),
-                            prepareObjectLink(modification.modificationUrl(), properties)
-                    ));
+                if(CollectionUtils.isNotEmpty(body.modifications())) {
+                    for (var modification : body.modifications()) {
+                        modifications.add(new AttachmentModifications(
+                                UUID.fromString(fileId),
+                                modification.type(),
+                                prepareObjectLink(modification.modificationUrl(), properties)
+                        ));
+                    }
                 }
 
                 return new AddedFileKey(prepareObjectLink(body.originalUrl(), properties), fileSize, modifications);
