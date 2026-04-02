@@ -18,8 +18,8 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.usergroup.UserGroupInvolveActAsUserSpecification.checkUuid;
 
 
 @Slf4j
@@ -32,13 +32,14 @@ public class UserGroupInvolveActAsUserSearchService {
 
     public Specification<UserGroupInvolveActAsUserEntity> createUserGroupInvolveActAsUserEntitySearchSpecification(UserGroupInvolveActAsUserSearchDTOv1 userGroupInvolveActAsUserSearch) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
-        return checkUuid(UserGroupInvolveActAsUserEntity.Fields.domainId, domainId)
-                .and(checkUuidIn(userGroupInvolveActAsUserSearch.getIdList(), false, false, UserGroupInvolveActAsUserEntity.Fields.id))
-                .and(checkUuidIn(userGroupInvolveActAsUserSearch.getIdExcludeList(), true, true, UserGroupInvolveActAsUserEntity.Fields.id))
-                .and(checkUuidIn(userGroupInvolveActAsUserSearch.getMachineUserIdList(), false, false, UserGroupInvolveActAsUserEntity.Fields.machineUserId))
-                .and(checkUuidIn(userGroupInvolveActAsUserSearch.getMachineUserIdExcludeList(), true, true, UserGroupInvolveActAsUserEntity.Fields.machineUserId))
-                .and(checkUuidIn(userGroupInvolveActAsUserSearch.getUserGroupIdList(), false, false, UserGroupInvolveActAsUserEntity.Fields.userGroupId))
-                .and(checkUuidIn(userGroupInvolveActAsUserSearch.getUserGroupIdExcludeList(), true, true, UserGroupInvolveActAsUserEntity.Fields.userGroupId));
+        return Specification.allOf(
+                checkFieldUuid(domainId, UserGroupInvolveActAsUserEntity.Fields.domainId),
+                checkUuidIn(userGroupInvolveActAsUserSearch.getIdList(), false, false, UserGroupInvolveActAsUserEntity.Fields.id),
+                checkUuidIn(userGroupInvolveActAsUserSearch.getIdExcludeList(), true, true, UserGroupInvolveActAsUserEntity.Fields.id),
+                checkUuidIn(userGroupInvolveActAsUserSearch.getMachineUserIdList(), false, false, UserGroupInvolveActAsUserEntity.Fields.machineUserId),
+                checkUuidIn(userGroupInvolveActAsUserSearch.getMachineUserIdExcludeList(), true, true, UserGroupInvolveActAsUserEntity.Fields.machineUserId),
+                checkUuidIn(userGroupInvolveActAsUserSearch.getUserGroupIdList(), false, false, UserGroupInvolveActAsUserEntity.Fields.userGroupId),
+                checkUuidIn(userGroupInvolveActAsUserSearch.getUserGroupIdExcludeList(), true, true, UserGroupInvolveActAsUserEntity.Fields.userGroupId));
     }
 
     public PaginationResult<UserGroupInvolveActAsUserEntity> findUserGroupInvolveActAsUsers(UserGroupInvolveActAsUserSearchDTOv1 userGroupInvolveActAsUserSearch, SimplePagination pagination) throws ServiceException {

@@ -36,7 +36,9 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
 
     private final UserGroupInvolveActAsUserRepository repository;
     private final AuthService authService;
+    @Lazy
     private final UserService userService;
+    @Lazy
     private final UserGroupService userGroupService;
 
     @Override

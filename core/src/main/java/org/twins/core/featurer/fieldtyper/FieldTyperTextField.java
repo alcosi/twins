@@ -7,11 +7,9 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
-import io.github.breninsul.synchronizationstarter.service.SynchronizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import java.util.UUID;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
@@ -47,11 +45,6 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
 
-    @Autowired
-    private SynchronizationService syncService;
-
-    private record LockKey(UUID ownerId, UUID fieldId) {}
-
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         FieldDescriptorText descriptorText = new FieldDescriptorText()
@@ -79,37 +72,24 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     }
 
     private void checkForUniqueness(TwinEntity twin, FieldValueText value) throws ServiceException {
-        UUID ownerId = switch (twin.getTwinClass().getOwnerType()) {
-            case USER, DOMAIN_USER -> twin.getOwnerUserId();
-            case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> twin.getOwnerBusinessAccountId();
-            default -> null;
-        };
-        UUID fieldId = value.getTwinClassFieldId();
-        LockKey lockKey = new LockKey(ownerId, fieldId);
+        OwnerType ownerType = twin.getTwinClass().getOwnerType();
 
-        syncService.before(lockKey);
-        try {
-            OwnerType ownerType = twin.getTwinClass().getOwnerType();
-
-            switch (ownerType) {
-                case USER, DOMAIN_USER -> {
-                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserIdExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getOwnerUserId(), twin.getId())) {
-                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
-                    }
-                }
-                case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> {
-                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountIdExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getOwnerBusinessAccountId(), twin.getId())) {
-                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
-                    }
-                }
-                default -> {
-                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getId())) {
-                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
-                    }
+        switch (ownerType) {
+            case USER, DOMAIN_USER -> {
+                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserIdExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getOwnerUserId(), twin.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
                 }
             }
-        } finally {
-            syncService.after(lockKey);
+            case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> {
+                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountIdExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getOwnerBusinessAccountId(), twin.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
+                }
+            }
+            default -> {
+                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
+                }
+            }
         }
     }
 

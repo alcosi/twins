@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -112,7 +113,24 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
         return TwinSpecification.checkFieldDecimal(search);
     }
 
+    @Override
+    protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueText fieldValue) throws ServiceException {
+        var ret = new ValidationResult(true);
+        try {
+            processAndFormatValue(properties, fieldValue);
+        } catch (ServiceException e) {
+            ret.setValid(false).addMessage(e.getMessage());
+        }
+
+        return ret;
+    }
+
     private BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldDecimal, FieldValueText value) throws ServiceException {
+        return new BigDecimal(processAndFormatValue(properties, value));
+    }
+
+    private String processAndFormatValue(Properties properties, FieldValueText value) throws ServiceException {
+        TwinClassFieldEntity twinClassField = value.getTwinClassField();
         var minValue = min.extract(properties);
         var maxValue = max.extract(properties);
         var stepValue = step.extract(properties);
@@ -190,13 +208,13 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
             }
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    twinFieldDecimal.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
+                    twinClassField.easyLog(EasyLoggable.Level.NORMAL) +
                             " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
                             " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
                             " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
         }
 
-        return new BigDecimal(returnValue);
+        return returnValue;
     }
 }

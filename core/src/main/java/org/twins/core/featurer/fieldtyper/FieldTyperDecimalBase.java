@@ -37,7 +37,7 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
     }
 
     protected void detectValueChange(TwinFieldDecimalEntity twinFieldDecimalEntity, TwinChangesCollector twinChangesCollector, BigDecimal newValue) {
-        if (twinChangesCollector.collectIfChanged(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
+        if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
             addHistoryContext(twinChangesCollector,  twinFieldDecimalEntity, newValue);
             twinFieldDecimalEntity.setValue(newValue);
         }
