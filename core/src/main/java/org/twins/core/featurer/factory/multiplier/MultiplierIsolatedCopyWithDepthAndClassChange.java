@@ -7,11 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamMap;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -122,12 +124,21 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
     public static final FeaturerParamMap linksReplaceMap = new FeaturerParamMap("linksReplaceMap");
 
     /**
-     * Additional twins to include via link traversal (beyond the hierarchy search).
-     * Map of linkId → boolean: true means "find twins where hierarchy twins are src",
-     * false means "find twins where hierarchy twins are dst".
+     * Link type IDs used to pull in <b>destination</b> twins: for each ID, the search finds twins that appear
+     * as {@code dst} on a link of that type whose {@code src} is one of the twins already in the collected hierarchy.
+     * Together with {@link #dstTwinsByLinkIds} this extends the copy scope beyond the pure parent/child tree.
      */
-    @FeaturerParam(name = "Linked twins by link id", description = "Map of link id and boolean param (True -> search twins as src. False -> search twins as dst)", optional = true)
-    public static final FeaturerParamMap linkedTwinsByLinkIdMap = new FeaturerParamMap("linkedTwinsByLinkIdMap");
+    @FeaturerParam(name = "Src twins by link ids", description = "Link type IDs: include dst twins of these links when the link src is in the current twin set (optional).", optional = true)
+    public static final FeaturerParamUUIDSet srcTwinsByLinkIds = new FeaturerParamUUIDSet("srcTwinsByLinkIds");
+
+    /**
+     * Link type IDs used to pull in <b>source</b> twins: for each ID, the search finds twins that appear
+     * as {@code src} on a link of that type whose {@code dst} is one of the twins already in the collected hierarchy.
+     * Pairs with {@link #srcTwinsByLinkIds} for symmetric “neighbour” discovery along configured links.
+     */
+    @FeaturerParam(name = "Dst twins by link ids", description = "Link type IDs: include src twins of these links when the link dst is in the current twin set (optional).", optional = true)
+    public static final FeaturerParamUUIDSet dstTwinsByLinkIds = new FeaturerParamUUIDSet("dstTwinsByLinkIds");
+
 
     private final TwinSearchService twinSearchService;
     private final TwinLinkService twinLinkService;
@@ -177,28 +188,11 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         }
 
         // ── Step 2: Collect the full set of original twins ────────────────
-        // 2a. Children via hierarchy search (ltree descendant query, bounded by depth)
-        var search = new BasicSearch().setCheckViewPermission(false);
-        search.setHierarchyChildrenSearch(
-                new HierarchySearch()
-                        .setDepth(depth)
-                        .setIdList(copyContextMap.keySet())
-        );
-
-        if (!childrenStatusIds.isEmpty()) {
-            search.addStatusId(childrenStatusIds, false);
-        }
-
-        // 2b. Links within the hierarchy (pre-loaded to avoid N+1 later)
         var linksData = findLinksData(copyContextMap.keySet(), linkReplaceMap, childrenStatusIds);
         var origTwinLinksGrouped = new KitGrouped<>(linksData.origTwinLinks(), TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
 
-        // 2c. Hierarchy children
-        var origTwinsChildren = twinSearchService.findTwins(search);
-        origTwins.addAll(origTwinsChildren);
-
-        // 2d. Twins reachable via configured links (outside the hierarchy tree)
-        origTwins.addAll(findLinkedTwins(origTwins, extractLinkedTwinsByLinkIdMap(properties), childrenStatusIds));
+        origTwins.addAll(findTwinsByHierarchy(depth, copyContextMap, childrenStatusIds));
+        origTwins.addAll(findTwinsByLinks(origTwins, childrenStatusIds, properties));
 
         // ── Step 3: Filter — only twins whose class is in the replace map are eligible ──
         var twinsToCopyIds = origTwins.stream()
@@ -400,21 +394,6 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                 ));
     }
 
-    /** Parses {@code linkedTwinsByLinkIdMap} param into a typed UUID→Boolean map. */
-    private Map<UUID, Boolean> extractLinkedTwinsByLinkIdMap(Properties properties) {
-        var extracted = linkedTwinsByLinkIdMap.extract(properties);
-
-        if (extracted.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        return extracted.entrySet().stream()
-                .collect(Collectors.toMap(
-                        entry -> UUID.fromString(entry.getKey()),
-                        entry -> Boolean.parseBoolean(entry.getValue())
-                ));
-    }
-
     /**
      * Batch-loads all original links within the given hierarchies whose link type is in
      * {@code linkReplaceMap}, plus the replacement {@link LinkEntity} objects.
@@ -435,37 +414,70 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
     }
 
     /**
-     * Discovers additional twins that are connected to the hierarchy twins via configured links
-     * (the {@code linkedTwinsByLinkIdMap} parameter), but live outside the hierarchy tree.
-     * These twins are candidates for copying alongside the hierarchy.
-     * Twins that are already part of the hierarchy are excluded from the result.
+     * Loads twins under the factory input roots up to the configured hierarchy depth.
+     *
+     * <p>Builds a {@link BasicSearch} with {@link HierarchySearch} over {@code copyContextMap}'s key set
+     * (the input twin IDs). When {@code childrenStatusIds} is non-empty, the same status filter as elsewhere
+     * in this multiplier is applied.</p>
      */
-    private Set<TwinEntity> findLinkedTwins(Collection<TwinEntity> hierarchyTwins, Map<UUID, Boolean> linkMap, Set<UUID> childrenStatusIds) throws ServiceException {
-        if (linkMap == null || hierarchyTwins.isEmpty()) {
+    private Set<TwinEntity> findTwinsByHierarchy(Integer depth, LinkedHashMap<UUID, CopyContext> copyContextMap, Set<UUID> childrenStatusIds) throws ServiceException {
+        var search = new BasicSearch().setCheckViewPermission(false);
+
+        search.setHierarchyChildrenSearch(
+                new HierarchySearch()
+                        .setDepth(depth)
+                        .setIdList(copyContextMap.keySet())
+        );
+
+        if (CollectionUtils.isNotEmpty(childrenStatusIds)) {
+            search.addStatusId(childrenStatusIds, false);
+        }
+
+        return new HashSet<>(twinSearchService.findTwins(search));
+    }
+
+    /**
+     * Expands the collected twin set with twins reachable through configured link types from the current hierarchy.
+     *
+     * <p>For each link ID in {@code srcTwinsByLinkIds}, finds twins on the <b>destination</b> side of that link
+     * where one of {@code hierarchyTwinIds} is the source ({@code addLinkDstTwinsId}).</p>
+     *
+     * <p>For each link ID in {@code dstTwinsByLinkIds}, finds twins on the <b>source</b> side of that link
+     * where one of {@code hierarchyTwinIds} is the destination ({@code addLinkSrcTwinsId}).</p>
+     *
+     * <p>If both link-ID sets are empty, returns an empty set without querying. Optional {@code childrenStatusIds}
+     * narrow results the same way as for hierarchy search.</p>
+     */
+    private Set<TwinEntity> findTwinsByLinks(Collection<TwinEntity> hierarchyTwins, Set<UUID> childrenStatusIds, Properties properties) throws ServiceException {
+        if (hierarchyTwins.isEmpty()) {
             return Collections.emptySet();
         }
 
-        var hierarchyTwinIds = hierarchyTwins.stream()
-                .map(TwinEntity::getId)
-                .collect(Collectors.toSet());
-
-        var linkedSearch = new BasicSearch().setCheckViewPermission(false);
-        for (var link : linkMap.entrySet()) {
-            if (link.getValue()) {
-                linkedSearch
-                        .addLinkSrcTwinsId(link.getKey(), hierarchyTwinIds, false, true);
-            } else {
-                linkedSearch
-                        .addLinkDstTwinsId(link.getKey(), hierarchyTwinIds, false, true);
-            }
+        var srcTwinsByLinks = srcTwinsByLinkIds.extract(properties);
+        var dstTwinsByLinks = dstTwinsByLinkIds.extract(properties);
+        if (srcTwinsByLinks.isEmpty() && dstTwinsByLinks.isEmpty()) {
+            return Collections.emptySet();
         }
 
-        if (!childrenStatusIds.isEmpty()) {
-            linkedSearch.addStatusId(childrenStatusIds, false);
+        Set<UUID> hierarchyTwinIds = new HashSet<>(hierarchyTwins.size());
+        for (var twin : hierarchyTwins) {
+            hierarchyTwinIds.add(twin.getId());
         }
 
-        var linkedTwins = new HashSet<>(twinSearchService.findTwins(linkedSearch));
-        linkedTwins.removeIf(twin -> hierarchyTwinIds.contains(twin.getId()));
-        return linkedTwins;
+        var search = new BasicSearch().setCheckViewPermission(false);
+        for (var link : srcTwinsByLinks) {
+            search.addLinkDstTwinsId(link, hierarchyTwinIds, false, true);
+        }
+        for (var link : dstTwinsByLinks) {
+            search.addLinkSrcTwinsId(link, hierarchyTwinIds, false, true);
+        }
+
+        if (CollectionUtils.isNotEmpty(childrenStatusIds)) {
+            search.addStatusId(childrenStatusIds, false);
+        }
+
+        return new HashSet<>(twinSearchService.findTwins(search));
     }
+
+
 }
