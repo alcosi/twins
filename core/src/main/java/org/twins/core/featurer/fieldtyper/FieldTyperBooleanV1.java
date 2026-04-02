@@ -64,13 +64,9 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
 
     @Override
     protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueBoolean fieldValue) throws ServiceException {
-        if (fieldValue.isUndefined() || fieldValue.isCleared()) {
-            if (fieldValue.getTwinClassField().getRequired()) {
-                return new ValidationResult(false, fieldValue.getTwinClassField().logNormal() + " value is required");
-            }
-            return ValidationResult.VALID;
+        if (fieldValue.getTwinClassField().getRequired() && (fieldValue.isUndefined() || fieldValue.isCleared())) {
+            return new ValidationResult(false, fieldValue.getTwinClassField().logNormal() + " value is required");
         }
-        // value should be either Boolean.TRUE or Boolean.FALSE
         return ValidationResult.VALID;
     }
 
