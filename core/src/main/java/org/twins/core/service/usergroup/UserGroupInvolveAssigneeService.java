@@ -18,6 +18,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
 import org.twins.core.service.auth.AuthService;
@@ -26,7 +30,6 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
-import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeSave;
 import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
 
 import java.sql.Timestamp;
@@ -35,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -97,13 +101,76 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         return true;
     }
 
+    @Override
+    public boolean validateEntities(Collection<UserGroupInvolveAssigneeEntity> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
+        switch (entityValidateMode) {
+            case beforeSave -> {
+                try {
+                    Kit<UserGroupEntity, UUID> userGroupKit = userGroupService.findEntitiesSafe(
+                            entities.stream()
+                                    .map(UserGroupInvolveAssigneeEntity::getUserGroupId)
+                                    .toList()
+                    );
+                    for (var entity : entities) {
+                        entity.setUserGroup(userGroupKit.get(entity.getUserGroupId()));
+                    }
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("List contains invalid userGroupId");
+                }
+
+                try {
+                    Kit<TwinClassEntity, UUID> twinClassKit = twinClassService.findEntitiesSafe(
+                            entities.stream()
+                                    .map(UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId)
+                                    .toList()
+                    );
+                    for (var entity : entities) {
+                        entity.setTwinClass(twinClassKit.get(entity.getPropagationByTwinClassId()));
+                    }
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("List contains invalid propagationByTwinClassId");
+                }
+
+                try {
+                    List<UUID> twinStatusIds = entities.stream()
+                            .map(UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId)
+                            .filter(Objects::nonNull)
+                            .toList();
+                    if (!twinStatusIds.isEmpty()) {
+                        Kit<TwinStatusEntity, UUID> twinStatusKit = twinStatusService.findEntitiesSafe(twinStatusIds);
+                        for (var entity : entities) {
+                            if (entity.getPropagationByTwinStatusId() != null) {
+                                entity.setTwinStatus(twinStatusKit.get(entity.getPropagationByTwinStatusId()));
+                            }
+                        }
+                    }
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("List contains invalid propagationByTwinStatusId");
+                }
+
+                try {
+                    Kit<UserEntity, UUID> userKit = userService.findEntitiesSafe(
+                            entities.stream()
+                                    .map(UserGroupInvolveAssigneeEntity::getCreatedByUserId)
+                                    .toList()
+                    );
+                    for (var entity : entities) {
+                        entity.setCreatedByUser(userKit.get(entity.getCreatedByUserId()));
+                    }
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("List contains invalid createdById");
+                }
+            }
+        }
+        return true;
+    }
+
+
     @Transactional(rollbackFor = Throwable.class)
     public List<UserGroupInvolveAssigneeEntity> createUserGroupInvolveAssignee(Collection<UserGroupInvolveAssigneeCreate> entities) throws ServiceException {
         if (CollectionUtils.isEmpty(entities)) {
             return Collections.emptyList();
         }
-
-        validateDomainIds(entities);
 
         UUID currentUserId = authService.getApiUser().getUserId();
         Timestamp currentTime = Timestamp.from(Instant.now());
@@ -136,8 +203,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
                         .toList()
         );
 
-        validateDomainIds(entities);
-
         ChangesHelperMulti<UserGroupInvolveAssigneeEntity> changes = new ChangesHelperMulti<>();
 
         for (UserGroupInvolveAssigneeUpdate userGroupInvolveAssignee : entities) {
@@ -159,34 +224,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
         updateSafe(changes);
         return entitiesKit.getList();
-    }
-
-    private void validateDomainIds(Collection<? extends UserGroupInvolveAssigneeSave> entities) throws ServiceException {
-        List<UUID> userGroupIds = new ArrayList<>();
-        List<UUID> twinClassIds = new ArrayList<>();
-        List<UUID> twinStatusIds = new ArrayList<>();
-
-        for (UserGroupInvolveAssigneeSave entity : entities) {
-            if (entity.getUserGroupId() != null) {
-                userGroupIds.add(entity.getUserGroupId());
-            }
-            if (entity.getPropagationByTwinClassId() != null) {
-                twinClassIds.add(entity.getPropagationByTwinClassId());
-            }
-            if (entity.getPropagationByTwinStatusId() != null) {
-                twinStatusIds.add(entity.getPropagationByTwinStatusId());
-            }
-        }
-
-        if (!userGroupIds.isEmpty()) {
-            userGroupService.findEntitiesSafe(userGroupIds);
-        }
-        if (!twinClassIds.isEmpty()) {
-            twinClassService.findEntitiesSafe(twinClassIds);
-        }
-        if (!twinStatusIds.isEmpty()) {
-            twinStatusService.findEntitiesSafe(twinStatusIds);
-        }
     }
 
     @Transactional
