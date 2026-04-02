@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -59,6 +60,18 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
     @Override
     protected FieldDescriptorBoolean getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new FieldDescriptorBoolean().checkboxType(checkboxType.extract(properties));
+    }
+
+    @Override
+    protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueBoolean fieldValue) throws ServiceException {
+        if (fieldValue.isUndefined() || fieldValue.isCleared()) {
+            if (fieldValue.getTwinClassField().getRequired()) {
+                return new ValidationResult(false, fieldValue.getTwinClassField().logNormal() + " value is required");
+            }
+            return ValidationResult.VALID;
+        }
+        // value should be either Boolean.TRUE or Boolean.FALSE
+        return ValidationResult.VALID;
     }
 
     @Override
