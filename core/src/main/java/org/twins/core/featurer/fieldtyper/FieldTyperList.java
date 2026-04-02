@@ -146,7 +146,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         } catch (ServiceException e) {
             ret
                     .setValid(false)
-                    .addMessage(e.getMessage());
+                    .addMessage(fieldValue.getTwinClassField().logNormal() + " " + e.getMessage());
         }
 
         for (var option : fieldValue.getItemsOrEmpty()) {
