@@ -41,7 +41,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
@@ -424,18 +423,15 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     continue;
                 }
                 if (factoryTriggerEntity.getAsync()) {
-                    TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());
                     factoryContext.getPostponedTriggers().add(
                             targetTwin.getId(),
                             targetTwin.getTwinStatusId(),
-                            factoryTriggerEntity.getTwinTriggerId(),
-                            twinTriggerEntity.getJobTwinClassId()
+                            factoryTriggerEntity.getTwinTriggerId()
                     );
                 } else {
                     log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
                     TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());
-                    TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-                    twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, null, null);
+                    twinTriggerService.runTrigger(twinTriggerEntity, null, targetTwin, null, null);
                 }
             }
         }

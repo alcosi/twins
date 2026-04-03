@@ -62,7 +62,7 @@ public class TwinTriggerRabbitMqSendI18NFieldValueWithLocale extends TwinTrigger
     public static final FeaturerParamString src_locale = new FeaturerParamString("src_locale");
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         String sourceLanguage = src_locale.extract(properties);
 
@@ -82,7 +82,8 @@ public class TwinTriggerRabbitMqSendI18NFieldValueWithLocale extends TwinTrigger
                 apiUser.getBusinessAccountId(),
                 apiUser.getDomainId(),
                 operation.extract(properties),
-                fieldsToTranslate
+                fieldsToTranslate,
+                jobTwinId
         );
 
         ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(

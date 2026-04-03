@@ -17,6 +17,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -41,15 +42,12 @@ public class TwinTriggerRabbitMqSendTwin extends TwinTriggerRabbitMqConnection {
 
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
 
         log.debug("Sending to Rabbit");
         ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TwinTriggerRabbitMqConnection.url.extract(properties));
-
-        String jobTwinIdStr = properties.getProperty("jobTwinId");
-        UUID jobTwinId = jobTwinIdStr != null ? UUID.fromString(jobTwinIdStr) : null;
 
         RabbitMqMessagePayloadTwin payload = new RabbitMqMessagePayloadTwin(
                 twinEntity.getId(),
