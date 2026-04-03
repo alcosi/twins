@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;

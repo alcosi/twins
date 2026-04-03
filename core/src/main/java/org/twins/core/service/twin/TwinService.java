@@ -1909,7 +1909,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (var entry : fields.entrySet()) {
             var twinClassFieldEntity = twinEntity.getTwinClass().getTwinClassFieldKit().get(entry.getKey());
             if (twinClassFieldEntity == null) {
-                invalidFieldIds.put(entry.getKey(), "unknown field");
+                invalidFieldIds.put(entry.getKey(), "field with id[" + entry.getKey() + "] is unknown for twinClass[" + twinEntity.getTwinClass().getId() + "]");
                 continue;
             }
             var fieldValue = entry.getValue();
