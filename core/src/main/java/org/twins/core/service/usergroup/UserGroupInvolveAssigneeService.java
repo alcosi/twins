@@ -11,6 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -18,10 +19,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
 import org.twins.core.service.auth.AuthService;
@@ -38,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -101,64 +97,45 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         return true;
     }
 
+    public void loadUserGroupEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        loadEntities(entities, userGroupService, UserGroupInvolveAssigneeEntity::getUserGroupId, UserGroupInvolveAssigneeEntity::setUserGroup);
+    }
+
+    public void loadTwinClassEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        loadEntities(entities, twinClassService, UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId, UserGroupInvolveAssigneeEntity::setTwinClass);
+    }
+
+    public void loadTwinStatusEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        loadEntities(entities, twinStatusService, UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity::setTwinStatus);
+    }
+
+    public void loadCreatedByUserEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        loadEntities(entities, userService, UserGroupInvolveAssigneeEntity::getCreatedByUserId, UserGroupInvolveAssigneeEntity::setCreatedByUser);
+    }
+
     @Override
     public boolean validateEntities(Collection<UserGroupInvolveAssigneeEntity> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
         switch (entityValidateMode) {
             case beforeSave -> {
                 try {
-                    Kit<UserGroupEntity, UUID> userGroupKit = userGroupService.findEntitiesSafe(
-                            entities.stream()
-                                    .map(UserGroupInvolveAssigneeEntity::getUserGroupId)
-                                    .toList()
-                    );
-                    for (var entity : entities) {
-                        entity.setUserGroup(userGroupKit.get(entity.getUserGroupId()));
-                    }
+                    loadUserGroupEntities(entities);
                 } catch (ServiceException e) {
-                    return logErrorAndReturnFalse("List contains invalid userGroupId");
+                    return logErrorAndReturnFalse("Failed to load user groups");
                 }
-
                 try {
-                    Kit<TwinClassEntity, UUID> twinClassKit = twinClassService.findEntitiesSafe(
-                            entities.stream()
-                                    .map(UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId)
-                                    .toList()
-                    );
-                    for (var entity : entities) {
-                        entity.setTwinClass(twinClassKit.get(entity.getPropagationByTwinClassId()));
-                    }
+                    loadTwinClassEntities(entities);
                 } catch (ServiceException e) {
-                    return logErrorAndReturnFalse("List contains invalid propagationByTwinClassId");
+                    return logErrorAndReturnFalse("Failed to load twin classes");
                 }
-
                 try {
-                    List<UUID> twinStatusIds = entities.stream()
-                            .map(UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId)
-                            .filter(Objects::nonNull)
-                            .toList();
-                    if (!twinStatusIds.isEmpty()) {
-                        Kit<TwinStatusEntity, UUID> twinStatusKit = twinStatusService.findEntitiesSafe(twinStatusIds);
-                        for (var entity : entities) {
-                            if (entity.getPropagationByTwinStatusId() != null) {
-                                entity.setTwinStatus(twinStatusKit.get(entity.getPropagationByTwinStatusId()));
-                            }
-                        }
-                    }
+                    loadTwinStatusEntities(entities);
                 } catch (ServiceException e) {
-                    return logErrorAndReturnFalse("List contains invalid propagationByTwinStatusId");
+                    return logErrorAndReturnFalse("Failed to load twin statuses");
                 }
-
                 try {
-                    Kit<UserEntity, UUID> userKit = userService.findEntitiesSafe(
-                            entities.stream()
-                                    .map(UserGroupInvolveAssigneeEntity::getCreatedByUserId)
-                                    .toList()
-                    );
-                    for (var entity : entities) {
-                        entity.setCreatedByUser(userKit.get(entity.getCreatedByUserId()));
-                    }
+                    loadCreatedByUserEntities(entities);
                 } catch (ServiceException e) {
-                    return logErrorAndReturnFalse("List contains invalid createdById");
+                    return logErrorAndReturnFalse("Failed to load created by users");
                 }
             }
         }
@@ -185,8 +162,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
                     .setCreatedAt(currentTime);
             entitiesToSave.add(entity);
         }
-
-        validateEntitiesAndThrow(entitiesToSave, EntitySmartService.EntityValidateMode.beforeSave);
 
         return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
     }

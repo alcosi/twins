@@ -424,4 +424,25 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         items.forEach(item -> setter.accept(item, state));
     }
+
+    public static <E, K, S extends EntitySecureFindServiceImpl<K>> void loadEntities(
+            Collection<E> srcCollection,
+            S service,
+            Function<E, UUID> getIdFunc,
+            BiConsumer<E, K> setFunc) throws ServiceException {
+        List<UUID> ids = srcCollection.stream()
+                .map(getIdFunc)
+                .filter(Objects::nonNull)
+                .toList();
+        if (ids.isEmpty()) {
+            return;
+        }
+        Kit<K, UUID> kit = service.findEntitiesSafe(ids);
+        for (E item : srcCollection) {
+            UUID id = getIdFunc.apply(item);
+            if (id != null) {
+                setFunc.accept(item, kit.get(id));
+            }
+        }
+    }
 }
