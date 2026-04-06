@@ -253,9 +253,10 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
     @Transactional
     @Modifying
     @Query(value = """
-            UPDATE twin_field_decimal
-            SET value = value + CAST(:delta AS numeric)
-            WHERE twin_id = :twinId AND twin_class_field_id = :twinClassFieldId
+            INSERT INTO twin_field_decimal (id, twin_id, twin_class_field_id, value)
+            VALUES (uuid_generate_v7_custom(), :twinId, :twinClassFieldId, CAST(:delta AS numeric))
+            ON CONFLICT (twin_id, twin_class_field_id)
+            DO UPDATE SET value = twin_field_decimal.value + CAST(:delta AS numeric)
             """, nativeQuery = true)
     Integer incrementValue(@Param("twinId") UUID twinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("delta") BigDecimal delta);
 

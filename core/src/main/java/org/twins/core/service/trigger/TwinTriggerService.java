@@ -51,6 +51,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     private final AuthService authService;
     @Lazy
     private final FeaturerService featurerService;
+    @Lazy
     private final TwinService twinService;
     private final TwinClassService twinClassService;
 
