@@ -10,6 +10,8 @@ package org.twins.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.github.resilience4j.bulkhead.BulkheadRegistry;
+import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
@@ -34,6 +36,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
+import org.twins.core.config.filter.BulkheadFilter;
 import org.twins.core.config.filter.I18nCacheCleanupFilter;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
@@ -101,6 +104,12 @@ public class ApplicationConfig {
     @Bean(name = "i18nCacheCleanupFilter", value = "i18nCacheCleanupFilter")
     public I18nCacheCleanupFilter i18nCacheCleanupFilter() {
         return new I18nCacheCleanupFilter();
+    }
+
+    @Order(4)
+    @Bean(name = "bulkheadFilter", value = "bulkheadFilter")
+    public BulkheadFilter bulkheadFilter(BulkheadRegistry bulkheadRegistry, RateLimiterRegistry rateLimiterRegistry) {
+        return new BulkheadFilter(bulkheadRegistry, rateLimiterRegistry);
     }
     /**
      * Configures a MeterRegistry with common tags applied to all metrics.

@@ -190,8 +190,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     SCHEDULER_IS_NOT_ACTIVE(13201, "scheduler is not active, activate it first"),
     SCHEDULER_IS_NOT_RUNNING(13202, "scheduler is not running, start it first"),
     SCHEDULER_IS_ALREADY_RUNNING(13203, "scheduler is already running, stop it first"),
-    USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect"),
-    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded");
+    USER_SEARCH_CONFIG_INCORRECT(13301, "user search config incorrect"),
+    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(13401, "twin class field condition depth exceeded"),
+    TOO_MANY_REQUESTS(13501, "too many requests", HttpStatus.TOO_MANY_REQUESTS);
 
     private final int code;
     private final String message;
