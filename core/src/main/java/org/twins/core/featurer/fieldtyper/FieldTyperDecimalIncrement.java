@@ -129,16 +129,13 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
         try {
             BigDecimal delta = parseIncrement(rawValue, fieldValue.getTwinClassField());
 
-            // Check negative result for existing twins only
-            if (!twin.isSketch()) {
-                twinService.loadTwinFields(twin);
-                TwinFieldDecimalEntity currentEntity = twin.getTwinFieldDecimalKit().get(fieldValue.getTwinClassFieldId());
-                if (currentEntity != null && currentEntity.getValue() != null) {
-                    BigDecimal resultValue = currentEntity.getValue().add(delta);
-                    boolean allowNegative = Boolean.TRUE.equals(allowNegativeResult.extract(properties));
-                    if (!allowNegative && resultValue.compareTo(BigDecimal.ZERO) < 0) {
-                        return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField()) + " Result would be negative");
-                    }
+            twinService.loadTwinFields(twin);
+            TwinFieldDecimalEntity currentEntity = twin.getTwinFieldDecimalKit().get(fieldValue.getTwinClassFieldId());
+            if (currentEntity != null && currentEntity.getValue() != null) {
+                BigDecimal resultValue = currentEntity.getValue().add(delta);
+                boolean allowNegative = Boolean.TRUE.equals(allowNegativeResult.extract(properties));
+                if (!allowNegative && resultValue.compareTo(BigDecimal.ZERO) < 0) {
+                    return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField()) + " Result would be negative");
                 }
             }
 
