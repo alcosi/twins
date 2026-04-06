@@ -3,10 +3,13 @@ package org.twins.core.dao.validator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.action.TwinAction;
 
 import java.util.UUID;
@@ -50,6 +53,16 @@ public class TwinActionValidatorRuleEntity implements ContainsTwinValidatorSet, 
 
     @Column(name = "action_restriction_reason_id")
     private UUID actionRestrictionReasonId;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private TwinClassEntity twinClass;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private ActionRestrictionReasonEntity actionRestrictionReason;
 
     @Override
     public String easyLog(Level level) {

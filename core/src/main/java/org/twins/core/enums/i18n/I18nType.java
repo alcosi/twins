@@ -47,7 +47,8 @@ public enum I18nType  {
     NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT),
     NOTIFICATION_SCHEMA_NAME("notificationSchemaName","notification schema name", Category.TEXT),
     HISTORY_NOTIFICATION_RECIPIENT_NAME("recipientName", "recipient name", Category.TEXT),
-    HISTORY_NOTIFICATION_RECIPIENT_DESCRIPTION("recipientDescription", "recipient description", Category.TEXT)
+    HISTORY_NOTIFICATION_RECIPIENT_DESCRIPTION("recipientDescription", "recipient description", Category.TEXT),
+    ACTION_RESTRICTION_REASON_DESCRIPTION("actionRestrictionReasonDescription", "Action restriction reason description", Category.TEXT)
     ;
 
     private final String id;

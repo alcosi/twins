@@ -2,10 +2,13 @@ package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.UUID;
 
@@ -31,6 +34,12 @@ public class ActionRestrictionReasonEntity implements EasyLoggable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18nId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private I18nEntity descriptionI18n;
 
     @Override
     public String easyLog(Level level) {
