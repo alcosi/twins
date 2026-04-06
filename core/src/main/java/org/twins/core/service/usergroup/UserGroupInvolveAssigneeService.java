@@ -97,20 +97,36 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         return true;
     }
 
-    public void loadUserGroupEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
-        loadEntities(entities, userGroupService, UserGroupInvolveAssigneeEntity::getUserGroupId, UserGroupInvolveAssigneeEntity::setUserGroup);
+    public void loadUserGroup(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        userGroupService.load(entities,
+                UserGroupInvolveAssigneeEntity::getId,
+                UserGroupInvolveAssigneeEntity::getUserGroupId,
+                UserGroupInvolveAssigneeEntity::getUserGroup,
+                UserGroupInvolveAssigneeEntity::setUserGroup);
     }
 
-    public void loadTwinClassEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
-        loadEntities(entities, twinClassService, UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId, UserGroupInvolveAssigneeEntity::setTwinClass);
+    public void loadTwinClass(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                UserGroupInvolveAssigneeEntity::getId,
+                UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,
+                UserGroupInvolveAssigneeEntity::getTwinClass,
+                UserGroupInvolveAssigneeEntity::setTwinClass);
     }
 
-    public void loadTwinStatusEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
-        loadEntities(entities, twinStatusService, UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity::setTwinStatus);
+    public void loadTwinStatus(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        twinStatusService.load(entities,
+                UserGroupInvolveAssigneeEntity::getId,
+                UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId,
+                UserGroupInvolveAssigneeEntity::getTwinStatus,
+                UserGroupInvolveAssigneeEntity::setTwinStatus);
     }
 
-    public void loadCreatedByUserEntities(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
-        loadEntities(entities, userService, UserGroupInvolveAssigneeEntity::getCreatedByUserId, UserGroupInvolveAssigneeEntity::setCreatedByUser);
+    public void loadCreatedByUser(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        userService.load(entities,
+                UserGroupInvolveAssigneeEntity::getId,
+                UserGroupInvolveAssigneeEntity::getCreatedByUserId,
+                UserGroupInvolveAssigneeEntity::getCreatedByUser,
+                UserGroupInvolveAssigneeEntity::setCreatedByUser);
     }
 
     @Override
@@ -118,22 +134,22 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         switch (entityValidateMode) {
             case beforeSave -> {
                 try {
-                    loadUserGroupEntities(entities);
+                    loadUserGroup(entities);
                 } catch (ServiceException e) {
                     return logErrorAndReturnFalse("Failed to load user groups");
                 }
                 try {
-                    loadTwinClassEntities(entities);
+                    loadTwinClass(entities);
                 } catch (ServiceException e) {
                     return logErrorAndReturnFalse("Failed to load twin classes");
                 }
                 try {
-                    loadTwinStatusEntities(entities);
+                    loadTwinStatus(entities);
                 } catch (ServiceException e) {
                     return logErrorAndReturnFalse("Failed to load twin statuses");
                 }
                 try {
-                    loadCreatedByUserEntities(entities);
+                    loadCreatedByUser(entities);
                 } catch (ServiceException e) {
                     return logErrorAndReturnFalse("Failed to load created by users");
                 }
