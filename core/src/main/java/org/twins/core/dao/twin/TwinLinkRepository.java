@@ -116,4 +116,53 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
               )
             """, nativeQuery = true)
     Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    /**
+     * Forward links whose both endpoints are in {@code twinIds} (membership in the set, no ltree scope).
+     */
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsIn(@Param("twinIds") Collection<UUID> twinIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND src.twin_status_id IN :twinStatusIds
+              AND dst.twin_status_id IN :twinStatusIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndTwinsInStatusIds(@Param("twinIds") Collection<UUID> twinIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND tl.link_id IN :linkIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdIn(@Param("twinIds") Collection<UUID> twinIds, @Param("linkIds") Collection<UUID> linkIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND tl.link_id IN :linkIds
+              AND src.twin_status_id IN :twinStatusIds
+              AND dst.twin_status_id IN :twinStatusIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(@Param("twinIds") Collection<UUID> twinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
 }
