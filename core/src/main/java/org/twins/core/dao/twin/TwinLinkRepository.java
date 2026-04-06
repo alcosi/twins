@@ -123,8 +123,6 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = """
             SELECT tl.*
             FROM twin_link tl
-            JOIN twin src ON tl.src_twin_id = src.id
-            JOIN twin dst ON tl.dst_twin_id = dst.id
             WHERE tl.src_twin_id IN :twinIds
               AND tl.dst_twin_id IN :twinIds
             """, nativeQuery = true)
@@ -145,8 +143,6 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = """
             SELECT tl.*
             FROM twin_link tl
-            JOIN twin src ON tl.src_twin_id = src.id
-            JOIN twin dst ON tl.dst_twin_id = dst.id
             WHERE tl.src_twin_id IN :twinIds
               AND tl.dst_twin_id IN :twinIds
               AND tl.link_id IN :linkIds
