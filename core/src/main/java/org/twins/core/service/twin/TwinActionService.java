@@ -225,7 +225,7 @@ public class TwinActionService {
                         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(actionValidatorRuleEntity.getTwinValidatorKit().getList());
                         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                            if (!twinValidatorEntity.isActive()) {
+                            if (!twinValidatorEntity.getActive()) {
                                 log.info(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " is inactive");
                                 continue;
                             }

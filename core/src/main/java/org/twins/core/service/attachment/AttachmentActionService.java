@@ -85,7 +85,7 @@ public class AttachmentActionService {
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 boolean allRuleValidatorsAreValid = true;
                 for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                    if (!twinValidatorEntity.isActive()) {
+                    if (!twinValidatorEntity.getActive()) {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }
@@ -123,7 +123,7 @@ public class AttachmentActionService {
                 List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                    if (!twinValidatorEntity.isActive()) {
+                    if (!twinValidatorEntity.getActive()) {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                         continue;
                     }
