@@ -132,12 +132,7 @@ public class TwinActionService {
         if (allReasonIds.isEmpty())
             return;
 
-        Kit<ActionRestrictionReasonEntity, UUID> reasonsKit = actionRestrictionReasonService.findEntities(
-                allReasonIds,
-                EntitySmartService.ListFindMode.ifMissedIgnore,
-                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
-                EntitySmartService.EntityValidateMode.afterRead
-        );
+        Kit<ActionRestrictionReasonEntity, UUID> reasonsKit = actionRestrictionReasonService.findEntitiesSafe(allReasonIds);
 
         for (TwinEntity twinEntity : needLoad) {
             Map<TwinAction, ActionRestrictionReasonEntity> actionsRestrictedReasons = new HashMap<>();
