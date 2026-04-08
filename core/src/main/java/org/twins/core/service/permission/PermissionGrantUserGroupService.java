@@ -52,12 +52,7 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean isEntityReadDenied(PermissionGrantUserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getPermissionSchema().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+        return isDomainAccessDenied(entity.getPermissionSchema().getDomainId());
     }
 
     @Override

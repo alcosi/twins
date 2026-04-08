@@ -44,12 +44,7 @@ public class TemplateGeneratorService extends EntitySecureFindServiceImpl<Templa
 
     @Override
     public boolean isEntityReadDenied(TemplateGeneratorEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override

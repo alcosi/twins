@@ -50,12 +50,7 @@ public class NotificationEmailService extends EntitySecureFindServiceImpl<Notifi
 
     @Override
     public boolean isEntityReadDenied(NotificationEmailEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override

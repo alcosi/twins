@@ -158,12 +158,7 @@ public class DataListOptionSearchService extends EntitySecureFindServiceImpl<Dat
 
     @Override
     public boolean isEntityReadDenied(DataListOptionSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(domainId)) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in domain[" + domainId + "]");
-            return true;
-        }
-        return false;
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override

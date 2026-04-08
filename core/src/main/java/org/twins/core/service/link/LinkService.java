@@ -79,13 +79,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
 
     @Override
     public boolean isEntityReadDenied(LinkEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in " + apiUser.getDomain().logNormal());
-            return true;
-        }
-        //todo check permission schema
-        return false;
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override

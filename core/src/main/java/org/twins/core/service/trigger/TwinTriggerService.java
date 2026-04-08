@@ -57,8 +57,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
     @Override
     public boolean isEntityReadDenied(TwinTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId());
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override

@@ -72,13 +72,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
     @Override
     public boolean isEntityReadDenied(TwinAttachmentRestrictionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null
-                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
-            return true;
-        }
-        return false;
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override

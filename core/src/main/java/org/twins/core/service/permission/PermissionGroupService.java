@@ -41,9 +41,7 @@ public class PermissionGroupService extends TwinsEntitySecureFindService<Permiss
 
     @Override
     public boolean isEntityReadDenied(PermissionGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId()))
-            return true;
-        return false;
+        return isDomainAccessDenied(entity.getDomainId());
     }
 
     @Override
