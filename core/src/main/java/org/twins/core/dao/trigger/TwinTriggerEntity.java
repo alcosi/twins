@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -55,6 +56,11 @@ public class TwinTriggerEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FeaturerEntity twinTriggerFeaturer;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity jobTwinClass;
 
     @Override
     public String easyLog(Level level) {

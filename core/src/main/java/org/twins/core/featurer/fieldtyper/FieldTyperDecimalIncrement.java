@@ -82,12 +82,10 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
                 value.getTwinClassFieldId(),
                 delta
         );
-        // Reload to get the new value from DB
-        twinService.loadTwinFields(twin);
-        TwinFieldDecimalEntity entity = twin.getTwinFieldDecimalKit().get(value.getTwinClassFieldId());
-        BigDecimal newValue = entity.getValue();
-        twinChangesCollector.add(entity);
-        addHistoryContext(twinChangesCollector, entity, newValue);
+        // Calculate new value from current + delta (no need to reload all fields)
+        BigDecimal newValue = twinFieldDecimalEntity.getValue().add(delta);
+        twinChangesCollector.add(twinFieldDecimalEntity);
+        addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, newValue);
     }
 
     @Override

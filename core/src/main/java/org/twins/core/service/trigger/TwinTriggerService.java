@@ -128,6 +128,18 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                 TwinTriggerEntity::setTwinTriggerFeaturer);
     }
 
+    public void loadJobTwinClass(TwinTriggerEntity entity) throws ServiceException {
+        loadJobTwinClass(List.of(entity));
+    }
+
+    public void loadJobTwinClass(Collection<TwinTriggerEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                TwinTriggerEntity::getId,
+                TwinTriggerEntity::getJobTwinClassId,
+                TwinTriggerEntity::getJobTwinClass,
+                TwinTriggerEntity::setJobTwinClass);
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     @LogExecutionTime(logIfTookMoreThenMs = 2000)
     public List<TwinTriggerEntity> updateTriggers(List<TwinTriggerUpdate> triggers) throws ServiceException {
