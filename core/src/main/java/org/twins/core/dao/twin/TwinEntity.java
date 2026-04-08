@@ -28,6 +28,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
@@ -498,6 +499,16 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Map<TwinAction, UUID> actionsRestricted;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<TwinAction, ActionRestrictionReasonEntity> actionsRestrictedReasons;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinAttachmentsCount twinAttachmentsCount;
 
     @Transient
@@ -602,6 +613,8 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // Actions / counters
         actions = null;
+        actionsRestricted = null;
+        actionsRestrictedReasons = null;
         twinAttachmentsCount = null;
 
         // Permissions / creation helpers

@@ -36,6 +36,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 
 import java.util.*;
 
@@ -126,6 +127,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<NotificationChannelEventEntity>> relatedNotificationChannelEventMap = new LinkedHashMap<>();
     @Getter
     private Map<String, RelatedObject<HistoryTypeEntity>> relatedHistoryTypeMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<ActionRestrictionReasonEntity>> relatedActionRestrictionReasonMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -304,6 +307,8 @@ public class MapperContext {
             smartPut(relatedNotificationChannelEventMap, entity, entity.getId());
         else if (relatedObject instanceof HistoryTypeEntity historyType)
             smartPut(relatedHistoryTypeMap, historyType, historyType.getId());
+        else if (relatedObject instanceof ActionRestrictionReasonEntity entity)
+            smartPut(relatedActionRestrictionReasonMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -527,6 +532,7 @@ public class MapperContext {
         dstMapperContext.relatedNotificationContextMap = srcMapperContext.relatedNotificationContextMap;
         dstMapperContext.relatedNotificationChannelEventMap = srcMapperContext.relatedNotificationChannelEventMap;
         dstMapperContext.relatedHistoryTypeMap = srcMapperContext.relatedHistoryTypeMap;
+        dstMapperContext.relatedActionRestrictionReasonMap = srcMapperContext.relatedActionRestrictionReasonMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {
