@@ -16,19 +16,19 @@ import org.hibernate.annotations.Type;
 import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.ResettableTransientState;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.permission.*;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
@@ -41,10 +41,9 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
+import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Entity
 @Accessors(chain = true)
@@ -521,8 +520,23 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Map<String, Boolean> twinValidatorResultCache;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<UUID> headTwinsIdSet;
+
     public boolean isSketch() {
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
+    }
+
+    public Set<UUID> getHeadTwinsIdSet() {
+        if (null == headTwinsIdSet && null != hierarchyTree) {
+            headTwinsIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(hierarchyTree).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                headTwinsIdSet.add(UUID.fromString(hierarchyIds[i]));
+        }
+        return headTwinsIdSet;
     }
 
     @Override
