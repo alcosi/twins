@@ -95,17 +95,13 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
 
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
-        var scale = decimalPlaces.extract(properties);
-        var value = "";
+    protected Integer getDecimalPlaces(Properties properties) {
+        return decimalPlaces.extract(properties);
+    }
 
-        if (scale != null) {
-            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().setScale(scale, RoundingMode.UNNECESSARY).toPlainString() : null;
-        } else {
-            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null;
-        }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(value);
+    @Override
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException {
+        return deserializeValueBase(properties, twinField, twinFieldDecimalEntity);
     }
 
     @Override

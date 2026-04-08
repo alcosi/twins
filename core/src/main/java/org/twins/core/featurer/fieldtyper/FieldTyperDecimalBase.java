@@ -7,15 +7,18 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearch;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Properties;
 
 public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch> extends FieldTyper<D, T, TwinFieldStorageDecimal, A> {
 
+    protected abstract Integer getDecimalPlaces(Properties properties);
     protected abstract void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException;
 
@@ -55,6 +58,24 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
                             )
                     );
         }
+    }
+
+    protected T deserializeValueBase(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException {
+        var scale = getDecimalPlaces(properties);
+        String value;
+
+        if (scale != null) {
+            value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
+                    ? twinFieldDecimalEntity.getValue().setScale(scale, RoundingMode.UNNECESSARY).toPlainString()
+                    : null;
+        } else {
+            value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
+                    ? twinFieldDecimalEntity.getValue().toString()
+                    : null;
+        }
+
+        T ret = (T) new FieldValueText(twinField.getTwinClassField()).setValue(value);
+        return ret;
     }
 }
 

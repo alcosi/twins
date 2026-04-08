@@ -10,6 +10,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
+import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -49,10 +50,18 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
     @FeaturerParam(name = "Allow negative result", description = "Allow value to go below zero after decrement", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean allowNegativeResult = new FeaturerParamBoolean("allowNegativeResult");
 
+    @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 3, optional = true, defaultValue = " ")
+    public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
+
+    @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 4, optional = true, defaultValue = ".")
+    public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
+
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorNumeric()
-                .decimalPlaces(decimalPlaces.extract(properties));
+                .decimalPlaces(decimalPlaces.extract(properties))
+                .thousandSeparator(thousandSeparator.extract(properties))
+                .decimalSeparator(decimalSeparator.extract(properties));
     }
 
     @Override
@@ -64,46 +73,27 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
         String rawValue = value.getValue();
         BigDecimal delta = parseIncrement(rawValue, value.getTwinClassField());
 
-        // If field doesn't exist yet, create it via collector
-        if (twinFieldDecimalEntity == null) {
-            TwinFieldDecimalEntity entity = new TwinFieldDecimalEntity()
-                    .setTwin(twin)
-                    .setTwinId(twin.getId())
-                    .setTwinClassFieldId(value.getTwinClassFieldId())
-                    .setValue(delta);
-            twinChangesCollector.add(entity);
-            addHistoryContext(twinChangesCollector, entity, delta);
-            return;
-        }
+        TwinFieldDecimalEntity entity = twinFieldDecimalEntity != null ? twinFieldDecimalEntity :
+                new TwinFieldDecimalEntity()
+                        .setTwin(twin)
+                        .setTwinId(twin.getId())
+                        .setTwinClassFieldId(value.getTwinClassFieldId());
 
-        // Use atomic increment at DB level for existing fields
-        twinFieldDecimalRepository.incrementValue(
-                twin.getId(),
-                value.getTwinClassFieldId(),
-                delta
-        );
-        // Calculate new value from current + delta (no need to reload all fields)
-        BigDecimal newValue = twinFieldDecimalEntity.getValue().add(delta);
-        twinChangesCollector.add(twinFieldDecimalEntity);
-        addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, newValue);
+        entity
+                .setIncrementOperation(true)
+                .setValue(delta);
+        twinChangesCollector.add(entity);
+        addHistoryContext(twinChangesCollector, entity, delta);
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) {
-        var scale = decimalPlaces.extract(properties);
-        var value = "";
+    protected Integer getDecimalPlaces(Properties properties) {
+        return decimalPlaces.extract(properties);
+    }
 
-        if (scale != null) {
-            value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
-                    ? twinFieldDecimalEntity.getValue().setScale(scale, java.math.RoundingMode.UNNECESSARY).toPlainString()
-                    : null;
-        } else {
-            value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
-                    ? twinFieldDecimalEntity.getValue().toString()
-                    : null;
-        }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(value);
+    @Override
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException {
+        return deserializeValueBase(properties, twinField, twinFieldDecimalEntity);
     }
 
     @Override

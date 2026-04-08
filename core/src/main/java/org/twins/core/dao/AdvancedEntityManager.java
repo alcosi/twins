@@ -51,6 +51,54 @@ public class AdvancedEntityManager {
         insertOnConflictDoNothing(entities, conflictFields, 1000);
     }
 
+    /**
+     * Batch increment operation: inserts new rows or increments existing values.
+     * For each entity, the incrementColumns values are added to existing DB values.
+     *
+     * @param entities entities to insert/increment
+     * @param conflictFields fields that define uniqueness (e.g., List.of("twinId", "twinClassFieldId"))
+     * @param incrementColumns columns to increment (e.g., List.of("value")) - values are treated as deltas
+     * @param batchSize batch size for JDBC operations
+     * @param <T> entity type
+     */
+    public <T> void insertOnConflictIncrement(List<T> entities, List<String> conflictFields, List<String> incrementColumns, int batchSize) {
+        if (entities == null || entities.isEmpty()) return;
+        if (conflictFields == null || conflictFields.isEmpty()) {
+            throw new IllegalArgumentException("conflictFields must not be empty");
+        }
+        if (incrementColumns == null || incrementColumns.isEmpty()) {
+            throw new IllegalArgumentException("incrementColumns must not be empty");
+        }
+
+        Class<?> clazz = entities.getFirst().getClass();
+        EntityInsertDescriptor d = getDescriptor(clazz);
+
+        List<String> conflictColumns = conflictFields.stream()
+                .map(f -> Optional.ofNullable(d.fieldToColumn.get(f))
+                        .orElseThrow(() -> new IllegalArgumentException("Unknown field: " + f)))
+                .toList();
+
+        List<String> incrementColumnDefs = incrementColumns.stream()
+                .map(f -> Optional.ofNullable(d.fieldToColumn.get(f))
+                        .orElseThrow(() -> new IllegalArgumentException("Unknown field: " + f)))
+                .toList();
+
+        String sql = buildIncrementSql(d.tableName, d.columns, conflictColumns, incrementColumnDefs);
+
+        entityManager.flush();
+
+        jdbcTemplate.batchUpdate(sql, entities, batchSize, (PreparedStatement ps, T entity) -> {
+            for (int i = 0; i < d.extractors.size(); i++) {
+                Object value = d.extractors.get(i).apply(entity);
+                ps.setObject(i + 1, value);
+            }
+        });
+    }
+
+    public <T> void insertOnConflictIncrement(List<T> entities, List<String> conflictFields, List<String> incrementColumns) {
+        insertOnConflictIncrement(entities, conflictFields, incrementColumns, 1000);
+    }
+
     private EntityInsertDescriptor getDescriptor(Class<?> clazz) {
         return cache.computeIfAbsent(clazz, this::buildDescriptor);
     }
@@ -152,6 +200,21 @@ public class AdvancedEntityManager {
                 " (" + columnList + ") " +
                 "VALUES (" + placeholders + ") " +
                 "ON CONFLICT (" + conflict + ") DO NOTHING";
+    }
+
+    private String buildIncrementSql(String tableName, List<String> columns, List<String> conflictColumns, List<String> incrementColumns) {
+        String columnList = String.join(", ", columns);
+        String placeholders = columns.stream().map(c -> "?").collect(Collectors.joining(", "));
+        String conflict = String.join(", ", conflictColumns);
+        String updateClause = incrementColumns.stream()
+                .map(col -> col + " = COALESCE(" + tableName + "." + col + ", 0) + EXCLUDED." + col)
+                .collect(Collectors.joining(", "));
+
+        return "INSERT INTO " + tableName +
+                " (" + columnList + ") " +
+                "VALUES (" + placeholders + ") " +
+                "ON CONFLICT (" + conflict + ") " +
+                "DO UPDATE SET " + updateClause;
     }
 
     private record EntityInsertDescriptor(

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
@@ -61,6 +62,7 @@ public class TwinChangesService {
     private final TwinCommentRepository twinCommentRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
+    private final AdvancedEntityManager advancedEntityManager;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
@@ -75,6 +77,7 @@ public class TwinChangesService {
             return changesApplyResult;
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
+        applyDecimalIncrements(twinChangesCollector);
         saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldSimpleNonIndexedEntity.class, twinFieldSimpleNonIndexedRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository, changesApplyResult);
@@ -228,6 +231,42 @@ public class TwinChangesService {
         if (entities != null) {
             entitySmartService.deleteAllEntitiesAndLog(entities, repository);
             twinChangesCollector.getDeleteEntityMap().remove(entityClass);
+        }
+    }
+
+    private void applyDecimalIncrements(TwinChangesCollector twinChangesCollector) {
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinFieldDecimalEntity.class);
+        if (entityKeyMap == null) {
+            return;
+        }
+
+        // Separate increment operations from regular saves
+        List<TwinFieldDecimalEntity> incrementEntities = new ArrayList<>();
+        Map<EntityKey, ChangesHelper> regularEntities = new HashMap<>();
+
+        for (var entry : entityKeyMap.entrySet()) {
+            TwinFieldDecimalEntity entity = (TwinFieldDecimalEntity) entry.getKey().entity();
+            if (entity.isIncrementOperation()) {
+                incrementEntities.add(entity);
+            } else {
+                regularEntities.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        // Update collector with only regular entities
+        if (!regularEntities.isEmpty()) {
+            twinChangesCollector.getSaveEntityMap().put(TwinFieldDecimalEntity.class, regularEntities);
+        } else {
+            twinChangesCollector.getSaveEntityMap().remove(TwinFieldDecimalEntity.class);
+        }
+
+        // Apply batch increments
+        if (!incrementEntities.isEmpty()) {
+            advancedEntityManager.insertOnConflictIncrement(
+                    incrementEntities,
+                    List.of(TwinFieldDecimalEntity.Fields.twinId, TwinFieldDecimalEntity.Fields.twinClassFieldId),
+                    List.of(TwinFieldDecimalEntity.Fields.value)
+            );
         }
     }
 }

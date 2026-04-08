@@ -58,6 +58,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
     public static final UUID TWIN_CLASS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0001-000000000004");
     public static final UUID TWIN_CLASS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0001-000000000005");
+    public static final UUID TWIN_CLASS_JOB = UUID.fromString("00000000-0000-0000-0001-000000000006");
 
     // last field.id = 16
     public static final UUID TWIN_CLASS_FIELD_USER_EMAIL = UUID.fromString("00000000-0000-0000-0011-000000000001");
@@ -76,7 +77,10 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_TWIN_ALIASES = UUID.fromString("00000000-0000-0000-0011-000000000014");
     public static final UUID TWIN_CLASS_FIELD_TWIN_TAGS = UUID.fromString("00000000-0000-0000-0011-000000000015");
     public static final UUID TWIN_CLASS_FIELD_TWIN_MARKERS = UUID.fromString("00000000-0000-0000-0011-000000000016");
-    // last i18.id = 46
+    public static final UUID TWIN_CLASS_FIELD_JOB_TOTAL_COUNT = UUID.fromString("00000000-0000-0000-0011-000000000017");
+    public static final UUID TWIN_CLASS_FIELD_JOB_CURRENT_COUNT = UUID.fromString("00000000-0000-0000-0011-000000000018");
+    public static final UUID TWIN_CLASS_FIELD_JOB_ERROR_COUNT = UUID.fromString("00000000-0000-0000-0011-000000000019");
+    // last i18.id = 52
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_NAME = UUID.fromString("00000000-0000-0000-0012-000000000001");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000002");
     public static final UUID I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_NAME_NAME = UUID.fromString("00000000-0000-0000-0012-000000000003");
@@ -96,6 +100,10 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_USER_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000023");
     public static final UUID I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000024");
     public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000037");
+    public static final UUID I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_NAME = UUID.fromString("00000000-0000-0000-0012-000000000039");
+    public static final UUID I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_NAME = UUID.fromString("00000000-0000-0000-0012-000000000040");
+    public static final UUID I18N_4CLASS_JOB_FIELD_ERROR_COUNT_NAME = UUID.fromString("00000000-0000-0000-0012-000000000042");
+    public static final UUID I18N_4CLASS_JOB_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000044");
 
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000012");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000013");
@@ -116,11 +124,16 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_USER_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000025");
     public static final UUID I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000026");
     public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000038");
+    public static final UUID I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000041");
+    public static final UUID I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000043");
+    public static final UUID I18N_4CLASS_JOB_FIELD_ERROR_COUNT_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000045");
+    public static final UUID I18N_4CLASS_JOB_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000046");
 
     public static final UUID TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID = UUID.fromString("00000000-0000-0000-0013-000000000002");
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
     public static final UUID TWIN_STATUS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0003-000000000004");
+    public static final UUID TWIN_STATUS_JOB = UUID.fromString("00000000-0000-0000-0003-000000000005");
 
     public static final UUID TWIN_STATUS_SKETCH = UUID.fromString("00000001-0000-0000-0000-000000000001"); //todo changge my id
 
@@ -190,6 +203,18 @@ public class SystemEntityService {
                         List.of(),
                         false,
                         true
+                ),
+                new SystemClass(
+                        TWIN_CLASS_JOB,
+                        "JOB",
+                        List.of(new SystemStatus(TWIN_STATUS_JOB, TWIN_CLASS_JOB, new I18n(I18N_4CLASS_JOB_STATUS_NAME, "Initial"), new I18n(I18N_4CLASS_JOB_STATUS_DESCRIPTION, "Initial status"), StatusType.BASIC)),
+                        List.of(
+                                new SystemField(TWIN_CLASS_FIELD_JOB_TOTAL_COUNT, TWIN_CLASS_JOB, FeaturerTwins.ID_1317, FeaturerTwins.ID_5301, new I18n(I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_NAME, "Total count"), new I18n(I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_DESCRIPTION, "Total count"), 4101, "total_count", false, true),
+                                new SystemField(TWIN_CLASS_FIELD_JOB_CURRENT_COUNT, TWIN_CLASS_JOB, FeaturerTwins.ID_1350, FeaturerTwins.ID_5301, new I18n(I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_NAME, "Current progress"), new I18n(I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_DESCRIPTION, "Current progress"), 4101, "current_count", false, true),
+                                new SystemField(TWIN_CLASS_FIELD_JOB_ERROR_COUNT, TWIN_CLASS_JOB, FeaturerTwins.ID_1350, FeaturerTwins.ID_5301, new I18n(I18N_4CLASS_JOB_FIELD_ERROR_COUNT_NAME, "Error count"), new I18n(I18N_4CLASS_JOB_FIELD_ERROR_COUNT_DESCRIPTION, "Error count"), 4101, "error_count", false, true)
+                        ),
+                        false,
+                        false
                 )
         ));
     }

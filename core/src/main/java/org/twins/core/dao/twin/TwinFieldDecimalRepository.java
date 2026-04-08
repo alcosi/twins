@@ -250,16 +250,6 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
             @Param("statusExclude") boolean statusExclude);
 
-    @Transactional
-    @Modifying
-    @Query(value = """
-            INSERT INTO twin_field_decimal (id, twin_id, twin_class_field_id, value)
-            VALUES (uuid_generate_v7_custom(), :twinId, :twinClassFieldId, CAST(:delta AS numeric))
-            ON CONFLICT (twin_id, twin_class_field_id)
-            DO UPDATE SET value = twin_field_decimal.value + CAST(:delta AS numeric)
-            """, nativeQuery = true)
-    Integer incrementValue(@Param("twinId") UUID twinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("delta") BigDecimal delta);
-
     default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesByHead(
             Collection<UUID> headTwinIdList,
             Collection<UUID> twinClassFieldIds,

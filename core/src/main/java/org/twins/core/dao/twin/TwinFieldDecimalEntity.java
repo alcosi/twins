@@ -50,6 +50,11 @@ public class TwinFieldDecimalEntity implements EasyLoggable, Identifiable {
     @Column(name = "value")
     private BigDecimal value;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private boolean incrementOperation;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
