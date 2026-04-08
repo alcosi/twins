@@ -100,16 +100,14 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     @EqualsAndHashCode.Exclude
     private UserEntity createdByUser;
 
+    @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
     private HistoryNotificationRecipientEntity historyNotificationRecipient;
 
+    @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "notification_channel_event_id", insertable = false, updatable = false)
     private NotificationChannelEventEntity notificationChannelEvent;
 
     public String easyLog(Level level) {
