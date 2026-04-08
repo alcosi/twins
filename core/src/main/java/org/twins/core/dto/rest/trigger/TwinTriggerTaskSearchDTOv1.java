@@ -21,58 +21,39 @@ public class TwinTriggerTaskSearchDTOv1 {
     @Schema(description = "twin trigger task id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "")
+    @Schema(description = "twin id list")
     public Set<UUID> twinIdList;
 
-    @Schema(description = "")
+    @Schema(description = "twin id exclude list")
     public Set<UUID> twinIdExcludeList;
 
-    @Schema(description = "")
+    @Schema(description = "twin trigger id list")
     public Set<UUID> twinTriggerIdList;
 
-    @Schema(description = "")
+    @Schema(description = "twin trigger id exclude list")
     public Set<UUID> twinTriggerIdExcludeList;
 
-    @Schema(description = "")
+    @Schema(description = "previous twin status id list")
     public Set<UUID> previousTwinStatusIdList;
 
-    @Schema(description = "")
+    @Schema(description = "previous twin status id exclude list")
     public Set<UUID> previousTwinStatusIdExcludeList;
 
-    @Schema(description = "")
+    @Schema(description = "created by user id list")
     public Set<UUID> createdByUserIdList;
 
-    @Schema(description = "")
+    @Schema(description = "created by user id exclude list")
     public Set<UUID> createdByUserIdExcludeList;
 
-    @Schema(description = "")
+    @Schema(description = "business account id list")
     public Set<UUID> businessAccountIdList;
 
-    @Schema(description = "")
+    @Schema(description = "business account id exclude list")
     public Set<UUID> businessAccountIdExcludeList;
 
-    @Schema(description = "")
+    @Schema(description = "status id list")
     public Set<TwinTriggerTaskStatus> statusIdList;
 
-    @Schema(description = "")
+    @Schema(description = "status id exclude list")
     public Set<TwinTriggerTaskStatus> statusIdExcludeList;
-
-
-//    @Schema(description = "twin trigger id list")
-//    public Set<UUID> idList;
-//
-//    @Schema(description = "twin trigger id exclude list")
-//    public Set<UUID> idExcludeList;
-//
-//    @Schema(description = "trigger featurer id list")
-//    public Set<Integer> triggerFeaturerIdList;
-//
-//    @Schema(description = "trigger featurer id exclude list")
-//    public Set<Integer> triggerFeaturerIdExcludeList;
-//
-//    @Schema(description = "is active")
-//    public Ternary active;
-//
-//    @Schema(description = "name like list")
-//    public Set<String> nameLikeList;
 }

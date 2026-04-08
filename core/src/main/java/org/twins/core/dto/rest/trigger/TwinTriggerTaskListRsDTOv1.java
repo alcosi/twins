@@ -13,6 +13,6 @@ import java.util.List;
 @Schema(name = "TwinTriggerTaskListRsV1")
 @Accessors(chain = true)
 public class TwinTriggerTaskListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "twin triggers")
-    public List<TwinTriggerTaskDTOv1> triggerTasks;
+    @Schema(description = "twin trigger tasks")
+    public List<TwinTriggerTaskDTOv1> twinTriggerTasks;
 }

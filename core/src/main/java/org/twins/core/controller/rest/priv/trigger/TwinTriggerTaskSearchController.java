@@ -23,7 +23,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.dto.rest.trigger.TwinTriggerSearchRsDTOv1;
 import org.twins.core.dto.rest.trigger.TwinTriggerTaskSearchRqDTOv1;
 import org.twins.core.dto.rest.trigger.TwinTriggerTaskSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -64,7 +63,7 @@ public class TwinTriggerTaskSearchController extends ApiController {
                     .findTwinTriggerTasks(twinTriggerTaskSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setPagination(paginationMapper.convert(twinTriggerTaskList))
-                    .setTriggerTasks(twinTriggerTaskRestDTOMapper.convertCollection(twinTriggerTaskList.getList(), mapperContext))
+                    .setTwinTriggerTasks(twinTriggerTaskRestDTOMapper.convertCollection(twinTriggerTaskList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
