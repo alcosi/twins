@@ -58,7 +58,7 @@ public class TwinTriggerTask implements Runnable {
                     twinTriggerTaskEntity.getCreatedByUserId()
             );
 
-            twinTriggerService.runTrigger(twinTrigger, null, twin, previousTwinStatus, null);
+            twinTriggerService.runTrigger(twinTrigger, twin, previousTwinStatus, null);
 
             twinTriggerTaskEntity
                     .setStatusId(TwinTriggerTaskStatus.DONE)

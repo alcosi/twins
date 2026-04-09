@@ -206,14 +206,12 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
      * If trigger has jobTwinClassId set, creates a job twin and passes its ID in parameters.
      *
      * @param twinTriggerEntity the trigger to run
-     * @param properties        trigger parameters
      * @param twinEntity        the twin that triggered the event
      * @param srcTwinStatus     source twin status
      * @param dstTwinStatus     destination twin status
      */
     @Transactional(rollbackFor = Throwable.class)
-    public void runTrigger(TwinTriggerEntity twinTriggerEntity, Properties properties,
-                           TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void runTrigger(TwinTriggerEntity twinTriggerEntity, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         // Create job twin if jobTwinClassId is set
         UUID jobTwinId = null;
         UUID jobTwinClassId = twinTriggerEntity.getJobTwinClassId();
@@ -235,6 +233,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
         // Get and run the featurer
         TwinTrigger trigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-        trigger.run(properties, twinEntity, srcTwinStatus, dstTwinStatus, jobTwinId);
+        Properties triggerProperties = featurerService.extractProperties(twinTriggerEntity.getTwinTriggerFeaturerId(), twinTriggerEntity.getTwinTriggerParam());
+        trigger.run(triggerProperties, twinEntity, srcTwinStatus, dstTwinStatus, jobTwinId);
     }
 }

@@ -848,7 +848,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     } else {
                         log.info("Executing sync trigger for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
                         TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(triggerEntity.getTwinTriggerId());
-                        twinTriggerService.runTrigger(twinTriggerEntity, null, targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+                        twinTriggerService.runTrigger(twinTriggerEntity, targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
                     }
                 }
         }
