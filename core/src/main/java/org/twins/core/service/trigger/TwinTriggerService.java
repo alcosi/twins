@@ -214,11 +214,6 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     @Transactional(rollbackFor = Throwable.class)
     public void runTrigger(TwinTriggerEntity twinTriggerEntity, Properties properties,
                            TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        // Merge trigger params with properties (trigger params override)
-        if (twinTriggerEntity.getTwinTriggerParam() != null && !twinTriggerEntity.getTwinTriggerParam().isEmpty()) {
-            properties.putAll(twinTriggerEntity.getTwinTriggerParam());
-        }
-
         // Create job twin if jobTwinClassId is set
         UUID jobTwinId = null;
         UUID jobTwinClassId = twinTriggerEntity.getJobTwinClassId();
