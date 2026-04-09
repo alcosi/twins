@@ -16,24 +16,33 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TwinTriggerTaskV1")
 public class TwinTriggerTaskDTOv1 {
-    @Schema(description = "id", example = DTOExamples.TRIGGER_ID)
-    private UUID id;
+    @Schema(description = "id")
+    public UUID id;
 
-    private UUID twinId;
+    @Schema(description = "twin Id", example = DTOExamples.TWIN_ID)
+    public UUID twinId;
 
-    private UUID twinTriggerId;
+    @Schema(description = "twin trigger Id", example = DTOExamples.TRIGGER_ID)
+    public UUID twinTriggerId;
 
-    private UUID previousTwinStatusId;
+    @Schema(description = "previous twin status Id", example = DTOExamples.TWIN_STATUS_ID)
+    public UUID previousTwinStatusId;
 
-    private UUID createdByUserId;
+    @Schema(description = "created by user Id", example = DTOExamples.USER_ID)
+    public UUID createdByUserId;
 
-    private UUID businessAccountId;
+    @Schema(description = "businessAccount Id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    public UUID businessAccountId;
 
-    private TwinTriggerTaskStatus statusId;
+    @Schema(description = "twin trigger task status")
+    public TwinTriggerTaskStatus statusId;
 
-    private String statusDetails;
+    @Schema(description = "status details")
+    public String statusDetails;
 
-    private Timestamp createdAt;
+    @Schema(description = "created at")
+    public Timestamp createdAt;
 
-    private Timestamp doneAt;
+    @Schema(description = "done at")
+    public Timestamp doneAt;
 }

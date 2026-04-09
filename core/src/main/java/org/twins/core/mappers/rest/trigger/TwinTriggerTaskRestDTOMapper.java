@@ -13,8 +13,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.trigger.TwinTriggerTaskSearchService;
-import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 
 import java.util.Collection;
 
@@ -23,7 +22,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DomainMode.class)
 public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerTaskEntity, TwinTriggerTaskDTOv1> {
-    private final TwinTriggerTaskSearchService twinTriggerTaskSearchService;
+    private final TwinTriggerTaskService twinTriggerTaskService;
     @MapperModePointerBinding(modes = {UserMode.Twin2UserMode.class})
     private final UserRestDTOMapper userDTOMapper;
     @MapperModePointerBinding(modes = {BusinessAccountMode.class})
@@ -55,23 +54,23 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
         }
 
         if (mapperContext.hasModeButNot(BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.HIDE)) {
-            twinTriggerTaskSearchService.loadBusinessAccount(src);
+            twinTriggerTaskService.loadBusinessAccount(src);
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.SHORT));
         }
         if (mapperContext.hasModeButNot(UserMode.TwinTriggerTask2UserMode.HIDE)) {
-            twinTriggerTaskSearchService.loadCreatedByUser(src);
+            twinTriggerTaskService.loadCreatedByUser(src);
             userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.TwinTriggerTask2UserMode.SHORT));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
-            twinTriggerTaskSearchService.loadTwinStatus(src);
+            twinTriggerTaskService.loadTwinStatus(src);
             twinStatusDTOMapper.postpone(src.getPreviousTwinStatus(), mapperContext.forkOnPoint(StatusMode.TwinTriggerTask2StatusMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
-            twinTriggerTaskSearchService.loadTwin(src);
+            twinTriggerTaskService.loadTwin(src);
             twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.TwinTriggerTask2TwinMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
-            twinTriggerTaskSearchService.loadTwinTrigger(src);
+            twinTriggerTaskService.loadTwinTrigger(src);
             twinTriggerDTOMapper.postpone(src.getTwinTrigger(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.SHORT)));
         }
     }
@@ -91,19 +90,19 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
         super.beforeCollectionConversion(srcCollection, mapperContext);
 
         if (mapperContext.hasModeButNot(BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.HIDE)) {
-            twinTriggerTaskSearchService.loadBusinessAccounts(srcCollection);
+            twinTriggerTaskService.loadBusinessAccounts(srcCollection);
         }
         if (mapperContext.hasModeButNot(UserMode.TwinTriggerTask2UserMode.HIDE)) {
-            twinTriggerTaskSearchService.loadCreatedByUser(srcCollection);
+            twinTriggerTaskService.loadCreatedByUser(srcCollection);
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
-            twinTriggerTaskSearchService.loadTwinStatuses(srcCollection);
+            twinTriggerTaskService.loadTwinStatuses(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
-            twinTriggerTaskSearchService.loadTwins(srcCollection);
+            twinTriggerTaskService.loadTwins(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
-            twinTriggerTaskSearchService.loadTwinTriggers(srcCollection);
+            twinTriggerTaskService.loadTwinTriggers(srcCollection);
         }
     }
 }

@@ -14,13 +14,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
 import org.twins.core.domain.search.TwinTriggerTaskSearch;
-import org.twins.core.service.businessaccount.BusinessAccountService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.user.UserService;
-
-import java.util.Collection;
-import java.util.Collections;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
@@ -31,11 +24,6 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 @Service
 public class TwinTriggerTaskSearchService {
     private final TwinTriggerTaskRepository twinTriggerTaskRepository;
-    private final BusinessAccountService businessAccountService;
-    private final TwinTriggerService twinTriggerService;
-    private final TwinStatusService twinStatusService;
-    private final TwinService twinService;
-    private final UserService userService;
 
     public PaginationResult<TwinTriggerTaskEntity> findTwinTriggerTasks(TwinTriggerTaskSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinTriggerTaskEntity> spec = createTwinTriggerTaskSearchSpecification(search);
@@ -61,65 +49,5 @@ public class TwinTriggerTaskSearchService {
                 checkFieldLikeIn(search.getStatusIdList().stream().map(Enum::name).toList(), false, false, TwinTriggerTaskEntity.Fields.statusId),
                 checkFieldLikeIn(search.getStatusIdExcludeList().stream().map(Enum::name).toList(), true, false, TwinTriggerTaskEntity.Fields.statusId)
         );
-    }
-
-    public void loadBusinessAccount(TwinTriggerTaskEntity src) throws ServiceException {
-        loadBusinessAccounts(Collections.singletonList(src));
-    }
-
-    public void loadBusinessAccounts(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        businessAccountService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getBusinessAccountId,
-                TwinTriggerTaskEntity::getBusinessAccount,
-                TwinTriggerTaskEntity::setBusinessAccount);
-    }
-
-    public void loadTwin(TwinTriggerTaskEntity src) throws ServiceException {
-        loadTwins(Collections.singletonList(src));
-    }
-
-    public void loadTwins(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        twinService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getTwinId,
-                TwinTriggerTaskEntity::getTwin,
-                TwinTriggerTaskEntity::setTwin);
-    }
-
-    public void loadTwinTrigger(TwinTriggerTaskEntity src) throws ServiceException {
-        loadTwinTriggers(Collections.singletonList(src));
-    }
-
-    public void loadTwinTriggers(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        twinTriggerService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getTwinTriggerId,
-                TwinTriggerTaskEntity::getTwinTrigger,
-                TwinTriggerTaskEntity::setTwinTrigger);
-    }
-
-    public void loadTwinStatus(TwinTriggerTaskEntity src) throws ServiceException {
-        loadTwinStatuses(Collections.singletonList(src));
-    }
-
-    public void loadTwinStatuses(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        twinStatusService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getPreviousTwinStatusId,
-                TwinTriggerTaskEntity::getPreviousTwinStatus,
-                TwinTriggerTaskEntity::setPreviousTwinStatus);
-    }
-
-    public void loadCreatedByUser(TwinTriggerTaskEntity src) throws ServiceException {
-        loadCreatedByUser(Collections.singletonList(src));
-    }
-
-    public void loadCreatedByUser(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        userService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getCreatedByUserId,
-                TwinTriggerTaskEntity::getCreatedByUser,
-                TwinTriggerTaskEntity::setCreatedByUser);
     }
 }
