@@ -6,11 +6,15 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLoggable> extends Scheduler {
@@ -21,6 +25,18 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
             optional = true
     )
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
+
+    @FeaturerParam(
+            name = "alertExecutionTime",
+            description = "Alert threshold in ms. If a single task execution exceeds this time, a warning will be logged. Default: Integer.MAX_VALUE (no alert)",
+            optional = true
+    )
+    public static final FeaturerParamInt alertExecutionTimeParam = new FeaturerParamInt("alertExecutionTime");
+
+    @Autowired
+    @Qualifier("alertTaskScheduler")
+    private ScheduledExecutorService alertScheduler;
+
     private final Executor taskExecutor;
 
     protected SchedulerTaskRunner(Executor taskExecutor) {
@@ -46,6 +62,11 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
                 return "";
             }
 
+            var alertExecutionTime = alertExecutionTimeParam.extract(properties);
+            if (alertExecutionTime == null) {
+                alertExecutionTime = Integer.MAX_VALUE;
+            }
+
             var savedEntities = setStatusAndSave(collectedEntities);
 
             log.info("{} tasks need to be done", savedEntities.size());
@@ -53,7 +74,7 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
                 try {
                     log.info("Running {}", entity.logNormal());
                     var task = applicationContext.getBean(getTaskClass(), entity);
-                    taskExecutor.execute(task);
+                    taskExecutor.execute(withExecutionTimeAlert(task, entity, alertExecutionTime));
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
                 }
@@ -67,6 +88,20 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         } finally {
             LoggerUtils.cleanMDC();
         }
+    }
+
+    private Runnable withExecutionTimeAlert(Runnable task, E entity, int alertExecutionTime) {
+        return () -> {
+            var alertFuture = alertScheduler.schedule(
+                    () -> LoggerUtils.alertLog.warn("Task {} exceeded expected execution time of {} ms", entity.logNormal(), alertExecutionTime),
+                    alertExecutionTime, TimeUnit.MILLISECONDS
+            );
+            try {
+                task.run();
+            } finally {
+                alertFuture.cancel(false);
+            }
+        };
     }
 
     private List<E> collectTasks(Integer batchSize) {
