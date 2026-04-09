@@ -7,23 +7,25 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCalc {
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
-    private final Set<UUID> childrenTwinClassIdSet;
+    private final String lquery;
 
-    public TwinFieldStorageCalcChildrenOfClassCount(TwinFieldSimpleRepository twinFieldSimpleRepository, UUID twinClassFieldId, Set<UUID> childrenTwinClassIdSet) {
+    public TwinFieldStorageCalcChildrenOfClassCount(
+            TwinFieldSimpleRepository twinFieldSimpleRepository,
+            UUID twinClassFieldId,
+            String lquery) {
         super(twinClassFieldId);
         this.twinFieldSimpleRepository = twinFieldSimpleRepository;
-        this.childrenTwinClassIdSet = childrenTwinClassIdSet;
+        this.lquery = lquery;
     }
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         List<TwinFieldCalcProjection> calc =
-                twinFieldSimpleRepository.countChildrenTwinsOfTwinClassIdIn(twinsKit.getIdSet(), childrenTwinClassIdSet);
+                twinFieldSimpleRepository.countChildrenTwinsByExtendsHierarchy(twinsKit.getIdSet(), lquery);
         packResult(twinsKit, calc);
     }
 
@@ -31,6 +33,6 @@ public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCa
     boolean canBeMerged(Object o) {
         return isSameClass(o)
                 && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcChildrenOfClassCount) o).twinClassFieldId)
-                && Objects.equals(this.childrenTwinClassIdSet, ((TwinFieldStorageCalcChildrenOfClassCount) o).childrenTwinClassIdSet);
+                && Objects.equals(this.lquery, ((TwinFieldStorageCalcChildrenOfClassCount) o).lquery);
     }
 }

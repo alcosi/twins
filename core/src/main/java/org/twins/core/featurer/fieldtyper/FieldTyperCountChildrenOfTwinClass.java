@@ -1,11 +1,13 @@
 package org.twins.core.featurer.fieldtyper;
 
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 
+import java.util.Collections;
 import java.util.Properties;
 
 public interface FieldTyperCountChildrenOfTwinClass {
@@ -14,6 +16,11 @@ public interface FieldTyperCountChildrenOfTwinClass {
     FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsClassId("twinClassIds");
 
     default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinFieldSimpleRepository twinFieldSimpleRepository) {
-        return twinFieldSimpleRepository.countChildrenTwinsOfTwinClassIdIn(twinEntity.getId(), twinClassIds.extract(properties));
+        String lquery = LTreeUtils.buildLQueryFromUuids(twinClassIds.extract(properties));
+
+        var result = twinFieldSimpleRepository.countChildrenTwinsByExtendsHierarchy(
+                Collections.singleton(twinEntity.getId()), lquery);
+
+        return result.isEmpty() ? 0L : result.getFirst().calc().longValue();
     }
 }

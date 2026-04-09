@@ -4,6 +4,7 @@ import org.apache.commons.lang3.Range;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class LTreeUtils {
     public static String matchWithDepthRangeBetweenElements(String firstId, String secondId, Range<Integer> depthBetweenIds) {
@@ -50,5 +51,14 @@ public class LTreeUtils {
             }
         }
         return result.toString();
+    }
+
+    public static String buildLQueryFromUuids(Collection<UUID> uuids) {
+        if (uuids == null || uuids.isEmpty()) {
+            return "";
+        }
+        return uuids.stream()
+                .map(LTreeUtils::matchInTheMiddle)
+                .collect(Collectors.joining("|"));
     }
 }
