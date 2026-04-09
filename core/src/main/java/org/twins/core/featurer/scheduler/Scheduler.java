@@ -33,18 +33,17 @@ public abstract class Scheduler extends FeaturerTwins {
     public Runnable getRunnableForScheduling(Properties properties, SchedulerEntity schedulerEntity) {
         return () -> {
             LoggerUtils.logSession();
-            SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
             long startTime = System.currentTimeMillis();
             // using getBean here to prevent errors with Spring proxy (processTask with @Transactional)
             String result = applicationContext.getBean(this.getClass()).processTask(properties);
 
             if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
-                schedulerLog
-                        .setSchedulerId(schedulerEntity.getId())
-                        .setExecutionTime(System.currentTimeMillis() - startTime)
-                        .setResult(result);
-
-                schedulerLogRepo.save(schedulerLog);
+                schedulerLogRepo.save(
+                        new SchedulerLogEntity()
+                                .setSchedulerId(schedulerEntity.getId())
+                                .setExecutionTime(System.currentTimeMillis() - startTime)
+                                .setResult(result)
+                );
             }
         };
     }
