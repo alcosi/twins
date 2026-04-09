@@ -20,6 +20,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.trigger.TwinTriggerCreate;
 import org.twins.core.domain.trigger.TwinTriggerUpdate;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -179,7 +181,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     }
 
     public void updateFieldTwinTriggerFeaturerId(TwinTriggerEntity dbTwinTriggerEntity, Integer newFeaturerId,
-                                                   HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+                                                 HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         if (newFeaturerId == null || newFeaturerId == 0) {
             if (newFeaturerParams.isEmpty())
                 return; // nothing was changed
@@ -204,41 +206,40 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
      * If trigger has jobTwinClassId set, creates a job twin and passes its ID in parameters.
      *
      * @param twinTriggerEntity the trigger to run
-     * @param properties trigger parameters
-     * @param twinEntity the twin that triggered the event
-     * @param srcTwinStatus source twin status
-     * @param dstTwinStatus destination twin status
+     * @param properties        trigger parameters
+     * @param twinEntity        the twin that triggered the event
+     * @param srcTwinStatus     source twin status
+     * @param dstTwinStatus     destination twin status
      */
     @Transactional(rollbackFor = Throwable.class)
     public void runTrigger(TwinTriggerEntity twinTriggerEntity, Properties properties,
-                          TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        // Copy properties to avoid modifying original
-        Properties triggerParams = new Properties();
-        if (properties != null) {
-            triggerParams.putAll(properties);
-        }
-        if (twinTriggerEntity.getTwinTriggerParam() != null) {
-            triggerParams.putAll(twinTriggerEntity.getTwinTriggerParam());
+                           TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+        // Merge trigger params with properties (trigger params override)
+        if (twinTriggerEntity.getTwinTriggerParam() != null && !twinTriggerEntity.getTwinTriggerParam().isEmpty()) {
+            properties.putAll(twinTriggerEntity.getTwinTriggerParam());
         }
 
         // Create job twin if jobTwinClassId is set
         UUID jobTwinId = null;
         UUID jobTwinClassId = twinTriggerEntity.getJobTwinClassId();
         if (jobTwinClassId != null) {
-            jobTwinId = UuidUtils.generate();
-
             TwinClassEntity twinClass = twinClassService.findEntitySafe(jobTwinClassId);
-            TwinEntity jobTwin = new TwinEntity()
-                    .setId(jobTwinId)
+            TwinEntity jobTwinEntity = new TwinEntity()
+                    .setId(UuidUtils.generate())
                     .setTwinClassId(jobTwinClassId)
                     .setTwinClass(twinClass);
 
-            twinService.saveSafe(jobTwin);
+            TwinCreate twinCreate = new TwinCreate();
+            twinCreate.setTwinEntity(jobTwinEntity);
+            twinCreate.setCanTriggerAfterOperationFactory(false);
+            twinCreate.setLauncher(TwinOperation.Launcher.direct);
+
+            jobTwinId = twinService.createTwin(twinCreate).getCreatedTwin().getId();
             log.info("Created job twin[{}] for trigger[{}]", jobTwinId, twinTriggerEntity.getId());
         }
 
         // Get and run the featurer
         TwinTrigger trigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-        trigger.run(triggerParams, twinEntity, srcTwinStatus, dstTwinStatus, jobTwinId);
+        trigger.run(properties, twinEntity, srcTwinStatus, dstTwinStatus, jobTwinId);
     }
 }
