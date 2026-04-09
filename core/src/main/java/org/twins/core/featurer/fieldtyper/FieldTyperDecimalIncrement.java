@@ -7,10 +7,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
-import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -40,28 +36,20 @@ import java.util.regex.Pattern;
 )
 public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
 
-    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
-
     private static final Pattern INCREMENT_PATTERN = Pattern.compile("^(0|[+-]\\d+(\\.\\d+)?)$");
-
-    @FeaturerParam(name = "Decimal places", description = "Number of decimal places", order = 1)
-    public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
-
-    @FeaturerParam(name = "Allow negative result", description = "Allow value to go below zero after decrement", order = 2, optional = true, defaultValue = "false")
-    public static final FeaturerParamBoolean allowNegativeResult = new FeaturerParamBoolean("allowNegativeResult");
-
-    @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 3, optional = true, defaultValue = " ")
-    public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
-
-    @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 4, optional = true, defaultValue = ".")
-    public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorNumeric()
-                .decimalPlaces(decimalPlaces.extract(properties))
+                .min(min.extract(properties))
+                .max(max.extract(properties))
+                .step(step.extract(properties))
                 .thousandSeparator(thousandSeparator.extract(properties))
-                .decimalSeparator(decimalSeparator.extract(properties));
+                .decimalSeparator(decimalSeparator.extract(properties))
+                .decimalPlaces(decimalPlaces.extract(properties))
+                .round(round.extract(properties))
+                .extraThousandSeparators(extraThousandSeparatorSet.extract(properties))
+                .extraDecimalSeparators(extraDecimalSeparatorSet.extract(properties));
     }
 
     @Override
@@ -84,11 +72,6 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
                 .setValue(delta);
         twinChangesCollector.add(entity);
         addHistoryContext(twinChangesCollector, entity, delta);
-    }
-
-    @Override
-    protected Integer getDecimalPlaces(Properties properties) {
-        return decimalPlaces.extract(properties);
     }
 
     @Override
@@ -117,14 +100,15 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
         try {
             BigDecimal delta = parseIncrement(rawValue, fieldValue.getTwinClassField());
 
-            twinService.loadTwinFields(twin);
-            TwinFieldDecimalEntity currentEntity = twin.getTwinFieldDecimalKit().get(fieldValue.getTwinClassFieldId());
-            if (currentEntity != null && currentEntity.getValue() != null) {
-                BigDecimal resultValue = currentEntity.getValue().add(delta);
-                boolean allowNegative = Boolean.TRUE.equals(allowNegativeResult.extract(properties));
-                if (!allowNegative && resultValue.compareTo(BigDecimal.ZERO) < 0) {
-                    return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField()) + " Result would be negative");
-                }
+            // Validate delta using base validation (min/max, decimal places, etc.)
+            // Create temporary FieldValueText with delta value for validation
+            FieldValueText deltaValue = new FieldValueText(fieldValue.getTwinClassField())
+                    .setValue(delta.toPlainString());
+
+            try {
+                processAndFormatValue(properties, deltaValue);
+            } catch (ServiceException e) {
+                return new ValidationResult(false, e.getMessage());
             }
 
         } catch (ServiceException e) {
