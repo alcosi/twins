@@ -67,6 +67,7 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
     @Override
     public boolean isEntityReadDenied(HistoryNotificationEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        loadHistoryNotificationRecipient(entity);
         if (entity.getHistoryNotificationRecipient().getDomainId() != null
                 && !entity.getHistoryNotificationRecipient().getDomainId().equals(apiUser.getDomain().getId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
@@ -99,19 +100,13 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         }
 
         // Check historyNotificationRecipientId
-        if (entity.getHistoryNotificationRecipient() == null || !entity.getHistoryNotificationRecipient().getId().equals(entity.getHistoryNotificationRecipientId())) {
-            entity.setHistoryNotificationRecipient(historyNotificationRecipientService.findEntitySafe(entity.getHistoryNotificationRecipientId()));
-        }
+        loadHistoryNotificationRecipient(entity);
 
         // Check notificationSchemaId
-        if (entity.getNotificationSchema() == null || !entity.getNotificationSchema().getId().equals(entity.getNotificationSchemaId())) {
-            entity.setNotificationSchema(notificationSchemaService.findEntitySafe(entity.getNotificationSchemaId()));
-        }
+        loadNotificationSchema(entity);
 
         // Check notificationChannelEventId
-        if (entity.getNotificationChannelEvent() == null || !entity.getNotificationChannelEvent().getId().equals(entity.getNotificationChannelEventId())) {
-            entity.setNotificationChannelEvent(notificationEventServiceService.findEntitySafe(entity.getNotificationChannelEventId()));
-        }
+        loadNotificationChannelEvent(entity);
 
         // Check twinClassFieldId
         if (entity.getTwinClassFieldId() != null) {
@@ -180,6 +175,18 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         updateSafe(changes);
 
         return allEntities;
+    }
+
+    public void loadHistoryNotificationRecipient(HistoryNotificationEntity entity) throws ServiceException {
+        loadHistoryNotificationRecipient(List.of(entity));
+    }
+
+    public void loadHistoryNotificationRecipient(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        historyNotificationRecipientService.load(entities,
+                HistoryNotificationEntity::getId,
+                HistoryNotificationEntity::getHistoryNotificationRecipientId,
+                HistoryNotificationEntity::getHistoryNotificationRecipient,
+                HistoryNotificationEntity::setHistoryNotificationRecipient);
     }
 
     public void loadNotificationSchema(HistoryNotificationEntity entity) throws ServiceException {
