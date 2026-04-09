@@ -113,6 +113,7 @@ public class HistoryNotificationTask implements Runnable {
                 var recipientIds = new HashSet<UUID>();
                 for (var config : entry.getValue()) {
                     if (twinValidatorSetService.isValid(history.getTwin(), config)) {
+                        // todo create mechanism to group recipient resolvers and call batch resolve
                         recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
                     }
                 }
