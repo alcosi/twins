@@ -56,7 +56,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
         if (entity.getTwinFactory() == null) {
             loadFactory(entity);
         }
-        return isDomainAccessDenied(entity.getTwinFactory().getDomainId());
+        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

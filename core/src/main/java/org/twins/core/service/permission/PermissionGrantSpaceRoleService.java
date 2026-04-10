@@ -52,7 +52,7 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean isEntityReadDenied(PermissionGrantSpaceRoleEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getPermissionSchema().getDomainId());
+        return checkDomainAccessDenied(entity.getPermissionSchema().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

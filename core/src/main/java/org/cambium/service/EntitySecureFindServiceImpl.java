@@ -235,7 +235,16 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (entityDomainId == null) {
             return false;
         }
-        return !entityDomainId.equals(authService.getApiUser().getDomainId());
+        var currentDomainId = authService.getApiUser().getDomainId();
+        return !entityDomainId.equals(currentDomainId);
+    }
+
+    protected boolean checkDomainAccessDenied(UUID entityDomainId, String entityLog, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        if (isDomainAccessDenied(entityDomainId)) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entityLog + " is not allowed in current domain");
+            return true;
+        }
+        return false;
     }
 
     @Override

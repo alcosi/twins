@@ -169,7 +169,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
 
     @Override
     public boolean isEntityReadDenied(TwinClassSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getDomainId());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

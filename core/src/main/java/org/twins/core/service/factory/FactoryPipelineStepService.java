@@ -55,7 +55,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryPipelineStepEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getTwinFactoryPipeline().getTwinFactory().getDomainId());
+        return checkDomainAccessDenied(entity.getTwinFactoryPipeline().getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

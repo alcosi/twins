@@ -75,7 +75,7 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
 
     @Override
     public boolean isEntityReadDenied(SpaceRoleEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getTwinClass().getDomainId());
+        return checkDomainAccessDenied(entity.getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

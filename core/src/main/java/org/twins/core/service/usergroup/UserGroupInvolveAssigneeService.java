@@ -66,7 +66,7 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean isEntityReadDenied(UserGroupInvolveAssigneeEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getTwinClass().getDomainId());
+        return checkDomainAccessDenied(entity.getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

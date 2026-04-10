@@ -128,7 +128,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     @Override
     public boolean isEntityReadDenied(TwinClassEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getDomainId());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.easyLog(EasyLoggable.Level.NORMAL), readPermissionCheckMode);
     }
 
     @Override

@@ -50,7 +50,7 @@ public class NotificationEmailService extends EntitySecureFindServiceImpl<Notifi
 
     @Override
     public boolean isEntityReadDenied(NotificationEmailEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getDomainId());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

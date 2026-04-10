@@ -52,7 +52,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
     @Override
     public boolean isEntityReadDenied(ProjectionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getProjectionType().getDomainId());
+        return checkDomainAccessDenied(entity.getProjectionType().getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override

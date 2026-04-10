@@ -63,7 +63,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     @Override
     public boolean isEntityReadDenied(UserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getDomainId());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.easyLog(EasyLoggable.Level.NORMAL), readPermissionCheckMode);
     }
 
     @Override

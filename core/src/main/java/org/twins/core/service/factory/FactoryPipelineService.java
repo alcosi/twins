@@ -52,7 +52,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryPipelineEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return isDomainAccessDenied(entity.getTwinFactory().getDomainId());
+        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
