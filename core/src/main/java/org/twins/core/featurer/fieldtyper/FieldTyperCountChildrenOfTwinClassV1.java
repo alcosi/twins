@@ -39,11 +39,20 @@ public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperImmutable<Fi
 
     @Override
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        String lquery = LTreeUtils.buildLQueryFromUuids(twinClassIds.extract(properties));
+        var classIds = twinClassIds.extract(properties);
+        boolean useHierarchy = useExtendsHierarchy.extract(properties);
 
-        return new TwinFieldStorageCalcChildrenOfClassCount(
-                twinFieldSimpleRepository,
-                twinClassFieldEntity.getId(),
-                lquery);
+        if (useHierarchy) {
+            String lquery = LTreeUtils.buildLQueryFromUuids(classIds);
+            return new TwinFieldStorageCalcChildrenOfClassCount(
+                    twinFieldSimpleRepository,
+                    twinClassFieldEntity.getId(),
+                    lquery);
+        } else {
+            return new TwinFieldStorageCalcChildrenOfClassCount(
+                    twinFieldSimpleRepository,
+                    twinClassFieldEntity.getId(),
+                    classIds);
+        }
     }
 }
