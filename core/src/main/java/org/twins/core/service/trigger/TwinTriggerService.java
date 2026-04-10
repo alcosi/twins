@@ -225,7 +225,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
             TwinCreate twinCreate = new TwinCreate();
             twinCreate.setTwinEntity(jobTwinEntity);
             twinCreate.setCanTriggerAfterOperationFactory(false);
-            twinCreate.setLauncher(TwinOperation.Launcher.direct);
+            twinCreate.setLauncher(TwinOperation.Launcher.trigger);
 
             jobTwinId = twinService.createTwin(twinCreate).getCreatedTwin().getId();
             log.info("Created job twin[{}] for trigger[{}]", jobTwinId, twinTriggerEntity.getId());
