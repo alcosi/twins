@@ -2,7 +2,9 @@ package org.twins.core.config.filter;
 
 import ch.qos.logback.classic.Logger;
 import com.zaxxer.hikari.HikariDataSource;
+
 import javax.sql.DataSource;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -153,10 +155,8 @@ public class LoggingFilter extends OncePerRequestFilter {
                 return "<File. Size:" + getSize(part) + ">";
             }
             InputStream inputStream = part.getInputStream();
-            if (!(inputStream instanceof ByteArrayInputStream)) {
-                return "<File. Size:" + getSize(part) + ">";
-            }
-            return new String(inputStream.readAllBytes(), characterEncoding);
+            byte[] bytes = inputStream.readAllBytes();
+            return new String(bytes, characterEncoding);
         }
 
         public long getSize(Part part) {

@@ -449,4 +449,33 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(Collection<UUID> hierarchies, Collection<UUID> linkIds, Collection<UUID> twinStatusIds) {
         return twinLinkRepository.findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(hierarchies, linkIds, twinStatusIds);
     }
+
+    /** Links with both src and dst in {@code twinIds} (no hierarchy-tree filter). */
+    public Set<TwinLinkEntity> findAllBetweenTwinsIn(Collection<UUID> twinIds) {
+        if (CollectionUtils.isEmpty(twinIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllBetweenTwinsIn(twinIds);
+    }
+
+    public Set<TwinLinkEntity> findAllBetweenTwinsInAndTwinsInStatusIds(Collection<UUID> twinIds, Collection<UUID> twinStatusIds) {
+        if (CollectionUtils.isEmpty(twinIds) || CollectionUtils.isEmpty(twinStatusIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllBetweenTwinsInAndTwinsInStatusIds(twinIds, twinStatusIds);
+    }
+
+    public Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdIn(Collection<UUID> twinIds, Collection<UUID> linkIds) {
+        if (CollectionUtils.isEmpty(twinIds) || CollectionUtils.isEmpty(linkIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllBetweenTwinsInAndLinkIdIn(twinIds, linkIds);
+    }
+
+    public Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(Collection<UUID> twinIds, Collection<UUID> linkIds, Collection<UUID> twinStatusIds) {
+        if (CollectionUtils.isEmpty(twinIds) || CollectionUtils.isEmpty(linkIds) || CollectionUtils.isEmpty(twinStatusIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
+    }
 }

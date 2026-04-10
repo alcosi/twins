@@ -71,8 +71,9 @@ import java.util.stream.Collectors;
  *       - allocate a new TwinEntity with a replaced class
  *       - point headTwinId to the COPY of the parent (or keep original if
  *         the parent is outside the copy scope)
- *       - copy forward links, remapping both src/dst to their copies and
- *         replacing the link type via linksReplaceMap
+ *       - copy forward links (loaded for any twin pair both in the collected set,
+ *         not via ltree), remapping src/dst to their copies and replacing link
+ *         type via linksReplaceMap
  *
  *  5. Wrap each copy into a FactoryItem(TwinCreate) for downstream processing
  * </pre>
@@ -179,7 +180,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         // copyTwinIdsMap  : origTwinId → copyTwinId   (quick ID remapping for head references)
         var copyContextMap = new LinkedHashMap<UUID, CopyContext>();
         var copyTwinIdsMap = new HashMap<UUID, UUID>();
-        var origTwins = new HashSet<TwinEntity>(inputFactoryItemList.size());
+        var origTwins = new HashSet<TwinEntity>();
 
         for (var factoryItem : inputFactoryItemList) {
             var twin = factoryItem.getTwin();
@@ -187,12 +188,11 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             copyContextMap.put(twin.getId(), new CopyContext().setOrigFactoryItem(factoryItem));
         }
 
-        // ── Step 2: Collect the full set of original twins ────────────────
-        var linksData = findLinksData(copyContextMap.keySet(), linkReplaceMap, childrenStatusIds);
-        var origTwinLinksGrouped = new KitGrouped<>(linksData.origTwinLinks(), TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
-
         origTwins.addAll(findTwinsByHierarchy(depth, copyContextMap, childrenStatusIds));
         origTwins.addAll(findTwinsByLinks(origTwins, childrenStatusIds, properties));
+
+        var linksData = findLinksData(origTwins.stream().map(TwinEntity::getId).collect(Collectors.toSet()), linkReplaceMap, childrenStatusIds);
+        var origTwinLinksGrouped = new KitGrouped<>(linksData.origTwinLinks(), TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
 
         // ── Step 3: Filter — only twins whose class is in the replace map are eligible ──
         var twinsToCopyIds = origTwins.stream()
@@ -395,20 +395,25 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
     }
 
     /**
-     * Batch-loads all original links within the given hierarchies whose link type is in
-     * {@code linkReplaceMap}, plus the replacement {@link LinkEntity} objects.
-     * This is done upfront to avoid N+1 queries during link copying.
+     * Batch-loads forward links whose <b>both</b> endpoints lie in {@code twinIds}
+     * (the collected original twins) and whose link type is in {@code linkReplaceMap},
+     * plus replacement {@link LinkEntity} rows. No {@code hierarchy_tree} filter —
+     * cross-branch links (e.g. portion → task) are included if both twins were collected.
      */
-    private LinksData findLinksData(Set<UUID> hierarchies, Map<UUID, UUID> linkReplaceMap, Set<UUID> childrenStatusIds) throws ServiceException {
+    private LinksData findLinksData(Set<UUID> twinIds, Map<UUID, UUID> linkReplaceMap, Set<UUID> childrenStatusIds) throws ServiceException {
         if (linkReplaceMap.isEmpty()) {
             return LinksData.EMPTY;
         }
 
-        var origTwinLinks = childrenStatusIds.isEmpty()
-                ? twinLinkService.findAllWithinHierarchiesAndLinkIdIn(hierarchies, linkReplaceMap.keySet())
-                : twinLinkService.findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(hierarchies, linkReplaceMap.keySet(), childrenStatusIds);
-
         var newLinks = linkService.findEntitiesSafe(linkReplaceMap.values());
+
+        if (twinIds.isEmpty()) {
+            return new LinksData(Collections.emptySet(), newLinks);
+        }
+
+        var origTwinLinks = childrenStatusIds.isEmpty()
+                ? twinLinkService.findAllBetweenTwinsInAndLinkIdIn(twinIds, linkReplaceMap.keySet())
+                : twinLinkService.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkReplaceMap.keySet(), childrenStatusIds);
 
         return new LinksData(origTwinLinks, newLinks);
     }

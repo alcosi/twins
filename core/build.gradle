@@ -137,6 +137,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-java:4.32.1'
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
 }
 
 configurations {

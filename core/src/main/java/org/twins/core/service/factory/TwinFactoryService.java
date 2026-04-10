@@ -105,8 +105,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

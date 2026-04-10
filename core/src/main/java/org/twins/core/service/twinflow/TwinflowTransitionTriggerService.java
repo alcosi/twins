@@ -46,12 +46,8 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
 
     @Override
     public boolean isEntityReadDenied(TwinflowTransitionTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
         loadTrigger(entity);
-        if (entity.getTwinTrigger().getDomainId() != null) {
-            return !entity.getTwinTrigger().getDomainId().equals(apiUser.getDomainId());
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getTwinTrigger().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

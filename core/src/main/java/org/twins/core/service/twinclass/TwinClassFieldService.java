@@ -669,15 +669,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public BigDecimal getDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) {
+        BigDecimal ret = null;
         if (twin.getTwinFieldDecimalKit() != null && twin.getTwinFieldDecimalKit().containsKey(fieldId)) {
-            var field = twin.getTwinFieldDecimalKit().get(fieldId);
-
-            if (field.getValue() != null) {
-                return field.getValue();
-            }
+            ret = twin.getTwinFieldDecimalKit().get(fieldId).getValue();
+        } else if (twin.getTwinFieldCalculated() != null && twin.getTwinFieldCalculated().containsKey(fieldId)) {
+            ret = twin.getTwinFieldCalculated().get(fieldId);
         }
-
-        return defaultValue;
+        return ret != null ? ret : defaultValue;
     }
 
     public boolean notSerializable(TwinClassFieldEntity twinClassField) throws ServiceException {
