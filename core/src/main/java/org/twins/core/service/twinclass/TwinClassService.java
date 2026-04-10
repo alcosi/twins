@@ -146,6 +146,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomain().getId()))
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_READ_DENIED.getMessage());
 
+                var newFieldId = UUID.nameUUIDFromBytes((entity.getKey() + entity.getDomainId()).getBytes());
+                if (twinClassRepository.existsById(newFieldId)) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_ALREADY_EXIST.getMessage());
+                }
+
                 if (
                         (entity.getHeadTwinClassId() != null && entity.getHeadTwinClassId().equals(entity.getId())) ||
                                 (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
@@ -222,7 +227,27 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
                 .setOwnerType(srcTwinClassEntity.getOwnerType())
-                .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired());
+                .setViewPermissionId(srcTwinClassEntity.getViewPermissionId())
+                .setCreatePermissionId(srcTwinClassEntity.getCreatePermissionId())
+                .setEditPermissionId(srcTwinClassEntity.getEditPermissionId())
+                .setDeletePermissionId(srcTwinClassEntity.getDeletePermissionId())
+                .setSegment(srcTwinClassEntity.getSegment())
+                .setHasSegment(srcTwinClassEntity.getHasSegment())
+                .setMarkerDataListId(srcTwinClassEntity.getMarkerDataListId())
+                .setTagDataListId(srcTwinClassEntity.getTagDataListId())
+                .setHeadHunterFeaturerId(srcTwinClassEntity.getHeadHunterFeaturerId())
+                .setHeadHunterParams(srcTwinClassEntity.getHeadHunterParams())
+                .setHasDynamicMarkers(srcTwinClassEntity.getHasDynamicMarkers())
+                .setPageFaceId(srcTwinClassEntity.getPageFaceId())
+                .setBreadCrumbsFaceId(srcTwinClassEntity.getBreadCrumbsFaceId())
+                .setGeneralAttachmentRestrictionId(srcTwinClassEntity.getGeneralAttachmentRestrictionId())
+                .setCommentAttachmentRestrictionId(srcTwinClassEntity.getCommentAttachmentRestrictionId())
+                .setExternalId(srcTwinClassEntity.getExternalId())
+                .setExternalProperties(srcTwinClassEntity.getExternalProperties())
+                .setExternalJson(srcTwinClassEntity.getExternalJson())
+                .setHeadHierarchyCounterDirectChildren(0)
+                .setExtendsHierarchyCounterDirectChildren(0)
+                .setTwinCounter(0);
         I18nEntity i18nDuplicate;
         if (srcTwinClassEntity.getNameI18NId() != null) {
             i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18NId());
@@ -234,8 +259,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             duplicateTwinClassEntity
                     .setDescriptionI18NId(i18nDuplicate.getId());
         }
-        duplicateTwinClassEntity = entitySmartService.save(duplicateTwinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        twinClassFieldService.duplicateFieldsForClass(apiUser, twinClassId, duplicateTwinClassEntity.getId());
+        duplicateTwinClassEntity = saveSafe(duplicateTwinClassEntity);
+        twinClassFieldService.duplicateFieldsForClass(twinClassId, duplicateTwinClassEntity.getId(), duplicateTwinClassEntity.getKey());
         return duplicateTwinClassEntity;
     }
 

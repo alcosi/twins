@@ -301,18 +301,18 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     @Transactional
-    public void duplicateFieldsForClass(ApiUser apiUser, UUID srcTwinClassId, UUID duplicateTwinClassId) throws ServiceException {
+    public void duplicateFieldsForClass(UUID srcTwinClassId, UUID duplicateTwinClassId, String duplicateClassKey) throws ServiceException {
         List<TwinClassFieldEntity> fieldEntityList = findTwinClassFields(srcTwinClassId);
         if (CollectionUtils.isNotEmpty(fieldEntityList)) {
             for (TwinClassFieldEntity fieldEntity : fieldEntityList) {
-                duplicateField(fieldEntity, duplicateTwinClassId);
+                duplicateField(fieldEntity, duplicateTwinClassId, duplicateClassKey);
             }
         }
     }
 
     @Transactional
-    public void duplicateField(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId) throws ServiceException {
-        var duplicateFieldEntity = duplicateFieldEntity(srcFieldEntity, duplicateTwinClassId, srcFieldEntity.getKey());
+    public void duplicateField(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId, String duplicateClassKey) throws ServiceException {
+        var duplicateFieldEntity = duplicateFieldEntity(srcFieldEntity, duplicateTwinClassId, srcFieldEntity.getKey() + "copyForClass" + duplicateClassKey);
         setI18nForDuplicate(srcFieldEntity, duplicateFieldEntity);
 
         saveSafe(duplicateFieldEntity);
