@@ -111,6 +111,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setId(src.getId())
                         .setKey(src.getKey())
                         .setHeadClassId(src.getHeadTwinClassId())
+                        .setHeadClassIdSet(src.getHeadHierarchyClassIdSet())
                         .setAbstractClass(src.getAbstractt())
                         .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())

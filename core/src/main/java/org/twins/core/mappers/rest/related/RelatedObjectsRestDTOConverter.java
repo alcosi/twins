@@ -34,6 +34,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
@@ -56,6 +57,7 @@ import org.twins.core.dto.rest.projection.ProjectionTypeGroupDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.scheduler.SchedulerDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
+import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.*;
@@ -102,6 +104,7 @@ import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
+import org.twins.core.mappers.rest.action.ActionRestrictionReasonRestDTOMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -154,6 +157,7 @@ public class RelatedObjectsRestDTOConverter {
     private final NotificationChannelEventRestDTOMapper notificationChannelEventRestDTOMapper;
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
     private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
+    private final ActionRestrictionReasonRestDTOMapper actionRestrictionReasonRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -199,6 +203,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, NotificationChannelEventDTOv1> notificationChannelEventMap = new HashMap<>();
         Map<String, HistoryTypeDTOv1> historyTypeMap = new HashMap<>();
         Map<UUID, TwinValidatorSetDTOv1> twinValidatorSetMap = new HashMap<>();
+        Map<UUID, ActionRestrictionReasonDTOv1> actionRestrictionReasonMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -281,6 +286,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel2, twinValidatorSetMap, TwinValidatorSetEntity::getId);
         if (!mapperContext.getRelatedHistoryTypeMap().isEmpty())
             convertAndPut(mapperContext.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel2, historyTypeMap, HistoryTypeEntity::getId);
+        if (!mapperContext.getRelatedActionRestrictionReasonMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel2, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -364,6 +371,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
         if (!mapperContextLevel2.getRelatedHistoryTypeMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
+        if (!mapperContextLevel2.getRelatedActionRestrictionReasonMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -448,6 +457,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
         if (!mapperContextLevel3.getRelatedHistoryTypeMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
+        if (!mapperContextLevel3.getRelatedActionRestrictionReasonMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -490,6 +501,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setNotificationChannelEventMap(notificationChannelEventMap.isEmpty() ? null : notificationChannelEventMap)
                 .setHistoryTypeMap(historyTypeMap.isEmpty() ? null : historyTypeMap)
                 .setTwinValidatorSetMap(twinValidatorSetMap.isEmpty() ? null : twinValidatorSetMap)
+                .setActionRestrictionReasonMap(actionRestrictionReasonMap.isEmpty() ? null : actionRestrictionReasonMap)
         ;
         return ret;
     }

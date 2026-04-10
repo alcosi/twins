@@ -15,6 +15,8 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.dao.action.ActionRestrictionReasonRepository;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.action.TwinActionPermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -27,6 +29,7 @@ import org.twins.core.enums.action.TwinAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.action.ActionRestrictionReasonService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.validator.TwinValidatorService;
 
@@ -41,6 +44,7 @@ public class TwinActionService {
     final TwinActionPermissionRepository twinActionPermissionRepository;
     final TwinActionValidatorRuleRepository twinActionValidatorRuleRepository;
     private final EntitySmartService entitySmartService;
+    private final ActionRestrictionReasonService actionRestrictionReasonService;
     final TwinRepository twinRepository;
     @Lazy
     final TwinValidatorService twinValidatorService;
@@ -51,6 +55,7 @@ public class TwinActionService {
     @Lazy
     final FeaturerService featurerService;
 
+    //TODO update the method implementation similar to other load methods for singleton classes
     public void loadActions(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getActions() != null)
             return;
@@ -60,23 +65,85 @@ public class TwinActionService {
             return;
         }
         twinEntity.setActions(new HashSet<>());
+        Map<TwinAction, UUID> actionsRestricted = new HashMap<>();
+
         for (TwinAction twinAction : TwinAction.values()) {
             TwinActionPermissionEntity twinActionProtectedByPermission = twinEntity.getTwinClass().getActionsProtectedByPermission().get(twinAction);
+
             if (twinActionProtectedByPermission != null) {
                 if (!permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId())) {
-                    continue;
+                    if (twinActionProtectedByPermission.getActionRestrictionReasonId() != null) {
+                        actionsRestricted.put(twinAction, twinActionProtectedByPermission.getActionRestrictionReasonId());
+                    }
+                    continue; // forbidden by permission, skip validators
                 }
             }
+
             if (CollectionUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction))) {
-                twinEntity.getActions().add(twinAction); // current action is permitted
+                twinEntity.getActions().add(twinAction);
                 continue;
             }
+
+            // Check validators - action is allowed if ANY validator passes
+            boolean allowedByValidator = false;
+            UUID validatorRestrictionReasonId = null;
             for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
                 boolean isValid = twinValidatorSetService.isValid(twinEntity, twinActionValidatorRuleEntity);
                 if (isValid) {
-                    twinEntity.getActions().add(twinAction);
-                    break;
+                    allowedByValidator = true;
+                    break; // at least one validator passed
+                } else {
+                    if (validatorRestrictionReasonId == null && twinActionValidatorRuleEntity.getActionRestrictionReasonId() != null) {
+                        validatorRestrictionReasonId = twinActionValidatorRuleEntity.getActionRestrictionReasonId();
+                    }
                 }
+            }
+
+            if (allowedByValidator) {
+                twinEntity.getActions().add(twinAction);
+            } else if (validatorRestrictionReasonId != null) {
+                actionsRestricted.put(twinAction, validatorRestrictionReasonId);
+            }
+        }
+
+        // Set actionsRestricted if not empty
+        if (!actionsRestricted.isEmpty()) {
+            twinEntity.setActionsRestricted(actionsRestricted);
+        }
+    }
+
+    public void loadActionRestrictionReasons(TwinEntity twinEntity) throws ServiceException {
+        loadActionRestrictionReasons(Collections.singletonList(twinEntity));
+    }
+
+    public void loadActionRestrictionReasons(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        List<TwinEntity> needLoad = new ArrayList<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getActionsRestrictedReasons() == null && twinEntity.getActionsRestricted() != null && !twinEntity.getActionsRestricted().isEmpty())
+                needLoad.add(twinEntity);
+        if (needLoad.isEmpty())
+            return;
+
+        Set<UUID> allReasonIds = new HashSet<>();
+        for (TwinEntity twinEntity : needLoad) {
+            allReasonIds.addAll(twinEntity.getActionsRestricted().values());
+        }
+
+        if (allReasonIds.isEmpty())
+            return;
+
+        Kit<ActionRestrictionReasonEntity, UUID> reasonsKit = actionRestrictionReasonService.findEntitiesSafe(allReasonIds);
+
+        for (TwinEntity twinEntity : needLoad) {
+            Map<TwinAction, ActionRestrictionReasonEntity> actionsRestrictedReasons = new HashMap<>();
+            for (Map.Entry<TwinAction, UUID> entry : twinEntity.getActionsRestricted().entrySet()) {
+                ActionRestrictionReasonEntity reason = reasonsKit.get(entry.getValue());
+                if (reason != null) {
+                    actionsRestrictedReasons.put(entry.getKey(), reason);
+                }
+            }
+            if (!actionsRestrictedReasons.isEmpty()) {
+                twinEntity.setActionsRestrictedReasons(actionsRestrictedReasons);
             }
         }
     }
@@ -175,9 +242,8 @@ public class TwinActionService {
         KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> groupedByClass = new KitGroupedObj<>(needLoad, TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
         // Load class-protected actions for all involved classes
         loadClassProtectedActions(groupedByClass.getGroupingObjectMap().values());
-        // Maps for storing forbidden actions by permissions and validators
-        Map<UUID, Set<TwinAction>> twinsActionsForbiddenByPermissions = new HashMap<>();
-        Map<UUID, Set<TwinAction>> twinsActionsForbiddenByValidators = new HashMap<>();
+        // Map for storing restriction reasons by twinId and action (null = forbidden without reason, UUID = forbidden with reason)
+        Map<UUID, Map<TwinAction, UUID>> twinsActionsRestrictionReasons = new HashMap<>();
 
         for (Map.Entry<UUID, List<TwinEntity>> entry : groupedByClass.getGroupedMap().entrySet()) { // Loop through entities grouped by class
             TwinClassEntity twinClassEntity = groupedByClass.getGroupingObject(entry.getKey());
@@ -196,8 +262,11 @@ public class TwinActionService {
                         // If the permission is denied for an action, mark the action as forbidden for those entities
                         if (!permissionService.hasPermission(samePermissionGroupEntry.getKey(), classActionPermissionEntity.getPermissionId())) {
                             for (TwinEntity twinEntity : samePermissionGroupEntry.getValue()) {
-                                twinsActionsForbiddenByPermissions.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
-                                twinsActionsForbiddenByPermissions.get(twinEntity.getId()).add(twinAction);
+                                twinsActionsRestrictionReasons.computeIfAbsent(twinEntity.getId(), k -> new HashMap<>());
+                                // Only set if not already set (permission priority over validator)
+                                if (!twinsActionsRestrictionReasons.get(twinEntity.getId()).containsKey(twinAction)) {
+                                    twinsActionsRestrictionReasons.get(twinEntity.getId()).put(twinAction, classActionPermissionEntity.getActionRestrictionReasonId());
+                                }
                             }
                         } else {
                             twinsNeedsValidatorCheck.addAll(samePermissionGroupEntry.getValue()); // If permission is granted, add to validator check list
@@ -247,12 +316,12 @@ public class TwinActionService {
                         // Check which entities passed the validator checks and update forbidden actions
                         List<TwinEntity> nextLoopTwins = new ArrayList<>();
                         for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                            twinsActionsForbiddenByValidators.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
                             if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
                                 nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
-                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).add(twinAction); // If validation not passed, add forbidden action
-                            } else {
-                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).remove(twinAction); // If validation passed, remove forbidden action
+                                // Only set if not already set by permission (permission priority)
+                                if (!twinsActionsRestrictionReasons.computeIfAbsent(twinEntity.getId(), k -> new HashMap<>()).containsKey(twinAction)) {
+                                    twinsActionsRestrictionReasons.get(twinEntity.getId()).put(twinAction, actionValidatorRuleEntity.getActionRestrictionReasonId());
+                                }
                             }
                         }
                         twinsNeedsValidatorCheck = nextLoopTwins; // Update list for next validator check
@@ -263,20 +332,35 @@ public class TwinActionService {
         // Set allowed actions for each TwinEntity based on permissions and validator results
         for (TwinEntity twinEntity : needLoad) {
             twinEntity.setActions(new HashSet<>());
-            Set<TwinAction> forbiddenPermissionActions = twinsActionsForbiddenByPermissions.get(twinEntity.getId());
-            Set<TwinAction> forbiddenValidatorActions = twinsActionsForbiddenByValidators.get(twinEntity.getId());
+            Map<TwinAction, UUID> restrictionReasons = twinsActionsRestrictionReasons.get(twinEntity.getId());
 
             // If no forbidden actions, add all possible actions
-            if (forbiddenPermissionActions == null && forbiddenValidatorActions == null) {
+            if (restrictionReasons == null || restrictionReasons.isEmpty()) {
                 twinEntity.getActions().addAll(EnumSet.allOf(TwinAction.class));
             } else {
-                // Add only those actions that are not forbidden by either permissions or validators
+                // Add only those actions that are not in the restriction map
                 for (TwinAction action : EnumSet.allOf(TwinAction.class)) {
-                    if ((forbiddenValidatorActions == null || !forbiddenValidatorActions.contains(action)) &&
-                            (forbiddenPermissionActions == null || !forbiddenPermissionActions.contains(action))) {
+                    if (!restrictionReasons.containsKey(action)) {
                         twinEntity.getActions().add(action);
+                    } else {
+                        // Action is restricted
+                        UUID reasonId = restrictionReasons.get(action);
+                        if (reasonId != null) {
+                            // Only add to actionsRestricted if there's a reason
+                            Map<TwinAction, UUID> actionsRestricted = twinEntity.getActionsRestricted();
+                            if (actionsRestricted == null) {
+                                actionsRestricted = new HashMap<>();
+                                twinEntity.setActionsRestricted(actionsRestricted);
+                            }
+                            actionsRestricted.put(action, reasonId);
+                        }
                     }
                 }
+            }
+
+            // Set actionsRestricted if not empty
+            if (twinEntity.getActionsRestricted() != null && !twinEntity.getActionsRestricted().isEmpty()) {
+                twinEntity.setActionsRestricted(twinEntity.getActionsRestricted());
             }
         }
     }

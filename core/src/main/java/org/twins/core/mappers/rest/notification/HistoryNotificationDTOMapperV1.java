@@ -98,6 +98,7 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
         if (mapperContext.hasModeButNot(HistoryNotificationRecipientMode.HistoryNotification2HistoryNotificationRecipientMode.HIDE)) {
             dst.setHistoryNotificationRecipientId(src.getHistoryNotificationRecipientId());
 
+            historyNotificationService.loadHistoryNotificationRecipient(src);
             historyNotificationRecipientDTOMapperV1.postpone(src.getHistoryNotificationRecipient(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryNotificationRecipientMode.HistoryNotification2HistoryNotificationRecipientMode.SHORT)));
         }
