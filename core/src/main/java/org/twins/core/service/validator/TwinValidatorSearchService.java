@@ -14,7 +14,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorRepository;
+import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinValidatorSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -24,6 +27,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @RequiredArgsConstructor
 public class TwinValidatorSearchService {
     private final TwinValidatorRepository twinValidatorRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinValidatorEntity> findTwinValidators(TwinValidatorSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinValidatorEntity> spec = createTwinValidatorSpecification(search);
@@ -32,7 +36,9 @@ public class TwinValidatorSearchService {
     }
 
     private Specification<TwinValidatorEntity> createTwinValidatorSpecification(TwinValidatorSearch search) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
+                checkFieldUuid(apiUser.getDomainId(), TwinValidatorEntity.Fields.twinValidatorSet, TwinValidatorSetEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinValidatorEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinValidatorEntity.Fields.id),
                 checkUuidIn(search.getTwinValidatorSetIdList(), false, false, TwinValidatorEntity.Fields.twinValidatorSetId),

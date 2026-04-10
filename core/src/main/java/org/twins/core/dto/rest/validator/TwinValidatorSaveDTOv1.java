@@ -13,10 +13,10 @@ import java.util.UUID;
 @Schema(name = "TwinValidatorSaveV1")
 public class TwinValidatorSaveDTOv1 {
     @Schema(description = "grouped set of twin validators id", example = DTOExamples.UUID_ID)
-    private UUID twinValidatorSetId;
+    public UUID twinValidatorSetId;
 
     @Schema(description = "validator featurer id", example = DTOExamples.FEATURER_ID)
-    private Integer validatorFeaturerId;
+    public Integer validatorFeaturerId;
 
     @Schema(description = "validator params", example = DTOExamples.FACTORY_PARAMS_MAP)
     public Map<String, String> validatorParams;
