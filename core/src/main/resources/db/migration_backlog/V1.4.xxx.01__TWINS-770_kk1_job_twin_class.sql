@@ -1,4 +1,4 @@
-alter table public.twinflow_transition_alias
+alter table twinflow_transition_alias
     alter column domain_id drop not null;
 
 -- TWINS-770: JOB (abstract) and JOB_SIMPLE classes
