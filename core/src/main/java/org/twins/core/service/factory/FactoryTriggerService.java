@@ -53,11 +53,10 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
         if (entity.getTwinFactory() == null) {
             loadFactory(entity);
         }
-        return entity.getTwinFactory().getDomainId() != null && !entity.getTwinFactory().getDomainId().equals(apiUser.getDomainId());
+        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
