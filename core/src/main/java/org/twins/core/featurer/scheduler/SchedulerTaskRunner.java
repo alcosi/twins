@@ -6,15 +6,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLoggable> extends Scheduler {
@@ -32,10 +28,6 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
             optional = true
     )
     public static final FeaturerParamInt alertExecutionTimeParam = new FeaturerParamInt("alertExecutionTime");
-
-    @Autowired
-    @Qualifier("alertTaskScheduler")
-    private ScheduledExecutorService alertScheduler;
 
     private final Executor taskExecutor;
 
@@ -92,14 +84,21 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
 
     private Runnable withExecutionTimeAlert(Runnable task, E entity, int alertExecutionTime) {
         return () -> {
-            var alertFuture = alertScheduler.schedule(
-                    () -> LoggerUtils.alertLog.warn("Task {} exceeded expected execution time of {} ms", entity.logNormal(), alertExecutionTime),
-                    alertExecutionTime, TimeUnit.MILLISECONDS
-            );
+            var alertThread = Thread.ofVirtual()
+                    .name("alert-" + entity.logShort())
+                    .start(() -> {
+                        try {
+                            Thread.sleep(alertExecutionTime);
+                            LoggerUtils.alertLog.warn("Task {} exceeded expected execution time of {} ms",
+                                    entity.logNormal(), alertExecutionTime);
+                        } catch (InterruptedException ignored) {
+                            // task finished before the threshold — exit quietly
+                        }
+                    });
             try {
                 task.run();
             } finally {
-                alertFuture.cancel(false);
+                alertThread.interrupt();
             }
         };
     }

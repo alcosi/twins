@@ -46,6 +46,9 @@ public class SchedulerEntity implements EasyLoggable {
     @Column(name = "log_enabled")
     private Boolean logEnabled;
 
+    @Column(name = "alert_execution_time")
+    private Long alertExecutionTime;
+
     @Column(name = "cron")
     private String cron;
 
@@ -77,7 +80,7 @@ public class SchedulerEntity implements EasyLoggable {
             case NORMAL ->
                     "scheduler[id:" + id + ", schedulerFeaturerId:" + schedulerFeaturerId + ", description:" + description + ", active:" + active + "]";
             case DETAILED ->
-                    "scheduler[id:" + id + ", schedulerFeaturerId:" + schedulerFeaturerId + ", description:" + description + ", active:" + active + ", logEnabled:" + logEnabled + ", cron:" + cron + ", fixedRate:" + fixedRate + ", params:" + schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
+                    "scheduler[id:" + id + ", schedulerFeaturerId:" + schedulerFeaturerId + ", description:" + description + ", active:" + active + ", logEnabled:" + logEnabled + ", alertExecutionTime:" + alertExecutionTime + ", cron:" + cron + ", fixedRate:" + fixedRate + ", params:" + schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
         };
     }
 }

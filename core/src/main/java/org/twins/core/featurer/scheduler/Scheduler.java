@@ -33,17 +33,28 @@ public abstract class Scheduler extends FeaturerTwins {
     public Runnable getRunnableForScheduling(Properties properties, SchedulerEntity schedulerEntity) {
         return () -> {
             LoggerUtils.logSession();
-            long startTime = System.currentTimeMillis();
-            // using getBean here to prevent errors with Spring proxy (processTask with @Transactional)
-            String result = applicationContext.getBean(this.getClass()).processTask(properties);
+            var startTime = System.currentTimeMillis();
+            try {
+                // using getBean here to prevent errors with Spring proxy (processTask with @Transactional)
+                String result = applicationContext.getBean(this.getClass()).processTask(properties);
 
-            if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
-                schedulerLogRepo.save(
-                        new SchedulerLogEntity()
-                                .setSchedulerId(schedulerEntity.getId())
-                                .setExecutionTime(System.currentTimeMillis() - startTime)
-                                .setResult(result)
-                );
+                if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
+                    schedulerLogRepo.save(
+                            new SchedulerLogEntity()
+                                    .setSchedulerId(schedulerEntity.getId())
+                                    .setExecutionTime(System.currentTimeMillis() - startTime)
+                                    .setResult(result)
+                    );
+                }
+            } finally {
+                long executionTime = System.currentTimeMillis() - startTime;
+                Long alertExecutionTime = schedulerEntity.getAlertExecutionTime();
+                if (alertExecutionTime != null && executionTime > alertExecutionTime) {
+                    LoggerUtils.alertLog.warn(
+                            "Scheduler {} exceeded expected execution time for getRunnableForScheduling method: {} ms (threshold {} ms)",
+                            schedulerEntity.logNormal(), executionTime, alertExecutionTime
+                    );
+                }
             }
         };
     }

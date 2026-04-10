@@ -46,7 +46,6 @@ import javax.sql.DataSource;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
@@ -231,15 +230,6 @@ public class ApplicationConfig {
     @Bean(name = "emailTaskExecutor")
     public Executor taskExecutor() {
         return Executors.newFixedThreadPool(10);
-    }
-
-    @Bean(name = "alertTaskScheduler")
-    public ScheduledExecutorService alertTaskScheduler() {
-         return Executors.newSingleThreadScheduledExecutor(r -> {
-             var t = new Thread(r, "alert-task-scheduler");
-             t.setDaemon(true);
-             return t;
-         });
     }
 
     @Bean
