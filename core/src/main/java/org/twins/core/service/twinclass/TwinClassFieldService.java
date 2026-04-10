@@ -26,7 +26,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
@@ -113,8 +112,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_FEATURER_NOT_SPECIFIED.getMessage());
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
+                var newFieldId = UUID.nameUUIDFromBytes((entity.getKey() + entity.getTwinClassId()).getBytes());
+                if (twinClassFieldRepository.existsById(newFieldId)) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_ALREADY_EXIST.getMessage());
+                }
+
+                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
                     entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+                }
+
                 featurerService.prepareForStore(entity.getFieldTyperFeaturerId(), entity.getFieldTyperParams());
             default:
         }
@@ -309,7 +315,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         var duplicateFieldEntity = duplicateFieldEntity(srcFieldEntity, duplicateTwinClassId, srcFieldEntity.getKey());
         setI18nForDuplicate(srcFieldEntity, duplicateFieldEntity);
 
-        entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        saveSafe(duplicateFieldEntity);
     }
 
     @Transactional
@@ -319,7 +325,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         var duplicateFieldEntity = duplicateFieldEntity(srcFieldEntity, srcFieldEntity.getTwinClassId(), newKey);
         setI18nForDuplicate(srcFieldEntity, duplicateFieldEntity);
 
-        return entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return saveSafe(duplicateFieldEntity);
     }
 
     private TwinClassFieldEntity duplicateFieldEntity(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId, String newKey) throws ServiceException {
@@ -333,21 +339,36 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setFieldTyperParams(srcFieldEntity.getFieldTyperParams())
                 .setTwinSorterFeaturerId(srcFieldEntity.getTwinSorterFeaturerId())
                 .setTwinSorterParams(srcFieldEntity.getTwinSorterParams())
+                .setFieldInitializerFeaturerId(srcFieldEntity.getFieldInitializerFeaturerId())
+                .setFieldInitializerParams(srcFieldEntity.getFieldInitializerParams())
                 .setViewPermissionId(srcFieldEntity.getViewPermissionId())
                 .setEditPermissionId(srcFieldEntity.getEditPermissionId())
-                .setRequired(srcFieldEntity.getRequired());
+                .setRequired(srcFieldEntity.getRequired())
+                .setExternalId(srcFieldEntity.getExternalId())
+                .setExternalProperties(srcFieldEntity.getExternalProperties())
+                .setSystem(srcFieldEntity.getSystem())
+                .setDependentField(srcFieldEntity.getDependentField())
+                .setHasDependentFields(srcFieldEntity.getHasDependentFields())
+                .setOrder(srcFieldEntity.getOrder())
+                .setProjectionField(srcFieldEntity.getProjectionField())
+                .setHasProjectedFields(srcFieldEntity.getHasProjectedFields());
     }
 
     private void setI18nForDuplicate(TwinClassFieldEntity srcFieldEntity, TwinClassFieldEntity duplicateFieldEntity) {
-        I18nEntity i18nEntity;
         if (srcFieldEntity.getNameI18nId() != null) {
-            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18nId());
-            duplicateFieldEntity.setNameI18nId(i18nEntity.getId());
+            duplicateFieldEntity.setNameI18nId(i18nService.duplicateI18n(srcFieldEntity.getNameI18nId()).getId());
         }
 
         if (srcFieldEntity.getDescriptionI18nId() != null) {
-            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18nId());
-            duplicateFieldEntity.setDescriptionI18nId(i18nEntity.getId());
+            duplicateFieldEntity.setDescriptionI18nId(i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18nId()).getId());
+        }
+
+        if (srcFieldEntity.getFeValidationErrorI18nId() != null) {
+            duplicateFieldEntity.setFeValidationErrorI18nId(i18nService.duplicateI18n(srcFieldEntity.getFeValidationErrorI18nId()).getId());
+        }
+
+        if (srcFieldEntity.getBeValidationErrorI18nId() != null) {
+            duplicateFieldEntity.setBeValidationErrorI18nId(i18nService.duplicateI18n(srcFieldEntity.getBeValidationErrorI18nId()).getId());
         }
     }
 
