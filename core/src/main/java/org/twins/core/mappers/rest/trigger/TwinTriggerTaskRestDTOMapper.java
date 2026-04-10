@@ -2,6 +2,8 @@ package org.twins.core.mappers.rest.trigger;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
@@ -36,6 +38,7 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
 
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public void map(TwinTriggerTaskEntity src, TwinTriggerTaskDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinTriggerMode.DETAILED)) {
             case DETAILED -> dst
@@ -65,10 +68,11 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
             twinTriggerTaskService.loadTwinStatus(src);
             twinStatusDTOMapper.postpone(src.getPreviousTwinStatus(), mapperContext.forkOnPoint(StatusMode.TwinTriggerTask2StatusMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
+    //    if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
             twinTriggerTaskService.loadTwin(src);
             twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.TwinTriggerTask2TwinMode.SHORT));
-        }
+     //   }
+        twinTriggerTaskService.loadTwin(src);
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
             twinTriggerTaskService.loadTwinTrigger(src);
             twinTriggerDTOMapper.postpone(src.getTwinTrigger(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.SHORT)));
