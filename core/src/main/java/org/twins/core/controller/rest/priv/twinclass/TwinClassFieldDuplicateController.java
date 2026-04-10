@@ -59,7 +59,8 @@ public class TwinClassFieldDuplicateController extends ApiController {
                                     twinClassFieldService.duplicateField(
                                             rq.getTwinClassFieldId(),
                                             rq.newKey
-                                    )
+                                    ),
+                                    mapperContext
                             )
                     )
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
