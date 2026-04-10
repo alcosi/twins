@@ -306,9 +306,27 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional
     public void duplicateField(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId) throws ServiceException {
-        log.info(srcFieldEntity.logShort() + " will be duplicated for class[" + duplicateTwinClassId + "]");
-        TwinClassFieldEntity duplicateFieldEntity = new TwinClassFieldEntity()
-                .setKey(KeyUtils.lowerCaseNullSafe(srcFieldEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
+        var duplicateFieldEntity = duplicateFieldEntity(srcFieldEntity, duplicateTwinClassId, srcFieldEntity.getKey());
+        setI18nForDuplicate(srcFieldEntity, duplicateFieldEntity);
+
+        entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    @Transactional
+    public TwinClassFieldEntity duplicateField(UUID twinClassFieldId, String newKey) throws ServiceException {
+        var srcFieldEntity = findEntity(twinClassFieldId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+
+        var duplicateFieldEntity = duplicateFieldEntity(srcFieldEntity, srcFieldEntity.getTwinClassId(), newKey);
+        setI18nForDuplicate(srcFieldEntity, duplicateFieldEntity);
+
+        return entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    private TwinClassFieldEntity duplicateFieldEntity(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId, String newKey) throws ServiceException {
+        log.info(srcFieldEntity.logShort() + " will be duplicated for class[" + srcFieldEntity.getTwinClassId() + "]");
+
+        return new TwinClassFieldEntity()
+                .setKey(KeyUtils.lowerCaseNullSafe(newKey, ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
                 .setTwinClassId(duplicateTwinClassId)
                 .setTwinClass(srcFieldEntity.getTwinClass())
                 .setFieldTyperFeaturerId(srcFieldEntity.getFieldTyperFeaturerId())
@@ -318,20 +336,20 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setViewPermissionId(srcFieldEntity.getViewPermissionId())
                 .setEditPermissionId(srcFieldEntity.getEditPermissionId())
                 .setRequired(srcFieldEntity.getRequired());
+    }
+
+    private void setI18nForDuplicate(TwinClassFieldEntity srcFieldEntity, TwinClassFieldEntity duplicateFieldEntity) {
         I18nEntity i18nEntity;
         if (srcFieldEntity.getNameI18nId() != null) {
             i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18nId());
-            duplicateFieldEntity
-                    .setNameI18nId(i18nEntity.getId());
+            duplicateFieldEntity.setNameI18nId(i18nEntity.getId());
         }
+
         if (srcFieldEntity.getDescriptionI18nId() != null) {
             i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18nId());
-            duplicateFieldEntity
-                    .setDescriptionI18nId(i18nEntity.getId());
+            duplicateFieldEntity.setDescriptionI18nId(i18nEntity.getId());
         }
-        entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
-
 
     public static final String CACHE_TWIN_CLASS_FIELD_FOR_LINK = "TwinClassFieldService.getFieldIdConfiguredForLink";
 

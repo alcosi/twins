@@ -17,11 +17,11 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassDuplicateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
@@ -35,9 +35,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassDuplicateController extends ApiController {
+
     private final AuthService authService;
     private final TwinClassService twinClassService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassDuplicateV1", summary = "Duplicates twin class by id")
@@ -51,17 +53,23 @@ public class TwinClassDuplicateController extends ApiController {
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinClassDuplicateRqDTOv1 request) {
-        TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
+        var rs = new TwinClassRsDTOv1();
+
         try {
-            ApiUser apiUser = authService.getApiUser();
-            rs.setTwinClass(
-                    twinClassRestDTOMapper.convert(
-                            twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), mapperContext));
+            var apiUser = authService.getApiUser();
+            rs
+                    .setTwinClass(
+                            twinClassRestDTOMapper.convert(
+                                    twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), mapperContext
+                            )
+                    )
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
+
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }
