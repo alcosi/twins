@@ -1,14 +1,9 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -18,18 +13,12 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
+import java.util.Properties;
 
 @Component
 @Slf4j
@@ -39,25 +28,6 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
         description = "Decimal field with dedicated table storage"
 )
 public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
-    
-    @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
-    public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
-    @FeaturerParam(name = "Max", description = "Max possible value", order = 2)
-    public static final FeaturerParamDouble max = new FeaturerParamDouble("max");
-    @FeaturerParam(name = "Step", description = "Step of value change", order = 3)
-    public static final FeaturerParamDouble step = new FeaturerParamDouble("step");
-    @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4)
-    public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
-    @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5)
-    public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
-    @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6)
-    public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
-    @FeaturerParam(name = "Extra thousand separators", description = "Extra thousand separators. Must not be equal to decimal separator.", order = 7, optional = true)
-    public static final FeaturerParamStringSet extraThousandSeparatorSet = new FeaturerParamStringSet("extraThousandSeparatorSet");
-    @FeaturerParam(name = "Extra decimal separators", description = "Extra decimal separators. Must not be equal to thousand separator.", order = 8, optional = true)
-    public static final FeaturerParamStringSet extraDecimalSeparatorSet = new FeaturerParamStringSet("extraDecimalSeparatorSet");
-    @FeaturerParam(name = "Round", description = "Round a number to the required number of decimal places", order = 9, optional = true, defaultValue = "true")
-    public static final FeaturerParamBoolean round = new FeaturerParamBoolean("round");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -95,17 +65,8 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
 
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
-        var scale = decimalPlaces.extract(properties);
-        var value = "";
-
-        if (scale != null) {
-            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().setScale(scale, RoundingMode.UNNECESSARY).toPlainString() : null;
-        } else {
-            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null;
-        }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(value);
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException {
+        return deserializeValueBase(properties, twinField, twinFieldDecimalEntity);
     }
 
     @Override
@@ -127,94 +88,5 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
 
     private BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldDecimal, FieldValueText value) throws ServiceException {
         return new BigDecimal(processAndFormatValue(properties, value));
-    }
-
-    private String processAndFormatValue(Properties properties, FieldValueText value) throws ServiceException {
-        TwinClassFieldEntity twinClassField = value.getTwinClassField();
-        var minValue = min.extract(properties);
-        var maxValue = max.extract(properties);
-        var stepValue = step.extract(properties);
-        var thousandSeparatorValue = thousandSeparator.extract(properties);
-        var decimalSeparatorValue = decimalSeparator.extract(properties);
-        var extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
-        var extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
-        var decimalPlacesValue = decimalPlaces.extract(properties);
-        var roundValue = round.extract(properties);
-        var returnValue = value.getValue();
-
-        try {
-            if (Strings.isNotEmpty(returnValue)) {
-                if (returnValue.matches(EXPONENTIAL_FORM_REGEXP)) {
-                    DecimalFormat df = new DecimalFormat("#.############");
-                    returnValue = df.format(Double.parseDouble(returnValue));
-                }
-
-                // Combine main decimal separator with extra ones for counting
-                Set<String> allDecimalSeparators = new HashSet<>();
-                allDecimalSeparators.add(decimalSeparatorValue);
-                allDecimalSeparators.addAll(extraDecimalSeparators);
-
-                int decimalSeparatorCount = 0;
-                for (String decimalSep : allDecimalSeparators) {
-                    decimalSeparatorCount += StringUtils.countMatches(returnValue, decimalSep);
-                }
-                if (decimalSeparatorCount > 1) {
-                    log.error("FieldTyperNumeric: value[{}] has multiple decimal separators", value.getValue());
-                    throw new Exception();
-                }
-
-                // Combine main thousand separator with extra ones for removal
-                Set<String> allThousandSeparators = new HashSet<>();
-                allThousandSeparators.add(thousandSeparatorValue);
-                allThousandSeparators.addAll(extraThousandSeparators);
-
-                // Remove all thousand separators
-                for (String thousandSep : allThousandSeparators) {
-                    returnValue = returnValue.replaceAll(Pattern.quote(thousandSep), "");
-                }
-
-                // Replace all decimal separators with dot
-                for (String decimalSep : allDecimalSeparators) {
-                    returnValue = returnValue.replaceAll(Pattern.quote(decimalSep), ".");
-                }
-
-                String[] parts = returnValue.split("\\.");
-                String integerPart = parts[0];
-                String decimalPart = parts.length > 1 ? parts[1] : "";
-
-                if (decimalPart.length() > decimalPlacesValue) {
-                    if (Boolean.FALSE.equals(roundValue)) {
-                        log.error("FieldTyperNumeric: value[{}] has more decimal places then parametrized", value.getValue());
-                        throw new Exception();
-                    }
-                    decimalPart = decimalPart.substring(0, decimalPlacesValue);
-                } else if (decimalPart.length() < decimalPlacesValue) {
-                    decimalPart = StringUtils.rightPad(decimalPart, decimalPlacesValue, '0');
-                }
-
-                if (decimalPlacesValue > 0) {
-                    returnValue = integerPart + "." + decimalPart;
-                } else {
-                    returnValue = integerPart;
-                }
-
-                double doubleValue = Double.parseDouble(returnValue);
-                if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
-                    log.error("FieldTyperNumeric: value[{}] is out of range", value.getValue());
-                    throw new Exception();
-                }
-            } else {
-                throw new Exception();
-            }
-        } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    twinClassField.easyLog(EasyLoggable.Level.NORMAL) +
-                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
-                            " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
-                            " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
-                            " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
-        }
-
-        return returnValue;
     }
 }

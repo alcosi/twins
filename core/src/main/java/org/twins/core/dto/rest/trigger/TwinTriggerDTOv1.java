@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -32,4 +33,8 @@ public class TwinTriggerDTOv1 {
 
     @Schema(description = "is active", example = DTOExamples.COUNT)
     public Boolean active;
+
+    @Schema(description = "job twin class id")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "jobTwinClass")
+    public UUID jobTwinClassId;
 }

@@ -18,6 +18,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -47,7 +48,7 @@ public class TwinTriggerRabbitMqSendFields extends TwinTriggerRabbitMqConnection
     public static final FeaturerParamUUIDSet excludeInfoFields = new FeaturerParamUUIDSet("excludeInfoFields");
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
 
         RabbitMqMessagePayloadFields payload = new RabbitMqMessagePayloadFields(
@@ -58,7 +59,8 @@ public class TwinTriggerRabbitMqSendFields extends TwinTriggerRabbitMqConnection
                 apiUser.getDomainId(),
                 operation.extract(properties),
                 fields.extract(properties),
-                excludeInfoFields.extract(properties)
+                excludeInfoFields.extract(properties),
+                jobTwinId
         );
 
         ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(

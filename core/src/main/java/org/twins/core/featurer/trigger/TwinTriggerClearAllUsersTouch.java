@@ -14,6 +14,7 @@ import org.twins.core.featurer.params.FeaturerParamStringTouchId;
 import org.twins.core.service.twin.TwinTouchService;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -29,7 +30,7 @@ public class TwinTriggerClearAllUsersTouch extends TwinTrigger {
     public static final FeaturerParamStringTouchId touchId = new FeaturerParamStringTouchId("touchId");
 
     @Override
-    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         twinTouchService.deleteAllUsersTouch(twinEntity.getId(), touchId.extract(properties));
     }
 }

@@ -17,6 +17,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -41,7 +42,7 @@ public class TwinTriggerRabbitMqSendTwin extends TwinTriggerRabbitMqConnection {
 
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
 
         log.debug("Sending to Rabbit");
@@ -53,7 +54,8 @@ public class TwinTriggerRabbitMqSendTwin extends TwinTriggerRabbitMqConnection {
                 apiUser.getUserId(),
                 apiUser.getDomainId(),
                 apiUser.getBusinessAccountId(),
-                operation.extract(properties)
+                operation.extract(properties),
+                jobTwinId
         );
         ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
         log.debug("Done sending to Rabbit");
