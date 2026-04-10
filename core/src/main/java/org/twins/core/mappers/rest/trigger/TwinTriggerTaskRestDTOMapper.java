@@ -75,11 +75,6 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
         }
     }
 
-/*    @Override
-    public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinTriggerMode.HIDE);
-    }*/
-
     @Override
     public String getObjectCacheId(TwinTriggerTaskEntity src) {
         return src.getId().toString();
