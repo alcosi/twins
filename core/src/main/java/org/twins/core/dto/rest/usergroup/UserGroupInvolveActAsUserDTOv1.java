@@ -30,7 +30,7 @@ public class UserGroupInvolveActAsUserDTOv1 {
     public UUID userGroupId;
 
     @Schema(description = "added by user id")
-    @RelatedObject(type = UserDTOv1.class, name = "machineUser")
+    @RelatedObject(type = UserDTOv1.class, name = "addByUser")
     public UUID addedByUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)

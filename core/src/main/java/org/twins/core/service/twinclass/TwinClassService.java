@@ -36,6 +36,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
+import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.domain.DomainType;
@@ -193,43 +194,98 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     @Transactional
-    public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) throws ServiceException {
-        TwinClassEntity srcTwinClassEntity = findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        log.info(srcTwinClassEntity.logShort() + " will be duplicated with ne key[" + newKey + "]");
-        TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
-                .setKey(newKey)
-                .setCreatedByUserId(apiUser.getUser().getId())
-                .setPermissionSchemaSpace(srcTwinClassEntity.getPermissionSchemaSpace())
-                .setTwinflowSchemaSpace(srcTwinClassEntity.getTwinflowSchemaSpace())
-                .setTwinClassSchemaSpace(srcTwinClassEntity.getTwinClassSchemaSpace())
-                .setAliasSpace(srcTwinClassEntity.getAliasSpace())
-                .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired())
-                .setAbstractt(srcTwinClassEntity.getAbstractt())
-                .setUniqueName(srcTwinClassEntity.getUniqueName())
-                .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
-                .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
-                .setIconDarkResourceId(srcTwinClassEntity.getIconDarkResourceId())
-                .setIconDarkResource(srcTwinClassEntity.getIconDarkResource())
-                .setIconLightResourceId(srcTwinClassEntity.getIconLightResourceId())
-                .setIconLightResource(srcTwinClassEntity.getIconLightResource())
-                .setCreatedAt(Timestamp.from(Instant.now()))
-                .setDomainId(srcTwinClassEntity.getDomainId())
-                .setOwnerType(srcTwinClassEntity.getOwnerType())
-                .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired());
-        I18nEntity i18nDuplicate;
-        if (srcTwinClassEntity.getNameI18NId() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18NId());
-            duplicateTwinClassEntity
-                    .setNameI18NId(i18nDuplicate.getId());
+    public Collection<TwinClassEntity> duplicate(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
+        var newKeys = new HashSet<String>();
+        var apiUser = authService.getApiUser();
+        for (var duplicate : duplicates) {
+            if (newKeys.contains(duplicate.getNewKey()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE, "twinClass key[" + duplicate.getNewKey() + "] is duplicated in request");
+            else
+                newKeys.add(duplicate.getNewKey());
+            duplicate.setNewTwinClassId(UUID.nameUUIDFromBytes((duplicate.getNewKey() + apiUser.getDomainId()).getBytes()));
         }
-        if (srcTwinClassEntity.getDescriptionI18NId() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getDescriptionI18NId());
-            duplicateTwinClassEntity
-                    .setDescriptionI18NId(i18nDuplicate.getId());
+        loadOriginalTwinClass(duplicates);
+        var entitiesToSave = new ArrayList<TwinClassEntity>();
+        var needLoadFields = new ArrayList<TwinClassEntity>();
+        for (var duplicate : duplicates) {
+            var originalTwinClass = duplicate.getOriginalTwinClass();
+            log.info("{} will be duplicated with new key[{}]", originalTwinClass.logShort(), duplicate.getNewKey());
+            TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
+                    .setKey(duplicate.getNewKey())
+                    .setCreatedByUserId(apiUser.getUser().getId())
+                    .setPermissionSchemaSpace(originalTwinClass.getPermissionSchemaSpace())
+                    .setTwinflowSchemaSpace(originalTwinClass.getTwinflowSchemaSpace())
+                    .setTwinClassSchemaSpace(originalTwinClass.getTwinClassSchemaSpace())
+                    .setAliasSpace(originalTwinClass.getAliasSpace())
+                    .setAssigneeRequired(originalTwinClass.getAssigneeRequired())
+                    .setAbstractt(originalTwinClass.getAbstractt())
+                    .setUniqueName(originalTwinClass.getUniqueName())
+                    .setExtendsTwinClassId(originalTwinClass.getExtendsTwinClassId())
+                    .setHeadTwinClassId(originalTwinClass.getHeadTwinClassId())
+                    .setIconDarkResourceId(originalTwinClass.getIconDarkResourceId())
+                    .setIconDarkResource(originalTwinClass.getIconDarkResource())
+                    .setIconLightResourceId(originalTwinClass.getIconLightResourceId())
+                    .setIconLightResource(originalTwinClass.getIconLightResource())
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setDomainId(originalTwinClass.getDomainId())
+                    .setOwnerType(originalTwinClass.getOwnerType())
+                    .setViewPermissionId(originalTwinClass.getViewPermissionId())
+                    .setCreatePermissionId(originalTwinClass.getCreatePermissionId())
+                    .setEditPermissionId(originalTwinClass.getEditPermissionId())
+                    .setDeletePermissionId(originalTwinClass.getDeletePermissionId())
+                    .setSegment(originalTwinClass.getSegment())
+                    .setHasSegment(false) //change this if we will copy segments also
+                    .setMarkerDataListId(originalTwinClass.getMarkerDataListId())
+                    .setTagDataListId(originalTwinClass.getTagDataListId())
+                    .setHeadHunterFeaturerId(originalTwinClass.getHeadHunterFeaturerId())
+                    .setHeadHunterParams(originalTwinClass.getHeadHunterParams())
+                    .setHasDynamicMarkers(false) //change this if we will copy markers also / or check inherited markers
+                    .setPageFaceId(originalTwinClass.getPageFaceId())
+                    .setBreadCrumbsFaceId(originalTwinClass.getBreadCrumbsFaceId())
+                    .setGeneralAttachmentRestrictionId(originalTwinClass.getGeneralAttachmentRestrictionId())
+                    .setCommentAttachmentRestrictionId(originalTwinClass.getCommentAttachmentRestrictionId())
+                    .setExternalId(originalTwinClass.getExternalId())
+                    .setExternalProperties(originalTwinClass.getExternalProperties())
+                    .setExternalJson(originalTwinClass.getExternalJson())
+                    .setHeadHierarchyCounterDirectChildren(0)
+                    .setExtendsHierarchyCounterDirectChildren(0)
+                    .setTwinCounter(0);
+            I18nEntity i18nDuplicate;
+            if (originalTwinClass.getNameI18NId() != null) {
+                i18nDuplicate = i18nService.duplicateI18n(originalTwinClass.getNameI18NId());
+                duplicateTwinClassEntity
+                        .setNameI18NId(i18nDuplicate.getId());
+            }
+            if (originalTwinClass.getDescriptionI18NId() != null) {
+                i18nDuplicate = i18nService.duplicateI18n(originalTwinClass.getDescriptionI18NId());
+                duplicateTwinClassEntity
+                        .setDescriptionI18NId(i18nDuplicate.getId());
+            }
+            duplicate.setNewTwinClass(duplicateTwinClassEntity);
+            entitiesToSave.add(duplicateTwinClassEntity);
+            if (duplicate.isDuplicateFields()) {
+                needLoadFields.add(duplicateTwinClassEntity);
+            }
         }
-        duplicateTwinClassEntity = entitySmartService.save(duplicateTwinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        twinClassFieldService.duplicateFieldsForClass(apiUser, twinClassId, duplicateTwinClassEntity.getId());
-        return duplicateTwinClassEntity;
+        //todo check uniq key-s or ids
+        var ret = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+        if (CollectionUtils.isNotEmpty(needLoadFields)) {
+            twinClassFieldService.loadTwinClassFields(needLoadFields);
+            for (var duplicate : duplicates) {
+                if (duplicate.isDuplicateFields()) {
+                    twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
+                }
+            }
+        }
+        return ret;
+    }
+
+    private void loadOriginalTwinClass(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                TwinClassDuplicate::getOriginalTwinClassId,
+                TwinClassDuplicate::getNewTwinClassId,
+                TwinClassDuplicate::getOriginalTwinClass,
+                TwinClassDuplicate::setOriginalTwinClass);
     }
 
     public void loadExtendsHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {

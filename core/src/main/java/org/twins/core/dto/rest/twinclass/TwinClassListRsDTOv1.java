@@ -6,11 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinClassFieldRsV1")
-public class TwinClassFieldRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "results - twin class fields list")
-    public TwinClassFieldDTOv1 field;
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "TwinClassListRsV1")
+public class TwinClassListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+    @Schema(description = "results - twin class list")
+    public List<TwinClassDTOv1> twinClassList;
 }

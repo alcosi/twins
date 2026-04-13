@@ -19,44 +19,44 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dto.rest.twinclass.TwinClassDuplicateRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassListRsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldDuplicateRqDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinclass.TwinClassDuplicateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldDuplicateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
-@Tag(name = ApiTag.TWIN_CLASS)
+@Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_CREATE})
-public class TwinClassDuplicateController extends ApiController {
-    private final TwinClassService twinClassService;
-    private final TwinClassDuplicateRestDTOReverseMapper twinClassDuplicateRestDTOReverseMapper;
-    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+@ProtectedBy({Permissions.TWIN_CLASS_FIELD_CREATE})
+public class TwinClassFieldDuplicateController extends ApiController {
+
+    private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final TwinClassFieldDuplicateRestDTOReverseMapper twinClassFieldDuplicateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassDuplicateV1", summary = "Duplicates twin class by id")
+    @Operation(operationId = "twinClassFieldDuplicateV1", summary = "Duplicates twin class field by id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class copy result", content = {
+            @ApiResponse(responseCode = "200", description = "Twin class field copy result", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassListRsDTOv1.class)) }),
+                    @Schema(implementation = TwinClassFieldListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_class/duplicate/v1")
-    public ResponseEntity<?> twinClassDuplicateV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassDuplicateRqDTOv1 request) {
-        var rs = new TwinClassListRsDTOv1();
+    @PostMapping(value = "/private/twin_class_field/duplicate/v1")
+    public ResponseEntity<?> twinClassFieldDuplicateV1(
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody TwinClassFieldDuplicateRqDTOv1 rq) {
+        var rs = new TwinClassFieldListRsDTOv1();
 
         try {
-            var duplicates = twinClassDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedClasses = twinClassService.duplicate(duplicates);
+            var duplicates = twinClassFieldDuplicateRestDTOReverseMapper.convertCollection(rq.getDuplicates(), mapperContext);
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(duplicatedClasses, mapperContext))
+                    .twinClassFieldList(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldService.duplicateFields(duplicates), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
