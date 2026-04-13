@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -26,6 +23,8 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
+
+import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
@@ -45,24 +44,17 @@ public class TwinClassFieldDuplicateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_class_field/duplicate/v1")
+    @PostMapping(value = "/private/twin_class_field/{twinClassFieldId}/duplicate/v1")
     public ResponseEntity<?> twinClassFieldDuplicateV1(
             @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @PathVariable UUID twinClassFieldId,
             @RequestBody TwinClassFieldDuplicateRqDTOv1 rq
     ) {
         var rs = new TwinClassFieldRsDTOv1();
 
         try {
             rs
-                    .setField(
-                            twinClassFieldRestDTOMapper.convert(
-                                    twinClassFieldService.duplicateField(
-                                            rq.getTwinClassFieldId(),
-                                            rq.newKey
-                                    ),
-                                    mapperContext
-                            )
-                    )
+                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldService.duplicateField(twinClassFieldId, rq.newKey), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

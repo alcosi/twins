@@ -146,11 +146,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomain().getId()))
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_READ_DENIED.getMessage());
 
-                var newFieldId = UUID.nameUUIDFromBytes((entity.getKey() + entity.getDomainId()).getBytes());
-                if (twinClassRepository.existsById(newFieldId)) {
-                    return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_ALREADY_EXIST.getMessage());
-                }
-
                 if (
                         (entity.getHeadTwinClassId() != null && entity.getHeadTwinClassId().equals(entity.getId())) ||
                                 (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
@@ -207,7 +202,13 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Transactional
     public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) throws ServiceException {
         TwinClassEntity srcTwinClassEntity = findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        log.info(srcTwinClassEntity.logShort() + " will be duplicated with ne key[" + newKey + "]");
+
+        var newClassId = UUID.nameUUIDFromBytes((newKey + srcTwinClassEntity.getDomainId()).getBytes());
+        if (twinClassRepository.existsById(newClassId)) {
+            throw new ServiceException(ErrorCodeTwins.ENTITY_ALREADY_EXIST);
+        }
+
+        log.info(srcTwinClassEntity.logShort() + " will be duplicated with new key[" + newKey + "]");
         TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
                 .setKey(newKey)
                 .setCreatedByUserId(apiUser.getUser().getId())

@@ -58,11 +58,7 @@ public class TwinClassDuplicateController extends ApiController {
         try {
             var apiUser = authService.getApiUser();
             rs
-                    .setTwinClass(
-                            twinClassRestDTOMapper.convert(
-                                    twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), mapperContext
-                            )
-                    )
+                    .setTwinClass(twinClassRestDTOMapper.convert(twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

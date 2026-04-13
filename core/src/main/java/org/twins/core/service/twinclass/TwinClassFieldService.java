@@ -112,11 +112,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_FEATURER_NOT_SPECIFIED.getMessage());
         switch (entityValidateMode) {
             case beforeSave:
-                var newFieldId = UUID.nameUUIDFromBytes((entity.getKey() + entity.getTwinClassId()).getBytes());
-                if (twinClassFieldRepository.existsById(newFieldId)) {
-                    return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_ALREADY_EXIST.getMessage());
-                }
-
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId())) {
                     entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
                 }
@@ -329,6 +324,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     private TwinClassFieldEntity duplicateFieldEntity(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId, String newKey) throws ServiceException {
+        var newFieldId = UUID.nameUUIDFromBytes((newKey + duplicateTwinClassId).getBytes());
+        if (twinClassFieldRepository.existsById(newFieldId)) {
+            throw new ServiceException(ErrorCodeTwins.ENTITY_ALREADY_EXIST);
+        }
+
         log.info(srcFieldEntity.logShort() + " will be duplicated for class[" + srcFieldEntity.getTwinClassId() + "]");
 
         return new TwinClassFieldEntity()
