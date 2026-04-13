@@ -158,7 +158,7 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
                     log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));
                 }
             } else {
-                twinTriggerService.runTrigger(twinTriggerEntity, twinEntity, srcStatusEntity, dstStatusEntity);
+                twinTriggerService.runTrigger(twinTriggerEntity, twinEntity, srcStatusEntity, dstStatusEntity, null);
             }
         }
     }

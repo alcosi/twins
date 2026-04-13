@@ -56,10 +56,8 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
     public static final UUID TWIN_CLASS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0001-000000000004");
     public static final UUID TWIN_CLASS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0001-000000000005");
-    public static final UUID TWIN_CLASS_JOB = UUID.fromString("00000000-0000-0000-0001-000000000006");
-    public static final UUID TWIN_CLASS_JOB_SIMPLE = UUID.fromString("00000000-0000-0000-0001-000000000007");
 
-    // last field.id = 19
+    // last field.id = 16
     public static final UUID TWIN_CLASS_FIELD_USER_EMAIL = UUID.fromString("00000000-0000-0000-0011-000000000001");
     public static final UUID TWIN_CLASS_FIELD_USER_AVATAR = UUID.fromString("00000000-0000-0000-0011-000000000002");
     public static final UUID TWIN_CLASS_FIELD_TWIN_NAME = UUID.fromString("00000000-0000-0000-0011-000000000003");
@@ -76,9 +74,6 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_TWIN_ALIASES = UUID.fromString("00000000-0000-0000-0011-000000000014");
     public static final UUID TWIN_CLASS_FIELD_TWIN_TAGS = UUID.fromString("00000000-0000-0000-0011-000000000015");
     public static final UUID TWIN_CLASS_FIELD_TWIN_MARKERS = UUID.fromString("00000000-0000-0000-0011-000000000016");
-    public static final UUID TWIN_CLASS_FIELD_JOB_TOTAL_COUNT = UUID.fromString("00000000-0000-0000-0011-000000000017");
-    public static final UUID TWIN_CLASS_FIELD_JOB_CURRENT_COUNT = UUID.fromString("00000000-0000-0000-0011-000000000018");
-    public static final UUID TWIN_CLASS_FIELD_JOB_ERROR_COUNT = UUID.fromString("00000000-0000-0000-0011-000000000019");
     // last i18.id = 56
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_NAME = UUID.fromString("00000000-0000-0000-0012-000000000001");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000002");
@@ -99,10 +94,6 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_USER_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000023");
     public static final UUID I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000024");
     public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000037");
-    public static final UUID I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_NAME = UUID.fromString("00000000-0000-0000-0012-000000000039");
-    public static final UUID I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_NAME = UUID.fromString("00000000-0000-0000-0012-000000000040");
-    public static final UUID I18N_4CLASS_JOB_FIELD_ERROR_COUNT_NAME = UUID.fromString("00000000-0000-0000-0012-000000000042");
-    public static final UUID I18N_4CLASS_JOB_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000044");
 
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000012");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000013");
@@ -123,35 +114,11 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_USER_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000025");
     public static final UUID I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000026");
     public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000038");
-    public static final UUID I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000041");
-    public static final UUID I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000043");
-    public static final UUID I18N_4CLASS_JOB_FIELD_ERROR_COUNT_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000045");
-    public static final UUID I18N_4CLASS_JOB_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000046");
-    public static final UUID I18N_4CLASS_JOB_NAME = UUID.fromString("00000000-0000-0000-0012-000000000061");
-    public static final UUID I18N_4CLASS_JOB_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000062");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_STATUS_IN_PROGRESS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000047");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_STATUS_IN_PROGRESS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000048");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_STATUS_COMPLETED_NAME = UUID.fromString("00000000-0000-0000-0012-000000000049");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_STATUS_COMPLETED_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000050");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_STATUS_ERROR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000051");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_STATUS_ERROR_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000052");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_NAME = UUID.fromString("00000000-0000-0000-0012-000000000053");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000054");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_TWINFLOW_NAME = UUID.fromString("00000000-0000-0000-0012-000000000055");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_TWINFLOW_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000056");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_TRANSITION_COMPLETE_NAME = UUID.fromString("00000000-0000-0000-0012-000000000057");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_TRANSITION_COMPLETE_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000058");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_TRANSITION_ERROR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000059");
-    public static final UUID I18N_4CLASS_JOB_SIMPLE_TRANSITION_ERROR_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000060");
 
     public static final UUID TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID = UUID.fromString("00000000-0000-0000-0013-000000000002");
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
     public static final UUID TWIN_STATUS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0003-000000000004");
-    public static final UUID TWIN_STATUS_JOB = UUID.fromString("00000000-0000-0000-0003-000000000005");
-    public static final UUID TWIN_STATUS_JOB_IN_PROGRESS = UUID.fromString("00000000-0000-0000-0003-000000000006");
-    public static final UUID TWIN_STATUS_JOB_COMPLETED = UUID.fromString("00000000-0000-0000-0003-000000000007");
-    public static final UUID TWIN_STATUS_JOB_ERROR = UUID.fromString("00000000-0000-0000-0003-000000000008");
 
     public static final UUID TWIN_STATUS_SKETCH = UUID.fromString("00000001-0000-0000-0000-000000000001"); //todo changge my id
 
@@ -167,10 +134,6 @@ public class SystemEntityService {
     public static final UUID PERMISSION_SCHEME = UUID.fromString("00000000-0000-0000-0016-000000000001");
     public static final UUID TWINFLOW_SCHEME = UUID.fromString("00000000-0000-0000-0017-000000000001");
     public static final UUID TWIN_CLASS_SCHEME = UUID.fromString("00000000-0000-0000-0018-000000000001");
-    public static final UUID TWINFLOW_JOB_SIMPLE = UUID.fromString("00000000-0000-0000-0019-000000000001");
-    public static final UUID TWINFLOW_TRANSITION_ALIAS_JOB_SIMPLE_COMPLETE = UUID.fromString("00000000-0000-0000-0021-000000000001");
-    public static final UUID TWINFLOW_TRANSITION_ALIAS_JOB_SIMPLE_ERROR = UUID.fromString("00000000-0000-0000-0021-000000000002");
-
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
     static {
@@ -224,30 +187,6 @@ public class SystemEntityService {
                         List.of(),
                         false,
                         true
-                ),
-                new SystemClass(
-                        TWIN_CLASS_JOB,
-                        "JOB",
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        true,
-                        false
-                ),
-                new SystemClass(
-                        TWIN_CLASS_JOB_SIMPLE,
-                        "JOB_SIMPLE",
-                        List.of(
-                                new SystemStatus(TWIN_STATUS_JOB_IN_PROGRESS, TWIN_CLASS_JOB_SIMPLE, new I18n(I18N_4CLASS_JOB_SIMPLE_STATUS_IN_PROGRESS_NAME, "In progress"), new I18n(I18N_4CLASS_JOB_SIMPLE_STATUS_IN_PROGRESS_DESCRIPTION, "Job is in progress"), StatusType.BASIC),
-                                new SystemStatus(TWIN_STATUS_JOB_COMPLETED, TWIN_CLASS_JOB_SIMPLE, new I18n(I18N_4CLASS_JOB_SIMPLE_STATUS_COMPLETED_NAME, "Completed"), new I18n(I18N_4CLASS_JOB_SIMPLE_STATUS_COMPLETED_DESCRIPTION, "Job completed successfully"), StatusType.BASIC),
-                                new SystemStatus(TWIN_STATUS_JOB_ERROR, TWIN_CLASS_JOB_SIMPLE, new I18n(I18N_4CLASS_JOB_SIMPLE_STATUS_ERROR_NAME, "Error"), new I18n(I18N_4CLASS_JOB_SIMPLE_STATUS_ERROR_DESCRIPTION, "Job completed with error"), StatusType.BASIC)
-                        ),
-                        List.of(
-                                new SystemField(TWIN_CLASS_FIELD_JOB_TOTAL_COUNT, TWIN_CLASS_JOB_SIMPLE, FeaturerTwins.ID_1317, FeaturerTwins.ID_5301, new I18n(I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_NAME, "Total count"), new I18n(I18N_4CLASS_JOB_FIELD_TOTAL_COUNT_DESCRIPTION, "Total count"), 4101, "total_count", false, true),
-                                new SystemField(TWIN_CLASS_FIELD_JOB_CURRENT_COUNT, TWIN_CLASS_JOB_SIMPLE, FeaturerTwins.ID_1350, FeaturerTwins.ID_5301, new I18n(I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_NAME, "Current progress"), new I18n(I18N_4CLASS_JOB_FIELD_CURRENT_COUNT_DESCRIPTION, "Current progress"), 4101, "current_count", false, true),
-                                new SystemField(TWIN_CLASS_FIELD_JOB_ERROR_COUNT, TWIN_CLASS_JOB_SIMPLE, FeaturerTwins.ID_1350, FeaturerTwins.ID_5301, new I18n(I18N_4CLASS_JOB_FIELD_ERROR_COUNT_NAME, "Error count"), new I18n(I18N_4CLASS_JOB_FIELD_ERROR_COUNT_DESCRIPTION, "Error count"), 4101, "error_count", false, true)
-                        ),
-                        false,
-                        false
                 )
         ));
     }

@@ -430,7 +430,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 } else {
                     log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
                     TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());
-                    twinTriggerService.runTrigger(twinTriggerEntity, targetTwin, targetTwin.getTwinStatus(), null);
+                    twinTriggerService.runTrigger(twinTriggerEntity, targetTwin, targetTwin.getTwinStatus(), null, null);
                 }
             }
         }
