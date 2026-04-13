@@ -35,7 +35,7 @@ public class FieldTyperCountChildrenByStatusV1 extends FieldTyperImmutable<Field
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(getCountResult(properties, twinField.getTwin(), twinFieldSimpleRepository).toString());
+                .setValue(twinField.getTwin().getTwinFieldCalculated().get(twinField.getTwinClassFieldId()).toString());
     }
 
     @Override
