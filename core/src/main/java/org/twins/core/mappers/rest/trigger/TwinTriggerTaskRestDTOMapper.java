@@ -2,8 +2,6 @@ package org.twins.core.mappers.rest.trigger;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
@@ -25,20 +23,19 @@ import java.util.Collection;
 @MapperModeBinding(modes = DomainMode.class)
 public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerTaskEntity, TwinTriggerTaskDTOv1> {
     private final TwinTriggerTaskService twinTriggerTaskService;
-    @MapperModePointerBinding(modes = {UserMode.Twin2UserMode.class})
+    @MapperModePointerBinding(modes = {UserMode.class})
     private final UserRestDTOMapper userDTOMapper;
     @MapperModePointerBinding(modes = {BusinessAccountMode.class})
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
-    @MapperModePointerBinding(modes = {StatusMode.Twin2StatusMode.class})
+    @MapperModePointerBinding(modes = {StatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusDTOMapper;
-
+    @MapperModePointerBinding(modes = {TwinMode.class})
     private final TwinRestDTOMapperV2 twinDTOMapper;
-
+    @MapperModePointerBinding(modes = {TwinTriggerMode.class})
     private final TwinTriggerRestDTOMapper twinTriggerDTOMapper;
 
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
     public void map(TwinTriggerTaskEntity src, TwinTriggerTaskDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinTriggerMode.DETAILED)) {
             case DETAILED -> dst
@@ -58,21 +55,20 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
 
         if (mapperContext.hasModeButNot(BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.HIDE)) {
             twinTriggerTaskService.loadBusinessAccount(src);
-            businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.SHORT));
+            businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.TwinTriggerTask2UserMode.HIDE)) {
             twinTriggerTaskService.loadCreatedByUser(src);
-            userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.TwinTriggerTask2UserMode.SHORT));
+            userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinTriggerTask2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
             twinTriggerTaskService.loadTwinStatus(src);
-            twinStatusDTOMapper.postpone(src.getPreviousTwinStatus(), mapperContext.forkOnPoint(StatusMode.TwinTriggerTask2StatusMode.SHORT));
+            twinStatusDTOMapper.postpone(src.getPreviousTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinTriggerTask2StatusMode.SHORT)));
         }
-    //    if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
             twinTriggerTaskService.loadTwin(src);
-            twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.TwinTriggerTask2TwinMode.SHORT));
-     //   }
-        twinTriggerTaskService.loadTwin(src);
+            twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinTriggerTask2TwinMode.SHORT)));
+        }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
             twinTriggerTaskService.loadTwinTrigger(src);
             twinTriggerDTOMapper.postpone(src.getTwinTrigger(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.SHORT)));

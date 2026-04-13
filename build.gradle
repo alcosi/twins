@@ -13,7 +13,7 @@ allprojects {
 }
 
 ext {
-    profile = (project.hasProperty('profile') ? project.profile : 'stage').toLowerCase()
+    profile = (project.hasProperty('profile') ? project.profile : 'devlocal').toLowerCase()
 }
 
 subprojects {
