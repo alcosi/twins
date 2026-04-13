@@ -56,7 +56,6 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
     public static final UUID TWIN_CLASS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0001-000000000004");
     public static final UUID TWIN_CLASS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0001-000000000005");
-    public static final UUID TWIN_CLASS_JOB = UUID.fromString("00000000-0000-0000-0001-000000000006");
 
     // last field.id = 16
     public static final UUID TWIN_CLASS_FIELD_USER_EMAIL = UUID.fromString("00000000-0000-0000-0011-000000000001");
@@ -188,14 +187,6 @@ public class SystemEntityService {
                         List.of(),
                         false,
                         true
-                ),
-                new SystemClass(
-                        TWIN_CLASS_JOB,
-                        "JOB",
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        true,
-                        false
                 )
         ));
     }
