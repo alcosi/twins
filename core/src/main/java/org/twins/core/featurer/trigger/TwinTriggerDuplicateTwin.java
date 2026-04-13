@@ -17,6 +17,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -34,7 +35,7 @@ public class TwinTriggerDuplicateTwin extends TwinTrigger {
     public static final FeaturerParamUUID twinId = new FeaturerParamUUIDTwinsTwinId("twinId");
 
     @Override
-    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         TwinEntity srcTwin = twinService.findEntity(twinId.extract(properties), EntitySmartService.FindMode.ifEmptyNull, EntitySmartService.ReadPermissionCheckMode.ifDeniedLog);
         if (srcTwin == null) {
             log.error("Can not access twin by id[{}]. Please check database config", twinId.extract(properties));

@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_search")
 @FieldNameConstants
-public class TwinClassSearchEntity {
+public class TwinClassSearchEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -24,4 +25,18 @@ public class TwinClassSearchEntity {
 
     @Column(name = "name")
     private String name;
+
+    @Override
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "twinClassSearch[" + id + "]";
+            case NORMAL:
+                return "TwinClassSearch[id:" + id + ", name:" + name + "]";
+            case DETAILED:
+                return "TwinClassSearch[id:" + id + ", name:" + name + ", domainId:" + domainId + "]";
+            default:
+                return "TwinClassSearch[" + id + "]";
+        }
+    }
 }

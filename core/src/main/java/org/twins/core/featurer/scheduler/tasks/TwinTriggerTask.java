@@ -12,9 +12,9 @@ import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
+import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -33,6 +33,9 @@ public class TwinTriggerTask implements Runnable {
 
     @Autowired
     private FeaturerService featurerService;
+
+    @Autowired
+    private TwinTriggerService twinTriggerService;
 
     public TwinTriggerTask(TwinTriggerTaskEntity twinTriggerTaskEntity) {
         this.twinTriggerTaskEntity = twinTriggerTaskEntity;
@@ -55,8 +58,7 @@ public class TwinTriggerTask implements Runnable {
                     twinTriggerTaskEntity.getCreatedByUserId()
             );
 
-            TwinTrigger trigger = featurerService.getFeaturer(twinTrigger.getTwinTriggerFeaturerId(), TwinTrigger.class);
-            trigger.run(twinTrigger.getTwinTriggerParam(), twin, previousTwinStatus, null);
+            twinTriggerService.runTrigger(twinTrigger, twin, previousTwinStatus, null, twinTriggerTaskEntity.getId());
 
             twinTriggerTaskEntity
                     .setStatusId(TwinTriggerTaskStatus.DONE)

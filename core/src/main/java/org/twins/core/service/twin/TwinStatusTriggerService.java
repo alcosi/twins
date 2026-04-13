@@ -9,7 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -22,7 +21,6 @@ import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
@@ -43,8 +41,6 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
     private final AuthService authService;
     @Lazy
     private final TwinChangesService twinChangesService;
-    @Lazy
-    private final FeaturerService featurerService;
 
     @Override
     public CrudRepository<TwinStatusTriggerEntity, UUID> entityRepository() {
@@ -58,12 +54,8 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
 
     @Override
     public boolean isEntityReadDenied(TwinStatusTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
         loadTrigger(entity);
-        if (entity.getTwinTrigger().getDomainId() != null) {
-            return !entity.getTwinTrigger().getDomainId().equals(apiUser.getDomainId());
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getTwinTrigger().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
@@ -166,8 +158,7 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
                     log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));
                 }
             } else {
-                TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-                twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), twinEntity, srcStatusEntity, dstStatusEntity);
+                twinTriggerService.runTrigger(twinTriggerEntity, twinEntity, srcStatusEntity, dstStatusEntity, null);
             }
         }
     }

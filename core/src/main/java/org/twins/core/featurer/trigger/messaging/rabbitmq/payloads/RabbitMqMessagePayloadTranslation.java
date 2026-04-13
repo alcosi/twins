@@ -10,5 +10,6 @@ public record RabbitMqMessagePayloadTranslation(
     UUID businessAccountId,
     UUID domainId,
     String operation,
-    List<FieldTranslationInfo> fields
+    List<FieldTranslationInfo> fields,
+    UUID jobTwinId
 ) {}
