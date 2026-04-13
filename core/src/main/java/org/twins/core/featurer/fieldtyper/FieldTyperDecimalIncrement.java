@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
-import org.twins.core.dao.twin.TwinFieldDecimalRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalIncrement;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -61,17 +61,13 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
         String rawValue = value.getValue();
         BigDecimal delta = parseIncrement(rawValue, value.getTwinClassField());
 
-        TwinFieldDecimalEntity entity = twinFieldDecimalEntity != null ? twinFieldDecimalEntity :
-                new TwinFieldDecimalEntity()
-                        .setTwin(twin)
-                        .setTwinId(twin.getId())
-                        .setTwinClassFieldId(value.getTwinClassFieldId());
+        TwinFieldDecimalIncrement increment = new TwinFieldDecimalIncrement(
+                twin.getId(),
+                value.getTwinClassFieldId(),
+                delta
+        );
 
-        entity
-                .setIncrementOperation(true)
-                .setValue(delta);
-        twinChangesCollector.add(entity);
-        addHistoryContext(twinChangesCollector, entity, delta);
+        twinChangesCollector.add(increment);
     }
 
     @Override
