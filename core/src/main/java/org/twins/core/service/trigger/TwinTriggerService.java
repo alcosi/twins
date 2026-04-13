@@ -217,7 +217,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
         if (jobTwinClassId != null) {
             TwinClassEntity twinClass = twinClassService.findEntitySafe(jobTwinClassId);
             TwinEntity jobTwinEntity = new TwinEntity()
-                    .setName(twinTriggerEntity.getName())
+                    .setName(twinTriggerEntity.getName() == null ? "job" : twinTriggerEntity.getName())
                     .setId(twinTriggerEntity.getId())
                     .setTwinClassId(jobTwinClassId)
                     .setTwinClass(twinClass);
