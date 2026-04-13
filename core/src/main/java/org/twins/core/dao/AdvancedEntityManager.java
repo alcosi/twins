@@ -127,19 +127,6 @@ public class AdvancedEntityManager {
         );
     }
 
-    /**
-     * Builds PostgreSQL array literal for UUID array usage in native queries.
-     * Uses string array format that works correctly with PreparedStatement parameters.
-     * Example: "{uuid1,uuid2}" which can be cast to uuid[] in the query
-     */
-    public String buildPostgresUuidArrayLiteral(Collection<UUID> uuids) {
-        String joined = uuids.stream()
-                .map(UUID::toString)
-                .reduce((a, b) -> a + "," + b)
-                .orElse("");
-        return "{" + joined + "}";
-    }
-
     private EntityInsertDescriptor getDescriptor(Class<?> clazz) {
         return cache.computeIfAbsent(clazz, this::buildDescriptor);
     }
@@ -264,4 +251,24 @@ public class AdvancedEntityManager {
             List<Function<Object, Object>> extractors,
             Map<String, String> fieldToColumn
     ) {}
+
+    /**
+     * Builds PostgreSQL array literal for UUID array usage in native queries.
+     * Uses string array format that works correctly with PreparedStatement parameters.
+     * Example: "{uuid1,uuid2}" which can be cast to uuid[] in the query
+     */
+    public String buildPostgresUuidArrayLiteral(Collection<UUID> uuids) {
+        if (uuids.isEmpty()) {
+            return "{}";
+        }
+        StringBuilder sb = new StringBuilder(uuids.size() * 37); // ~36 chars UUID + comma
+        sb.append('{');
+        Iterator<UUID> it = uuids.iterator();
+        sb.append(it.next());
+        while (it.hasNext()) {
+            sb.append(',').append(it.next());
+        }
+        sb.append('}');
+        return sb.toString();
+    }
 }
