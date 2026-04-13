@@ -24,6 +24,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.config.i18n.I18nProperties;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.i18n.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
@@ -54,6 +55,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     private final AuthService authService;
     @Lazy
     private final DomainService domainService;
+    private final AdvancedEntityManager advancedEntityManager;
 
     @Override
     public CrudRepository<I18nEntity, UUID> entityRepository() {
@@ -232,18 +234,25 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     public Map<UUID, String> translateToLocale(Set<UUID> idsToLoad) {
         if (CollectionUtils.isEmpty(idsToLoad)) {
             return Collections.emptyMap();
-        } else if (idsToLoad.size() == 1) {
+        }
+        if (idsToLoad.size() == 1) {
             UUID id = idsToLoad.iterator().next();
             return Map.of(id, translateToLocale(id));
-        } else {
-            Map<UUID, String> result = new HashMap<>();
-            Locale locale = resolveCurrentUserLocale();
-            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.i18nId(), t.translation()));
-            if (idsToLoad.size() != result.size()) {
-                idsToLoad.stream().filter(id -> !result.containsKey(id)).forEach(id -> result.put(id, ""));
-            }
-            return result;
         }
+
+        Map<UUID, String> result = new HashMap<>();
+        Locale locale = resolveCurrentUserLocale();
+        String arrayLiteral = advancedEntityManager.buildPostgresUuidArrayLiteral(idsToLoad);
+
+        i18nTranslationRepository.findByI18nIdInAndLocaleArray(arrayLiteral, locale.toLanguageTag())
+                .forEach(t -> result.put(t.i18nId(), t.translation()));
+
+        // Fill missing IDs with empty strings
+        idsToLoad.stream()
+                .filter(id -> !result.containsKey(id))
+                .forEach(id -> result.put(id, ""));
+
+        return result;
     }
 
     @Transactional

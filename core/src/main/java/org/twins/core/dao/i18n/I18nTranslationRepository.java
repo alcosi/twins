@@ -44,4 +44,8 @@ public interface I18nTranslationRepository extends CrudRepository<I18nTranslatio
             "values (:i18nId, :localeCode, '', 1) on conflict on constraint i18n_translation_uq do " +
             "update set usage_counter = excluded.usage_counter + 1")
     void incrementUsageCounter(@Param("i18nId") UUID i18nId, @Param("localeCode") String localeCode);
+
+    @Query(nativeQuery = true, value = "SELECT i18n_id, translation FROM i18n_translation " +
+            "WHERE i18n_id = ANY(CAST(:ids AS uuid[])) AND locale = :locale")
+    List<I18nTranslationNoRelationsProjection> findByI18nIdInAndLocaleArray(@Param("ids") String idsArray, @Param("locale") String locale);
 }
