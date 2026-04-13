@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinFieldDecimalIncrement;
 
 import java.lang.reflect.Field;
 import java.sql.PreparedStatement;
@@ -97,6 +98,33 @@ public class AdvancedEntityManager {
 
     public <T> void insertOnConflictIncrement(List<T> entities, List<String> conflictFields, List<String> incrementColumns) {
         insertOnConflictIncrement(entities, conflictFields, incrementColumns, 1000);
+    }
+
+    /**
+     * Atomically increments decimal field values using native SQL.
+     * Bypasses JPA and works directly with JDBC for maximum performance.
+     *
+     * @param increments list of TwinFieldDecimalIncrement objects
+     */
+    public void incrementDecimalFields(List<TwinFieldDecimalIncrement> increments) {
+        if (increments == null || increments.isEmpty()) return;
+
+        entityManager.flush();
+
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO twin_field_decimal (id, twin_id, twin_class_field_id, value) " +
+                "VALUES (?, ?, ?, ?) " +
+                "ON CONFLICT (twin_id, twin_class_field_id) " +
+                "DO UPDATE SET value = COALESCE(twin_field_decimal.value, 0) + EXCLUDED.value",
+                increments,
+                1000,
+                (PreparedStatement ps, TwinFieldDecimalIncrement inc) -> {
+                    ps.setObject(1, inc.getId());
+                    ps.setObject(2, inc.getTwinId());
+                    ps.setObject(3, inc.getTwinClassFieldId());
+                    ps.setObject(4, inc.getDelta());
+                }
+        );
     }
 
     private EntityInsertDescriptor getDescriptor(Class<?> clazz) {

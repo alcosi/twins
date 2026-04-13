@@ -235,38 +235,33 @@ public class TwinChangesService {
     }
 
     private void applyDecimalIncrements(TwinChangesCollector twinChangesCollector) {
-        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinFieldDecimalEntity.class);
-        if (entityKeyMap == null) {
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinFieldDecimalIncrement.class);
+        if (entityKeyMap == null || entityKeyMap.isEmpty()) {
             return;
         }
 
-        // Separate increment operations from regular saves
-        List<TwinFieldDecimalEntity> incrementEntities = new ArrayList<>();
-        Map<EntityKey, ChangesHelper> regularEntities = new HashMap<>();
+        // Collect all increment operations and affected twins
+        List<TwinFieldDecimalIncrement> incrementList = new ArrayList<>();
+        Set<UUID> affectedTwinIds = new HashSet<>();
 
         for (var entry : entityKeyMap.entrySet()) {
-            TwinFieldDecimalEntity entity = (TwinFieldDecimalEntity) entry.getKey().entity();
-            if (entity.isIncrementOperation()) {
-                incrementEntities.add(entity);
-            } else {
-                regularEntities.put(entry.getKey(), entry.getValue());
-            }
+            TwinFieldDecimalIncrement increment = (TwinFieldDecimalIncrement) entry.getKey().entity();
+            incrementList.add(increment);
+            affectedTwinIds.add(increment.getTwinId());
         }
 
-        // Update collector with only regular entities
-        if (!regularEntities.isEmpty()) {
-            twinChangesCollector.getSaveEntityMap().put(TwinFieldDecimalEntity.class, regularEntities);
-        } else {
-            twinChangesCollector.getSaveEntityMap().remove(TwinFieldDecimalEntity.class);
-        }
+        // Remove increment operations from collector (handled via JDBC)
+        twinChangesCollector.getSaveEntityMap().remove(TwinFieldDecimalIncrement.class);
 
-        // Apply batch increments
-        if (!incrementEntities.isEmpty()) {
-            advancedEntityManager.insertOnConflictIncrement(
-                    incrementEntities,
-                    List.of(TwinFieldDecimalEntity.Fields.twinId, TwinFieldDecimalEntity.Fields.twinClassFieldId),
-                    List.of(TwinFieldDecimalEntity.Fields.value)
-            );
+        // Apply batch increments via JDBC using specialized method
+        advancedEntityManager.incrementDecimalFields(incrementList);
+
+        // Invalidate cache for affected twins so next read fetches updated values from DB
+        for (UUID twinId : affectedTwinIds) {
+            TwinEntity twin = new TwinEntity().setId(twinId);
+            twinChangesCollector.getInvalidationMap()
+                    .computeIfAbsent(twin, k -> new HashSet<>())
+                    .add(TwinInvalidate.twinFieldDecimalKit);
         }
     }
 }
