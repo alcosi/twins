@@ -68,8 +68,8 @@ public class TwinClassListController extends ApiController {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
                     .findTwinClasses(twinClassSearchRqRestDTOReverseMapper.convert(request), pagination);
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -96,8 +96,8 @@ public class TwinClassListController extends ApiController {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
                     .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -125,8 +125,8 @@ public class TwinClassListController extends ApiController {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
                     .findTwinClasses(searchId, twinClassSearchRestDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -151,8 +151,8 @@ public class TwinClassListController extends ApiController {
         try {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService.findTwinClasses(null, pagination);
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
