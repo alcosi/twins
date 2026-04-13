@@ -21,5 +21,5 @@ public class TwinClassFieldDuplicateDTOv1 {
     public String newKey;
 
     @Schema(description = "[optional] duplicate all rules")
-    public Boolean duplicateRules;
+    public boolean duplicateRules = false;
 }
