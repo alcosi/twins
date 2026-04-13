@@ -99,6 +99,19 @@ public class AdvancedEntityManager {
         insertOnConflictIncrement(entities, conflictFields, incrementColumns, 1000);
     }
 
+    /**
+     * Builds PostgreSQL array literal for UUID array usage in native queries.
+     * Uses string array format that works correctly with PreparedStatement parameters.
+     * Example: "{uuid1,uuid2}" which can be cast to uuid[] in the query
+     */
+    public String buildPostgresUuidArrayLiteral(Collection<UUID> uuids) {
+        String joined = uuids.stream()
+                .map(UUID::toString)
+                .reduce((a, b) -> a + "," + b)
+                .orElse("");
+        return "{" + joined + "}";
+    }
+
     private EntityInsertDescriptor getDescriptor(Class<?> clazz) {
         return cache.computeIfAbsent(clazz, this::buildDescriptor);
     }
