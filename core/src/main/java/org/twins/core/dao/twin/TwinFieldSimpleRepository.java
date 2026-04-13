@@ -128,7 +128,7 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
         from TwinEntity child
         join child.twinClass tc
         where child.headTwinId in :headTwinIdList
-          and hierarchy_check_lquery(tc.extendsHierarchyTree, :lquery) = true
+          and function('hierarchy_check_lquery', tc.extendsHierarchyTree, :lquery) = true
         group by child.headTwinId
         """)
     List<TwinFieldCalcProjection> countChildrenTwinsByExtendsHierarchy(
