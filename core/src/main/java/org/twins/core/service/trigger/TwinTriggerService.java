@@ -208,17 +208,18 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
      * @param twinEntity        the twin that triggered the event
      * @param srcTwinStatus     source twin status
      * @param dstTwinStatus     destination twin status
+     * @param twinTriggerTaskId optional task ID - if provided, job twin will use this ID
      */
     @Transactional(rollbackFor = Throwable.class)
-    public void runTrigger(TwinTriggerEntity twinTriggerEntity, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void runTrigger(TwinTriggerEntity twinTriggerEntity, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID twinTriggerTaskId) throws ServiceException {
         // Create job twin if jobTwinClassId is set
         UUID jobTwinId = null;
         UUID jobTwinClassId = twinTriggerEntity.getJobTwinClassId();
         if (jobTwinClassId != null) {
             TwinClassEntity twinClass = twinClassService.findEntitySafe(jobTwinClassId);
             TwinEntity jobTwinEntity = new TwinEntity()
+                    .setId(twinTriggerTaskId == null ? UuidUtils.generate() : twinTriggerTaskId)
                     .setName(twinTriggerEntity.getName() == null ? "job" : twinTriggerEntity.getName())
-                    .setId(twinTriggerEntity.getId())
                     .setTwinClassId(jobTwinClassId)
                     .setTwinClass(twinClass);
 
