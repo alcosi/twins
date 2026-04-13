@@ -122,4 +122,16 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     boolean existsByTwinClassFieldIdAndValueExcludingTwin(UUID twinClassFieldId, String value, UUID excludeTwinId);
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as BigDecimal))
+        from TwinEntity child
+        join child.twinClass tc
+        where child.headTwinId in :headTwinIdList
+          and hierarchy_check_lquery(tc.extendsHierarchyTree, :lquery) = true
+        group by child.headTwinId
+        """)
+    List<TwinFieldCalcProjection> countChildrenTwinsByExtendsHierarchy(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("lquery") String lquery);
 }
