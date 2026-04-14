@@ -24,7 +24,6 @@ import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
@@ -46,7 +45,6 @@ import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.trigger.TwinTriggerService;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -90,8 +88,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private final TwinFactoryTriggerRepository twinFactoryTriggerRepository;
     @Lazy
     private final TwinTriggerService twinTriggerService;
-    @Lazy
-    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -429,8 +425,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     );
                 } else {
                     log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
-                    TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());
-                    twinTriggerService.runTrigger(twinTriggerEntity, targetTwin, targetTwin.getTwinStatus(), null, null);
+                    twinTriggerService.runTriggerSync(factoryTriggerEntity.getTwinTrigger(), targetTwin, targetTwin.getTwinStatus(), null);
                 }
             }
         }

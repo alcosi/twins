@@ -16,16 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -141,18 +135,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::getTwinFactoryId,
                 TwinFactoryTriggerEntity::getTwinFactory,
                 TwinFactoryTriggerEntity::setTwinFactory);
-    }
-
-    public void loadTrigger(TwinFactoryTriggerEntity src) throws ServiceException {
-        loadTriggers(Collections.singleton(src));
-    }
-
-    public void loadTriggers(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
-        twinTriggerService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
-                TwinFactoryTriggerEntity::getTwinTriggerId,
-                TwinFactoryTriggerEntity::getTwinTrigger,
-                TwinFactoryTriggerEntity::setTwinTrigger);
     }
 
     public void loadClass(TwinFactoryTriggerEntity src) throws ServiceException {

@@ -15,7 +15,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinFactoryTriggerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.factory.FactoryConditionSetService;
 import org.twins.core.service.factory.FactoryTriggerService;
 
 import java.util.Collection;
@@ -95,9 +94,6 @@ public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFac
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryMode.HIDE)) {
             factoryTriggerService.loadFactories(srcCollection);
-        }
-        if (mapperContext.hasModeButNot(TwinTriggerMode.TwinFactoryTrigger2TwinTriggerMode.HIDE)) {
-            factoryTriggerService.loadTriggers(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinFactoryTrigger2TwinClassMode.HIDE)) {
             factoryTriggerService.loadClasses(srcCollection);

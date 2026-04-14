@@ -57,9 +57,10 @@ public class TwinTriggerEntity implements EasyLoggable {
     @ToString.Exclude
     private FeaturerEntity twinTriggerFeaturer;
 
-    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne(fetch = FetchType.EAGER) // need for core logic
+    @JoinColumn(name = "job_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity jobTwinClass;
 
     @Override

@@ -7,5 +7,6 @@ public enum TwinTriggerTaskStatus {
     NEED_START,
     IN_PROGRESS,
     DONE,
-    FAILED;
+    FAILED,
+    SYNC_EXECUTION;
 }
