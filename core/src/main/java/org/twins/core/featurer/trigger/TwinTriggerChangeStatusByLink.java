@@ -47,7 +47,7 @@ public class TwinTriggerChangeStatusByLink extends TwinTrigger {
         log.info("ChangeStatusByLink: executing for {} with params: linkId={}, classId={}, statusId={}",
             twinEntity.logNormal(), linkIdValue, classIdValue, dstStatusIdValue);
 
-        int updated = twinRepository.updateTwinStatusByTwinClassIdAndLinkId(twinEntity.getId(), linkIdValue, classIdValue, dstStatusIdValue);
+        int updated = twinRepository.updateTwinStatusByTwinClassIdAndLinkId(twinEntity.getId(), twinEntity.getHierarchyTree(), linkIdValue, classIdValue, dstStatusIdValue);
         log.info("ChangeStatusByLink: updated {} twins", updated);
     }
 }

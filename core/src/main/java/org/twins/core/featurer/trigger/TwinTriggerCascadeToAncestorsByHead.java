@@ -51,7 +51,7 @@ public class TwinTriggerCascadeToAncestorsByHead extends TwinTrigger {
         log.info("CascadeToAncestorsByHead: executing for {} with params: depth={}, ancestorClassId={}, statusId={}",
             twinEntity.logNormal(), depthValue, classIdValue, dstStatusIdValue);
 
-        int updated = twinRepository.updateTwinStatusByHeadAncestors(twinEntity.getId(), depthValue, classIdValue, dstStatusIdValue);
+        int updated = twinRepository.updateTwinStatusByHeadAncestors(twinEntity.getId(), twinEntity.getHierarchyTree(), depthValue, classIdValue, dstStatusIdValue);
         log.info("CascadeToAncestorsByHead: updated {} ancestors", updated);
     }
 }

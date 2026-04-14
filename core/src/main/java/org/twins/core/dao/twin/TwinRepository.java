@@ -63,8 +63,8 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl JOIN twin t2 ON tl.dst_twin_id = t2.id WHERE t.id = tl.src_twin_id AND t2.hierarchy_tree <@ (SELECT hierarchy_tree FROM twin WHERE id = :twinId) AND tl.link_id = :linkId AND t.twin_class_id = :twinClassId", nativeQuery = true)
-    int updateTwinStatusByTwinClassIdAndLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl JOIN twin t2 ON tl.dst_twin_id = t2.id WHERE t.id = tl.src_twin_id AND t2.hierarchy_tree <@ CAST(:hierarchyTree AS ltree) AND tl.link_id = :linkId AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    int updateTwinStatusByTwinClassIdAndLinkId(@Param("twinId") UUID twinId, @Param("hierarchyTree") String hierarchyTree, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
@@ -98,10 +98,10 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Transactional
     @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
            "WHERE t.id IN (SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
-           "WHERE tl.srcTwinId = (SELECT t2.headTwinId FROM TwinEntity t2 WHERE t2.id = :twinId) " +
+           "WHERE tl.srcTwinId = :headTwinId " +
            "AND tl.linkId = :linkId) " +
            "AND (:twinClassId IS NULL OR t.twinClassId = :twinClassId)")
-    int updateTwinStatusByHeadThenLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+    int updateTwinStatusByHeadThenLinkId(@Param("twinId") UUID twinId, @Param("headTwinId") UUID headTwinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
@@ -122,13 +122,13 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE (SELECT hierarchy_tree FROM twin WHERE id = :twinId) <@ t.hierarchy_tree AND t.id != :twinId AND (:maxDepth < 0 OR nlevel(t.hierarchy_tree) - nlevel((SELECT hierarchy_tree FROM twin WHERE id = :twinId)) <= :maxDepth) AND t.twin_class_id = :twinClassId", nativeQuery = true)
-    int updateTwinStatusByHeadAncestors(@Param("twinId") UUID twinId, @Param("maxDepth") int maxDepth, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE CAST(:hierarchyTree AS ltree) <@ t.hierarchy_tree AND t.id != :twinId AND (:maxDepth < 0 OR nlevel(t.hierarchy_tree) - nlevel(CAST(:hierarchyTree AS ltree)) <= :maxDepth) AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    int updateTwinStatusByHeadAncestors(@Param("twinId") UUID twinId, @Param("hierarchyTree") String hierarchyTree, @Param("maxDepth") int maxDepth, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE t.hierarchy_tree <@ (SELECT hierarchy_tree FROM twin WHERE id = :twinId) AND t.id != :twinId AND (:maxDepth < 0 OR nlevel((SELECT hierarchy_tree FROM twin WHERE id = :twinId)) - nlevel(t.hierarchy_tree) <= :maxDepth) AND t.twin_class_id = :twinClassId", nativeQuery = true)
-    int updateTwinStatusByHeadDescendants(@Param("twinId") UUID twinId, @Param("maxDepth") int maxDepth, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE t.hierarchy_tree <@ CAST(:hierarchyTree AS ltree) AND t.id != :twinId AND (:maxDepth < 0 OR nlevel(CAST(:hierarchyTree AS ltree)) - nlevel(t.hierarchy_tree) <= :maxDepth) AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    int updateTwinStatusByHeadDescendants(@Param("twinId") UUID twinId, @Param("hierarchyTree") String hierarchyTree, @Param("maxDepth") int maxDepth, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional

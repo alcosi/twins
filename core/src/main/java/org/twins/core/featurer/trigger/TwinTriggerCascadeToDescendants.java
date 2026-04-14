@@ -48,7 +48,7 @@ public class TwinTriggerCascadeToDescendants extends TwinTrigger {
             twinEntity.logNormal(), depthValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByHeadDescendants(
-            twinEntity.getId(), depthValue, classIdValue, dstStatusIdValue);
+            twinEntity.getId(), twinEntity.getHierarchyTree(), depthValue, classIdValue, dstStatusIdValue);
         log.info("CascadeToDescendants: updated {} descendants", updated);
     }
 }
