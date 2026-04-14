@@ -17,8 +17,8 @@ public class TwinClassDuplicateDTOv1 {
     public String newKey;
 
     @Schema(description = "[optional] duplicate all class fields")
-    public Boolean duplicateFields = false;
+    public boolean duplicateFields = false;
 
     @Schema(description = "[optional] duplicate all class statuses")
-    public Boolean duplicateStatuses = false;
+    public boolean duplicateStatuses = false;
 }

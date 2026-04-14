@@ -207,11 +207,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         loadOriginalTwinClass(duplicates);
         var entitiesToSave = new ArrayList<TwinClassEntity>();
         var needLoadFields = new ArrayList<TwinClassEntity>();
+        var needLoadStatuses = new ArrayList<TwinClassEntity>();
         for (var duplicate : duplicates) {
             var originalTwinClass = duplicate.getOriginalTwinClass();
             log.info("{} will be duplicated with new key[{}]", originalTwinClass.logShort(), duplicate.getNewKey());
             TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
-                    .setKey(duplicate.getNewKey())
+                    .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setPermissionSchemaSpace(originalTwinClass.getPermissionSchemaSpace())
                     .setTwinflowSchemaSpace(originalTwinClass.getTwinflowSchemaSpace())
@@ -264,26 +265,39 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             duplicate.setNewTwinClass(duplicateTwinClassEntity);
             entitiesToSave.add(duplicateTwinClassEntity);
             if (duplicate.isDuplicateFields()) {
-                needLoadFields.add(duplicateTwinClassEntity);
+                needLoadFields.add(duplicate.getOriginalTwinClass());
+            }
+            if (duplicate.isDuplicateStatuses()) {
+                needLoadStatuses.add(duplicate.getOriginalTwinClass());
             }
         }
         //todo check uniq key-s or ids
-        var ret = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+        var savedClasses = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+        for (var savedClass : savedClasses) {
+            refreshExtendsHierarchyTree(savedClass);
+            refreshHeadHierarchyTree(savedClass);
+        }
         if (CollectionUtils.isNotEmpty(needLoadFields)) {
             twinClassFieldService.loadTwinClassFields(needLoadFields);
-            for (var duplicate : duplicates) {
-                if (duplicate.isDuplicateFields()) {
-                    twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
-                }
+        }
+        if (CollectionUtils.isNotEmpty(needLoadStatuses)) {
+            twinStatusService.loadStatusesForTwinClasses(needLoadStatuses);
+        }
+        for (var duplicate : duplicates) {
+            if (duplicate.isDuplicateFields()) {
+                twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
+            }
+            if (duplicate.isDuplicateStatuses()) {
+                //todo
             }
         }
-        return ret;
+        return savedClasses;
     }
 
     private void loadOriginalTwinClass(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                TwinClassDuplicate::getOriginalTwinClassId,
                 TwinClassDuplicate::getNewTwinClassId,
+                TwinClassDuplicate::getOriginalTwinClassId,
                 TwinClassDuplicate::getOriginalTwinClass,
                 TwinClassDuplicate::setOriginalTwinClass);
     }
@@ -490,11 +504,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 twinClass.setUniqueName(false);
             }
 
-            twinClass.setHasSegment(false);
-
-            twinClass.setHeadHierarchyCounterDirectChildren(0);
-            twinClass.setExtendsHierarchyCounterDirectChildren(0);
-            twinClass.setTwinCounter(0);
+            twinClass
+                    .setHasSegment(false)
+                    .setHeadHierarchyCounterDirectChildren(0)
+                    .setExtendsHierarchyCounterDirectChildren(0)
+                    .setTwinCounter(0);
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
             processIcons(twinClass, iconLight, iconDark);
@@ -541,9 +555,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     classesWithPermissions.add(savedClass);
                 }
             }
-
-            refreshExtendsHierarchyTree(savedClass);
-            refreshHeadHierarchyTree(savedClass);
 
             //todo batch create for twinStatus and twinflow
             if (Boolean.TRUE.equals(autoCreateTwinflow)) {
