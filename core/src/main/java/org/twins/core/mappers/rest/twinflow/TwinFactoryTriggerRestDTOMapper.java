@@ -7,6 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
@@ -14,6 +15,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinFactoryTriggerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.factory.FactoryConditionSetService;
 import org.twins.core.service.factory.FactoryTriggerService;
 
 import java.util.Collection;
@@ -28,6 +30,8 @@ public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFac
     private final TwinTriggerRestDTOMapper twinTriggerRestDTOMapper;
     @MapperModePointerBinding(modes = TwinClassMode.TwinFactoryTrigger2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    @MapperModePointerBinding(modes = TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryConditionSetMode.class)
+    private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     private final FactoryTriggerService factoryTriggerService;
 
@@ -67,6 +71,13 @@ public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFac
             twinClassRestDTOMapper.postpone(src.getTwinClass(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinFactoryTrigger2TwinClassMode.SHORT)));
         }
+
+        if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryConditionSetMode.HIDE)) {
+            factoryTriggerService.loadConditionSet(src);
+            dst.setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            factoryConditionSetRestDTOMapper.postpone(src.getTwinFactoryConditionSet(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryConditionSetMode.SHORT)));
+        }
     }
 
     @Override
@@ -90,6 +101,9 @@ public class TwinFactoryTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinFac
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinFactoryTrigger2TwinClassMode.HIDE)) {
             factoryTriggerService.loadClasses(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinFactoryTriggerMode.TwinFactoryTrigger2FactoryConditionSetMode.HIDE)) {
+            factoryTriggerService.loadConditionSets(srcCollection);
         }
     }
 }

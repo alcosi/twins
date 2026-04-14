@@ -67,6 +67,11 @@ public class TwinFactoryTriggerEntity implements EasyLoggable {
     @ToString.Exclude
     private TwinClassEntity twinClass;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {

@@ -37,9 +37,9 @@ import java.util.stream.StreamSupport;
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
     private final TwinFactoryService twinFactoryService;
-    private final AuthService authService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public CrudRepository<TwinFactoryTriggerEntity, UUID> entityRepository() {
@@ -165,5 +165,17 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::getInputTwinClassId,
                 TwinFactoryTriggerEntity::getTwinClass,
                 TwinFactoryTriggerEntity::setTwinClass);
+    }
+
+    public void loadConditionSet(TwinFactoryTriggerEntity src) throws ServiceException {
+        loadConditionSets(Collections.singleton(src));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
+                TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
+                TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
     }
 }
