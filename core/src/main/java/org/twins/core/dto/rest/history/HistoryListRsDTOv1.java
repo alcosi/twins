@@ -14,9 +14,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "HistoryListRsV1")
 public class HistoryListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "pagination data")
-    public PaginationDTOv1 pagination;
-
     @Schema(description = "history list")
     public List<HistoryDTOv1> historyList;
 }
