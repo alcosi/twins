@@ -19,10 +19,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.TwinChangesService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.*;
@@ -38,7 +36,6 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
     private final TwinStatusTriggerRepository repository;
     private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;
-    private final AuthService authService;
     @Lazy
     private final TwinChangesService twinChangesService;
 
@@ -149,7 +146,6 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
         loadTriggers(twinStatusTriggerEntityList);
         for (TwinStatusTriggerEntity twinStatusTriggerEntity : twinStatusTriggerEntityList) {
             log.info("{} will be triggered", twinStatusTriggerEntity.logDetailed());
-            var twinTriggerEntity = twinStatusTriggerEntity.getTwinTrigger();
             if (Boolean.TRUE.equals(twinStatusTriggerEntity.getAsync())) {
                 if (twinChangesCollector != null) {
                     UUID statusId = Boolean.TRUE.equals(twinStatusTriggerEntity.getIncomingElseOutgoing()) ? dstStatusEntity.getId() : srcStatusEntity.getId();
@@ -158,7 +154,7 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
                     log.warn("Async trigger execution skipped (no TwinChangesCollector): {}", twinStatusTriggerEntity.easyLog(EasyLoggable.Level.NORMAL));
                 }
             } else {
-                twinTriggerService.runTrigger(twinTriggerEntity, twinEntity, srcStatusEntity, dstStatusEntity, null);
+                twinTriggerService.runTriggerSync(twinStatusTriggerEntity.getTwinTrigger(), twinEntity, srcStatusEntity, dstStatusEntity);
             }
         }
     }

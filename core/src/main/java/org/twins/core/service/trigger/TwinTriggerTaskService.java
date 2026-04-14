@@ -6,20 +6,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
-import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
 import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -31,6 +31,8 @@ import java.util.function.Function;
 public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTriggerTaskEntity> {
     private final TwinTriggerTaskRepository repository;
     private final AuthService authService;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
 
     @Override
     public CrudRepository<TwinTriggerTaskEntity, UUID> entityRepository() {
@@ -83,4 +85,16 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
                 .setBusinessAccountId(apiUser.getBusinessAccountId());
         return saveSafe(syncTask);
     }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void runTrigger(TwinTriggerTaskEntity triggerTaskEntity, TwinStatusEntity dstTwinStatus) throws ServiceException {
+        twinTriggerService.runTrigger(
+                triggerTaskEntity.getTwinTrigger(),
+                triggerTaskEntity.getTwin(),
+                triggerTaskEntity.getPreviousTwinStatus(),
+                dstTwinStatus,
+                triggerTaskEntity.getId());
+    }
+
+
 }
