@@ -68,46 +68,72 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl WHERE t.id = tl.dst_twin_id AND tl.src_twin_id = :twinId AND tl.link_id = :linkId AND (:twinClassId IS NULL OR t.twin_class_id = :twinClassId)", nativeQuery = true)
-    int updateTwinStatusByDstTwinIdAndLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
-
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE t.id = (SELECT head_twin_id FROM twin WHERE id = (SELECT head_twin_id FROM twin WHERE id = :twinId))", nativeQuery = true)
-    void updateTwinStatusByGrandParentId(@Param("twinId") UUID twinId, @Param("statusId") UUID statusId);
-
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl JOIN twin parent ON tl.src_twin_id = parent.id WHERE t.id = tl.dst_twin_id AND parent.id = (SELECT head_twin_id FROM twin WHERE id = :twinId) AND tl.link_id = :linkId", nativeQuery = true)
-    void updateTwinStatusByHeadTwinThenLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("statusId") UUID statusId);
-
-    @Modifying
-    @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl_wt JOIN twin tasks ON tl_wt.src_twin_id = tasks.id JOIN twin_link tl_sp ON tl_sp.dst_twin_id = tasks.id WHERE t.id = tl_sp.src_twin_id AND tl_wt.dst_twin_id = :twinId AND tl_wt.link_id = :firstLinkId AND tl_sp.link_id = :secondLinkId AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
+           "WHERE t.id IN (SELECT tl2.srcTwinId FROM TwinLinkEntity tl2 " +
+           "WHERE tl2.linkId = :secondLinkId " +
+           "AND tl2.dstTwinId IN (SELECT tl1.srcTwinId FROM TwinLinkEntity tl1 " +
+           "WHERE tl1.dstTwinId = :twinId AND tl1.linkId = :firstLinkId)) " +
+           "AND t.twinClassId = :twinClassId")
     int updateTwinStatusByTwoLinks(@Param("twinId") UUID twinId, @Param("firstLinkId") UUID firstLinkId, @Param("secondLinkId") UUID secondLinkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl_sp JOIN twin tasks ON tl_sp.dst_twin_id = tasks.id JOIN twin_link tl_wt ON tl_wt.src_twin_id = tasks.id WHERE t.id = tl_wt.dst_twin_id AND tl_sp.src_twin_id = :twinId AND tl_sp.link_id = :firstLinkId AND tl_wt.link_id = :secondLinkId AND (:twinClassId IS NULL OR t.twin_class_id = :twinClassId)", nativeQuery = true)
+    @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
+           "WHERE t.id IN (SELECT tl2.dstTwinId FROM TwinLinkEntity tl2 " +
+           "WHERE tl2.linkId = :secondLinkId " +
+           "AND tl2.srcTwinId IN (SELECT tl1.dstTwinId FROM TwinLinkEntity tl1 " +
+           "WHERE tl1.srcTwinId = :twinId AND tl1.linkId = :firstLinkId)) " +
+           "AND (:twinClassId IS NULL OR t.twinClassId = :twinClassId)")
     int updateTwinStatusByTwoLinksForward(@Param("twinId") UUID twinId, @Param("firstLinkId") UUID firstLinkId, @Param("secondLinkId") UUID secondLinkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl JOIN twin tasks ON tl.src_twin_id = tasks.id WHERE t.head_twin_id = tasks.id AND tl.dst_twin_id = :twinId AND tl.link_id = :linkId AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
+           "WHERE t.headTwinId IN (SELECT tl.srcTwinId FROM TwinLinkEntity tl " +
+           "WHERE tl.dstTwinId = :twinId AND tl.linkId = :linkId) " +
+           "AND t.twinClassId = :twinClassId")
     int updateTwinStatusByLinkAndHeadTwinChildren(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl WHERE t.id = tl.dst_twin_id AND tl.src_twin_id = (SELECT head_twin_id FROM twin WHERE id = :twinId) AND tl.link_id = :linkId AND (:twinClassId IS NULL OR t.twin_class_id = :twinClassId)", nativeQuery = true)
+    @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
+           "WHERE t.id IN (SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+           "WHERE tl.srcTwinId = (SELECT t2.headTwinId FROM TwinEntity t2 WHERE t2.id = :twinId) " +
+           "AND tl.linkId = :linkId) " +
+           "AND (:twinClassId IS NULL OR t.twinClassId = :twinClassId)")
     int updateTwinStatusByHeadThenLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin t SET twin_status_id = :statusId FROM twin_link tl WHERE t.id = tl.dst_twin_id AND tl.src_twin_id = :twinId AND tl.link_id = :linkId AND (:twinClassId IS NULL OR t.twin_class_id = :twinClassId)", nativeQuery = true)
+    @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
+           "WHERE t.id IN (SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+           "WHERE tl.srcTwinId = :twinId AND tl.linkId = :linkId) " +
+           "AND (:twinClassId IS NULL OR t.twinClassId = :twinClassId)")
     int updateTwinStatusBySrcTwinIdAndLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE twin project SET twin_status_id = :statusId FROM twin_link tl JOIN twin task ON tl.dst_twin_id = task.id WHERE project.id = task.head_twin_id AND tl.src_twin_id = :twinId AND tl.link_id = :linkId AND project.twin_class_id = :twinClassId", nativeQuery = true)
+    @Query("UPDATE TwinEntity project SET project.twinStatusId = :statusId " +
+           "WHERE project.id IN (SELECT task.headTwinId FROM TwinEntity task " +
+           "WHERE task.id IN (SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+           "WHERE tl.srcTwinId = :twinId AND tl.linkId = :linkId)) " +
+           "AND project.twinClassId = :twinClassId")
     int updateTwinStatusByLinkAndHead(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE (SELECT hierarchy_tree FROM twin WHERE id = :twinId) <@ t.hierarchy_tree AND t.id != :twinId AND (:maxDepth < 0 OR nlevel(t.hierarchy_tree) - nlevel((SELECT hierarchy_tree FROM twin WHERE id = :twinId)) <= :maxDepth) AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    int updateTwinStatusByHeadAncestors(@Param("twinId") UUID twinId, @Param("maxDepth") int maxDepth, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+
+    @Modifying
+    @Transactional
+    @Query(value = "UPDATE twin t SET twin_status_id = :statusId WHERE t.hierarchy_tree <@ (SELECT hierarchy_tree FROM twin WHERE id = :twinId) AND t.id != :twinId AND (:maxDepth < 0 OR nlevel((SELECT hierarchy_tree FROM twin WHERE id = :twinId)) - nlevel(t.hierarchy_tree) <= :maxDepth) AND t.twin_class_id = :twinClassId", nativeQuery = true)
+    int updateTwinStatusByHeadDescendants(@Param("twinId") UUID twinId, @Param("maxDepth") int maxDepth, @Param("twinClassId") UUID twinClassId, @Param("statusId") UUID statusId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity t SET t.twinStatusId = :statusId " +
+           "WHERE t.id IN (SELECT tl.srcTwinId FROM TwinLinkEntity tl " +
+           "WHERE tl.dstTwinId = :twinId AND tl.linkId = :linkId)")
+    int updateTwinStatusByDstTwinIdAndLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("statusId") UUID statusId);
 }

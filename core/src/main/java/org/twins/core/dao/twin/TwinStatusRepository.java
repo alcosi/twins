@@ -18,8 +18,6 @@ public interface TwinStatusRepository extends CrudRepository<TwinStatusEntity, U
 
     List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
 
-    TwinStatusEntity findByTwinClassIdAndKey(UUID twinClassId, String key);
-
     @Cacheable(value = CACHE_TWIN_STATUS_TYPE, key = "#statusId + '' + #type")
     boolean existsByIdAndType(UUID statusId, StatusType type);
 }

@@ -344,19 +344,4 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         return linkRepository.findAllByIdIn(ids);
     }
 
-    public List<LinkEntity> findForwardLinksForTwinClass(TwinClassEntity twinClass) throws ServiceException {
-        twinClassService.loadExtendsHierarchyChildClasses(twinClass);
-        Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
-        return linkRepository.findAll(
-                (root, query, cb) -> root.get(LinkEntity.Fields.srcTwinClassId).in(extendedClassIds)
-        );
-    }
-
-    public List<LinkEntity> findBackwardLinksForTwinClass(TwinClassEntity twinClass) throws ServiceException {
-        twinClassService.loadExtendsHierarchyChildClasses(twinClass);
-        Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
-        return linkRepository.findAll(
-                (root, query, cb) -> root.get(LinkEntity.Fields.dstTwinClassId).in(extendedClassIds)
-        );
-    }
 }

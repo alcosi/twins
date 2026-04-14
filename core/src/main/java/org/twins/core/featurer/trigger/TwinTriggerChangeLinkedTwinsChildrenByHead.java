@@ -12,6 +12,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -25,33 +28,25 @@ import java.util.UUID;
 public class TwinTriggerChangeLinkedTwinsChildrenByHead extends TwinTrigger {
 
     @FeaturerParam(name = "LinkId", description = "Link ID to find linked twins")
-    public static final FeaturerParamUUID linkId = new FeaturerParamUUID("linkId");
+    public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
     @FeaturerParam(name = "ClassId", description = "Class ID of children to update")
-    public static final FeaturerParamUUID classId = new FeaturerParamUUID("classId");
+    public static final FeaturerParamUUIDTwinsTwinClassId classId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
     @FeaturerParam(name = "dstStatusId", description = "Status ID to set")
-    public static final FeaturerParamUUID dstStatusId = new FeaturerParamUUID("dstStatusId");
+    public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
     final TwinRepository twinRepository;
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        log.warn("ChangeLinkedTwinsChildrenByHead: START - twinId={}, class={}",
-            twinEntity.getId(), twinEntity.getTwinClassId());
-
         UUID linkIdValue = linkId.extract(properties);
         UUID classIdValue = classId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        if (linkIdValue == null || dstStatusIdValue == null) {
-            log.warn("ChangeLinkedTwinsChildrenByHead: missing parameters");
-            return;
-        }
-
         log.info("ChangeLinkedTwinsChildrenByHead: executing update - twinId={}, linkId={}, classId={}, statusId={}",
-            twinEntity.getId(), linkIdValue, classIdValue, dstStatusIdValue);
+            twinEntity.logShort(), linkIdValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByLinkAndHeadTwinChildren(twinEntity.getId(), linkIdValue, classIdValue, dstStatusIdValue);
         log.warn("ChangeLinkedTwinsChildrenByHead: updated {} children twins", updated);

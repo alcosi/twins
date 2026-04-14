@@ -141,10 +141,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
     }
 
-    public TwinStatusEntity findByKey(UUID twinClassId, String key) {
-        return twinStatusRepository.findByTwinClassIdAndKey(twinClassId, key);
-    }
-
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {

@@ -12,6 +12,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -25,10 +27,10 @@ import java.util.UUID;
 public class TwinTriggerChangeStatusByLinkForward extends TwinTrigger {
 
     @FeaturerParam(name = "linkId", description = "Link ID (same direction as forward link)")
-    public static final FeaturerParamUUID linkId = new FeaturerParamUUID("linkId");
+    public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
     @FeaturerParam(name = "dstStatusId", description = "Status ID to set for destination twin")
-    public static final FeaturerParamUUID dstStatusId = new FeaturerParamUUID("dstStatusId");
+    public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
     final TwinRepository twinRepository;
@@ -38,16 +40,10 @@ public class TwinTriggerChangeStatusByLinkForward extends TwinTrigger {
         UUID linkIdValue = linkId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        if (linkIdValue == null || dstStatusIdValue == null) {
-            log.warn("TwinTriggerChangeStatusByLinkForward: missing parameters");
-            return;
-        }
-
         log.info("TwinTriggerChangeStatusByLinkForward: executing update - twinId={}, linkId={}, statusId={}",
-            twinEntity.getId(), linkIdValue, dstStatusIdValue);
+            twinEntity.logShort(), linkIdValue, dstStatusIdValue);
 
-        int updated = twinRepository.updateTwinStatusBySrcTwinIdAndLinkId(
-            twinEntity.getId(), linkIdValue, null, dstStatusIdValue);
+        int updated = twinRepository.updateTwinStatusBySrcTwinIdAndLinkId(twinEntity.getId(), linkIdValue, null, dstStatusIdValue);
         log.info("TwinTriggerChangeStatusByLinkForward: updated {} twins", updated);
     }
 }

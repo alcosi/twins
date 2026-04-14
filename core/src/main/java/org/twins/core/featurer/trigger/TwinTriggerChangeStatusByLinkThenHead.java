@@ -12,6 +12,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -25,13 +28,13 @@ import java.util.UUID;
 public class TwinTriggerChangeStatusByLinkThenHead extends TwinTrigger {
 
     @FeaturerParam(name = "linkId", description = "Link ID to find intermediate twin")
-    public static final FeaturerParamUUID linkId = new FeaturerParamUUID("linkId");
+    public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
     @FeaturerParam(name = "classId", description = "Class ID of ancestor to update")
-    public static final FeaturerParamUUID classId = new FeaturerParamUUID("classId");
+    public static final FeaturerParamUUIDTwinsTwinClassId classId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
     @FeaturerParam(name = "dstStatusId", description = "Status ID to set")
-    public static final FeaturerParamUUID dstStatusId = new FeaturerParamUUID("dstStatusId");
+    public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
     final TwinRepository twinRepository;
@@ -42,13 +45,8 @@ public class TwinTriggerChangeStatusByLinkThenHead extends TwinTrigger {
         UUID classIdValue = classId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        if (linkIdValue == null || classIdValue == null || dstStatusIdValue == null) {
-            log.warn("ChangeStatusByLinkThenHead: missing parameters");
-            return;
-        }
-
         log.info("ChangeStatusByLinkThenHead: executing update - twinId={}, linkId={}, classId={}, statusId={}",
-            twinEntity.getId(), linkIdValue, classIdValue, dstStatusIdValue);
+            twinEntity.logShort(), linkIdValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByLinkAndHead(twinEntity.getId(), linkIdValue, classIdValue, dstStatusIdValue);
         log.info("ChangeStatusByLinkThenHead: updated {} ancestors", updated);

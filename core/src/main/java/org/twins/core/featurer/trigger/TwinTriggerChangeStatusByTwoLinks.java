@@ -12,6 +12,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -25,39 +28,31 @@ import java.util.UUID;
 public class TwinTriggerChangeStatusByTwoLinks extends TwinTrigger {
 
     @FeaturerParam(name = "FirstLinkId", description = "First link ID (from intermediate to current twin)")
-    public static final FeaturerParamUUID firstLinkId = new FeaturerParamUUID("firstLinkId");
+    public static final FeaturerParamUUIDTwinsLinkId firstLinkId = new FeaturerParamUUIDTwinsLinkId("firstLinkId");
 
     @FeaturerParam(name = "SecondLinkId", description = "Second link ID (from target to intermediate)")
-    public static final FeaturerParamUUID secondLinkId = new FeaturerParamUUID("secondLinkId");
+    public static final FeaturerParamUUIDTwinsLinkId secondLinkId = new FeaturerParamUUIDTwinsLinkId("secondLinkId");
 
     @FeaturerParam(name = "ClassId", description = "Class ID of target twins to update")
-    public static final FeaturerParamUUID classId = new FeaturerParamUUID("classId");
+    public static final FeaturerParamUUIDTwinsTwinClassId classId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
     @FeaturerParam(name = "dstStatusId", description = "Status ID to set")
-    public static final FeaturerParamUUID dstStatusId = new FeaturerParamUUID("dstStatusId");
+    public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
     final TwinRepository twinRepository;
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        log.warn("ChangeStatusByTwoLinks: START - twinId={}, class={}",
-            twinEntity.getId(), twinEntity.getTwinClassId());
-
         UUID firstLinkIdValue = firstLinkId.extract(properties);
         UUID secondLinkIdValue = secondLinkId.extract(properties);
         UUID classIdValue = classId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        log.warn("ChangeStatusByTwoLinks: params - firstLinkId={}, secondLinkId={}, classId={}, dstStatusId={}",
-            firstLinkIdValue, secondLinkIdValue, classIdValue, dstStatusIdValue);
-
-        if (firstLinkIdValue == null || secondLinkIdValue == null || dstStatusIdValue == null) {
-            log.warn("ChangeStatusByTwoLinks: missing required parameters");
-            return;
-        }
+        log.info("ChangeStatusByTwoLinks: params - twinId={}, firstLinkId={}, secondLinkId={}, classId={}, dstStatusId={}",
+            twinEntity.logShort(), firstLinkIdValue, secondLinkIdValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByTwoLinks(twinEntity.getId(), firstLinkIdValue, secondLinkIdValue, classIdValue, dstStatusIdValue);
-        log.warn("ChangeStatusByTwoLinks: updated {} target twins", updated);
+        log.info("ChangeStatusByTwoLinks: updated {} target twins", updated);
     }
 }

@@ -8,18 +8,13 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.link.LinkService;
-import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -31,54 +26,24 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinTriggerChangeStatusByLinkReverse extends TwinTrigger {
 
+    @FeaturerParam(name = "linkId", description = "Link ID (find backward link)")
+    public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
+
     @FeaturerParam(name = "dstStatusId", description = "Status ID to set for source twin")
-    public static final FeaturerParamUUID dstStatusId = new FeaturerParamUUID("dstStatusId");
-
-    @FeaturerParam(name = "LinkId", description = "Link ID (same direction as forward link)")
-    public static final FeaturerParamUUID linkId = new FeaturerParamUUID("linkId");
+    public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
-    final TwinService twinService;
-    @Lazy
-    final TwinLinkService twinLinkService;
-    @Lazy
-    final LinkService linkService;
-    @Lazy
-    final TwinStatusService twinStatusService;
+    final TwinRepository twinRepository;
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        log.warn("ChangeStatusByLinkReverse: START - twinId={}, class={}",
-            twinEntity.getId(), twinEntity.getTwinClassId());
-
-        UUID dstStatusIdValue = dstStatusId.extract(properties);
         UUID linkIdValue = linkId.extract(properties);
+        UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        log.warn("ChangeStatusByLinkReverse: params - linkId={}, dstStatusId={}",
-            linkIdValue, dstStatusIdValue);
+        log.info("ChangeStatusByLinkReverse: executing update - twinId={}, linkId={}, statusId={}",
+            twinEntity.logShort(), linkIdValue, dstStatusIdValue);
 
-        if (dstStatusIdValue == null || linkIdValue == null) {
-            log.warn("ChangeStatusByLinkReverse: missing parameters");
-            return;
-        }
-
-        LinkEntity link = linkService.findEntitySafe(linkIdValue);
-        var twinLinks = twinLinkService.findTwinLinks(link, twinEntity, LinkService.LinkDirection.backward);
-
-        log.warn("ChangeStatusByLinkReverse: found {} twin links", twinLinks.size());
-
-        if (!twinLinks.isEmpty()) {
-            TwinStatusEntity status = twinStatusService.findEntitySafe(dstStatusIdValue);
-
-            List<TwinEntity> sourceTwins = twinLinks.stream()
-                .map(TwinLinkEntity::getSrcTwin)
-                .filter(Objects::nonNull)
-                .toList();
-
-            if (!sourceTwins.isEmpty()) {
-                twinService.changeStatus(sourceTwins, status);
-                log.warn("ChangeStatusByLinkReverse: changed status for {} source twins for twin {}", sourceTwins.size(), twinEntity.logShort());
-            }
-        }
+        int updated = twinRepository.updateTwinStatusByDstTwinIdAndLinkId(twinEntity.getId(), linkIdValue, dstStatusIdValue);
+        log.info("ChangeStatusByLinkReverse: updated {} source twins", updated);
     }
 }
