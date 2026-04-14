@@ -42,7 +42,7 @@ public class TwinTriggerChangeStatusByTwoLinksForward extends TwinTrigger {
     final TwinRepository twinRepository;
 
     @Override
-    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         UUID firstLinkIdValue = firstLinkId.extract(properties);
         UUID secondLinkIdValue = secondLinkId.extract(properties);
         UUID classIdValue = classId.extract(properties);

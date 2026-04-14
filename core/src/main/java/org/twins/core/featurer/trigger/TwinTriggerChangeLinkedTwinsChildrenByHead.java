@@ -39,7 +39,7 @@ public class TwinTriggerChangeLinkedTwinsChildrenByHead extends TwinTrigger {
     final TwinRepository twinRepository;
 
     @Override
-    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         UUID linkIdValue = linkId.extract(properties);
         UUID classIdValue = classId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);

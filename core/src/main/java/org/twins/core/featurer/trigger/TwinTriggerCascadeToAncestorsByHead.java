@@ -39,7 +39,7 @@ public class TwinTriggerCascadeToAncestorsByHead extends TwinTrigger {
     final TwinRepository twinRepository;
 
     @Override
-    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         Integer depthValue = depth.extract(properties);
         UUID classIdValue = ancestorClassId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
