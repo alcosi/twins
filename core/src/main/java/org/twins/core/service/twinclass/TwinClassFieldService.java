@@ -306,7 +306,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         var entitiesForSave = new ArrayList<TwinClassFieldEntity>();
         TwinClassFieldEntity duplicateFieldEntity;
         for (TwinClassFieldEntity originalField : fromTwinClass.getTwinClassFieldKit().getCollection()) {
-            duplicateFieldEntity = duplicateFieldEntity(originalField, toTwinClass.getId(), originalField.getKey()); // we can copy the field with the same key
+            if (!originalField.getTwinClassId().equals(fromTwinClass.getId()))
+                continue; //skipping inherited fields
+            duplicateFieldEntity = duplicateFieldEntity(originalField, toTwinClass, originalField.getKey()); // we can copy the field with the same key
             setI18nForDuplicate(originalField, duplicateFieldEntity);
             entitiesForSave.add(duplicateFieldEntity);
         }
@@ -327,12 +329,18 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 newKeys.add(duplicate.getNewKey());
         }
         loadOriginalFields(duplicates);
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewTwinClassId() == null) {
+                duplicate
+                        .setNewTwinClassId(duplicate.getOriginalTwinClassField().getTwinClassId())
+                        .setNewTwinClass(duplicate.getOriginalTwinClassField().getTwinClass()); // same class
+            }
+        }
+        loadNewClasses(duplicates);
         var entitiesForSave = new ArrayList<TwinClassFieldEntity>();
         TwinClassFieldEntity duplicateFieldEntity;
         for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinClassId() == null)
-                duplicate.setNewTwinClassId(duplicate.getOriginalTwinClassField().getTwinClassId()); // same class
-            duplicateFieldEntity = duplicateFieldEntity(duplicate.getOriginalTwinClassField(), duplicate.getNewTwinClassId(), duplicate.getNewKey());
+            duplicateFieldEntity = duplicateFieldEntity(duplicate.getOriginalTwinClassField(), duplicate.getNewTwinClass(), duplicate.getNewKey());
             setI18nForDuplicate(duplicate.getOriginalTwinClassField(), duplicateFieldEntity);
             entitiesForSave.add(duplicateFieldEntity);
             if (duplicate.isDuplicateRules()) {
@@ -351,13 +359,21 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 TwinClassFieldDuplicate::setOriginalTwinClassField);
     }
 
-    private TwinClassFieldEntity duplicateFieldEntity(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId, String newKey) throws ServiceException {
-        log.info("{} will be duplicated for class[{}]", srcFieldEntity.logShort(), srcFieldEntity.getTwinClassId());
+    private void loadNewClasses(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
+        twinClassService.load(duplicates,
+                TwinClassFieldDuplicate::getNewTwinClassFieldId,
+                TwinClassFieldDuplicate::getNewTwinClassId,
+                TwinClassFieldDuplicate::getNewTwinClass,
+                TwinClassFieldDuplicate::setNewTwinClass);
+    }
+
+    private TwinClassFieldEntity duplicateFieldEntity(TwinClassFieldEntity srcFieldEntity, TwinClassEntity duplicateTwinClass, String newKey) throws ServiceException {
+        log.info("{} will be duplicated for {}", srcFieldEntity.logShort(), duplicateTwinClass.logNormal());
 
         return new TwinClassFieldEntity()
                 .setKey(KeyUtils.lowerCaseNullSafe(newKey, ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
-                .setTwinClassId(duplicateTwinClassId)
-                .setTwinClass(srcFieldEntity.getTwinClass())
+                .setTwinClassId(duplicateTwinClass.getId())
+                .setTwinClass(duplicateTwinClass)
                 .setFieldTyperFeaturerId(srcFieldEntity.getFieldTyperFeaturerId())
                 .setFieldTyperParams(srcFieldEntity.getFieldTyperParams())
                 .setTwinSorterFeaturerId(srcFieldEntity.getTwinSorterFeaturerId())
