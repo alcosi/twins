@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -27,16 +26,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinTriggerChangeStatusByTwoLinks extends TwinTrigger {
 
-    @FeaturerParam(name = "FirstLinkId", description = "First link ID (from intermediate to current twin)")
+    @FeaturerParam(name = "First Link Id", description = "First link ID (from intermediate to current twin)")
     public static final FeaturerParamUUIDTwinsLinkId firstLinkId = new FeaturerParamUUIDTwinsLinkId("firstLinkId");
 
-    @FeaturerParam(name = "SecondLinkId", description = "Second link ID (from target to intermediate)")
+    @FeaturerParam(name = "Second Link Id", description = "Second link ID (from target to intermediate)")
     public static final FeaturerParamUUIDTwinsLinkId secondLinkId = new FeaturerParamUUIDTwinsLinkId("secondLinkId");
 
-    @FeaturerParam(name = "ClassId", description = "Class ID of target twins to update")
+    @FeaturerParam(name = "Class Id", description = "Class ID of target twins to update")
     public static final FeaturerParamUUIDTwinsTwinClassId classId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
-    @FeaturerParam(name = "dstStatusId", description = "Status ID to set")
+    @FeaturerParam(name = "Dst Status Id", description = "Status ID to set")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
@@ -49,8 +48,8 @@ public class TwinTriggerChangeStatusByTwoLinks extends TwinTrigger {
         UUID classIdValue = classId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        log.info("ChangeStatusByTwoLinks: params - twinId={}, firstLinkId={}, secondLinkId={}, classId={}, dstStatusId={}",
-            twinEntity.logShort(), firstLinkIdValue, secondLinkIdValue, classIdValue, dstStatusIdValue);
+        log.info("ChangeStatusByTwoLinks: executing for {} with params:  firstLinkId={}, secondLinkId={}, classId={}, dstStatusId={}",
+            twinEntity.logNormal(), firstLinkIdValue, secondLinkIdValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByTwoLinks(twinEntity.getId(), firstLinkIdValue, secondLinkIdValue, classIdValue, dstStatusIdValue);
         log.info("ChangeStatusByTwoLinks: updated {} target twins", updated);

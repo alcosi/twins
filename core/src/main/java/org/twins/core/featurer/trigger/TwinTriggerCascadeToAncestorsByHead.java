@@ -6,7 +6,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -30,10 +29,10 @@ public class TwinTriggerCascadeToAncestorsByHead extends TwinTrigger {
     @FeaturerParam(name = "Depth", description = "Hierarchy depth to search up (1 = direct parent only, -1 = unlimited)")
     public static final FeaturerParamInt depth = new FeaturerParamInt("depth");
 
-    @FeaturerParam(name = "ClassId", description = "Twin class ID to update")
-    public static final FeaturerParamUUIDTwinsTwinClassId classId = new FeaturerParamUUIDTwinsTwinClassId("classId");
+    @FeaturerParam(name = "Class Id", description = "Twin class ID to update")
+    public static final FeaturerParamUUIDTwinsTwinClassId ancestorClassId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
-    @FeaturerParam(name = "dstStatusId", description = "Status ID to set")
+    @FeaturerParam(name = "New Status Id", description = "Status ID to set")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
@@ -42,15 +41,15 @@ public class TwinTriggerCascadeToAncestorsByHead extends TwinTrigger {
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         Integer depthValue = depth.extract(properties);
-        UUID classIdValue = classId.extract(properties);
+        UUID classIdValue = ancestorClassId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
         if (depthValue == null || depthValue < 0) {
             depthValue = -1;
         }
 
-        log.info("CascadeToAncestorsByHead: executing update - twinId={}, depth={}, classId={}, statusId={}",
-            twinEntity.logShort(), depthValue, classIdValue, dstStatusIdValue);
+        log.info("CascadeToAncestorsByHead: executing for {} with params: depth={}, ancestorClassId={}, statusId={}",
+            twinEntity.logNormal(), depthValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByHeadAncestors(twinEntity.getId(), depthValue, classIdValue, dstStatusIdValue);
         log.info("CascadeToAncestorsByHead: updated {} ancestors", updated);

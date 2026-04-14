@@ -6,7 +6,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -30,10 +29,10 @@ public class TwinTriggerCascadeToDescendants extends TwinTrigger {
     @FeaturerParam(name = "Depth", description = "Hierarchy depth to search (1 = direct children, 2 = grandchildren, etc.)")
     public static final FeaturerParamInt depth = new FeaturerParamInt("depth");
 
-    @FeaturerParam(name = "ClassId", description = "Twin class ID to update")
+    @FeaturerParam(name = "Class Id", description = "Twin class ID to update")
     public static final FeaturerParamUUIDTwinsTwinClassId classId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
-    @FeaturerParam(name = "dstStatusId", description = "Status ID to set")
+    @FeaturerParam(name = "Dst Status Id", description = "Status ID to set")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
@@ -45,8 +44,8 @@ public class TwinTriggerCascadeToDescendants extends TwinTrigger {
         UUID classIdValue = classId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        log.info("CascadeToDescendants: executing update - twinId={}, depth={}, classId={}, statusId={}",
-            twinEntity.logShort(), depthValue, classIdValue, dstStatusIdValue);
+        log.info("CascadeToDescendants: executing for {} with params: depth={}, classId={}, statusId={}",
+            twinEntity.logNormal(), depthValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByHeadDescendants(
             twinEntity.getId(), depthValue, classIdValue, dstStatusIdValue);

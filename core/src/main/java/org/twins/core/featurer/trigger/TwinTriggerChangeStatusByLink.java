@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -27,13 +26,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinTriggerChangeStatusByLink extends TwinTrigger {
 
-    @FeaturerParam(name = "LinkId", description = "Link ID")
+    @FeaturerParam(name = "Link Id", description = "Link ID")
     public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "dstStatusId", description = "Status ID")
+    @FeaturerParam(name = "Dst Status Id", description = "Status ID")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
-    @FeaturerParam(name = "classId", description = "Class ID")
+    @FeaturerParam(name = "Class Id", description = "Class ID")
     public static final FeaturerParamUUIDTwinsTwinClassId twinClassId = new FeaturerParamUUIDTwinsTwinClassId("classId");
 
     @Lazy
@@ -45,10 +44,10 @@ public class TwinTriggerChangeStatusByLink extends TwinTrigger {
         UUID dstStatusIdValue = dstStatusId.extract(properties);
         UUID classIdValue = twinClassId.extract(properties);
 
-        log.info("TwinTriggerChangeStatusByLink: executing update - twinId={}, linkId={}, classId={}, statusId={}",
-            twinEntity.logShort(), linkIdValue, classIdValue, dstStatusIdValue);
+        log.info("ChangeStatusByLink: executing for {} with params: linkId={}, classId={}, statusId={}",
+            twinEntity.logNormal(), linkIdValue, classIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusByTwinClassIdAndLinkId(twinEntity.getId(), linkIdValue, classIdValue, dstStatusIdValue);
-        log.info("TwinTriggerChangeStatusByLink: updated {} twins", updated);
+        log.info("ChangeStatusByLink: updated {} twins", updated);
     }
 }

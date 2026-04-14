@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -29,7 +28,7 @@ public class TwinTriggerChangeStatusByLinkForward extends TwinTrigger {
     @FeaturerParam(name = "linkId", description = "Link ID (same direction as forward link)")
     public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "dstStatusId", description = "Status ID to set for destination twin")
+    @FeaturerParam(name = "Dst Status Id", description = "Status ID to set for destination twin")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
     @Lazy
@@ -40,10 +39,10 @@ public class TwinTriggerChangeStatusByLinkForward extends TwinTrigger {
         UUID linkIdValue = linkId.extract(properties);
         UUID dstStatusIdValue = dstStatusId.extract(properties);
 
-        log.info("TwinTriggerChangeStatusByLinkForward: executing update - twinId={}, linkId={}, statusId={}",
-            twinEntity.logShort(), linkIdValue, dstStatusIdValue);
+        log.info("ChangeStatusByLinkForward: executing for {} with params: linkId={}, statusId={}",
+            twinEntity.logNormal(), linkIdValue, dstStatusIdValue);
 
         int updated = twinRepository.updateTwinStatusBySrcTwinIdAndLinkId(twinEntity.getId(), linkIdValue, null, dstStatusIdValue);
-        log.info("TwinTriggerChangeStatusByLinkForward: updated {} twins", updated);
+        log.info("ChangeStatusByLinkForward: updated {} twins", updated);
     }
 }
