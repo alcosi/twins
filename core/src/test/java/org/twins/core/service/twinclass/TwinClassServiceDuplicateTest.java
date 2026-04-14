@@ -21,12 +21,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,7 +59,7 @@ class TwinClassServiceDuplicateTest {
         srcClassId = UUID.randomUUID();
         domainId = UUID.randomUUID();
         userId = UUID.randomUUID();
-        newKey = "duplicate_key";
+        newKey = "DUPLICATE_KEY";
 
         srcClass = new TwinClassEntity();
         srcClass.setId(srcClassId);
@@ -74,6 +69,8 @@ class TwinClassServiceDuplicateTest {
         when(authService.getApiUser()).thenReturn(apiUser);
         when(apiUser.getDomainId()).thenReturn(domainId);
         lenient().when(apiUser.getUser()).thenReturn(new UserEntity().setId(userId));
+        lenient().doNothing().when(twinClassService).refreshExtendsHierarchyTree(any(TwinClassEntity.class));
+        lenient().doNothing().when(twinClassService).refreshHeadHierarchyTree(any(TwinClassEntity.class));
     }
 
     /** Builds a TwinClassDuplicate with originalTwinClass pre-set to bypass DB load. */
@@ -319,8 +316,8 @@ class TwinClassServiceDuplicateTest {
             stubSaveSafeAndCapture();
 
             List<TwinClassEntity> result = new ArrayList<>(twinClassService.duplicate(List.of(
-                    duplicateOf(srcClass, "key_one", false),
-                    duplicateOf(src2, "key_two", false)
+                    duplicateOf(srcClass, "KEY_ONE", false),
+                    duplicateOf(src2, "KEY_TWO", false)
             )));
 
             assertEquals(2, result.size());
