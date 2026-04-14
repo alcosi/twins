@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
+import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.trigger.TwinTriggerCreate;
@@ -56,6 +58,8 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     @Lazy
     private final TwinService twinService;
     private final TwinClassService twinClassService;
+    @Lazy
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Override
     public CrudRepository<TwinTriggerEntity, UUID> entityRepository() {
@@ -208,10 +212,20 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
      * @param twinEntity        the twin that triggered the event
      * @param srcTwinStatus     source twin status
      * @param dstTwinStatus     destination twin status
-     * @param twinTriggerTaskId optional task ID - if provided, job twin will use this ID
+     * @param twinTriggerTaskId optional task ID - if provided, execution is async; if null, creates task for sync execution
      */
     @Transactional(rollbackFor = Throwable.class)
     public void runTrigger(TwinTriggerEntity twinTriggerEntity, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID twinTriggerTaskId) throws ServiceException {
+        // Create task for sync execution tracking if no taskId provided
+        if (twinTriggerTaskId == null) {
+            TwinTriggerTaskEntity syncTask = twinTriggerTaskService.addSyncTask(
+                    twinEntity.getId(),
+                    twinTriggerEntity.getId(),
+                    srcTwinStatus != null ? srcTwinStatus.getId() : null
+            );
+            twinTriggerTaskId = syncTask.getId();
+        }
+
         // Create job twin if jobTwinClassId is set
         UUID jobTwinId = null;
         UUID jobTwinClassId = twinTriggerEntity.getJobTwinClassId();

@@ -67,4 +67,20 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
         }
         entitySmartService.saveAllAndLog(tasks, repository);
     }
+
+    public TwinTriggerTaskEntity addSyncTask(UUID twinId, UUID twinTriggerId, UUID previousTwinStatusId) throws ServiceException {
+        log.info("Adding sync trigger task for twin[{}], trigger[{}]", twinId, twinTriggerId);
+        ApiUser apiUser = authService.getApiUser();
+        Timestamp now = Timestamp.from(Instant.now());
+        TwinTriggerTaskEntity syncTask = new TwinTriggerTaskEntity()
+                .setTwinId(twinId)
+                .setTwinTriggerId(twinTriggerId)
+                .setPreviousTwinStatusId(previousTwinStatusId)
+                .setStatusId(TwinTriggerTaskStatus.SYNC_EXECUTION)
+                .setCreatedAt(now)
+                .setDoneAt(now)
+                .setCreatedByUserId(apiUser.getUserId())
+                .setBusinessAccountId(apiUser.getBusinessAccountId());
+        return saveSafe(syncTask);
+    }
 }
