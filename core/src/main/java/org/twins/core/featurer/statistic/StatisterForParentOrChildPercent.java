@@ -18,6 +18,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Component
@@ -44,7 +45,7 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
         Kit<TwinFieldHeadSumCountProjection, UUID> groupingByHead = new Kit<>(TwinFieldHeadSumCountProjection::headTwinId);
         groupingByHead.addAll(twinFieldDecimalRepository.sumAndCountByHeadTwinId(forTwinIdSet, childTwinClassFieldId.extract(properties)));
 
-        Map<UUID, Double> twinAndPercentMap = new HashMap<>();
+        Map<UUID, BigDecimal> twinAndPercentMap = new HashMap<>();
         List<UUID> needLoad = new ArrayList<>();
         for (UUID headId : forTwinIdSet) {
             TwinFieldHeadSumCountProjection headSum = groupingByHead.get(headId);
@@ -56,18 +57,18 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
             long count = headSum.count();
 
             if (count == 0 || sum == null) {
-                twinAndPercentMap.put(headId, 0.0);
+                twinAndPercentMap.put(headId, BigDecimal.ZERO);
                 continue;
             }
 
-            double percent = sum.doubleValue() / count;
+            BigDecimal percent = sum.divide(BigDecimal.valueOf(count), java.math.MathContext.DECIMAL128);
             twinAndPercentMap.put(headId, percent);
         }
         if (CollectionUtils.isNotEmpty(needLoad)) {
             List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId( needLoad, headTwinClassFieldId.extract(properties));
 
             for (TwinFieldValueProjection headTwin : forHeadTwinValues) {
-                Double value = headTwin.value() != null ? headTwin.value().doubleValue() : 0.0;
+                BigDecimal value = headTwin.value() != null ? headTwin.value() : BigDecimal.ZERO;
                 twinAndPercentMap.put(headTwin.headTwinId(), value);
             }
         }
@@ -76,7 +77,7 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
         for (var headTwin : twinAndPercentMap.entrySet()) {
             UUID uuid = headTwin.getKey();
             TwinStatisticProgressPercent.Item item = createItem(
-                    (int) (headTwin.getValue() * 100),
+                    toPercentValue(headTwin.getValue()),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     colorHex.extract(properties)
@@ -93,5 +94,11 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
                 .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
+    }
+
+    private int toPercentValue(BigDecimal value) {
+        return value.multiply(BigDecimal.valueOf(100))
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
     }
 }

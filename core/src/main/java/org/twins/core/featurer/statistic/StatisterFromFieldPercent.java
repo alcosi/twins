@@ -15,6 +15,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Component
@@ -47,10 +49,10 @@ public class StatisterFromFieldPercent extends Statister<TwinStatisticProgressPe
         for (UUID twinId : forTwinIdSet) {
             TwinFieldValueProjection twin = twinFieldSimplekit.get(twinId);
 
-            double percent = twin != null && twin.value() != null ? twin.value().doubleValue() : 0.0;
+            BigDecimal percent = twin != null && twin.value() != null ? twin.value() : BigDecimal.ZERO;
 
             TwinStatisticProgressPercent.Item item = createItem(
-                    (int) (percent * 100),
+                    toPercentValue(percent),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     color.extract(properties)
@@ -68,5 +70,11 @@ public class StatisterFromFieldPercent extends Statister<TwinStatisticProgressPe
                 .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
+    }
+
+    private int toPercentValue(BigDecimal value) {
+        return value.multiply(BigDecimal.valueOf(100))
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
     }
 }

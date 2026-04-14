@@ -18,6 +18,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Component
@@ -58,7 +59,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
         Kit<TwinFieldHeadSumCountProjection, UUID> groupingByHead = new Kit<>(TwinFieldHeadSumCountProjection::headTwinId);
         groupingByHead.addAll(twinFieldDecimalRepository.sumAndCountByHeadTwinId( allChildTwinIds, grandChildTwinClassFieldId.extract(properties)));
 
-        Map<UUID, Double> twinAndPercentMap = new HashMap<>();
+        Map<UUID, BigDecimal> twinAndPercentMap = new HashMap<>();
         List<UUID> needLoad = new ArrayList<>();
 
         for (UUID headId : allChildTwinIds) {
@@ -72,11 +73,11 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
             long count = headSum.count();
 
             if (sum == null || count == 0) {
-                twinAndPercentMap.put(headId, 0.0);
+                twinAndPercentMap.put(headId, BigDecimal.ZERO);
                 continue;
             }
 
-            double percent = sum.doubleValue() / count;
+            BigDecimal percent = sum.divide(BigDecimal.valueOf(count), java.math.MathContext.DECIMAL128);
             twinAndPercentMap.put(headId, percent);
         }
 
@@ -84,28 +85,28 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
             List<TwinFieldValueProjection> forHeadTwinValues = twinFieldDecimalRepository.valueByTwinId(needLoad, childTwinClassFieldId.extract(properties));
 
             for (TwinFieldValueProjection valueProjection : forHeadTwinValues) {
-                double value = valueProjection.value() != null ? valueProjection.value().doubleValue() : 0.0;
+                BigDecimal value = valueProjection.value() != null ? valueProjection.value() : BigDecimal.ZERO;
                 twinAndPercentMap.put(valueProjection.headTwinId(), value);
             }
         }
 
-        Map<UUID, Double> parentTwinAndPercentMap = new HashMap<>();
+        Map<UUID, BigDecimal> parentTwinAndPercentMap = new HashMap<>();
 
         for (var entry : groupedByParentMap.entrySet()) {
-            double sum = 0.0;
+            BigDecimal sum = BigDecimal.ZERO;
             int count = 0;
 
             for (UUID childId : entry.getValue()) {
-                Double value = twinAndPercentMap.get(childId);
+                BigDecimal value = twinAndPercentMap.get(childId);
                 if (value != null) {
-                    sum += value;
+                    sum = sum.add(value);
                     count++;
                 }
             }
 
             parentTwinAndPercentMap.put(
                     entry.getKey(),
-                    count == 0 ? 0.0 : sum / count
+                    count == 0 ? BigDecimal.ZERO : sum.divide(BigDecimal.valueOf(count), java.math.MathContext.DECIMAL128)
             );
         }
 
@@ -113,7 +114,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
 
         for (var entry : parentTwinAndPercentMap.entrySet()) {
             TwinStatisticProgressPercent.Item item = createItem(
-                    (int) (entry.getValue() * 100),
+                    toPercentValue(entry.getValue()),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     colorHex.extract(properties)
@@ -131,5 +132,11 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
                 .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
+    }
+
+    private int toPercentValue(BigDecimal value) {
+        return value.multiply(BigDecimal.valueOf(100))
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
     }
 }
