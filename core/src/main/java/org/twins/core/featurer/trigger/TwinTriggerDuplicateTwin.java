@@ -41,7 +41,7 @@ public class TwinTriggerDuplicateTwin extends TwinTrigger {
             log.error("Can not access twin by id[{}]. Please check database config", twinId.extract(properties));
             return;
         }
-        log.info("{} will be cloned", twinEntity.logShort());
+        log.info("{} will be cloned", twinEntity.logNormal());
         twinService.duplicateTwin(srcTwin, null);
     }
 }
