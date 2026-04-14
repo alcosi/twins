@@ -62,8 +62,8 @@ public class TwinStatusSearchController extends ApiController {
             PaginationResult<TwinStatusEntity> twinStatusList = twinStatusSearchService
                     .findTwinStatuses(twinStatusSearchRestDTOReverseMapper.convert(request), pagination);
             rs
-                    .setStatuses(twinStatusRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinStatusList))
+                    .setStatuses(twinStatusRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

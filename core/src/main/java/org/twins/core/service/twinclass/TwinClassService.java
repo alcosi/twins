@@ -288,7 +288,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
             }
             if (duplicate.isDuplicateStatuses()) {
-                //todo
+                twinStatusService.duplicateStatusesForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
             }
         }
         return savedClasses;
