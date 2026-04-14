@@ -232,7 +232,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
         if (jobTwinClassId != null) {
             TwinClassEntity twinClass = twinClassService.findEntitySafe(jobTwinClassId);
             TwinEntity jobTwinEntity = new TwinEntity()
-                    .setId(twinTriggerTaskId == null ? UuidUtils.generate() : twinTriggerTaskId)
+                    .setId(twinTriggerTaskId)
                     .setName(twinTriggerEntity.getName() == null ? "job" : twinTriggerEntity.getName())
                     .setTwinClassId(jobTwinClassId)
                     .setTwinClass(twinClass);
