@@ -93,18 +93,6 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
                 TwinTriggerTaskEntity::setBusinessAccount);
     }
 
-    public void loadTwin(TwinTriggerTaskEntity src) throws ServiceException {
-        loadTwins(Collections.singletonList(src));
-    }
-
-    public void loadTwins(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        twinService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getTwinId,
-                TwinTriggerTaskEntity::getTwin,
-                TwinTriggerTaskEntity::setTwin);
-    }
-
     public void loadTwinTrigger(TwinTriggerTaskEntity src) throws ServiceException {
         loadTwinTriggers(Collections.singletonList(src));
     }
@@ -115,18 +103,6 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
                 TwinTriggerTaskEntity::getTwinTriggerId,
                 TwinTriggerTaskEntity::getTwinTrigger,
                 TwinTriggerTaskEntity::setTwinTrigger);
-    }
-
-    public void loadTwinStatus(TwinTriggerTaskEntity src) throws ServiceException {
-        loadTwinStatuses(Collections.singletonList(src));
-    }
-
-    public void loadTwinStatuses(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
-        twinStatusService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
-                TwinTriggerTaskEntity::getPreviousTwinStatusId,
-                TwinTriggerTaskEntity::getPreviousTwinStatus,
-                TwinTriggerTaskEntity::setPreviousTwinStatus);
     }
 
     public void loadCreatedByUser(TwinTriggerTaskEntity src) throws ServiceException {

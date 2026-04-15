@@ -62,7 +62,6 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @Transient
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
@@ -75,7 +74,6 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @Transient
     @JoinColumn(name = "previous_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity previousTwinStatus;
 
