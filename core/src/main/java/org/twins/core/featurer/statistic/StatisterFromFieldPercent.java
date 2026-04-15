@@ -2,6 +2,7 @@ package org.twins.core.featurer.statistic;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
@@ -52,7 +53,7 @@ public class StatisterFromFieldPercent extends Statister<TwinStatisticProgressPe
             BigDecimal percent = twin != null && twin.value() != null ? twin.value() : BigDecimal.ZERO;
 
             TwinStatisticProgressPercent.Item item = createItem(
-                    toPercentValue(percent),
+                    BigDecimalUtil.toPercentValue(percent),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     color.extract(properties)
@@ -70,11 +71,5 @@ public class StatisterFromFieldPercent extends Statister<TwinStatisticProgressPe
                 .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
-    }
-
-    private int toPercentValue(BigDecimal value) {
-        return value.multiply(BigDecimal.valueOf(100))
-                .setScale(0, RoundingMode.HALF_UP)
-                .intValue();
     }
 }

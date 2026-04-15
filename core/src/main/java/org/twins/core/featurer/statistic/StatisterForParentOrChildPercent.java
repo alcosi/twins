@@ -2,6 +2,7 @@ package org.twins.core.featurer.statistic;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -77,7 +78,7 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
         for (var headTwin : twinAndPercentMap.entrySet()) {
             UUID uuid = headTwin.getKey();
             TwinStatisticProgressPercent.Item item = createItem(
-                    toPercentValue(headTwin.getValue()),
+                    BigDecimalUtil.toPercentValue(headTwin.getValue()),
                     key.extract(properties),
                     labelI18nId.extract(properties),
                     colorHex.extract(properties)
@@ -94,11 +95,5 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
                 .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
-    }
-
-    private int toPercentValue(BigDecimal value) {
-        return value.multiply(BigDecimal.valueOf(100))
-                .setScale(0, RoundingMode.HALF_UP)
-                .intValue();
     }
 }
