@@ -2,6 +2,7 @@ package org.twins.core.domain.twinclass;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
@@ -16,5 +17,6 @@ public class TwinClassFieldDuplicate {
     private boolean duplicateRules = false;
 
     private TwinClassFieldEntity originalTwinClassField;
+    private TwinClassEntity newTwinClass;
     private TwinClassFieldEntity newTwinClassField;
 }

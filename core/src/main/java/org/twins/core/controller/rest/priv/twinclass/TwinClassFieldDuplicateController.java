@@ -41,9 +41,9 @@ public class TwinClassFieldDuplicateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassFieldDuplicateV1", summary = "Duplicates twin class field by id")
+    @Operation(operationId = "twinClassFieldDuplicateV1", summary = "Duplicates twin class fields")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class field copy result", content = {
+            @ApiResponse(responseCode = "200", description = "Twin class fields copy result", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})

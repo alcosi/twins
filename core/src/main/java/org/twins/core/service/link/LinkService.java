@@ -337,4 +337,5 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     public Collection<LinkEntity> findAllByIdIn(Collection<UUID> ids) {
         return linkRepository.findAllByIdIn(ids);
     }
+
 }
