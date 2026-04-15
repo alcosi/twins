@@ -54,6 +54,7 @@ public class LinkSearchService {
                 checkUuidIn(search.getSrcTwinClassIdExcludeList(), true, false, LinkEntity.Fields.srcTwinClassId),
                 checkUuidIn(search.getDstTwinClassIdList(), false, false, LinkEntity.Fields.dstTwinClassId),
                 checkUuidIn(search.getDstTwinClassIdExcludeList(), true, false, LinkEntity.Fields.dstTwinClassId),
+                checkTernary(search.getInheritable(), LinkEntity.Fields.inheritable),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true),
                 joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), apiUser.getLocale(), true, false),

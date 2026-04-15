@@ -45,6 +45,7 @@ public class TwinStatusSearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinStatusEntity.Fields.id),
                 checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinStatusEntity.Fields.twinClassId),
                 checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinStatusEntity.Fields.twinClassId),
+                checkTernary(search.getInheritable(), TwinStatusEntity.Fields.inheritable),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
                 joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),

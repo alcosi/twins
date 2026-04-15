@@ -9,7 +9,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
@@ -32,6 +31,9 @@ public class TwinClassDynamicMarkerEntity implements ContainsTwinValidatorSet, E
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
+
+    @Column(name = "inheritable")
+    private Boolean inheritable;
 
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;

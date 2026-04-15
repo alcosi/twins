@@ -87,6 +87,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setBeValidationError(I18nCacheHolder.addId(src.getBeValidationErrorI18nId()))
                         .setExternalId(src.getExternalId())
                         .setSystem(src.getSystem())
+                        .setInheritable(src.getInheritable())
                         .setDependent(src.getDependentField())
                         .setHasDependentFields(src.getHasDependentFields())
                         .setExternalProperties(src.getExternalProperties())

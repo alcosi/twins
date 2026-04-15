@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.FieldProjectionSearch;
@@ -114,6 +113,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
                 checkTernary(search.getSystem(), TwinClassFieldEntity.Fields.system),
+                checkTernary(search.getInheritable(), TwinClassFieldEntity.Fields.inheritable),
                 checkTernary(search.getDependentField(), TwinClassFieldEntity.Fields.dependentField),
                 checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
                 checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),

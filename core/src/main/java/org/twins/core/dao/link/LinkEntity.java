@@ -45,6 +45,9 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "dst_twin_class_id")
     private UUID dstTwinClassId;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @Column(name = "forward_name_i18n_id")
     private UUID forwardNameI18NId;
 

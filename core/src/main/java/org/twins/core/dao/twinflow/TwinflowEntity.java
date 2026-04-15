@@ -58,6 +58,9 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "initial_sketch_twin_status_id")
     private UUID initialSketchTwinStatusId;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

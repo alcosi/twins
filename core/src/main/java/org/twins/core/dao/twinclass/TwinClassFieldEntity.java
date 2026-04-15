@@ -112,6 +112,9 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

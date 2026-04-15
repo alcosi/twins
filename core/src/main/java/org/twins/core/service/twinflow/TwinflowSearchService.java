@@ -22,6 +22,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Locale;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuid;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
@@ -56,6 +57,7 @@ public class TwinflowSearchService {
                 .and(checkUuidIn(search.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))
                 .and(checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinflowEntity.Fields.twinClassId))
                 .and(checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinflowEntity.Fields.twinClassId))
+                .and(checkTernary(search.getInheritable(), TwinflowEntity.Fields.inheritable))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, false, false))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, false, false))

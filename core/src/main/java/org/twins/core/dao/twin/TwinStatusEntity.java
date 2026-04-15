@@ -57,6 +57,9 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "twin_status_type")
     private StatusType type;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
