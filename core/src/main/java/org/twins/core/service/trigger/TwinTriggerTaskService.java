@@ -39,7 +39,6 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
     @Lazy
     private final TwinTriggerService twinTriggerService;
     private final BusinessAccountService businessAccountService;
-    private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;
     @Lazy
     private final TwinService twinService;
@@ -167,6 +166,4 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
                 dstTwinStatus,
                 triggerTaskEntity.getId());
     }
-
-
 }
