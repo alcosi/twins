@@ -36,6 +36,9 @@ public abstract class TwinClassFieldSaveDTOv1{
     @Schema(description = "System field", example = "true")
     public Boolean system;
 
+    @Schema(description = "Inheritable field", example = "true")
+    public Boolean inheritable;
+
     @Schema(description = "external id", example = "")
     public String externalId;
 

@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Generated;
@@ -41,9 +42,10 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.*;
-
-import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Accessors(chain = true)
@@ -531,10 +533,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
     public Set<UUID> getHeadTwinsIdSet() {
         if (null == headTwinsIdSet && null != hierarchyTree) {
-            headTwinsIdSet = new LinkedHashSet<>();
-            var hierarchyIds = convertUuidFromLtreeFormat(hierarchyTree).split("\\.");
-            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
-                headTwinsIdSet.add(UUID.fromString(hierarchyIds[i]));
+            headTwinsIdSet = LTreeUtils.toUuidsSortedSet(hierarchyTree, true);
         }
         return headTwinsIdSet;
     }

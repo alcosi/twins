@@ -21,13 +21,13 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
-import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.enums.twinclass.OwnerType.*;
 
@@ -41,11 +41,11 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * The method supports filtering based on a list of UUIDs, negating the condition,
      * finding root elements by NULLIFY_MARKER, and limiting the hierarchy depth.
      *
-     * @param <T>               The type of the entities being queried.
-     * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
-     * @param not               A flag indicating whether to negate the result of the condition.
-     * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
-     * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
+     * @param <T>            The type of the entities being queried.
+     * @param ids            A collection of UUIDs representing the hierarchy roots to validate against.
+     * @param not            A flag indicating whether to negate the result of the condition.
+     * @param depthLimit     The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
+     * @param ltreeFieldPath The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
     public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... ltreeFieldPath) {
@@ -308,8 +308,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Join<PermissionEntity, PermissionMaterGlobalEntity> permissionMaterGlobalJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterGlobals, JoinType.LEFT);
             permissionMaterGlobalJoin.on(
                     cb.and(
-                        cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
-                        cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
+                            cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
+                            cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
                     )
             );
 
@@ -443,6 +443,43 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String twinClassIdFieldPath, final String inheritableFieldPath) {
+        return checkTwinClassAndInheritable(classes, not, new String[]{twinClassIdFieldPath}, new String[]{inheritableFieldPath});
+    }
+
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String[] twinClassIdFieldPath, final String[] inheritableFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(classes))
+                return cb.conjunction();
+
+            Set<UUID> baseIds = new HashSet<>();
+            Set<UUID> extendsIds = new HashSet<>();
+            for (TwinClassService.ClassWithExtends item : classes) {
+                baseIds.add(item.twinClassId());
+                extendsIds.addAll(item.extendsTwinClassIds());
+            }
+
+            Path<UUID> twinClassPath = getFieldPath(root, JoinType.LEFT, twinClassIdFieldPath);
+            Path<Boolean> inheritablePath = getFieldPath(root, JoinType.LEFT, inheritableFieldPath);
+
+            Predicate baseIn = twinClassPath.in(baseIds);
+            Predicate extendsInheritable = null;
+            if (!extendsIds.isEmpty()) {
+                Predicate inExtends = twinClassPath.in(extendsIds);
+                Predicate inheritableTrue = cb.isTrue(inheritablePath);
+                extendsInheritable = cb.and(inExtends, inheritableTrue);
+            }
+
+            Predicate result = extendsInheritable != null
+                    ? cb.or(baseIn, extendsInheritable)
+                    : baseIn;
+
+            return not ? cb.not(result) : result;
+        };
+    }
+
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
                                                  boolean includeNullValues, final String... uuidFieldPath) {
         var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid); //todo resolve includeNullValues vs NULLIFY_MARKER
@@ -490,7 +527,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     @Deprecated
     public static <T> Specification<T> checkFieldLikeContainsIn(final Collection<String> search,
                                                                 final boolean not, final boolean or, final String... fieldPath) {
-        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%" ).collect(Collectors.toSet()), not, or, fieldPath);
+        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or, fieldPath);
     }
 
     public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not,
@@ -527,7 +564,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     }
 
     public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
-                                                        final boolean or, boolean includeNullValues, final String... fieldPath) {
+                                                    final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();

@@ -82,6 +82,7 @@ class TwinClassFieldServiceDuplicateTest {
                 .setExternalId("ext-id-1")
                 .setExternalProperties(externalProperties)
                 .setSystem(false)
+                .setInheritable(true)
                 .setDependentField(true)
                 .setHasDependentFields(true)
                 .setOrder(42)
@@ -136,6 +137,7 @@ class TwinClassFieldServiceDuplicateTest {
             assertEquals("ext-id-1", saved.getExternalId());
             assertEquals(externalProperties, saved.getExternalProperties());
             assertEquals(Boolean.FALSE, saved.getSystem());
+            assertEquals(Boolean.TRUE, saved.getInheritable());
             assertEquals(Integer.valueOf(42), saved.getOrder());
         }
 

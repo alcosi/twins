@@ -32,6 +32,9 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @Column(name = "key")
     private String key;
 
@@ -56,9 +59,6 @@ public class TwinStatusEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     @Column(name = "twin_status_type")
     private StatusType type;
-
-    @Column(name = "inheritable")
-    private Boolean inheritable;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

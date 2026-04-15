@@ -15,6 +15,7 @@ public class TwinStatusCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Tw
     public void map(TwinStatusCreateRqDTOv1 src, TwinStatusEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinClassId(src.getTwinClassId())
+                .setInheritable(src.getInheritable())
                 .setKey(src.getKey())
                 .setBackgroundColor(src.getBackgroundColor())
                 .setFontColor(src.getFontColor())

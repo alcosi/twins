@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
 
@@ -11,6 +12,13 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
         return collection.stream()
                 .sorted()
                 .map(T::toString)
+                .collect(Collectors.joining(","));
+    }
+
+    public static <T> String generateUniqueKey(Collection<T> collection1, Collection<T> collection2) {
+        return Stream.concat(collection1.stream(), collection2.stream())
+                .sorted()
+                .map(String::valueOf)
                 .collect(Collectors.joining(","));
     }
 

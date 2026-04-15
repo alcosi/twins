@@ -5,8 +5,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
@@ -15,7 +13,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Properties;
 
@@ -27,10 +24,6 @@ import java.util.Properties;
 public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, FieldValue, TwinFieldStoragePointedHead, TwinFieldSearchNotImplemented> {
     @FeaturerParam(name = "Head twin field", description = "", order = 3)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("headTwinClassFieldId");
-
-    @Lazy
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
 
     @Override
     public Class<FieldValue> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {
