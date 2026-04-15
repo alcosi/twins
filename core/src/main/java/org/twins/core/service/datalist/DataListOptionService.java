@@ -331,6 +331,12 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 advancedEntityManager.insertOnConflictDoNothing(optionsForSave, List.of(DataListOptionEntity.Fields.dataListId, DataListOptionEntity.Fields.externalId, DataListOptionEntity.Fields.businessAccountId));
 
+                dataListOptionSearch
+                        .setExternalIdList(new HashSet<>(missedList));
+                //retry
+                List<DataListOptionEntity> createdOrExistedOptions = dataListOptionSearchService.findDataListOptions(dataListOptionSearch);
+                options.addAll(createdOrExistedOptions);
+
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
                 String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));

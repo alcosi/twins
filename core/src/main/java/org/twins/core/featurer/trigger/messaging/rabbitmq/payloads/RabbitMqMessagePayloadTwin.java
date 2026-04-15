@@ -7,5 +7,6 @@ public record RabbitMqMessagePayloadTwin(
     UUID userId,
     UUID domainId,
     UUID businessAccountId,
-    String operation
+    String operation,
+    UUID jobTwinId
 ) {}

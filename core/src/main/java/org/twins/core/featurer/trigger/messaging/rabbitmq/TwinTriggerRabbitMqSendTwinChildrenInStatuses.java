@@ -62,7 +62,7 @@ public class TwinTriggerRabbitMqSendTwinChildrenInStatuses extends TwinTriggerRa
 
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         BasicSearch search = new BasicSearch();
         search
@@ -85,7 +85,8 @@ public class TwinTriggerRabbitMqSendTwinChildrenInStatuses extends TwinTriggerRa
                     apiUser.getUserId(),
                     apiUser.getDomainId(),
                     apiUser.getBusinessAccountId(),
-                    operation.extract(properties)
+                    operation.extract(properties),
+                    jobTwinId
             );
             ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
         }

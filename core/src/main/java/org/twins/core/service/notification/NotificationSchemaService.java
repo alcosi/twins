@@ -39,9 +39,7 @@ public class NotificationSchemaService extends EntitySecureFindServiceImpl<Notif
 
     @Override
     public boolean isEntityReadDenied(NotificationSchemaEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId()))
-            return true;
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

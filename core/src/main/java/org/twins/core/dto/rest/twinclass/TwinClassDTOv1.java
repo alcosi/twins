@@ -58,6 +58,10 @@ public class TwinClassDTOv1 {
     @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
     public UUID headClassId;
 
+    @RelatedObject(type = TwinClassDTOv1.class, name = "headClasses")
+    @Schema(description = "head class id set ")
+    public Set<UUID> headClassIdSet;
+
     @RelatedObject(type = DataListDTOv1.class, name = "markersDataList")
     @Schema(description = "some markers for twins. Are domain level and not editable by user")
     public UUID markersDataListId;
@@ -73,6 +77,7 @@ public class TwinClassDTOv1 {
     @Schema(description = "extends class id (direct) or empty if class is not extends any classes")
     public UUID extendsClassId;
 
+    @RelatedObject(type = TwinClassDTOv1.class, name = "extendsClasses")
     @Schema(description = "extends class id set ")
     public Set<UUID> extendsClassIdSet;
 

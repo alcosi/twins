@@ -16,7 +16,6 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
@@ -53,7 +51,6 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
@@ -99,8 +96,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Lazy
     private final TwinService twinService;
     private final TwinflowService twinflowService;
-    @Lazy
-    private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
     @Lazy
@@ -837,23 +832,21 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             TwinflowTransitionEntity transitionEntity = transitionContext.getTransitionEntity();
             //todo run status input/output triggers
             for (TwinEntity targetTwin : transitionContext.getTargetTwinList().values())
-                for (TwinflowTransitionTriggerEntity triggerEntity : transitionEntity.getTriggersKit()) {
-                    if (!triggerEntity.getActive()) {
-                        log.info("{} will not be triggered, since it is inactive", triggerEntity.logDetailed());
+                for (TwinflowTransitionTriggerEntity transitionTrigger : transitionEntity.getTriggersKit()) {
+                    if (!transitionTrigger.getActive()) {
+                        log.info("{} will not be triggered, since it is inactive", transitionTrigger.logDetailed());
                         continue;
                     }
-                    log.info("{} will be triggered", triggerEntity.logDetailed());
-                    if (triggerEntity.getAsync()) {
+                    log.info("{} will be triggered", transitionTrigger.logDetailed());
+                    if (transitionTrigger.getAsync()) {
                         twinChangesCollector.addPostponedTrigger(
                                 targetTwin.getId(),
                                 transitionEntity.getSrcTwinStatusId(),
-                                triggerEntity.getTwinTriggerId()
+                                transitionTrigger.getTwinTriggerId()
                         );
                     } else {
-                        log.info("Executing sync trigger for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
-                        TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(triggerEntity.getTwinTriggerId());
-                        TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-                        twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+                        log.info("Executing sync trigger for {} twin[{}]", transitionTrigger.logDetailed(), targetTwin.logShort());
+                        twinTriggerService.runTriggerSync(transitionTrigger.getTwinTrigger(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
                     }
                 }
         }

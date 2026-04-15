@@ -57,15 +57,21 @@ public class TwinFactoryTriggerEntity implements EasyLoggable {
     @ToString.Exclude
     private TwinFactoryEntity twinFactory;
 
-    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne(fetch = FetchType.EAGER) // need for core logic
+    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
     private TwinTriggerEntity twinTrigger;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassEntity twinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     @Override
     public String easyLog(Level level) {

@@ -63,13 +63,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     @Override
     public boolean isEntityReadDenied(UserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null //some User group can be out of any domain
-                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
-            return true;
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.easyLog(EasyLoggable.Level.NORMAL), readPermissionCheckMode);
     }
 
     @Override

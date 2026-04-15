@@ -34,4 +34,5 @@ public class ApiTag {
     public static final String HISTORY_NOTIFICATION = "historyNotification";
     public static final String TWIN_VALIDATOR = "twinValidator";
     public static final String TRIGGER = "trigger";
+    public static final String ACTION_RESTRICTION = "actionRestriction";
 }

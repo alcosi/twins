@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
@@ -31,6 +32,7 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
 
@@ -60,6 +62,7 @@ public class TwinChangesService {
     private final TwinCommentRepository twinCommentRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
+    private final AdvancedEntityManager advancedEntityManager;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
@@ -74,6 +77,7 @@ public class TwinChangesService {
             return changesApplyResult;
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
+        applyDecimalIncrements(twinChangesCollector);
         saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldSimpleNonIndexedEntity.class, twinFieldSimpleNonIndexedRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository, changesApplyResult);
@@ -146,6 +150,7 @@ public class TwinChangesService {
         if (CollectionUtils.isEmpty(postponedTriggers))
             return;
         List<TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
+
         for (PostponedTriggers.PostponedTrigger postponedTrigger : postponedTriggers) {
             triggerTaskList.add(new TwinTriggerTaskEntity()
                     .setTwinId(postponedTrigger.twinId())
@@ -153,6 +158,7 @@ public class TwinChangesService {
                     .setPreviousTwinStatusId(postponedTrigger.statusId())
                     .setStatusId(TwinTriggerTaskStatus.NEED_START));
         }
+
         log.info("Saving {} postponed triggers", triggerTaskList.size());
         twinTriggerTaskService.addTasks(triggerTaskList);
     }
@@ -225,6 +231,37 @@ public class TwinChangesService {
         if (entities != null) {
             entitySmartService.deleteAllEntitiesAndLog(entities, repository);
             twinChangesCollector.getDeleteEntityMap().remove(entityClass);
+        }
+    }
+
+    private void applyDecimalIncrements(TwinChangesCollector twinChangesCollector) {
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinFieldDecimalIncrement.class);
+        if (entityKeyMap == null || entityKeyMap.isEmpty()) {
+            return;
+        }
+
+        // Collect all increment operations and affected twins
+        List<TwinFieldDecimalIncrement> incrementList = new ArrayList<>();
+        Set<UUID> affectedTwinIds = new HashSet<>();
+
+        for (var entry : entityKeyMap.entrySet()) {
+            TwinFieldDecimalIncrement increment = (TwinFieldDecimalIncrement) entry.getKey().entity();
+            incrementList.add(increment);
+            affectedTwinIds.add(increment.getTwinId());
+        }
+
+        // Remove increment operations from collector (handled via JDBC)
+        twinChangesCollector.getSaveEntityMap().remove(TwinFieldDecimalIncrement.class);
+
+        // Apply batch increments via JDBC using specialized method
+        advancedEntityManager.incrementDecimalFields(incrementList);
+
+        // Invalidate cache for affected twins so next read fetches updated values from DB
+        for (UUID twinId : affectedTwinIds) {
+            TwinEntity twin = new TwinEntity().setId(twinId);
+            twinChangesCollector.getInvalidationMap()
+                    .computeIfAbsent(twin, k -> new HashSet<>())
+                    .add(TwinInvalidate.twinFieldDecimalKit);
         }
     }
 }

@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinclass;
+package org.twins.core.controller.rest.priv.domain;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

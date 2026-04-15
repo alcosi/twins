@@ -13,6 +13,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -61,6 +62,11 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private UserEntity createdByUser;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<HistoryNotificationRecipientCollectorEntity> collectors;
 
     public String easyLog(Level level) {
         return "historyNotificationRecipient[id:" + id + "]";

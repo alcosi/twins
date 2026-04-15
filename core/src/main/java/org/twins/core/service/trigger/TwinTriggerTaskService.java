@@ -9,9 +9,11 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
 import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
@@ -34,6 +36,8 @@ import java.util.function.Function;
 public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTriggerTaskEntity> {
     private final TwinTriggerTaskRepository repository;
     private final AuthService authService;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
     private final BusinessAccountService businessAccountService;
     private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;
@@ -137,4 +141,32 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
                 TwinTriggerTaskEntity::getCreatedByUser,
                 TwinTriggerTaskEntity::setCreatedByUser);
     }
+
+    public TwinTriggerTaskEntity addSyncTask(UUID twinId, UUID twinTriggerId, UUID previousTwinStatusId) throws ServiceException {
+        log.info("Adding sync trigger task for twin[{}], trigger[{}]", twinId, twinTriggerId);
+        ApiUser apiUser = authService.getApiUser();
+        Timestamp now = Timestamp.from(Instant.now());
+        TwinTriggerTaskEntity syncTask = new TwinTriggerTaskEntity()
+                .setTwinId(twinId)
+                .setTwinTriggerId(twinTriggerId)
+                .setPreviousTwinStatusId(previousTwinStatusId)
+                .setStatusId(TwinTriggerTaskStatus.SYNC_EXECUTION)
+                .setCreatedAt(now)
+                .setDoneAt(now)
+                .setCreatedByUserId(apiUser.getUserId())
+                .setBusinessAccountId(apiUser.getBusinessAccountId());
+        return saveSafe(syncTask);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void runTrigger(TwinTriggerTaskEntity triggerTaskEntity, TwinStatusEntity dstTwinStatus) throws ServiceException {
+        twinTriggerService.runTrigger(
+                triggerTaskEntity.getTwinTrigger(),
+                triggerTaskEntity.getTwin(),
+                triggerTaskEntity.getPreviousTwinStatus(),
+                dstTwinStatus,
+                triggerTaskEntity.getId());
+    }
+
+
 }

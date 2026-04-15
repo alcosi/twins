@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.trigger.TwinTrigger;
 
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -29,9 +30,9 @@ public abstract class TwinTriggerRabbitMqConnection extends TwinTrigger {
             .build();
 
     @Override
-    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
         connect(properties);
-        send(properties, twinEntity, srcTwinStatus, dstTwinStatus);
+        send(properties, twinEntity, srcTwinStatus, dstTwinStatus, jobTwinId);
     }
 
     public void connect(Properties properties) {
@@ -47,6 +48,6 @@ public abstract class TwinTriggerRabbitMqConnection extends TwinTrigger {
         });
     }
 
-    public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException;
+    public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException;
 
 }
