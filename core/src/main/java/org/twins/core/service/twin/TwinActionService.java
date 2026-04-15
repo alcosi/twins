@@ -16,7 +16,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
-import org.twins.core.dao.action.ActionRestrictionReasonRepository;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.action.TwinActionPermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -101,8 +100,11 @@ public class TwinActionService {
 
             if (allowedByValidator) {
                 twinEntity.getActions().add(twinAction);
-            } else if (validatorRestrictionReasonId != null) {
-                actionsRestricted.put(twinAction, validatorRestrictionReasonId);
+            } else {
+                log.info("Action {} RESTRICTED for twin: {}, reason: {}", twinAction, twinEntity.logShort(), validatorRestrictionReasonId);
+                if (validatorRestrictionReasonId != null) {
+                    actionsRestricted.put(twinAction, validatorRestrictionReasonId);
+                }
             }
         }
 
@@ -313,15 +315,33 @@ public class TwinActionService {
                                 twinByTwinValidatorsIsValid.putIfAbsent(twinEntity.getId(), validationResult.isValid());
                             }
                         }
+                        // Apply validator set invert: action is restricted if (invert != validationResult)
+                        // If invert=false and validationResult=true, then action is RESTRICTED
+                        // If invert=true and validationResult=true, then action is ALLOWED
+                        Map<UUID, Boolean> finalValidationResults = new HashMap<>();
+                        boolean validatorSetInvert = Boolean.TRUE.equals(actionValidatorRuleEntity.getTwinValidatorSet() != null ? actionValidatorRuleEntity.getTwinValidatorSet().getInvert() : false);
+                        for (Map.Entry<UUID, Boolean> validationResultEntry : twinByTwinValidatorsIsValid.entrySet()) {
+                            // action is restricted if (invert != validationResult)
+                            // so action is allowed if (invert == validationResult)
+                            boolean isActionRestricted = validatorSetInvert != validationResultEntry.getValue();
+                            boolean isActionAllowed = !isActionRestricted;
+                            finalValidationResults.put(validationResultEntry.getKey(), isActionAllowed);
+                            log.info("Twin: {}, action: {}, validatorSetInvert: {}, validationResultOfSingleValidator: {}, isActionRestricted: {}, actionAllowed: {}",
+                                validationResultEntry.getKey(), twinAction, validatorSetInvert, validationResultEntry.getValue(), isActionRestricted, isActionAllowed);
+                        }
                         // Check which entities passed the validator checks and update forbidden actions
                         List<TwinEntity> nextLoopTwins = new ArrayList<>();
                         for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                            if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
+                            Boolean isActionAllowed = finalValidationResults.get(twinEntity.getId());
+                            if (isActionAllowed != null && !isActionAllowed) {
                                 nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
                                 // Only set if not already set by permission (permission priority)
                                 if (!twinsActionsRestrictionReasons.computeIfAbsent(twinEntity.getId(), k -> new HashMap<>()).containsKey(twinAction)) {
+                                    log.info("Action {} RESTRICTED for twin: {}, reason: {}", twinAction, twinEntity.logShort(), actionValidatorRuleEntity.getActionRestrictionReasonId());
                                     twinsActionsRestrictionReasons.get(twinEntity.getId()).put(twinAction, actionValidatorRuleEntity.getActionRestrictionReasonId());
                                 }
+                            } else {
+                                log.info("Action {} ALLOWED for twin: {}", twinAction, twinEntity.logShort());
                             }
                         }
                         twinsNeedsValidatorCheck = nextLoopTwins; // Update list for next validator check
