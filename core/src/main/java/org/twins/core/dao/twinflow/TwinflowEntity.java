@@ -37,6 +37,9 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
 
@@ -57,9 +60,6 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Column(name = "initial_sketch_twin_status_id")
     private UUID initialSketchTwinStatusId;
-
-    @Column(name = "inheritable")
-    private Boolean inheritable;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

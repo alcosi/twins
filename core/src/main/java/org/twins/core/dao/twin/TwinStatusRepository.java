@@ -18,6 +18,8 @@ public interface TwinStatusRepository extends CrudRepository<TwinStatusEntity, U
 
     List<TwinStatusEntity> findByTwinClassId(UUID twinClassId);
 
+    String CACHE_TWIN_STATUS_BY_TWIN_CLASS_ID_IN_INHERITABLE = "TwinStatusRepository.findByTwinClassIdInInheritable";
+    @Cacheable(value = CACHE_TWIN_STATUS_BY_TWIN_CLASS_ID_IN_INHERITABLE, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#mainTwinClassIdList, #extendsTwinClassIdList)")
     @Query(value = "from TwinStatusEntity where twinClassId in :mainTwinClassIdList or (twinClassId in :extendsTwinClassIdList and inheritable)")
     List<TwinStatusEntity> findByTwinClassIdIn(@Param("mainTwinClassIdList") Set<UUID> mainTwinClassIdList, @Param("extendsTwinClassIdList") Set<UUID> extendsTwinClassIdList);
 

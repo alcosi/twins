@@ -30,7 +30,7 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     List<TwinClassFieldEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
 
     String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_INHERITABLE = "TwinClassFieldRepository.findByTwinClassIdInInheritable";
-    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#mainTwinClassIdList, #extendsTwinClassIdList)")
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_INHERITABLE, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#mainTwinClassIdList, #extendsTwinClassIdList)")
     @Query(value = "from TwinClassFieldEntity where twinClassId in :mainTwinClassIdList or (twinClassId in :extendsTwinClassIdList and inheritable)")
     List<TwinClassFieldEntity> findByTwinClassIdIn(@Param("mainTwinClassIdList") Set<UUID> mainTwinClassIdList, @Param("extendsTwinClassIdList") Set<UUID> extendsTwinClassIdList);
 
