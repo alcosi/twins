@@ -41,11 +41,11 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * The method supports filtering based on a list of UUIDs, negating the condition,
      * finding root elements by NULLIFY_MARKER, and limiting the hierarchy depth.
      *
-     * @param <T>               The type of the entities being queried.
-     * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
-     * @param not               A flag indicating whether to negate the result of the condition.
-     * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
-     * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
+     * @param <T>            The type of the entities being queried.
+     * @param ids            A collection of UUIDs representing the hierarchy roots to validate against.
+     * @param not            A flag indicating whether to negate the result of the condition.
+     * @param depthLimit     The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
+     * @param ltreeFieldPath The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
     public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... ltreeFieldPath) {
@@ -308,8 +308,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Join<PermissionEntity, PermissionMaterGlobalEntity> permissionMaterGlobalJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterGlobals, JoinType.LEFT);
             permissionMaterGlobalJoin.on(
                     cb.and(
-                        cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
-                        cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
+                            cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
+                            cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
                     )
             );
 
@@ -438,7 +438,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
-            Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
+            var uuidInArrayFunction = cb.function("uuid_in_array", Boolean.class, fieldPath, cb.literal(collectionUuidsToSqlArray(uuids)));
+            Predicate predicate = not ? cb.isFalse(uuidInArrayFunction) : cb.isTrue(uuidInArrayFunction);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
@@ -490,7 +491,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     @Deprecated
     public static <T> Specification<T> checkFieldLikeContainsIn(final Collection<String> search,
                                                                 final boolean not, final boolean or, final String... fieldPath) {
-        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%" ).collect(Collectors.toSet()), not, or, fieldPath);
+        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or, fieldPath);
     }
 
     public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not,
@@ -527,7 +528,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     }
 
     public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
-                                                        final boolean or, boolean includeNullValues, final String... fieldPath) {
+                                                    final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
