@@ -18,6 +18,7 @@ public class TwinTriggerSaveDTOReverseMapper extends RestSimpleDTOMapper<TwinTri
                 .setTriggerParams(src.getTriggerParams())
                 .setName(src.getName())
                 .setDescription(src.getDescription())
-                .setActive(src.getActive());
+                .setActive(src.getActive())
+                .setJobTwinClassId(src.getJobTwinClassId());
     }
 }
