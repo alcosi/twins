@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
@@ -146,11 +145,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (twinClassEntity.getTwinClassFieldKit() != null)
                 continue;
             needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
-            twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId));
+            twinClassEntity.setTwinClassFieldKit(new Kit<>(TwinClassFieldEntity::getId));
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
                 extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
-        if (needLoad.isEmpty())
+        if (KitUtils.isEmpty(needLoad))
             return;
         extendsClassesSet.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
 
