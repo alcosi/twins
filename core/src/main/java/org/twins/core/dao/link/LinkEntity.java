@@ -42,11 +42,14 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "src_twin_class_id")
     private UUID srcTwinClassId;
 
+    @Column(name = "src_twin_class_inheritable")
+    private Boolean srcTwinClassInheritable;
+
     @Column(name = "dst_twin_class_id")
     private UUID dstTwinClassId;
 
-    @Column(name = "inheritable")
-    private Boolean inheritable;
+    @Column(name = "dst_twin_class_inheritable")
+    private Boolean dstTwinClassInheritable;
 
     @Column(name = "forward_name_i18n_id")
     private UUID forwardNameI18NId;

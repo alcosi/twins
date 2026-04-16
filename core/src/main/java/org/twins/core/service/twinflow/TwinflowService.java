@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -173,18 +173,20 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     public void loadTwinflows(List<TwinClassEntity> twinClasses) {
-        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
-        Set<UUID> extendsClassesSet = new HashSet<>();
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID> extendsClassesSet = null;
         for (TwinClassEntity twinClassEntity : twinClasses) {
             if (twinClassEntity.getTwinflowKit() != null)
                 continue;
-            needLoad.add(twinClassEntity);
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
             twinClassEntity.setTwinflowKit(new Kit<>(TwinflowEntity::getId));
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
-                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
-        if (needLoad.isEmpty())
+        if (KitUtils.isEmpty(needLoad))
             return;
+        if (CollectionUtils.isEmpty(extendsClassesSet))
+            extendsClassesSet = Collections.emptySet();
 
         List<TwinflowEntity> loaded = twinflowRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))

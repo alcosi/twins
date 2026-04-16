@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.context.HistoryContextTwinClassMultiChange;
@@ -19,6 +20,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClassList;
 import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
 import org.twins.core.service.history.HistoryItem;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,9 @@ import java.util.UUID;
         description = "Field typer for twin class list field")
 public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldStorageTwinClassList, TwinFieldValueSearchTwinClassList> {
 
+    @Autowired
+    TwinClassService twinClassService;
+
     @Override
     protected FieldDescriptorTwinClassList getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new FieldDescriptorTwinClassList();
@@ -41,17 +46,17 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueTwinClassList value, TwinChangesCollector twinChangesCollector) throws ServiceException {
 
-        List<TwinClassEntity> selectedTwinClassEntities = twinClassFieldService.findEntitiesSafe(
-                value.getItems().stream()
-                        .map(TwinClassEntity::getId)
-                        .toList()
-        ).getList();
+        List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(
+                        value.getItems().stream()
+                                .map(TwinClassEntity::getId)
+                                .toList())
+                .getList();
         twinService.loadTwinFields(twin);
 
         Map<UUID, TwinFieldTwinClassEntity> storedTwinClassEntities = twin.getTwinFieldTwinClassKit().getMap();
 
         if (FieldValueChangeHelper.isSingleValueAdd(selectedTwinClassEntities, storedTwinClassEntities)) {
-            TwinClassEntity twinClassEntity = selectedTwinClassEntities.get(0);
+            TwinClassEntity twinClassEntity = selectedTwinClassEntities.getFirst();
 
             if (twinChangesCollector.isHistoryCollectorEnabled()) {
                 twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeTwinClass(value.getTwinClassField(), null, twinClassEntity));

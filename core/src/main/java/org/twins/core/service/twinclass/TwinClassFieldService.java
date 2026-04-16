@@ -140,12 +140,12 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadTwinClassFields(Collection<TwinClassEntity> twinClassEntities) {
-        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
+        Kit<TwinClassEntity, UUID> needLoad = null;
         Set<UUID> extendsClassesSet = new HashSet<>();
         for (TwinClassEntity twinClassEntity : twinClassEntities) {
             if (twinClassEntity.getTwinClassFieldKit() != null)
                 continue;
-            needLoad.add(twinClassEntity);
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
             twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId));
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
                 extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());

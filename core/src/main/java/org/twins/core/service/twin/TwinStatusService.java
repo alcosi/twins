@@ -8,6 +8,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
@@ -96,30 +97,26 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     public void loadStatusesForTwinClasses(Collection<TwinClassEntity> twinClassEntities) {
-        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
+        Kit<TwinClassEntity, UUID> needLoad = null;
         Set<UUID> extendsClassesSet = new HashSet<>();
         for (TwinClassEntity twinClassEntity : twinClassEntities) {
             if (twinClassEntity.getTwinStatusKit() != null)
                 continue;
-            needLoad.add(twinClassEntity);
-            twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId));
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
+            twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId)); //fix an allocation problem
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
                 extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
-        if (needLoad.isEmpty())
+        if (KitUtils.isEmpty(needLoad))
             return;
 
-        List<TwinStatusEntity> twinStatusEntityList = twinStatusRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
-        if (CollectionUtils.isEmpty(twinStatusEntityList))
+        var loaded = twinStatusRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
             return;
-        Map<UUID, List<TwinStatusEntity>> statussMap = new HashMap<>(); // key - twinClassId
-        for (TwinStatusEntity twinStatusEntity : twinStatusEntityList) { // grouping by twinClassId
-            statussMap.computeIfAbsent(twinStatusEntity.getTwinClassId(), k -> new ArrayList<>());
-            statussMap.get(twinStatusEntity.getTwinClassId()).add(twinStatusEntity);
-        }
+        KitGrouped<TwinStatusEntity, UUID, UUID> statusGroupedByClass = new KitGrouped<>(loaded, TwinStatusEntity::getId, TwinStatusEntity::getTwinClassId);
         for (var twinClassEntity : needLoad) {
             for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
-                var statuses = statussMap.get(extendsTwinClassId);
+                var statuses = statusGroupedByClass.getGrouped(extendsTwinClassId);
                 if (statuses == null)
                     continue;
                 if (extendsTwinClassId.equals(twinClassEntity.getId())) {

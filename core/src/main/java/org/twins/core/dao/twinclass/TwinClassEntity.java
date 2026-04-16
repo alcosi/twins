@@ -339,6 +339,22 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Kit<LinkEntity, UUID> linksForwardKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<LinkEntity, UUID> linksBackwardKit;
+
+    public void invalidateLinksKit() {
+        linksKit = null;
+        linksForwardKit = null;
+        linksBackwardKit = null;
+    }
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient

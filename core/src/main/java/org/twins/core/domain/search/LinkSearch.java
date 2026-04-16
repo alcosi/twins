@@ -30,5 +30,6 @@ public class LinkSearch {
     private Set<LinkType> typeNotLikeList;
     private Set<LinkStrength> strengthLikeList;
     private Set<LinkStrength> strengthNotLikeList;
-    private Ternary inheritable;
+    private Ternary srcTwinClassInheritable;
+    private Ternary dstTwinClassInheritable;
 }
