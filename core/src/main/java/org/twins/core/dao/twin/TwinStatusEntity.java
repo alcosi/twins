@@ -29,7 +29,7 @@ public class TwinStatusEntity implements EasyLoggable {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "twins_class_id") //todo rename to twin_class_id
+    @Column(name = "twin_class_id")
     private UUID twinClassId;
 
     @Column(name = "key")
@@ -60,7 +60,7 @@ public class TwinStatusEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
     @EqualsAndHashCode.Exclude

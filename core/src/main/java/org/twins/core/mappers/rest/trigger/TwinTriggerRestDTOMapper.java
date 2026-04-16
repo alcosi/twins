@@ -8,8 +8,10 @@ import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.service.trigger.TwinTriggerService;
 
@@ -22,6 +24,9 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
     @MapperModePointerBinding(modes = FeaturerMode.TwinTrigger2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
+    @MapperModePointerBinding(modes = TwinClassMode.TwinTrigger2TwinClassMode.class)
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+
     private final TwinTriggerService twinTriggerService;
 
     @Override
@@ -33,10 +38,12 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
                     .setTriggerParams(src.getTwinTriggerParam())
                     .setName(src.getName())
                     .setDescription(src.getDescription())
-                    .setActive(src.getActive());
+                    .setActive(src.getActive())
+                    .setJobTwinClassId(src.getJobTwinClassId());
             case SHORT -> dst
                     .setId(src.getId())
-                    .setName(src.getName());
+                    .setName(src.getName())
+                    .setJobTwinClassId(src.getJobTwinClassId());
         }
 
         if (mapperContext.hasModeButNot(FeaturerMode.TwinTrigger2FeaturerMode.HIDE)) {
@@ -44,6 +51,12 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
             dst.setTriggerFeaturerId(src.getTwinTriggerFeaturerId());
             featurerRestDTOMapper.postpone(src.getTwinTriggerFeaturer(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinTrigger2FeaturerMode.SHORT)));
+        }
+
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinTrigger2TwinClassMode.HIDE)) {
+            dst.setJobTwinClassId(src.getJobTwinClassId());
+            twinClassRestDTOMapper.postpone(src.getJobTwinClass(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinTrigger2TwinClassMode.SHORT)));
         }
     }
 

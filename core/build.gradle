@@ -131,12 +131,16 @@ dependencies {
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.01-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     runtimeOnly 'io.grpc:grpc-netty-shaded:1.76.0'
     implementation 'io.grpc:grpc-protobuf:1.76.0'
     implementation 'io.grpc:grpc-stub:1.76.0'
     implementation 'com.google.protobuf:protobuf-java:4.32.1'
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
 }
 
 configurations {

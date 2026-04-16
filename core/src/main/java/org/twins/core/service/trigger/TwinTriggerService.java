@@ -6,31 +6,33 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.trigger.TwinTriggerCreate;
 import org.twins.core.domain.trigger.TwinTriggerUpdate;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.kit.Kit;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -44,6 +46,11 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     private final AuthService authService;
     @Lazy
     private final FeaturerService featurerService;
+    @Lazy
+    private final TwinService twinService;
+    private final TwinClassService twinClassService;
+    @Lazy
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Override
     public CrudRepository<TwinTriggerEntity, UUID> entityRepository() {
@@ -57,8 +64,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
     @Override
     public boolean isEntityReadDenied(TwinTriggerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
@@ -98,7 +104,8 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                     .setTwinTriggerParam(triggerParams)
                     .setName(trigger.getName())
                     .setDescription(trigger.getDescription())
-                    .setActive(trigger.getActive() != null ? trigger.getActive() : true);
+                    .setActive(trigger.getActive() != null ? trigger.getActive() : true)
+                    .setJobTwinClassId(trigger.getJobTwinClassId());
 
             triggersToSave.add(triggerEntity);
         }
@@ -116,6 +123,18 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                 TwinTriggerEntity::getTwinTriggerFeaturerId,
                 TwinTriggerEntity::getTwinTriggerFeaturer,
                 TwinTriggerEntity::setTwinTriggerFeaturer);
+    }
+
+    public void loadJobTwinClass(TwinTriggerEntity entity) throws ServiceException {
+        loadJobTwinClass(List.of(entity));
+    }
+
+    public void loadJobTwinClass(Collection<TwinTriggerEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                TwinTriggerEntity::getId,
+                TwinTriggerEntity::getJobTwinClassId,
+                TwinTriggerEntity::getJobTwinClass,
+                TwinTriggerEntity::setJobTwinClass);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -145,6 +164,9 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
             updateEntityFieldByValue(trigger.getActive(), entity,
                     TwinTriggerEntity::getActive, TwinTriggerEntity::setActive,
                     TwinTriggerEntity.Fields.active, changesHelper);
+            updateEntityFieldByValue(trigger.getJobTwinClassId(), entity,
+                    TwinTriggerEntity::getJobTwinClassId, TwinTriggerEntity::setJobTwinClassId,
+                    TwinTriggerEntity.Fields.jobTwinClassId, changesHelper);
             updateFieldTwinTriggerFeaturerId(entity, trigger.getTriggerFeaturerId(),
                     trigger.getTriggerParams() != null ? new HashMap<>(trigger.getTriggerParams()) : new HashMap<>(), changesHelper);
 
@@ -157,7 +179,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     }
 
     public void updateFieldTwinTriggerFeaturerId(TwinTriggerEntity dbTwinTriggerEntity, Integer newFeaturerId,
-                                                   HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+                                                 HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         if (newFeaturerId == null || newFeaturerId == 0) {
             if (newFeaturerParams.isEmpty())
                 return; // nothing was changed
@@ -175,5 +197,54 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                     dbTwinTriggerEntity.getTwinTriggerParam(), newFeaturerParams);
             dbTwinTriggerEntity.setTwinTriggerParam(newFeaturerParams);
         }
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void runTrigger(TwinTriggerEntity twinTriggerEntity, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
+        UUID jobTwinIdOrNull = createJobTwin(twinTriggerEntity, jobTwinId);
+
+        // Get and run the featurer
+        TwinTrigger trigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+        Properties triggerProperties = featurerService.extractProperties(twinTriggerEntity.getTwinTriggerFeaturerId(), twinTriggerEntity.getTwinTriggerParam());
+        trigger.run(triggerProperties, twinEntity, srcTwinStatus, dstTwinStatus, jobTwinIdOrNull);
+    }
+
+    private UUID createJobTwin(TwinTriggerEntity twinTriggerEntity, UUID triggerTaskId) throws ServiceException {
+        if (twinTriggerEntity.getJobTwinClassId() == null)
+            return null;
+        // Create job twin if jobTwinClassId is set
+        TwinEntity jobTwinEntity = new TwinEntity()
+                .setId(triggerTaskId)
+                .setName(twinTriggerEntity.getName() == null ? "job" : twinTriggerEntity.getName())
+                .setTwinClassId(twinTriggerEntity.getJobTwinClassId())
+                .setTwinClass(twinTriggerEntity.getJobTwinClass());
+
+        TwinCreate twinCreate = new TwinCreate();
+        twinCreate.setTwinEntity(jobTwinEntity);
+        twinCreate.setCanTriggerAfterOperationFactory(false);
+        twinCreate.setLauncher(TwinOperation.Launcher.trigger);
+        twinCreate.setSketchMode(false);
+
+        twinService.createTwin(twinCreate);
+        log.info("Created job twin[{}] for trigger[{}]", triggerTaskId, twinTriggerEntity.getId());
+        return jobTwinEntity.getId();
+    }
+
+    /**
+     * Runs trigger with optional job twin creation.
+     * If trigger has jobTwinClassId set, creates a job twin and passes its ID in parameters.
+     *
+     * @param twinTriggerEntity the trigger to run
+     * @param twinEntity        the twin that triggered the event
+     * @param srcTwinStatus     source twin status
+     * @param dstTwinStatus     destination twin status
+     */
+    @Transactional(rollbackFor = Throwable.class)
+    public void runTriggerSync(TwinTriggerEntity twinTriggerEntity, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+        TwinTriggerTaskEntity syncTask = twinTriggerTaskService.addSyncTask(
+                twinEntity.getId(),
+                twinTriggerEntity.getId(),
+                srcTwinStatus != null ? srcTwinStatus.getId() : null);
+        runTrigger(twinTriggerEntity, twinEntity, srcTwinStatus, dstTwinStatus, syncTask.getId());
     }
 }

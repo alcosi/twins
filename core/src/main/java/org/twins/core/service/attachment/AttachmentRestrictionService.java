@@ -72,13 +72,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
     @Override
     public boolean isEntityReadDenied(TwinAttachmentRestrictionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null
-                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
-            return true;
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
@@ -98,7 +92,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             twin = twinService.findEntitySafe(twinId);
             twinClass = twin.getTwinClass();
             attachmentService.loadAttachmentsCount(twin);
-            twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
+            if (CollectionUtils.isNotEmpty(cud.getCreateList())) {
+                twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
+            }
         } else {
             twinClass = twinClassService.findEntitySafe(twinClassId);
             //todo check permission for class

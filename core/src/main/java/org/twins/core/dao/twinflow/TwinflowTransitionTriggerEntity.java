@@ -48,7 +48,7 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
     private TwinTriggerEntity twinTrigger;
 

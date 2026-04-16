@@ -87,7 +87,7 @@ public class TwinClassFieldListController extends ApiController {
         try {
             TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findEntitySafe(twinClassFieldId);
             rs
-                    .field(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext))
+                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));;
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -112,7 +112,9 @@ public class TwinClassFieldListController extends ApiController {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findByTwinClassKeyAndKey(classKey, fieldKey);
-            rs.field(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext));
+            rs
+                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

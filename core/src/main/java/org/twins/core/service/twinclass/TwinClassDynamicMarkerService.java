@@ -49,7 +49,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
 
     @Override
     public boolean isEntityReadDenied(TwinClassDynamicMarkerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return entity.getTwinClass().getDomainId() != null && !entity.getTwinClass().getDomainId().equals(authService.getApiUser().getDomainId());
+        return checkDomainAccessDenied(entity.getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.io.TikaInputStream;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -210,12 +211,14 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var body = resp.getBody();
                 var modifications = new ArrayList<AttachmentModifications>();
 
-                for (var modification : body.modifications()) {
-                    modifications.add(new AttachmentModifications(
-                            UUID.fromString(fileId),
-                            modification.type(),
-                            prepareObjectLink(modification.modificationUrl(), properties)
-                    ));
+                if(CollectionUtils.isNotEmpty(body.modifications())) {
+                    for (var modification : body.modifications()) {
+                        modifications.add(new AttachmentModifications(
+                                UUID.fromString(fileId),
+                                modification.type(),
+                                prepareObjectLink(modification.modificationUrl(), properties)
+                        ));
+                    }
                 }
 
                 return new AddedFileKey(prepareObjectLink(body.originalUrl(), properties), fileSize, modifications);
@@ -247,7 +250,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     }
 
     private String extractDirsToDelete(String fileKey, Properties properties) throws ServiceException {
-        //extracting only relative path (ex. {businessAccountId}/{fileId}/)
+        //extracting only relative path (ex. {businessAccountId}/{fileId})
 
         var parts = new ArrayList<>(List.of(fileKey.split("/")));
         var fileName = parts.removeLast();
@@ -260,13 +263,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 .replace("{businessAccountId}", businessAccountId)
                 .replace("{fileId}", fileId);
 
-        dirs = addSlashAtTheEndIfNeeded(dirs);
+        dirs = deleteSlashAtTheStartIfNeeded(dirs);
+        dirs = deleteSlashAtTheEndIfNeeded(dirs);
 
-        if (dirs.startsWith("/")) {
-            return dirs.substring(1);
-        } else {
-            return dirs;
-        }
+        return dirs;
     }
 
     private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, InputStream fileStream, String fileName, Long fileSize) {

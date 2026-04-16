@@ -29,6 +29,10 @@ public class TwinBaseDTOv1 {
     @Schema(description = "headTwinId", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 
+    @RelatedObject(type = TwinDTOv2.class, name = "headTwins")
+    @Schema(description = "head twin id set")
+    public Set<UUID> headTwinIdSet;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;

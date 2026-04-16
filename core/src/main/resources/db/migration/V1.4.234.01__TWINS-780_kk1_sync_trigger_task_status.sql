@@ -1,0 +1,1 @@
+INSERT INTO public.twin_trigger_task_status (id) VALUES ('SYNC_EXECUTION'::varchar(20)) on conflict do nothing;

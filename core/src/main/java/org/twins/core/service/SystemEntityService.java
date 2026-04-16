@@ -26,9 +26,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.permission.PermissionSchemaService;
 
-import java.security.Permission;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -76,7 +74,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_TWIN_ALIASES = UUID.fromString("00000000-0000-0000-0011-000000000014");
     public static final UUID TWIN_CLASS_FIELD_TWIN_TAGS = UUID.fromString("00000000-0000-0000-0011-000000000015");
     public static final UUID TWIN_CLASS_FIELD_TWIN_MARKERS = UUID.fromString("00000000-0000-0000-0011-000000000016");
-    // last i18.id = 46
+    // last i18.id = 56
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_NAME = UUID.fromString("00000000-0000-0000-0012-000000000001");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000002");
     public static final UUID I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_NAME_NAME = UUID.fromString("00000000-0000-0000-0012-000000000003");
@@ -136,7 +134,6 @@ public class SystemEntityService {
     public static final UUID PERMISSION_SCHEME = UUID.fromString("00000000-0000-0000-0016-000000000001");
     public static final UUID TWINFLOW_SCHEME = UUID.fromString("00000000-0000-0000-0017-000000000001");
     public static final UUID TWIN_CLASS_SCHEME = UUID.fromString("00000000-0000-0000-0018-000000000001");
-
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
     static {

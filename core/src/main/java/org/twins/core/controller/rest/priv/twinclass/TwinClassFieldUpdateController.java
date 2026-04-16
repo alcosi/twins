@@ -64,7 +64,7 @@ public class TwinClassFieldUpdateController extends ApiController {
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateFields(twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
             rs
-                    .field(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext))
+                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

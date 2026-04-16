@@ -6,11 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "UserGroupInvolveAssigneeCreateRqV1")
 public class UserGroupInvolveAssigneeCreateRqDTOv1 extends Request {
-    @Schema(description = "user group by assignee propagation create")
-    public UserGroupInvolveAssigneeCreateDTOv1 userGroupInvolveAssignee;
+    @Schema(description = "list of user group by assignee propagation")
+    public List<UserGroupInvolveAssigneeCreateDTOv1> userGroupInvolveAssignees;
 }

@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -52,24 +53,51 @@ public class HistoryRecipientService extends EntitySecureFindServiceImpl<History
         return true;
     }
 
-    public Set<HistoryNotificationRecipientCollectorEntity> getRecipientCollectors(UUID recipientId) {
-        //todo perhaps this can be cached
-        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientId(recipientId);
+    public void loadCollectors(Collection<HistoryNotificationRecipientEntity> entities) {
+        if (CollectionUtils.isEmpty(entities)) {
+            return;
+        }
+        
+        var needLoad = new HashMap<UUID, HistoryNotificationRecipientEntity>();
+        for (var entity : entities) {
+            if (entity.getCollectors() == null) {
+                needLoad.put(entity.getId(), entity);
+            }
+        }
+        
+        if (needLoad.isEmpty()) {
+            return;
+        }
+        
+        var allCollectors = historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientIdIn(needLoad.keySet());
+        var grouped = allCollectors.stream()
+                .collect(
+                        Collectors.groupingBy(
+                                HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipientId,
+                                Collectors.toSet()
+                        )
+                );
+        
+        for (var entry : needLoad.entrySet()) {
+            entry.getValue().setCollectors(grouped.getOrDefault(entry.getKey(), Set.of()));
+        }
     }
 
-    public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
-        Set<HistoryNotificationRecipientCollectorEntity> collectors = getRecipientCollectors(recipientId);
-
-        Map<Boolean, List<HistoryNotificationRecipientCollectorEntity>> partitioned = collectors.stream()
+    public Set<UUID> recipientResolve(HistoryNotificationRecipientEntity recipient, HistoryEntity history) throws ServiceException {
+        var partitioned = recipient.getCollectors().stream()
                         .collect(Collectors.partitioningBy(HistoryNotificationRecipientCollectorEntity::getExclude));
 
-        List<HistoryNotificationRecipientCollectorEntity> includeCollectors = partitioned.get(false);
-        List<HistoryNotificationRecipientCollectorEntity> excludeCollectors = partitioned.get(true);
+        var include = resolveRecipient(history, partitioned.get(false));
+        if (include.isEmpty()) {
+            return include;
+        }
 
-        Set<UUID> include = resolveRecipient(history, includeCollectors);
-        Set<UUID> exclude = resolveRecipient(history, excludeCollectors);
-
-        include.removeAll(exclude);
+        var excludeCollectors = partitioned.get(true);
+        if (CollectionUtils.isNotEmpty(excludeCollectors)) {
+            var exclude = resolveRecipient(history, excludeCollectors);
+            include.removeAll(exclude);
+        }
+        
         return include;
     }
 

@@ -277,9 +277,25 @@ public abstract class Storager extends FeaturerTwins {
     }
 
     @NotNull
+    protected String deleteSlashAtTheEndIfNeeded(String path) {
+        if (path.endsWith("/")) {
+            return path.substring(0, path.length() - 1);
+        }
+        return path;
+    }
+
+    @NotNull
     protected String addSlashAtStartIfNeeded(String path) {
         if (!path.startsWith("/")) {
             return "/" + path;
+        }
+        return path;
+    }
+
+    @NotNull
+    protected String deleteSlashAtTheStartIfNeeded(String path) {
+        if (path.startsWith("/")) {
+            return path.substring(1);
         }
         return path;
     }

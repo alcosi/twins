@@ -15,6 +15,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.auth.AuthService;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -29,6 +30,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    protected AuthService authService;
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -225,6 +229,22 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             log.warn("Incorrect method call", e);
             return true;
         }
+    }
+
+    protected boolean isDomainAccessDenied(UUID entityDomainId) throws ServiceException {
+        if (entityDomainId == null) {
+            return false;
+        }
+        var currentDomainId = authService.getApiUser().getDomainId();
+        return !entityDomainId.equals(currentDomainId);
+    }
+
+    protected boolean checkDomainAccessDenied(UUID entityDomainId, String entityLog, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        if (isDomainAccessDenied(entityDomainId)) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entityLog + " is not allowed in current domain");
+            return true;
+        }
+        return false;
     }
 
     @Override
