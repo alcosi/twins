@@ -60,7 +60,6 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
             historyService.loadTwinClassField(src);
             twinClassFieldDTOMapper.postpone(src.getTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.History2TwinClassFieldMode.SHORT)));
         }
-
     }
 
     @Override

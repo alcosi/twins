@@ -66,28 +66,21 @@ public class HistoryEntity implements EasyLoggable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
     @Transient
-    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
     @Transient
-    @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity actorUser;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
     @Transient
-    @JoinColumn(name = "machine_user_id", insertable = false, updatable = false)
     private UserEntity machineUser;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
     @Transient
     private TwinClassFieldEntity twinClassField;
 
