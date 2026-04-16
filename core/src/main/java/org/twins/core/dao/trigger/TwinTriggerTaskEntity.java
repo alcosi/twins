@@ -8,8 +8,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -75,11 +77,20 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @JoinColumn(name = "previous_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity previousTwinStatus;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Transient
+    private UserEntity createdByUser;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Transient
+    private BusinessAccountEntity businessAccount;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case NORMAL ->
-                    "twinTriggerTask[id:" + id + ", twinId:" + twinId + ", triggerId:" + twinTriggerId + "]";
+            case NORMAL -> "twinTriggerTask[id:" + id + ", twinId:" + twinId + ", triggerId:" + twinTriggerId + "]";
             case DETAILED ->
                     "twinTriggerTask[id:" + id + ", twinId:" + twinId + ", triggerId:" + twinTriggerId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
             default -> "twinTriggerTask[id:" + id + "]";
