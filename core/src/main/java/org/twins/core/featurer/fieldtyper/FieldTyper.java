@@ -24,7 +24,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     @Lazy
     @Autowired
-    TwinClassService twinClassService;
+    TwinClassFieldService twinClassFieldService;
 
     @Lazy
     @Autowired
@@ -196,8 +196,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             log.error("{} incorrect value type", value.getTwinClassField().logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField())));
         }
-        //todo - correct after merging TWINS-418 branch (pluggable fields logic)
-        if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId())) {
+        if (twinClassFieldService.isInvalidForClass(twin.getTwinClass(), value.getTwinClassField())) {
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField())));
         }

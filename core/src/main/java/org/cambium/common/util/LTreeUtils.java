@@ -2,8 +2,7 @@ package org.cambium.common.util;
 
 import org.apache.commons.lang3.Range;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class LTreeUtils {
@@ -60,5 +59,24 @@ public class LTreeUtils {
         return uuids.stream()
                 .map(LTreeUtils::matchInTheMiddle)
                 .collect(Collectors.joining("|"));
+    }
+
+    public static String convertUuidFromLTreeFormat(String uuidLtreeFormat) {
+        return uuidLtreeFormat.replace("_", "-");
+    }
+
+    public static Set<UUID> toUuidsSortedSet(String uuidLTreeFormat, boolean reverse) {
+        if (StringUtils.isBlank(uuidLTreeFormat))
+            return Collections.emptySet();
+        var idsStr = uuidLTreeFormat.replace("_", "-").split("\\.");
+        var ret = new LinkedHashSet<UUID>();
+        if (reverse) {
+            for (int i = idsStr.length - 1; i >= 0; i--)
+                ret.add(UUID.fromString(idsStr[i]));
+        } else {
+            for (var id : idsStr)
+                ret.add(UUID.fromString(id));
+        }
+        return ret;
     }
 }

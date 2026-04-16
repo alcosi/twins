@@ -11,6 +11,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
@@ -40,6 +41,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -292,6 +294,11 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Set<UUID> extendedClassIdSetExcludeCurrent;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> headHierarchyClassIdSet;
 
     @Transient
@@ -328,6 +335,22 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<LinkEntity, UUID> linksKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<LinkEntity, UUID> linksForwardKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<LinkEntity, UUID> linksBackwardKit;
+
+    public void invalidateLinksKit() {
+        linksKit = null;
+        linksForwardKit = null;
+        linksBackwardKit = null;
+    }
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -428,26 +451,26 @@ public class TwinClassEntity implements EasyLoggable {
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
-            extendedClassIdSet = new LinkedHashSet<>();
-            var hierarchyIds = convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\.");
-            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
-                extendedClassIdSet.add(UUID.fromString(hierarchyIds[i]));
+            extendedClassIdSet = LTreeUtils.toUuidsSortedSet(extendsHierarchyTree, true);
         }
         return extendedClassIdSet;
     }
 
-    public Set<UUID> getHeadHierarchyClassIdSet() {
-        if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
-            headHierarchyClassIdSet = new LinkedHashSet<>();
-            var hierarchyIds = convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\.");
-            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
-                headHierarchyClassIdSet.add(UUID.fromString(hierarchyIds[i]));
+    public Set<UUID> getExtendedClassIdSetExcludeCurrent() {
+        if (extendedClassIdSetExcludeCurrent != null)
+            return extendedClassIdSetExcludeCurrent;
+        if (extendsTwinClassId == null) {
+            return Collections.emptySet();
         }
-        return headHierarchyClassIdSet;
+        extendedClassIdSetExcludeCurrent = getExtendedClassIdSet().stream().filter(t -> !id.equals(t)).collect(Collectors.toSet());
+        return extendedClassIdSetExcludeCurrent;
     }
 
-    public static String convertUuidFromLtreeFormat(String uuidLtreeFormat) {
-        return uuidLtreeFormat.replace("_", "-");
+    public Set<UUID> getHeadHierarchyClassIdSet() {
+        if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
+            headHierarchyClassIdSet = LTreeUtils.toUuidsSortedSet(headHierarchyTree, true);
+        }
+        return headHierarchyClassIdSet;
     }
 
     public String easyLog(Level level) {

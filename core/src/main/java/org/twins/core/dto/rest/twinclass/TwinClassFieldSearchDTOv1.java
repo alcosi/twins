@@ -30,6 +30,9 @@ public class TwinClassFieldSearchDTOv1 {
     @Schema(description = "twin class id exclude map")
     public Map<UUID, Boolean> twinClassIdExcludeMap;
 
+    @Schema(description = "inheritable", example = DTOExamples.TERNARY)
+    public Ternary inheritable;
+
     @Schema(description = "key like list")
     public Set<String> keyLikeList;
 

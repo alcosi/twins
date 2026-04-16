@@ -15,15 +15,17 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.link.LinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
 public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv2> {
     private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
-    private final I18nService i18nService;
+    private final LinkService linkService;
     private final PermissionService permissionService;
 
     @MapperModePointerBinding(modes = TwinClassMode.LinkSrc2TwinClassMode.class)
@@ -49,9 +51,17 @@ public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, 
             }
             if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE) && src.getCreatedByUserId() != null) {
                 dst.setCreatedByUserId(src.getCreatedByUserId());
-                //todo load
+                linkService.loadCreatedBy(src);
                 userDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Link2UserMode.SHORT));
             }
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<LinkEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE)) {
+            linkService.loadCreatedBy(srcCollection);
         }
     }
 }

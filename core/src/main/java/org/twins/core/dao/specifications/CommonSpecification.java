@@ -21,13 +21,13 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
-import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.enums.twinclass.OwnerType.*;
 
@@ -441,6 +441,43 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             var uuidInArrayFunction = cb.function("uuid_in_array", Boolean.class, fieldPath, cb.literal(collectionUuidsToSqlArray(uuids)));
             Predicate predicate = not ? cb.isFalse(uuidInArrayFunction) : cb.isTrue(uuidInArrayFunction);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+        };
+    }
+
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String twinClassIdFieldPath, final String inheritableFieldPath) {
+        return checkTwinClassAndInheritable(classes, not, new String[]{twinClassIdFieldPath}, new String[]{inheritableFieldPath});
+    }
+
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String[] twinClassIdFieldPath, final String[] inheritableFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(classes))
+                return cb.conjunction();
+
+            Set<UUID> baseIds = new HashSet<>();
+            Set<UUID> extendsIds = new HashSet<>();
+            for (TwinClassService.ClassWithExtends item : classes) {
+                baseIds.add(item.twinClassId());
+                extendsIds.addAll(item.extendsTwinClassIds());
+            }
+
+            Path<UUID> twinClassPath = getFieldPath(root, JoinType.LEFT, twinClassIdFieldPath);
+            Path<Boolean> inheritablePath = getFieldPath(root, JoinType.LEFT, inheritableFieldPath);
+
+            Predicate baseIn = twinClassPath.in(baseIds);
+            Predicate extendsInheritable = null;
+            if (!extendsIds.isEmpty()) {
+                Predicate inExtends = twinClassPath.in(extendsIds);
+                Predicate inheritableTrue = cb.isTrue(inheritablePath);
+                extendsInheritable = cb.and(inExtends, inheritableTrue);
+            }
+
+            Predicate result = extendsInheritable != null
+                    ? cb.or(baseIn, extendsInheritable)
+                    : baseIn;
+
+            return not ? cb.not(result) : result;
         };
     }
 

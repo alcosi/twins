@@ -13,7 +13,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperLinkedTwinByField;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -26,7 +26,7 @@ public abstract class FillerFieldFromItemOutputLinked extends Filler {
 
     @Lazy
     @Autowired
-    TwinClassService twinClassService;
+    TwinClassFieldService twinClassFieldService;
 
     @FeaturerParam(name = "linkedTwinByTwinClassFieldId", description = "")
     public static final FeaturerParamUUID linkedTwinByTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
@@ -41,7 +41,7 @@ public abstract class FillerFieldFromItemOutputLinked extends Filler {
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue fieldValue = fieldLookuperLinkedTwinByField.lookupFieldValue(factoryItem, linkedTwinByTwinClassFieldId.extract(properties), lookupTwinClassFieldId.extract(properties));
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
-        if (!twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField().getTwinClassId()))
+        if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId +"]");
         factoryItem.getOutput().addField(clone);
     }

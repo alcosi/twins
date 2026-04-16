@@ -79,6 +79,9 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "is system field", example = "")
     public Boolean system;
 
+    @Schema(description = "is inheritable", example = "")
+    public Boolean inheritable;
+
     @Schema(description = "is dependent field", example = "")
     public Boolean dependent;
 

@@ -8,6 +8,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -92,57 +92,44 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return CacheSupportType.REQUEST;
     }
 
-    public Kit<TwinStatusEntity, UUID> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getTwinStatusKit() != null)
-            return twinClassEntity.getTwinStatusKit();
-        twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getId));
-        return twinClassEntity.getTwinStatusKit();
+    public void loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
+        loadStatusesForTwinClasses(Collections.singletonList(twinClassEntity));
     }
 
     public void loadStatusesForTwinClasses(Collection<TwinClassEntity> twinClassEntities) {
-        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClassEntity : twinClassEntities)
-            if (twinClassEntity.getTwinStatusKit() == null)
-                needLoad.put(twinClassEntity.getId(), twinClassEntity);
-        if (needLoad.isEmpty())
-            return;
-        Set<UUID> allClassesSet = new HashSet<>();
-        for (TwinClassEntity twinClassEntity : needLoad.values())
-            if (twinClassEntity.getExtendedClassIdSet() != null)
-                allClassesSet.addAll(twinClassEntity.getExtendedClassIdSet());
-        List<TwinStatusEntity> twinStatusEntityList = twinStatusRepository.findByTwinClassIdIn(allClassesSet);
-        if (CollectionUtils.isEmpty(twinStatusEntityList))
-            return;
-        Map<UUID, List<TwinStatusEntity>> statussMap = new HashMap<>(); // key - twinClassId
-        for (TwinStatusEntity twinStatusEntity : twinStatusEntityList) { // grouping by twinClassId
-            statussMap.computeIfAbsent(twinStatusEntity.getTwinClassId(), k -> new ArrayList<>());
-            statussMap.get(twinStatusEntity.getTwinClassId()).add(twinStatusEntity);
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID> extendsClassesSet = new HashSet<>();
+        for (TwinClassEntity twinClassEntity : twinClassEntities) {
+            if (twinClassEntity.getTwinStatusKit() != null)
+                continue;
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
+            twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId)); //fix an allocation problem
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1)
+                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
-        TwinClassEntity twinClassEntity;
-        List<TwinStatusEntity> statusList;
-        for (Map.Entry<UUID, TwinClassEntity> entry : needLoad.entrySet()) {
-            twinClassEntity = entry.getValue();
-            statusList = new ArrayList<>();
-            if (twinClassEntity.getExtendedClassIdSet() == null) { // it's strange, because in the simplest case class will have link to itself
-                if (statussMap.containsKey(twinClassEntity.getId()))
-                    statusList.addAll(statussMap.get(twinClassEntity.getId()));
-            } else {
-                for (UUID twinClassId : twinClassEntity.getExtendedClassIdSet()) {
-                    if (statussMap.containsKey(twinClassId))
-                        statusList.addAll(statussMap.get(twinClassId));
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        var loaded = twinStatusRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
+            return;
+        KitGrouped<TwinStatusEntity, UUID, UUID> statusGroupedByClass = new KitGrouped<>(loaded, TwinStatusEntity::getId, TwinStatusEntity::getTwinClassId);
+        for (var twinClassEntity : needLoad) {
+            for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                var statuses = statusGroupedByClass.getGrouped(extendsTwinClassId);
+                if (statuses == null)
+                    continue;
+                if (extendsTwinClassId.equals(twinClassEntity.getId())) {
+                    twinClassEntity.getTwinStatusKit().addAll(statuses); // we can add all statuses
+                    continue;
+                }
+                for (var statusInherited : statuses) {
+                    if (Boolean.TRUE.equals(statusInherited.getInheritable()))
+                        twinClassEntity.getTwinStatusKit().add(statusInherited);
                 }
             }
-            twinClassEntity.setTwinStatusKit(new Kit<>(statusList, TwinStatusEntity::getId));
         }
     }
-
-    public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {
-        if (twinStatusEntity.getTwinClassId() == twinEntity.getTwinClassId()) {
-            return true;
-        }
-        return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
-    }
-
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {
@@ -308,6 +295,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setKey(KeyUtils.lowerCaseNullSafe(newKey, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setTwinClassId(duplicateTwinClass.getId())
                 .setTwinClass(duplicateTwinClass)
+                .setInheritable(srcFieldEntity.getInheritable())
                 .setBackgroundColor(srcFieldEntity.getBackgroundColor())
                 .setFontColor(srcFieldEntity.getFontColor())
                 .setType(srcFieldEntity.getType());
