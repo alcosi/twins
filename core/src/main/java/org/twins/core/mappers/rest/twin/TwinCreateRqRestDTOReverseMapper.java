@@ -15,6 +15,7 @@ import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapp
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TemporalIdResolver;
 import org.twins.core.service.user.UserService;
 
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
     private final UserService userService;
     private final AuthService authService;
+    private final TemporalIdResolver temporalIdResolver;
 
 
     @Override
@@ -45,8 +47,8 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
         // Save original headTwinId reference for later resolution (can be temporalId: or UUID string)
         dst.setHeadTwinRef(src.getHeadTwinId());
 
-        // Save original input fields for temporalId extraction
-        dst.setFieldsInput(src.getFields());
+        // Extract field refs with temporalId references
+        dst.setFieldRefs(temporalIdResolver.extractFieldRefsFromMap(src.getFields()));
 
         // Save original link references for later resolution
         if (src.getLinks() != null && !src.getLinks().isEmpty()) {

@@ -183,14 +183,14 @@ public class TemporalIdResolver {
     }
 
     /**
-     * Extracts field references that contain temporalId: values from input fields
-     * @param twinCreate the twin create object with input fields
+     * Extracts field references that contain temporalId: values from input fields map
+     * @param fields the input fields map from DTO
      * @return map of fieldKey -> temporalId reference (only for fields with temporalId:)
      */
-    public Map<String, String> extractFieldRefs(TwinCreate twinCreate) {
+    public Map<String, String> extractFieldRefsFromMap(Map<String, String> fields) {
         Map<String, String> fieldRefs = new HashMap<>();
-        if (twinCreate.getFieldsInput() != null) {
-            for (Map.Entry<String, String> entry : twinCreate.getFieldsInput().entrySet()) {
+        if (fields != null) {
+            for (Map.Entry<String, String> entry : fields.entrySet()) {
                 if (entry.getValue() != null && isTemporalReference(entry.getValue())) {
                     fieldRefs.put(entry.getKey(), entry.getValue());
                 }

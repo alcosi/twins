@@ -228,8 +228,6 @@ public class TwinCreateController extends ApiController {
                 twinCreate
                         .setCheckCreatePermission(true)
                         .setLauncher(TwinOperation.Launcher.direct);
-                // Extract field refs with temporalId references
-                twinCreate.setFieldRefs(temporalIdResolver.extractFieldRefs(twinCreate));
             }
 
             // Validate temporalId uniqueness if present
