@@ -1,25 +1,41 @@
 package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.MapUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
-@Getter
-@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueI18n extends FieldValue {
+public class FieldValueI18n extends FieldValueStated {
     public Map<Locale, String> translations;
 
     public FieldValueI18n(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
         this.translations = new HashMap<>();
+    }
+
+    public Map<Locale, String> getTranslations() {
+        return translations == null
+                ? Collections.EMPTY_MAP
+                : Collections.unmodifiableMap(translations);
+    }
+
+    public FieldValueI18n setTranslations(Map<Locale, String> newTranslations) {
+        if (CollectionUtils.isEmpty(newTranslations)) {
+            translations = null;
+            state = State.CLEARED;
+        } else {
+            translations = new HashMap<>(newTranslations); //new map here
+            state = State.PRESENT;
+        }
+        return this;
     }
 
     public void addTranslation(Locale locale, String translation) {
@@ -30,29 +46,27 @@ public class FieldValueI18n extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return MapUtils.isNotEmpty(translations);
-    }
-
-    @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueI18n clone = new FieldValueI18n(newTwinClassFieldEntity);
-        clone.setTranslations(new HashMap<>(this.translations));
-        return clone;
-    }
-
-    @Override
-    public void nullify() {
-        translations = null;
-    }
-
-    @Override
-    public boolean isNullified() {
-        return CollectionUtils.isEmpty(translations);
+    public FieldValueI18n newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueI18n(newTwinClassFieldEntity);
     }
 
     @Override
     public boolean hasValue(String value) {
         return !MapUtils.isEmpty(translations) && translations.containsValue(value);
+    }
+
+    @Override
+    public void copyValueTo(FieldValueStated dst) {
+        ((FieldValueI18n) dst).translations = new HashMap<>(translations);
+    }
+
+    @Override
+    public void onUndefine() {
+        translations = null;
+    }
+
+    @Override
+    public void onClear() {
+        translations = null;
     }
 }

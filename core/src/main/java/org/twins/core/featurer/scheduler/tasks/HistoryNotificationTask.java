@@ -12,12 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationEntity;
+import org.twins.core.dao.notification.HistoryNotificationRepository;
+import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
+import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryRecipientService;
+import org.twins.core.service.notification.HistoryNotificationService;
 import org.twins.core.service.notification.NotificationContextService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
@@ -33,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class HistoryNotificationTask implements Runnable {
     private final HistoryNotificationTaskEntity historyNotificationEntity;
     @Autowired
-    private HistoryNotificationSchemaMapRepository historyNotificationSchemaMapEntityRepository;
+    private HistoryNotificationRepository historyNotificationRepository;
     @Autowired
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
     @Autowired
@@ -42,6 +45,8 @@ public class HistoryNotificationTask implements Runnable {
     private NotificationContextService notificationContextService;
     @Autowired
     private HistoryRecipientService historyRecipientService;
+    @Autowired
+    private HistoryNotificationService historyNotificationService;
     @Autowired
     private TwinValidatorSetService twinValidatorSetService;
     @Autowired
@@ -59,35 +64,48 @@ public class HistoryNotificationTask implements Runnable {
     @Override
     public void run() {
         try {
-            HistoryEntity history = historyNotificationEntity.getHistory();
+            var history = historyNotificationEntity.getHistory();
+            var twin = history.getTwin();
+
             LoggerUtils.logSession(history.getHistoryBatchId());
             LoggerUtils.logController("historyNotificationTask");
             LoggerUtils.logPrefix("HISTORY[" + historyNotificationEntity.getId() + "]:");
             log.info("Performing history notification task: {}", historyNotificationEntity.logDetailed());
-            if (history.getTwin().getTwinClass().getDomainId() == null) {
+
+            if (twin.getTwinClass().getDomainId() == null) {
                 throw new NotificationSkippedException("Twin is out of domain");
             }
-            var twin = history.getTwin();
-            authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId()); //todo not sure that it's correct to use creator
-            List<HistoryNotificationSchemaMapEntity> configs = getConfigs(history);
+
+            authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId());
+
+            var configs = getConfigs(history);
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
             }
-            KitGroupedObj<HistoryNotificationSchemaMapEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
-                    configs,
-                    HistoryNotificationSchemaMapEntity::getId,
-                    HistoryNotificationSchemaMapEntity::getNotificationChannelEventId,
-                    HistoryNotificationSchemaMapEntity::getNotificationChannelEvent);
 
-            int recipientsCount = 0;
-            int skippedDuplicatesCount = 0;
+            historyNotificationService.loadNotificationChannelEvent(configs);
+            historyNotificationService.loadHistoryNotificationRecipient(configs);
+            var recipients = configs.stream()
+                    .map(HistoryNotificationEntity::getHistoryNotificationRecipient)
+                    .filter(Objects::nonNull)
+                    .toList();
+            historyRecipientService.loadCollectors(recipients);
+
+            var notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
+                    configs,
+                    HistoryNotificationEntity::getId,
+                    HistoryNotificationEntity::getNotificationChannelEventId,
+                    HistoryNotificationEntity::getNotificationChannelEvent
+            );
+
+            var recipientsCount = 0;
             for (var entry : notificationConfigsGroupedByChannelEvent.getGroupedMap().entrySet()) {
                 var channelEvent = notificationConfigsGroupedByChannelEvent.getGroupingObject(entry.getKey());
+
                 if (channelEvent.isUniqueInBatch()) {
-                    Set<String> processedEvents = batchEventCache.get(history.getHistoryBatchId(), k -> ConcurrentHashMap.newKeySet());
+                    var processedEvents = batchEventCache.get(history.getHistoryBatchId(), k -> ConcurrentHashMap.newKeySet());
                     if (processedEvents != null && !processedEvents.add(channelEvent.getEventCode())) {
                         log.info("Notification for event {} in batch {} skipped due to uniqueInBatch flag", channelEvent.getEventCode(), history.getHistoryBatchId());
-                        skippedDuplicatesCount++;
                         continue;
                     }
                 }
@@ -95,20 +113,20 @@ public class HistoryNotificationTask implements Runnable {
                 var recipientIds = new HashSet<UUID>();
                 for (var config : entry.getValue()) {
                     if (twinValidatorSetService.isValid(history.getTwin(), config)) {
-                        recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient().getId(), history));
+                        // todo create mechanism to group recipient resolvers and call batch resolve
+                        recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
                     }
                 }
-                if (recipientIds.isEmpty())
+
+                if (recipientIds.isEmpty()) {
                     continue;
+                }
+
                 recipientsCount += recipientIds.size();
                 var context = getContext(channelEvent.getNotificationContextId(), history);
-                NotificationChannelEntity notificationChannel = channelEvent.getNotificationChannel();
-                Notifier notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturerId(), Notifier.class);
+                var notificationChannel = channelEvent.getNotificationChannel();
+                var notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturerId(), Notifier.class);
                 notifier.notify(recipientIds, context, channelEvent.getEventCode(), notificationChannel.getNotifierParams());
-            }
-
-            if (skippedDuplicatesCount > 0) {
-                throw new NotificationSkippedException("Notification for batch " + history.getHistoryBatchId() + " skipped due to uniqueInBatch flag");
             }
 
             if (recipientsCount == 0) {
@@ -121,16 +139,19 @@ public class HistoryNotificationTask implements Runnable {
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (NotificationSkippedException e) {
             log.info(e.getMessage());
+
             historyNotificationEntity
                     .setStatusId(HistoryNotificationTaskStatus.SKIPPED)
                     .setStatusDetails(e.getMessage());
         } catch (ServiceException e) {
             log.error(e.log());
+
             historyNotificationEntity
                     .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
+
             historyNotificationEntity
                     .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
@@ -141,31 +162,32 @@ public class HistoryNotificationTask implements Runnable {
         }
     }
 
-    private List<HistoryNotificationSchemaMapEntity> getConfigs(HistoryEntity history) {
-        List<HistoryNotificationSchemaMapEntity> configs;
-        HistoryType historyType = history.getHistoryType();
+    private List<HistoryNotificationEntity> getConfigs(HistoryEntity history) {
+        Set<UUID> matchingClassIds = new HashSet<>(history.getTwin().getTwinClass().getExtendedClassIdSet());
+        matchingClassIds.add(history.getTwin().getTwinClassId());
+
         if (history.getTwinClassFieldId() == null) {
-            configs = historyNotificationSchemaMapEntityRepository
-                    .findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
-                            historyType.name(),
-                            history.getTwin().getTwinClassId(),
-                            historyNotificationEntity.getNotificationSchemaId());
+            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    matchingClassIds,
+                    historyNotificationEntity.getNotificationSchemaId());
         } else {
-            configs = historyNotificationSchemaMapEntityRepository
-                    .findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
-                            historyType.name(),
-                            history.getTwin().getTwinClassId(),
-                            history.getTwinClassFieldId(),
-                            historyNotificationEntity.getNotificationSchemaId());
+            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndTwinClassFieldIdAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    matchingClassIds,
+                    history.getTwinClassFieldId(),
+                    historyNotificationEntity.getNotificationSchemaId());
         }
-        return configs;
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {
-        if (contextCache.containsKey(contextId))
+        if (contextCache.containsKey(contextId)) {
             return contextCache.get(contextId);
-        Map<String, String> context = notificationContextService.collectHistoryContext(contextId, history);
+        }
+
+        var context = notificationContextService.collectHistoryContext(contextId, history);
         contextCache.put(contextId, context);
+
         return context;
     }
 

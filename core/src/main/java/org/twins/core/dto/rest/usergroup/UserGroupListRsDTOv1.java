@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "UserGroupListRsV1")
-public class UserGroupListRsDTOv1 extends Response {
+public class UserGroupListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "user group list")
     public List<UserGroupDTOv1> userGroupList;
 }

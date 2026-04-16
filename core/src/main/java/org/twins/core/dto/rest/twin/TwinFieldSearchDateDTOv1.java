@@ -17,11 +17,11 @@ public class TwinFieldSearchDateDTOv1 implements TwinFieldSearchDTOv1 {
         return KEY;
     }
 
-    @Schema(description = "Twin field date less then given date")
-    public LocalDateTime lessThen;
+    @Schema(description = "Twin field date less then or equals given date")
+    public LocalDateTime lessThenOrEquals;
 
-    @Schema(description = "Twin field date greater then given date")
-    public LocalDateTime moreThen;
+    @Schema(description = "Twin field date greater then or equals given date")
+    public LocalDateTime moreThenOrEquals;
 
     @Schema(description = "Twin field date equals to given date")
     public LocalDateTime equals;

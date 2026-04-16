@@ -56,6 +56,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .name(src.getName())
                         .externalId(src.getExternalId())
                         .headTwinId(src.getHeadTwinId())
+                        .headTwinIdSet(src.getHeadTwinsIdSet())
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
                         .statusId(twinService.getStatusOrFreeze(src).getId())

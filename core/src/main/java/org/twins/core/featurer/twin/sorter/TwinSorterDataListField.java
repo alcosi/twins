@@ -8,6 +8,7 @@ import org.hibernate.query.SortDirection;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -33,7 +34,7 @@ public class TwinSorterDataListField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN to twin_field_data_list
-                Join<TwinEntity, TwinFieldDataListEntity> tfJoin = getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsList);
+                Join<TwinEntity, TwinFieldDataListEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsList);
                 // Join to data_list_option to get order field
                 Join<TwinFieldDataListEntity, DataListOptionEntity> dloJoin = tfJoin.join(TwinFieldDataListEntity.Fields.dataListOption, JoinType.LEFT);
                 // Get order field for sorting

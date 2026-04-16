@@ -24,7 +24,7 @@ import org.twins.core.service.projection.ProjectionService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PROJECTION_MANAGE, Permissions.PROJECTION_DELETE})
+@ProtectedBy(Permissions.PROJECTION_DELETE)
 public class ProjectionDeleteController extends ApiController {
     private final ProjectionService projectionService;
 

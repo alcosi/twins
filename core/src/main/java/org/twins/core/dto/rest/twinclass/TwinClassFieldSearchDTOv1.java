@@ -60,6 +60,12 @@ public class TwinClassFieldSearchDTOv1 {
     @Schema(description = "field typer id exclude list")
     public Set<Integer> fieldTyperIdExcludeList;
 
+    @Schema(description = "field initiator id list")
+    public Set<Integer> fieldInitiatorIdList;
+
+    @Schema(description = "field initiator id exclude list")
+    public Set<Integer> fieldInitiatorIdExcludeList;
+
     @Schema(description = "field sorter id list")
     public Set<Integer> twinSorterIdList;
 

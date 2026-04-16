@@ -104,6 +104,8 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true),
                 checkIntegerIn(search.getFieldTyperIdList(), false, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
                 checkIntegerIn(search.getFieldTyperIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
+                checkIntegerIn(search.getFieldInitiatorIdList(), false, TwinClassFieldEntity.Fields.fieldInitializerFeaturerId),
+                checkIntegerIn(search.getFieldInitiatorIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldInitializerFeaturerId),
                 checkIntegerIn(search.getTwinSorterIdList(), false, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
                 checkIntegerIn(search.getTwinSorterIdExcludeList(), true, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.viewPermissionId),
@@ -175,12 +177,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
 
     @Override
     public boolean isEntityReadDenied(TwinClassFieldSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = entity.getDomainId() != null && !entity.getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + domain.logShort());
-        }
-        return readDenied;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

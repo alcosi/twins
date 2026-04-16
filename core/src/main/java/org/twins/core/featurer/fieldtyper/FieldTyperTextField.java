@@ -1,14 +1,12 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -19,12 +17,13 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchText;
+import org.twins.core.domain.search.TwinFieldValueSearchText;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsEditorType;
 
 import java.util.Properties;
 
@@ -33,11 +32,13 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1301,
         name = "Text",
         description = "")
-public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
+public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldValueSearchText> {
     @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
+
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
+
     @FeaturerParam(name = "Unique", description = "", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean unique = new FeaturerParamBoolean("unique");
 
@@ -66,7 +67,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchText search) {
         return TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value);
     }
 
@@ -94,18 +95,18 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueText fieldValue) {
+        String pattern = regexp.extract(properties);
+        if (!fieldValue.getValue().matches(pattern)) {
+            return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
+        }
         try {
-            String pattern = regexp.extract(properties);
-            if (!fieldValue.getValue().matches(pattern)) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] does not match pattern[" + pattern + "]");
-            }
             if (unique.extract(properties).equals(true)) {
                 checkForUniqueness(twin, fieldValue);
             }
         } catch (ServiceException e) {
-            return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
+            //todo get message from db
+            return new ValidationResult(false, e.getMessage());
         }
-        return new ValidationResult(true);
+        return ValidationResult.VALID;
     }
-
 }

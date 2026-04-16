@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Table(name = "permission_grant_global")
-public class PermissionGrantGlobalEntity {
+public class PermissionGrantGlobalEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -54,4 +55,8 @@ public class PermissionGrantGlobalEntity {
     @ManyToOne
     @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;
+
+    public String easyLog(EasyLoggable.Level level) {
+        return "permissionGrantGlobal[id:" + id + ", permissionId:" + permissionId + ", userGroupId:" + userGroupId + "]";
+    }
 }

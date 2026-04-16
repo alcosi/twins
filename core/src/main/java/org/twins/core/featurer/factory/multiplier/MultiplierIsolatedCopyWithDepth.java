@@ -77,17 +77,23 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                         .setIdList(copyContextMap.keySet())
         );
 
-        Set<TwinLinkEntity> origTwinLinks;
         if (!childrenStatusIds.isEmpty()) {
             search.addStatusId(childrenStatusIds, false);
-            origTwinLinks = twinLinkService.findAllWithinHierarchiesAndTwinsInStatusIds(copyContextMap.keySet(), childrenStatusIds);
-        } else {
-            origTwinLinks = twinLinkService.findAllWithinHierarchies(copyContextMap.keySet());
         }
 
-        var origTwinLinksGrouped = new KitGrouped<>(origTwinLinks, TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
         var origTwinsChildren = twinSearchService.findTwins(search);
         origTwins.addAll(origTwinsChildren);
+
+        Set<UUID> collectedTwinIds = new HashSet<>(origTwins.size());
+        for (var t : origTwins) {
+            collectedTwinIds.add(t.getId());
+        }
+
+        Set<TwinLinkEntity> origTwinLinks = childrenStatusIds.isEmpty()
+                ? twinLinkService.findAllBetweenTwinsIn(collectedTwinIds)
+                : twinLinkService.findAllBetweenTwinsInAndTwinsInStatusIds(collectedTwinIds, childrenStatusIds);
+
+        var origTwinLinksGrouped = new KitGrouped<>(origTwinLinks, TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
 
         // sort to have confidence that twin on every depth level in processing has an already created parent
         var origTwinsSorted = origTwins.stream()

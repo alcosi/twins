@@ -32,7 +32,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_LOCALE_INACTIVE(10211, "Local is not active"),
     DOMAIN_PERMISSION_DENIED(10212, "No permission to delete record in another domain"),
     DOMAIN_BUSINESS_ACCOUNT_LEVEL_NOT_SUPPORTED(10213, "Current domain type does not supports business account"),
-    NO_REQUIRED_PERMISSION(10214, "No required permissions to perform this operation", HttpStatus.FORBIDDEN),
+    DOMAIN_CROSS_REQUEST(10214, "Cross domain request is not supported"),
+    NO_REQUIRED_PERMISSION(10300, "No required permissions to perform this operation", HttpStatus.FORBIDDEN),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
@@ -99,6 +100,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_BASIC_FIELD_UNKNOWN(10903, "unknown twin basic field"),
     TWIN_ASSIGNEE_REQUIRED(10904,"twin assignee is required for this twin class"),
     TWIN_FIELD_IMMUTABLE(10905,"twin field is immutable"),
+    TWIN_NAME_IS_NOT_UNIQUE(10906, "twin name is not unique", HttpStatus.CONFLICT),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
@@ -188,8 +190,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     SCHEDULER_IS_NOT_ACTIVE(13201, "scheduler is not active, activate it first"),
     SCHEDULER_IS_NOT_RUNNING(13202, "scheduler is not running, start it first"),
     SCHEDULER_IS_ALREADY_RUNNING(13203, "scheduler is already running, stop it first"),
-    USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect"),
-    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded");
+    USER_SEARCH_CONFIG_INCORRECT(13301, "user search config incorrect"),
+    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(13401, "twin class field condition depth exceeded"),
+    TOO_MANY_REQUESTS(13501, "too many requests", HttpStatus.TOO_MANY_REQUESTS);
 
     private final int code;
     private final String message;

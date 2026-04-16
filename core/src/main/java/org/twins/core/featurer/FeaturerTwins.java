@@ -45,6 +45,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int TYPE_50 = 50;
     public static final int TYPE_51 = 51;
     public static final int TYPE_52 = 52;
+    public static final int TYPE_53 = 53;
 
     public static final int ID_1101 = 1101;
     public static final int ID_1301 = 1301;
@@ -96,6 +97,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_1347 = 1347;
     public static final int ID_1348 = 1348;
     public static final int ID_1349 = 1349;
+    public static final int ID_1350 = 1350;
     public static final int ID_1401 = 1401;
     public static final int ID_1402 = 1402;
     public static final int ID_1403 = 1403;
@@ -107,6 +109,16 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_1505 = 1505;
     public static final int ID_1506 = 1506;
     public static final int ID_1507 = 1507;
+    public static final int ID_1508 = 1508;
+    public static final int ID_1509 = 1509;
+    public static final int ID_1510 = 1510;
+    public static final int ID_1511 = 1511;
+    public static final int ID_1512 = 1512;
+    public static final int ID_1513 = 1513;
+    public static final int ID_1514 = 1514;
+    public static final int ID_1515 = 1515;
+    public static final int ID_1516 = 1516;
+    public static final int ID_1517 = 1517;
     public static final int ID_1601 = 1601;
     public static final int ID_1602 = 1602;
     public static final int ID_1603 = 1603;
@@ -126,6 +138,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_1617 = 1617;
     public static final int ID_1618 = 1618;
     public static final int ID_1619 = 1619;
+    public static final int ID_1620 = 1620;
     public static final int ID_1901 = 1901;
     public static final int ID_1902 = 1902;
     public static final int ID_1903 = 1903;
@@ -341,6 +354,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_4414 = 4414;
     public static final int ID_4501 = 4501;
     public static final int ID_4502 = 4502;
+    public static final int ID_4503 = 4503;
     public static final int ID_4601 = 4601;
     public static final int ID_4602 = 4602;
     public static final int ID_4603 = 4603;
@@ -350,6 +364,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_4703 = 4703;
     public static final int ID_4704 = 4704;
     public static final int ID_4705 = 4705;
+    public static final int ID_4706 = 4706;
     public static final int ID_4801 = 4801;
     public static final int ID_4901 = 4901;
     public static final int ID_4902 = 4902;
@@ -358,6 +373,10 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_4905 = 4905;
     public static final int ID_4906 = 4906;
     public static final int ID_4907 = 4907;
+    public static final int ID_4908 = 4908;
+    public static final int ID_4909 = 4909;
+    public static final int ID_4910 = 4910;
+    public static final int ID_4911 = 4911;
     public static final int ID_5001 = 5001;
     public static final int ID_5002 = 5002;
     public static final int ID_5003 = 5003;
@@ -367,8 +386,24 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_5007 = 5007;
     public static final int ID_5008 = 5008;
     public static final int ID_5009 = 5009;
+    public static final int ID_5010 = 5010;
+    public static final int ID_5011 = 5011;
+    public static final int ID_5012 = 5012;
+    public static final int ID_5013 = 5013;
+    public static final int ID_5014 = 5014;
+    public static final int ID_5015 = 5015;
+    public static final int ID_5016 = 5016;
     public static final int ID_5101 = 5101;
     public static final int ID_5102 = 5102;
     public static final int ID_5103 = 5103;
     public static final int ID_5201 = 5201;
+    public static final int ID_5301 = 5301;
+    public static final int ID_5302 = 5302;
+    public static final int ID_5303 = 5303;
+    public static final int ID_5304 = 5304;
+    public static final int ID_5305 = 5305;
+    public static final int ID_5306 = 5306;
+    public static final int ID_5307 = 5307;
+    public static final int ID_5308 = 5308;
+    public static final int ID_5309 = 5309;
 }

@@ -1,5 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.ValidationResult;
@@ -7,7 +8,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -23,13 +23,13 @@ import java.util.*;
 @Featurer(id = FeaturerTwins.ID_1604,
         name = "Twin has children in statuses",
         description = "")
+@RequiredArgsConstructor
 public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     @FeaturerParam(name = "Status ids", description = "", order = 1, optional = true)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Lazy
-    @Autowired
-    TwinSearchService twinSearchService;
+    private final TwinSearchService twinSearchService;
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
@@ -37,7 +37,8 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
         BasicSearch search = new BasicSearch();
         search
                 .addHeadTwinId(twinEntity.getId())
-                .addStatusId(statusIdSet, false);
+                .addStatusId(statusIdSet, false); // consider freeze status from twin class
+
         long count = twinSearchService.count(search);
         boolean isValid = count > 0;
         return buildResult(
@@ -51,7 +52,9 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addStatusId(statusIdSet, false);
+        search
+                .addStatusId(statusIdSet, false); // consider freeze status from twin class
+
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {

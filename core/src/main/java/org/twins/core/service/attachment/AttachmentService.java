@@ -24,21 +24,20 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
-import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
+import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.storage.StorageService;
@@ -81,7 +80,18 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         checkAndSetAttachmentTwin(attachments, twinEntity);
-        return addAttachments(attachments);
+
+        EntityCUD<TwinAttachmentEntity> attachmentCUD = new EntityCUD<>();
+        attachmentCUD.setCreateList(attachments);
+
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setAttachmentCUD(attachmentCUD)
+                .setDbTwinEntity(twinEntity)
+                .setLauncher(TwinOperation.Launcher.direct)
+                .setTwinEntity(twinEntity);
+        twinService.updateTwin(twinUpdate);
+        return attachments;
     }
 
     @Transactional
@@ -251,6 +261,28 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return twinAttachmentRepository.findByTwinId(twinId);
     }
 
+    public TwinAttachmentEntity findFirstAttachment(TwinEntity twin, UUID twinClassFieldId) {
+        loadAttachments(twin);
+        var attachments = twin.getAttachmentKit();
+        if (CollectionUtils.isEmpty(attachments)) {
+            return null;
+        }
+        return attachments.stream()
+                .filter(a -> {
+                    if (twinClassFieldId == null) {
+                        // Direct twin attachments only
+                        return a.getTwinClassFieldId() == null
+                                && a.getTwinCommentId() == null
+                                && a.getTwinflowTransitionId() == null;
+                    } else {
+                        // Attachments from specific field
+                        return twinClassFieldId.equals(a.getTwinClassFieldId());
+                    }
+                })
+                .min(Comparator.comparingInt(a -> a.getOrder() != null ? a.getOrder() : Integer.MAX_VALUE))
+                .orElse(null);
+    }
+
     public void loadAttachments(TwinEntity twinEntity) {
         loadAttachments(Collections.singletonList(twinEntity));
     }
@@ -347,10 +379,17 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         attachmentActionService.checkAllowed(attachement, TwinAttachmentAction.DELETE);
         if (attachement == null)
             return;
-        log.info(attachement.logDetailed() + " will be deleted");
-        entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
-        historyService.saveHistory(attachement.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
-                .shotAttachment(attachement));
+
+        EntityCUD<TwinAttachmentEntity> attachmentCUD = new EntityCUD<>();
+        attachmentCUD.setDeleteList(List.of(attachement));
+
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setAttachmentCUD(attachmentCUD)
+                .setDbTwinEntity(attachement.getTwin())
+                .setLauncher(TwinOperation.Launcher.direct)
+                .setTwinEntity(attachement.getTwin());
+        twinService.updateTwin(twinUpdate);
     }
 
 

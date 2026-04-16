@@ -11,20 +11,25 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.ResettableTransientState;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
@@ -34,11 +39,11 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
+import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Entity
 @Accessors(chain = true)
@@ -46,7 +51,7 @@ import java.util.UUID;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable {
     @Id
     private UUID id;
 
@@ -77,15 +82,33 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    private PermissionEntity viewPermission;
+
+    @Column(name = "view_permission_custom")
+    private Boolean viewPermissionCustom = false;
+
+    //materialized
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "permission_schema_id", updatable = false, insertable = false)
+    private UUID permissionSchemaId;
+
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "permission_schema_space_id")
     private UUID permissionSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twinflow_schema_space_id")
     private UUID twinflowSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "twin_class_schema_space_id")
     private UUID twinClassSchemaSpaceId;
 
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "alias_space_id")
     private UUID aliasSpaceId;
 
@@ -112,6 +135,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
+
+    @Column(name = "head_hierarchy_counter_direct_children", insertable = false, updatable = false)
+    private Integer headHierarchyCounterDirectChildren;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -183,6 +209,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Deprecated
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
+    private TwinEntity permissionSchemaSpace;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTagEntity> tags;
@@ -241,6 +275,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldTimestampEntity> fieldsTimestamp;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification
@@ -265,7 +307,23 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldDecimalEntity> fieldsDecimal;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
+
+    //needed for specification (search by last change time)
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinLastChangeEntity> lastChanges;
 
     //needed for specification (USER & BA twins)
     @Deprecated
@@ -337,6 +395,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Kit<TwinFieldBooleanEntity, UUID> twinFieldBooleanKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFieldTimestampEntity, UUID> twinFieldTimestampKit;
+
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
      */
@@ -368,7 +431,17 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Map<UUID, Object> twinFieldCalculated;
+    private Kit<TwinFieldDecimalEntity, UUID> twinFieldDecimalKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, BigDecimal> twinFieldCalculated;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldEditability;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -425,6 +498,16 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Map<TwinAction, UUID> actionsRestricted;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<TwinAction, ActionRestrictionReasonEntity> actionsRestrictedReasons;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinAttachmentsCount twinAttachmentsCount;
 
     @Transient
@@ -432,8 +515,28 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<String, Boolean> twinValidatorResultCache;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<UUID> headTwinsIdSet;
+
     public boolean isSketch() {
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
+    }
+
+    public Set<UUID> getHeadTwinsIdSet() {
+        if (null == headTwinsIdSet && null != hierarchyTree) {
+            headTwinsIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(hierarchyTree).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                headTwinsIdSet.add(UUID.fromString(hierarchyIds[i]));
+        }
+        return headTwinsIdSet;
     }
 
     @Override
@@ -474,6 +577,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
                 .setTwinClassSchemaSpaceId(twinClassSchemaSpaceId)
                 .setAliasSpaceId(aliasSpaceId)
                 .setViewPermissionId(viewPermissionId)
+                .setViewPermissionCustom(viewPermissionCustom)
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
@@ -523,10 +627,15 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // Actions / counters
         actions = null;
+        actionsRestricted = null;
+        actionsRestrictedReasons = null;
         twinAttachmentsCount = null;
 
         // Permissions / creation helpers
         creatableChildTwinClasses = null;
+
+        // TwinValidators
+        twinValidatorResultCache = null;
         return this;
     }
 

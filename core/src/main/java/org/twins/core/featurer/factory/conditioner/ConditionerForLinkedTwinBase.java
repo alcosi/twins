@@ -33,9 +33,9 @@ public abstract class ConditionerForLinkedTwinBase extends Conditioner {
         FieldValue fieldValue = getFields(factoryItem).get(extractedTwinClassFieldId);
         if (!(fieldValue instanceof FieldValueLink itemOutputFieldLink))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] is not of type link");
-        if (itemOutputFieldLink.getTwinLinks().size() > 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] has " + itemOutputFieldLink.getTwinLinks().size() + " linked twins in twinId[" + factoryItem.getOutput().getTwinId() + "]");
-        return check(twinLinkService.getDstTwinSafe(itemOutputFieldLink.getTwinLinks().getFirst()), properties);
+        if (itemOutputFieldLink.size() > 1)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] has " + itemOutputFieldLink.size() + " linked twins in twinId[" + factoryItem.getOutput().getTwinId() + "]");
+        return check(twinLinkService.getDstTwinSafe(itemOutputFieldLink.getItems().getFirst()), properties);
     }
 
     protected abstract Map<UUID, FieldValue> getFields(FactoryItem factoryItem) throws ServiceException;

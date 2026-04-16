@@ -21,7 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchUser;
+import org.twins.core.domain.search.TwinFieldValueSearchUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1311,
         name = "User",
         description = "")
-public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageUser, TwinFieldSearchUser> implements LongList {
+public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageUser, TwinFieldValueSearchUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
@@ -53,17 +53,19 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
 
     @FeaturerParam(name = "User filter UUID", description = "", order = 1)
     public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID"); //todo change type
+
     @FeaturerParam(name = "Multiple", description = "If true, then multiple select available", order = 2)
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
+
     @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 3)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
+        if (value.size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
-        List<UserEntity> selectedUserEntityList = userService.findEntitiesSafe(value.getUsers().stream().map(UserEntity::getId).toList()).getList();
+        List<UserEntity> selectedUserEntityList = userService.findEntitiesSafe(value.getItems().stream().map(UserEntity::getId).toList()).getList();
         twinService.loadTwinFields(twin);
         Map<UUID, TwinFieldUserEntity> storedFieldUsers = null;
         if (twin.getTwinFieldUserKit().containsGroupedKey(value.getTwinClassField().getId()))
@@ -161,7 +163,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchUser search) throws ServiceException {
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchUser search) throws ServiceException {
         return TwinSpecification.checkFieldUser(search);
     }
 }

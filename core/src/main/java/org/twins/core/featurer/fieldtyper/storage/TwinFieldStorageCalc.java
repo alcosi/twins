@@ -4,6 +4,7 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
@@ -14,11 +15,11 @@ public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
     }
 
     public void packResult(Kit<TwinEntity, UUID> twinsKit, List<TwinFieldCalcProjection> calc) {
-        Kit<TwinFieldCalcProjection, UUID> calcKit = new Kit<>(calc, TwinFieldCalcProjection::twinId);
+        var calcKit = new Kit<>(calc, TwinFieldCalcProjection::twinId);
         for (var twinEntity : twinsKit) {
             if (twinEntity.getTwinFieldCalculated() == null)
                 twinEntity.setTwinFieldCalculated(new HashMap<>());
-            String value = calcKit.containsKey(twinEntity.getId()) ? calcKit.get(twinEntity.getId()).calc() : "0";
+            var value = calcKit.containsKey(twinEntity.getId()) ? calcKit.get(twinEntity.getId()).calc() : BigDecimal.ZERO;
             twinEntity.getTwinFieldCalculated().put(twinClassFieldId, value);
         }
     }
@@ -37,7 +38,7 @@ public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
     public void initEmpty(TwinEntity twinEntity) {
         if (twinEntity.getTwinFieldCalculated() == null)
             twinEntity.setTwinFieldCalculated(new HashMap<>());
-        twinEntity.getTwinFieldCalculated().put(twinClassFieldId, "0");
+        twinEntity.getTwinFieldCalculated().put(twinClassFieldId, BigDecimal.ZERO);
     }
 
     @Override

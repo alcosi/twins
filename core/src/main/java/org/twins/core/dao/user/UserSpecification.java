@@ -8,8 +8,9 @@ import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.enums.user.UserStatus;
+import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.domain.search.SpaceSearch;
+import org.twins.core.enums.user.UserStatus;
 
 import java.util.*;
 
@@ -67,66 +68,58 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
 
             Subquery<SpaceRoleUserEntity> userSubquery = query.subquery(SpaceRoleUserEntity.class);
             Root<SpaceRoleUserEntity> userRoleRoot = userSubquery.from(SpaceRoleUserEntity.class);
-
-            Subquery<SpaceRoleUserGroupEntity> groupSubquery = query.subquery(SpaceRoleUserGroupEntity.class);
-            Root<SpaceRoleUserGroupEntity> groupRoleRoot = groupSubquery.from(SpaceRoleUserGroupEntity.class);
-
-            Predicate userMatch = cb.equal(
-                    userRoleRoot.get(SpaceRoleUserEntity.Fields.userId),
-                    root.get(UserEntity.Fields.id)
-            );
+            Predicate userMatch = cb.equal(userRoleRoot.get(SpaceRoleUserEntity.Fields.userId), root.get(UserEntity.Fields.id));
 
             List<Predicate> userRolePredicates = new ArrayList<>();
-            List<Predicate> groupRolePredicates = new ArrayList<>();
-
             for (SpaceSearch spaceRole : spaceRoles) {
                 if (spaceRole == null) continue;
-
-                Predicate userSpaceRole = cb.and(
+                userRolePredicates.add(cb.and(
                         spaceRole.getSpaceId() != null ?
                                 cb.equal(userRoleRoot.get(SpaceRoleUserEntity.Fields.twinId), spaceRole.getSpaceId()) :
                                 cb.conjunction(),
                         spaceRole.getRoleId() != null ?
                                 cb.equal(userRoleRoot.get(SpaceRoleUserEntity.Fields.spaceRoleId), spaceRole.getRoleId()) :
                                 cb.conjunction()
-                );
+                ));
+            }
+            userSubquery.select(userRoleRoot)
+                    .where(cb.and(userMatch, cb.or(userRolePredicates.toArray(new Predicate[0]))));
 
-                Predicate groupSpaceRole = cb.and(
+            Subquery<SpaceRoleUserGroupEntity> groupSubquery = query.subquery(SpaceRoleUserGroupEntity.class);
+            Root<SpaceRoleUserGroupEntity> groupRoleRoot = groupSubquery.from(SpaceRoleUserGroupEntity.class);
+
+            Subquery<UserGroupMapEntity> ugmSubquery = query.subquery(UserGroupMapEntity.class);
+            Root<UserGroupMapEntity> ugmRoot = ugmSubquery.from(UserGroupMapEntity.class);
+
+            Predicate ugmPredicate = cb.and(
+                    cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.userId), root.get(UserEntity.Fields.id)),
+                    cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.userGroupId), groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.userGroupId)),
+                    cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.domainId), domainId),
+                    cb.or(
+                            cb.isNull(ugmRoot.get(UserGroupMapEntity.Fields.businessAccountId)),
+                            cb.equal(ugmRoot.get(UserGroupMapEntity.Fields.businessAccountId), businessAccountId)
+                    )
+            );
+            ugmSubquery.select(ugmRoot).where(ugmPredicate);
+
+            List<Predicate> groupRolePredicates = new ArrayList<>();
+            for (SpaceSearch spaceRole : spaceRoles) {
+                if (spaceRole == null) continue;
+                groupRolePredicates.add(cb.and(
                         spaceRole.getSpaceId() != null ?
                                 cb.equal(groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.twinId), spaceRole.getSpaceId()) :
                                 cb.conjunction(),
                         spaceRole.getRoleId() != null ?
                                 cb.equal(groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.spaceRoleId), spaceRole.getRoleId()) :
                                 cb.conjunction()
-                );
-
-                userRolePredicates.add(userSpaceRole);
-                groupRolePredicates.add(groupSpaceRole);
+                ));
             }
 
-            if (!userRolePredicates.isEmpty()) {
-                userSubquery.select(userRoleRoot)
-                        .where(cb.and(userMatch, cb.or(userRolePredicates.toArray(new Predicate[0]))));
-            } else {
-                userSubquery.where(cb.disjunction());
-            }
-
-            Predicate groupConditions = cb.and(
-                    cb.or(groupRolePredicates.toArray(new Predicate[0])),
-                    cb.equal(
-                            cb.function(
-                                    "is_user_in_group",
-                                    Boolean.class,
-                                    root.get(UserEntity.Fields.id),
-                                    groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.userGroupId),
-                                    cb.literal(domainId),
-                                    cb.literal(businessAccountId)
-                            ),
-                            true
-                    )
-            );
-
-            groupSubquery.select(groupRoleRoot).where(groupConditions);
+            groupSubquery.select(groupRoleRoot)
+                    .where(cb.and(
+                            cb.or(groupRolePredicates.toArray(new Predicate[0])),
+                            cb.exists(ugmSubquery)
+                    ));
 
             Predicate combined = cb.or(
                     cb.exists(userSubquery),
@@ -162,81 +155,69 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
         };
     }
 
-    public static Specification<UserEntity> checkUserGroupMapType1IdIn(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or) {
+    public static Specification<UserEntity> checkUserGroupIdIn(
+            final Collection<UUID> userGroupIds,
+            final boolean exclude,
+            final boolean or,
+            final UUID domainId,
+            final UUID businessAccountId
+    ) {
+
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds))
+
+            // if no groups or domain is null, return always true
+            if (CollectionUtils.isEmpty(userGroupIds) || domainId == null) {
                 return cb.conjunction();
+            }
 
-            Root<UserGroupMapType1Entity> userGroupMapRoot = query.from(UserGroupMapType1Entity.class);
+            // join with UserGroupMapEntity
+            Root<UserGroupMapEntity> ugm = query.from(UserGroupMapEntity.class);
 
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType1Entity.Fields.userId));
+            // join predicate on user id
+            Predicate userJoin = cb.equal(
+                    root.get(UserEntity.Fields.id),
+                    ugm.get(UserGroupMapEntity.Fields.userId)
+            );
 
-            List<Predicate> groupPredicates = userGroupIds.stream()
-                    .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapType1Entity.Fields.userGroupId),
-                            groupId
-                    ))
-                    .toList();
+            // predicate for user group ids
+            Predicate groupCondition = ugm
+                    .get(UserGroupMapEntity.Fields.userGroupId)
+                    .in(userGroupIds);
 
-            Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
+            // domain predicate (mandatory)
+            Predicate domainCondition = cb.equal(
+                    ugm.get(UserGroupMapEntity.Fields.domainId),
+                    domainId
+            );
 
-            Predicate combinedCondition = cb.and(joinCondition, groupIdCondition);
+            // hierarchical businessAccount logic
+            Predicate businessCondition;
+            if (businessAccountId != null) {
+                // include both specific businessAccount and domain-only groups
+                businessCondition = cb.or(
+                        cb.isNull(ugm.get(UserGroupMapEntity.Fields.businessAccountId)),
+                        cb.equal(
+                                ugm.get(UserGroupMapEntity.Fields.businessAccountId),
+                                businessAccountId
+                        )
+                );
+            } else {
+                // only domain-only groups
+                businessCondition = cb.isNull(
+                        ugm.get(UserGroupMapEntity.Fields.businessAccountId)
+                );
+            }
 
-            return exclude ? cb.not(combinedCondition) : combinedCondition;
-        };
-    }
+            // combine all predicates
+            Predicate combined = cb.and(
+                    userJoin,
+                    groupCondition,
+                    domainCondition,
+                    businessCondition
+            );
 
-    public static Specification<UserEntity> checkUserGroupMapType2IdIn(final Collection<UUID> userGroupIds, UUID businessAccountId, final boolean exclude, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds) || businessAccountId == null)
-                return cb.conjunction();
-
-            Root<UserGroupMapType2Entity> userGroupMapRoot = query.from(UserGroupMapType2Entity.class);
-
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType2Entity.Fields.userId));
-
-            List<Predicate> groupPredicates = userGroupIds.stream()
-                    .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapType2Entity.Fields.userGroupId),
-                            groupId
-                    ))
-                    .toList();
-
-            Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
-
-            Predicate businessAccountCondition = cb.equal(userGroupMapRoot.get(UserGroupMapType2Entity.Fields.businessAccountId), businessAccountId);
-
-            Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, businessAccountCondition);
-
-            return exclude ? cb.not(combinedCondition) : combinedCondition;
-        };
-    }
-
-    public static Specification<UserEntity> checkUserGroupMapType3IdIn(final Collection<UUID> userGroupIds, UUID domainId, final boolean exclude, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds))
-                return cb.conjunction();
-
-            Root<UserGroupMapType3Entity> userGroupMapRoot = query.from(UserGroupMapType3Entity.class);
-
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType3Entity.Fields.userId));
-
-            List<Predicate> groupPredicates = userGroupIds.stream()
-                    .map(groupId -> cb.equal(
-                            userGroupMapRoot.get(UserGroupMapType3Entity.Fields.userGroupId),
-                            groupId
-                    ))
-                    .toList();
-
-            Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
-
-            Predicate domainCondition = domainId != null
-                    ? cb.equal(userGroupMapRoot.get(UserGroupMapType3Entity.Fields.domainId), domainId)
-                    : cb.conjunction();
-
-            Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, domainCondition);
-
-            return exclude ? cb.not(combinedCondition) : combinedCondition;
+            // invert condition if exclude flag is true
+            return exclude ? cb.not(combined) : combined;
         };
     }
 

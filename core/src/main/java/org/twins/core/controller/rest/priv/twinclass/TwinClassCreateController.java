@@ -41,7 +41,7 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_CREATE})
+@ProtectedBy(Permissions.TWIN_CLASS_CREATE)
 public class TwinClassCreateController extends ApiController {
     private final TwinClassService twinClassService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;

@@ -45,9 +45,9 @@ public class FillerFieldAsContextFieldHead extends Filler {
 
         UUID detectedHeadId = null;
         if (srcFieldValue instanceof FieldValueLink fieldValueLink) {
-            if(fieldValueLink.getTwinLinks().isEmpty())
+            if(fieldValueLink.isEmpty())
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not filled");
-            TwinEntity dstTwin = fieldValueLink.getTwinLinks().get(0).getDstTwin();
+            TwinEntity dstTwin = fieldValueLink.getItems().getFirst().getDstTwin();
             detectedHeadId = dstTwin.getHeadTwinId();
             if(null == detectedHeadId)
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + dstTwin.logDetailed());

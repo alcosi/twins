@@ -29,6 +29,7 @@ import java.util.UUID;
 public class UserGroupManagerImpl extends UserGroupManager {
     final UserGroupRepository userGroupRepository;
     final FeaturerService featurerService;
+
     @Override
     public void manageForUser(Properties properties, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
         Set<UUID> groupsToLoad = new HashSet<>();

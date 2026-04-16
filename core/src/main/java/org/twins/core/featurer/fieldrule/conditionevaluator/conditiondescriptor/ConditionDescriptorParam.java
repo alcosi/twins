@@ -7,6 +7,6 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
-public class ConditionDescriptorParam extends ConditionDescriptor{
+public class ConditionDescriptorParam extends ConditionDescriptor {
     private String evaluatedParamKey;
 }

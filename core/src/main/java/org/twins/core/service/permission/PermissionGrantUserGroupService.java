@@ -18,8 +18,8 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -52,12 +52,7 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean isEntityReadDenied(PermissionGrantUserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getPermissionSchema().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+        return checkDomainAccessDenied(entity.getPermissionSchema().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

@@ -88,6 +88,10 @@ public class BusinessAccountUserService extends EntitySecureFindServiceImpl<Busi
         loadBusinessAccounts(Collections.singletonList(domainUser));
     }
 
+    public List<UUID> findUserIdsByBusinessAccountId(UUID businessAccountId) {
+        return businessAccountUserRepository.findUserIdByBusinessAccountId(businessAccountId);
+    }
+
     public void loadBusinessAccounts(Collection<DomainUserEntity> domainUserList) {
         if (CollectionUtils.isEmpty(domainUserList))
             return;

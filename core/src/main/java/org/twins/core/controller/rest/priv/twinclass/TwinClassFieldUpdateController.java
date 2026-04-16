@@ -39,7 +39,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_UPDATE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_UPDATE)
 public class TwinClassFieldUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinClassFieldService twinClassFieldService;
@@ -64,7 +64,7 @@ public class TwinClassFieldUpdateController extends ApiController {
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateFields(twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
             rs
-                    .field(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext))
+                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

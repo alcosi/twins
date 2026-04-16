@@ -18,5 +18,8 @@ public class TwinFieldDTOv2 {
     public String value;
 
     @Schema
+    public boolean editable; //this is not a attribute, it's more like action
+
+    @Schema
     public Map<UUID, TwinFieldAttributeDTOv1> fieldAttributes;
 }

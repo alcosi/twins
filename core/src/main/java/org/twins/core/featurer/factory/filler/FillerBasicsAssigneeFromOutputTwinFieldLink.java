@@ -41,12 +41,12 @@ public class FillerBasicsAssigneeFromOutputTwinFieldLink extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Field is not of type link");
         }
         if (field instanceof FieldValueLink itemOutputFieldLink) {
-            if (itemOutputFieldLink.getTwinLinks().isEmpty()) {
+            if (itemOutputFieldLink.isEmpty()) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Twin does not contain a links");
             }
             boolean isLink = false;
             UUID extractedLinkId = linkId.extract(properties);
-            for (TwinLinkEntity twinLink : itemOutputFieldLink.getTwinLinks()) {
+            for (TwinLinkEntity twinLink : itemOutputFieldLink.getItems()) {
                 if (twinLink.getLinkId().equals(extractedLinkId)) {
                     TwinEntity dstTwin = twinLink.getDstTwin();
                     outputTwinEntity

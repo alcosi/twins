@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.domain.search.TwinflowSearch;
@@ -21,6 +22,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Locale;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuid;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
@@ -44,8 +46,11 @@ public class TwinflowSearchService {
     }
 
     private Specification<TwinflowEntity> createTwinflowEntitySearchSpecification(TwinflowSearch search) throws ServiceException {
-        Locale locale = authService.getApiUser().getLocale();
-        return checkSchemas(TwinflowEntity.Fields.schemaMappings, search.getTwinflowSchemaIdList(), true, false)
+        var apiUser = authService.getApiUser();
+        Locale locale = apiUser.getLocale();
+        return
+                checkSchemas(TwinflowEntity.Fields.schemaMappings, search.getTwinflowSchemaIdList(), true, false)
+                .and(checkUuid(apiUser.getDomainId(), false, false, TwinflowEntity.Fields.twinClass, TwinClassEntity.Fields.domainId))
                 .and(checkSchemas(TwinflowEntity.Fields.schemaMappings, search.getTwinflowSchemaIdExcludeList(), true, true))
                 .and(checkUuidIn(search.getIdList(), false, false, TwinflowEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))

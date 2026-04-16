@@ -74,8 +74,10 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setDescriptionI18nId(src.getDescriptionI18nId())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
                         .setFieldTyperParams(src.getFieldTyperParams())
+                        .setFieldInitializerFeaturerId(src.getFieldInitializerFeaturerId())
+                        .setFieldInitializerParams(src.getFieldInitializerParams())
                         .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
-                        .setTwinSorterParams(src.getFieldTyperParams())
+                        .setTwinSorterParams(src.getTwinSorterParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
@@ -93,8 +95,10 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setProjectionField(src.getProjectionField());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
+                    dst.setFieldInitializerFeaturerId(src.getFieldInitializerFeaturerId());
                     dst.setTwinSorterFeaturerId(src.getTwinSorterFeaturerId());
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldInitializerFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getTwinSorterFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
                 }
                 if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {

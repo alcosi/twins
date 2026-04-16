@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassFieldRsV1")
 public class TwinClassFieldRsDTOv1 extends ResponseRelatedObjectsDTOv1 {

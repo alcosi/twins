@@ -1,8 +1,12 @@
 package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Data;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.action.TwinAction;
 
 import java.util.UUID;
@@ -28,4 +32,22 @@ public class TwinActionPermissionEntity {
 
     @Column(name = "permission_id")
     private UUID permissionId;
+
+    @Column(name = "action_restriction_reason_id")
+    private UUID actionRestrictionReasonId;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private TwinClassEntity twinClass;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity permission;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private ActionRestrictionReasonEntity actionRestrictionReason;
 }

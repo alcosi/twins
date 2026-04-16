@@ -29,7 +29,6 @@ import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -44,6 +43,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -75,17 +75,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied=!entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+        return checkDomainAccessDenied(entity.getTwin().getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
     public boolean validateEntity(HistoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
@@ -128,6 +123,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -136,7 +132,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context)
-                .setHistoryBatchId(authService.getApiUser().getRequestId());
+                .setHistoryBatchId(apiUser.getRequestId());
+        if (apiUser.isMachineUserSpecified()) {
+            historyEntity.setMachineUserId(apiUser.getMachineUserId());
+        }
         fillHistoryEntity(historyEntity, twinEntity, context);
         return historyEntity;
     }
@@ -218,6 +217,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotToUser(toUser));
     }
 
+    public HistoryItem<HistoryContextUserChange> assigneeUnassigned(UserEntity fromUser) {
+        return new HistoryItem<>(HistoryType.assigneeUnassigned, new HistoryContextUserChange()
+                .shotFromUser(fromUser));
+    }
+
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
         if (attachmentEntity.getTwin().isCreateElseUpdate()) {
             return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
@@ -276,6 +280,23 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public HistoryItem<HistoryContextStringChange> fieldChangeSimple(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
         HistoryContextStringChange context = new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextTimestampChange> fieldChangeTimestamp(TwinClassFieldEntity twinClassFieldEntity, Timestamp fromValue, Timestamp toValue) {
+        var context = new HistoryContextTimestampChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextDecimalChange> fieldChangeDecimal(TwinClassFieldEntity twinClassFieldEntity, BigDecimal fromValue, BigDecimal toValue) {
+        var context = new HistoryContextDecimalChange()
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);

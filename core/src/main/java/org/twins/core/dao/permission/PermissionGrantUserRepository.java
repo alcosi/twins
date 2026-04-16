@@ -16,6 +16,6 @@ public interface PermissionGrantUserRepository extends CrudRepository<Permission
 
     boolean existsByPermissionSchemaIdAndPermissionIdAndUserId(UUID permissionSchemaId, UUID permissionId, UUID userId);
 
-    @Query(value = "SELECT * FROM permissions_load_for_user(:permissionSchemaId, :userId, CAST(:userGroupIds AS UUID[]))", nativeQuery = true)
-    List<UUID> findAllPermissionsForUser(UUID permissionSchemaId, UUID userId, String userGroupIds);
+    @Query(value = "SELECT * FROM permissions_get(:permissionSchemaId, :userId, :userGroupsFootprint)", nativeQuery = true)
+    List<UUID> findAllPermissionsForUser(UUID permissionSchemaId, UUID userId, UUID userGroupsFootprint);
 }

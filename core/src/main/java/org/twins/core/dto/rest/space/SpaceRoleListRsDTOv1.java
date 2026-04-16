@@ -10,9 +10,9 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "SpaceRoleListRsv1")
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "SpaceRoleListRsV1")
 public class SpaceRoleListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "space role user list")
-    public List<SpaceRoleDTOv1> spaceRoleUserList;
+    @Schema(description = "space roles")
+    public List<SpaceRoleDTOv1> spaceRoles;
 }

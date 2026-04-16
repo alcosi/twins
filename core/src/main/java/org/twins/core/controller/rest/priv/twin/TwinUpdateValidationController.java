@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
+@ProtectedBy(Permissions.TWIN_UPDATE)
 public class TwinUpdateValidationController extends ApiController {
     private final TwinService twinService;
     private final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
@@ -64,7 +64,7 @@ public class TwinUpdateValidationController extends ApiController {
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.setTwinId(twinId), dbTwinEntity))
                     .setCheckEditPermission(true);
-            twinService.validateFields(dbTwinEntity, twinUpdate.getFields());
+            twinService.validateFieldsOnUpdate(twinUpdate);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, HttpStatus.OK);
         } catch (ServiceException se) {

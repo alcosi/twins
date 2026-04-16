@@ -48,7 +48,7 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
+@ProtectedBy(Permissions.TWIN_CREATE)
 public class TwinCreateController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;
@@ -165,6 +165,8 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (TwinBatchFieldValidationException bve) {
+            return createErrorRs(bve, rs, null);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
@@ -230,6 +232,8 @@ public class TwinCreateController extends ApiController {
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, new TwinSaveRsV1(), null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

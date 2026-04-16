@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PERMISSION_GRANT_TWIN_ROLE_MANAGE, Permissions.PERMISSION_GRANT_TWIN_ROLE_DELETE})
+@ProtectedBy(Permissions.PERMISSION_GRANT_TWIN_ROLE_DELETE)
 public class PermissionGrantTwinRoleDeleteController extends ApiController {
     private final PermissionGrantTwinRoleService permissionGrantTwinRoleService;
 
@@ -42,7 +42,7 @@ public class PermissionGrantTwinRoleDeleteController extends ApiController {
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/permission_grant/twin_role/{permissionGrantTwinRoleId}/v1")
-    public ResponseEntity<?> permissionGrantAssigneePropagationDeleteV1(
+    public ResponseEntity<?> permissionGrantTwinRoleDeleteV1(
             @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID) @PathVariable UUID permissionGrantTwinRoleId) {
         Response rs = new Response();
         try {

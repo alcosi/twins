@@ -1,6 +1,5 @@
 package org.twins.core.dao.twinflow;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,10 +9,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
-import org.hibernate.annotations.Type;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @Entity
@@ -37,17 +34,11 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Basic
     private Integer order;
 
-    @Column(name = "transition_trigger_featurer_id")
-    private Integer transitionTriggerFeaturerId;
+    @Column(name = "twin_trigger_id")
+    private UUID twinTriggerId;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity transitionTriggerFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "transition_trigger_params", columnDefinition = "hstore")
-    private HashMap<String, String> transitionTriggerParams;
+    @Column(name = "async")
+    private Boolean async;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -55,16 +46,22 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
     private TwinflowTransitionEntity twinflowTransition;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
+    private TwinTriggerEntity twinTrigger;
+
     @Column(name = "active")
-    private Boolean isActive;
+    private Boolean active;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionTrigger[" + id + "]";
             case NORMAL ->
-                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", active: " + active + "]";
             default ->
-                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", twinTriggerId:" + twinTriggerId + ", active: " + active + "]";
         };
     }
 
@@ -73,9 +70,8 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
         return new TwinflowTransitionTriggerEntity()
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setOrder(order)
-                .setTransitionTriggerFeaturerId(transitionTriggerFeaturerId)
-                .setTransitionTriggerFeaturer(transitionTriggerFeaturer)
-                .setTransitionTriggerParams(transitionTriggerParams)
-                .setIsActive(isActive);
+                .setTwinTriggerId(twinTriggerId)
+                .setAsync(async)
+                .setActive(active);
     }
 }

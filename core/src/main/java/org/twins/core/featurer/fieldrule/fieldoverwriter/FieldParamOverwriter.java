@@ -9,7 +9,6 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -32,17 +31,6 @@ public abstract class FieldParamOverwriter<D extends FieldDescriptor> extends Fe
         }
         if (descriptorType == null)
             throw new RuntimeException("Can not initialize FieldOverwriter: descriptor type not resolved for " + getClass().getSimpleName());
-    }
-
-
-    private static List<Type> collectParameterizedTypes(Class<?> _class, List<Type> collected) {
-        Type t = _class.getGenericSuperclass();
-        if (t instanceof java.lang.reflect.ParameterizedType pt) {
-            collected.addAll(Arrays.asList(pt.getActualTypeArguments()));
-        }
-        if (_class.getSuperclass() == null)
-            return collected;
-        return collectParameterizedTypes(_class.getSuperclass(), collected);
     }
 
     public D getFieldOverwriterDescriptor(TwinClassFieldRuleEntity twinClassFieldRuleEntity) throws ServiceException {

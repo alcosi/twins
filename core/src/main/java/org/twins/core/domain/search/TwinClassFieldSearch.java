@@ -33,6 +33,8 @@ public class TwinClassFieldSearch {
     private Set<String> externalIdNotLikeList;
     private Set<Integer> fieldTyperIdList;
     private Set<Integer> fieldTyperIdExcludeList;
+    private Set<Integer> fieldInitiatorIdList;
+    private Set<Integer> fieldInitiatorIdExcludeList;
     private Set<Integer> twinSorterIdList;
     private Set<Integer> twinSorterIdExcludeList;
     private LongRange orderRange;
@@ -113,6 +115,8 @@ public class TwinClassFieldSearch {
             Pair.of(TwinClassFieldSearch::getExternalIdNotLikeList, TwinClassFieldSearch::setExternalIdNotLikeList),
             Pair.of(TwinClassFieldSearch::getFieldTyperIdList, TwinClassFieldSearch::setFieldTyperIdList),
             Pair.of(TwinClassFieldSearch::getFieldTyperIdExcludeList, TwinClassFieldSearch::setFieldTyperIdExcludeList),
+            Pair.of(TwinClassFieldSearch::getFieldInitiatorIdList, TwinClassFieldSearch::setFieldInitiatorIdList),
+            Pair.of(TwinClassFieldSearch::getFieldInitiatorIdExcludeList, TwinClassFieldSearch::setFieldInitiatorIdExcludeList),
             Pair.of(TwinClassFieldSearch::getTwinSorterIdList, TwinClassFieldSearch::setTwinSorterIdList),
             Pair.of(TwinClassFieldSearch::getTwinSorterIdExcludeList, TwinClassFieldSearch::setTwinSorterIdExcludeList),
             Pair.of(TwinClassFieldSearch::getViewPermissionIdList, TwinClassFieldSearch::setViewPermissionIdList),
