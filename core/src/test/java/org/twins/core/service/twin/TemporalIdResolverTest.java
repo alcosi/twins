@@ -92,20 +92,20 @@ class TemporalIdResolverTest {
 
     @Test
     void validateTemporalIdUniqueness_WithUniqueIds_NoException() throws ServiceException {
-        List<TwinCreateRqDTOv2> twins = new ArrayList<>();
-        twins.add(createTwinWithTemporalId("PROJECT-1"));
-        twins.add(createTwinWithTemporalId("TASK-1"));
-        twins.add(createTwinWithTemporalId("TASK-2"));
+        List<TwinCreate> twins = new ArrayList<>();
+        twins.add(createTwinCreateWithTemporalId("PROJECT-1"));
+        twins.add(createTwinCreateWithTemporalId("TASK-1"));
+        twins.add(createTwinCreateWithTemporalId("TASK-2"));
 
         assertDoesNotThrow(() -> temporalIdResolver.validateTemporalIdUniqueness(twins));
     }
 
     @Test
     void validateTemporalIdUniqueness_WithDuplicateIds_ThrowsException() {
-        List<TwinCreateRqDTOv2> twins = new ArrayList<>();
-        twins.add(createTwinWithTemporalId("PROJECT-1"));
-        twins.add(createTwinWithTemporalId("TASK-1"));
-        twins.add(createTwinWithTemporalId("PROJECT-1")); // duplicate
+        List<TwinCreate> twins = new ArrayList<>();
+        twins.add(createTwinCreateWithTemporalId("PROJECT-1"));
+        twins.add(createTwinCreateWithTemporalId("TASK-1"));
+        twins.add(createTwinCreateWithTemporalId("PROJECT-1")); // duplicate
 
         ServiceException exception = assertThrows(ServiceException.class, () ->
             temporalIdResolver.validateTemporalIdUniqueness(twins)
@@ -115,9 +115,9 @@ class TemporalIdResolverTest {
 
     @Test
     void validateTemporalIdUniqueness_WithNullIds_NoException() throws ServiceException {
-        List<TwinCreateRqDTOv2> twins = new ArrayList<>();
-        twins.add(createTwinWithTemporalId(null));
-        twins.add(createTwinWithTemporalId(null));
+        List<TwinCreate> twins = new ArrayList<>();
+        twins.add(createTwinCreateWithTemporalId(null));
+        twins.add(createTwinCreateWithTemporalId(null));
 
         assertDoesNotThrow(() -> temporalIdResolver.validateTemporalIdUniqueness(twins));
     }

@@ -370,9 +370,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Transactional(rollbackFor = Throwable.class)
     public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
         // Check if any twin has temporalId - use two-pass approach if so
-        boolean hasTemporalId = twinCreateList.stream().anyMatch(tc -> tc.getTemporalId() != null);
-
-        if (hasTemporalId) {
+        if (temporalIdResolver.hasAnyTemporalId(twinCreateList)) {
             return createTwinsAsyncWithTemporalId(twinCreateList);
         }
 

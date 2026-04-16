@@ -28,6 +28,7 @@ public class TwinCreate extends TwinSave {
     // TemporalId support fields
     private String temporalId; // for tracking during batch creation
     private String headTwinRef; // original headTwinId reference for later resolution
+    private Map<String, String> fieldsInput; // original input fields from DTO (String values, before conversion to FieldValue)
     private Map<String, String> fieldRefs; // field temporalId references for later resolution
     private List<LinkRef> linksRefList; // original link references for later resolution
 
@@ -54,26 +55,6 @@ public class TwinCreate extends TwinSave {
             linksRefList = new ArrayList<>();
         }
         linksRefList.add(linkRef);
-        return this;
-    }
-
-    // Explicit getters/setters for fieldRefs to avoid Lombok issues
-    public Map<String, String> getFieldRefs() {
-        return fieldRefs;
-    }
-
-    public TwinCreate setFieldRefs(Map<String, String> fieldRefs) {
-        this.fieldRefs = fieldRefs;
-        return this;
-    }
-
-    // Explicit getters/setters for linksRefList to avoid Lombok issues
-    public List<LinkRef> getLinksRefList() {
-        return linksRefList;
-    }
-
-    public TwinCreate setLinksRefList(List<LinkRef> linksRefList) {
-        this.linksRefList = linksRefList;
         return this;
     }
 

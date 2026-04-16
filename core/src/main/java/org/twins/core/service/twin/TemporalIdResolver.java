@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.*;
@@ -22,6 +21,13 @@ public class TemporalIdResolver {
      */
     public boolean isTemporalReference(String value) {
         return value != null && value.startsWith(TEMPORAL_ID_PREFIX);
+    }
+
+    /**
+     * Checks if any twin in the list has a temporalId set
+     */
+    public boolean hasAnyTemporalId(List<TwinCreate> twinCreates) {
+        return twinCreates.stream().anyMatch(tc -> tc.getTemporalId() != null);
     }
 
     /**
@@ -74,15 +80,15 @@ public class TemporalIdResolver {
     }
 
     /**
-     * Validates temporalId uniqueness in the request
+     * Validates temporalId uniqueness in the list
      */
-    public void validateTemporalIdUniqueness(List<TwinCreateRqDTOv2> twins) throws ServiceException {
+    public void validateTemporalIdUniqueness(List<TwinCreate> twinCreates) throws ServiceException {
         Set<String> seen = new HashSet<>();
-        for (TwinCreateRqDTOv2 twin : twins) {
-            if (twin.getTemporalId() != null) {
-                if (!seen.add(twin.getTemporalId())) {
+        for (TwinCreate twinCreate : twinCreates) {
+            if (twinCreate.getTemporalId() != null) {
+                if (!seen.add(twinCreate.getTemporalId())) {
                     throw new ServiceException(ErrorCodeTwins.DUPLICATE_TEMPORAL_ID,
-                        "Duplicate temporalId: " + twin.getTemporalId());
+                        "Duplicate temporalId: " + twinCreate.getTemporalId());
                 }
             }
         }
@@ -174,6 +180,23 @@ public class TemporalIdResolver {
             }
         }
         return temporalIdMap;
+    }
+
+    /**
+     * Extracts field references that contain temporalId: values from input fields
+     * @param twinCreate the twin create object with input fields
+     * @return map of fieldKey -> temporalId reference (only for fields with temporalId:)
+     */
+    public Map<String, String> extractFieldRefs(TwinCreate twinCreate) {
+        Map<String, String> fieldRefs = new HashMap<>();
+        if (twinCreate.getFieldsInput() != null) {
+            for (Map.Entry<String, String> entry : twinCreate.getFieldsInput().entrySet()) {
+                if (entry.getValue() != null && isTemporalReference(entry.getValue())) {
+                    fieldRefs.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return fieldRefs.isEmpty() ? null : fieldRefs;
     }
 
     /**

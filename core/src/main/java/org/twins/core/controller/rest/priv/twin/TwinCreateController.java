@@ -223,20 +223,22 @@ public class TwinCreateController extends ApiController {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);
             });
 
-            // Validate temporalId uniqueness if present
-            if (request.getTwins().stream().anyMatch(t -> t.getTemporalId() != null)) {
-                temporalIdResolver.validateTemporalIdUniqueness(request.getTwins());
-            }
-
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate
                         .setCheckCreatePermission(true)
                         .setLauncher(TwinOperation.Launcher.direct);
+                // Extract field refs with temporalId references
+                twinCreate.setFieldRefs(temporalIdResolver.extractFieldRefs(twinCreate));
+            }
+
+            // Validate temporalId uniqueness if present
+            if (temporalIdResolver.hasAnyTemporalId(twinCreates)) {
+                temporalIdResolver.validateTemporalIdUniqueness(twinCreates);
             }
 
             // Validate temporalId references exist
-            if (twinCreates.stream().anyMatch(tc -> tc.getTemporalId() != null)) {
+            if (temporalIdResolver.hasAnyTemporalId(twinCreates)) {
                 temporalIdResolver.validateTemporalIdReferencesExist(twinCreates);
                 // Detect cycles in temporalId references
                 temporalIdResolver.detectCycles(twinCreates);
@@ -246,7 +248,7 @@ public class TwinCreateController extends ApiController {
 
             // Build temporalIdMap for response
             Map<String, UUID> temporalIdMap = null;
-            if (request.getTwins().stream().anyMatch(t -> t.getTemporalId() != null)) {
+            if (temporalIdResolver.hasAnyTemporalId(twinCreates)) {
                 temporalIdMap = new HashMap<>();
                 for (int i = 0; i < request.getTwins().size() && i < twinEntities.size(); i++) {
                     String temporalId = request.getTwins().get(i).getTemporalId();

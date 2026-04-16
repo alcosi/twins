@@ -5,10 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 
 import java.util.*;
 
@@ -66,20 +64,20 @@ class TemporalIdResolverExtendedTest {
 
     @Test
     void testUniquenessValidation() throws ServiceException {
-        List<TwinCreateRqDTOv2> twins = new ArrayList<>();
-        twins.add(createTwinDto("PROJECT-1", UUID.randomUUID()));
-        twins.add(createTwinDto("TASK-1", UUID.randomUUID()));
-        twins.add(createTwinDto("TASK-2", UUID.randomUUID()));
+        List<TwinCreate> twins = new ArrayList<>();
+        twins.add(createTwinCreateWithTemporalId("PROJECT-1"));
+        twins.add(createTwinCreateWithTemporalId("TASK-1"));
+        twins.add(createTwinCreateWithTemporalId("TASK-2"));
 
         assertDoesNotThrow(() -> temporalIdResolver.validateTemporalIdUniqueness(twins));
     }
 
     @Test
     void testDuplicateTemporalIdDetection() {
-        List<TwinCreateRqDTOv2> twins = new ArrayList<>();
-        twins.add(createTwinDto("PROJECT-1", UUID.randomUUID()));
-        twins.add(createTwinDto("TASK-1", UUID.randomUUID()));
-        twins.add(createTwinDto("PROJECT-1", UUID.randomUUID())); // duplicate
+        List<TwinCreate> twins = new ArrayList<>();
+        twins.add(createTwinCreateWithTemporalId("PROJECT-1"));
+        twins.add(createTwinCreateWithTemporalId("TASK-1"));
+        twins.add(createTwinCreateWithTemporalId("PROJECT-1")); // duplicate
 
         assertThrows(ServiceException.class, () ->
             temporalIdResolver.validateTemporalIdUniqueness(twins)
@@ -116,17 +114,16 @@ class TemporalIdResolverExtendedTest {
     }
 
     // Helper methods
-    private TwinCreateRqDTOv2 createTwinDto(String temporalId, UUID classId) {
-        TwinCreateRqDTOv2 dto = new TwinCreateRqDTOv2();
-        dto.setTemporalId(temporalId);
-        dto.setClassId(classId);
-        return dto;
-    }
-
     private TwinCreate createTwinCreate(String temporalId, String headTwinRef) {
         TwinCreate tc = new TwinCreate();
         tc.setTemporalId(temporalId);
         tc.setHeadTwinRef(headTwinRef);
+        return tc;
+    }
+
+    private TwinCreate createTwinCreateWithTemporalId(String temporalId) {
+        TwinCreate tc = new TwinCreate();
+        tc.setTemporalId(temporalId);
         return tc;
     }
 }
