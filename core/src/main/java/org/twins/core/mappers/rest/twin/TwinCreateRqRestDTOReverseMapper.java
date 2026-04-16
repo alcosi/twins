@@ -18,6 +18,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -37,21 +38,39 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     @Override
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
+
+        // Save temporalId for later resolution
+        dst.setTemporalId(src.getTemporalId());
+
+        // Save original headTwinId reference for later resolution (can be temporalId: or UUID string)
+        if (src.getHeadTwinId() != null) {
+            dst.setHeadTwinRef(src.getHeadTwinId());
+        }
+
+        // Save original link references for later resolution
+        if (src.getLinks() != null && !src.getLinks().isEmpty()) {
+            for (var linkDto : src.getLinks()) {
+                TwinCreate.LinkRef linkRef = new TwinCreate.LinkRef()
+                        .setLinkId(linkDto.getLinkId())
+                        .setDstTwinIdRef(linkDto.getDstTwinId());
+                dst.addLinkRef(linkRef);
+            }
+        }
+
         dst
-                .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
+                .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT)
                 .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()))
                 .setTwinEntity(new TwinEntity()
                         .setTwinClassId(src.getClassId())
                         .setName(src.getName() == null ? "" : src.getName())
                         .setCreatedByUserId(apiUser.getUser().getId())
                         .setCreatedByUser(apiUser.getUser())
-                        .setHeadTwinId(src.getHeadTwinId())
                         .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                         .setDescription(src.getDescription())
                         .setExternalId(src.getExternalId()));
         dst
                 .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))
-                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getLinks()))
+                // Don't convert links here - will resolve in second pass
                 .setTwinFieldAttributeEntityList(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(src.getFieldAttributes()))
                 .setTagsAddNew(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::newTags)
@@ -59,7 +78,25 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                 .setTagsAddExisted(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::existingTags)
                         .orElseGet(HashSet::new));
+
+        // Set field refs with explicit cast
+        dst.setFieldRefs(extractFieldRefs(src.getFields()));
     }
 
-
+    /**
+     * Extracts field references that contain temporalId: values
+     * @param fieldsMap the fields map from request
+     * @return map of fieldKey -> temporalId reference (only for fields with temporalId:)
+     */
+    private Map<String, String> extractFieldRefs(Map<String, String> fieldsMap) {
+        Map<String, String> fieldRefs = new java.util.HashMap<>();
+        if (fieldsMap != null) {
+            for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
+                if (entry.getValue() != null && entry.getValue().startsWith("temporalId:")) {
+                    fieldRefs.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        return fieldRefs.isEmpty() ? null : fieldRefs;
+    }
 }

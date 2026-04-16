@@ -27,7 +27,7 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinLinkRestDTOMapper.map(src, dst, mapperContext);
         dst
-                .setDstTwinId(src.getSrcTwinId());
+                .setDstTwinId(src.getSrcTwinId() != null ? src.getSrcTwinId().toString() : null);
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
             twinBaseV2RestDTOMapper.postpone(src.getSrcTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
         }

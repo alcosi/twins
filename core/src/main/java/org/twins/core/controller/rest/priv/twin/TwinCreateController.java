@@ -39,6 +39,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twin.TemporalIdResolver;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
@@ -60,6 +61,7 @@ public class TwinCreateController extends ApiController {
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TemporalIdResolver temporalIdResolver;
 
     @Deprecated
     @ParametersApiUserHeaders
@@ -220,16 +222,41 @@ public class TwinCreateController extends ApiController {
             request.getTwins().forEach(twinCreateRqDTOv1 -> {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);
             });
+
+            // Validate temporalId uniqueness if present
+            if (request.getTwins().stream().anyMatch(t -> t.getTemporalId() != null)) {
+                temporalIdResolver.validateTemporalIdUniqueness(request.getTwins());
+            }
+
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate
                         .setCheckCreatePermission(true)
                         .setLauncher(TwinOperation.Launcher.direct);
             }
+
+            // Detect cycles in temporalId references
+            if (twinCreates.stream().anyMatch(tc -> tc.getTemporalId() != null)) {
+                temporalIdResolver.detectCycles(twinCreates);
+            }
+
             List<TwinEntity> twinEntities = twinService.createTwinsAsyncBatch(twinCreates);
-            rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+
+            // Build temporalIdMap for response
+            Map<String, UUID> temporalIdMap = null;
+            if (request.getTwins().stream().anyMatch(t -> t.getTemporalId() != null)) {
+                temporalIdMap = new HashMap<>();
+                for (int i = 0; i < request.getTwins().size() && i < twinEntities.size(); i++) {
+                    String temporalId = request.getTwins().get(i).getTemporalId();
+                    if (temporalId != null) {
+                        temporalIdMap.put(temporalId, twinEntities.get(i).getId());
+                    }
+                }
+            }
+
+            rs.setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext));
+            rs.setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+            rs.setTemporalIdMap(temporalIdMap);
         } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (TwinFieldValidationException ve) {

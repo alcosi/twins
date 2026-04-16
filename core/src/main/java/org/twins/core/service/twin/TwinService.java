@@ -117,6 +117,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     private final AuthService authService;
     private final TwinChangesService twinChangesService;
+    private final TemporalIdResolver temporalIdResolver;
     @Lazy
     private final HistoryService historyService;
     @Lazy
@@ -368,7 +369,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
-        // todo try to use parallel stream for this
+        // Check if any twin has temporalId - use two-pass approach if so
+        boolean hasTemporalId = twinCreateList.stream().anyMatch(tc -> tc.getTemporalId() != null);
+
+        if (hasTemporalId) {
+            return createTwinsAsyncWithTemporalId(twinCreateList);
+        }
+
+        // Original logic for backward compatibility
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         //batch load twin classes if they are null, before loadFieldEditability call
         List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
@@ -388,6 +396,133 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return twins;
+    }
+
+    private List<TwinEntity> createTwinsAsyncWithTemporalId(List<TwinCreate> twinCreateList) throws ServiceException {
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+
+        // Load twin classes and field editability
+        List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
+        loadClass(twinEntities);
+        loadFieldEditability(twinEntities);
+
+        // FIRST PASS: Create all twins without resolving relations
+        for (TwinCreate twinCreate : twinCreateList) {
+            // Temporarily clear headTwinId (saved in headTwinRef)
+            twinCreate.getTwinEntity().setHeadTwinId(null);
+            createTwin(twinCreate, twinChangesCollector);
+        }
+
+        // Apply first pass changes
+        TwinChangesApplyResult result = twinChangesService.applyChanges(twinChangesCollector);
+
+        // Build temporalId -> UUID mapping
+        Map<String, UUID> temporalIdMap = new HashMap<>();
+        for (int i = 0; i < twinCreateList.size(); i++) {
+            TwinCreate tc = twinCreateList.get(i);
+            if (tc.getTemporalId() != null) {
+                TwinEntity created = result.getById(TwinEntity.class, TwinEntity::getId, tc.getTwinId());
+                temporalIdMap.put(tc.getTemporalId(), created.getId());
+            }
+        }
+
+        // SECOND PASS: Resolve and update references
+        TwinChangesCollector secondPassCollector = new TwinChangesCollector();
+        for (TwinCreate twinCreate : twinCreateList) {
+            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
+
+            // Resolve headTwinId
+            if (twinCreate.getHeadTwinRef() != null) {
+                UUID resolvedHeadId = temporalIdResolver.resolveUuid(twinCreate.getHeadTwinRef(), temporalIdMap);
+                twinEntity.setHeadTwinId(resolvedHeadId);
+            }
+
+            // Resolve link references from linksRefList
+            if (CollectionUtils.isNotEmpty(twinCreate.getLinksRefList())) {
+                List<TwinLinkEntity> resolvedLinks = new ArrayList<>();
+                for (TwinCreate.LinkRef linkRef : twinCreate.getLinksRefList()) {
+                    TwinLinkEntity link = new TwinLinkEntity()
+                            .setLinkId(linkRef.getLinkId());
+                    if (linkRef.getDstTwinIdRef() != null) {
+                        UUID resolvedDstId = temporalIdResolver.resolveUuid(linkRef.getDstTwinIdRef(), temporalIdMap);
+                        link.setDstTwinId(resolvedDstId);
+                    }
+                    link.setSrcTwinId(twinEntity.getId());
+                    resolvedLinks.add(link);
+                }
+                twinLinkService.addLinks(twinEntity, resolvedLinks, secondPassCollector);
+            }
+
+            // Resolve field references
+            if (MapUtils.isNotEmpty(twinCreate.getFieldRefs())) {
+                resolveFieldReferences(twinEntity, twinCreate, temporalIdMap, secondPassCollector);
+            }
+
+            validateAndCollect(twinEntity, secondPassCollector);
+        }
+
+        // Apply second pass changes
+        twinChangesService.applyChanges(secondPassCollector);
+
+        // Collect results and run triggers
+        List<TwinEntity> twins = new ArrayList<>();
+        for (TwinCreate twinCreate : twinCreateList) {
+            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
+            twins.add(twinEntity);
+            twinStatusTriggerService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+        }
+        twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
+
+        return twins;
+    }
+
+    private void resolveFieldReferences(TwinEntity twinEntity, TwinCreate twinCreate,
+                                       Map<String, UUID> temporalIdMap,
+                                       TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinCreate.getFields() == null || twinCreate.getFieldRefs() == null) {
+            return;
+        }
+
+        for (Map.Entry<String, String> entry : twinCreate.getFieldRefs().entrySet()) {
+            String fieldKey = entry.getKey();
+            String temporalRef = entry.getValue();
+
+            // Find the field by key or UUID
+            TwinClassFieldEntity fieldEntity = null;
+            try {
+                UUID fieldId = UUID.fromString(fieldKey);
+                // Try to find by ID in existing fields
+                for (FieldValue fieldValue : twinCreate.getFields().values()) {
+                    if (fieldValue.getTwinClassField().getId().equals(fieldId)) {
+                        fieldEntity = fieldValue.getTwinClassField();
+                        break;
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                // Not a UUID, try to find by key
+                fieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParents(
+                    twinEntity.getTwinClassId(), fieldKey);
+            }
+
+            if (fieldEntity != null) {
+                // Resolve the temporalId reference
+                UUID resolvedId = temporalIdResolver.resolveUuid(temporalRef, temporalIdMap);
+                String resolvedValue = resolvedId.toString();
+
+                // Update the field value with resolved UUID
+                FieldValue fieldValue = twinCreate.getFields().get(fieldEntity.getId());
+                if (fieldValue != null) {
+                    // Create new field value with resolved UUID
+                    FieldValue newValue = fieldValue.newInstance(fieldEntity);
+                    if (newValue.hasValue(resolvedValue)) {
+                        twinCreate.getFields().put(fieldEntity.getId(), newValue);
+                    }
+                }
+            }
+        }
+
+        // Save the updated fields
+        saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
     }
 
     public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException {

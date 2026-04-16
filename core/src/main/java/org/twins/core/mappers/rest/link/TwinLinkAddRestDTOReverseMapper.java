@@ -11,6 +11,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.UUID;
+
 
 @Component
 @RequiredArgsConstructor
@@ -23,9 +25,19 @@ public class TwinLinkAddRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLin
     public void map(TwinLinkAddDTOv1 src, TwinLinkEntity dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
         dst
-                .setDstTwin(twinService.findEntity(src.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows))
                 .setLinkId(src.getLinkId())
-                .setDstTwinId(src.getDstTwinId())
                 .setCreatedByUserId(apiUser.getUser().getId());
+
+        // Only resolve dstTwin if it's not a temporalId reference
+        if (src.getDstTwinId() != null && !src.getDstTwinId().startsWith("temporalId:")) {
+            try {
+                UUID dstTwinId = UUID.fromString(src.getDstTwinId());
+                dst.setDstTwin(twinService.findEntity(dstTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows))
+                   .setDstTwinId(dstTwinId);
+            } catch (IllegalArgumentException e) {
+                // Invalid UUID format - will be handled later
+                dst.setDstTwinId(null);
+            }
+        }
     }
 }
