@@ -1,4 +1,4 @@
-package org.twins.core.dao.specifications;
+package org.twins.core.service.specifications;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -21,6 +21,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.twins.core.dao.specifications.CommonSpecification;
 
 import javax.sql.DataSource;
 import java.util.Collections;
@@ -51,6 +52,7 @@ public class CommonSpecificationIntegrationTest {
     @BeforeAll
     public static void init(@Autowired DataSource dataSource) throws Exception {
         try (var conn = dataSource.getConnection()) {
+            conn.setAutoCommit(true);
             var stmt = conn.createStatement();
             stmt.execute("CREATE OR REPLACE FUNCTION uuid_in_array(uuid_val uuid, uuid_array uuid[]) RETURNS boolean AS $$\n" +
                     "SELECT uuid_val = ANY(uuid_array);\n" +
