@@ -13,6 +13,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
@@ -21,8 +22,8 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
+import static org.twins.core.dao.trigger.TwinTriggerTaskSpecification.*;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
@@ -41,6 +42,7 @@ public class TwinTriggerTaskSearchService {
     private Specification<TwinTriggerTaskEntity> createTwinTriggerTaskSearchSpecification(TwinTriggerTaskSearch search) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         return Specification.allOf(
+                checkFieldUuid(domainId, DataListEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinTriggerTaskEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinTriggerTaskEntity.Fields.id),
                 checkUuidIn(search.getTwinIdList(), false, false, TwinTriggerTaskEntity.Fields.twinId),
@@ -53,13 +55,8 @@ public class TwinTriggerTaskSearchService {
                 checkUuidIn(search.getCreatedByUserIdExcludeList(), true, false, TwinTriggerTaskEntity.Fields.createdByUserId),
                 checkUuidIn(search.getBusinessAccountIdList(), false, false, TwinTriggerTaskEntity.Fields.businessAccountId),
                 checkUuidIn(search.getBusinessAccountIdExcludeList(), true, false, TwinTriggerTaskEntity.Fields.businessAccountId),
-
-                checkFieldLikeIn(search.getStatusIdList() == null ? null : search.getStatusIdList().stream().map(Enum::name).toList(), false, false, TwinTriggerTaskEntity.Fields.statusId),
-                checkFieldLikeIn(search.getStatusIdList() == null ? null : search.getStatusIdList().stream().map(Enum::name).toList(), true, false, TwinTriggerTaskEntity.Fields.statusId),
-                (root, query, cb) -> {
-                    Join<TwinTriggerTaskEntity, TwinTriggerEntity> triggerJoin = root.join("twinTrigger", JoinType.INNER);
-                    return cb.equal(triggerJoin.get("domainId"), domainId);
-                }
+                checkStatusLikeIn(search.getStatusIdList(), false),
+                checkStatusLikeIn(search.getStatusIdExcludeList(), true)
         );
     }
 }
