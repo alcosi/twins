@@ -40,10 +40,8 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -296,6 +294,11 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Set<UUID> extendedClassIdSetExcludeCurrent;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> headHierarchyClassIdSet;
 
     @Transient
@@ -435,6 +438,16 @@ public class TwinClassEntity implements EasyLoggable {
             extendedClassIdSet = LTreeUtils.toUuidsSortedSet(extendsHierarchyTree, true);
         }
         return extendedClassIdSet;
+    }
+
+    public Set<UUID> getExtendedClassIdSetExcludeCurrent() {
+        if (extendedClassIdSetExcludeCurrent != null)
+            return extendedClassIdSetExcludeCurrent;
+        if (extendsTwinClassId == null) {
+            return Collections.emptySet();
+        }
+        extendedClassIdSetExcludeCurrent = getExtendedClassIdSet().stream().filter(t -> !id.equals(t)).collect(Collectors.toSet());
+        return extendedClassIdSetExcludeCurrent;
     }
 
     public Set<UUID> getHeadHierarchyClassIdSet() {

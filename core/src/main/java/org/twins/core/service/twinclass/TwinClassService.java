@@ -424,6 +424,16 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return true;
     }
 
+    public boolean isInheritedFromClass(TwinClassEntity instanceClass, UUID fromClass, boolean inheritable) throws ServiceException {
+        if (instanceClass.getId().equals(fromClass)) {
+            return true;
+        } else if (!inheritable) {
+            return false;
+        } else {
+            return instanceClass.getExtendedClassIdSet().contains(fromClass);
+        }
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassCreate twinClassCreate, FileData iconLight, FileData iconDark) throws ServiceException {
         return createInDomainClass((List.of(twinClassCreate)), iconLight, iconDark).getFirst();

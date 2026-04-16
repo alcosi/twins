@@ -74,7 +74,11 @@ public class TwinClassDynamicMarkerEntity implements ContainsTwinValidatorSet, E
             case SHORT -> "twinClassDynamicMarker[" + id + "]";
             case NORMAL -> "twinClassDynamicMarker[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinClassDynamicMarker[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + ", markerDataListOptionId:" + markerDataListOptionId + "]";
+                    "twinClassDynamicMarker[id:" + id +
+                            ", twinClassId:" + twinClassId +
+                            ", inheritable:" + inheritable +
+                            ", twinValidatorSetId:" + twinValidatorSetId +
+                            ", markerDataListOptionId:" + markerDataListOptionId + "]";
         };
     }
 }

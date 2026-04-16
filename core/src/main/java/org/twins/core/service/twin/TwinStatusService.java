@@ -104,7 +104,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             needLoad.add(twinClassEntity);
             twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId));
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
-                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSet().stream().filter(t -> !twinClassEntity.getId().equals(t)).toList());
+                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
         if (needLoad.isEmpty())
             return;

@@ -41,6 +41,7 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
                 dst
                         .setId(src.getId())
                         .setTwinClassId(src.getTwinClassId())
+                        .setInheritable(src.getInheritable())
                         .setTwinValidatorSetId(src.getTwinValidatorSetId())
                         .setMarkerDataListOptionId(src.getMarkerDataListOptionId())
                 ;

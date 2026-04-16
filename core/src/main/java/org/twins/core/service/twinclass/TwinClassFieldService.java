@@ -148,7 +148,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             needLoad.add(twinClassEntity);
             twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId));
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
-                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSet().stream().filter(t -> !twinClassEntity.getId().equals(t)).toList());
+                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
         if (needLoad.isEmpty())
             return;
@@ -790,11 +790,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public boolean isValidForClass(TwinClassEntity twinClass, TwinClassFieldEntity twinClassField) throws ServiceException {
-        if (twinClass.getId().equals(twinClassField.getTwinClassId()))
-            return true;
-        else if (Boolean.FALSE.equals(twinClassField.getInheritable()))
-            return false;
-        else
-            return twinClassService.isInstanceOf(twinClass, twinClassField.getTwinClassId());
+        return twinClassService.isInheritedFromClass(twinClass, twinClassField.getTwinClassId(), twinClassField.getInheritable());
     }
 }

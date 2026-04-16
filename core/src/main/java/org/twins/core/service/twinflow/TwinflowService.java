@@ -181,7 +181,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             needLoad.add(twinClassEntity);
             twinClassEntity.setTwinflowKit(new Kit<>(TwinflowEntity::getId));
             if (twinClassEntity.getExtendedClassIdSet().size() > 1)
-                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSet().stream().filter(t -> !twinClassEntity.getId().equals(t)).toList());
+                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
         if (needLoad.isEmpty())
             return;

@@ -174,7 +174,17 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private Kit<TwinClassFieldRuleEntity, UUID> ruleKit;
 
     public String easyLog(Level level) {
-        return "twinClassField[id:" + id + ", key:" + key + "]";
+        return switch (level) {
+            case SHORT -> "twinClassField[" + id + "]";
+            case NORMAL -> "twinClassField[id:" + id + ", key:" + key + "]";
+            default -> "twinClassField[id:" + id +
+                    ", key:" + key +
+                    ", twinClassId:" + twinClassId +
+                    ", inheritable:" + inheritable +
+                    ", required:" + required +
+                    ", system:" + system +
+                    ", order:" + order + "]";
+        };
     }
 
     public boolean isBaseField() {
