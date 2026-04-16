@@ -44,7 +44,7 @@ class TemporalIdResolverTest {
     }
 
     @Test
-    void extractTemporalKey_WithValidReference_ReturnsKey() {
+    void extractTemporalKey_WithValidReference_ReturnsKey() throws ServiceException {
         assertEquals("PROJECT-1", temporalIdResolver.extractTemporalKey("temporalId:PROJECT-1"));
         assertEquals("TASK-2", temporalIdResolver.extractTemporalKey("temporalId:TASK-2"));
     }
@@ -226,5 +226,272 @@ class TemporalIdResolverTest {
         TwinCreate tc = new TwinCreate();
         tc.setTemporalId(temporalId);
         return tc;
+    }
+
+    // Additional tests for extended cycle detection
+
+    @Test
+    void detectCycles_WithFieldCycle_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc1 = createTwinCreateWithTemporalId("A");
+        Map<String, String> fieldRefs1 = new HashMap<>();
+        fieldRefs1.put("refField", "temporalId:B");
+        tc1.setFieldRefs(fieldRefs1);
+
+        TwinCreate tc2 = createTwinCreateWithTemporalId("B");
+        Map<String, String> fieldRefs2 = new HashMap<>();
+        fieldRefs2.put("refField", "temporalId:A");
+        tc2.setFieldRefs(fieldRefs2);
+
+        twinCreates.add(tc1);
+        twinCreates.add(tc2);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.detectCycles(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("Cyclic dependency"));
+    }
+
+    @Test
+    void detectCycles_WithLinkCycle_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc1 = createTwinCreateWithTemporalId("A");
+        List<TwinCreate.LinkRef> links1 = new ArrayList<>();
+        links1.add(new TwinCreate.LinkRef().setDstTwinIdRef("temporalId:B"));
+        tc1.setLinksRefList(links1);
+
+        TwinCreate tc2 = createTwinCreateWithTemporalId("B");
+        List<TwinCreate.LinkRef> links2 = new ArrayList<>();
+        links2.add(new TwinCreate.LinkRef().setDstTwinIdRef("temporalId:A"));
+        tc2.setLinksRefList(links2);
+
+        twinCreates.add(tc1);
+        twinCreates.add(tc2);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.detectCycles(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("Cyclic dependency"));
+    }
+
+    @Test
+    void detectCycles_WithMixedReferencesCycle_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+
+        // A -> B (via headTwinId)
+        TwinCreate tc1 = createTwinCreateWithRef("A", "temporalId:B");
+
+        // B -> C (via field)
+        TwinCreate tc2 = createTwinCreateWithTemporalId("B");
+        Map<String, String> fieldRefs2 = new HashMap<>();
+        fieldRefs2.put("next", "temporalId:C");
+        tc2.setFieldRefs(fieldRefs2);
+
+        // C -> A (via link)
+        TwinCreate tc3 = createTwinCreateWithTemporalId("C");
+        List<TwinCreate.LinkRef> links3 = new ArrayList<>();
+        links3.add(new TwinCreate.LinkRef().setDstTwinIdRef("temporalId:A"));
+        tc3.setLinksRefList(links3);
+
+        twinCreates.add(tc1);
+        twinCreates.add(tc2);
+        twinCreates.add(tc3);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.detectCycles(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("Cyclic dependency"));
+    }
+
+    @Test
+    void detectCycles_WithNoCyclesInFields_NoException() throws ServiceException {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+
+        TwinCreate tc1 = createTwinCreateWithTemporalId("PROJECT-1");
+        Map<String, String> fieldRefs1 = new HashMap<>();
+        fieldRefs1.put("milestone", "temporalId:MILESTONE-1");
+        tc1.setFieldRefs(fieldRefs1);
+
+        TwinCreate tc2 = createTwinCreateWithTemporalId("MILESTONE-1");
+        // No references back to PROJECT-1
+
+        twinCreates.add(tc1);
+        twinCreates.add(tc2);
+
+        assertDoesNotThrow(() -> temporalIdResolver.detectCycles(twinCreates));
+    }
+
+    // Additional tests for null safety and edge cases
+
+    @Test
+    void extractTemporalKey_WithEmptyKey_ThrowsException() {
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.extractTemporalKey("temporalId:")
+        );
+        assertTrue(exception.getMessage().contains("key cannot be empty"));
+    }
+
+    @Test
+    void extractTemporalKey_WithInvalidCharacters_ThrowsException() {
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.extractTemporalKey("temporalId:../../../etc/passwd")
+        );
+        assertTrue(exception.getMessage().contains("invalid characters"));
+    }
+
+    @Test
+    void detectCycles_WithNullFieldValues_NoException() throws ServiceException {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithTemporalId("A");
+        Map<String, String> fieldRefs = new HashMap<>();
+        fieldRefs.put("field1", "temporalId:B");
+        fieldRefs.put("field2", null); // null value should not cause NPE
+        fieldRefs.put("field3", "regular-uuid-string");
+        tc.setFieldRefs(fieldRefs);
+
+        twinCreates.add(tc);
+        twinCreates.add(createTwinCreateWithTemporalId("B"));
+
+        assertDoesNotThrow(() -> temporalIdResolver.detectCycles(twinCreates));
+    }
+
+    @Test
+    void detectCycles_WithNullLinkRef_NoException() throws ServiceException {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithTemporalId("A");
+        List<TwinCreate.LinkRef> links = new ArrayList<>();
+        links.add(new TwinCreate.LinkRef().setDstTwinIdRef("temporalId:B"));
+        links.add(null); // null entry should not cause NPE
+        tc.setLinksRefList(links);
+
+        twinCreates.add(tc);
+        twinCreates.add(createTwinCreateWithTemporalId("B"));
+
+        assertDoesNotThrow(() -> temporalIdResolver.detectCycles(twinCreates));
+    }
+
+    @Test
+    void detectCycles_WithSelfReference_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithRef("A", "temporalId:A"); // self-reference
+
+        twinCreates.add(tc);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.detectCycles(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("Cyclic dependency"));
+    }
+
+    @Test
+    void detectCycles_WithFieldSelfReference_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithTemporalId("A");
+        Map<String, String> fieldRefs = new HashMap<>();
+        fieldRefs.put("selfRef", "temporalId:A"); // self-reference via field
+        tc.setFieldRefs(fieldRefs);
+
+        twinCreates.add(tc);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.detectCycles(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("Cyclic dependency"));
+    }
+
+    @Test
+    void isTemporalReference_WithNull_ReturnsFalse() {
+        assertFalse(temporalIdResolver.isTemporalReference(null));
+    }
+
+    @Test
+    void isTemporalReference_WithEmptyString_ReturnsFalse() {
+        assertFalse(temporalIdResolver.isTemporalReference(""));
+    }
+
+    @Test
+    void isTemporalReference_WithRegularString_ReturnsFalse() {
+        assertFalse(temporalIdResolver.isTemporalReference("regular-uuid-string"));
+    }
+
+    // Tests for temporalId reference validation
+
+    @Test
+    void validateTemporalIdReferencesExist_WithAllValid_NoException() throws ServiceException {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc1 = createTwinCreateWithRef("A", "temporalId:B");
+        Map<String, String> fieldRefs1 = new HashMap<>();
+        fieldRefs1.put("ref", "temporalId:B");
+        tc1.setFieldRefs(fieldRefs1);
+
+        TwinCreate tc2 = createTwinCreateWithTemporalId("B");
+
+        twinCreates.add(tc1);
+        twinCreates.add(tc2);
+
+        assertDoesNotThrow(() -> temporalIdResolver.validateTemporalIdReferencesExist(twinCreates));
+    }
+
+    @Test
+    void validateTemporalIdReferencesExist_WithInvalidHeadTwinRef_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithRef("A", "temporalId:NONEXISTENT");
+
+        twinCreates.add(tc);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.validateTemporalIdReferencesExist(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void validateTemporalIdReferencesExist_WithInvalidFieldRef_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithTemporalId("A");
+        Map<String, String> fieldRefs = new HashMap<>();
+        fieldRefs.put("ref", "temporalId:NONEXISTENT");
+        tc.setFieldRefs(fieldRefs);
+
+        twinCreates.add(tc);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.validateTemporalIdReferencesExist(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void validateTemporalIdReferencesExist_WithInvalidLinkRef_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc = createTwinCreateWithTemporalId("A");
+        List<TwinCreate.LinkRef> links = new ArrayList<>();
+        links.add(new TwinCreate.LinkRef().setDstTwinIdRef("temporalId:NONEXISTENT"));
+        tc.setLinksRefList(links);
+
+        twinCreates.add(tc);
+
+        ServiceException exception = assertThrows(ServiceException.class, () ->
+            temporalIdResolver.validateTemporalIdReferencesExist(twinCreates)
+        );
+        assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void validateTemporalIdReferencesExist_WithMixedValidInvalid_ThrowsException() {
+        List<TwinCreate> twinCreates = new ArrayList<>();
+        TwinCreate tc1 = createTwinCreateWithRef("A", "temporalId:B");
+
+        TwinCreate tc2 = createTwinCreateWithTemporalId("B");
+        Map<String, String> fieldRefs = new HashMap<>();
+        fieldRefs.put("ref", "temporalId:NONEXISTENT");
+        tc2.setFieldRefs(fieldRefs);
+
+        twinCreates.add(tc1);
+        twinCreates.add(tc2);
+
+        assertThrows(ServiceException.class, () ->
+            temporalIdResolver.validateTemporalIdReferencesExist(twinCreates)
+        );
     }
 }

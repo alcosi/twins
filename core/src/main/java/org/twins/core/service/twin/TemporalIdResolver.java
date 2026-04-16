@@ -26,9 +26,24 @@ public class TemporalIdResolver {
 
     /**
      * Extracts the key from a temporalId reference
+     * @throws ServiceException if the reference format is invalid
      */
-    public String extractTemporalKey(String value) {
-        return value.substring(TEMPORAL_ID_PREFIX.length());
+    public String extractTemporalKey(String value) throws ServiceException {
+        if (!value.startsWith(TEMPORAL_ID_PREFIX)) {
+            throw new ServiceException(ErrorCodeTwins.INVALID_TEMPORAL_REFERENCE,
+                "Invalid temporal reference format: " + value);
+        }
+        String key = value.substring(TEMPORAL_ID_PREFIX.length());
+        if (key.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.INVALID_TEMPORAL_REFERENCE,
+                "Temporal reference key cannot be empty");
+        }
+        // Validate key contains only valid characters (alphanumeric, hyphen, underscore)
+        if (!key.matches("^[a-zA-Z0-9_-]+$")) {
+            throw new ServiceException(ErrorCodeTwins.INVALID_TEMPORAL_REFERENCE,
+                "Temporal reference key contains invalid characters: " + key);
+        }
+        return key;
     }
 
     /**
@@ -75,14 +90,37 @@ public class TemporalIdResolver {
 
     /**
      * Detects cyclic dependencies in temporalId references
+     * Checks headTwinRef, fieldRefs, and linksRefList for cycles
      */
     public void detectCycles(List<TwinCreate> twinCreates) throws ServiceException {
-        // Build graph of temporalId -> headTwinId references
-        Map<String, String> graph = new HashMap<>();
+        // Build multigraph: temporalId -> Set of target temporalIds
+        Map<String, Set<String>> graph = new HashMap<>();
+
         for (TwinCreate tc : twinCreates) {
-            if (tc.getTemporalId() != null && tc.getHeadTwinRef() != null) {
-                if (isTemporalReference(tc.getHeadTwinRef())) {
-                    graph.put(tc.getTemporalId(), extractTemporalKey(tc.getHeadTwinRef()));
+            if (tc.getTemporalId() == null) continue;
+
+            Set<String> targets = graph.computeIfAbsent(tc.getTemporalId(), k -> new HashSet<>());
+
+            // Add headTwinRef if present
+            if (tc.getHeadTwinRef() != null && isTemporalReference(tc.getHeadTwinRef())) {
+                targets.add(extractTemporalKey(tc.getHeadTwinRef()));
+            }
+
+            // Add fieldRefs
+            if (tc.getFieldRefs() != null) {
+                for (String fieldRef : tc.getFieldRefs().values()) {
+                    if (fieldRef != null && isTemporalReference(fieldRef)) {
+                        targets.add(extractTemporalKey(fieldRef));
+                    }
+                }
+            }
+
+            // Add linksRefList
+            if (tc.getLinksRefList() != null) {
+                for (TwinCreate.LinkRef linkRef : tc.getLinksRefList()) {
+                    if (linkRef != null && linkRef.getDstTwinIdRef() != null && isTemporalReference(linkRef.getDstTwinIdRef())) {
+                        targets.add(extractTemporalKey(linkRef.getDstTwinIdRef()));
+                    }
                 }
             }
         }
@@ -92,24 +130,28 @@ public class TemporalIdResolver {
         Set<String> recursionStack = new HashSet<>();
 
         for (String node : graph.keySet()) {
-            if (hasCycle(node, graph, visited, recursionStack)) {
+            if (hasCycleInMultigraph(node, graph, visited, recursionStack)) {
                 throw new ServiceException(ErrorCodeTwins.CYCLIC_DEPENDENCY,
                     "Cyclic dependency detected in temporal references starting from: " + node);
             }
         }
     }
 
-    private boolean hasCycle(String node, Map<String, String> graph,
-                            Set<String> visited, Set<String> recursionStack) {
+    private boolean hasCycleInMultigraph(String node, Map<String, Set<String>> graph,
+                                          Set<String> visited, Set<String> recursionStack) {
         if (recursionStack.contains(node)) return true;
         if (visited.contains(node)) return false;
 
         visited.add(node);
         recursionStack.add(node);
 
-        String neighbor = graph.get(node);
-        if (neighbor != null && hasCycle(neighbor, graph, visited, recursionStack)) {
-            return true;
+        Set<String> neighbors = graph.get(node);
+        if (neighbors != null) {
+            for (String neighbor : neighbors) {
+                if (hasCycleInMultigraph(neighbor, graph, visited, recursionStack)) {
+                    return true;
+                }
+            }
         }
 
         recursionStack.remove(node);
@@ -132,5 +174,58 @@ public class TemporalIdResolver {
             }
         }
         return temporalIdMap;
+    }
+
+    /**
+     * Validates that all temporalId references point to existing temporalIds
+     */
+    public void validateTemporalIdReferencesExist(List<TwinCreate> twinCreates) throws ServiceException {
+        // Collect all existing temporalIds
+        Set<String> existingTemporalIds = new HashSet<>();
+        for (TwinCreate tc : twinCreates) {
+            if (tc.getTemporalId() != null) {
+                existingTemporalIds.add(tc.getTemporalId());
+            }
+        }
+
+        // Check all references point to existing temporalIds
+        for (TwinCreate tc : twinCreates) {
+            if (tc.getTemporalId() == null) continue;
+
+            // Check headTwinRef
+            if (tc.getHeadTwinRef() != null && isTemporalReference(tc.getHeadTwinRef())) {
+                String target = extractTemporalKey(tc.getHeadTwinRef());
+                if (!existingTemporalIds.contains(target)) {
+                    throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
+                        "Temporal reference '" + target + "' not found (referenced from " + tc.getTemporalId() + ".headTwinId)");
+                }
+            }
+
+            // Check fieldRefs
+            if (tc.getFieldRefs() != null) {
+                for (Map.Entry<String, String> entry : tc.getFieldRefs().entrySet()) {
+                    if (entry.getValue() != null && isTemporalReference(entry.getValue())) {
+                        String target = extractTemporalKey(entry.getValue());
+                        if (!existingTemporalIds.contains(target)) {
+                            throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
+                                "Temporal reference '" + target + "' not found (referenced from " + tc.getTemporalId() + ".field." + entry.getKey() + ")");
+                        }
+                    }
+                }
+            }
+
+            // Check linksRefList
+            if (tc.getLinksRefList() != null) {
+                for (TwinCreate.LinkRef linkRef : tc.getLinksRefList()) {
+                    if (linkRef != null && linkRef.getDstTwinIdRef() != null && isTemporalReference(linkRef.getDstTwinIdRef())) {
+                        String target = extractTemporalKey(linkRef.getDstTwinIdRef());
+                        if (!existingTemporalIds.contains(target)) {
+                            throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
+                                "Temporal reference '" + target + "' not found (referenced from " + tc.getTemporalId() + ".link)");
+                        }
+                    }
+                }
+            }
+        }
     }
 }

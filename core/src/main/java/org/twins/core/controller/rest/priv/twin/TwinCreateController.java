@@ -235,8 +235,10 @@ public class TwinCreateController extends ApiController {
                         .setLauncher(TwinOperation.Launcher.direct);
             }
 
-            // Detect cycles in temporalId references
+            // Validate temporalId references exist
             if (twinCreates.stream().anyMatch(tc -> tc.getTemporalId() != null)) {
+                temporalIdResolver.validateTemporalIdReferencesExist(twinCreates);
+                // Detect cycles in temporalId references
                 temporalIdResolver.detectCycles(twinCreates);
             }
 

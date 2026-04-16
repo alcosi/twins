@@ -518,6 +518,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         twinCreate.getFields().put(fieldEntity.getId(), newValue);
                     }
                 }
+            } else {
+                // Field not found - throw error with context
+                StringBuilder errorBuilder = new StringBuilder();
+                errorBuilder.append("Field with key or ID '").append(fieldKey).append("' not found");
+                errorBuilder.append(" for twin class '").append(twinEntity.getTwinClassId()).append("'");
+                errorBuilder.append(" (twin: '").append(twinEntity.getName()).append("'");
+
+                if (twinEntity.getId() != null) {
+                    errorBuilder.append(", id: ").append(twinEntity.getId());
+                }
+
+                errorBuilder.append(") while resolving temporal reference: ").append(temporalRef);
+
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, errorBuilder.toString());
             }
         }
 
