@@ -43,18 +43,99 @@ public class TwinClassFieldRuleExecutionService {
 
         List<FieldRuleOutput> results = new ArrayList<>(inputs.size());
 
-        for (FieldRuleInput input : inputs) {
+        List<FieldRuleInput> sortedInputs = sortInputsByDependency(inputs);
+
+        for (FieldRuleInput input : sortedInputs) {
             results.add(evaluateFieldRules(input, contextValues));
         }
 
         return results;
     }
 
+    private List<FieldRuleInput> sortInputsByDependency(List<FieldRuleInput> inputs) {
+        if (CollectionUtils.isEmpty(inputs) || inputs.size() < 2)
+            return inputs;
+
+        Map<UUID, FieldRuleInput> inputMap = inputs.stream()
+                .collect(Collectors.toMap(i -> i.getField().getId(), i -> i));
+        Set<UUID> inputIds = inputMap.keySet();
+
+        // 1. Build Graph
+        Map<UUID, Set<UUID>> dependencies = new HashMap<>();
+        Map<UUID, Integer> inDegree = new HashMap<>();
+
+        for (UUID id : inputIds) {
+            dependencies.putIfAbsent(id, new HashSet<>());
+            inDegree.putIfAbsent(id, 0);
+        }
+
+        for (FieldRuleInput input : inputs) {
+            Set<UUID> inputDeps = new HashSet<>();
+            if (input.getRules() != null) {
+                for (TwinClassFieldRuleEntity rule : input.getRules()) {
+                    collectDependencies(rule, inputDeps);
+                }
+            }
+
+            // Filter dependencies to only those present in inputs
+            for (UUID depId : inputDeps) {
+                if (inputIds.contains(depId) && !depId.equals(input.getField().getId())) {
+                    dependencies.get(depId).add(input.getField().getId());
+                    inDegree.put(input.getField().getId(), inDegree.getOrDefault(input.getField().getId(), 0) + 1);
+                }
+            }
+        }
+
+        // 2. Kahn's Algorithm
+        Queue<UUID> queue = new LinkedList<>();
+        for (UUID id : inputIds) {
+            if (inDegree.get(id) == 0) {
+                queue.add(id);
+            }
+        }
+
+        List<FieldRuleInput> sorted = new ArrayList<>(inputs.size());
+        while (!queue.isEmpty()) {
+            UUID currentId = queue.poll();
+            sorted.add(inputMap.get(currentId));
+
+            if (dependencies.containsKey(currentId)) {
+                for (UUID neighbor : dependencies.get(currentId)) {
+                    inDegree.put(neighbor, inDegree.get(neighbor) - 1);
+                    if (inDegree.get(neighbor) == 0) {
+                        queue.add(neighbor);
+                    }
+                }
+            }
+        }
+
+        // 3. Handle cycles (append remaining nodes)
+        if (sorted.size() < inputs.size()) {
+            log.warn("Circular dependency detected in field rules. Processing remaining fields in original order.");
+            for (FieldRuleInput input : inputs) {
+                if (!sorted.contains(input)) {
+                    sorted.add(input);
+                }
+            }
+        }
+
+        return sorted;
+    }
+
+    private void collectDependencies(TwinClassFieldRuleEntity rule, Set<UUID> distinctDependencies) {
+        if (rule.getConditionKit() == null || CollectionUtils.isEmpty(rule.getConditionKit().getList()))
+            return;
+        for (TwinClassFieldConditionEntity condition : rule.getConditionKit().getList()) {
+            if (condition.getBaseTwinClassFieldId() != null) {
+                distinctDependencies.add(condition.getBaseTwinClassFieldId());
+            }
+        }
+    }
+
     public Map<TwinClassFieldEntity, Object> applyRules(Collection<TwinClassFieldEntity> fields,
                                                         Map<TwinClassFieldEntity, Object> values) {
         Map<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> rulesByField = new HashMap<>();
-        fields.forEach(it ->
-                rulesByField.put(it, it.getRuleKit().getList()));
+        fields.forEach(it -> rulesByField.put(it, it.getRuleKit().getList()));
         return applyRules(rulesByField, values);
     }
 
@@ -126,7 +207,9 @@ public class TwinClassFieldRuleExecutionService {
         if (rule.getOverwrittenRequired() != null) {
             output.setRequired(rule.getOverwrittenRequired());
         }
-        output.setValue(rule.getOverwrittenValue());
+        if (StringUtils.isNotEmpty(rule.getOverwrittenValue())) {
+            output.setValue(rule.getOverwrittenValue());
+        }
         if (rule.getFieldOverwriterParams() != null) {
             output.getDescriptor().putAll(rule.getFieldOverwriterParams());
         }
@@ -329,17 +412,17 @@ public class TwinClassFieldRuleExecutionService {
         if (value instanceof FieldValueText t)
             return normalizeValue(t.getValue());
         if (value instanceof FieldValueColorHEX t)
-            return normalizeValue(t.getHex());
+            return normalizeValue(t.getValue());
         if (value instanceof FieldValueBoolean b)
             return normalizeValue(b.getValue());
         if (value instanceof FieldValueDate d)
             return normalizeValue(d.getDateStr());
         if (value instanceof FieldValueSelect s)
-            return normalizeValue(s.getOptions());
+            return normalizeValue(s.getItems());
         if (value instanceof FieldValueUser u)
-            return normalizeValue(u.getUsers());
+            return normalizeValue(u.getItems());
         if (value instanceof FieldValueLink l)
-            return normalizeValue(l.getTwinLinks());
+            return normalizeValue(l.getItems());
 
         if (value instanceof DataListOptionEntity o)
             return o.getId() != null ? o.getId().toString() : null;
