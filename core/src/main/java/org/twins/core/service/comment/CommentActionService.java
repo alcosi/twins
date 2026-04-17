@@ -86,7 +86,7 @@ public class CommentActionService {
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
                 for(TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                    if (!twinValidatorEntity.isActive()) {
+                    if (!twinValidatorEntity.getActive()) {
                         log.info("{} from {} will not be used, since it is inactive.", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }

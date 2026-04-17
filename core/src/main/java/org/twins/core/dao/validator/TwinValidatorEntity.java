@@ -13,6 +13,7 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -49,7 +50,7 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     private boolean invert;
 
     @Column(name = "active")
-    private boolean isActive;
+    private Boolean active;
 
     @Column(name = "description")
     private String description;
@@ -64,6 +65,12 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
 
     @Override
     public String easyLog(Level level) {
