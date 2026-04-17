@@ -41,11 +41,29 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
 
-        // Save temporalId for later resolution
-        dst.setTemporalId(src.getTemporalId());
-
-        // Save original headTwinId reference for later resolution (can be temporalId: or UUID string)
-        dst.setHeadTwinRef(src.getHeadTwinId());
+        dst
+                .setTemporalId(src.getTemporalId())
+                .setHeadTwinRef(src.getHeadTwinId())
+                .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
+                .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()))
+                .setTwinEntity(new TwinEntity()
+                        .setTwinClassId(src.getClassId())
+                        .setName(src.getName() == null ? "" : src.getName())
+                        .setCreatedByUserId(apiUser.getUser().getId())
+                        .setCreatedByUser(apiUser.getUser())
+                        .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                        .setDescription(src.getDescription())
+                        .setExternalId(src.getExternalId()));
+        dst
+                .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))
+                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getLinks()))
+                .setTwinFieldAttributeEntityList(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(src.getFieldAttributes()))
+                .setTagsAddNew(Optional.ofNullable(src.getTags())
+                        .map(TwinTagAddDTOv1::newTags)
+                        .orElseGet(HashSet::new))
+                .setTagsAddExisted(Optional.ofNullable(src.getTags())
+                        .map(TwinTagAddDTOv1::existingTags)
+                        .orElseGet(HashSet::new));
 
         // Extract field refs with temporalId references
         dst.setFieldRefs(temporalIdResolver.extractFieldRefsFromMap(src.getFields()));
@@ -59,27 +77,5 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                 dst.addLinkRef(linkRef);
             }
         }
-
-        dst
-                .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
-                .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()))
-                .setTwinEntity(new TwinEntity()
-                        .setTwinClassId(src.getClassId())
-                        .setName(src.getName() == null ? "" : src.getName())
-                        .setCreatedByUserId(apiUser.getUser().getId())
-                        .setCreatedByUser(apiUser.getUser())
-                        .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
-                        .setDescription(src.getDescription())
-                        .setExternalId(src.getExternalId()));
-        dst
-                .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))
-                // Don't convert links here - will resolve in second pass
-                .setTwinFieldAttributeEntityList(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(src.getFieldAttributes()))
-                .setTagsAddNew(Optional.ofNullable(src.getTags())
-                        .map(TwinTagAddDTOv1::newTags)
-                        .orElseGet(HashSet::new))
-                .setTagsAddExisted(Optional.ofNullable(src.getTags())
-                        .map(TwinTagAddDTOv1::existingTags)
-                        .orElseGet(HashSet::new));
     }
 }

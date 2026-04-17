@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.*;
 import org.cambium.common.kit.Kit;
@@ -361,10 +362,30 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return result;
     }
 
-    public List<TwinEntity> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
+    public Pair<List<TwinEntity>, Map<String, UUID>> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
+        // Validate temporalId uniqueness if present
+        if (temporalIdResolver.hasAnyTemporalId(twinCreates)) {
+            temporalIdResolver.validateTemporalIdUniqueness(twinCreates);
+            temporalIdResolver.validateTemporalIdReferencesExist(twinCreates);
+            temporalIdResolver.detectCycles(twinCreates);
+        }
+
         List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
         generateTwinAliasesAndMakeCreationResult(twins);
-        return twins;
+
+        // Build temporalIdMap
+        Map<String, UUID> temporalIdMap = null;
+        if (temporalIdResolver.hasAnyTemporalId(twinCreates)) {
+            temporalIdMap = new HashMap<>();
+            for (int i = 0; i < twinCreates.size() && i < twins.size(); i++) {
+                String temporalId = twinCreates.get(i).getTemporalId();
+                if (temporalId != null) {
+                    temporalIdMap.put(temporalId, twins.get(i).getId());
+                }
+            }
+        }
+
+        return Pair.of(twins, temporalIdMap);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -409,6 +430,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             // Temporarily clear headTwinId (saved in headTwinRef)
             twinCreate.getTwinEntity().setHeadTwinId(null);
             createTwin(twinCreate, twinChangesCollector);
+
+            // Clear linksEntityList for temporalId cases - they will be processed in second pass
+            if (CollectionUtils.isNotEmpty(twinCreate.getLinksRefList())) {
+                twinCreate.setLinksEntityList(null);
+            }
         }
 
         // Apply first pass changes
