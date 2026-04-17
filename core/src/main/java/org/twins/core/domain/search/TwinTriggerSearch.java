@@ -18,4 +18,6 @@ public class TwinTriggerSearch {
     public Set<Integer> triggerFeaturerIdExcludeList;
     public Ternary active;
     public Set<String> nameLikeList;
+    public Set<UUID> jobTwinClassIdList;
+    public Set<UUID> jobTwinClassIdExcludeList;
 }

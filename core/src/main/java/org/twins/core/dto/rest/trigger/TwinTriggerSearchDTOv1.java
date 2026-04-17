@@ -31,4 +31,10 @@ public class TwinTriggerSearchDTOv1 {
 
     @Schema(description = "name like list")
     public Set<String> nameLikeList;
+
+    @Schema(description = "job twin class id list")
+    public Set<UUID> jobTwinClassIdList;
+
+    @Schema(description = "job twin class id exclude list")
+    public Set<UUID> jobTwinClassIdExcludeList;
 }

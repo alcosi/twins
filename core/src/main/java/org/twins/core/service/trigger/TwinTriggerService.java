@@ -104,7 +104,8 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                     .setTwinTriggerParam(triggerParams)
                     .setName(trigger.getName())
                     .setDescription(trigger.getDescription())
-                    .setActive(trigger.getActive() != null ? trigger.getActive() : true);
+                    .setActive(trigger.getActive() != null ? trigger.getActive() : true)
+                    .setJobTwinClassId(trigger.getJobTwinClassId());
 
             triggersToSave.add(triggerEntity);
         }
@@ -163,6 +164,9 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
             updateEntityFieldByValue(trigger.getActive(), entity,
                     TwinTriggerEntity::getActive, TwinTriggerEntity::setActive,
                     TwinTriggerEntity.Fields.active, changesHelper);
+            updateEntityFieldByValue(trigger.getJobTwinClassId(), entity,
+                    TwinTriggerEntity::getJobTwinClassId, TwinTriggerEntity::setJobTwinClassId,
+                    TwinTriggerEntity.Fields.jobTwinClassId, changesHelper);
             updateFieldTwinTriggerFeaturerId(entity, trigger.getTriggerFeaturerId(),
                     trigger.getTriggerParams() != null ? new HashMap<>(trigger.getTriggerParams()) : new HashMap<>(), changesHelper);
 
