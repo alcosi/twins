@@ -9,9 +9,7 @@ import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -27,17 +25,7 @@ public class TwinCreate extends TwinSave {
 
     // TemporalId support fields
     private String temporalId; // for tracking during batch creation
-    private String headTwinRef; // original headTwinId reference for later resolution
-    private Map<String, String> fieldRefs; // field temporalId references for later resolution
-    private List<LinkRef> linksRefList; // original link references for later resolution
-
-    // Helper class for storing unresolved link references
-    @Data
-    @Accessors(chain = true)
-    public static class LinkRef {
-        private UUID linkId;
-        private String dstTwinIdRef; // can be "temporalId:XXX" or UUID string
-    }
+    private String headTwinRef; // original headTwinId reference for cycle detection
 
     public TwinCreate addLink(TwinLinkEntity link) {
         linksEntityList = CollectionUtils.safeAdd(linksEntityList, link);
@@ -46,14 +34,6 @@ public class TwinCreate extends TwinSave {
 
     public TwinCreate addAttachment(TwinAttachmentEntity attachment) {
         attachmentEntityList = CollectionUtils.safeAdd(attachmentEntityList, attachment);
-        return this;
-    }
-
-    public TwinCreate addLinkRef(LinkRef linkRef) {
-        if (linksRefList == null) {
-            linksRefList = new ArrayList<>();
-        }
-        linksRefList.add(linkRef);
         return this;
     }
 
