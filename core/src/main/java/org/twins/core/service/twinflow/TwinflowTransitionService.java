@@ -332,6 +332,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
             updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
             updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
+            updateEntityFieldByValue(twinflowTransitionEntity.getTwinflowTransitionTypeId(), dbTwinflowTransitionEntity, TwinflowTransitionEntity::getTwinflowTransitionTypeId, TwinflowTransitionEntity::setTwinflowTransitionTypeId, TwinflowTransitionEntity.Fields.twinflowTransitionTypeId, changesHelper);
 
             if (changesHelper.hasChanges()) {
                 changes.add(dbTwinflowTransitionEntity, changesHelper);
