@@ -41,7 +41,9 @@ import org.twins.core.enums.history.HistoryType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.user.UserService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -62,6 +64,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     private final TwinActionService twinActionService;
     private final AuthService authService;
     private final I18nService i18nService;
+    @Lazy
+    private final UserService userService;
+    @Lazy
+    private final TwinService twinService;
 
     @Override
     public CrudRepository<HistoryEntity, UUID> entityRepository() {
@@ -492,5 +498,53 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public boolean existsByHistoryBatchIdAndHistoryType(UUID historyBatchId, HistoryType type) {
         return historyRepository.existsByHistoryBatchIdAndHistoryType(historyBatchId, type);
+    }
+
+    public void loadUser(HistoryEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                HistoryEntity::getId,
+                HistoryEntity::getActorUserId,
+                HistoryEntity::getActorUser,
+                HistoryEntity::setActorUser);
+    }
+
+    public void loadMachineUser(HistoryEntity src) throws ServiceException {
+        loadMachineUser(Collections.singletonList(src));
+    }
+
+    public void loadMachineUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                HistoryEntity::getId,
+                HistoryEntity::getMachineUserId,
+                HistoryEntity::getMachineUser,
+                HistoryEntity::setMachineUser);
+    }
+
+    public void loadTwin(HistoryEntity src) throws ServiceException {
+        loadTwin(Collections.singletonList(src));
+    }
+
+    public void loadTwin(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                HistoryEntity::getId,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
+    }
+
+    public void loadTwinClassField(HistoryEntity src) throws ServiceException {
+        loadTwinClassField(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassField(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                HistoryEntity::getId,
+                HistoryEntity::getTwinClassFieldId,
+                HistoryEntity::getTwinClassField,
+                HistoryEntity::setTwinClassField);
     }
 }
