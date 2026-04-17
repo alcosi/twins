@@ -364,28 +364,45 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public List<TwinEntity> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
-        // Check if sorting needed (temporalId present)
-        if (temporalIdContext.getSortedIndices() != null) {
-            // Reorder twinCreates according to sorted indices from context
-            List<Integer> sortedIndices = temporalIdContext.getSortedIndices();
-            List<TwinCreate> sortedCreates = new ArrayList<>();
-            for (int index : sortedIndices) {
-                sortedCreates.add(twinCreates.get(index));
+        try {
+            // Check if sorting needed (temporalId present)
+            if (temporalIdContext.getSortedIndices() != null) {
+                // Reorder twinCreates according to sorted indices from context
+                List<Integer> sortedIndices = temporalIdContext.getSortedIndices();
+                List<TwinCreate> sortedCreates = new ArrayList<>();
+                for (int index : sortedIndices) {
+                    sortedCreates.add(twinCreates.get(index));
+                }
+
+                // For temporalId case, create twins one by one with DB flush
+                List<TwinEntity> twins = self.createTwinsAsyncSequential(sortedCreates);
+                generateTwinAliasesAndMakeCreationResult(twins);
+
+                return twins;
             }
 
-            List<TwinEntity> twins = self.createTwinsAsync(sortedCreates);
+            // Original logic for non-temporalId case
+            List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
             generateTwinAliasesAndMakeCreationResult(twins);
 
-            // Clear context after processing
-            temporalIdContext.clear();
-
             return twins;
+        } finally {
+            temporalIdContext.clear();
         }
+    }
 
-        // Original logic for non-temporalId case
-        List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
-        generateTwinAliasesAndMakeCreationResult(twins);
-
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinEntity> createTwinsAsyncSequential(List<TwinCreate> twinCreateList) throws ServiceException {
+        List<TwinEntity> twins = new ArrayList<>();
+        for (TwinCreate twinCreate : twinCreateList) {
+            TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+            createTwin(twinCreate, twinChangesCollector);
+            TwinChangesApplyResult result = twinChangesService.applyChanges(twinChangesCollector);
+            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
+            twins.add(twinEntity);
+            twinStatusTriggerService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+            twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
+        }
         return twins;
     }
 
