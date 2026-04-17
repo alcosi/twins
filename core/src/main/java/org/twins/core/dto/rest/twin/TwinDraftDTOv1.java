@@ -21,11 +21,14 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinDraftV1")
 public class TwinDraftDTOv1 extends Request {
+    @Schema(description = "Temporary identifier for this twin within the batch request. Used to reference this twin in headTwinId, fields, or links of other twins in the same batch.", example = "PROJECT-1")
+    public String temporalId;
+
     @Schema(description = "class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
 
-    @Schema(description = "head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
-    public UUID headTwinId;
+    @Schema(description = "head twin id (can be UUID or temporalId:XXX reference)", example = DTOExamples.HEAD_TWIN_ID)
+    public String headTwinId;
 
     @Schema(description = "name", example = "Oak")
     public String name;

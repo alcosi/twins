@@ -39,6 +39,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twin.TemporalIdContext;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
@@ -60,6 +61,7 @@ public class TwinCreateController extends ApiController {
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TemporalIdContext temporalIdContext;
 
     @Deprecated
     @ParametersApiUserHeaders
@@ -220,16 +222,19 @@ public class TwinCreateController extends ApiController {
             request.getTwins().forEach(twinCreateRqDTOv1 -> {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);
             });
+
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate
                         .setCheckCreatePermission(true)
                         .setLauncher(TwinOperation.Launcher.direct);
             }
+
             List<TwinEntity> twinEntities = twinService.createTwinsAsyncBatch(twinCreates);
-            rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+
+            rs.setTemporalIdMap(temporalIdContext.getTemporalIdMap())
+              .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
+              .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (TwinFieldValidationException ve) {

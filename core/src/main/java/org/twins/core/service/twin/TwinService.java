@@ -117,6 +117,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     private final AuthService authService;
     private final TwinChangesService twinChangesService;
+    private final TemporalIdResolver temporalIdResolver;
+    @Lazy
+    private final TemporalIdContext temporalIdContext;
     @Lazy
     private final HistoryService historyService;
     @Lazy
@@ -361,14 +364,50 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public List<TwinEntity> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
-        List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
-        generateTwinAliasesAndMakeCreationResult(twins);
+        try {
+            // Check if sorting needed (temporalId present)
+            if (temporalIdContext.getSortedIndices() != null) {
+                // Reorder twinCreates according to sorted indices from context
+                List<Integer> sortedIndices = temporalIdContext.getSortedIndices();
+                List<TwinCreate> sortedCreates = new ArrayList<>();
+                for (int index : sortedIndices) {
+                    sortedCreates.add(twinCreates.get(index));
+                }
+
+                // For temporalId case, create twins one by one with DB flush
+                List<TwinEntity> twins = self.createTwinsAsyncSequential(sortedCreates);
+                generateTwinAliasesAndMakeCreationResult(twins);
+
+                return twins;
+            }
+
+            // Original logic for non-temporalId case
+            List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
+            generateTwinAliasesAndMakeCreationResult(twins);
+
+            return twins;
+        } finally {
+            temporalIdContext.clear();
+        }
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinEntity> createTwinsAsyncSequential(List<TwinCreate> twinCreateList) throws ServiceException {
+        List<TwinEntity> twins = new ArrayList<>();
+        for (TwinCreate twinCreate : twinCreateList) {
+            TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+            createTwin(twinCreate, twinChangesCollector);
+            TwinChangesApplyResult result = twinChangesService.applyChanges(twinChangesCollector);
+            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
+            twins.add(twinEntity);
+            twinStatusTriggerService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+            twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
+        }
         return twins;
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
-        // todo try to use parallel stream for this
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         //batch load twin classes if they are null, before loadFieldEditability call
         List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();

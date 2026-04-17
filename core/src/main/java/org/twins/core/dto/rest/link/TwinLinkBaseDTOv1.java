@@ -20,9 +20,9 @@ public class TwinLinkBaseDTOv1 extends Request {
     @RelatedObject(type = LinkDTOv1.class, name = "link")
     public UUID linkId;
 
-    @Schema(description = "Destination twin id", example = DTOExamples.TWIN_ID)
+    @Schema(description = "Destination twin id (can be UUID or temporalId:XXX reference)", example = DTOExamples.TWIN_ID)
     @RelatedObject(type = TwinDTOv2.class, name = "dstTwin")
-    public UUID dstTwinId;
+    public String dstTwinId;
 }
 
 
