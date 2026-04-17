@@ -294,7 +294,7 @@ public class SystemEntityService {
                         .setTwinSorterFeaturerId(field.twinSorterFeaturerId())
                         .setRequired(field.required())
                         .setSystem(field.system())
-                        .setInheritable(field.system())
+                        .setInheritable(field.inheritable())
                         .setDependentField(false)
                         .setHasDependentFields(false)
                         .setProjectionField(false)

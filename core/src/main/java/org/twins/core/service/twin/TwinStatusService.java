@@ -4,15 +4,11 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CacheUtils;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,18 +94,20 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
 
     public void loadStatusesForTwinClasses(Collection<TwinClassEntity> twinClassEntities) {
         Kit<TwinClassEntity, UUID> needLoad = null;
-        Set<UUID> extendsClassesSet = new HashSet<>();
+        Set<UUID> extendsClassesSet = null;
         for (TwinClassEntity twinClassEntity : twinClassEntities) {
             if (twinClassEntity.getTwinStatusKit() != null)
                 continue;
             needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
             twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId)); //fix an allocation problem
-            if (twinClassEntity.getExtendedClassIdSet().size() > 1)
-                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1) {
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+            }
         }
         if (KitUtils.isEmpty(needLoad))
             return;
-
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
         var loaded = twinStatusRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
             return;

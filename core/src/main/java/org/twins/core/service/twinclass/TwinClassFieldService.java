@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.cambium.common.CacheEvictCollector;
@@ -140,18 +139,22 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public void loadTwinClassFields(Collection<TwinClassEntity> twinClassEntities) {
         Kit<TwinClassEntity, UUID> needLoad = null;
-        Set<UUID> extendsClassesSet = new HashSet<>();
+        Set<UUID> extendsClassesSet = null;
         for (TwinClassEntity twinClassEntity : twinClassEntities) {
             if (twinClassEntity.getTwinClassFieldKit() != null)
                 continue;
             needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
             twinClassEntity.setTwinClassFieldKit(new Kit<>(TwinClassFieldEntity::getId));
-            if (twinClassEntity.getExtendedClassIdSet().size() > 1)
-                extendsClassesSet.addAll(twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1) {
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+            }
         }
         if (KitUtils.isEmpty(needLoad))
             return;
-        extendsClassesSet.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
+        else
+            extendsClassesSet.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
 
         List<TwinClassFieldEntity> loaded = twinClassFieldRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))

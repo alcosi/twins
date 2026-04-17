@@ -123,7 +123,8 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         }
         //todo validate linker params
         linkEntity = saveSafe(linkEntity);
-        linkEntity.getDstTwinClass().invalidateLinksKit(); //todo optimize me
+        linkEntity.getSrcTwinClass().invalidateLinksKit();
+        linkEntity.getDstTwinClass().invalidateLinksKit();
         return linkEntity;
     }
 
@@ -303,7 +304,9 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         }
         if (KitUtils.isEmpty(needLoad))
             return;
-        var loaded = linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
+        var loaded = linkRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
             return;
         KitGrouped<LinkEntity, UUID, UUID> linksGroupedBySrcClass = new KitGrouped<>(loaded, LinkEntity::getId, LinkEntity::getSrcTwinClassId);
