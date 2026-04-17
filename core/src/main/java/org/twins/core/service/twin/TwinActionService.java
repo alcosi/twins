@@ -16,7 +16,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
-import org.twins.core.dao.action.ActionRestrictionReasonRepository;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.action.TwinActionPermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -316,11 +315,23 @@ public class TwinActionService {
                         // Check which entities passed the validator checks and update forbidden actions
                         List<TwinEntity> nextLoopTwins = new ArrayList<>();
                         for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                            if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
+                            Boolean isValid = twinByTwinValidatorsIsValid.get(twinEntity.getId());
+                            if (Boolean.FALSE.equals(isValid)) {
                                 nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
                                 // Only set if not already set by permission (permission priority)
                                 if (!twinsActionsRestrictionReasons.computeIfAbsent(twinEntity.getId(), k -> new HashMap<>()).containsKey(twinAction)) {
+                                    log.info("Action {} RESTRICTED for {}, reason: {}", twinAction, twinEntity.logShort(), actionValidatorRuleEntity.getActionRestrictionReasonId());
                                     twinsActionsRestrictionReasons.get(twinEntity.getId()).put(twinAction, actionValidatorRuleEntity.getActionRestrictionReasonId());
+                                }
+                            } else {
+                                // If validation passed, remove from restrictions (this validator rule allows the action)
+                                Map<TwinAction, UUID> restrictions = twinsActionsRestrictionReasons.get(twinEntity.getId());
+                                if (restrictions != null) {
+                                    restrictions.remove(twinAction);
+                                    if (restrictions.isEmpty()) {
+                                        log.info("Action {} ALLOWED for {}", twinAction, twinEntity.logShort());
+                                        twinsActionsRestrictionReasons.remove(twinEntity.getId());
+                                    }
                                 }
                             }
                         }
