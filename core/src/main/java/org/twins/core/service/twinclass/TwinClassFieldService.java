@@ -40,7 +40,9 @@ import org.twins.core.featurer.fieldinitializer.FieldInitializer;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperDateTime;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
+import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -769,4 +771,25 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         Properties properties = featurerService.extractProperties(fieldTyper, twinClassField.getFieldTyperParams());
         return fieldTyperDateTime.getPattern(properties);
     }
+
+
+    public Map<UUID, UUID> toDataListMap(Collection<UUID> twinClassFieldIds) throws ServiceException {
+        if (org.cambium.common.util.CollectionUtils.isEmpty(twinClassFieldIds)) {
+            return Collections.emptyMap();
+        }
+        var twinClassFieldKit = findEntitiesSafe(twinClassFieldIds);
+        var ret = new HashMap<UUID, UUID>();
+        for (var fieldEntity : twinClassFieldKit.getCollection()) {
+            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+
+            if (fieldTyper.getStorageType() != TwinFieldStorageDatalist.class) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
+            }
+            FieldTyperList fieldTyperList = (FieldTyperList) fieldTyper;
+            Properties properties = fieldTyper.extractProperties(fieldEntity.getFieldTyperParams());
+            ret.put(fieldEntity.getId(), fieldTyperList.getDataListId(properties));
+        }
+        return ret;
+    }
+
 }

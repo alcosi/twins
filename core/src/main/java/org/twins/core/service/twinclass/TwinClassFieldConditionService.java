@@ -9,6 +9,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -21,6 +22,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
 
 import java.util.*;
 import java.util.function.Function;
@@ -34,7 +36,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     public static final int MAX_RECURSION_DEPTH = 5;
 
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;
-    private final EntitySmartService entitySmartService;
+    private final FeaturerService featurerService;
 
     @Lazy
     private final TwinClassService twinClassService;
@@ -189,5 +191,18 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
             default:
         }
         return true;
+    }
+
+    public void loadConditionDescriptors(TwinClassFieldConditionEntity conditionEntity) throws ServiceException {
+        loadConditionDescriptors(Collections.singleton(conditionEntity));
+    }
+
+    public void loadConditionDescriptors(Collection<TwinClassFieldConditionEntity> srcCollection) throws ServiceException {
+        var needLoad = srcCollection.stream().filter(t -> t.getConditionEvaluatorFeaturerId() != null && t.getConditionDescriptor() == null).toList();
+        var conditionKitGrouped = new KitGrouped<>(needLoad, TwinClassFieldConditionEntity::getId, TwinClassFieldConditionEntity::getConditionEvaluatorFeaturerId);
+        for (var conditionEvaluatorFeaturerId : conditionKitGrouped.getGroupedKeySet()) {
+            ConditionEvaluator<?> evaluator = featurerService.getFeaturer(conditionEvaluatorFeaturerId, ConditionEvaluator.class);
+            evaluator.loadConditionDescriptors(conditionKitGrouped.getGrouped(conditionEvaluatorFeaturerId));
+        }
     }
 }
