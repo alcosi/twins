@@ -438,11 +438,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
-            var uuidInArrayFunction = cb.function("uuid_in_array", Boolean.class, fieldPath, cb.literal(collectionUuidsToSqlArray(uuids)));
-            Predicate predicate = not ? cb.isFalse(uuidInArrayFunction) : cb.isTrue(uuidInArrayFunction);
+            String arrayString = collectionUuidsToSqlArray(uuids);
+            Expression<Boolean> anyExpression = cb.function("native_uuid_any", Boolean.class, fieldPath, cb.literal(arrayString));
+            Predicate predicate = not ? cb.isFalse(anyExpression) : cb.isTrue(anyExpression);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
+
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
                                                  boolean includeNullValues, final String... uuidFieldPath) {

@@ -1,9 +1,8 @@
-package org.twins.core.service.specifications;
+package org.twins.core.dao.specifications;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -21,9 +20,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.twins.core.dao.specifications.CommonSpecification;
 
-import javax.sql.DataSource;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -49,19 +46,18 @@ public class CommonSpecificationIntegrationTest {
     @Autowired
     private TestUuidRepository repository;
 
-    @BeforeAll
-    public static void init(@Autowired DataSource dataSource) throws Exception {
-        try (var conn = dataSource.getConnection()) {
-            conn.setAutoCommit(true);
-            var stmt = conn.createStatement();
-            stmt.execute("CREATE OR REPLACE FUNCTION uuid_in_array(uuid_val uuid, uuid_array uuid[]) RETURNS boolean AS $$\n" +
-                    "SELECT uuid_val = ANY(uuid_array);\n" +
-                    "$$ LANGUAGE sql IMMUTABLE;");
-            stmt.execute("CREATE OR REPLACE FUNCTION uuid_in_array(uuid_val uuid, uuid_array text) RETURNS boolean AS $$\n" +
-                    "SELECT uuid_val = ANY(uuid_array::uuid[]);\n" +
-                    "$$ LANGUAGE sql IMMUTABLE;");
-        }
-    }
+//    @BeforeAll
+//    public static void init(@Autowired DataSource dataSource) throws Exception {
+//        try (var conn = dataSource.getConnection()) {
+//            var stmt = conn.createStatement();
+//            stmt.execute("CREATE OR REPLACE FUNCTION uuid_in_array(uuid_val uuid, uuid_array uuid[]) RETURNS boolean AS $$\n" +
+//                    "SELECT uuid_val = ANY(uuid_array);\n" +
+//                    "$$ LANGUAGE sql IMMUTABLE;");
+//            stmt.execute("CREATE OR REPLACE FUNCTION uuid_in_array(uuid_val uuid, uuid_array text) RETURNS boolean AS $$\n" +
+//                    "SELECT uuid_val = ANY(uuid_array::uuid[]);\n" +
+//                    "$$ LANGUAGE sql IMMUTABLE;");
+//        }
+//    }
 
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
