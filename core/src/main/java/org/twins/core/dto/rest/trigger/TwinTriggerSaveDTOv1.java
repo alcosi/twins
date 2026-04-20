@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -31,4 +32,7 @@ public class TwinTriggerSaveDTOv1 {
 
     @Schema(description = "order")
     public Integer order;
+
+    @Schema(description = "job twin class id")
+    public UUID jobTwinClassId;
 }

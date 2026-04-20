@@ -2,9 +2,11 @@ package org.twins.core.featurer.factory.conditioner;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -12,11 +14,14 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -31,16 +36,27 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
     @FeaturerParam(name = "Exclude factory input", description = "", order = 2)
     public static final FeaturerParamBoolean excludeFactoryInput = new FeaturerParamBoolean("excludeFactoryInput");
 
+    @FeaturerParam(name = "Depth", description = "", order = 3, optional = true, defaultValue = "1")
+    public static final FeaturerParamInt depth = new FeaturerParamInt("depth");
+
     @Lazy
     @Autowired
     TwinSearchService twinSearchService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        BasicSearch search = new BasicSearch();
-        search
-                .addHeadTwinId(factoryItem.getOutput().getTwinEntity().getId())
-                .addStatusId(statusIds.extract(properties), false);
+        BasicSearch search = new BasicSearch().setCheckViewPermission(false);
+
+        search.setHierarchyChildrenSearch(
+                new HierarchySearch().setDepth(depth.extract(properties))
+        );
+
+        Set<UUID> statusIdsExtracted = statusIds.extract(properties);
+
+        if (CollectionUtils.isNotEmpty(statusIdsExtracted)) {
+            search.addStatusId(statusIdsExtracted, false);
+        }
+
         if (excludeFactoryInput.extract(properties))
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
         long count = twinSearchService.count(search);
