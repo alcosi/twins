@@ -184,7 +184,7 @@ public class TwinClassFieldRuleExecutionService {
                 .descriptor(new HashMap<>())
                 .build();
 
-        List<TwinClassFieldRuleEntity> rules = input.getRules();
+        List<TwinClassFieldRuleEntity> rules = new ArrayList<>(input.getRules());
         if (CollectionUtils.isEmpty(rules))
             return output;
 

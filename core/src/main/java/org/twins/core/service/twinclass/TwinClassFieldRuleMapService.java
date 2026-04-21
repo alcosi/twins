@@ -10,6 +10,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
@@ -19,10 +20,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleMapEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleMapRepository;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -92,7 +90,12 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
         for (TwinClassFieldEntity fieldEntity : needLoad) {
             if (ruleMaps.containsGroupedKey(fieldEntity.getId()))
                 fieldEntity.setRuleKit(new Kit<>(
-                        ruleMaps.getGrouped(fieldEntity.getId()).stream().map(TwinClassFieldRuleMapEntity::getTwinClassFieldRule).toList(),
+                        ruleMaps.getGrouped(fieldEntity.getId()).stream()
+                                .map(TwinClassFieldRuleMapEntity::getTwinClassFieldRule)
+                                .map(Hibernate::unproxy)
+                                .map(TwinClassFieldRuleEntity.class::cast)
+                                .filter(Objects::nonNull)
+                                .toList(),
                         TwinClassFieldRuleEntity::getId));
             else
                 fieldEntity.setRuleKit(Kit.EMPTY);
