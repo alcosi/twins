@@ -29,3 +29,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS twin_class_field_action_validation_rule_order_
 INSERT INTO public.twin_class_field_action (id)
 VALUES ('EDIT')
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.twin_class_field_action (id)
+VALUES ('VIEW')
+ON CONFLICT (id) DO NOTHING;
+
