@@ -26,27 +26,6 @@ public class TemporalIdContext {
         return temporalIdMap.get(temporalId);
     }
 
-    public UUID resolveOrUseId(String temporalId) throws ServiceException {
-        if (temporalId == null)
-            return null;
-        if (temporalId.startsWith(TemporalIdContext.TEMPORAL_ID_PREFIX)) {
-            String key = temporalId.substring(TemporalIdContext.TEMPORAL_ID_PREFIX.length());
-            UUID resolvedId = temporalIdMap.get(key);
-            if (resolvedId == null) {
-                throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
-                        "Temporal ID reference not found: " + key);
-            }
-            return resolvedId;
-        } else {
-            try {
-                return UUID.fromString(temporalId);
-            } catch (IllegalArgumentException e) {
-                throw new ServiceException(ErrorCodeTwins.INVALID_TEMPORAL_REFERENCE,
-                        "Invalid uui format: " + temporalId + ". Expected UUID or temporalId:XXX reference.");
-            }
-        }
-    }
-
     public void clear() {
         temporalIdMap.clear();
     }

@@ -357,9 +357,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     protected List<TwinEntity> createTwins(List<TwinCreate> twinCreates) throws ServiceException {
-        var levels = splitOnLevels(twinCreates);
+        var createStages = splitOnStages(twinCreates);
+        log.info("{} twins will be created in {} stages", twinCreates.size(), createStages.size());
         List<TwinEntity> ret = new ArrayList<>();
-        for (var level : levels) {
+        for (int i = 0; i < createStages.size(); i++) {
+            var level = createStages.get(i);
+            log.info("processing stage {} with {} twins", (i + 1), level.size());
             var twins = self.createTwins(level);
             ret.addAll(twins);
         }
@@ -367,7 +370,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    protected List<TwinEntity> createTwins(TwinCreateLevel twinCreateList) throws ServiceException {
+    protected List<TwinEntity> createTwins(TwinCreateStage twinCreateList) throws ServiceException {
         // todo try to use parallel stream for this
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         //batch load twin classes if they are null, before loadFieldEditability call
@@ -1965,7 +1968,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return errorCode.getMessage();
     }
 
-    public List<TwinCreateLevel> splitOnLevels(Collection<TwinCreate> srcCollection) throws ServiceException {
+    public List<TwinCreateStage> splitOnStages(Collection<TwinCreate> srcCollection) throws ServiceException {
         Map<UUID, TwinCreate> newTwinsWithIds = new HashMap<>();
 
         Map<TwinCreate, Set<TwinCreate>> reverseGraph = new HashMap<>();
@@ -1998,18 +2001,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
 
-        List<TwinCreateLevel> levels = new ArrayList<>();
+        List<TwinCreateStage> stages = new ArrayList<>();
         int processedCount = 0;
 
         // --- Kahn by layers ---
         while (!queue.isEmpty()) {
 
             int levelSize = queue.size();
-            TwinCreateLevel level = new TwinCreateLevel(levelSize);
+            TwinCreateStage stage = new TwinCreateStage(levelSize);
 
             for (int i = 0; i < levelSize; i++) {
                 TwinCreate current = queue.poll();
-                level.add(current);
+                stage.add(current);
                 processedCount++;
 
                 for (TwinCreate dependent : reverseGraph.get(current)) {
@@ -2022,7 +2025,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 }
             }
 
-            levels.add(level);
+            stages.add(stage);
         }
 
         // --- Cycle check ---
@@ -2033,7 +2036,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             );
         }
 
-        return levels;
+        return stages;
     }
 
     private Set<TwinCreate> extractDependencies(TwinCreate t, Map<UUID, TwinCreate> newTwinsWithIds) {
@@ -2053,9 +2056,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         // --- fields ---
         if (t.getFields() != null) {
             for (FieldValue value : t.getFields().values()) {
-                if (value instanceof FieldValueText fieldValueText) {
-                    UUID refId = UuidUtils.ifNotUuidThenNull(fieldValueText.getValue());
-                    addIfRefOnNew(refId, newTwinsWithIds, result);
+                if (value instanceof FieldValueLink fieldValueLink) {
+                    for (var link : fieldValueLink.getItems()) {
+                        addIfRefOnNew(link.getDstTwinId(), newTwinsWithIds, result);
+                    }
                 }
             }
         }

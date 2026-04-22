@@ -21,10 +21,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TemporalIdContext;
 import org.twins.core.service.user.UserService;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 @Slf4j
@@ -54,7 +51,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                         .setName(src.getName() == null ? "" : src.getName())
                         .setCreatedByUserId(apiUser.getUser().getId())
                         .setCreatedByUser(apiUser.getUser())
-                        .setHeadTwinId(temporalIdContext.resolveOrUseId(src.getHeadTwinId()))
+                        .setHeadTwinId(UuidUtils.fromStringOrNull(src.getHeadTwinId()))
                         .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                         .setDescription(src.getDescription())
                         .setExternalId(src.getExternalId()));
@@ -77,7 +74,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
 
         if (srcCollection.stream().anyMatch(dto -> dto.getTemporalId() != null)) {
             collectTemporalIds(srcCollection);
-            validateTemporalIdReferences(srcCollection);
+            validateTemporalIdReferencesAndReplace(srcCollection);
             //elements should be sorted be levels, but this will be done on service level
         }
     }
@@ -106,31 +103,22 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     }
 
     /**
-     * Validates that all temporalId references point to existing temporalIds in DTO list
+     * Validates that all temporalId references point to existing temporalIds in DTO list and replace them with ids
      */
-    public void validateTemporalIdReferences(Collection<TwinCreateRqDTOv2> dtoList) throws ServiceException {
-        // Check all references point to existing temporalIds
+    public void validateTemporalIdReferencesAndReplace(Collection<TwinCreateRqDTOv2> dtoList) throws ServiceException {
         for (TwinCreateRqDTOv2 dto : dtoList) {
-            if (dto.getTemporalId() == null) continue;
-
             // Check headTwinId
-            if (dto.getHeadTwinId() != null && TemporalIdContext.isTemporalReference(dto.getHeadTwinId())) {
-                String target = TemporalIdContext.extractTemporalKey(dto.getHeadTwinId());
-                if (!temporalIdContext.contains(target)) {
-                    throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
-                            "Temporal reference '" + target + "' not found (referenced from " + dto.getTemporalId() + ".headTwinId)");
-                }
+            if (dto.getHeadTwinId() != null) {
+                dto.setHeadTwinId(resolveTemporalOrReturnOriginal(dto.getHeadTwinId(),
+                        dto.getTemporalId() + ".headTwinId"));
             }
 
             // Check fields
             if (dto.getFields() != null) {
                 for (Map.Entry<String, String> entry : dto.getFields().entrySet()) {
-                    if (entry.getValue() != null && TemporalIdContext.isTemporalReference(entry.getValue())) {
-                        String target = TemporalIdContext.extractTemporalKey(entry.getValue());
-                        if (!temporalIdContext.contains(target)) {
-                            throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
-                                    "Temporal reference '" + target + "' not found (referenced from " + dto.getTemporalId() + ".field." + entry.getKey() + ")");
-                        }
+                    if (entry.getValue() != null) {
+                        entry.setValue(resolveTemporalOrReturnOriginal(entry.getValue(),
+                                dto.getTemporalId() + ".field." + entry.getKey()));
                     }
                 }
             }
@@ -138,15 +126,24 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
             // Check links
             if (dto.getLinks() != null) {
                 for (var link : dto.getLinks()) {
-                    if (link.getDstTwinId() != null && TemporalIdContext.isTemporalReference(link.getDstTwinId())) {
-                        String target = TemporalIdContext.extractTemporalKey(link.getDstTwinId());
-                        if (!temporalIdContext.contains(target)) {
-                            throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
-                                    "Temporal reference '" + target + "' not found (referenced from " + dto.getTemporalId() + ".link)");
-                        }
+                    if (link.getDstTwinId() != null) {
+                        link.setDstTwinId(resolveTemporalOrReturnOriginal(link.getDstTwinId(),
+                                dto.getTemporalId() + ".link"));
                     }
                 }
             }
         }
+    }
+
+    private String resolveTemporalOrReturnOriginal(String value, String contextPath) throws ServiceException {
+        if (!TemporalIdContext.isTemporalReference(value))
+            return value;
+        String target = TemporalIdContext.extractTemporalKey(value);
+        UUID replaceId = temporalIdContext.resolve(target);
+        if (replaceId == null) {
+            throw new ServiceException(ErrorCodeTwins.TEMPORAL_ID_NOT_FOUND,
+                    "Temporal reference '" + target + "' not found (referenced from " + contextPath + ")");
+        }
+        return replaceId.toString();
     }
 }

@@ -2,8 +2,8 @@ package org.twins.core.domain.twinoperation;
 
 import java.util.ArrayList;
 
-public class TwinCreateLevel extends ArrayList<TwinCreate> {
-    public TwinCreateLevel(int initSize) {
+public class TwinCreateStage extends ArrayList<TwinCreate> {
+    public TwinCreateStage(int initSize) {
         super(initSize);
     }
 }
