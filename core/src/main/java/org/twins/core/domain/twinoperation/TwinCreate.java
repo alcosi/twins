@@ -23,10 +23,6 @@ public class TwinCreate extends TwinSave {
     private Boolean sketchMode; // this flag will be set after processing createStrategy
     private TwinCreateStrategy createStrategy = TwinCreateStrategy.STRICT;
 
-    // TemporalId support fields
-    private String temporalId; // for tracking during batch creation
-    private String headTwinRef; // original headTwinId reference for cycle detection
-
     public TwinCreate addLink(TwinLinkEntity link) {
         linksEntityList = CollectionUtils.safeAdd(linksEntityList, link);
         return this;

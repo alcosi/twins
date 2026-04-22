@@ -230,10 +230,10 @@ public class TwinCreateController extends ApiController {
                         .setLauncher(TwinOperation.Launcher.direct);
             }
 
-            List<TwinEntity> twinEntities = twinService.createTwinsAsyncBatch(twinCreates);
-
+            var twinBatchCreateResult = twinService.createTwinsAsync(twinCreates);
+            var createdTwins = twinBatchCreateResult.getTwinCreateResultList().stream().map(TwinService.TwinCreateResult::getCreatedTwin).toList();
             rs.setTemporalIdMap(temporalIdContext.getTemporalIdMap())
-              .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
+              .setTwinList(twinRestDTOMapperV2.convertCollection(createdTwins, mapperContext))
               .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);

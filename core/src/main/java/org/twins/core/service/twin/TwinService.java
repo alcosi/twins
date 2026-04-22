@@ -35,10 +35,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.domain.twinoperation.TwinDuplicate;
-import org.twins.core.domain.twinoperation.TwinOperation;
-import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.domain.twinoperation.*;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.enums.twin.TwinCreateStrategy;
@@ -117,9 +114,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     private final AuthService authService;
     private final TwinChangesService twinChangesService;
-    private final TemporalIdResolver temporalIdResolver;
-    @Lazy
-    private final TemporalIdContext temporalIdContext;
     @Lazy
     private final HistoryService historyService;
     @Lazy
@@ -355,63 +349,31 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinAliasEntityList(twinAliasService.createAliasesForTwin(twinEntity, true));
     }
 
-    //faster, but dont call it form method annotated by @transactional
-    public TwinCreateResult createTwinAsync(TwinCreate twinCreate) throws ServiceException {
-        List<TwinEntity> twins = self.createTwinsAsync(Collections.singletonList(twinCreate));
-        TwinBatchCreateResult twinBatchCreateResult = generateTwinAliasesAndMakeCreationResult(twins);
-        TwinCreateResult result = twinBatchCreateResult.getTwinCreateResultList().getFirst();
-        return result;
-    }
-
-    public List<TwinEntity> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
-        try {
-            // Check if sorting needed (temporalId present)
-            if (temporalIdContext.getSortedIndices() != null) {
-                // Reorder twinCreates according to sorted indices from context
-                List<Integer> sortedIndices = temporalIdContext.getSortedIndices();
-                List<TwinCreate> sortedCreates = new ArrayList<>();
-                for (int index : sortedIndices) {
-                    sortedCreates.add(twinCreates.get(index));
-                }
-
-                // For temporalId case, create twins one by one with DB flush
-                List<TwinEntity> twins = self.createTwinsAsyncSequential(sortedCreates);
-                generateTwinAliasesAndMakeCreationResult(twins);
-
-                return twins;
-            }
-
-            // Original logic for non-temporalId case
-            List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
-            generateTwinAliasesAndMakeCreationResult(twins);
-
-            return twins;
-        } finally {
-            temporalIdContext.clear();
-        }
+    //faster, but don't call it form method annotated by @transactional
+    public TwinBatchCreateResult createTwinsAsync(List<TwinCreate> twinCreates) throws ServiceException {
+        List<TwinEntity> twins = self.createTwins(twinCreates);
+        return generateTwinAliasesAndMakeCreationResult(twins);
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinEntity> createTwinsAsyncSequential(List<TwinCreate> twinCreateList) throws ServiceException {
-        List<TwinEntity> twins = new ArrayList<>();
-        for (TwinCreate twinCreate : twinCreateList) {
-            TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-            createTwin(twinCreate, twinChangesCollector);
-            TwinChangesApplyResult result = twinChangesService.applyChanges(twinChangesCollector);
-            TwinEntity twinEntity = result.getById(TwinEntity.class, TwinEntity::getId, twinCreate.getTwinId());
-            twins.add(twinEntity);
-            twinStatusTriggerService.runTwinStatusTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
-            twinChangesService.savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
+    protected List<TwinEntity> createTwins(List<TwinCreate> twinCreates) throws ServiceException {
+        var levels = splitOnLevels(twinCreates);
+        List<TwinEntity> ret = new ArrayList<>();
+        for (var level : levels) {
+            var twins = self.createTwins(level);
+            ret.addAll(twins);
         }
-        return twins;
+        return ret;
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
+    protected List<TwinEntity> createTwins(TwinCreateLevel twinCreateList) throws ServiceException {
+        // todo try to use parallel stream for this
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         //batch load twin classes if they are null, before loadFieldEditability call
         List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
         loadClass(twinEntities);
+        setHeadSafe(twinEntities); // for permission schema load
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
@@ -449,6 +411,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                                             null
                             ));
         return twinBatchCreateResult;
+    }
+
+    @Transactional
+    public TwinEntity createTwin(TwinEntity twinEntity) throws ServiceException {
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        validateAndCollect(twinEntity, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
+        return twinEntity;
     }
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -573,6 +543,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setPermissionSchemaId(headTwin.getPermissionSchemaId());
         } else {
             twinEntity.setPermissionSchemaId(authService.getApiUser().getUser().getDetectedPermissionSchemaId());
+        }
+    }
+
+    private void setHeadSafe(Collection<TwinEntity> twinEntity) throws ServiceException {
+        for (var twin : twinEntity) {
+            setHeadSafe(twin); //todo fix to bulk operation
         }
     }
 
@@ -736,13 +712,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
 
-    @Transactional
-    public TwinEntity createTwin(TwinEntity twinEntity) throws ServiceException {
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        validateAndCollect(twinEntity, twinChangesCollector);
-        twinChangesService.applyChanges(twinChangesCollector);
-        return twinEntity;
-    }
+
 
     private void validateAndCollect(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         validateEntityAndThrow(twinEntity, EntitySmartService.EntityValidateMode.beforeSave);
@@ -1993,5 +1963,111 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return i18nService.translateToLocale(errorEntity.getClientMsgI18nId(), context);
         else
             return errorCode.getMessage();
+    }
+
+    public List<TwinCreateLevel> splitOnLevels(Collection<TwinCreate> srcCollection) throws ServiceException {
+        Map<UUID, TwinCreate> newTwinsWithIds = new HashMap<>();
+
+        Map<TwinCreate, Set<TwinCreate>> reverseGraph = new HashMap<>();
+        Map<TwinCreate, Integer> inDegree = new HashMap<>();
+
+        for (TwinCreate t : srcCollection) {
+            reverseGraph.put(t, new HashSet<>());
+            inDegree.put(t, 0);
+            if (t.getTwinId() != null) {
+                newTwinsWithIds.put(t.getTwinId(), t); // collect all new twins with ids
+            }
+        }
+
+        // --- Build dependencies ---
+        for (TwinCreate t : srcCollection) {
+            Set<TwinCreate> deps = extractDependencies(t, newTwinsWithIds);
+
+            for (TwinCreate dep : deps) {
+                reverseGraph.get(dep).add(t);
+                inDegree.put(t, inDegree.get(t) + 1);
+            }
+        }
+
+        // --- First layer (inDegree = 0) ---
+        Queue<TwinCreate> queue = new ArrayDeque<>();
+
+        for (TwinCreate t : srcCollection) {
+            if (inDegree.get(t) == 0) {
+                queue.add(t);
+            }
+        }
+
+        List<TwinCreateLevel> levels = new ArrayList<>();
+        int processedCount = 0;
+
+        // --- Kahn by layers ---
+        while (!queue.isEmpty()) {
+
+            int levelSize = queue.size();
+            TwinCreateLevel level = new TwinCreateLevel(levelSize);
+
+            for (int i = 0; i < levelSize; i++) {
+                TwinCreate current = queue.poll();
+                level.add(current);
+                processedCount++;
+
+                for (TwinCreate dependent : reverseGraph.get(current)) {
+                    int newDegree = inDegree.get(dependent) - 1;
+                    inDegree.put(dependent, newDegree);
+
+                    if (newDegree == 0) {
+                        queue.add(dependent);
+                    }
+                }
+            }
+
+            levels.add(level);
+        }
+
+        // --- Cycle check ---
+        if (processedCount != srcCollection.size()) {
+            throw new ServiceException(
+                    ErrorCodeTwins.CYCLIC_DEPENDENCY,
+                    "Cyclic dependency detected in twin creation batch"
+            );
+        }
+
+        return levels;
+    }
+
+    private Set<TwinCreate> extractDependencies(TwinCreate t, Map<UUID, TwinCreate> newTwinsWithIds) {
+        Set<TwinCreate> result = new HashSet<>();
+        TwinEntity entity = t.getTwinEntity();
+
+        // --- headTwinId ---
+        addIfRefOnNew(entity.getHeadTwinId(), newTwinsWithIds,  result);
+
+        // --- links ---
+        if (t.getLinksEntityList() != null) {
+            for (TwinLinkEntity link : t.getLinksEntityList()) {
+                addIfRefOnNew(link.getDstTwinId(), newTwinsWithIds, result);
+            }
+        }
+
+        // --- fields ---
+        if (t.getFields() != null) {
+            for (FieldValue value : t.getFields().values()) {
+                if (value instanceof FieldValueText fieldValueText) {
+                    UUID refId = UuidUtils.ifNotUuidThenNull(fieldValueText.getValue());
+                    addIfRefOnNew(refId, newTwinsWithIds, result);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private void addIfRefOnNew(UUID id, Map<UUID, TwinCreate> newTwinsWithIds, Set<TwinCreate> acc) {
+        if (id == null) return;
+        TwinCreate dep = newTwinsWithIds.get(id);
+        if (dep != null) {
+            acc.add(dep);
+        }
     }
 }

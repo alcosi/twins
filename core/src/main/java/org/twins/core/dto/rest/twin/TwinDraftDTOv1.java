@@ -8,7 +8,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkAddDTOv2;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 
 import java.util.HashMap;
@@ -45,8 +45,8 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
 
-    @Schema(description = "links list")
-    public List<TwinLinkAddDTOv1> links;
+    @Schema(description = "links list (with temporalId support)")
+    public List<TwinLinkAddDTOv2> links;
 
     @Schema(description = "tags list")
     public TwinTagAddDTOv1 tags;
@@ -75,7 +75,7 @@ public class TwinDraftDTOv1 extends Request {
         return this;
     }
 
-    public TwinDraftDTOv1 addLinksItem(TwinLinkAddDTOv1 item) {
+    public TwinDraftDTOv1 addLinksItem(TwinLinkAddDTOv2 item) {
         this.links = CollectionUtils.safeAdd(this.links, item);
         return this;
     }
