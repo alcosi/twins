@@ -40,7 +40,9 @@ public class TwinTriggerSearchService {
                 checkIntegerIn(search.getTriggerFeaturerIdList(), false, TwinTriggerEntity.Fields.twinTriggerFeaturerId),
                 checkIntegerIn(search.getTriggerFeaturerIdExcludeList(), true, TwinTriggerEntity.Fields.twinTriggerFeaturerId),
                 checkTernary(search.getActive(), TwinTriggerEntity.Fields.active),
-                checkFieldLikeIn(search.getNameLikeList(), false, true, TwinTriggerEntity.Fields.name)
+                checkFieldLikeIn(search.getNameLikeList(), false, true, TwinTriggerEntity.Fields.name),
+                checkUuidIn(search.getJobTwinClassIdList(), false, true, TwinTriggerEntity.Fields.jobTwinClassId),
+                checkUuidIn(search.getJobTwinClassIdExcludeList(), true, true, TwinTriggerEntity.Fields.jobTwinClassId)
         );
     }
 }

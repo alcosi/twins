@@ -49,8 +49,8 @@ task createDockerfile(type: Dockerfile) {
     dependsOn("bootJar")
     destFile.set(project.file("$dockerBuildDir/Dockerfile"))
 
-    from("bellsoft/liberica-openjre-alpine:21.0.5")
-    runCommand("mkdir -p $dockerWorkingDir/logs")
+    from("bellsoft/liberica-openjre-alpine:21.0.10")
+    runCommand("mkdir -p $dockerWorkingDir/logs && apk update && apk upgrade --no-cache && rm -rf /var/cache/apk/*")
     workingDir(".$dockerWorkingDir")
     addFile("$jarName", "$dockerWorkingDir/twins.jar")
     entryPoint("java")
@@ -131,6 +131,9 @@ dependencies {
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.01-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     runtimeOnly 'io.grpc:grpc-netty-shaded:1.76.0'
     implementation 'io.grpc:grpc-protobuf:1.76.0'
     implementation 'io.grpc:grpc-stub:1.76.0'

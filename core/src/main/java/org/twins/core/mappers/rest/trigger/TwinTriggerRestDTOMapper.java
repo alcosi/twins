@@ -54,7 +54,6 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
         }
 
         if (mapperContext.hasModeButNot(TwinClassMode.TwinTrigger2TwinClassMode.HIDE)) {
-            twinTriggerService.loadJobTwinClass(src);
             dst.setJobTwinClassId(src.getJobTwinClassId());
             twinClassRestDTOMapper.postpone(src.getJobTwinClass(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinTrigger2TwinClassMode.SHORT)));
@@ -76,9 +75,6 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(FeaturerMode.TwinTrigger2FeaturerMode.HIDE)) {
             twinTriggerService.loadTwinTriggerFeaturer(srcCollection);
-        }
-        if (mapperContext.hasModeButNot(TwinClassMode.TwinTrigger2TwinClassMode.HIDE)) {
-            twinTriggerService.loadJobTwinClass(srcCollection);
         }
     }
 }

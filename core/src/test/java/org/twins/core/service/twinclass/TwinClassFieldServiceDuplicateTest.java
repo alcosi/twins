@@ -28,11 +28,13 @@ class TwinClassFieldServiceDuplicateTest {
 
     @Mock private I18nService i18nService;
     @Mock private TwinClassFieldRepository twinClassFieldRepository;
+    @Mock private TwinClassService twinClassService;
 
     private TwinClassFieldService twinClassFieldService;
 
     private TwinClassFieldEntity srcField;
     private TwinClassEntity srcClass;
+    private TwinClassEntity dstClass;
     private UUID srcFieldId;
     private UUID srcClassId;
     private UUID dstClassId;
@@ -48,7 +50,7 @@ class TwinClassFieldServiceDuplicateTest {
         twinClassFieldService = Mockito.spy(
                 new TwinClassFieldService(
                         twinClassFieldRepository, i18nService, null, null,
-                        null, null, null, null, null
+                        null, null, twinClassService, null, null
                 )
         );
 
@@ -59,6 +61,7 @@ class TwinClassFieldServiceDuplicateTest {
         editPermissionId = UUID.randomUUID();
 
         srcClass = new TwinClassEntity().setId(srcClassId);
+        dstClass = new TwinClassEntity().setId(dstClassId);
 
         fieldTyperParams = new HashMap<>(Map.of("typer", "v1"));
         twinSorterParams = new HashMap<>(Map.of("sorter", "v2"));
@@ -96,6 +99,7 @@ class TwinClassFieldServiceDuplicateTest {
                 .setOriginalTwinClassFieldId(original.getId())
                 .setOriginalTwinClassField(original)
                 .setNewTwinClassId(newTwinClassId)
+                .setNewTwinClass(dstClass)
                 .setNewKey(key);
     }
 
@@ -122,7 +126,7 @@ class TwinClassFieldServiceDuplicateTest {
             TwinClassFieldEntity saved = captured.get(0);
             assertNotSame(srcField, saved);
             assertEquals(dstClassId, saved.getTwinClassId());
-            assertSame(srcClass, saved.getTwinClass());
+            assertSame(dstClass, saved.getTwinClass());
 
             assertEquals(srcField.getFieldTyperFeaturerId(), saved.getFieldTyperFeaturerId());
             assertEquals(fieldTyperParams, saved.getFieldTyperParams());

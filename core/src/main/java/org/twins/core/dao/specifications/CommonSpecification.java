@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
+import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.enums.twinclass.OwnerType.*;
 
@@ -438,7 +439,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
-            Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
+            String arrayString = collectionUuidsToSqlArray(uuids);
+            Expression<Boolean> anyExpression = cb.function("native_uuid_any", Boolean.class, fieldPath, cb.literal(arrayString));
+            Predicate predicate = not ? cb.isFalse(anyExpression) : cb.isTrue(anyExpression);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }

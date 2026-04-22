@@ -16,6 +16,8 @@ public class TwinTriggerSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinT
                 .setTriggerFeaturerIdList(src.getTriggerFeaturerIdList())
                 .setTriggerFeaturerIdExcludeList(src.getTriggerFeaturerIdExcludeList())
                 .setActive(src.getActive())
-                .setNameLikeList(src.getNameLikeList());
+                .setNameLikeList(src.getNameLikeList())
+                .setJobTwinClassIdList(src.getJobTwinClassIdList())
+                .setJobTwinClassIdExcludeList(src.getJobTwinClassIdExcludeList());
     }
 }

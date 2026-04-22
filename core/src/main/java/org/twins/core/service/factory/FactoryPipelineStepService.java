@@ -76,7 +76,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
                     entity.setFillerFeaturer(featurerService.checkValid(entity.getFillerFeaturerId(), entity.getFillerParams(), Filler.class));
                     featurerService.prepareForStore(entity.getFillerFeaturerId(), entity.getFillerParams());
                 }
-                if (entity.getTwinFactoryConditionSet() == null || !entity.getTwinFactoryConditionSet().getId().equals(entity.getTwinFactoryConditionSetId()))
+                if (entity.getTwinFactoryConditionSetId() != null && (entity.getTwinFactoryConditionSet() == null || !entity.getTwinFactoryConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
                     entity.setTwinFactoryConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
         }
         return true;
