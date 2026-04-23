@@ -53,6 +53,12 @@ public class UuidUtils {
         return existingId != null ? existingId : UuidCreator.getTimeOrderedEpoch();
     }
 
+    public static UUID ifNotUuidThenNull(String uuidStr) {
+        if (uuidStr == null || !isUUID(uuidStr))
+            return null;
+        return UUID.fromString(uuidStr);
+    }
+
     public static UUID generate() {
         return UuidCreator.getTimeOrderedEpoch();
     }

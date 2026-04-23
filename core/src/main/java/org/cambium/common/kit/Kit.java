@@ -167,7 +167,8 @@ public class Kit<E, K> implements Collection<E> {
     @Override
     public void clear() {
         map = null; //invalidating
-        collection.clear();
+        if (collection != null)
+            collection.clear();
     }
 
     @Override

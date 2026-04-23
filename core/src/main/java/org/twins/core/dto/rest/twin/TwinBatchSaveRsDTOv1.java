@@ -18,6 +18,9 @@ public class TwinBatchSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "twin list")
     public List<TwinDTOv2> twinList;
 
+    @Schema(description = "Mapping of temporalId to generated UUID")
+    public Map<String, UUID> temporalIdMap;
+
     @Schema(description = "Invalid twin field id list")
     public Map<UUID, Map<UUID, String>> invalidTwinFieldErrors;
 }
