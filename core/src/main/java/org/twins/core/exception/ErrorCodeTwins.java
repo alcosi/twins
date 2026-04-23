@@ -192,7 +192,11 @@ public enum ErrorCodeTwins implements ErrorCode {
     SCHEDULER_IS_ALREADY_RUNNING(13203, "scheduler is already running, stop it first"),
     USER_SEARCH_CONFIG_INCORRECT(13301, "user search config incorrect"),
     TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(13401, "twin class field condition depth exceeded"),
-    TOO_MANY_REQUESTS(13501, "too many requests", HttpStatus.TOO_MANY_REQUESTS);
+    TOO_MANY_REQUESTS(13501, "too many requests", HttpStatus.TOO_MANY_REQUESTS),
+    TEMPORAL_ID_NOT_FOUND(13601, "temporal id reference not found in batch request"),
+    DUPLICATE_TEMPORAL_ID(13602, "duplicate temporal id in batch request"),
+    CYCLIC_DEPENDENCY(13603, "cyclic dependency detected in temporal references"),
+    INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format");
 
     private final int code;
     private final String message;

@@ -9,11 +9,11 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "TwinLinkAddV1")
-public class TwinLinkAddDTOv1 {
+@Schema(name =  "TwinLinkAddV2")
+public class TwinLinkAddDTOv2 {
     @Schema(description = "Link id", example = DTOExamples.LINK_ID)
     public UUID linkId;
 
-    @Schema(description = "Destination twin id", example = DTOExamples.TWIN_ID)
-    public UUID dstTwinId;
+    @Schema(description = "Destination twin id (can be UUID or temporalId:XXX reference)", example = DTOExamples.TWIN_ID)
+    public String dstTwinId;
 }

@@ -13,7 +13,6 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -145,22 +144,22 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     public void loadTwinflow(Collection<TwinEntity> twinEntityList) throws ServiceException {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        var needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getTwinClassId);
         for (TwinEntity twinEntity : twinEntityList) {
             if (twinEntity.getTwinflow() != null)
                 continue;
-            needLoad.put(twinEntity.getId(), twinEntity);
+            needLoad.add(twinEntity);
         }
-        if (MapUtils.isEmpty(needLoad))
+        if (KitUtils.isEmpty(needLoad))
             return;
         ApiUser apiUser = authService.getApiUser();
-        List<Object[]> twinflowList = twinflowRepository.twinflowsDetect(apiUser.getDomainId(), TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()), needLoad.keySet());
+        List<Object[]> twinflowList = twinflowRepository.twinflowsDetect(apiUser.getDomainId(), TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()), needLoad.getIdSet());
         Map<String, TwinflowEntity> twinflowMap = new HashMap<>();
         for (Object[] dbRow : twinflowList) {
             twinflowMap.put((String) dbRow[0], (TwinflowEntity) dbRow[1]);
         }
         TwinflowEntity twinflowEntity = null;
-        for (TwinEntity twinEntity : needLoad.values()) {
+        for (TwinEntity twinEntity : needLoad) {
             //twinflow can be inherited from extended class, that is why twin.getTwinClassId is not always equal to twinflow.twinClassId here
             twinflowEntity = twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : ""));
             if (twinflowEntity == null)

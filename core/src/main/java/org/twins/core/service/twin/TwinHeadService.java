@@ -11,6 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -25,6 +26,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -40,10 +42,9 @@ public class TwinHeadService {
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
 
-    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        if (twinClassEntity.getHeadTwinClassId() == null)
-            return PaginationUtils.convertInPaginationResult(pagination);
-        TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
+    public void validHeadsExpandSearch(TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
+        twinClassService.loadHeadTwinClass(twinClassEntity);
+        var headTwinClassEntity = twinClassEntity.getHeadTwinClass();
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
             if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
                     || SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
@@ -59,6 +60,12 @@ public class TwinHeadService {
             headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
         //todo add checkSegmentUniq logic, to exclude heads with segments
+    }
+
+    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        if (twinClassEntity.getHeadTwinClassId() == null)
+            return PaginationUtils.convertInPaginationResult(pagination);
+        validHeadsExpandSearch(twinClassEntity, basicSearch);
         return twinSearchService.findTwins(basicSearch, pagination);
     }
 
@@ -73,30 +80,46 @@ public class TwinHeadService {
     }
 
     public TwinEntity checkValidHeadForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
-        if (subClass.getHeadTwinClassId() == null)
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "No head class configured for " + subClass.logShort());
-        if (headTwinId == null)
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
-        BasicSearch basicSearch = new BasicSearch();
-        basicSearch.addTwinId(headTwinId, false);
-        PaginationResult<TwinEntity> validHead = findValidHeads(subClass, basicSearch, SimplePagination.SINGLE);
-        if (validHead.getTotal() == 0)
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twin[" + headTwinId + "] is not allowed for twinClass[" + subClass.getId() + "]");
-        var head = validHead.getList().getFirst();
-        checkSegmentUniq(head, subClass);
-        return head;
+        var validHeads = checkValidHeadsForClass(Collections.singleton(headTwinId), subClass);
+        return validHeads.isEmpty() ? null : validHeads.getList().getFirst();
     }
 
-    private void checkSegmentUniq(TwinEntity headTwin, TwinClassEntity subClass) throws ServiceException {
+    public Kit<TwinEntity, UUID> checkValidHeadsForClass(Set<UUID> headTwinIds, TwinClassEntity subClass) throws ServiceException {
+        if (subClass.getHeadTwinClassId() == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "No head class configured for " + subClass.logShort());
+        if (CollectionUtils.isEmpty(headTwinIds))
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
+        BasicSearch validHeadsSearch = new BasicSearch();
+        validHeadsSearch.setTwinIdList(headTwinIds);
+        validHeadsExpandSearch(subClass, validHeadsSearch);
+        var validHeads = new Kit<>(twinSearchService.findTwins(validHeadsSearch), TwinEntity::getId);
+        if (headTwinIds.size() != validHeads.size()) {
+            var missedHeads = new StringBuilder();
+            for (var headTwinId : headTwinIds) {
+                if (!validHeads.containsKey(headTwinId))
+                    missedHeads.append(headTwinId).append(",");
+            }
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twins[" + missedHeads + "] is not allowed for twinClass[" + subClass.getId() + "]");
+        }
+        checkSegmentUniq(headTwinIds, subClass);
+        return validHeads;
+    }
+
+    private void checkSegmentUniq(Set<UUID> headTwinIds, TwinClassEntity subClass) throws ServiceException {
         if (Boolean.FALSE.equals(subClass.getSegment()))
             return;
         //segments are one-to-one only
         var segmentsSearch = new BasicSearch();
         segmentsSearch
                 .addTwinClassId(subClass.getId(), false)
-                .addHeadTwinId(headTwin.getId());
-        if (twinSearchService.exists(segmentsSearch)) {
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", subClass.logShort(), headTwin.logShort());
+                .setHeadTwinIdList(headTwinIds);
+        var existedSegments = twinSearchService.findTwins(segmentsSearch);
+        if (!existedSegments.isEmpty()) {
+            var existedForHeads = new StringBuilder(existedSegments.size() * 37 - 1);
+            for (var existedSegment : existedSegments) {
+                existedForHeads.append(existedSegment.getId()).append(",");
+            }
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", subClass.logShort(), existedForHeads.toString());
         }
     }
 
