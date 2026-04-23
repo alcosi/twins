@@ -1,17 +1,17 @@
 -- Table: twin_class_field_action
 CREATE TABLE IF NOT EXISTS twin_class_field_action (
-    id character varying(255) NOT NULL,
+    id character varying(15) NOT NULL,
     CONSTRAINT twin_class_field_action_pk PRIMARY KEY (id)
 );
 
 -- Table: twin_class_field_action_validation_rule
 CREATE TABLE IF NOT EXISTS twin_class_field_action_validation_rule (
     id uuid NOT NULL,
-    twin_class_field_id uuid NOT NULL REFERENCES twin_class_field(id) ON UPDATE CASCADE,
-    twin_class_field_action_id character varying(255) NOT NULL REFERENCES twin_class_field_action(id) ON UPDATE CASCADE,
+    twin_class_field_id uuid NOT NULL REFERENCES twin_class_field(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    twin_class_field_action_id character varying(15) NOT NULL REFERENCES twin_class_field_action(id) ON UPDATE CASCADE,
     "order" integer DEFAULT 1,
     active boolean DEFAULT true NOT NULL,
-    twin_validator_set_id uuid REFERENCES twin_validator_set(id) ON UPDATE CASCADE,
+    twin_validator_set_id uuid REFERENCES twin_validator_set(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     CONSTRAINT twin_class_field_action_validation_rule_pk PRIMARY KEY (id)
 );
 

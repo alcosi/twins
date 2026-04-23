@@ -1704,7 +1704,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         //let's try to check common permission for classes, this will help to reduce loop count
         var classLevelPermissionCheckPassed = new HashMap<UUID, Map<UUID, Boolean>>(); // classId -> classFieldId -> editable = true
-        var twinLevelPermissionCheckNeeded = new HashMap<UUID, List<TwinClassFieldEntity>>(); // classId -> classFieldId
+        KitGroupedObj<TwinClassFieldEntity, UUID, UUID, TwinClassEntity> twinLevelPermissionCheckNeeded =
+                new KitGroupedObj<>(TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId, TwinClassFieldEntity::getTwinClass);
         for (var twinClass : needLoad.getGroupingObjectMap().values()) {
             for (var twinClassField : twinClass.getTwinClassFieldKit()) {
                 if (twinClassFieldService.notSerializable(twinClassField)) { //this edit blocker flag from field typer
@@ -1714,17 +1715,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 }
                 if (twinClassField.getEditPermissionId() == null) {
                     // No permission check needed - check validators only
-                    twinLevelPermissionCheckNeeded.computeIfAbsent(twinClass.getId(), l -> new ArrayList<>()).add(twinClassField);
+                    twinLevelPermissionCheckNeeded.add(twinClassField);
                     continue;
                 }
                 if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    // Permission passed - check validators
-                    twinLevelPermissionCheckNeeded.computeIfAbsent(twinClass.getId(), l -> new ArrayList<>()).add(twinClassField);
+                    // Global permission passed - check validators only (no need to check twin-specific permission)
+                    twinLevelPermissionCheckNeeded.add(twinClassField);
                     continue;
                 }
-                // Permission denied - no need to check validators
-                classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
-                        .put(twinClassField.getId(), false);
+                // No global permission - need to check twin-specific permission
+                twinLevelPermissionCheckNeeded.add(twinClassField);
             }
         }
 
@@ -1738,28 +1738,26 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
 
             // Check twin-specific permissions and validators
-            if (twinLevelPermissionCheckNeeded.containsKey(twin.getTwinClassId())) {
-                for (var twinClassField : twinLevelPermissionCheckNeeded.get(twin.getTwinClassId())) {
-                    // Check permission first (if needed)
-                    boolean permissionPassed = true;
-                    if (twinClassField.getEditPermissionId() != null) {
-                        if (twinSpecificPermissionsCache.containsKey(twinClassField.getEditPermissionId())) {
-                            permissionPassed = twinSpecificPermissionsCache.get(twinClassField.getEditPermissionId());
-                        } else {
-                            permissionPassed = permissionService.hasPermission(twin, twinClassField.getEditPermissionId());
-                            twinSpecificPermissionsCache.put(twinClassField.getEditPermissionId(), permissionPassed);
-                        }
+            for (var twinClassField : twinLevelPermissionCheckNeeded.getGrouped(twin.getTwinClassId())) {
+                // Check permission first (if needed)
+                boolean permissionPassed = true;
+                if (twinClassField.getEditPermissionId() != null) {
+                    if (twinSpecificPermissionsCache.containsKey(twinClassField.getEditPermissionId())) {
+                        permissionPassed = twinSpecificPermissionsCache.get(twinClassField.getEditPermissionId());
+                    } else {
+                        permissionPassed = permissionService.hasPermission(twin, twinClassField.getEditPermissionId());
+                        twinSpecificPermissionsCache.put(twinClassField.getEditPermissionId(), permissionPassed);
                     }
-
-                    if (!permissionPassed) {
-                        twin.getTwinFieldEditability().put(twinClassField.getId(), false);
-                        continue;
-                    }
-
-                    // Permission passed - check validators
-                    boolean validatorsPassed = isFieldEditValidByValidators(twin, twinClassField);
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), validatorsPassed);
                 }
+
+                if (!permissionPassed) {
+                    twin.getTwinFieldEditability().put(twinClassField.getId(), false);
+                    continue;
+                }
+
+                // Permission passed - check validators
+                boolean validatorsPassed = isFieldEditValidByValidators(twin, twinClassField);
+                twin.getTwinFieldEditability().put(twinClassField.getId(), validatorsPassed);
             }
         }
     }
