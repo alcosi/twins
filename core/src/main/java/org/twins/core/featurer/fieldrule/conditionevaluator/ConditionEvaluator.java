@@ -24,6 +24,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
 
     @FeaturerParam(name = "ValueToCompareWith", description = "", order = 1)
     public static final FeaturerParamString valueToCompareWith = new FeaturerParamString("valueToCompareWith");; // cmp_value VARCHAR NULL,
+
     @FeaturerParam(name = "ConditionOperator", description = "", order =2)
     public static final FeaturerParamStringTwinsConditionOperatorType conditionOperator = new FeaturerParamStringTwinsConditionOperatorType("conditionOperator");;
 
@@ -54,4 +55,14 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
 
     protected abstract D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException;
 
+    // override this method for bulk logic
+    public void loadConditionDescriptors(List<TwinClassFieldConditionEntity> twinClassFieldConditionList) throws ServiceException {
+        for (var twinClassFieldCondition : twinClassFieldConditionList) {
+            if (twinClassFieldCondition.getConditionEvaluatorFeaturerId() == null)
+                continue;
+            if (twinClassFieldCondition.getConditionDescriptor() == null) {
+                twinClassFieldCondition.setConditionDescriptor(getConditionDescriptor(twinClassFieldCondition));
+            }
+        }
+    }
 }
