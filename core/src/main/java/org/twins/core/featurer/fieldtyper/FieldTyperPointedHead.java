@@ -54,7 +54,7 @@ public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, 
     protected FieldValue deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         var headTwinClassField = getHeadTwinClassFieldSafe(properties);
         var headTwinFieldValue = twinField.getTwin().getHeadTwin().getFieldValuesKit().get(headTwinClassField.getId());
-        return headTwinFieldValue.clone(twinField.getTwinClassField());
+        return headTwinFieldValue != null ? headTwinFieldValue.clone(twinField.getTwinClassField()) : twinService.createFieldValue(twinField.getTwinClassField());
     }
 
     protected TwinClassFieldEntity getHeadTwinClassFieldSafe(Properties properties) throws ServiceException {

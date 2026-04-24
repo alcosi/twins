@@ -32,6 +32,7 @@ public class TwinCreate extends TwinSave {
         attachmentEntityList = CollectionUtils.safeAdd(attachmentEntityList, attachment);
         return this;
     }
+
     @Override
     public UUID nullifyUUID() {
         return null;

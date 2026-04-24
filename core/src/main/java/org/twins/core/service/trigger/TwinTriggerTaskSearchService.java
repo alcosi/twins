@@ -13,7 +13,6 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
@@ -42,7 +41,7 @@ public class TwinTriggerTaskSearchService {
     private Specification<TwinTriggerTaskEntity> createTwinTriggerTaskSearchSpecification(TwinTriggerTaskSearch search) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         return Specification.allOf(
-                checkFieldUuid(domainId, DataListEntity.Fields.domainId),
+                checkFieldUuid(domainId, TwinTriggerTaskEntity.Fields.twinTrigger, TwinTriggerEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinTriggerTaskEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinTriggerTaskEntity.Fields.id),
                 checkUuidIn(search.getTwinIdList(), false, false, TwinTriggerTaskEntity.Fields.twinId),
