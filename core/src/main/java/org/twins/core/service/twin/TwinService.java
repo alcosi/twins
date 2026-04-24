@@ -1682,20 +1682,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private Collection<TwinClassFieldEntity> filterSerializableFields(KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> needLoad) throws ServiceException {
-        List<TwinClassFieldEntity> serializableFields = new ArrayList<>();
-        for (var twinClass : needLoad.getGroupingObjectMap().values()) {
-            if (twinClass.getTwinClassFieldKit() != null) {
-                for (var field : twinClass.getTwinClassFieldKit()) {
-                    if (!twinClassFieldService.notSerializable(field)) {
-                        serializableFields.add(field);
-                    }
-                }
-            }
-        }
-        return serializableFields;
-    }
-
     public void loadFieldEditability(TwinEntity src) throws ServiceException {
         loadFieldEditability(Collections.singletonList(src));
     }
@@ -1711,162 +1697,82 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
 
-        // Load validation rules for editable fields only
-        Collection<TwinClassFieldEntity> serializableFields = filterSerializableFields(needLoad);
-        twinClassFieldService.loadTwinClassFieldActionValidationRules(serializableFields);
+        Map<TwinClassFieldEntity, Set<UUID>> fieldsForValidation = new HashMap<>();
+        Map<UUID, Boolean> permissionCache = new HashMap<>();
 
-        // Immutable fields by class (notSerializable)
-        Map<UUID, Map<UUID, Boolean>> immutableFieldsByClass = new HashMap<>();
-        // fieldId -> twinIds that passed permission checks and need validation
-        Map<UUID, Set<UUID>> fieldsForValidation = new HashMap<>();
-        // Fields that need twin-specific permission check
-        KitGroupedObj<TwinClassFieldEntity, UUID, UUID, TwinClassEntity> fieldsNeedingTwinPermission =
-                new KitGroupedObj<>(TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId, TwinClassFieldEntity::getTwinClass);
-
-        // Stage 1: collect fields by permission requirements
-        for (var twinClass : needLoad.getGroupingObjectMap().values()) {
-            List<TwinEntity> classTwins = needLoad.getGrouped(twinClass.getId());
-            for (var twinClassField : twinClass.getTwinClassFieldKit()) {
-                if (twinClassFieldService.notSerializable(twinClassField)) {
-                    immutableFieldsByClass.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
-                            .put(twinClassField.getId(), false);
-                    continue;
-                }
-                // All editable fields need validation (permission check happens before or during)
-                fieldsForValidation.put(twinClassField.getId(), new HashSet<>(classTwins.stream().map(TwinEntity::getId).toList()));
-                // Check if twin-specific permission is needed
-                if (twinClassField.getEditPermissionId() != null
-                        && !permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    fieldsNeedingTwinPermission.add(twinClassField);
-                }
-            }
-        }
-
-        // Stage 2: twin-specific permission check and apply results
-        var permissionResults = new HashMap<UUID, Boolean>();
         for (var twin : needLoad) {
             twin.setTwinFieldEditability(new HashMap<>());
-            // Add immutable fields
-            if (immutableFieldsByClass.containsKey(twin.getTwinClassId())) {
-                twin.getTwinFieldEditability().putAll(immutableFieldsByClass.get(twin.getTwinClassId()));
-            }
+            TwinClassEntity twinClass = twin.getTwinClass();
 
-            List<TwinClassFieldEntity> fieldsToCheck = fieldsNeedingTwinPermission.getGrouped(twin.getTwinClassId());
-            for (var twinClassField : fieldsToCheck) {
-                boolean permissionPassed;
-                if (permissionResults.containsKey(twinClassField.getEditPermissionId())) {
-                    permissionPassed = permissionResults.get(twinClassField.getEditPermissionId());
-                } else {
-                    permissionPassed = permissionService.hasPermission(twin, twinClassField.getEditPermissionId());
-                    permissionResults.put(twinClassField.getEditPermissionId(), permissionPassed);
+            for (var field : twinClass.getTwinClassFieldKit()) {
+                if (twinClassFieldService.notSerializable(field)) {
+                    twin.getTwinFieldEditability().put(field.getId(), false);
+                    continue;
                 }
-                if (!permissionPassed) {
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), false);
-                    Set<UUID> twinIds = fieldsForValidation.get(twinClassField.getId());
-                    if (twinIds != null) {
-                        twinIds.remove(twin.getId());
+
+                if (field.getEditPermissionId() == null) {
+                    fieldsForValidation.computeIfAbsent(field, k -> new HashSet<>()).add(twin.getId());
+                    continue;
+                }
+
+                if (!permissionCache.containsKey(field.getEditPermissionId())) {
+                    permissionCache.put(field.getEditPermissionId(), permissionService.currentUserHasPermission(field.getEditPermissionId()));
+                }
+                if (!permissionCache.get(field.getEditPermissionId())) {
+                    if (!permissionService.hasPermission(twin, field.getEditPermissionId())) {
+                        twin.getTwinFieldEditability().put(field.getId(), false);
+                        continue;
                     }
                 }
+                fieldsForValidation.computeIfAbsent(field, k -> new HashSet<>()).add(twin.getId());
             }
         }
 
-        // Remove empty field entries and skip validation if nothing to validate
-        fieldsForValidation.entrySet().removeIf(e -> e.getValue().isEmpty());
         if (fieldsForValidation.isEmpty()) {
-            return; // all fields either immutable or failed permission checks
+            return;
         }
 
-        // Stage 3: batch validate
-        Map<UUID, Map<UUID, Boolean>> validatorResults = batchValidateFieldEditability(needLoad, fieldsForValidation);
+        twinClassFieldService.loadTwinClassFieldActionValidationRules(fieldsForValidation.keySet());
 
-        // Stage 4: apply validator results
-        for (var twin : needLoad) {
-            for (var fieldEntry : fieldsForValidation.entrySet()) {
-                UUID fieldId = fieldEntry.getKey();
-                if (fieldEntry.getValue().contains(twin.getId())) {
-                    Boolean validatorResult = validatorResults.getOrDefault(fieldId, Collections.emptyMap()).get(twin.getId());
-                    twin.getTwinFieldEditability().put(fieldId, validatorResult != null ? validatorResult : true);
+        for (var fieldEntry : fieldsForValidation.entrySet()) {
+            TwinClassFieldEntity field = fieldEntry.getKey();
+            Set<UUID> twinIds = fieldEntry.getValue();
+
+            var rules = field.getTwinClassFieldActionValidationRules();
+            if (rules == null || CollectionUtils.isEmpty(rules.getGrouped(TwinClassFieldAction.EDIT))) {
+                for (UUID twinId : twinIds) {
+                    needLoad.get(twinId).getTwinFieldEditability().put(field.getId(), true);
                 }
+                continue;
             }
-        }
-    }
 
-    private Map<UUID, Map<UUID, Boolean>> batchValidateFieldEditability(
-            KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> needLoad,
-            Map<UUID, Set<UUID>> fieldsForValidation) throws ServiceException {
-        Map<UUID, Map<UUID, Boolean>> results = new HashMap<>();
-
-        // Index fields by class for O(1)
-        Map<UUID, Map<UUID, TwinClassFieldEntity>> fieldsByClass = indexFieldsByClass(needLoad);
-
-        for (var classEntry : needLoad.getGroupedMap().entrySet()) {
-            UUID classId = classEntry.getKey();
-            List<TwinEntity> classTwins = classEntry.getValue();
-            Map<UUID, TwinClassFieldEntity> classFields = fieldsByClass.get(classId);
-            if (classFields == null) continue;
-
-            for (var fieldEntry : fieldsForValidation.entrySet()) {
-                UUID fieldId = fieldEntry.getKey();
-                TwinClassFieldEntity field = classFields.get(fieldId);
-                if (field == null || fieldEntry.getValue().isEmpty()) continue;
-
-                results.put(fieldId, validateFieldForTwins(field, classTwins, fieldEntry.getValue()));
-            }
-        }
-        return results;
-    }
-
-    private Map<UUID, Map<UUID, TwinClassFieldEntity>> indexFieldsByClass(
-            KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> needLoad) {
-        Map<UUID, Map<UUID, TwinClassFieldEntity>> fieldsByClass = new HashMap<>();
-        for (var entry : needLoad.getGroupingObjectMap().entrySet()) {
-            TwinClassEntity twinClass = entry.getValue();
-            if (twinClass.getTwinClassFieldKit() == null) continue;
-            Map<UUID, TwinClassFieldEntity> classFields = new HashMap<>();
-            for (var field : twinClass.getTwinClassFieldKit()) {
-                classFields.put(field.getId(), field);
-            }
-            fieldsByClass.put(entry.getKey(), classFields);
-        }
-        return fieldsByClass;
-    }
-
-    private Map<UUID, Boolean> validateFieldForTwins(
-            TwinClassFieldEntity twinClassField,
-            List<TwinEntity> classTwins,
-            Set<UUID> twinIds) throws ServiceException {
-        Map<UUID, Boolean> results = new HashMap<>();
-        var rules = twinClassField.getTwinClassFieldActionValidationRules();
-
-        if (rules == null || CollectionUtils.isEmpty(rules.getGrouped(TwinClassFieldAction.EDIT))) {
-            // No validators = all valid
+            Kit<TwinEntity, UUID> twinsToValidate = new Kit<>(new ArrayList<>(), TwinEntity::getId);
             for (UUID twinId : twinIds) {
-                results.put(twinId, true);
+                TwinEntity twin = needLoad.get(twinId);
+                if (twin != null) {
+                    twinsToValidate.add(twin);
+                    twin.getTwinFieldEditability().put(field.getId(), true);
+                }
             }
-            return results;
-        }
 
-        // Initialize as true, apply AND logic (all validators must pass)
-        for (UUID twinId : twinIds) {
-            results.put(twinId, true);
-        }
+            for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
+                if (!rule.isActive()) continue;
 
-        // Filter to only twins that passed permission checks
-        Kit<TwinEntity, UUID> twinsToValidate = new Kit<>(classTwins, TwinEntity::getId);
-        twinsToValidate.removeIf(t -> !twinIds.contains(t.getId()));
+                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twinsToValidate.getList(), rule);
 
-        for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
-            if (!rule.isActive()) continue;
+                for (TwinEntity twin : twinsToValidate) {
+                    if (!batchResults.get(twin.getId()).isValid()) {
+                        twin.getTwinFieldEditability().put(field.getId(), false);
+                    }
+                }
 
-            Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twinsToValidate.getList(), rule);
+                twinsToValidate.removeIf(twin -> twin.getTwinFieldEditability().get(field.getId()) == Boolean.FALSE);
 
-            for (TwinEntity twin : twinsToValidate) {
-                if (!batchResults.get(twin.getId()).isValid()) {
-                    results.put(twin.getId(), false); // any validator fails = false
+                if (twinsToValidate.isEmpty()) {
+                    break;
                 }
             }
         }
-        return results;
     }
 
     public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {

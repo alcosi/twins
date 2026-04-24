@@ -778,20 +778,22 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadTwinClassFieldActionValidationRules(Collection<TwinClassFieldEntity> fields) throws ServiceException {
-        Kit<TwinClassFieldEntity, UUID> fieldsNeedingRules = new Kit<>(fields, TwinClassFieldEntity::getId);
-        // Remove already loaded fields
-        fieldsNeedingRules.removeIf(f -> f.getTwinClassFieldActionValidationRules() != null);
-        if (fieldsNeedingRules.isEmpty())
+        Kit<TwinClassFieldEntity, UUID> needLoad = new Kit<>(TwinClassFieldEntity::getId);
+        fields.stream()
+                .filter(f -> f.getTwinClassFieldActionValidationRules() == null)
+                .forEach(needLoad::add);
+
+        if (needLoad.isEmpty())
             return;
 
-        List<TwinClassFieldActionValidatorRuleEntity> rules = twinClassFieldActionValidatorRuleService.findByTwinClassFieldIdInOrderByOrder(fieldsNeedingRules.getIdSet());
-        // Index rules by fieldId using KitGrouped
+        List<TwinClassFieldActionValidatorRuleEntity> rules = twinClassFieldActionValidatorRuleService.findByTwinClassFieldIdInOrderByOrder(needLoad.getIdSet());
         KitGrouped<TwinClassFieldActionValidatorRuleEntity, UUID, UUID> rulesByField = new KitGrouped<>(
                 rules,
                 TwinClassFieldActionValidatorRuleEntity::getId,
                 TwinClassFieldActionValidatorRuleEntity::getTwinClassFieldId
         );
-        for (TwinClassFieldEntity field : fieldsNeedingRules) {
+
+        for (TwinClassFieldEntity field : needLoad) {
             List<TwinClassFieldActionValidatorRuleEntity> fieldRules = rulesByField.getGrouped(field.getId());
             field.setTwinClassFieldActionValidationRules(new KitGrouped<>(
                     fieldRules,
@@ -799,7 +801,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     TwinClassFieldActionValidatorRuleEntity::getTwinClassFieldAction
             ));
         }
-        // Load validator sets for all rules
         twinValidatorSetService.loadTwinValidatorSet(rules);
     }
 }
