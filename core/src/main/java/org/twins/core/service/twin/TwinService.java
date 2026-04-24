@@ -1682,6 +1682,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    private Collection<TwinClassFieldEntity> filterSerializableFields(KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> needLoad) throws ServiceException {
+        List<TwinClassFieldEntity> serializableFields = new ArrayList<>();
+        for (var twinClass : needLoad.getGroupingObjectMap().values()) {
+            if (twinClass.getTwinClassFieldKit() != null) {
+                for (var field : twinClass.getTwinClassFieldKit()) {
+                    if (!twinClassFieldService.notSerializable(field)) {
+                        serializableFields.add(field);
+                    }
+                }
+            }
+        }
+        return serializableFields;
+    }
+
     public void loadFieldEditability(TwinEntity src) throws ServiceException {
         loadFieldEditability(Collections.singletonList(src));
     }
@@ -1697,11 +1711,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
 
-        // Load validation rules for all fields
-        Collection<TwinClassFieldEntity> allFields = needLoad.getGroupingObjectMap().values().stream()
-                .flatMap(tc -> tc.getTwinClassFieldKit() != null ? tc.getTwinClassFieldKit().getList().stream() : Stream.empty())
-                .toList();
-        twinClassFieldService.loadTwinClassFieldActionValidationRules(allFields);
+        // Load validation rules for editable fields only
+        Collection<TwinClassFieldEntity> serializableFields = filterSerializableFields(needLoad);
+        twinClassFieldService.loadTwinClassFieldActionValidationRules(serializableFields);
 
         // Immutable fields by class (notSerializable)
         Map<UUID, Map<UUID, Boolean>> immutableFieldsByClass = new HashMap<>();
@@ -1784,32 +1796,39 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             Map<UUID, Set<UUID>> fieldsForValidation) throws ServiceException {
         Map<UUID, Map<UUID, Boolean>> results = new HashMap<>();
 
+        // Index fields by class for O(1)
+        Map<UUID, Map<UUID, TwinClassFieldEntity>> fieldsByClass = indexFieldsByClass(needLoad);
+
         for (var classEntry : needLoad.getGroupedMap().entrySet()) {
             UUID classId = classEntry.getKey();
             List<TwinEntity> classTwins = classEntry.getValue();
-            TwinClassEntity twinClass = needLoad.getGroupingObjectMap().get(classId);
+            Map<UUID, TwinClassFieldEntity> classFields = fieldsByClass.get(classId);
+            if (classFields == null) continue;
 
             for (var fieldEntry : fieldsForValidation.entrySet()) {
                 UUID fieldId = fieldEntry.getKey();
-                Set<UUID> twinIds = fieldEntry.getValue();
-                if (twinIds.isEmpty()) continue;
+                TwinClassFieldEntity field = classFields.get(fieldId);
+                if (field == null || fieldEntry.getValue().isEmpty()) continue;
 
-                TwinClassFieldEntity twinClassField = findFieldInClass(twinClass, fieldId);
-                if (twinClassField == null) continue;
-
-                Map<UUID, Boolean> fieldTwinsResults = validateFieldForTwins(twinClassField, classTwins, twinIds);
-                results.put(fieldId, fieldTwinsResults);
+                results.put(fieldId, validateFieldForTwins(field, classTwins, fieldEntry.getValue()));
             }
         }
         return results;
     }
 
-    private TwinClassFieldEntity findFieldInClass(TwinClassEntity twinClass, UUID fieldId) {
-        if (twinClass == null || twinClass.getTwinClassFieldKit() == null) return null;
-        return twinClass.getTwinClassFieldKit().stream()
-                .filter(f -> f.getId().equals(fieldId))
-                .findFirst()
-                .orElse(null);
+    private Map<UUID, Map<UUID, TwinClassFieldEntity>> indexFieldsByClass(
+            KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> needLoad) {
+        Map<UUID, Map<UUID, TwinClassFieldEntity>> fieldsByClass = new HashMap<>();
+        for (var entry : needLoad.getGroupingObjectMap().entrySet()) {
+            TwinClassEntity twinClass = entry.getValue();
+            if (twinClass.getTwinClassFieldKit() == null) continue;
+            Map<UUID, TwinClassFieldEntity> classFields = new HashMap<>();
+            for (var field : twinClass.getTwinClassFieldKit()) {
+                classFields.put(field.getId(), field);
+            }
+            fieldsByClass.put(entry.getKey(), classFields);
+        }
+        return fieldsByClass;
     }
 
     private Map<UUID, Boolean> validateFieldForTwins(
