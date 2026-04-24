@@ -25,6 +25,9 @@ public class LinkDTOv1 {
     @Schema(description = "name", example = "Serial number")
     public String name;
 
+    @Schema(description = "is inheritable", example = "")
+    public Boolean inheritable;
+
     @Schema(description = "Ling strength id", example = "OPTIONAL")
     public LinkStrength linkStrengthId;
 

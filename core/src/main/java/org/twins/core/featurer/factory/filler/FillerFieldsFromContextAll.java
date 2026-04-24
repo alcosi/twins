@@ -11,8 +11,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
 
@@ -24,11 +23,7 @@ import java.util.*;
 public class FillerFieldsFromContextAll extends Filler {
     @Lazy
     @Autowired
-    TwinClassService twinClassService;
-
-    @Lazy
-    @Autowired
-    TwinService twinService;
+    TwinClassFieldService twinClassFieldService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
@@ -38,7 +33,7 @@ public class FillerFieldsFromContextAll extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No context fields present. Please check pipeline config");
         List<String> logMsgs = new ArrayList<>();
         for (Map.Entry<UUID, FieldValue> fieldValue : contextFields.entrySet()) {
-            if (twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField().getTwinClassId())) {
+            if (twinClassFieldService.isValidForClass(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField())) {
                 logMsgs.add(outputTwinEntity.logShort() + " " + fieldValue.getValue().getTwinClassField().logNormal() + " will be filled from context");
                 factoryItem.getOutput().addField(fieldValue.getValue().clone());
             }

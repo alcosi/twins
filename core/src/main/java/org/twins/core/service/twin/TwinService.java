@@ -329,7 +329,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinField wrapField(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        if (!twinClassService.isInstanceOf(twinEntity.getTwinClass(), twinClassFieldEntity.getTwinClassId()))
+        if (twinClassFieldService.isInvalidForClass(twinEntity.getTwinClass(), twinClassFieldEntity))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, twinClassFieldEntity.logShort()
                     + "is nou suitable for " + twinEntity.logNormal());
         return new TwinField(twinEntity, twinClassFieldEntity);
@@ -1565,6 +1565,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         for (TwinClassFieldEntity inheritedTwinClassFieldEntity : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (skipFromTwinClass != null && skipFromTwinClass.getTwinClassFieldKit().containsKey(inheritedTwinClassFieldEntity.getId()))
+                continue;
+            if (Boolean.FALSE.equals(inheritedTwinClassFieldEntity.getInheritable()))
                 continue;
             var fieldTyper = featurerService.getFeaturer(inheritedTwinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
             TwinFieldStorage twinFieldStorage = fieldTyper.getStorage(inheritedTwinClassFieldEntity);

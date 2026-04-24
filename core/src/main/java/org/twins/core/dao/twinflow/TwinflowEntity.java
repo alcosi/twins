@@ -37,6 +37,9 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
 
@@ -122,6 +125,16 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinflow[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinflow[" + id + "]";
+            case NORMAL -> "twinflow[id:" + id + ", twinClassId:" + twinClassId + "]";
+            default -> "twinflow[id:" + id +
+                    ", twinClassId:" + twinClassId +
+                    ", inheritable:" + inheritable +
+                    ", initialTwinStatusId:" + initialTwinStatusId +
+                    ", initialSketchTwinStatusId:" + initialSketchTwinStatusId +
+                    ", createdByUserId:" + createdByUserId +
+                    ", eraseflowId:" + eraseflowId + "]";
+        };
     }
 }

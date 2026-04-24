@@ -25,6 +25,9 @@ public class TwinflowBaseDTOv1 { //todo rename me
     @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
+    @Schema(description = "is inheritable", example = "")
+    public Boolean inheritable;
+
     @Schema(description = "name", example = "Project")
     public String name;
 

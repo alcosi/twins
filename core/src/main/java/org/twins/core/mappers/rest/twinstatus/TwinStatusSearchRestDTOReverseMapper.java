@@ -18,6 +18,7 @@ public class TwinStatusSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tw
                 .setIdExcludeList(src.getIdExcludeList())
                 .setTwinClassIdMap(src.getTwinClassIdMap())
                 .setTwinClassIdExcludeMap(src.getTwinClassIdExcludeMap())
+                .setInheritable(src.getInheritable())
                 .setKeyLikeList(src.getKeyLikeList())
                 .setKeyNotLikeList(src.getKeyNotLikeList())
                 .setNameI18nLikeList(src.getNameI18nLikeList())

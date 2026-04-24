@@ -19,6 +19,4 @@ public class LinkCreateDTOv1 extends LinkSaveDTOv1 {
     @Schema(description = "Destination twin class id")
     public UUID dstTwinClassId;
 
-
-
 }

@@ -14,6 +14,10 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                 .collect(Collectors.joining(","));
     }
 
+    public static <T> String generateUniqueKey(Collection<T> collection1, Collection<T> collection2) {
+        return generateUniqueKey(collection1) + "|" + generateUniqueKey(collection2);
+    }
+
     public static List<String> singletonListOrNull(String string) {
         if (StringUtils.isNotBlank(string))
             return Collections.singletonList(string);

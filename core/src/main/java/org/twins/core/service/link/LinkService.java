@@ -6,10 +6,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -121,11 +121,16 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     .setLinkerFeaturerId(FeaturerTwins.ID_3001)
                     .setLinkerParams(null);
         }
+        if (linkEntity.getSrcTwinClassInheritable() == null) {
+            linkEntity.setSrcTwinClassInheritable(true);
+        }
+        if (linkEntity.getDstTwinClassInheritable() == null) {
+            linkEntity.setDstTwinClassInheritable(true);
+        }
         //todo validate linker params
-        validateEntityAndThrow(linkEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        linkEntity = entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        linkEntity.getDstTwinClass().setLinksKit(null);
-        linkEntity.getSrcTwinClass().setLinksKit(null);
+        linkEntity = saveSafe(linkEntity);
+        linkEntity.getSrcTwinClass().invalidateLinksKit();
+        linkEntity.getDstTwinClass().invalidateLinksKit();
         return linkEntity;
     }
 
@@ -143,16 +148,20 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         updateLinkType(dbLinkEntity, linkUpdate.getType(), changesHelper);
         updateLinkStrength(dbLinkEntity, linkUpdate.getLinkStrengthId(), changesHelper);
         updateLinkerFeaturer(dbLinkEntity, linkUpdate.getLinkerFeaturerId(), linkUpdate.getLinkerParams(), changesHelper);
+        updateEntityFieldByValue(linkUpdate.getSrcTwinClassInheritable(), dbLinkEntity,
+                LinkEntity::getSrcTwinClassInheritable, LinkEntity::setSrcTwinClassInheritable, LinkEntity.Fields.srcTwinClassInheritable, changesHelper);
+        updateEntityFieldByValue(linkUpdate.getDstTwinClassInheritable(), dbLinkEntity,
+                LinkEntity::getDstTwinClassInheritable, LinkEntity::setDstTwinClassInheritable, LinkEntity.Fields.dstTwinClassInheritable, changesHelper);
         validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if (changesHelper.hasChanges()) {
             dbLinkEntity = entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);
             if (changesHelper.hasChange(LinkEntity.Fields.dstTwinClassId)) {
-                dbLinkEntity.getDstTwinClass().setLinksKit(null);
-                linkUpdate.getDstTwinClass().setLinksKit(null);
+                dbLinkEntity.getDstTwinClass().invalidateLinksKit();
+                linkUpdate.getDstTwinClass().invalidateLinksKit();
             }
             if (changesHelper.hasChange(LinkEntity.Fields.srcTwinClassId)) {
-                dbLinkEntity.getSrcTwinClass().setLinksKit(null);
-                linkUpdate.getSrcTwinClass().setLinksKit(null);
+                dbLinkEntity.getSrcTwinClass().invalidateLinksKit();
+                linkUpdate.getSrcTwinClass().invalidateLinksKit();
             }
             CacheUtils.evictCache(cacheManager,CACHE_LINK, dbLinkEntity.getId());
         }
@@ -281,22 +290,72 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     continue;
                 linksResult.backwardLinks.put(linkEntity.getId(), linkEntity);
             } else
-                log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
+                log.warn("{} is incorrect", linkEntity.logNormal());
         }
         return linksResult;
     }
 
-    public void loadLinksForTwinClasses(List<TwinClassEntity> twinClassEntities) {
-        for (TwinClassEntity twinClass : twinClassEntities)
-            loadLinks(twinClass);
+    public void loadLinks(TwinClassEntity twinClassEntity) {
+        loadLinks(Collections.singletonList(twinClassEntity));
     }
 
-    public Kit<LinkEntity, UUID> loadLinks(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getLinksKit() != null)
-            return twinClassEntity.getLinksKit();
-        Set<UUID> extendedTwinClasses = twinClassEntity.getExtendedClassIdSet();
-        twinClassEntity.setLinksKit(new Kit<>(linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses), LinkEntity::getId));
-        return twinClassEntity.getLinksKit();
+    public void loadLinks(List<TwinClassEntity> twinClassEntities) {
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID>  extendsClassesSet = null;
+        for (TwinClassEntity twinClass : twinClassEntities) {
+            if (twinClass.getLinksKit() == null) {
+                needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClass);
+                twinClass.setLinksKit(new Kit<>(LinkEntity::getId));
+                twinClass.setLinksForwardKit(new Kit<>(LinkEntity::getId));
+                twinClass.setLinksBackwardKit(new Kit<>(LinkEntity::getId));
+                if (twinClass.getExtendedClassIdSet().size() > 1)
+                    extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClass.getExtendedClassIdSetExcludeCurrent());
+            }
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
+        var loaded = linkRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
+            return;
+        KitGrouped<LinkEntity, UUID, UUID> linksGroupedBySrcClass = new KitGrouped<>(loaded, LinkEntity::getId, LinkEntity::getSrcTwinClassId);
+        KitGrouped<LinkEntity, UUID, UUID> linksGroupedByDstClass = new KitGrouped<>(loaded, LinkEntity::getId, LinkEntity::getDstTwinClassId);
+        for (var twinClassEntity : needLoad) {
+            for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                var linkBySrc = linksGroupedBySrcClass.getGrouped(extendsTwinClassId);
+                var linkByDst = linksGroupedByDstClass.getGrouped(extendsTwinClassId);
+                if (linkBySrc == null && linkByDst == null)
+                    continue;
+                if (extendsTwinClassId.equals(twinClassEntity.getId())) {
+                    if (linkBySrc != null) {
+                        twinClassEntity.getLinksKit().addAll(linkBySrc);
+                        twinClassEntity.getLinksForwardKit().addAll(linkBySrc);
+                    }
+                    if (linkByDst != null) {
+                        twinClassEntity.getLinksKit().addAll(linkByDst);
+                        twinClassEntity.getLinksBackwardKit().addAll(linkByDst);
+                    }
+                    continue;
+                }
+                if (linkBySrc != null) {
+                    for (var linkBySrcInherited : linkBySrc) {
+                        if (Boolean.TRUE.equals(linkBySrcInherited.getSrcTwinClassInheritable())) {
+                            twinClassEntity.getLinksKit().add(linkBySrcInherited);
+                            twinClassEntity.getLinksForwardKit().add(linkBySrcInherited);
+                        }
+                    }
+                }
+                if (linkByDst != null) {
+                    for (var linkByDstInherited : linkByDst) {
+                        if (Boolean.TRUE.equals(linkByDstInherited.getDstTwinClassInheritable())) {
+                            twinClassEntity.getLinksKit().add(linkByDstInherited);
+                            twinClassEntity.getLinksBackwardKit().add(linkByDstInherited);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public boolean isForwardLink(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
@@ -336,6 +395,18 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
 
     public Collection<LinkEntity> findAllByIdIn(Collection<UUID> ids) {
         return linkRepository.findAllByIdIn(ids);
+    }
+
+    public void loadCreatedBy(LinkEntity linkEntities) throws ServiceException {
+        loadCreatedBy(Collections.singletonList(linkEntities));
+    }
+
+    public void loadCreatedBy(Collection<LinkEntity> linkEntities) throws ServiceException {
+        userService.load(linkEntities,
+                LinkEntity::getId,
+                LinkEntity::getCreatedByUserId,
+                LinkEntity::getCreatedByUser,
+                LinkEntity::setCreatedByUser);
     }
 
 }

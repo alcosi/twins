@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.Ternary;
 
 import java.util.Map;
 import java.util.Set;
@@ -21,4 +22,5 @@ public class TwinClassDynamicMarkerSearch {
     public Set<UUID> twinValidatorSetIdExcludeList;
     public Set<UUID> markerDataListOptionIdList;
     public Set<UUID> markerDataListOptionIdExcludeList;
+    public Ternary inheritable;
 }

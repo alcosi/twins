@@ -24,6 +24,13 @@ public class Kit<E, K> implements Collection<E> {
         this.functionGetId = functionGetId;
     }
 
+    public static <E1, K1> Kit<E1, K1> safeAdd(Kit<E1, K1> kit, Function<? super E1, ? extends K1> functionGetId, E1 element) {
+        if (kit == null)
+            kit = new Kit<>(functionGetId);
+        kit.add(element);
+        return kit;
+    }
+
     public Collection<E> getCollection() {
         if (collection != null)
             return collection;
@@ -127,7 +134,7 @@ public class Kit<E, K> implements Collection<E> {
 
     @Override
     public boolean remove(Object o) {
-        boolean ret =  collection.remove(o);
+        boolean ret = collection.remove(o);
         if (map != null) {
             map.remove(functionGetId.apply((E) o));
         }
@@ -200,7 +207,7 @@ public class Kit<E, K> implements Collection<E> {
     }
 
     private class KitIterator implements Iterator<E> {
-        Iterator<E> collectionIterator = collection != null ? collection.iterator() : Collections.emptyIterator();;
+        Iterator<E> collectionIterator = collection != null ? collection.iterator() : Collections.emptyIterator();
         E currentItem;
 
         @Override

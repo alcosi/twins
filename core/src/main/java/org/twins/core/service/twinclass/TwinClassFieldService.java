@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.cambium.common.CacheEvictCollector;
@@ -139,25 +138,43 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadTwinClassFields(Collection<TwinClassEntity> twinClassEntities) {
-        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
-        Set<UUID> forClasses = new HashSet<>();
-        for (TwinClassEntity twinClassEntity : twinClassEntities)
-            if (twinClassEntity.getTwinClassFieldKit() == null) {
-                needLoad.put(twinClassEntity.getId(), twinClassEntity);
-                forClasses.addAll(twinClassEntity.getExtendedClassIdSet());
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID> extendsClassesSet = null;
+        for (TwinClassEntity twinClassEntity : twinClassEntities) {
+            if (twinClassEntity.getTwinClassFieldKit() != null)
+                continue;
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
+            twinClassEntity.setTwinClassFieldKit(new Kit<>(TwinClassFieldEntity::getId));
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1) {
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
             }
-
-        if (needLoad.isEmpty())
+        }
+        if (KitUtils.isEmpty(needLoad))
             return;
-        forClasses.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
-        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(twinClassFieldRepository.findByTwinClassIdIn(forClasses), TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
-        for (TwinClassEntity twinClassEntity : needLoad.values()) {
-            List<TwinClassFieldEntity> classFields = new ArrayList<>();
-            for (UUID twinClassId : twinClassEntity.getExtendedClassIdSet()) {
-                if (fields.containsGroupedKey(twinClassId))
-                    classFields.addAll(fields.getGrouped(twinClassId));
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
+        else
+            extendsClassesSet.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
+
+        List<TwinClassFieldEntity> loaded = twinClassFieldRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
+            return;
+
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(loaded, TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
+        for (TwinClassEntity twinClassEntity : needLoad) {
+            for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                var currentClassFields = fields.getGrouped(extendsTwinClassId);
+                if (currentClassFields == null)
+                    continue;
+                if (extendsTwinClassId.equals(twinClassEntity.getId())) {
+                    twinClassEntity.getTwinClassFieldKit().addAll(currentClassFields);
+                    continue;
+                }
+                for (var fieldInherited : currentClassFields) {
+                    if (Boolean.TRUE.equals(fieldInherited.getInheritable()))
+                        twinClassEntity.getTwinClassFieldKit().add(fieldInherited);
+                }
             }
-            twinClassEntity.setTwinClassFieldKit(new Kit<>(classFields, TwinClassFieldEntity::getId));
         }
     }
 
@@ -386,6 +403,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setExternalId(srcFieldEntity.getExternalId())
                 .setExternalProperties(srcFieldEntity.getExternalProperties())
                 .setSystem(srcFieldEntity.getSystem())
+                .setInheritable(srcFieldEntity.getInheritable())
                 .setDependentField(false)
                 .setHasDependentFields(false)
                 .setOrder(srcFieldEntity.getOrder())
@@ -526,6 +544,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (field.getRequired() == null) {
                 field.setRequired(false);
             }
+            if (field.getInheritable() == null) {
+                field.setInheritable(true);
+            }
             field
                     .setDependentField(false)
                     .setHasDependentFields(false)
@@ -619,6 +640,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             updateTwinClassFieldEditPermission(dbField, save.getField().getEditPermissionId(), changesHelper);
             updateTwinClassFieldRequiredFlag(dbField, save.getField().getRequired(), changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getSystem, TwinClassFieldEntity::setSystem, TwinClassFieldEntity.Fields.system, changesHelper);
+            updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getInheritable, TwinClassFieldEntity::setInheritable, TwinClassFieldEntity.Fields.inheritable, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId, TwinClassFieldEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getExternalProperties, TwinClassFieldEntity::setExternalProperties, TwinClassFieldEntity.Fields.externalProperties, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getOrder, TwinClassFieldEntity::setOrder, TwinClassFieldEntity.Fields.order, changesHelper);
@@ -741,11 +763,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
     }
 
-    public void updateTwinClassFieldSystemFlag(TwinClassFieldEntity dbTwinClassFieldEntity, Boolean newSystemFlag, ChangesHelper changesHelper) throws ServiceException {
-        if (newSystemFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.system, dbTwinClassFieldEntity.getRequired(), newSystemFlag))
-            return;
-        dbTwinClassFieldEntity.setRequired(newSystemFlag);
-    }
 
     public BigDecimal getDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) {
         BigDecimal ret = null;
@@ -768,5 +785,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not datetime");
         Properties properties = featurerService.extractProperties(fieldTyper, twinClassField.getFieldTyperParams());
         return fieldTyperDateTime.getPattern(properties);
+    }
+
+    public boolean isInvalidForClass(TwinClassEntity twinClass, TwinClassFieldEntity twinClassField) throws ServiceException {
+        return !isValidForClass(twinClass, twinClassField);
+    }
+
+    public boolean isValidForClass(TwinClassEntity twinClass, TwinClassFieldEntity twinClassField) throws ServiceException {
+        return twinClassService.isInheritedFromClass(twinClass, twinClassField.getTwinClassId(), twinClassField.getInheritable());
     }
 }
