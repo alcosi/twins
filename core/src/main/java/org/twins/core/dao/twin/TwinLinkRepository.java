@@ -37,6 +37,42 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
 
     <T> T findBySrcTwinIdAndDstTwinIdAndLinkId(UUID srcTwinId, UUID dstTwinId, UUID linkId, Class<T> type);
 
+    @Query("""
+            select (count(tl) > 0)
+            from TwinLinkEntity tl
+            join TwinEntity src on src.id = tl.srcTwinId
+            join TwinFieldDecimalEntity tfd on tfd.twinId = src.id
+            where tl.dstTwinId = :dstTwinId
+              and tl.linkId = :linkId
+              and src.twinStatusId in :srcStatusIds
+              and tfd.twinClassFieldId = :twinClassFieldId
+              and tfd.value > 0
+            """)
+    boolean existsDstTwinLinkedFromSrcWithStatusAndPositiveDecimalField(
+            @Param("dstTwinId") UUID dstTwinId,
+            @Param("linkId") UUID linkId,
+            @Param("srcStatusIds") Collection<UUID> srcStatusIds,
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
+
+    @Query("""
+            select distinct tl.dstTwinId
+            from TwinLinkEntity tl
+            join TwinEntity src on src.id = tl.srcTwinId
+            join TwinFieldDecimalEntity tfd on tfd.twinId = src.id
+            where tl.dstTwinId in :dstTwinIds
+              and tl.linkId = :linkId
+              and src.twinStatusId in :srcStatusIds
+              and tfd.twinClassFieldId = :twinClassFieldId
+              and tfd.value > 0
+            """)
+    Set<UUID> findDstTwinIdsLinkedFromSrcWithStatusAndPositiveDecimalField(
+            @Param("dstTwinIds") Collection<UUID> dstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("srcStatusIds") Collection<UUID> srcStatusIds,
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
+
     @Query(value = "select distinct srcTwinId from TwinLinkEntity where linkId = :linkId")
     Set<UUID> findSrcTwinIdsByLinkId(@Param("linkId") UUID linkId);
 
