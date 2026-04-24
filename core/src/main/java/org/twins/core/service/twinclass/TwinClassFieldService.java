@@ -787,12 +787,16 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (fieldIds.isEmpty())
             return;
         List<TwinClassFieldActionValidatorRuleEntity> rules = twinClassFieldActionValidatorRuleService.findByTwinClassFieldIdInOrderByOrder(fieldIds);
+        // Index rules by fieldId using KitGrouped
+        KitGrouped<TwinClassFieldActionValidatorRuleEntity, UUID, UUID> rulesByField = new KitGrouped<>(
+                rules,
+                TwinClassFieldActionValidatorRuleEntity::getId,
+                TwinClassFieldActionValidatorRuleEntity::getTwinClassFieldId
+        );
         for (TwinClassFieldEntity field : fields) {
             if (field.getTwinClassFieldActionValidationRules() != null)
                 continue;
-            List<TwinClassFieldActionValidatorRuleEntity> fieldRules = rules.stream()
-                    .filter(rule -> rule.getTwinClassFieldId().equals(field.getId()))
-                    .toList();
+            List<TwinClassFieldActionValidatorRuleEntity> fieldRules = rulesByField.getGrouped(field.getId());
             field.setTwinClassFieldActionValidationRules(new KitGrouped<>(
                     fieldRules,
                     TwinClassFieldActionValidatorRuleEntity::getId,
