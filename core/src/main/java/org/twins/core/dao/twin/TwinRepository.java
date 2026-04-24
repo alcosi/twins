@@ -148,4 +148,39 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("twinId") UUID twinId,
             @Param("linkId") UUID linkId,
             @Param("statusIds") Collection<UUID> statusIds);
+
+    /**
+     * Twins whose {@code headTwinId} is the src twin of a forward link to the given dst twin(s)
+     * (same head set as in {@link #updateTwinStatusByLinkAndHeadTwinChildren}).
+     */
+    @Query("select distinct t from TwinEntity t where t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl.srcTwinId from TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds and tl.linkId = :linkId)")
+    List<TwinEntity> findTwinsByHeadOfLinkSrcTowardDstTwins(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId);
+
+    @Query("select distinct t from TwinEntity t where t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl.srcTwinId from TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds and tl.linkId = :linkId) "
+            + "and t.twinStatusId in :statusIds")
+    List<TwinEntity> findTwinsByHeadOfLinkSrcTowardDstTwinsStatusesIncluded(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
+            @Param("statusIds") Collection<UUID> statusIds);
+
+    @Query("select distinct t from TwinEntity t where t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl.srcTwinId from TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds and tl.linkId = :linkId) "
+            + "and t.twinStatusId not in :statusIds")
+    List<TwinEntity> findTwinsByHeadOfLinkSrcTowardDstTwinsStatusesExcluded(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
+            @Param("statusIds") Collection<UUID> statusIds);
 }
