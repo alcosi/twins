@@ -43,24 +43,16 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
             Set<UUID> needLoad = new HashSet<>();
             Kit<UserEntity, UUID> loadedUsersKit;
             if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId)) {
-                if (UuidUtils.isNullifyMarker(basics.getCreatedByUserId())) {
-                    outputTwinEntity.setCreatedByUserId(factoryItem.getOutput().nullifyUUID());
-                } else {
-                    outputTwinEntity.setCreatedByUserId(basics.getCreatedByUserId());
-                    if (outputTwinEntity.getCreatedByUserId() != null && outputTwinEntity.getCreatedByUser() == null) {
-                        needLoad.add(outputTwinEntity.getCreatedByUserId());
-                    }
+                outputTwinEntity.setCreatedByUserId(basics.getCreatedByUserId());
+                if (outputTwinEntity.getCreatedByUserId() != null && outputTwinEntity.getCreatedByUser() == null) {
+                    needLoad.add(outputTwinEntity.getCreatedByUserId());
                 }
             }
             if (fieldsString.contains(TwinBasicFields.Basics.assigneeUserId)) {
-                if (UuidUtils.isNullifyMarker(basics.getAssigneeUserId())) {
-                    outputTwinEntity.setAssignerUserId(factoryItem.getOutput().nullifyUUID());
-                } else {
                     outputTwinEntity.setAssignerUserId(basics.getAssigneeUserId());
-                    if (outputTwinEntity.getAssignerUser() == null) {
+                    if (outputTwinEntity.getAssignerUserId() != null && outputTwinEntity.getAssignerUser() == null) {
                         needLoad.add(outputTwinEntity.getAssignerUserId());
                     }
-                }
             }
             if (CollectionUtils.isNotEmpty(needLoad)) {
                 loadedUsersKit = userService.findEntitiesSafe(needLoad);

@@ -964,7 +964,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateTwinAssignee(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
-        if (changesRecorder.isChanged("assignerUser", changesRecorder.getDbEntity().getAssignerUserId(), changesRecorder.getUpdateEntity().getAssignerUserId())) {
+        var oldAssignerUserId = changesRecorder.getDbEntity().getAssignerUserId();
+        var newAssignerUserId = changesRecorder.getUpdateEntity().getAssignerUserId();
+        boolean isNullification = oldAssignerUserId != null && newAssignerUserId == null;
+        boolean isChanged = changesRecorder.isChanged("assignerUser", oldAssignerUserId, newAssignerUserId);
+        if (isNullification && !isChanged) {
+            changesRecorder.add("assignerUser", oldAssignerUserId, null);
+            isChanged = true;
+        }
+        if (isChanged) {
             UserEntity newAssignee = null;
             if (!UuidUtils.isNullifyMarker(changesRecorder.getUpdateEntity().getAssignerUserId())) {
                 newAssignee = changesRecorder.getUpdateEntity().getAssignerUser();
