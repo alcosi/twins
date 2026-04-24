@@ -19,10 +19,4 @@ public class LinkCreateDTOv1 extends LinkSaveDTOv1 {
     @Schema(description = "Destination twin class id")
     public UUID dstTwinClassId;
 
-    @Schema(description = "Source twin class inheritable")
-    public Boolean srcTwinClassInheritable = true;
-
-    @Schema(description = "Destination twin class inheritable")
-    public Boolean dstTwinClassInheritable = true;
-
 }

@@ -134,7 +134,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setKey(KeyUtils.lowerCaseNullSafe(key, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId());
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId())
+                .setInheritable(true);
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         evictClassesCache(twinClassEntity);
@@ -148,6 +149,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setKey(KeyUtils.lowerCaseNullSafe(twinStatusEntity.getKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId())
                 .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
+        if (twinStatusEntity.getInheritable() == null) {
+            twinStatusEntity.setInheritable(true);
+        }
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         evictClassesCache(twinClassEntity);

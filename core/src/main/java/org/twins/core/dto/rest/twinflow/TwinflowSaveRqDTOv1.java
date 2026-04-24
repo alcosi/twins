@@ -29,6 +29,6 @@ public class TwinflowSaveRqDTOv1 extends Request {
     public UUID initialSketchStatusId;
 
     @Schema(description = "inheritable")
-    public Boolean inheritable = true;
+    public Boolean inheritable;
 
 }

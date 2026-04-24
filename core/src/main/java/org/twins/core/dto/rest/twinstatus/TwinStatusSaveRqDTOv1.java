@@ -39,5 +39,5 @@ public class TwinStatusSaveRqDTOv1 extends Request {
     public UUID twinClassId;
 
     @Schema(description = "[optional] inheritable")
-    public Boolean inheritable = true;
+    public Boolean inheritable;
 }

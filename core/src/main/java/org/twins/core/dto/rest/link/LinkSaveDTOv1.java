@@ -35,4 +35,10 @@ public class LinkSaveDTOv1 extends Request {
     @Schema(description = "[optional] linker featurer params", example = "")
     public HashMap<String, String> linkerParams;
 
+    @Schema(description = "[optional] source twin class inheritable")
+    public Boolean srcTwinClassInheritable;
+
+    @Schema(description = "[optional] destination twin class inheritable")
+    public Boolean dstTwinClassInheritable;
+
 }

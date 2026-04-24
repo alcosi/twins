@@ -244,6 +244,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+        if (twinflowEntity.getInheritable() == null) {
+            twinflowEntity.setInheritable(true);
+        }
         return saveSafe(twinflowEntity);
     }
 

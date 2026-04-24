@@ -121,6 +121,12 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     .setLinkerFeaturerId(FeaturerTwins.ID_3001)
                     .setLinkerParams(null);
         }
+        if (linkEntity.getSrcTwinClassInheritable() == null) {
+            linkEntity.setSrcTwinClassInheritable(true);
+        }
+        if (linkEntity.getDstTwinClassInheritable() == null) {
+            linkEntity.setDstTwinClassInheritable(true);
+        }
         //todo validate linker params
         linkEntity = saveSafe(linkEntity);
         linkEntity.getSrcTwinClass().invalidateLinksKit();

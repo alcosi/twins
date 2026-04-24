@@ -18,10 +18,4 @@ public class LinkUpdateDTOv1 extends LinkSaveDTOv1 {
     @Schema(description = "[optional] should be filled on change destination twin class id of link")
     public BasicUpdateOperationDTOv1 dstTwinClassUpdate;
 
-    @Schema(description = "[optional] source twin class inheritable")
-    public Boolean srcTwinClassInheritable;
-
-    @Schema(description = "[optional] destination twin class inheritable")
-    public Boolean dstTwinClassInheritable;
-
 }
