@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Resolves “head” twins via a forward link to the factory input, then loads their child twins (by {@code headTwinId})
+ * Resolves “head” twins via a forward link to the factory input, then loads their twins (by {@code headTwinId})
  * with optional status filtering. Selection logic matches {@link TwinRepository#updateTwinStatusByLinkAndHeadTwinChildren}
  * but returns entities instead of updating.
  */
@@ -34,17 +34,17 @@ import java.util.UUID;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_2214,
-        name = "Isolated children by linked head twin",
+        name = "Isolated twin by linked head twin",
         description = "For each input twin: via link (src→dst=input) collect src twins as heads, then output twins whose "
                 + "headTwinId is one of those heads, filtered by statusIds (JPQL in TwinRepository)."
 )
 @RequiredArgsConstructor
-public class MultiplierIsolatedChildrenByLinkedHeadTwin extends Multiplier {
+public class MultiplierIsolatedTwinByLinkedHeadTwin extends Multiplier {
 
     @FeaturerParam(name = "Link id", description = "Forward link: src twin is head candidate, dst twin is factory input", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "Status ids", description = "Statuses of child twins (by head). If empty — any status", order = 2)
+    @FeaturerParam(name = "Status ids", description = "Statuses of twins (by head). If empty — any status", order = 2)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @FeaturerParam(name = "Exclude statuses", description = "Exclude(true)/Include(false) twinStatusId filter", order = 3, defaultValue = "false")
@@ -62,16 +62,16 @@ public class MultiplierIsolatedChildrenByLinkedHeadTwin extends Multiplier {
         List<FactoryItem> ret = new ArrayList<>();
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity inputTwin = inputItem.getTwin();
-            List<TwinEntity> children = loadLinkedTwins(List.of(inputTwin.getId()), uuidLink, ownerBusinessAccountId, statusIdSet, exclude);
-            if (CollectionUtils.isEmpty(children)) {
-                log.warn("{} no child twins for heads linked to input {}", inputTwin.logShort(), inputTwin.getId());
+            List<TwinEntity> linkedTwins = loadLinkedTwins(List.of(inputTwin.getId()), uuidLink, ownerBusinessAccountId, statusIdSet, exclude);
+            if (CollectionUtils.isEmpty(linkedTwins)) {
+                log.warn("{} no twins for heads linked to input {}", inputTwin.logShort(), inputTwin.getId());
                 continue;
             }
-            for (TwinEntity child : children) {
+            for (TwinEntity twin : linkedTwins) {
                 TwinUpdate twinUpdate = new TwinUpdate();
                 twinUpdate
-                        .setDbTwinEntity(child)
-                        .setTwinEntity(child.clone());
+                        .setDbTwinEntity(twin)
+                        .setTwinEntity(twin.clone());
                 ret.add(new FactoryItem()
                         .setOutput(twinUpdate)
                         .setContextFactoryItemList(List.of(inputItem)));
