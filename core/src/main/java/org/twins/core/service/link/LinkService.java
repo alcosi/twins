@@ -142,6 +142,10 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         updateLinkType(dbLinkEntity, linkUpdate.getType(), changesHelper);
         updateLinkStrength(dbLinkEntity, linkUpdate.getLinkStrengthId(), changesHelper);
         updateLinkerFeaturer(dbLinkEntity, linkUpdate.getLinkerFeaturerId(), linkUpdate.getLinkerParams(), changesHelper);
+        updateEntityFieldByValue(linkUpdate.getSrcTwinClassInheritable(), dbLinkEntity,
+                LinkEntity::getSrcTwinClassInheritable, LinkEntity::setSrcTwinClassInheritable, LinkEntity.Fields.srcTwinClassInheritable, changesHelper);
+        updateEntityFieldByValue(linkUpdate.getDstTwinClassInheritable(), dbLinkEntity,
+                LinkEntity::getDstTwinClassInheritable, LinkEntity::setDstTwinClassInheritable, LinkEntity.Fields.dstTwinClassInheritable, changesHelper);
         validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if (changesHelper.hasChanges()) {
             dbLinkEntity = entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);

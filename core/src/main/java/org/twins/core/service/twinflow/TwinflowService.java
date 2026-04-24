@@ -264,6 +264,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWINFLOW_NAME, dbTwinflowEntity, TwinflowEntity::getNameI18NId, TwinflowEntity::setNameI18NId, TwinflowEntity.Fields.nameI18NId, changesHelper);
         i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWINFLOW_DESCRIPTION, dbTwinflowEntity, TwinflowEntity::getDescriptionI18NId, TwinflowEntity::setDescriptionI18NId, TwinflowEntity.Fields.descriptionI18NId, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
+        updateEntityFieldByValue(twinflowEntity.getInheritable(), dbTwinflowEntity,
+                TwinflowEntity::getInheritable, TwinflowEntity::setInheritable, TwinflowEntity.Fields.inheritable, changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
         if (changesHelper.hasChanges()) {
             CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();

@@ -28,4 +28,7 @@ public class TwinflowSaveRqDTOv1 extends Request {
     @Schema(description = "initial sketch status id", example = DTOExamples.TWIN_STATUS_ID)
     public UUID initialSketchStatusId;
 
+    @Schema(description = "inheritable")
+    public Boolean inheritable = true;
+
 }
