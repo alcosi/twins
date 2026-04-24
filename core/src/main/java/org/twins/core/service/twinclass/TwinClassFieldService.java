@@ -778,24 +778,20 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadTwinClassFieldActionValidationRules(Collection<TwinClassFieldEntity> fields) throws ServiceException {
-        Set<UUID> fieldIds = new HashSet<>();
-        for (TwinClassFieldEntity field : fields) {
-            if (field.getTwinClassFieldActionValidationRules() == null) {
-                fieldIds.add(field.getId());
-            }
-        }
-        if (fieldIds.isEmpty())
+        Kit<TwinClassFieldEntity, UUID> fieldsNeedingRules = new Kit<>(fields, TwinClassFieldEntity::getId);
+        // Remove already loaded fields
+        fieldsNeedingRules.removeIf(f -> f.getTwinClassFieldActionValidationRules() != null);
+        if (fieldsNeedingRules.isEmpty())
             return;
-        List<TwinClassFieldActionValidatorRuleEntity> rules = twinClassFieldActionValidatorRuleService.findByTwinClassFieldIdInOrderByOrder(fieldIds);
+
+        List<TwinClassFieldActionValidatorRuleEntity> rules = twinClassFieldActionValidatorRuleService.findByTwinClassFieldIdInOrderByOrder(fieldsNeedingRules.getIdSet());
         // Index rules by fieldId using KitGrouped
         KitGrouped<TwinClassFieldActionValidatorRuleEntity, UUID, UUID> rulesByField = new KitGrouped<>(
                 rules,
                 TwinClassFieldActionValidatorRuleEntity::getId,
                 TwinClassFieldActionValidatorRuleEntity::getTwinClassFieldId
         );
-        for (TwinClassFieldEntity field : fields) {
-            if (field.getTwinClassFieldActionValidationRules() != null)
-                continue;
+        for (TwinClassFieldEntity field : fieldsNeedingRules) {
             List<TwinClassFieldActionValidatorRuleEntity> fieldRules = rulesByField.getGrouped(field.getId());
             field.setTwinClassFieldActionValidationRules(new KitGrouped<>(
                     fieldRules,
