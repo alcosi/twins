@@ -62,7 +62,7 @@ public class MultiplierIsolatedChildrenByLinkedHeadTwin extends Multiplier {
         List<FactoryItem> ret = new ArrayList<>();
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity inputTwin = inputItem.getTwin();
-            List<TwinEntity> children = loadChildren(List.of(inputTwin.getId()), uuidLink, ownerBusinessAccountId, statusIdSet, exclude);
+            List<TwinEntity> children = loadLinkedTwins(List.of(inputTwin.getId()), uuidLink, ownerBusinessAccountId, statusIdSet, exclude);
             if (CollectionUtils.isEmpty(children)) {
                 log.warn("{} no child twins for heads linked to input {}", inputTwin.logShort(), inputTwin.getId());
                 continue;
@@ -80,7 +80,7 @@ public class MultiplierIsolatedChildrenByLinkedHeadTwin extends Multiplier {
         return ret;
     }
 
-    private List<TwinEntity> loadChildren(List<UUID> linkDstTwinIds, UUID linkUuid, UUID ownerBusinessAccountId, Set<UUID> statusIdSet, boolean excludeStatuses) {
+    private List<TwinEntity> loadLinkedTwins(List<UUID> linkDstTwinIds, UUID linkUuid, UUID ownerBusinessAccountId, Set<UUID> statusIdSet, boolean excludeStatuses) {
         if (statusIdSet == null || statusIdSet.isEmpty()) {
             return twinRepository.findTwinsByHeadOfLinkSrcTowardDstTwins(linkDstTwinIds, linkUuid, ownerBusinessAccountId);
         }
