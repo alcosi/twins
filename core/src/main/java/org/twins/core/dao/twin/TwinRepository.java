@@ -148,4 +148,7 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("twinId") UUID twinId,
             @Param("linkId") UUID linkId,
             @Param("statusIds") Collection<UUID> statusIds);
+
+    @Query(value = "SELECT twinclass_detect_max_count(:domainId, :businessAccountId, :twinClassId)", nativeQuery = true)
+    Integer detectMaxTwinCount(@Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
 }

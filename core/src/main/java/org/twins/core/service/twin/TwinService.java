@@ -391,6 +391,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     protected void createTwins(TwinCreateStage twinCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        log.info("createTwins: starting with {} twins", twinCreateList.size());
         var twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
         loadClass(twinEntities);
         var twinsGroupedByClass = new KitGroupedObj<>(
@@ -402,6 +403,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         checkCreatePermission(twinCreateList.stream().filter(TwinCreate::isCheckCreatePermission).map(TwinCreate::getTwinEntity).toList());
+        log.info("createTwins: calling checkTwinClassQuota with {} twins", twinEntities.size());
+        checkTwinClassQuota(twinEntities);
 //        twinflowService.loadTwinflow(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
@@ -641,6 +644,52 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED,  "{} does not have permissions [{}] to create",
                     authService.getApiUser().getUser().logNormal(),
                     StringUtils.join(missedPermissions, ","));
+    }
+
+    public void checkTwinClassQuota(List<TwinEntity> twinEntities) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        log.info("checkTwinClassQuota: businessAccountSpecified={}, domainId={}, businessAccountId={}",
+                apiUser.isBusinessAccountSpecified(), apiUser.getDomainId(), apiUser.getBusinessAccountId());
+        if (!apiUser.isBusinessAccountSpecified()) {
+            return;
+        }
+
+        UUID domainId = apiUser.getDomainId();
+        UUID businessAccountId = apiUser.getBusinessAccountId();
+
+        var twinsGroupedByClass = new KitGroupedObj<>(
+                twinEntities,
+                TwinEntity::getId,
+                TwinEntity::getTwinClassId,
+                TwinEntity::getTwinClass);
+
+        for (var entry : twinsGroupedByClass.getGroupedList()) {
+            TwinClassEntity twinClass = entry.getLeft();
+            List<TwinEntity> twins = entry.getRight();
+            log.info("Checking quota for twinClassId={}, twinClassKey={}, twinsToCreate={}",
+                    twinClass.getId(), twinClass.getKey(), twins.size());
+
+            Integer maxCount = twinRepository.detectMaxTwinCount(domainId, businessAccountId, twinClass.getId());
+            log.info("detectMaxTwinCount result: domainId={}, businessAccountId={}, twinClassId={}, maxCount={}",
+                    domainId, businessAccountId, twinClass.getId(), maxCount);
+            if (maxCount == null) {
+                log.info("No quota configured for twinClassId={}", twinClass.getId());
+                continue;
+            }
+
+            BasicSearch search = new BasicSearch();
+            search
+                    .setCheckViewPermission(false)
+                    .addTwinClassId(twinClass.getId(), false)
+                    .addOwnerBusinessAccountId(businessAccountId);
+            long currentCount = twinSearchService.count(search);
+            log.info("Current twin count for twinClassId={}, businessAccountId={}: {}", twinClass.getId(), businessAccountId, currentCount);
+
+            if (currentCount + twins.size() > maxCount) {
+                log.error("Quota exceeded: current={}, adding={}, max={}", currentCount, twins.size(), maxCount);
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_QUOTA_EXCEEDED, "Twin class [" + twinClass.logNormal() + "] quota exceeded for business account [" + businessAccountId + "]: " + "current=" + currentCount + ", adding=" + twins.size() + ", max=" + maxCount);
+            }
+        }
     }
 
     public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
