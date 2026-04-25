@@ -1697,8 +1697,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
 
-        Map<TwinClassFieldEntity, Set<UUID>> fieldsForValidation = new HashMap<>();
-        Map<UUID, Boolean> permissionCache = new HashMap<>();
+        var fieldsForValidation = new HashMap<UUID, Set<TwinEntity>>(); // key - twinClassFieldId
+        var fields = new HashMap<UUID, TwinClassFieldEntity>();
+        var permissionCache = new HashMap<UUID, Boolean>();
 
         for (var twin : needLoad) {
             twin.setTwinFieldEditability(new HashMap<>());
@@ -1711,7 +1712,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 }
 
                 if (field.getEditPermissionId() == null) {
-                    fieldsForValidation.computeIfAbsent(field, k -> new HashSet<>()).add(twin.getId());
+                    fields.put(field.getId(), field);
+                    fieldsForValidation.computeIfAbsent(field.getId(), k -> new HashSet<>()).add(twin);
+                    twin.getTwinFieldEditability().put(field.getId(), true); // dirty value can be changed during rule validation
                     continue;
                 }
 
@@ -1724,7 +1727,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         continue;
                     }
                 }
-                fieldsForValidation.computeIfAbsent(field, k -> new HashSet<>()).add(twin.getId());
+                fields.put(field.getId(), field);
+                fieldsForValidation.computeIfAbsent(field.getId(), k -> new HashSet<>()).add(twin);
+                twin.getTwinFieldEditability().put(field.getId(), true); // dirty value can be changed during rule validation
             }
         }
 
@@ -1732,43 +1737,35 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         }
 
-        twinClassFieldService.loadTwinClassFieldActionValidationRules(fieldsForValidation.keySet());
+        twinClassFieldService.loadTwinClassFieldActionValidationRules(fields.values());
 
         for (var fieldEntry : fieldsForValidation.entrySet()) {
-            TwinClassFieldEntity field = fieldEntry.getKey();
-            Set<UUID> twinIds = fieldEntry.getValue();
+            var field = fields.get(fieldEntry.getKey());
+            var twins = fieldEntry.getValue();
 
             var rules = field.getTwinClassFieldActionValidationRules();
             if (rules == null || CollectionUtils.isEmpty(rules.getGrouped(TwinClassFieldAction.EDIT))) {
-                for (UUID twinId : twinIds) {
-                    needLoad.get(twinId).getTwinFieldEditability().put(field.getId(), true);
-                }
-                continue;
-            }
-
-            Kit<TwinEntity, UUID> twinsToValidate = new Kit<>(new ArrayList<>(), TwinEntity::getId);
-            for (UUID twinId : twinIds) {
-                TwinEntity twin = needLoad.get(twinId);
-                if (twin != null) {
-                    twinsToValidate.add(twin);
+                for (var twin : twins) {
                     twin.getTwinFieldEditability().put(field.getId(), true);
                 }
+                continue;
             }
 
             for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
                 if (!rule.isActive()) continue;
 
-                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twinsToValidate.getList(), rule);
+                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, rule);
 
-                for (TwinEntity twin : twinsToValidate) {
+                Iterator<TwinEntity> iterator = twins.iterator();
+                while (iterator.hasNext()) {
+                    var twin = iterator.next();
                     if (!batchResults.get(twin.getId()).isValid()) {
                         twin.getTwinFieldEditability().put(field.getId(), false);
+                        iterator.remove();
                     }
                 }
 
-                twinsToValidate.removeIf(twin -> twin.getTwinFieldEditability().get(field.getId()) == Boolean.FALSE);
-
-                if (twinsToValidate.isEmpty()) {
+                if (twins.isEmpty()) {
                     break;
                 }
             }
