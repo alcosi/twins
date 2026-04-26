@@ -18,6 +18,11 @@ import java.util.UUID;
 
 @Repository
 public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpecificationExecutor<TwinEntity>, PagingAndSortingRepository<TwinEntity, UUID> {
+    interface DstToSrcHeadProjection {
+        UUID getDstTwinId();
+        UUID getSrcTwinId();
+    }
+
     List<TwinEntity> findByTwinClassDomainId(UUID domainId);
 
     List<TwinEntity> findByOwnerBusinessAccountId(UUID businessAccount);
@@ -186,4 +191,17 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("linkId") UUID linkId,
             @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
             @Param("statusIds") Collection<UUID> statusIds);
+
+    @Query("select tl.dstTwinId as dstTwinId, tl.srcTwinId as srcTwinId "
+            + "from TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds and tl.linkId = :linkId")
+    List<DstToSrcHeadProjection> findDstToSrcHeadsByDstTwinIdsAndLinkId(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId);
+
+    List<TwinEntity> findByOwnerBusinessAccountIdAndHeadTwinIdIn(UUID ownerBusinessAccountId, Collection<UUID> headTwinIds);
+
+    List<TwinEntity> findByOwnerBusinessAccountIdAndHeadTwinIdInAndTwinStatusIdIn(UUID ownerBusinessAccountId, Collection<UUID> headTwinIds, Collection<UUID> twinStatusIds);
+
+    List<TwinEntity> findByOwnerBusinessAccountIdAndHeadTwinIdInAndTwinStatusIdNotIn(UUID ownerBusinessAccountId, Collection<UUID> headTwinIds, Collection<UUID> twinStatusIds);
 }

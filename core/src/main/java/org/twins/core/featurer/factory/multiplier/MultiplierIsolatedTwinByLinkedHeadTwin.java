@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.multiplier;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.kit.KitGrouped;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -20,10 +21,12 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Resolves “head” twins via a forward link to the factory input, then loads their twins (by {@code headTwinId})
@@ -59,10 +62,33 @@ public class MultiplierIsolatedTwinByLinkedHeadTwin extends Multiplier {
         var uuidLink = linkId.extract(properties);
         boolean exclude = excludeStatuses.extract(properties);
 
+        List<UUID> inputTwinIds = inputFactoryItemList.stream()
+                .map(factoryItem -> factoryItem.getTwin().getId())
+                .toList();
+        KitGrouped<TwinRepository.DstToSrcHeadProjection, String, UUID> dstToHeadLinksKit = loadDstToHeadLinks(inputTwinIds, uuidLink);
+        Set<UUID> allHeadTwinIds = dstToHeadLinksKit.getCollection().stream()
+                .map(TwinRepository.DstToSrcHeadProjection::getSrcTwinId)
+                .collect(Collectors.toSet());
+        KitGrouped<TwinEntity, UUID, UUID> twinsByHeadTwinId = new KitGrouped<>(
+                loadTwinsByHeads(allHeadTwinIds, ownerBusinessAccountId, statusIdSet, exclude),
+                TwinEntity::getId,
+                TwinEntity::getHeadTwinId
+        );
+
         List<FactoryItem> ret = new ArrayList<>();
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity inputTwin = inputItem.getTwin();
-            List<TwinEntity> linkedTwins = loadLinkedTwins(List.of(inputTwin.getId()), uuidLink, ownerBusinessAccountId, statusIdSet, exclude);
+            List<TwinRepository.DstToSrcHeadProjection> linksForInputTwin = dstToHeadLinksKit.getGrouped(inputTwin.getId());
+            if (CollectionUtils.isEmpty(linksForInputTwin)) {
+                log.warn("{} no linked heads for input {}", inputTwin.logShort(), inputTwin.getId());
+                continue;
+            }
+            List<TwinEntity> linkedTwins = linksForInputTwin.stream()
+                    .map(TwinRepository.DstToSrcHeadProjection::getSrcTwinId)
+                    .map(twinsByHeadTwinId::getGrouped)
+                    .filter(CollectionUtils::isNotEmpty)
+                    .flatMap(Collection::stream)
+                    .toList();
             if (CollectionUtils.isEmpty(linkedTwins)) {
                 log.warn("{} no twins for heads linked to input {}", inputTwin.logShort(), inputTwin.getId());
                 continue;
@@ -80,15 +106,24 @@ public class MultiplierIsolatedTwinByLinkedHeadTwin extends Multiplier {
         return ret;
     }
 
-    private List<TwinEntity> loadLinkedTwins(List<UUID> linkDstTwinIds, UUID linkUuid, UUID ownerBusinessAccountId, Set<UUID> statusIdSet, boolean excludeStatuses) {
+    private KitGrouped<TwinRepository.DstToSrcHeadProjection, String, UUID> loadDstToHeadLinks(Collection<UUID> linkDstTwinIds, UUID linkUuid) {
+        return new KitGrouped<>(
+                twinRepository.findDstToSrcHeadsByDstTwinIdsAndLinkId(linkDstTwinIds, linkUuid),
+                row -> row.getDstTwinId().toString() + ":" + row.getSrcTwinId().toString(),
+                TwinRepository.DstToSrcHeadProjection::getDstTwinId
+        );
+    }
+
+    private List<TwinEntity> loadTwinsByHeads(Set<UUID> headTwinIds, UUID ownerBusinessAccountId, Set<UUID> statusIdSet, boolean excludeStatuses) {
+        if (CollectionUtils.isEmpty(headTwinIds)) {
+            return List.of();
+        }
         if (statusIdSet == null || statusIdSet.isEmpty()) {
-            return twinRepository.findTwinsByHeadOfLinkSrcTowardDstTwins(linkDstTwinIds, linkUuid, ownerBusinessAccountId);
+            return twinRepository.findByOwnerBusinessAccountIdAndHeadTwinIdIn(ownerBusinessAccountId, headTwinIds);
+        } else if (excludeStatuses) {
+            return twinRepository.findByOwnerBusinessAccountIdAndHeadTwinIdInAndTwinStatusIdNotIn(ownerBusinessAccountId, headTwinIds, statusIdSet);
+        } else {
+            return twinRepository.findByOwnerBusinessAccountIdAndHeadTwinIdInAndTwinStatusIdIn(ownerBusinessAccountId, headTwinIds, statusIdSet);
         }
-        if (excludeStatuses) {
-            return twinRepository.findTwinsByHeadOfLinkSrcTowardDstTwinsStatusesExcluded(
-                    linkDstTwinIds, linkUuid, ownerBusinessAccountId, statusIdSet);
-        }
-        return twinRepository.findTwinsByHeadOfLinkSrcTowardDstTwinsStatusesIncluded(
-                linkDstTwinIds, linkUuid, ownerBusinessAccountId, statusIdSet);
     }
 }
