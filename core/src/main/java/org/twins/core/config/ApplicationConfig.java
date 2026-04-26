@@ -9,7 +9,6 @@ package org.twins.core.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.bulkhead.BulkheadRegistry;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -18,8 +17,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +43,6 @@ import javax.sql.DataSource;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 
 @Slf4j
@@ -123,47 +119,13 @@ public class ApplicationConfig {
      */
     @Bean
     public MeterRegistryCustomizer<MeterRegistry> meterRegistry() {
-        return (registry) -> registry.config().commonTags("application", "TWINS");}
-
-     /**
-      * Configures and provides a CacheManager bean using Caffeine as the caching provider.
-      * The CacheManager is set with an initial capacity of 1000 entries and an expiration
-      * policy of 5 minutes after a write operation.
-      * Null cache entries are allowed.
-      *
-      * @return a configured instance of CaffeineCacheManager with the specified settings
-      */
-     @Bean
-    public CacheManager cacheManager() {
-        Caffeine caffeine = Caffeine.newBuilder()
-                 .initialCapacity(1000)
-            //    .refreshAfterWrite(5, TimeUnit.MINUTES)
-                .expireAfterWrite(5, TimeUnit.MINUTES);
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCaffeine(caffeine);
-        caffeineCacheManager.setAllowNullValues(true);
-        return caffeineCacheManager;
+        return (registry) -> registry.config().commonTags("application", "TWINS");
     }
-
-//    @Bean
-//    public CacheManager cacheManager() {
-//        return new ConcurrentMapCacheManager() {
-//            @Override
-//            protected Cache createConcurrentMapCache(String name) {
-//                return new ConcurrentMapCache(
-//                        name,
-//                        CacheBuilder.newBuilder()
-//                                .expireAfterWrite(5, TimeUnit.MINUTES)
-//                                .build().asMap(),
-//                        true);
-//            }
-//        };
-//    }
 
     @Bean
     public EntitySmartService entitySmartService() {
         EntitySmartService entitySmartService = new EntitySmartService();
-                entitySmartService.setDaoPackages(new String[]{"org.twins.core.dao", "org.cambium.i18n.dao"});
+        entitySmartService.setDaoPackages(new String[]{"org.twins.core.dao", "org.cambium.i18n.dao"});
         return entitySmartService;
     }
 
