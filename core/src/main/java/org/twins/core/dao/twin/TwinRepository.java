@@ -18,11 +18,6 @@ import java.util.UUID;
 
 @Repository
 public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpecificationExecutor<TwinEntity>, PagingAndSortingRepository<TwinEntity, UUID> {
-    interface DstToSrcHeadProjection {
-        UUID getDstTwinId();
-        UUID getSrcTwinId();
-    }
-
     List<TwinEntity> findByTwinClassDomainId(UUID domainId);
 
     List<TwinEntity> findByOwnerBusinessAccountId(UUID businessAccount);
@@ -154,54 +149,44 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("linkId") UUID linkId,
             @Param("statusIds") Collection<UUID> statusIds);
 
-    /**
-     * Twins whose {@code headTwinId} is the src twin of a forward link to the given dst twin(s)
-     * (same head set as in {@link #updateTwinStatusByLinkAndHeadTwinChildren}).
-     */
-    @Query("select distinct t from TwinEntity t, TwinLinkEntity tl "
-            + "where t.ownerBusinessAccountId = :ownerBusinessAccountId "
-            + "and t.headTwinId = tl.srcTwinId "
-            + "and tl.dstTwinId in :linkDstTwinIds "
-            + "and tl.linkId = :linkId")
-    List<TwinEntity> findTwinsByHeadOfLinkSrcTowardDstTwins(
+    @Query("select distinct tl.dstTwinId, t from TwinEntity t, TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds "
+            + "and tl.linkId = :linkId "
+            + "and t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl2.srcTwinId from TwinLinkEntity tl2 "
+            + "where tl2.dstTwinId = tl.dstTwinId and tl2.linkId = :linkId)")
+    List<Object[]> findDstTwinIdAndTwinsByHeadOfLinkSrcTowardDstTwins(
             @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
             @Param("linkId") UUID linkId,
             @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId);
 
-    @Query("select distinct t from TwinEntity t, TwinLinkEntity tl "
-            + "where t.ownerBusinessAccountId = :ownerBusinessAccountId "
-            + "and t.headTwinId = tl.srcTwinId "
-            + "and tl.dstTwinId in :linkDstTwinIds "
+    @Query("select distinct tl.dstTwinId, t from TwinEntity t, TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds "
             + "and tl.linkId = :linkId "
+            + "and t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl2.srcTwinId from TwinLinkEntity tl2 "
+            + "where tl2.dstTwinId = tl.dstTwinId and tl2.linkId = :linkId) "
             + "and t.twinStatusId in :statusIds")
-    List<TwinEntity> findTwinsByHeadOfLinkSrcTowardDstTwinsStatusesIncluded(
+    List<Object[]> findDstTwinIdAndTwinsByHeadOfLinkSrcTowardDstTwinsStatusesIncluded(
             @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
             @Param("linkId") UUID linkId,
             @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
             @Param("statusIds") Collection<UUID> statusIds);
 
-    @Query("select distinct t from TwinEntity t, TwinLinkEntity tl "
-            + "where t.ownerBusinessAccountId = :ownerBusinessAccountId "
-            + "and t.headTwinId = tl.srcTwinId "
-            + "and tl.dstTwinId in :linkDstTwinIds "
+    @Query("select distinct tl.dstTwinId, t from TwinEntity t, TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds "
             + "and tl.linkId = :linkId "
+            + "and t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl2.srcTwinId from TwinLinkEntity tl2 "
+            + "where tl2.dstTwinId = tl.dstTwinId and tl2.linkId = :linkId) "
             + "and t.twinStatusId not in :statusIds")
-    List<TwinEntity> findTwinsByHeadOfLinkSrcTowardDstTwinsStatusesExcluded(
+    List<Object[]> findDstTwinIdAndTwinsByHeadOfLinkSrcTowardDstTwinsStatusesExcluded(
             @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
             @Param("linkId") UUID linkId,
             @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
             @Param("statusIds") Collection<UUID> statusIds);
 
-    @Query("select tl.dstTwinId as dstTwinId, tl.srcTwinId as srcTwinId "
-            + "from TwinLinkEntity tl "
-            + "where tl.dstTwinId in :linkDstTwinIds and tl.linkId = :linkId")
-    List<DstToSrcHeadProjection> findDstToSrcHeadsByDstTwinIdsAndLinkId(
-            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
-            @Param("linkId") UUID linkId);
-
-    List<TwinEntity> findByOwnerBusinessAccountIdAndHeadTwinIdIn(UUID ownerBusinessAccountId, Collection<UUID> headTwinIds);
-
-    List<TwinEntity> findByOwnerBusinessAccountIdAndHeadTwinIdInAndTwinStatusIdIn(UUID ownerBusinessAccountId, Collection<UUID> headTwinIds, Collection<UUID> twinStatusIds);
-
-    List<TwinEntity> findByOwnerBusinessAccountIdAndHeadTwinIdInAndTwinStatusIdNotIn(UUID ownerBusinessAccountId, Collection<UUID> headTwinIds, Collection<UUID> twinStatusIds);
 }
