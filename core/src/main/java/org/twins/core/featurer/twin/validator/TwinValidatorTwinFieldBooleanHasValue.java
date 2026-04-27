@@ -26,7 +26,7 @@ import java.util.UUID;
         name = "Twin boolean field has value",
         description = "Validates that twin has a specific value in the specified boolean field")
 @RequiredArgsConstructor
-public class TwinValidatorTwinBooleanFieldHasValue extends TwinValidator {
+public class TwinValidatorTwinFieldBooleanHasValue extends TwinValidator {
     @FeaturerParam(name = "Twin class field id", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
@@ -36,30 +36,6 @@ public class TwinValidatorTwinBooleanFieldHasValue extends TwinValidator {
     private final TwinService twinService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        UUID fieldId = twinClassFieldId.extract(properties);
-        boolean expectedValue = value.extract(properties);
-
-        twinService.loadFieldsValues(twinEntity);
-        FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldId);
-
-        boolean isValid;
-        if (fieldValue == null || fieldValue.isEmpty()) {
-            isValid = false;
-        } else if (!(fieldValue instanceof FieldValueBoolean fvb)) {
-            isValid = false;
-        } else {
-            isValid = fvb.getValue() == expectedValue;
-        }
-
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " field[" + fieldId + "] is not [" + expectedValue + "]",
-                twinEntity.logShort() + " field[" + fieldId + "] is [" + expectedValue + "]");
-    }
-
-    @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         UUID fieldId = twinClassFieldId.extract(properties);
         boolean expectedValue = value.extract(properties);
@@ -67,7 +43,7 @@ public class TwinValidatorTwinBooleanFieldHasValue extends TwinValidator {
         twinService.loadFieldsValues(twinEntityCollection);
 
         CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
-        for (TwinEntity twinEntity : twinEntityCollection) {
+        for (var twinEntity : twinEntityCollection) {
             FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldId);
 
             boolean isValid;
