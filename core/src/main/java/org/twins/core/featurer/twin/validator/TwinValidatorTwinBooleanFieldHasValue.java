@@ -8,8 +8,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
@@ -18,6 +16,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -58,5 +57,35 @@ public class TwinValidatorTwinBooleanFieldHasValue extends TwinValidator {
                 invert,
                 twinEntity.logShort() + " field[" + fieldId + "] is not [" + expectedValue + "]",
                 twinEntity.logShort() + " field[" + fieldId + "] is [" + expectedValue + "]");
+    }
+
+    @Override
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        UUID fieldId = twinClassFieldId.extract(properties);
+        boolean expectedValue = value.extract(properties);
+
+        twinService.loadFieldsValues(twinEntityCollection);
+
+        CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
+        for (TwinEntity twinEntity : twinEntityCollection) {
+            FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldId);
+
+            boolean isValid;
+            if (fieldValue == null || fieldValue.isEmpty()) {
+                isValid = false;
+            } else if (!(fieldValue instanceof FieldValueBoolean fvb)) {
+                isValid = false;
+            } else {
+                isValid = fvb.getValue() == expectedValue;
+            }
+
+            ValidationResult result = buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " field[" + fieldId + "] is not [" + expectedValue + "]",
+                    twinEntity.logShort() + " field[" + fieldId + "] is [" + expectedValue + "]");
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), result);
+        }
+        return collectionValidationResult;
     }
 }
