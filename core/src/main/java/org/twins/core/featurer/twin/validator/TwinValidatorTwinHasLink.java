@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -31,18 +30,18 @@ public class TwinValidatorTwinHasLink extends TwinValidator {
     TwinLinkService twinLinkService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        boolean isValid = twinLinkService.hasLink(twinEntity, linkId.extract(properties));
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " has no link[" + linkId.extract(properties) + "]",
-                twinEntity.logShort() + " has some link[" + linkId.extract(properties) + "]");
-    }
-
-    @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
-        twinLinkService.loadTwinLinks(twinEntityCollection); // group loading will reduce db query count
-        return super.isValid(properties, twinEntityCollection, invert);
+        var linkIdUUID = linkId.extract(properties);
+        twinLinkService.loadTwinLinks(twinEntityCollection);
+        var result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID);
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " has no link[" + linkIdUUID + "]",
+                    twinEntity.logShort() + " has some link[" + linkIdUUID + "]"));
+        }
+        return result;
     }
 }

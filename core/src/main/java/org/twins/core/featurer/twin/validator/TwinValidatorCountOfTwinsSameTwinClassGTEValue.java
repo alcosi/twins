@@ -1,8 +1,8 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -14,7 +14,10 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -31,18 +34,25 @@ public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidato
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Integer val = GTEvalue.extract(properties);
-        BasicSearch search = new BasicSearch();
+        var twinsGroupedByClass = new KitGrouped<>(twinEntityCollection, TwinEntity::getId, TwinEntity::getTwinClassId);
+        var search = new BasicSearch();
         search
-                .addTwinClassId(twinEntity.getTwinClassId(), false);
-        long count = twinSearchService.count(search);
-        boolean isValid = count >= val;
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " count=" + count + "(NOT >=" + val + ")",
-                twinEntity.logShort() + " count=" + count + "(>=" + val + ")");
+                .setTwinClassIdList(twinsGroupedByClass.getGroupedKeySet());
+        Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.twinClassId);
+        var collectionValidationResult = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            long count = counts.getOrDefault(twinEntity.getTwinClassId(), 0L);
+            boolean isValid = count >= val;
+            var validationResult = buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " count=" + count + "(NOT >=" + val + ")",
+                    twinEntity.logShort() + " count=" + count + "(>=" + val + ")");
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), validationResult);
+        }
+        return collectionValidationResult;
     }
 
 }

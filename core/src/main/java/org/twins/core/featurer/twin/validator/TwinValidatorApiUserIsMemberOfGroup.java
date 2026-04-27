@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.annotations.Featurer;
@@ -17,6 +16,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsUserGroupId;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.usergroup.UserGroupService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -39,15 +39,20 @@ public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {
     public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetTwinsUserGroupId("userGroupIds");
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroupsForCurrentUser();
         Set<UUID> propertiesUuids = userGroupIds.extract(properties);
         boolean isValid = KitUtils.isNotEmpty(apiUser.getUser().getUserGroups()) && apiUser.getUser().getUserGroups().getIdSet().stream().anyMatch(propertiesUuids::contains);
-        return buildResult(
+        var singleTwinvalidationResult = buildResult(
                 isValid,
                 invert,
                 "User[" + apiUser.getUser().getId() + "," + apiUser.getBusinessAccountId() + "] is not a member of any of these groups.",
                 "User[" + apiUser.getUser().getId() + "," + apiUser.getBusinessAccountId() + "] is a member of any of these groups.");
+        var collectionValidationResult = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), singleTwinvalidationResult);
+        }
+        return collectionValidationResult;
     }
 }
