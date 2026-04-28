@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -17,8 +16,8 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Properties;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -34,30 +33,34 @@ public class TwinValidatorTwinFieldDateLessThenNow extends TwinValidator {
     TwinService twinService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        twinService.loadFieldsValues(twinEntity);
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        twinService.loadFieldsValues(twinEntityCollection);
 
-        UUID classFieldId = twinClassFieldDateId.extract(properties);
-        boolean isValid;
+        var classFieldId = twinClassFieldDateId.extract(properties);
 
-        FieldValue fieldValue = twinEntity.getFieldValuesKit().get(classFieldId);
-        if (fieldValue == null || fieldValue.isEmpty()) {
-            log.error("twinClassField[{}] was not found for {}", classFieldId, twinEntity.logShort());
-            isValid = false;
-            //todo exception??
-        } else if (fieldValue instanceof FieldValueDate fieldValueDate) {
-            isValid = fieldValueDate.getDate().isBefore(LocalDateTime.now());
-        } else {
-            log.warn("{} is not a date field", fieldValue.getTwinClassField().logNormal());
-            isValid = false;
-            //todo exception??
+        CollectionValidationResult result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            boolean isValid;
+
+            FieldValue fieldValue = twinEntity.getFieldValuesKit().get(classFieldId);
+            if (fieldValue == null || fieldValue.isEmpty()) {
+                log.error("twinClassField[{}] was not found for {}", classFieldId, twinEntity.logShort());
+                isValid = false;
+                //todo exception??
+            } else if (fieldValue instanceof FieldValueDate fieldValueDate) {
+                isValid = fieldValueDate.getDate().isBefore(LocalDateTime.now());
+            } else {
+                log.warn("{} is not a date field", fieldValue.getTwinClassField().logNormal());
+                isValid = false;
+                //todo exception??
+            }
+
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " field of class [" + classFieldId + "] date value is in the future",
+                    twinEntity.logShort() + " field of class [" + classFieldId + "] date value is in the past"));
         }
-
-
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " field of class [" + classFieldId + "] date value is in the future",
-                twinEntity.logShort() + " field of class [" + classFieldId + "] date value is in the past");
+        return result;
     }
 }
