@@ -24,6 +24,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.QuotaKey;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
@@ -391,7 +392,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     protected void createTwins(TwinCreateStage twinCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        log.info("createTwins: starting with {} twins", twinCreateList.size());
         var twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
         loadClass(twinEntities);
         var twinsGroupedByClass = new KitGroupedObj<>(
@@ -403,7 +403,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         checkCreatePermission(twinCreateList.stream().filter(TwinCreate::isCheckCreatePermission).map(TwinCreate::getTwinEntity).toList());
-        log.info("createTwins: calling checkTwinClassQuota with {} twins", twinEntities.size());
         checkTwinClassQuota(twinEntities);
 //        twinflowService.loadTwinflow(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
@@ -648,8 +647,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void checkTwinClassQuota(List<TwinEntity> twinEntities) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        log.info("checkTwinClassQuota: businessAccountSpecified={}, domainId={}, businessAccountId={}",
-                apiUser.isBusinessAccountSpecified(), apiUser.getDomainId(), apiUser.getBusinessAccountId());
         if (!apiUser.isBusinessAccountSpecified()) {
             return;
         }
@@ -657,38 +654,34 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         UUID domainId = apiUser.getDomainId();
         UUID businessAccountId = apiUser.getBusinessAccountId();
 
-        var twinsGroupedByClass = new KitGroupedObj<>(
-                twinEntities,
-                TwinEntity::getId,
-                TwinEntity::getTwinClassId,
-                TwinEntity::getTwinClass);
+        if (twinEntities.isEmpty()) {
+            return;
+        }
 
-        for (var entry : twinsGroupedByClass.getGroupedList()) {
-            TwinClassEntity twinClass = entry.getLeft();
-            List<TwinEntity> twins = entry.getRight();
-            log.info("Checking quota for twinClassId={}, twinClassKey={}, twinsToCreate={}",
-                    twinClass.getId(), twinClass.getKey(), twins.size());
+        List<String> errors = new ArrayList<>();
 
-            Integer maxCount = twinRepository.detectMaxTwinCount(domainId, businessAccountId, twinClass.getId());
-            log.info("detectMaxTwinCount result: domainId={}, businessAccountId={}, twinClassId={}, maxCount={}",
-                    domainId, businessAccountId, twinClass.getId(), maxCount);
+        Map<QuotaKey, List<TwinEntity>> groupedBySpaceAndClass = twinEntities.stream().collect(Collectors.groupingBy(t -> new QuotaKey(t.getTwinClassSchemaSpaceId(), t.getTwinClassId())));
+
+        for (var entry : groupedBySpaceAndClass.entrySet()) {
+            QuotaKey key = entry.getKey();
+            List<TwinEntity> twins = entry.getValue();
+
+            Integer maxCount = twinRepository.getQuotaLimit(key.twinClassSchemaSpaceId(), domainId, businessAccountId, key.twinClassId());
             if (maxCount == null) {
-                log.info("No quota configured for twinClassId={}", twinClass.getId());
                 continue;
             }
 
-            BasicSearch search = new BasicSearch();
-            search
-                    .setCheckViewPermission(false)
-                    .addTwinClassId(twinClass.getId(), false)
-                    .addOwnerBusinessAccountId(businessAccountId);
-            long currentCount = twinSearchService.count(search);
-            log.info("Current twin count for twinClassId={}, businessAccountId={}: {}", twinClass.getId(), businessAccountId, currentCount);
+            long currentCount = twinRepository.countTwinsByQuotaKey(key.twinClassSchemaSpaceId(), businessAccountId, key.twinClassId());
+            log.info("Checking quota for twinClass={}, spaceId={}, currentCount={}, adding={}, maxCount={}",
+                    twins.getFirst().getTwinClass().logNormal(), key.twinClassSchemaSpaceId(), currentCount, twins.size(), maxCount);
 
             if (currentCount + twins.size() > maxCount) {
-                log.error("Quota exceeded: current={}, adding={}, max={}", currentCount, twins.size(), maxCount);
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_QUOTA_EXCEEDED, "Twin class [" + twinClass.logNormal() + "] quota exceeded for business account [" + businessAccountId + "]: " + "current=" + currentCount + ", adding=" + twins.size() + ", max=" + maxCount);
+                errors.add("Twin class [" + twins.getFirst().getTwinClass().logNormal() + "]" + (key.twinClassSchemaSpaceId() != null ? " (space: " + key.twinClassSchemaSpaceId() + ")" : "") + ": current=" + currentCount + ", adding=" + twins.size() + ", max=" + maxCount);
             }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_QUOTA_EXCEEDED, "Twin class quota exceeded for business account [" + businessAccountId + "]: " + String.join("; ", errors));
         }
     }
 
