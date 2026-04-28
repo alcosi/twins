@@ -161,4 +161,7 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
               AND dst.twin_status_id IN :twinStatusIds
             """, nativeQuery = true)
     Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(@Param("twinIds") Collection<UUID> twinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    @Query("select tl.dstTwinId as id, count(tl) as cnt from TwinLinkEntity tl where tl.linkId = :linkId and tl.dstTwinId in :dstTwinIdList group by tl.dstTwinId")
+    List<Object[]> countBackwardLinks(@Param("dstTwinIdList") Collection<UUID> dstTwinIdList, @Param("linkId") UUID linkId);
 }

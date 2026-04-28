@@ -1,8 +1,9 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
@@ -16,10 +17,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -36,46 +34,54 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator {
     TwinService twinService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> fieldClassIds = twinClassFieldIds.extract(properties);
 
-        Set<UUID> systemFieldIds = new HashSet<>();
-        Set<UUID> dynamicFieldIds = new HashSet<>();
+        Set<UUID> basicFieldIds = null;
+        Set<UUID> dynamicFieldIds = null;
 
         for (UUID fieldClassId : fieldClassIds) {
             if (SystemEntityService.isSystemField(fieldClassId)) {
-                systemFieldIds.add(fieldClassId);
+                basicFieldIds = CollectionUtils.safeAdd(basicFieldIds, fieldClassId);
             } else {
-                dynamicFieldIds.add(fieldClassId);
+                dynamicFieldIds = CollectionUtils.safeAdd(dynamicFieldIds, fieldClassId);
             }
         }
-
-        UUID nullFieldId = null;
-        for (UUID fieldClassId : systemFieldIds) {
-            Object value = SystemEntityService.getSystemFieldValue(twinEntity, fieldClassId);
-            if (value == null) {
-                nullFieldId = fieldClassId;
-                break;
-            }
+        if (basicFieldIds == null) {
+            basicFieldIds = Collections.emptySet();
+        }
+        if (dynamicFieldIds == null) {
+            dynamicFieldIds = Collections.emptySet();
         }
 
-        if (nullFieldId == null && !dynamicFieldIds.isEmpty()) {
-            twinService.loadFieldsValues(twinEntity);
+        if (CollectionUtils.isNotEmpty(dynamicFieldIds)) {
+            twinService.loadFieldsValues(twinEntityCollection);
+        }
+
+        var result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            Set<UUID> nullFieldIds = null;
+            for (UUID fieldClassId : basicFieldIds) {
+                Object value = SystemEntityService.getSystemFieldValue(twinEntity, fieldClassId);
+                if (value == null) {
+                    nullFieldIds = CollectionUtils.safeAdd(nullFieldIds, fieldClassId);
+                }
+            }
+
             for (UUID fieldClassId : dynamicFieldIds) {
                 FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldClassId);
                 if (fieldValue == null || fieldValue.isEmpty()) {
-                    nullFieldId = fieldClassId;
-                    break;
+                    nullFieldIds = CollectionUtils.safeAdd(nullFieldIds, fieldClassId);
                 }
             }
+            boolean isValid = CollectionUtils.isEmpty(nullFieldIds);
+            var nullFieldIdsStr = StringUtils.join(nullFieldIds, ",");
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " fields[" + nullFieldIdsStr + "] are null",
+                    twinEntity.logShort() + " there are no null fields found"));
         }
-
-
-        boolean isValid = (nullFieldId == null);
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " field of class[" + nullFieldId + "] is null",
-                twinEntity.logShort() + " there are no null fields found");
+        return result;
     }
 }

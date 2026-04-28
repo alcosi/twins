@@ -22,6 +22,7 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
     List<SpaceRoleUserEntity> findAllByTwinIdAndUserId(UUID twinId, UUID userId);
     List<SpaceRoleUserEntity> findAllByTwinIdAndSpaceRoleId(UUID spaceId, UUID spaceRoleId);
     List<SpaceRoleUserEntity> findAllByTwinIdAndSpaceRoleIdAndUserId(UUID spaceId, UUID spaceRoleId, UUID userId);
+    List<SpaceRoleUserEntity> findAllByTwinIdInAndSpaceRoleIdAndUserId(Collection<UUID> spaceIds, UUID spaceRoleId, UUID userId);
     List<SpaceRoleUserEntity> findAllByTwinIdAndSpaceRoleIdAndUserIdIn(UUID spaceId, UUID spaceRoleId, Collection<UUID> userIds);
 
     @Modifying
