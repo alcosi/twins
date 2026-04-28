@@ -4,7 +4,6 @@ import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamRes
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
 import org.apache.tika.io.TikaInputStream;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -21,7 +20,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.twins.core.dto.rest.featurer.storager.filehandler.*;
+import org.twins.core.dto.rest.featurer.storager.filehandler.AttachmentModification;
+import org.twins.core.dto.rest.featurer.storager.filehandler.FHSyncProcessRsDTO;
+import org.twins.core.dto.rest.featurer.storager.filehandler.FileHandlerDeleteRqDTO;
 import org.twins.core.enums.featurer.storager.StorageType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
@@ -130,10 +131,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
             var properties = extractProperties(params, false);
-            var url = STR."\{fileHandlerUri.extract(properties)}/api/delete";
+            var url = STR."\{fileHandlerUri.extract(properties)}/api/storage/delete";
             var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
-            var resp = restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
+            var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
