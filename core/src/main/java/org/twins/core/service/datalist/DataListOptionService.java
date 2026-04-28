@@ -273,6 +273,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         processIncompleteByKeyOptions(dataListId, options, businessAccountId, supportCustomValue);
     }
 
+    @Transactional
     public void processIncompleteByExternalIdOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
         Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(DataListOptionEntity::getExternalId);
         Iterator<DataListOptionEntity> iterator = options.iterator();
@@ -345,6 +346,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
     }
 
+    @Transactional
     public void processIncompleteByKeyOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
         Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(DataListOptionEntity::getOption);
         Iterator<DataListOptionEntity> iterator = options.iterator();
