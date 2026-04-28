@@ -1,5 +1,5 @@
 -- Add max_twin_count field to twin_class_schema_map for quota management
-ALTER TABLE public.twin_class_schema_map
+ALTER TABLE twin_class_schema_map
     ADD COLUMN IF NOT EXISTS max_twin_count INTEGER;
 
 -- Function to detect max twin count by hierarchy (BA -> Domain)
