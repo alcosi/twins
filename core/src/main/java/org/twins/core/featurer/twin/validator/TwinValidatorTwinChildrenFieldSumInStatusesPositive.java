@@ -25,7 +25,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(
-        id = FeaturerTwins.ID_1621,
+        id = FeaturerTwins.ID_1622,
         name = "Twin has linked src twin field value greater than zero in statuses",
         description = "Checks that current twin as dst has at least one linked src twin in selected statuses with decimal field value greater than zero"
 )
@@ -42,7 +42,6 @@ public class TwinValidatorTwinChildrenFieldSumInStatusesPositive extends TwinVal
 
     private final TwinLinkRepository twinLinkRepository;
 
-    @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Set<UUID> extractedStatusIds = statusIds.extract(properties);
         UUID extractedLinkId = linkId.extract(properties);
