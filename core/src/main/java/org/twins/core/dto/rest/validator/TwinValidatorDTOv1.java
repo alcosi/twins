@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -39,6 +40,12 @@ public class TwinValidatorDTOv1 {
 
     @Schema(description = "order")
     public Integer order;
+
+    @Schema(description = "created by user id")
+    public UUID createdByUserId;
+
+    @Schema(description = "created at")
+    public LocalDateTime createdAt;
 }
 
 

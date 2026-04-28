@@ -58,12 +58,13 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
     @Override
     public boolean isEntityReadDenied(TwinValidatorSetEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        ApiUser apiUser = authService.getApiUser();
+        return entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId());
     }
 
     @Override
     public boolean validateEntity(TwinValidatorSetEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
+        return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
     }
 
     public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(T entity) throws ServiceException {
@@ -99,7 +100,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-            if (!twinValidatorEntity.isActive()) {
+            if (!twinValidatorEntity.getActive()) {
                 log.info("{} from {} will not be used, since it is inactive.", twinValidatorEntity.logNormal(), validatorContainer.logNormal());
                 continue;
             }
@@ -136,7 +137,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         List<TwinEntity> remainingTwins = new ArrayList<>(twinEntities);
 
         for (TwinValidatorEntity validatorEntity : sortedValidators) {
-            if (!validatorEntity.isActive()) {
+            if (!validatorEntity.getActive()) {
                 log.info("{} from {} will not be used, since it is inactive.", validatorEntity.logNormal(), validatorContainer.logNormal());
                 continue;
             }
