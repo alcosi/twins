@@ -87,34 +87,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
-        loadTwinValidatorSet(validatorContainer);
-        if (validatorContainer.getTwinValidatorSet() == null) {
-            return true;
-        }
-        twinValidatorService.loadValidators(validatorContainer);
-        if (validatorContainer.getTwinValidatorKit() == null) {
-            return !Boolean.TRUE.equals(validatorContainer.getTwinValidatorSet().getInvert());
-        }
-        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
-        sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-        boolean validationResultOfSet = true;
-        for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-            if (!twinValidatorEntity.isActive()) {
-                log.info("{} from {} will not be used, since it is inactive.", twinValidatorEntity.logNormal(), validatorContainer.logNormal());
-                continue;
-            }
-
-            TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
-            ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
-            validationResultOfSet = validationResult.isValid();
-
-            if (!validationResultOfSet) {
-                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validatorContainer.logNormal(), validationResult.getMessage());
-                break;
-            }
-        }
-
-        return validatorContainer.getTwinValidatorSet().getInvert() != validationResultOfSet;
+        Map<UUID, ValidationResult> results = isValid(Collections.singletonList(twinEntity), validatorContainer);
+        return results.get(twinEntity.getId()).isValid();
     }
 
     public <T extends ContainsTwinValidatorSet> Map<UUID, ValidationResult> isValid(Collection<TwinEntity> twinEntities, T validatorContainer) throws ServiceException {
@@ -160,6 +134,36 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
         if (setInvert) {
             invertResults(results);
+        }
+
+        return results;
+    }
+
+    public <T extends ContainsTwinValidatorSet> Map<UUID, ValidationResult> isValid(Collection<TwinEntity> twinEntities, Collection<T> validatorContainers) throws ServiceException {
+        if (CollectionUtils.isEmpty(validatorContainers)) {
+            return initializeResults(twinEntities, true);
+        }
+
+        Map<UUID, ValidationResult> results = initializeResults(twinEntities, false);
+        List<TwinEntity> remainingTwins = new ArrayList<>(twinEntities);
+
+        for (T validatorContainer : validatorContainers) {
+            if (remainingTwins.isEmpty()) {
+                break;
+            }
+
+            Map<UUID, ValidationResult> containerResults = isValid(remainingTwins, validatorContainer);
+
+            List<TwinEntity> nowValidTwins = new ArrayList<>();
+            for (TwinEntity twin : remainingTwins) {
+                ValidationResult result = containerResults.get(twin.getId());
+                if (result.isValid()) {
+                    results.put(twin.getId(), result);
+                    nowValidTwins.add(twin);
+                }
+            }
+
+            remainingTwins.removeAll(nowValidTwins);
         }
 
         return results;
