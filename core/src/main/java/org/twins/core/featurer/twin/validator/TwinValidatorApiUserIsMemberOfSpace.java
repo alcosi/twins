@@ -1,9 +1,8 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
@@ -18,7 +17,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsMarkerId;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -28,25 +27,35 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public class TwinValidatorApiUserIsMemberOfSpace extends TwinValidator {
-
     @FeaturerParam(name = "Space role id", description = "", order = 1)
     public static final FeaturerParamUUID spaceRoleId = new FeaturerParamUUIDTwinsMarkerId("spaceRoleId");
+
     @Lazy
     @Autowired
     AuthService authService;
+
     @Autowired
     private SpaceRoleUserRepository spaceRoleUserRepository;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID spaceRole = spaceRoleId.extract(properties);
-        List<SpaceRoleUserEntity> result = spaceRoleUserRepository.findAllByTwinIdAndSpaceRoleIdAndUserId(twinEntity.getId(), spaceRole, apiUser.getUserId());
-        boolean isValid = CollectionUtils.isNotEmpty(result) && result.size() == 1;
-        return buildResult(
-                isValid,
-                invert,
-                "User[" + apiUser.getUser().getId() + "," + apiUser.getBusinessAccountId() + "] is not a member of space[" + twinEntity.getId() + "]",
-                "User[" + apiUser.getUser().getId() + "," + apiUser.getBusinessAccountId() + "] is a member of space[" + twinEntity.getId() + "]");
+        var spaceRoleUsers = new KitGrouped<>(spaceRoleUserRepository.findAllByTwinIdInAndSpaceRoleIdAndUserId(
+                twinEntityCollection.stream().map(TwinEntity::getId).toList(),
+                spaceRole,
+                apiUser.getUserId()), SpaceRoleUserEntity::getId, SpaceRoleUserEntity::getTwinId);
+
+        var collectionValidationResult = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            boolean isValid = spaceRoleUsers.containsGroupedKey(twinEntity.getId());
+            var validationResult = buildResult(
+                    isValid,
+                    invert,
+                    "User[" + apiUser.getUser().getId() + "," + apiUser.getBusinessAccountId() + "] is not a member of space[" + twinEntity.getId() + "]",
+                    "User[" + apiUser.getUser().getId() + "," + apiUser.getBusinessAccountId() + "] is a member of space[" + twinEntity.getId() + "]");
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), validationResult);
+        }
+        return collectionValidationResult;
     }
 }

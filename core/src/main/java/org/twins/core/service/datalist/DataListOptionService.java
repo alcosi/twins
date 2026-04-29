@@ -268,6 +268,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
 
+    @Transactional
     public void processIncompleteOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
         processIncompleteByExternalIdOptions(dataListId, options, businessAccountId, supportCustomValue);
         processIncompleteByKeyOptions(dataListId, options, businessAccountId, supportCustomValue);

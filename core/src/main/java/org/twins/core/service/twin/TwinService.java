@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.*;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -23,6 +24,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.QuotaKey;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
@@ -36,6 +38,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.*;
+import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.enums.twin.TwinCreateStrategy;
@@ -122,6 +125,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinAliasService twinAliasService;
     @Lazy
     private final TwinFieldAttributeService twinFieldAttributeService;
+    @Lazy
+    private final TwinValidatorSetService twinValidatorSetService;
     private final UserService userService;
     @Autowired
     private TwinflowFactoryService twinflowFactoryService;
@@ -399,6 +404,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         checkCreatePermission(twinCreateList.stream().filter(TwinCreate::isCheckCreatePermission).map(TwinCreate::getTwinEntity).toList());
+        checkTwinClassQuota(twinEntities);
 //        twinflowService.loadTwinflow(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
@@ -638,6 +644,47 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED,  "{} does not have permissions [{}] to create",
                     authService.getApiUser().getUser().logNormal(),
                     StringUtils.join(missedPermissions, ","));
+    }
+
+    public void checkTwinClassQuota(List<TwinEntity> twinEntities) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.isBusinessAccountSpecified()) {
+            return;
+        }
+
+        UUID domainId = apiUser.getDomainId();
+        UUID businessAccountId = apiUser.getBusinessAccountId();
+
+        if (twinEntities.isEmpty()) {
+            return;
+        }
+
+        var errors = new ArrayList<String>();
+
+        Map<QuotaKey, List<TwinEntity>> groupedBySpaceAndClass = twinEntities.stream().collect(Collectors.groupingBy(t -> new QuotaKey(t.getTwinClassSchemaSpaceId(), t.getTwinClassId())));
+
+        for (var entry : groupedBySpaceAndClass.entrySet()) {
+            QuotaKey key = entry.getKey();
+            var twins = entry.getValue();
+            var twinClass = twins.getFirst().getTwinClass();
+
+            Integer twinsQuota = twinRepository.getTwinsQuota(key.twinClassSchemaSpaceId(), domainId, businessAccountId, key.twinClassId());
+            if (twinsQuota == null) {
+                continue;
+            }
+
+            long currentCount = twinRepository.countTwinsByQuotaKey(key.twinClassSchemaSpaceId(), businessAccountId, key.twinClassId());
+            log.info("Checking quota for {}, spaceId={}, currentCount={}, adding={}, quota={}",
+                    twinClass.logNormal(), key.twinClassSchemaSpaceId(), currentCount, twins.size(), twinsQuota);
+
+            if (currentCount + twins.size() > twinsQuota) {
+                errors.add(twinClass.logNormal() + (key.twinClassSchemaSpaceId() != null ? " (space: " + key.twinClassSchemaSpaceId() + ")" : "") + ": current=" + currentCount + ", adding=" + twins.size() + ", quota=" + twinsQuota);
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_QUOTA_EXCEEDED, "Twin class quota exceeded for business account [" + businessAccountId + "]: " + String.join("; ", errors));
+        }
     }
 
     public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
@@ -1729,48 +1776,76 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
 
-        //let's try to check common permission for classes, this will help to reduce loop count
-        var classLevelPermissionCheckPassed = new HashMap<UUID, Map<UUID, Boolean>>(); // classId -> classFieldId -> editable = true
-        var twinLevelPermissionCheckNeeded = new HashMap<UUID, List<TwinClassFieldEntity>>(); // classId -> classFieldId
-        for (var twinClass : needLoad.getGroupingObjectMap().values()) {
-            for (var twinClassField : twinClass.getTwinClassFieldKit()) {
-                if (twinClassFieldService.notSerializable(twinClassField)) { //this edit blocker flag from field typer
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
-                            .put(twinClassField.getId(), false);
+        var fieldsForValidation = new HashMap<UUID, Set<TwinEntity>>(); // key - twinClassFieldId
+        var fields = new HashMap<UUID, TwinClassFieldEntity>();
+        var permissionCache = new HashMap<UUID, Boolean>();
+
+        for (var twin : needLoad) {
+            twin.setTwinFieldEditability(new HashMap<>());
+            TwinClassEntity twinClass = twin.getTwinClass();
+
+            for (var field : twinClass.getTwinClassFieldKit()) {
+                if (twinClassFieldService.notSerializable(field)) {
+                    twin.getTwinFieldEditability().put(field.getId(), false);
                     continue;
                 }
-                if (twinClassField.getEditPermissionId() == null) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
-                            .put(twinClassField.getId(), true);
+
+                if (field.getEditPermissionId() == null) {
+                    fields.put(field.getId(), field);
+                    fieldsForValidation.computeIfAbsent(field.getId(), k -> new HashSet<>()).add(twin);
+                    twin.getTwinFieldEditability().put(field.getId(), true); // dirty value can be changed during rule validation
                     continue;
                 }
-                if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(), l -> new HashMap<>())
-                            .put(twinClassField.getId(), true);
-                    continue;
+
+                if (!permissionCache.containsKey(field.getEditPermissionId())) {
+                    permissionCache.put(field.getEditPermissionId(), permissionService.currentUserHasPermission(field.getEditPermissionId()));
                 }
-                twinLevelPermissionCheckNeeded.computeIfAbsent(twinClass.getId(), l -> new ArrayList<>()).add(twinClassField);
+                if (!permissionCache.get(field.getEditPermissionId())) {
+                    if (!permissionService.hasPermission(twin, field.getEditPermissionId())) {
+                        twin.getTwinFieldEditability().put(field.getId(), false);
+                        continue;
+                    }
+                }
+                fields.put(field.getId(), field);
+                fieldsForValidation.computeIfAbsent(field.getId(), k -> new HashSet<>()).add(twin);
+                twin.getTwinFieldEditability().put(field.getId(), true); // dirty value can be changed during rule validation
             }
         }
 
-        for (var twin : needLoad) {
-            if (!twinLevelPermissionCheckNeeded.containsKey(twin.getTwinClassId())) {
-                twin.setTwinFieldEditability(classLevelPermissionCheckPassed.get(twin.getTwinClassId())); // we can use the same map object
+        if (fieldsForValidation.isEmpty()) {
+            return;
+        }
+
+        twinClassFieldService.loadTwinClassFieldActionValidationRules(fields.values());
+
+        for (var fieldEntry : fieldsForValidation.entrySet()) {
+            var field = fields.get(fieldEntry.getKey());
+            var twins = fieldEntry.getValue();
+
+            var rules = field.getTwinClassFieldActionValidationRules();
+            if (rules == null || CollectionUtils.isEmpty(rules.getGrouped(TwinClassFieldAction.EDIT))) {
+                for (var twin : twins) {
+                    twin.getTwinFieldEditability().put(field.getId(), true);
+                }
                 continue;
             }
-            twin.setTwinFieldEditability(new HashMap<>(classLevelPermissionCheckPassed.get(twin.getTwinClassId()))); // here we have to create new map
-            var twinSpecificPermissionsCache = new HashMap<UUID, Boolean>();
-            for (var twinClassField : twinLevelPermissionCheckNeeded.get(twin.getTwinClassId())) {
-                if (twinSpecificPermissionsCache.containsKey(twinClassField.getEditPermissionId())) {
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), twinSpecificPermissionsCache.get(twinClassField.getEditPermissionId()));
-                    continue;
+
+            for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
+                if (!rule.isActive()) continue;
+
+                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, rule);
+
+                Iterator<TwinEntity> iterator = twins.iterator();
+                while (iterator.hasNext()) {
+                    var twin = iterator.next();
+                    if (!batchResults.get(twin.getId()).isValid()) {
+                        twin.getTwinFieldEditability().put(field.getId(), false);
+                        iterator.remove();
+                    }
                 }
-                if (permissionService.hasPermission(twin, twinClassField.getEditPermissionId())) {
-                    twinSpecificPermissionsCache.put(twinClassField.getEditPermissionId(), true);
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), true);
-                } else {
-                    twinSpecificPermissionsCache.put(twinClassField.getEditPermissionId(), false);
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), false);
+
+                if (twins.isEmpty()) {
+                    break;
                 }
             }
         }

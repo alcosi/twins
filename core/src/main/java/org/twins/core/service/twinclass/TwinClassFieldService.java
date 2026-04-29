@@ -30,6 +30,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
@@ -47,6 +48,8 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.validator.TwinClassFieldActionValidatorRuleService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -75,6 +78,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
+    @Lazy
+    private final TwinClassFieldActionValidatorRuleService twinClassFieldActionValidatorRuleService;
+    @Lazy
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -772,5 +779,32 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not datetime");
         Properties properties = featurerService.extractProperties(fieldTyper, twinClassField.getFieldTyperParams());
         return fieldTyperDateTime.getPattern(properties);
+    }
+
+    public void loadTwinClassFieldActionValidationRules(Collection<TwinClassFieldEntity> fields) throws ServiceException {
+        Kit<TwinClassFieldEntity, UUID> needLoad = new Kit<>(TwinClassFieldEntity::getId);
+        fields.stream()
+                .filter(f -> f.getTwinClassFieldActionValidationRules() == null)
+                .forEach(needLoad::add);
+
+        if (needLoad.isEmpty())
+            return;
+
+        List<TwinClassFieldActionValidatorRuleEntity> rules = twinClassFieldActionValidatorRuleService.findByTwinClassFieldIdInOrderByOrder(needLoad.getIdSet());
+        KitGrouped<TwinClassFieldActionValidatorRuleEntity, UUID, UUID> rulesByField = new KitGrouped<>(
+                rules,
+                TwinClassFieldActionValidatorRuleEntity::getId,
+                TwinClassFieldActionValidatorRuleEntity::getTwinClassFieldId
+        );
+
+        for (TwinClassFieldEntity field : needLoad) {
+            List<TwinClassFieldActionValidatorRuleEntity> fieldRules = rulesByField.getGrouped(field.getId());
+            field.setTwinClassFieldActionValidationRules(new KitGrouped<>(
+                    fieldRules,
+                    TwinClassFieldActionValidatorRuleEntity::getId,
+                    TwinClassFieldActionValidatorRuleEntity::getTwinClassFieldAction
+            ));
+        }
+        twinValidatorSetService.loadTwinValidatorSet(rules);
     }
 }

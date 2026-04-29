@@ -196,7 +196,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TEMPORAL_ID_NOT_FOUND(13601, "temporal id reference not found in batch request"),
     DUPLICATE_TEMPORAL_ID(13602, "duplicate temporal id in batch request"),
     CYCLIC_DEPENDENCY(13603, "cyclic dependency detected in temporal references"),
-    INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format");
+    INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format"),
+    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account");
 
     private final int code;
     private final String message;
