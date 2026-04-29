@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -40,33 +39,16 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        UUID classId = childrenTwinClassId.extract(properties);
-        UUID statusId = childrenTwinStatusId.extract(properties);
-        BasicSearch search = new BasicSearch();
-        search
-                .addHeadTwinId(twinEntity.getId())
-                .addTwinClassId(classId, false)
-                .addStatusId(statusId, true);
-        long count = twinSearchService.count(search);
-        boolean isValid = count == 0;
-
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " children of class[" + childrenTwinClassId + "] is not in status [" + childrenTwinStatusId + "]",
-                twinEntity.logShort() + " all children of class[" + childrenTwinClassId + "] are in status [" + childrenTwinStatusId + "]");
-    }
-
-    @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         UUID classId = childrenTwinClassId.extract(properties);
         UUID statusId = childrenTwinStatusId.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addTwinClassId(classId, false).addStatusId(statusId, true);
+        search
+                .addTwinClassId(classId, false)
+                .addStatusId(statusId, true);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
-        for (TwinEntity twinEntity : twinEntityCollection) {
+        for (var twinEntity : twinEntityCollection) {
             long count = counts.getOrDefault(twinEntity.getId(), 0L);
             boolean isValid = count == 0;
             result.getTwinsResults().put(twinEntity.getId(), buildResult(

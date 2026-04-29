@@ -2,7 +2,6 @@ package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -32,29 +31,13 @@ public class TwinValidatorTwinHasChildrenOfClasses extends TwinValidator {
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        Set<UUID> classIdSet = classIds.extract(properties);
-        BasicSearch search = new BasicSearch();
-        search
-                .addHeadTwinId(twinEntity.getId())
-                .addTwinClassExtendsHierarchyContainsId(classIdSet);
-        long count = twinSearchService.count(search);
-        boolean isValid = count > 0;
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " has no children of classes[" + StringUtils.join(classIdSet, ",") + "]",
-                twinEntity.logShort() + " has " + count + " children of classes[" + StringUtils.join(classIdSet, ",") + "]");
-    }
-
-    @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> classIdSet = classIds.extract(properties);
         BasicSearch search = new BasicSearch();
         search.addTwinClassExtendsHierarchyContainsId(classIdSet);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
-        for (TwinEntity twinEntity : twinEntityCollection) {
+        for (var twinEntity : twinEntityCollection) {
             long count = counts.getOrDefault(twinEntity.getId(), 0L);
             boolean isValid = count > 0;
             result.getTwinsResults().put(twinEntity.getId(), buildResult(

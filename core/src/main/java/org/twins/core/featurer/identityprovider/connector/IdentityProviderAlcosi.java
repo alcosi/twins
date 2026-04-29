@@ -38,6 +38,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.net.URI;
 import java.net.URLEncoder;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -139,14 +140,14 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         UUID businessAccountId = null;
         if (claim != null) {
             String value = claim.asText();
-            Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(value, new TypeReference<>() {
-            });
+            Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(value, new TypeReference<>() {});
             UUID domainId = authService.getApiUser().getDomainId();
             businessAccountId = domainIdToBusinessAccountIdMap.get(domainId);
         }
         return new TokenMetaData()
                 .setUserId(userId)
-                .setBusinessAccountId(businessAccountId);
+                .setBusinessAccountId(businessAccountId)
+                .setExpiresAt(Instant.ofEpochSecond(claims.get("exp").asLong()));
     }
 
     @Override
@@ -160,7 +161,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     @Override
     public void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException {
 
-        String accessToken = clientLogoutData.get("accessToken");
+        String accessToken = clientLogoutData.get("authToken");
         String refreshToken = clientLogoutData.get("refreshToken");
         revokeToken(accessToken, TokenType.ACCESS_TOKEN, properties);
         revokeToken(refreshToken, TokenType.REFRESH_TOKEN, properties);
@@ -213,8 +214,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
                 Claim newClaim = new Claim(claimType, value);
                 addClaim(newClaim, token, userId, properties);
             } else {
-                Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(claim.value, new TypeReference<>() {
-                });
+                Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(claim.value, new TypeReference<>() {});
                 domainIdToBusinessAccountIdMap.put(domainId, businessAccountId);
                 String value = toString(domainIdToBusinessAccountIdMap);
                 Claim newClaim = new Claim(claimType, value);
