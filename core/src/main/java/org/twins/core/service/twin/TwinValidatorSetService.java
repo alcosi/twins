@@ -154,16 +154,17 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
             Map<UUID, ValidationResult> containerResults = isValid(remainingTwins, validatorContainer);
 
-            List<TwinEntity> nowValidTwins = new ArrayList<>();
+            List<TwinEntity> newRemainingTwins = new ArrayList<>();
             for (TwinEntity twin : remainingTwins) {
                 ValidationResult result = containerResults.get(twin.getId());
                 if (result.isValid()) {
                     results.put(twin.getId(), result);
-                    nowValidTwins.add(twin);
+                } else {
+                    newRemainingTwins.add(twin);
                 }
             }
 
-            remainingTwins.removeAll(nowValidTwins);
+            remainingTwins = newRemainingTwins;
         }
 
         return results;
