@@ -657,7 +657,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         }
 
-        var errors = new ArrayList<>();
+        var errors = new ArrayList<String>();
 
         Map<QuotaKey, List<TwinEntity>> groupedBySpaceAndClass = twinEntities.stream().collect(Collectors.groupingBy(t -> new QuotaKey(t.getTwinClassSchemaSpaceId(), t.getTwinClassId())));
 
