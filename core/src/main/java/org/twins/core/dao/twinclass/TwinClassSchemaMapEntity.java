@@ -26,6 +26,9 @@ public class TwinClassSchemaMapEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "twins_count_quota")
+    private Integer twinsCountQuota;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

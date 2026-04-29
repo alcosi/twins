@@ -24,6 +24,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.QuotaKey;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
@@ -33,11 +34,11 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.*;
+import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.enums.twin.TwinCreateStrategy;
@@ -66,7 +67,6 @@ import org.twins.core.service.user.UserService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.stream.Stream;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
@@ -402,6 +402,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         checkCreatePermission(twinCreateList.stream().filter(TwinCreate::isCheckCreatePermission).map(TwinCreate::getTwinEntity).toList());
+        checkTwinClassQuota(twinEntities);
 //        twinflowService.loadTwinflow(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
@@ -641,6 +642,47 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED,  "{} does not have permissions [{}] to create",
                     authService.getApiUser().getUser().logNormal(),
                     StringUtils.join(missedPermissions, ","));
+    }
+
+    public void checkTwinClassQuota(List<TwinEntity> twinEntities) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.isBusinessAccountSpecified()) {
+            return;
+        }
+
+        UUID domainId = apiUser.getDomainId();
+        UUID businessAccountId = apiUser.getBusinessAccountId();
+
+        if (twinEntities.isEmpty()) {
+            return;
+        }
+
+        var errors = new ArrayList<String>();
+
+        Map<QuotaKey, List<TwinEntity>> groupedBySpaceAndClass = twinEntities.stream().collect(Collectors.groupingBy(t -> new QuotaKey(t.getTwinClassSchemaSpaceId(), t.getTwinClassId())));
+
+        for (var entry : groupedBySpaceAndClass.entrySet()) {
+            QuotaKey key = entry.getKey();
+            var twins = entry.getValue();
+            var twinClass = twins.getFirst().getTwinClass();
+
+            Integer twinsQuota = twinRepository.getTwinsQuota(key.twinClassSchemaSpaceId(), domainId, businessAccountId, key.twinClassId());
+            if (twinsQuota == null) {
+                continue;
+            }
+
+            long currentCount = twinRepository.countTwinsByQuotaKey(key.twinClassSchemaSpaceId(), businessAccountId, key.twinClassId());
+            log.info("Checking quota for {}, spaceId={}, currentCount={}, adding={}, quota={}",
+                    twinClass.logNormal(), key.twinClassSchemaSpaceId(), currentCount, twins.size(), twinsQuota);
+
+            if (currentCount + twins.size() > twinsQuota) {
+                errors.add(twinClass.logNormal() + (key.twinClassSchemaSpaceId() != null ? " (space: " + key.twinClassSchemaSpaceId() + ")" : "") + ": current=" + currentCount + ", adding=" + twins.size() + ", quota=" + twinsQuota);
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_QUOTA_EXCEEDED, "Twin class quota exceeded for business account [" + businessAccountId + "]: " + String.join("; ", errors));
+        }
     }
 
     public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
