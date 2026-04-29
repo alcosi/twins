@@ -16,10 +16,15 @@ import org.twins.core.featurer.identityprovider.TokenMetaData;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@EnableConfigurationProperties(CacheConfig.AuthTokenCacheProperties.class)
+@EnableConfigurationProperties({
+        CacheConfig.AuthTokenCacheProperties.class,
+        CacheConfig.UserPermissionsCacheProperties.class
+})
 public class CacheConfig {
 
     /**
@@ -32,15 +37,17 @@ public class CacheConfig {
      */
     @Bean
     @SuppressWarnings("unchecked")
-    public CacheManager cacheManager(Cache<String, TokenMetaData> authTokenCache) {
+    public CacheManager cacheManager(Cache<String, TokenMetaData> authTokenCache,
+                                     Cache<List<UUID>, List<UUID>> userPermissionsCache) {
+
         Caffeine<Object, Object> caffeine = Caffeine.newBuilder()
                 .initialCapacity(1000)
-                //    .refreshAfterWrite(5, TimeUnit.MINUTES)
                 .expireAfterWrite(5, TimeUnit.MINUTES);
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(caffeine);
         caffeineCacheManager.setAllowNullValues(true);
         caffeineCacheManager.registerCustomCache("authTokenCache", (Cache<Object, Object>) (Object) authTokenCache);
+        caffeineCacheManager.registerCustomCache("userPermissionsCache", (Cache<Object, Object>) (Object) userPermissionsCache);
         return caffeineCacheManager;
     }
 
@@ -61,11 +68,28 @@ public class CacheConfig {
                 .build();
     }
 
+    @Bean
+    public Cache<List<UUID>, List<UUID>> userPermissionsCache(UserPermissionsCacheProperties properties) {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(properties.ttl())
+                .initialCapacity(properties.initialCapacity())
+                .maximumSize(properties.maxSize())
+                .build();
+    }
+
     @ConfigurationProperties(prefix = "app.cache.auth-token")
     @Validated
     public record AuthTokenCacheProperties(
             @NotNull Duration maxTtl,
             @NotNull Duration clockSkew,
+            @Positive int initialCapacity,
+            @Positive int maxSize
+    ) {}
+
+    @ConfigurationProperties(prefix = "app.cache.user-permissions")
+    @Validated
+    public record UserPermissionsCacheProperties(
+            @NotNull Duration ttl,
             @Positive int initialCapacity,
             @Positive int maxSize
     ) {}
