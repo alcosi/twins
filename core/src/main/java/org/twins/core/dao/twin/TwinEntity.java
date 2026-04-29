@@ -38,6 +38,7 @@ import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinFieldRuleExecutionService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -442,6 +443,16 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Map<UUID, Boolean> twinFieldEditability;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldsRequirement;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFieldRuleExecutionService.RulesApplyResult rulesApplyResult;
 
     @Transient
     @EqualsAndHashCode.Exclude

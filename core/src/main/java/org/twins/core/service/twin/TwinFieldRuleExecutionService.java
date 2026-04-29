@@ -1,15 +1,15 @@
-package org.twins.core.service.twinclass;
+package org.twins.core.service.twin;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -26,102 +26,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldRuleExecutionService {
+public class TwinFieldRuleExecutionService {
 
     public static final String DESCRIPTOR_RULE_FAILED = "rule_failed";
 
-    @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2
-            * 1000, level = JavaLoggingLevel.WARNING)
-    public List<FieldRuleOutput> applyRules(List<FieldRuleInput> inputs) {
-        if (CollectionUtils.isEmpty(inputs))
-            return Collections.emptyList();
-
-        Map<UUID, String> contextValues = new HashMap<>(); // better pre-sizing?
-        for (FieldRuleInput input : inputs) {
-            contextValues.put(input.getField().getId(), normalizeValue(input.getCurrentValue()));
-        }
-
-        List<FieldRuleOutput> results = new ArrayList<>(inputs.size());
-
-        List<FieldRuleInput> sortedInputs = sortInputsByDependency(inputs);
-
-        for (FieldRuleInput input : sortedInputs) {
-            results.add(evaluateFieldRules(input, contextValues));
-        }
-
-        return results;
-    }
-
-    private List<FieldRuleInput> sortInputsByDependency(List<FieldRuleInput> inputs) {
-        if (CollectionUtils.isEmpty(inputs) || inputs.size() < 2)
-            return inputs;
-
-        Map<UUID, FieldRuleInput> inputMap = inputs.stream()
-                .collect(Collectors.toMap(i -> i.getField().getId(), i -> i));
-        Set<UUID> inputIds = inputMap.keySet();
-
-        // 1. Build Graph
-        Map<UUID, Set<UUID>> dependencies = new HashMap<>();
-        Map<UUID, Integer> inDegree = new HashMap<>();
-
-        for (UUID id : inputIds) {
-            dependencies.putIfAbsent(id, new HashSet<>());
-            inDegree.putIfAbsent(id, 0);
-        }
-
-        for (FieldRuleInput input : inputs) {
-            Set<UUID> inputDeps = new HashSet<>();
-            if (input.getRules() != null) {
-                for (TwinClassFieldRuleEntity rule : input.getRules()) {
-                    collectDependencies(rule, inputDeps);
-                }
-            }
-
-            // Filter dependencies to only those present in inputs
-            for (UUID depId : inputDeps) {
-                if (inputIds.contains(depId) && !depId.equals(input.getField().getId())) {
-                    dependencies.get(depId).add(input.getField().getId());
-                    inDegree.put(input.getField().getId(), inDegree.getOrDefault(input.getField().getId(), 0) + 1);
-                }
-            }
-        }
-
-        // 2. Kahn's Algorithm
-        Queue<UUID> queue = new LinkedList<>();
-        for (UUID id : inputIds) {
-            if (inDegree.get(id) == 0) {
-                queue.add(id);
-            }
-        }
-
-        List<FieldRuleInput> sorted = new ArrayList<>(inputs.size());
-        while (!queue.isEmpty()) {
-            UUID currentId = queue.poll();
-            sorted.add(inputMap.get(currentId));
-
-            if (dependencies.containsKey(currentId)) {
-                for (UUID neighbor : dependencies.get(currentId)) {
-                    inDegree.put(neighbor, inDegree.get(neighbor) - 1);
-                    if (inDegree.get(neighbor) == 0) {
-                        queue.add(neighbor);
-                    }
-                }
-            }
-        }
-
-        // 3. Handle cycles (append remaining nodes)
-        if (sorted.size() < inputs.size()) {
-            log.warn("Circular dependency detected in field rules. Processing remaining fields in original order.");
-            for (FieldRuleInput input : inputs) {
-                if (!sorted.contains(input)) {
-                    sorted.add(input);
-                }
-            }
-        }
-
-        return sorted;
-    }
-
+    @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2000, level = JavaLoggingLevel.WARNING)
     private void collectDependencies(TwinClassFieldRuleEntity rule, Set<UUID> distinctDependencies) {
         if (rule.getConditionKit() == null || CollectionUtils.isEmpty(rule.getConditionKit().getList()))
             return;
@@ -132,74 +41,155 @@ public class TwinClassFieldRuleExecutionService {
         }
     }
 
-    public Map<TwinClassFieldEntity, Object> applyRules(Collection<TwinClassFieldEntity> fields,
-                                                        Map<TwinClassFieldEntity, Object> values) {
-        Map<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> rulesByField = new HashMap<>();
-        fields.forEach(it -> rulesByField.put(it, it.getRuleKit().getList()));
-        return applyRules(rulesByField, values);
-    }
+    public RulesApplyResult applyRules(Collection<FieldValue> values) {
+        if (CollectionUtils.isEmpty(values))
+            return RulesApplyResult.EMPTY;
 
-    /**
-     * Values are aligned to fields by key, and output contains only fields present
-     * in {@code rulesByField}.
-     * When {@code rulesByField} is empty, values are returned as-is.
-     */
-    public Map<TwinClassFieldEntity, Object> applyRules(
-            Map<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> rulesByField,
-            Map<TwinClassFieldEntity, Object> values) {
-        if (rulesByField == null || rulesByField.isEmpty())
-            return values != null ? values : Collections.emptyMap();
-
-        List<FieldRuleInput> inputs = new ArrayList<>(rulesByField.size());
-        for (Map.Entry<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> entry : rulesByField.entrySet()) {
-            Object currentValue = values != null ? values.get(entry.getKey()) : null;
-            inputs.add(FieldRuleInput.builder()
-                    .field(entry.getKey())
-                    .currentValue(currentValue)
-                    .rules(entry.getValue())
-                    .build());
+        Map<UUID, String> contextValues = new HashMap<>();
+        for (FieldValue value : values) {
+            TwinClassFieldEntity field = value.getTwinClassField();
+            if (field == null) continue;
+            contextValues.put(field.getId(), normalizeValue(value));
         }
 
-        List<FieldRuleOutput> outputs = applyRules(inputs);
-        Map<TwinClassFieldEntity, Object> result = new LinkedHashMap<>(outputs.size());
-        for (FieldRuleOutput output : outputs) {
-            TwinClassFieldEntity field = output.getField();
-            if (output.getRequired() != null)
-                field.setRequired(output.getRequired());
-            if (output.getDescriptor() != null && !output.getDescriptor().isEmpty()) {
-                if (field.getFieldTyperParams() == null)
-                    field.setFieldTyperParams(new HashMap<>());
-                field.getFieldTyperParams().putAll(output.getDescriptor());
+        var results = new RulesApplyResult();
+        List<FieldValue> sortedValues = sortValuesByDependency(values);
+        for (FieldValue value : sortedValues) {
+            results.add(evaluateFieldRules(value, contextValues));
+        }
+        return results;
+    }
+
+    public RulesApplyResult applyRules(Collection<FieldValue> values, TwinEntity twinEntity) {
+        if (twinEntity.getRulesApplyResult() == null) {
+            twinEntity.setRulesApplyResult(applyRules(values));
+        }
+        return twinEntity.getRulesApplyResult();
+    }
+
+    public RulesApplyResult applyRules(TwinEntity twinEntity) {
+        if (twinEntity.getRulesApplyResult() == null) {
+            twinEntity.setRulesApplyResult(applyRules(twinEntity.getFieldValuesKit()));
+        }
+        return twinEntity.getRulesApplyResult();
+    }
+
+    public boolean checkAllRequired(Map<UUID, FieldValue> values, TwinEntity twinEntity) {
+        applyRules(values.values(), twinEntity);
+        if (twinEntity.getRulesApplyResult() != null && twinEntity.getRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return twinEntity.getRulesApplyResult().getAllRequiredFieldsFilled();
+        }
+        for (var classField : twinEntity.getTwinClass().getTwinClassFieldKit()) {
+            if (isRequired(twinEntity, classField)
+                    && (!values.containsKey(classField.getId()) || values.get(classField.getId()).isNotEmpty())) {
+                twinEntity.getRulesApplyResult().setAllRequiredFieldsFilled(false);
+                return false;
             }
-            result.put(field, output.getValue());
         }
-        return result;
+        return true;
     }
 
-    private FieldRuleOutput evaluateFieldRules(FieldRuleInput input, Map<UUID, String> contextValues) {
+    public boolean checkAllRequired(Kit<FieldValue, UUID> values, TwinEntity twinEntity)  {
+        return checkAllRequired(values.getMap(), twinEntity);
+    }
+
+    public boolean isRequired(TwinEntity twin, TwinClassFieldEntity twinClassField) {
+        if (twin.getRulesApplyResult() == null)
+            log.warn("RulesApplyResult is not set for {} ", twin.getId());
+        var requiredDetectedByRule = twin.getRulesApplyResult().get(twinClassField.getId());
+        if (requiredDetectedByRule != null)
+            return requiredDetectedByRule.getRequired();
+        else
+            return twinClassField.getRequired();
+    }
+
+    private List<FieldValue> sortValuesByDependency(Collection<FieldValue> values) {
+        if (CollectionUtils.isEmpty(values) || values.size() < 2)
+            return (List<FieldValue>) values;
+
+        Map<UUID, FieldValue> valueMap = values.stream()
+                .filter(Objects::nonNull)
+                .filter(v -> v.getTwinClassField() != null)
+                .collect(Collectors.toMap(v -> v.getTwinClassField().getId(), v -> v, (a, b) -> a, LinkedHashMap::new));
+        Set<UUID> ids = valueMap.keySet();
+
+        Map<UUID, Set<UUID>> dependencies = new HashMap<>();
+        Map<UUID, Integer> inDegree = new HashMap<>();
+        for (UUID id : ids) {
+            dependencies.putIfAbsent(id, new HashSet<>());
+            inDegree.putIfAbsent(id, 0);
+        }
+
+        for (FieldValue value : values) {
+            if (value == null || value.getTwinClassField() == null) continue;
+            TwinClassFieldEntity field = value.getTwinClassField();
+            Set<UUID> deps = new HashSet<>();
+            Kit<TwinClassFieldRuleEntity, UUID> ruleKit = field.getRuleKit();
+            if (ruleKit != null && CollectionUtils.isNotEmpty(ruleKit.getList())) {
+                for (TwinClassFieldRuleEntity rule : ruleKit.getList()) {
+                    collectDependencies(rule, deps);
+                }
+            }
+            for (UUID depId : deps) {
+                if (ids.contains(depId) && !depId.equals(field.getId())) {
+                    dependencies.get(depId).add(field.getId());
+                    inDegree.put(field.getId(), inDegree.getOrDefault(field.getId(), 0) + 1);
+                }
+            }
+        }
+
+        Queue<UUID> queue = new LinkedList<>();
+        for (UUID id : ids) {
+            if (inDegree.get(id) == 0) queue.add(id);
+        }
+
+        List<FieldValue> sorted = new ArrayList<>(values.size());
+        while (!queue.isEmpty()) {
+            UUID current = queue.poll();
+            FieldValue v = valueMap.get(current);
+            if (v != null) sorted.add(v);
+            if (dependencies.containsKey(current)) {
+                for (UUID neighbor : dependencies.get(current)) {
+                    inDegree.put(neighbor, inDegree.get(neighbor) - 1);
+                    if (inDegree.get(neighbor) == 0) queue.add(neighbor);
+                }
+            }
+        }
+        if (sorted.size() < valueMap.size()) {
+            log.warn("Circular dependency detected in field rules. Processing remaining fields in original order.");
+            for (FieldValue v : values) {
+                if (v != null && v.getTwinClassField() != null && !sorted.contains(v)) {
+                    sorted.add(v);
+                }
+            }
+        }
+        return sorted;
+    }
+
+    private FieldRuleOutput evaluateFieldRules(FieldValue value, Map<UUID, String> contextValues) {
+        TwinClassFieldEntity field = value.getTwinClassField();
+        List<TwinClassFieldRuleEntity> rules = field != null && field.getRuleKit() != null
+                ? field.getRuleKit().getList()
+                : Collections.emptyList();
         FieldRuleOutput output = FieldRuleOutput.builder()
-                .field(input.getField())
-                .value(input.getCurrentValue())
-                .required(input.getField().getRequired() != null ? input.getField().getRequired() : false)
+                .field(field)
+                .value(value)
+                .required(field != null && field.getRequired() != null ? field.getRequired() : false)
                 .descriptor(new HashMap<>())
                 .build();
-
-        List<TwinClassFieldRuleEntity> rules = new ArrayList<>(input.getRules());
-        if (CollectionUtils.isEmpty(rules))
+        List<TwinClassFieldRuleEntity> copy = new ArrayList<>(rules);
+        if (CollectionUtils.isEmpty(copy))
             return output;
-
-        rules.sort(Comparator.comparingInt(r -> r.getRulePriority() != null ? r.getRulePriority() : 0));
-
-        for (TwinClassFieldRuleEntity rule : rules) {
+        copy.sort(Comparator.comparingInt(r -> r.getRulePriority() != null ? r.getRulePriority() : 0));
+        for (TwinClassFieldRuleEntity rule : copy) {
             if (checkRule(rule, contextValues)) {
                 applyRuleEffect(rule, output);
                 contextValues.put(output.getField().getId(), normalizeValue(output.getValue()));
             } else {
                 output.setHasError(true);
-                output.descriptor.put(DESCRIPTOR_RULE_FAILED, String.valueOf(true));
+                output.getDescriptor().put(DESCRIPTOR_RULE_FAILED, String.valueOf(true));
             }
         }
-
         return output;
     }
 
@@ -451,13 +441,7 @@ public class TwinClassFieldRuleExecutionService {
         return value.toString().trim();
     }
 
-    @Data
-    @Builder
-    public static class FieldRuleInput {
-        private TwinClassFieldEntity field;
-        private Object currentValue;
-        private List<TwinClassFieldRuleEntity> rules;
-    }
+
 
     @Data
     @Builder
@@ -467,6 +451,32 @@ public class TwinClassFieldRuleExecutionService {
         private Boolean required;
         private Map<String, String> descriptor;
         private Boolean hasError;
+        public UUID getTwinClassFieldId() {
+            return field.getId();
+        }
+    }
+
+    public static class RulesApplyResult extends Kit<FieldRuleOutput, UUID> {
+        private Map<UUID, Boolean> fieldsRequired;
+        @Getter
+        @Setter
+        private Boolean allRequiredFieldsFilled = null;
+        public static RulesApplyResult EMPTY = new RulesApplyResult();
+
+        public RulesApplyResult() {
+            super(FieldRuleOutput::getTwinClassFieldId);
+        }
+
+        public Map<UUID, Boolean> getFieldsRequirement() {
+            if (fieldsRequired == null && collection != null) {
+                fieldsRequired = collection.stream()
+                        .collect(Collectors.toMap(
+                                FieldRuleOutput::getTwinClassFieldId,
+                                FieldRuleOutput::getRequired
+                        ));
+            }
+            return fieldsRequired;
+        }
     }
 
     @RequiredArgsConstructor
