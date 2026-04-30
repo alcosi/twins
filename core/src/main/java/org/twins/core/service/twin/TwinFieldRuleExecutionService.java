@@ -2,11 +2,14 @@ package org.twins.core.service.twin;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
-import lombok.*;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -15,9 +18,12 @@ import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.field.rule.FieldRuleOutput;
+import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.twinclass.LogicOperator;
 import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
 import org.twins.core.featurer.fieldtyper.value.*;
+import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -27,8 +33,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TwinFieldRuleExecutionService {
-
     public static final String DESCRIPTOR_RULE_FAILED = "rule_failed";
+    public static final String CONDITION_OPERATOR = "conditionOperator";
+    public static final String VALUE_TO_COMPARE_WITH = "valueToCompareWith";
+    @Lazy
+    private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
 
     @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2000, level = JavaLoggingLevel.WARNING)
     private void collectDependencies(TwinClassFieldRuleEntity rule, Set<UUID> distinctDependencies) {
@@ -41,10 +50,10 @@ public class TwinFieldRuleExecutionService {
         }
     }
 
-    public RulesApplyResult applyRules(Collection<FieldValue> values) {
+    private FieldRulesApplyResult applyRulesOnValues(Collection<FieldValue> values) throws ServiceException {
         if (CollectionUtils.isEmpty(values))
-            return RulesApplyResult.EMPTY;
-
+            return FieldRulesApplyResult.EMPTY;
+        twinClassFieldRuleMapService.loadRules(values.stream().map(FieldValue::getTwinClassField).toList(), true);
         Map<UUID, String> contextValues = new HashMap<>();
         for (FieldValue value : values) {
             TwinClassFieldEntity field = value.getTwinClassField();
@@ -52,7 +61,7 @@ public class TwinFieldRuleExecutionService {
             contextValues.put(field.getId(), normalizeValue(value));
         }
 
-        var results = new RulesApplyResult();
+        var results = new FieldRulesApplyResult();
         List<FieldValue> sortedValues = sortValuesByDependency(values);
         for (FieldValue value : sortedValues) {
             results.add(evaluateFieldRules(value, contextValues));
@@ -60,29 +69,35 @@ public class TwinFieldRuleExecutionService {
         return results;
     }
 
-    public RulesApplyResult applyRules(Collection<FieldValue> values, TwinEntity twinEntity) {
-        if (twinEntity.getRulesApplyResult() == null) {
-            twinEntity.setRulesApplyResult(applyRules(values));
+    public FieldRulesApplyResult applyRules(Collection<FieldValue> values, TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getFieldRulesApplyResult() == null) {
+            twinEntity.setFieldRulesApplyResult(applyRulesOnValues(values));
         }
-        return twinEntity.getRulesApplyResult();
+        return twinEntity.getFieldRulesApplyResult();
     }
 
-    public RulesApplyResult applyRules(TwinEntity twinEntity) {
-        if (twinEntity.getRulesApplyResult() == null) {
-            twinEntity.setRulesApplyResult(applyRules(twinEntity.getFieldValuesKit()));
+    public void applyRules(Collection<TwinEntity> twinEntities) throws ServiceException {
+        for (var twinEntity : twinEntities) {
+            if (twinEntity.getFieldRulesApplyResult() == null) {
+                twinEntity.setFieldRulesApplyResult(applyRulesOnValues(twinEntity.getFieldValuesKit()));
+            }
         }
-        return twinEntity.getRulesApplyResult();
     }
 
+    public void applyRules(TwinEntity twinEntity) throws ServiceException {
+        applyRules(Collections.singletonList(twinEntity));
+    }
+
+    @SneakyThrows
     public boolean checkAllRequired(Map<UUID, FieldValue> values, TwinEntity twinEntity) {
         applyRules(values.values(), twinEntity);
-        if (twinEntity.getRulesApplyResult() != null && twinEntity.getRulesApplyResult().getAllRequiredFieldsFilled() != null) {
-            return twinEntity.getRulesApplyResult().getAllRequiredFieldsFilled();
+        if (twinEntity.getFieldRulesApplyResult() != null && twinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return twinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
         for (var classField : twinEntity.getTwinClass().getTwinClassFieldKit()) {
             if (isRequired(twinEntity, classField)
-                    && (!values.containsKey(classField.getId()) || values.get(classField.getId()).isNotEmpty())) {
-                twinEntity.getRulesApplyResult().setAllRequiredFieldsFilled(false);
+                    && (!values.containsKey(classField.getId()) || values.get(classField.getId()).isEmpty())) {
+                twinEntity.getFieldRulesApplyResult().setAllRequiredFieldsFilled(false);
                 return false;
             }
         }
@@ -94,9 +109,11 @@ public class TwinFieldRuleExecutionService {
     }
 
     public boolean isRequired(TwinEntity twin, TwinClassFieldEntity twinClassField) {
-        if (twin.getRulesApplyResult() == null)
-            log.warn("RulesApplyResult is not set for {} ", twin.getId());
-        var requiredDetectedByRule = twin.getRulesApplyResult().get(twinClassField.getId());
+        if (twin.getFieldRulesApplyResult() == null) {
+            log.warn("RulesApplyResult is not set for {} ", twin.logNormal());
+            return twinClassField.getRequired();
+        }
+        var requiredDetectedByRule = twin.getFieldRulesApplyResult().get(twinClassField.getId());
         if (requiredDetectedByRule != null)
             return requiredDetectedByRule.getRequired();
         else
@@ -105,7 +122,7 @@ public class TwinFieldRuleExecutionService {
 
     private List<FieldValue> sortValuesByDependency(Collection<FieldValue> values) {
         if (CollectionUtils.isEmpty(values) || values.size() < 2)
-            return (List<FieldValue>) values;
+            return values instanceof List ? (List<FieldValue>) values : new ArrayList<>(values);
 
         Map<UUID, FieldValue> valueMap = values.stream()
                 .filter(Objects::nonNull)
@@ -264,8 +281,8 @@ public class TwinFieldRuleExecutionService {
         if (params == null)
             params = Collections.emptyMap();
 
-        String operatorStr = params.getOrDefault("conditionOperator", TwinClassFieldConditionOperator.eq.name());
-        String expected = params.get("valueToCompareWith");
+        String operatorStr = params.getOrDefault(CONDITION_OPERATOR, TwinClassFieldConditionOperator.eq.name());
+        String expected = params.get(VALUE_TO_COMPARE_WITH);
         if (expected == null)
             expected = "";
         else
@@ -441,43 +458,6 @@ public class TwinFieldRuleExecutionService {
         return value.toString().trim();
     }
 
-
-
-    @Data
-    @Builder
-    public static class FieldRuleOutput {
-        private TwinClassFieldEntity field;
-        private Object value;
-        private Boolean required;
-        private Map<String, String> descriptor;
-        private Boolean hasError;
-        public UUID getTwinClassFieldId() {
-            return field.getId();
-        }
-    }
-
-    public static class RulesApplyResult extends Kit<FieldRuleOutput, UUID> {
-        private Map<UUID, Boolean> fieldsRequired;
-        @Getter
-        @Setter
-        private Boolean allRequiredFieldsFilled = null;
-        public static RulesApplyResult EMPTY = new RulesApplyResult();
-
-        public RulesApplyResult() {
-            super(FieldRuleOutput::getTwinClassFieldId);
-        }
-
-        public Map<UUID, Boolean> getFieldsRequirement() {
-            if (fieldsRequired == null && collection != null) {
-                fieldsRequired = collection.stream()
-                        .collect(Collectors.toMap(
-                                FieldRuleOutput::getTwinClassFieldId,
-                                FieldRuleOutput::getRequired
-                        ));
-            }
-            return fieldsRequired;
-        }
-    }
 
     @RequiredArgsConstructor
     public static class ConditionNode {

@@ -151,8 +151,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     public void beforeCollectionConversion(Collection<TwinClassFieldEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
-            //preload rules for all fields in srcCollection to avoid n+1 problem
-            twinClassFieldRuleMapService.loadRules(srcCollection);
+            twinClassFieldRuleMapService.loadRules(srcCollection, false);
         }
     }
 

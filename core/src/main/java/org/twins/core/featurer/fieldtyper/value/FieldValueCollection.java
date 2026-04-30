@@ -61,7 +61,9 @@ public abstract class FieldValueCollection<T> extends FieldValue {
     @Override
     public void copyValueTo(FieldValue dst) {
         var dstValue = (FieldValueCollection<T>) dst;
-        if (dstValue.collection != null) {
+        if (collection == null) {
+            dstValue.collection = null;
+        } else if (dstValue.collection != null) {
             dstValue.collection.clear();
             dstValue.collection.addAll(collection);
         } else {

@@ -63,13 +63,15 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
 
         twinFieldRuleExecutionService.applyRules(fieldValuesKit, twin);
         for (TwinClassFieldEntity field : requiredFields) {
-            if (twinFieldRuleExecutionService.isRequired(twin, field) || field.getExternalProperties().get("requiredOnAnyMarketplace").equalsIgnoreCase("true")) {
+            Map<String, String> extProps = field.getExternalProperties();
+            boolean requiredOnAnyMarketplace = extProps != null
+                    && "true".equalsIgnoreCase(extProps.getOrDefault("requiredOnAnyMarketplace", "false"));
+            if (twinFieldRuleExecutionService.isRequired(twin, field) || requiredOnAnyMarketplace) {
                 FieldValue fieldValue = fieldValuesKit.get(field.getId());
 
                 if (fieldValue == null || fieldValue.isEmpty()) {
                     return false;
                 }
-
             }
         }
         return true;

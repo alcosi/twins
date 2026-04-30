@@ -10,7 +10,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
@@ -34,6 +33,7 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
     private final TwinFieldRuleExecutionService twinFieldRuleExecutionService;
     @Lazy
     private final TwinClassFieldRuleService twinClassFieldRuleService;
+    private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     @Override
     public CrudRepository<TwinClassFieldRuleMapEntity, UUID> entityRepository() {
@@ -67,16 +67,27 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
     }
 
     public void loadRules(TwinClassFieldEntity fieldEntity) throws ServiceException {
-        loadRules(Collections.singleton(fieldEntity));
+        loadRules(Collections.singleton(fieldEntity), false);
     }
 
-    public void loadRules(Collection<TwinClassFieldEntity> fieldEntities) throws ServiceException {
+    public void loadRules(Collection<TwinClassFieldEntity> fieldEntities, boolean loadConditions) throws ServiceException {
         Kit<TwinClassFieldEntity, UUID> needLoad = new Kit<>(TwinClassFieldEntity::getId);
         fieldEntities.stream()
                 .filter(field -> field.getRuleKit() == null)
                 .forEach(needLoad::add);
 
-        if (needLoad.isEmpty()) return;
+        if (needLoad.isEmpty()) {
+            if (!loadConditions)
+                return;
+            twinClassFieldConditionService.loadConditions(
+                    fieldEntities.stream()
+                            .map(TwinClassFieldEntity::getRuleKit)
+                            .filter(Objects::nonNull)
+                            .flatMap(kit -> kit.getCollection().stream())
+                            .toList()
+            );
+            return;
+        }
 
         KitGrouped<TwinClassFieldRuleMapEntity, UUID, UUID> ruleMaps = new KitGrouped<>(
                 twinClassFieldRuleMapRepository.findByTwinClassFieldIdIn(needLoad.getIdSet()),
@@ -87,22 +98,19 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
             needLoad.forEach(field -> field.setRuleKit(Kit.EMPTY));
             return;
         }
-
         for (TwinClassFieldEntity fieldEntity : needLoad) {
             if (ruleMaps.containsGroupedKey(fieldEntity.getId()))
                 fieldEntity.setRuleKit(new Kit<>(
                         ruleMaps.getGrouped(fieldEntity.getId()).stream()
                                 .map(TwinClassFieldRuleMapEntity::getTwinClassFieldRule)
-                                .map(Hibernate::unproxy)
-                                .map(TwinClassFieldRuleEntity.class::cast)
-                                .filter(Objects::nonNull)
                                 .toList(),
                         TwinClassFieldRuleEntity::getId));
             else
                 fieldEntity.setRuleKit(Kit.EMPTY);
         }
-//        twinClassFieldRuleExecutionService.applyRules(needLoad, null);
-
+        if (loadConditions) {
+            twinClassFieldConditionService.loadConditions(ruleMaps.stream().map(TwinClassFieldRuleMapEntity::getTwinClassFieldRule).toList());
+        }
     }
 
     public List<TwinClassFieldRuleMapEntity> findByTwinClassFieldIdIn(Collection<UUID> fieldIds) {

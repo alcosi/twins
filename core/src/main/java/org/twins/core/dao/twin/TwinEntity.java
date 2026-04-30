@@ -31,6 +31,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.LoadState;
@@ -38,7 +39,6 @@ import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twin.TwinFieldRuleExecutionService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -447,12 +447,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Map<UUID, Boolean> twinFieldsRequirement;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinFieldRuleExecutionService.RulesApplyResult rulesApplyResult;
+    private FieldRulesApplyResult fieldRulesApplyResult;
 
     @Transient
     @EqualsAndHashCode.Exclude

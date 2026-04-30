@@ -925,8 +925,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private boolean isAllRequiredFieldsFilled(TwinUpdate twinUpdate) throws ServiceException {
         var mergedTwinEntity = twinUpdate.getDbTwinEntity();
-        if (mergedTwinEntity.getRulesApplyResult() != null && mergedTwinEntity.getRulesApplyResult().getAllRequiredFieldsFilled() != null) {
-            return mergedTwinEntity.getRulesApplyResult().getAllRequiredFieldsFilled();
+        if (mergedTwinEntity.getFieldRulesApplyResult() != null && mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
         loadFieldsValues(twinUpdate.getDbTwinEntity());
         var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId);
@@ -942,15 +942,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private boolean isAllRequiredFieldsFilled(TwinCreate twinCreate) throws ServiceException {
         var mergedTwinEntity = twinCreate.getTwinEntity();
-        if (mergedTwinEntity.getRulesApplyResult() != null && mergedTwinEntity.getRulesApplyResult().getAllRequiredFieldsFilled() != null) {
-            return mergedTwinEntity.getRulesApplyResult().getAllRequiredFieldsFilled();
+        if (mergedTwinEntity.getFieldRulesApplyResult() != null && mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
         return twinFieldRuleExecutionService.checkAllRequired(twinCreate.getFields(), mergedTwinEntity);
     }
 
     public boolean isAllRequiredFieldsFilled(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getRulesApplyResult() != null && twinEntity.getRulesApplyResult().getAllRequiredFieldsFilled() != null) {
-            return twinEntity.getRulesApplyResult().getAllRequiredFieldsFilled();
+        if (twinEntity.getFieldRulesApplyResult() != null && twinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return twinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
         loadFieldsValues(twinEntity);
         return twinFieldRuleExecutionService.checkAllRequired(twinEntity.getFieldValuesKit(), twinEntity);

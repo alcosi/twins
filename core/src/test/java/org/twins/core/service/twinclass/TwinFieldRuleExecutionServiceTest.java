@@ -4,7 +4,9 @@ import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -17,15 +19,21 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
 public class TwinFieldRuleExecutionServiceTest {
+
+    @Mock
+    private TwinClassFieldRuleMapService twinClassFieldRuleMapService;
 
     @InjectMocks
     private TwinFieldRuleExecutionService executionService;
 
     @Test
-    public void testApplyRules_SortingImmutableList() {
+    public void testApplyRules_OnValues_SortingImmutableList() throws Exception {
         // Arrange
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(UUID.randomUUID());
 
@@ -40,12 +48,17 @@ public class TwinFieldRuleExecutionServiceTest {
         FieldValue value = new FieldValueText(field).setValue("v");
         List<FieldValue> values = Collections.singletonList(value);
 
+        // Mock rule loading to be no-op
+        doNothing().when(twinClassFieldRuleMapService).loadRules(anyList(), eq(true));
+
+        TwinEntity twin = new TwinEntity();
+
         // Act & Assert
-        assertDoesNotThrow(() -> executionService.applyRules(values));
+        assertDoesNotThrow(() -> executionService.applyRules(values, twin));
     }
 
     @Test
-    public void testApplyRules_SortingLogic() {
+    public void testApplyRules_OnValues_SortingLogic() throws Exception {
         // Arrange
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(UUID.randomUUID());
 
@@ -58,8 +71,13 @@ public class TwinFieldRuleExecutionServiceTest {
         FieldValue value = new FieldValueText(field).setValue("v2");
         List<FieldValue> values = Collections.singletonList(value);
 
+        // Mock rule loading to be no-op
+        doNothing().when(twinClassFieldRuleMapService).loadRules(anyList(), eq(true));
+
+        TwinEntity twin = new TwinEntity();
+
         // Act
-        var outputs = executionService.applyRules(values);
+        var outputs = executionService.applyRules(values, twin);
 
         // Assert
         assertNotNull(outputs);

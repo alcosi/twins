@@ -6,6 +6,7 @@
 /.cursor/
 /_bmad/
 /_bmad-output/
+/code-reviews
 .gitattributes
 AGENTS.md
 CLAUDE.md

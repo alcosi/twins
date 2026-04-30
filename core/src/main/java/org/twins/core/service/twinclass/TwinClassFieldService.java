@@ -18,7 +18,6 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -242,9 +241,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (ruleMaps.containsGroupedKey(ruleEntity.getId())) {
                 List<TwinClassFieldEntity> fields = ruleMaps.getGrouped(ruleEntity.getId()).stream()
                         .map(TwinClassFieldRuleMapEntity::getTwinClassField)
-                        .map(Hibernate::unproxy)
-                        .map(TwinClassFieldEntity.class::cast)
-                        .filter(Objects::nonNull)
                         .toList();
                 ruleEntity.setFieldKit(new Kit<>(fields, TwinClassFieldEntity::getId));
             } else {

@@ -132,7 +132,10 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         twinBaseV3RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         TwinFieldCollectionMode.legacyConverter(mapperContext);
         if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW)) {
-            twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
+            twinService.loadFieldsValues(srcCollection);
+            if (mapperContext.hasModeButNot(TwinFieldCollectionFilterRequiredMode.ANY)) {
+                twinFieldRuleExecutionService.applyRules(srcCollection);
+            }
         }
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadAttributes(srcCollection);
