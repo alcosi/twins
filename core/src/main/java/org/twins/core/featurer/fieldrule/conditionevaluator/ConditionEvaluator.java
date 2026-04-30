@@ -97,7 +97,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
             case contains:
                 if (actualValue == null)
                     return false;
-                return Strings.CI.equals(actualValue, expected);
+                return Strings.CI.contains(actualValue, expected);
             case in:
                 Set<String> expectedOptions = splitValues(expected);
                 if (expectedOptions.isEmpty())

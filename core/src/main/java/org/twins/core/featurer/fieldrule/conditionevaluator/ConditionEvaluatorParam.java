@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldrule.conditionevaluator;
 
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -23,7 +24,8 @@ public class ConditionEvaluatorParam extends ConditionEvaluator<ConditionDescrip
     @Override
     protected ConditionDescriptorParam getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException {
         ConditionDescriptorParam descriptor = new ConditionDescriptorParam();
-        descriptor.evaluatedParamKey(evaluatedParamKey.extract(properties))
+        descriptor
+                .evaluatedParamKey(evaluatedParamKey.extract(properties))
                 .valueToCompareWith(valueToCompareWith.extract(properties))
                 .conditionOperator(conditionOperator.extract(properties));
         return descriptor;
@@ -31,12 +33,6 @@ public class ConditionEvaluatorParam extends ConditionEvaluator<ConditionDescrip
 
     @Override
     protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
-        String paramKey = evaluatedParamKey.extract(properties);
-        String actualValue = twinClassFieldConditionEntity.getConditionEvaluatorParams() != null
-                ? twinClassFieldConditionEntity.getConditionEvaluatorParams().get(paramKey)
-                : null;
-        var operator = conditionOperator.extract(properties);
-        String expected = valueToCompareWith.extract(properties);
-        return evaluateOperator(actualValue, operator, expected);
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "ConditionEvaluatorParam is not Implemented");
     }
 }
