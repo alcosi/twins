@@ -16,11 +16,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
+import org.twins.core.domain.field.rule.ConditionNode;
 import org.twins.core.domain.field.rule.FieldRuleOutput;
 import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.twinclass.LogicOperator;
 import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.twinclass.TwinClassFieldConditionService;
 import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
 
 import java.util.*;
@@ -35,6 +37,7 @@ public class TwinFieldRuleExecutionService {
     private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
     @Lazy
     private final FeaturerService featurerService;
+    private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2000, level = JavaLoggingLevel.WARNING)
     private void collectDependencies(TwinClassFieldRuleEntity rule, Set<UUID> distinctDependencies) {
@@ -237,9 +240,8 @@ public class TwinFieldRuleExecutionService {
                 : Collections.emptyList();
         if (CollectionUtils.isEmpty(conditions))
             return true;
-
-        List<ConditionNode> roots = buildConditionTree(conditions);
-        return evaluateRuleTree(roots, contextValues);
+        twinClassFieldConditionService.buildConditionTree(rule);
+        return evaluateRuleTree(rule.getConditionTreeNodes(), contextValues);
     }
 
     private boolean evaluateRuleTree(List<ConditionNode> roots, Map<UUID, FieldValue> contextValues) throws ServiceException {
@@ -255,27 +257,27 @@ public class TwinFieldRuleExecutionService {
     }
 
     private boolean evaluateConditionNode(ConditionNode node, Map<UUID, FieldValue> contextValues) throws ServiceException {
-        if (node.logic == LogicOperator.LEAF) {
-            if (node.condition == null || node.condition.getBaseTwinClassFieldId() == null)
+        if (node.getLogic() == LogicOperator.LEAF) {
+            if (node.getCondition() == null || node.getCondition().getBaseTwinClassFieldId() == null)
                 return false;
-            FieldValue fieldValue = contextValues.get(node.condition.getBaseTwinClassFieldId());
-            ConditionEvaluator evaluator = featurerService.getFeaturer(node.condition.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
-            return evaluator.evaluate(node.condition, fieldValue);
+            FieldValue fieldValue = contextValues.get(node.getCondition().getBaseTwinClassFieldId());
+            ConditionEvaluator evaluator = featurerService.getFeaturer(node.getCondition().getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
+            return evaluator.evaluate(node.getCondition(), fieldValue);
         }
 
-        if (CollectionUtils.isEmpty(node.children))
+        if (CollectionUtils.isEmpty(node.getChildren()))
             return false;
 
-        if (node.logic == LogicOperator.AND) {
-            for (ConditionNode child : node.children) {
+        if (node.getLogic() == LogicOperator.AND) {
+            for (ConditionNode child : node.getChildren()) {
                 if (!evaluateConditionNode(child, contextValues))
                     return false;
             }
             return true;
         }
 
-        if (node.logic == LogicOperator.OR) {
-            for (ConditionNode child : node.children) {
+        if (node.getLogic() == LogicOperator.OR) {
+            for (ConditionNode child : node.getChildren()) {
                 if (evaluateConditionNode(child, contextValues))
                     return true;
             }
@@ -283,60 +285,5 @@ public class TwinFieldRuleExecutionService {
         }
 
         return false;
-    }
-
-    protected List<ConditionNode> buildConditionTree(List<TwinClassFieldConditionEntity> conditions) {
-        boolean hasLogic = conditions.stream().anyMatch(c -> c.getLogicOperatorId() != null);
-
-        if (hasLogic) {
-            return buildNewConditionTree(conditions);
-        } else {
-            return buildGroupNoTree(conditions);
-        }
-    }
-
-    protected List<ConditionNode> buildNewConditionTree(List<TwinClassFieldConditionEntity> conditions) {
-        Map<UUID, ConditionNode> nodesById = new HashMap<>();
-        for (TwinClassFieldConditionEntity c : conditions) {
-            nodesById.put(c.getId(), new ConditionNode(c, inferLogic(c)));
-        }
-
-        List<ConditionNode> roots = new ArrayList<>();
-        for (TwinClassFieldConditionEntity c : conditions) {
-            ConditionNode node = nodesById.get(c.getId());
-            if (c.getParentTwinClassFieldConditionId() != null
-                    && nodesById.containsKey(c.getParentTwinClassFieldConditionId())) {
-                nodesById.get(c.getParentTwinClassFieldConditionId()).children.add(node);
-            } else {
-                roots.add(node);
-            }
-        }
-        return roots;
-    }
-
-    protected List<ConditionNode> buildGroupNoTree(List<TwinClassFieldConditionEntity> conditions) {
-        List<ConditionNode> leaves = new ArrayList<>();
-        for (TwinClassFieldConditionEntity c : conditions) {
-            leaves.add(new ConditionNode(c, LogicOperator.LEAF));
-        }
-
-        ConditionNode root = new ConditionNode(null, LogicOperator.AND);
-        root.children.addAll(leaves);
-        return Collections.singletonList(root);
-    }
-
-    protected LogicOperator inferLogic(TwinClassFieldConditionEntity c) {
-        if (c.getLogicOperatorId() != null)
-            return c.getLogicOperatorId();
-        if (c.getBaseTwinClassFieldId() != null)
-            return LogicOperator.LEAF;
-        return LogicOperator.AND;
-    }
-
-    @RequiredArgsConstructor
-    public static class ConditionNode {
-        final TwinClassFieldConditionEntity condition;
-        final LogicOperator logic;
-        final List<ConditionNode> children = new ArrayList<>();
     }
 }
