@@ -161,10 +161,15 @@ public class TwinFieldRuleExecutionService {
         }
 
         List<FieldValue> sorted = new ArrayList<>(values.size());
+        Set<UUID> processed = new HashSet<>();
+
         while (!queue.isEmpty()) {
             UUID current = queue.poll();
             FieldValue v = valueMap.get(current);
-            if (v != null) sorted.add(v);
+            if (v != null) {
+                sorted.add(v);
+                processed.add(current);
+            }
             if (dependencies.containsKey(current)) {
                 for (UUID neighbor : dependencies.get(current)) {
                     inDegree.put(neighbor, inDegree.get(neighbor) - 1);
@@ -175,8 +180,12 @@ public class TwinFieldRuleExecutionService {
         if (sorted.size() < valueMap.size()) {
             log.warn("Circular dependency detected in field rules. Processing remaining fields in original order.");
             for (FieldValue v : values) {
-                if (v != null && v.getTwinClassField() != null && !sorted.contains(v)) {
-                    sorted.add(v);
+                if (v != null && v.getTwinClassField() != null) {
+                    UUID id = v.getTwinClassField().getId();
+                    if (!processed.contains(id)) {
+                        sorted.add(v);
+                        processed.add(id);
+                    }
                 }
             }
         }
