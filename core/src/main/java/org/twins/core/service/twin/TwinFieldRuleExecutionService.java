@@ -9,23 +9,20 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.field.rule.FieldRuleOutput;
 import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.twinclass.LogicOperator;
-import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
-import org.twins.core.featurer.fieldtyper.value.*;
+import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,10 +31,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TwinFieldRuleExecutionService {
     public static final String DESCRIPTOR_RULE_FAILED = "rule_failed";
-    public static final String CONDITION_OPERATOR = "conditionOperator";
-    public static final String VALUE_TO_COMPARE_WITH = "valueToCompareWith";
     @Lazy
     private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
+    @Lazy
+    private final FeaturerService featurerService;
 
     @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2000, level = JavaLoggingLevel.WARNING)
     private void collectDependencies(TwinClassFieldRuleEntity rule, Set<UUID> distinctDependencies) {
@@ -54,11 +51,11 @@ public class TwinFieldRuleExecutionService {
         if (CollectionUtils.isEmpty(values))
             return FieldRulesApplyResult.EMPTY;
         twinClassFieldRuleMapService.loadRules(values.stream().map(FieldValue::getTwinClassField).toList(), true);
-        Map<UUID, String> contextValues = new HashMap<>();
+        Map<UUID, FieldValue> contextValues = new HashMap<>();
         for (FieldValue value : values) {
             TwinClassFieldEntity field = value.getTwinClassField();
             if (field == null) continue;
-            contextValues.put(field.getId(), normalizeValue(value));
+            contextValues.put(field.getId(), value);
         }
 
         var results = new FieldRulesApplyResult();
@@ -104,7 +101,7 @@ public class TwinFieldRuleExecutionService {
         return true;
     }
 
-    public boolean checkAllRequired(Kit<FieldValue, UUID> values, TwinEntity twinEntity)  {
+    public boolean checkAllRequired(Kit<FieldValue, UUID> values, TwinEntity twinEntity) {
         return checkAllRequired(values.getMap(), twinEntity);
     }
 
@@ -192,7 +189,7 @@ public class TwinFieldRuleExecutionService {
         return sorted;
     }
 
-    private FieldRuleOutput evaluateFieldRules(FieldValue value, Map<UUID, String> contextValues) {
+    private FieldRuleOutput evaluateFieldRules(FieldValue value, Map<UUID, FieldValue> contextValues) throws ServiceException {
         TwinClassFieldEntity field = value.getTwinClassField();
         List<TwinClassFieldRuleEntity> rules = field != null && field.getRuleKit() != null
                 ? field.getRuleKit().getList()
@@ -210,7 +207,10 @@ public class TwinFieldRuleExecutionService {
         for (TwinClassFieldRuleEntity rule : copy) {
             if (checkRule(rule, contextValues)) {
                 applyRuleEffect(rule, output);
-                contextValues.put(output.getField().getId(), normalizeValue(output.getValue()));
+                Object outputValue = output.getValue();
+                if (outputValue instanceof FieldValue fv) {
+                    contextValues.put(output.getField().getId(), fv);
+                }
             } else {
                 output.setHasError(true);
                 output.getDescriptor().put(DESCRIPTOR_RULE_FAILED, String.valueOf(true));
@@ -231,8 +231,7 @@ public class TwinFieldRuleExecutionService {
         }
     }
 
-    private boolean checkRule(TwinClassFieldRuleEntity rule, Map<UUID, String> contextValues) {
-        // Use Kit if available, or fallback to list
+    private boolean checkRule(TwinClassFieldRuleEntity rule, Map<UUID, FieldValue> contextValues) throws ServiceException {
         List<TwinClassFieldConditionEntity> conditions = rule.getConditionKit() != null
                 ? rule.getConditionKit().getList()
                 : Collections.emptyList();
@@ -243,7 +242,7 @@ public class TwinFieldRuleExecutionService {
         return evaluateRuleTree(roots, contextValues);
     }
 
-    private boolean evaluateRuleTree(List<ConditionNode> roots, Map<UUID, String> contextValues) {
+    private boolean evaluateRuleTree(List<ConditionNode> roots, Map<UUID, FieldValue> contextValues) throws ServiceException {
         if (CollectionUtils.isEmpty(roots))
             return false;
 
@@ -255,12 +254,13 @@ public class TwinFieldRuleExecutionService {
         return false;
     }
 
-    private boolean evaluateConditionNode(ConditionNode node, Map<UUID, String> contextValues) {
+    private boolean evaluateConditionNode(ConditionNode node, Map<UUID, FieldValue> contextValues) throws ServiceException {
         if (node.logic == LogicOperator.LEAF) {
             if (node.condition == null || node.condition.getBaseTwinClassFieldId() == null)
                 return false;
-            String actualValue = contextValues.get(node.condition.getBaseTwinClassFieldId());
-            return evaluateCondition(actualValue, node.condition);
+            FieldValue fieldValue = contextValues.get(node.condition.getBaseTwinClassFieldId());
+            ConditionEvaluator evaluator = featurerService.getFeaturer(node.condition.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
+            return evaluator.evaluate(node.condition, fieldValue);
         }
 
         if (CollectionUtils.isEmpty(node.children))
@@ -283,93 +283,6 @@ public class TwinFieldRuleExecutionService {
         }
 
         return false;
-    }
-
-    private boolean evaluateCondition(String actualValue, TwinClassFieldConditionEntity condition) {
-        Map<String, String> params = condition.getConditionEvaluatorParams();
-        if (params == null)
-            params = Collections.emptyMap();
-
-        String operatorStr = params.getOrDefault(CONDITION_OPERATOR, TwinClassFieldConditionOperator.eq.name());
-        String expected = params.get(VALUE_TO_COMPARE_WITH);
-        if (expected == null)
-            expected = "";
-        else
-            expected = expected.trim();
-
-        TwinClassFieldConditionOperator operator;
-        try {
-            operator = TwinClassFieldConditionOperator.valueOf(operatorStr.trim().toLowerCase());
-        } catch (IllegalArgumentException e) {
-            log.warn("Unknown condition operator: {}", operatorStr);
-            return false;
-        }
-
-        boolean isNullish = StringUtils.isEmpty(actualValue);
-
-        switch (operator) {
-            case eq:
-                if ("null".equalsIgnoreCase(expected))
-                    return isNullish;
-                return StringUtils.equalsIgnoreCase(actualValue, expected);
-            case neq:
-                if ("null".equalsIgnoreCase(expected))
-                    return !isNullish;
-                if (actualValue == null)
-                    return false;
-                return !StringUtils.equalsIgnoreCase(actualValue, expected);
-            case lt:
-                Integer ltCompare = compareNumbers(actualValue, expected);
-                return ltCompare != null && ltCompare < 0;
-            case gt:
-                Integer gtCompare = compareNumbers(actualValue, expected);
-                return gtCompare != null && gtCompare > 0;
-            case contains:
-                if (actualValue == null)
-                    return false;
-                return StringUtils.containsIgnoreCase(actualValue, expected);
-            case in:
-                Set<String> expectedOptions = splitValues(expected);
-                if (expectedOptions.isEmpty())
-                    return false;
-                if (isNullish)
-                    return expectedOptions.contains("null");
-                Set<String> actualOptions = splitValues(actualValue);
-                for (String actualOption : actualOptions) {
-                    if (expectedOptions.contains(actualOption))
-                        return true;
-                }
-                return false;
-            default:
-                return false;
-        }
-    }
-
-    protected Integer compareNumbers(String actual, String expected) {
-        if (StringUtils.isBlank(actual) || StringUtils.isBlank(expected))
-            return null;
-        try {
-            BigDecimal ac = new BigDecimal(actual.trim());
-            BigDecimal ex = new BigDecimal(expected.trim());
-            return ac.compareTo(ex);
-        } catch (NumberFormatException e) {
-            log.warn("Cannot compare numbers: {} vs {}", actual, expected, e);
-            return null;
-        }
-    }
-
-    protected Set<String> splitValues(String value) {
-        if (StringUtils.isBlank(value))
-            return Collections.emptySet();
-
-        Set<String> result = new LinkedHashSet<>();
-        String[] parts = value.split("[;,]");
-        for (String part : parts) {
-            String normalized = part.trim();
-            if (StringUtils.isNotEmpty(normalized))
-                result.add(normalized.toLowerCase(Locale.ROOT));
-        }
-        return result;
     }
 
     protected List<ConditionNode> buildConditionTree(List<TwinClassFieldConditionEntity> conditions) {
@@ -402,8 +315,6 @@ public class TwinFieldRuleExecutionService {
     }
 
     protected List<ConditionNode> buildGroupNoTree(List<TwinClassFieldConditionEntity> conditions) {
-        // Since groupNo is missing in TwinClassFieldConditionEntity, we assume all
-        // conditions are in one group (AND).
         List<ConditionNode> leaves = new ArrayList<>();
         for (TwinClassFieldConditionEntity c : conditions) {
             leaves.add(new ConditionNode(c, LogicOperator.LEAF));
@@ -421,52 +332,6 @@ public class TwinFieldRuleExecutionService {
             return LogicOperator.LEAF;
         return LogicOperator.AND;
     }
-
-    protected String normalizeValue(Object value) {
-        if (value == null)
-            return null;
-        if (value instanceof FieldValueText t)
-            return normalizeValue(t.getValue());
-        if (value instanceof FieldValueColorHEX t)
-            return normalizeValue(t.getValue());
-        if (value instanceof FieldValueBoolean b)
-            return normalizeValue(b.getValue());
-        if (value instanceof FieldValueDate d)
-            return normalizeValue(d.getDateStr());
-        if (value instanceof FieldValueSelect s)
-            return normalizeValue(s.getItems());
-        if (value instanceof FieldValueUser u)
-            return normalizeValue(u.getItems());
-        if (value instanceof FieldValueLink l)
-            return normalizeValue(l.getItems());
-
-        if (value instanceof DataListOptionEntity o)
-            return o.getId() != null ? o.getId().toString() : null;
-        if (value instanceof UserEntity u)
-            return u.getId() != null ? u.getId().toString() : null;
-        if (value instanceof TwinLinkEntity l)
-            return l.getDstTwinId() != null ? l.getDstTwinId().toString() : null;
-
-        if (value instanceof Collection<?> c) {
-            return c.stream()
-                    .map(this::normalizeValue)
-                    .filter(StringUtils::isNotEmpty)
-                    .collect(Collectors.joining(","));
-        }
-
-        if (value instanceof Boolean b)
-            return b ? "true" : "false";
-
-        if (value instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) value;
-            Object id = map.get("id");
-            if (id != null)
-                return normalizeValue(id);
-        }
-
-        return value.toString().trim();
-    }
-
 
     @RequiredArgsConstructor
     public static class ConditionNode {

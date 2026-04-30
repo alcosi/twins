@@ -642,6 +642,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // TwinValidators
         twinValidatorResultCache = null;
+
+        // rules
+        fieldRulesApplyResult = null;
         return this;
     }
 

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorParam;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.Properties;
 
@@ -26,7 +27,16 @@ public class ConditionEvaluatorParam extends ConditionEvaluator<ConditionDescrip
                 .valueToCompareWith(valueToCompareWith.extract(properties))
                 .conditionOperator(conditionOperator.extract(properties));
         return descriptor;
+    }
 
-
+    @Override
+    protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
+        String paramKey = evaluatedParamKey.extract(properties);
+        String actualValue = twinClassFieldConditionEntity.getConditionEvaluatorParams() != null
+                ? twinClassFieldConditionEntity.getConditionEvaluatorParams().get(paramKey)
+                : null;
+        var operator = conditionOperator.extract(properties);
+        String expected = valueToCompareWith.extract(properties);
+        return evaluateOperator(actualValue, operator, expected);
     }
 }

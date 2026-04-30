@@ -1,13 +1,19 @@
 package org.twins.core.featurer.fieldrule.conditionevaluator;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorDataListOptionExternalId;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_4503,
@@ -20,5 +26,21 @@ public class ConditionEvaluatorDataListOptionExternalId extends ConditionEvaluat
         descriptor.conditionOperator(conditionOperator.extract(properties))
                 .valueToCompareWith(valueToCompareWith.extract(properties));
         return descriptor;
+    }
+
+    @Override
+    protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
+        if (!(currentValue instanceof FieldValueSelect select))
+            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "Condition evaluator " + getClass().getSimpleName() + " can be used only with FieldValueSelect");
+        String actualValue = null;
+        if (CollectionUtils.isNotEmpty(select.getItems())) {
+            actualValue = select.getItems().stream()
+                    .map(DataListOptionEntity::getExternalId)
+                    .filter(id -> id != null && !id.isBlank())
+                    .collect(Collectors.joining(","));
+        }
+        var operator = conditionOperator.extract(properties);
+        String expected = valueToCompareWith.extract(properties);
+        return evaluateOperator(actualValue, operator, expected);
     }
 }
