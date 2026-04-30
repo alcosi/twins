@@ -9,6 +9,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsConditionOperatorType;
+import org.twins.core.service.twin.TwinFieldRuleExecutionService;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -23,9 +24,9 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
     private Class<D> descriptorType = null;
 
     @FeaturerParam(name = "ValueToCompareWith", description = "", order = 1)
-    public static final FeaturerParamString valueToCompareWith = new FeaturerParamString("valueToCompareWith");; // cmp_value VARCHAR NULL,
+    public static final FeaturerParamString valueToCompareWith = new FeaturerParamString(TwinFieldRuleExecutionService.VALUE_TO_COMPARE_WITH);; // cmp_value VARCHAR NULL,
     @FeaturerParam(name = "ConditionOperator", description = "", order =2)
-    public static final FeaturerParamStringTwinsConditionOperatorType conditionOperator = new FeaturerParamStringTwinsConditionOperatorType("conditionOperator");;
+    public static final FeaturerParamStringTwinsConditionOperatorType conditionOperator = new FeaturerParamStringTwinsConditionOperatorType(TwinFieldRuleExecutionService.CONDITION_OPERATOR);;
 
 
     public ConditionEvaluator() {
