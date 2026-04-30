@@ -189,4 +189,16 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
             @Param("statusIds") Collection<UUID> statusIds);
 
+
+    @Query(value = "SELECT twins_quota_get(:twinClassSchemaSpaceId, :domainId, :businessAccountId, :twinClassId)", nativeQuery = true)
+    Integer getTwinsQuota(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
+
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM twin t
+            WHERE t.owner_business_account_id IS NOT DISTINCT FROM :businessAccountId
+              AND t.twin_class_id = :twinClassId
+              AND t.twin_class_schema_space_id IS NOT DISTINCT FROM :twinClassSchemaSpaceId
+        """, nativeQuery = true)
+    long countTwinsByQuotaKey(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
 }
