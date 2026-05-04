@@ -56,7 +56,7 @@ public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLi
                 twinFieldDecimalRepository,
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
-                linkId.extract(properties),
+                linkIds.extract(properties),
                 srcElseDst.extract(properties),
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),

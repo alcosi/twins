@@ -2,15 +2,14 @@ package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 
 public interface FieldTyperCalcByLink {
-    @FeaturerParam(name = "Link id", order = 1)
-    FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
+    @FeaturerParam(name = "Link ids", order = 1)
+    FeaturerParamUUIDSet linkIds = new FeaturerParamUUIDSetTwinsLinkId("linkIds");
 
     @FeaturerParam(name = "Src or dst", order = 2, optional = true, defaultValue = "true")
     FeaturerParamBoolean srcElseDst = new FeaturerParamBoolean("srcElseDst");
