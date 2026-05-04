@@ -524,18 +524,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 HistoryEntity::setMachineUser);
     }
 
-    public void loadTwin(HistoryEntity src) throws ServiceException {
-        loadTwin(Collections.singletonList(src));
-    }
-
-    public void loadTwin(Collection<HistoryEntity> srcCollection) throws ServiceException {
-        twinService.load(srcCollection,
-                HistoryEntity::getId,
-                HistoryEntity::getTwinId,
-                HistoryEntity::getTwin,
-                HistoryEntity::setTwin);
-    }
-
     public void loadTwinClassField(HistoryEntity src) throws ServiceException {
         loadTwinClassField(Collections.singletonList(src));
     }

@@ -53,7 +53,6 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
             userDTOMapper.convertOrPostpone(src.getMachineUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.History2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinMode.History2TwinMode.HIDE)) {
-            historyService.loadTwin(src);
             twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.History2TwinMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinClassFieldMode.History2TwinClassFieldMode.HIDE)) {
@@ -73,9 +72,6 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
         if (mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE)) {
             historyService.loadUser(srcCollection);
             historyService.loadMachineUser(srcCollection);
-        }
-        if (mapperContext.hasModeButNot(TwinMode.History2TwinMode.HIDE)) {
-            historyService.loadTwin(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinClassFieldMode.History2TwinClassFieldMode.HIDE)) {
             historyService.loadTwinClassField(srcCollection);

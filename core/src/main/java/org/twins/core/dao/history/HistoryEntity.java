@@ -64,9 +64,8 @@ public class HistoryEntity implements EasyLoggable {
     @Column(name = "snapshot_message")
     private String snapshotMessage;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @Transient
+    @ManyToOne
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
     @EqualsAndHashCode.Exclude
