@@ -47,6 +47,7 @@ build/
 .gradletasknamecache
 gradle-app.setting
 !gradle-wrapper.jar
+gradle.properties
 
 ##############################
 ## IntelliJ
@@ -61,6 +62,7 @@ out/
 /core/.idea
 /logs
 /core/gradle
+/core/logs
 gradle
 ##############################
 ## Eclipse
