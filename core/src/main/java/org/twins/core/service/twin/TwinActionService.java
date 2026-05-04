@@ -319,47 +319,23 @@ public class TwinActionService {
             return;
         }
 
-        // Check if the action is protected by validators
         List<TwinActionValidatorRuleEntity> validatorRules = twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(twinAction);
         if (CollectionUtils.isEmpty(validatorRules)) {
             return;
         }
 
-        // Process each validator rule - action is allowed if ANY rule passes
-        List<TwinEntity> twinsToCheck = new ArrayList<>(twins);
-        for (TwinActionValidatorRuleEntity rule : validatorRules) {
-            if (!rule.isActive()) {
-                log.info(rule.logShort() + " is inactive");
-                continue;
-            }
+        List<TwinActionValidatorRuleEntity> activeRules = validatorRules.stream().filter(TwinActionValidatorRuleEntity::isActive).toList();
 
-            // Check all validators for this rule at once using TwinValidatorSetService
-            Map<UUID, ValidationResult> ruleResults = twinValidatorSetService.isValid(twinsToCheck, rule);
-            twinsToCheck = processValidatorResults(twinsToCheck, ruleResults, twinAction, rule.getActionRestrictionReasonId(), twinsActionsRestrictionReasons);
+        if (activeRules.isEmpty()) {
+            return;
         }
-    }
 
-    /**
-     * Processes validator results and updates restriction reasons.
-     *
-     * @param twinsToCheck twins that were validated
-     * @param ruleResults validation results for each twin
-     * @param twinAction the action being checked
-     * @param restrictionReasonId reason ID to use if validation fails
-     * @param twinsActionsRestrictionReasons map to store/update restriction reasons
-     * @return list of twins that failed validation and should be checked against next rule
-     */
-    private List<TwinEntity> processValidatorResults(
-            List<TwinEntity> twinsToCheck,
-            Map<UUID, ValidationResult> ruleResults,
-            TwinAction twinAction,
-            UUID restrictionReasonId,
-            Map<UUID, Map<TwinAction, UUID>> twinsActionsRestrictionReasons) {
-        List<TwinEntity> nextLoopTwins = new ArrayList<>();
-        for (TwinEntity twin : twinsToCheck) {
-            ValidationResult result = ruleResults.get(twin.getId());
-            if (result != null && result.isValid()) {
-                // Action passed for this twin - remove from restrictions
+        UUID restrictionReasonId = activeRules.getFirst().getActionRestrictionReasonId();
+        Map<UUID, ValidationResult> results = twinValidatorSetService.isValid(twins, activeRules);
+
+        for (TwinEntity twin : twins) {
+            ValidationResult result = results.get(twin.getId());
+            if (result.isValid()) {
                 Map<TwinAction, UUID> restrictions = twinsActionsRestrictionReasons.get(twin.getId());
                 if (restrictions != null) {
                     restrictions.remove(twinAction);
@@ -369,15 +345,12 @@ public class TwinActionService {
                     }
                 }
             } else {
-                // Action failed for this twin - add to next rule check
-                nextLoopTwins.add(twin);
                 if (!twinsActionsRestrictionReasons.computeIfAbsent(twin.getId(), k -> new HashMap<>()).containsKey(twinAction)) {
                     log.info("Action {} RESTRICTED for {}, reason: {}", twinAction, twin.logShort(), restrictionReasonId);
                     twinsActionsRestrictionReasons.get(twin.getId()).put(twinAction, restrictionReasonId);
                 }
             }
         }
-        return nextLoopTwins;
     }
 
     /**

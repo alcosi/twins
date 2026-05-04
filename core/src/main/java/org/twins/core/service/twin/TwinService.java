@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.QuotaKey;
+import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
@@ -1836,22 +1837,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 continue;
             }
 
-            for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
-                if (!rule.isActive()) continue;
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = rules.getGrouped(TwinClassFieldAction.EDIT).stream()
+                    .filter(TwinClassFieldActionValidatorRuleEntity::isActive)
+                    .toList();
 
-                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, rule);
-
-                Iterator<TwinEntity> iterator = twins.iterator();
-                while (iterator.hasNext()) {
-                    var twin = iterator.next();
-                    if (!batchResults.get(twin.getId()).isValid()) {
-                        twin.getTwinFieldEditability().put(field.getId(), false);
-                        iterator.remove();
-                    }
+            if (activeRules.isEmpty()) {
+                for (var twin : twins) {
+                    twin.getTwinFieldEditability().put(field.getId(), true);
                 }
+                continue;
+            }
 
-                if (twins.isEmpty()) {
-                    break;
+            Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, activeRules);
+
+            for (var twin : twins) {
+                if (!batchResults.get(twin.getId()).isValid()) {
+                    twin.getTwinFieldEditability().put(field.getId(), false);
                 }
             }
         }
