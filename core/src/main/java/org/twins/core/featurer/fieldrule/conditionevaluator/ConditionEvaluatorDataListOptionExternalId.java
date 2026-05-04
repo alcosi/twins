@@ -30,8 +30,18 @@ public class ConditionEvaluatorDataListOptionExternalId extends ConditionEvaluat
 
     @Override
     protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
+        String actualValue = normalizeDataListOptionValue(currentValue);
+        var operator = conditionOperator.extract(properties);
+        var expected = valueToCompareWith.extract(properties);
+        return evaluateOperator(actualValue, operator, expected);
+    }
+
+    private static String normalizeDataListOptionValue(FieldValue currentValue) throws ServiceException {
+        if (currentValue == null || currentValue.isEmpty())
+            return null;
         if (!(currentValue instanceof FieldValueSelect select))
-            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "Condition evaluator " + getClass().getSimpleName() + " can be used only with FieldValueSelect");
+            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "Incorrect condition evaluator for {}. " +
+                    "ConditionEvaluatorDataListOptionExternalId can be used only with FieldValueSelect", currentValue.getTwinClassField().logNormal());
         String actualValue = null;
         if (CollectionUtils.isNotEmpty(select.getItems())) {
             actualValue = select.getItems().stream()
@@ -39,8 +49,6 @@ public class ConditionEvaluatorDataListOptionExternalId extends ConditionEvaluat
                     .filter(id -> id != null && !id.isBlank())
                     .collect(Collectors.joining(","));
         }
-        var operator = conditionOperator.extract(properties);
-        String expected = valueToCompareWith.extract(properties);
-        return evaluateOperator(actualValue, operator, expected);
+        return actualValue;
     }
 }
