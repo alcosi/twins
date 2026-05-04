@@ -1,4 +1,4 @@
-package org.twins.core.dao.trigger;
+package org.twins.core.enums.trigger;
 
 import lombok.Getter;
 
