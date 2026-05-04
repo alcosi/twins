@@ -50,7 +50,7 @@ class TwinClassFieldServiceDuplicateTest {
         twinClassFieldService = Mockito.spy(
                 new TwinClassFieldService(
                         twinClassFieldRepository, i18nService, null, null,
-                        null, null, twinClassService, null, null
+                        null, null, twinClassService, null, null, null, null
                 )
         );
 

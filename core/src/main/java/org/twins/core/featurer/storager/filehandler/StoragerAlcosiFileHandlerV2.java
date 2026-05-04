@@ -7,11 +7,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.io.TikaInputStream;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamListOfMaps;
 import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.core.io.InputStreamResource;
@@ -22,8 +20,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.twins.core.dto.rest.featurer.storager.filehandler.*;
-import org.twins.core.enums.featurer.storager.Format;
+import org.twins.core.dto.rest.featurer.storager.filehandler.AttachmentModification;
+import org.twins.core.dto.rest.featurer.storager.filehandler.FHSyncProcessRsDTO;
+import org.twins.core.dto.rest.featurer.storager.filehandler.FileHandlerDeleteRqDTO;
 import org.twins.core.enums.featurer.storager.StorageType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
@@ -90,11 +89,20 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     public static final FeaturerParamString relativePath = new FeaturerParamString("relativePath");
 
     @FeaturerParam(
-            name = "resizeTasks",
-            description = "Params for resize tasks to make images in specific sizes and formats.",
+            name = "imagePipeline",
+            description = "Tasks for image pipeline (save orig + save resized)",
             optional = false
     )
-    public static final FeaturerParamListOfMaps resizeTasks = new FeaturerParamListOfMaps("resizeTasks");
+    public static final FeaturerParamString imagePipeline = new FeaturerParamString("imagePipeline");
+
+    @FeaturerParam(
+            name = "defaultPipeline",
+            description = "Tasks for default pipeline (save the original file)",
+            optional = false
+    )
+    public static final FeaturerParamString defaultPipeline = new FeaturerParamString("defaultPipeline");
+
+    private static final Set<String> IMAGE_FORMATS = Set.of("jpg", "jpeg", "png", "webp", "tiff", "tif", "gif", "jp2");
     private final RestTemplate restTemplate;
 
     @Override
@@ -123,10 +131,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
             var properties = extractProperties(params, false);
-            var url = STR."\{fileHandlerUri.extract(properties)}/api/delete";
+            var url = STR."\{fileHandlerUri.extract(properties)}/api/storage/delete";
             var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
-            var resp = restTemplate.exchange(url, HttpMethod.DELETE, request, Void.class);
+            var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
@@ -162,46 +170,16 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
             try (tikaStream) {
                 var properties = extractProperties(params, false);
-                var baseUrl = fileHandlerUri.extract(properties);
-                var uploadPath = fileHandlerUploadPath.extract(properties);
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
                 var storageDir = String.join("/", fileKeyElems);
                 var fileSize = getFileSize(tikaStream, fileSizeLimit);
 
-                var url = baseUrl + uploadPath;
-                var tasksParams = resizeTasks.extract(properties);
-                var tasks = new ArrayList<ResizeTaskDTOv2>();
+                var detectedMime = tika.detect(tikaStream);
+                var pipelineJson = preparePipelineJson(properties, fileId, storageDir, detectedMime);
 
-                try {
-                    for (var taskParams : tasksParams) {
-                        tasks.add(new ResizeTaskDTOv2(
-                                Integer.parseInt(taskParams.get("width")),
-                                Integer.parseInt(taskParams.get("height")),
-                                taskParams.get("type"),
-                                Format.valueOf((taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
-                                Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
-                        ));
-                    }
-
-                    if (tasks.size() != tasks.stream().map(ResizeTaskDTOv2::type).distinct().count()) {
-                        log.info("Type field in tasks params is not unique");
-                        throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
-                    }
-                } catch (Throwable t) {
-                    log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
-                    throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
-                }
-
-                var rqData = new ResizeRqDTO(
-                        UUID.fromString(fileId),
-                        tasks,
-                        StorageType.S3,
-                        storageDir
-                );
-
-                var resp = sendWithRetry(url, rqData, tikaStream, fileName, fileSize, ResizeRsDTO.class);
+                var resp = sendWithRetry(fileHandlerUri.extract(properties) + fileHandlerUploadPath.extract(properties), pipelineJson, tikaStream, fileName, fileSize, FHSyncProcessRsDTO.class);
 
                 if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                     log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
@@ -209,19 +187,29 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 }
 
                 var body = resp.getBody();
-                var modifications = new ArrayList<AttachmentModifications>();
+                String originalUrl = null;
+                var modifications = new ArrayList<AttachmentModification>();
 
-                if(CollectionUtils.isNotEmpty(body.modifications())) {
-                    for (var modification : body.modifications()) {
-                        modifications.add(new AttachmentModifications(
-                                UUID.fromString(fileId),
-                                modification.type(),
-                                prepareObjectLink(modification.modificationUrl(), properties)
-                        ));
+                if (body.outputs() != null) {
+                    for (var output : body.outputs()) {
+                        if ("save".equals(output.taskType())) {
+                            originalUrl = prepareObjectLink(output.url(), properties);
+                        } else {
+                            modifications.add(new AttachmentModification(
+                                    body.fileId(),
+                                    output.as(),
+                                    prepareObjectLink(output.url(), properties)
+                            ));
+                        }
                     }
                 }
 
-                return new AddedFileKey(prepareObjectLink(body.originalUrl(), properties), fileSize, modifications);
+                if (originalUrl == null) {
+                    log.error("No 'save' output found in pipeline response for file: {}", fileName);
+                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+                }
+
+                return new AddedFileKey(originalUrl, fileSize, modifications);
             }
         } catch (Throwable t) {
             log.info("Unable to save file in file-handler service: {}", t.getMessage(), t);
@@ -229,8 +217,17 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         }
     }
 
+    private String preparePipelineJson(Properties properties, String fileId, String storageDir, String detectedMime) throws ServiceException {
+        var pipelineJson = IMAGE_FORMATS.contains(getMimeSubType(detectedMime))
+                ? imagePipeline.extract(properties)
+                : defaultPipeline.extract(properties);
+        return pipelineJson
+                .replace("{fileId}", fileId)
+                .replace("{storageDir}", storageDir);
+    }
+
     private String getMimeSubType(String mimeType) {
-        return mimeType.split("/")[1].toUpperCase();
+        return mimeType.split("/")[1].toLowerCase();
     }
 
     private String prepareObjectLink(String objectLink, Properties properties) throws ServiceException {
