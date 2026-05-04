@@ -241,7 +241,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (ruleMaps.containsGroupedKey(ruleEntity.getId())) {
                 List<TwinClassFieldEntity> fields = ruleMaps.getGrouped(ruleEntity.getId()).stream()
                         .map(TwinClassFieldRuleMapEntity::getTwinClassField)
-                        .collect(Collectors.toList());
+                        .toList();
                 ruleEntity.setFieldKit(new Kit<>(fields, TwinClassFieldEntity::getId));
             } else {
                 ruleEntity.setFieldKit(Kit.EMPTY);

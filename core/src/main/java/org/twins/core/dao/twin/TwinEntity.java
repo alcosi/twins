@@ -31,6 +31,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.LoadState;
@@ -446,6 +447,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private FieldRulesApplyResult fieldRulesApplyResult;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<FieldValue, UUID> fieldValuesKit;
 
     @Transient
@@ -636,6 +642,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // TwinValidators
         twinValidatorResultCache = null;
+
+        // rules
+        fieldRulesApplyResult = null;
         return this;
     }
 

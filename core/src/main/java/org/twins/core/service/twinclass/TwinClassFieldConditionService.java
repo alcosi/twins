@@ -19,6 +19,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
+import org.twins.core.domain.field.rule.ConditionNode;
 import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.exception.ErrorCodeTwins;
 
@@ -190,4 +191,35 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
         return true;
     }
+
+    public void buildConditionTree(TwinClassFieldRuleEntity rule) {
+        if (rule.getConditionTreeNodes() != null) {
+            return;
+        }
+        loadConditions(rule);
+        var conditionTree = buildNewConditionTree(rule.getConditionKit());
+        rule.setConditionTreeNodes(conditionTree);
+    }
+
+    protected List<ConditionNode> buildNewConditionTree(Collection<TwinClassFieldConditionEntity> conditions) {
+        if (CollectionUtils.isEmpty(conditions))
+            return Collections.emptyList();
+        Map<UUID, ConditionNode> nodesById = new HashMap<>();
+        for (var condition : conditions) {
+            nodesById.put(condition.getId(), new ConditionNode(condition, condition.getLogicOperatorId()));
+        }
+
+        List<ConditionNode> roots = new ArrayList<>();
+        for (var condition : conditions) {
+            ConditionNode node = nodesById.get(condition.getId());
+            if (condition.getParentTwinClassFieldConditionId() != null
+                    && nodesById.containsKey(condition.getParentTwinClassFieldConditionId())) {
+                nodesById.get(condition.getParentTwinClassFieldConditionId()).getChildren().add(node);
+            } else {
+                roots.add(node);
+            }
+        }
+        return roots;
+    }
+
 }

@@ -141,6 +141,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private ErrorRepository errorRepository;
     @Autowired
     private DomainBusinessAccountService domainBusinessAccountService;
+    @Autowired
+    private TwinFieldRuleExecutionService twinFieldRuleExecutionService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -922,34 +924,41 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private boolean isAllRequiredFieldsFilled(TwinUpdate twinUpdate) throws ServiceException {
+        var mergedTwinEntity = twinUpdate.getDbTwinEntity();
+        if (mergedTwinEntity.getFieldRulesApplyResult() != null && mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
+        }
         loadFieldsValues(twinUpdate.getDbTwinEntity());
-        //no sense to call FieldInitializer, because this is an update operation. All defaults was already set on creation
-        for (var classField : twinUpdate.getDbTwinEntity().getTwinClass().getTwinClassFieldKit()) {
-            if (Boolean.TRUE.equals(classField.getRequired()) //todo this is not working correctly with rules
-                    && !(twinUpdate.getDbTwinEntity().getFieldValuesKit().containsKey(classField.getId()) && twinUpdate.getDbTwinEntity().getFieldValuesKit().get(classField.getId()).isNotEmpty())
-                    && (twinUpdate.getField(classField.getId()) == null || !twinUpdate.getField(classField.getId()).isNotEmpty())) {
-                return false;
+        var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId);
+        if (KitUtils.isNotEmpty(mergedTwinEntity.getFieldValuesKit())) {
+            mergedValuesKit.addAll(mergedTwinEntity.getFieldValuesKit());
+        }
+        // let's override with updates
+        if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
+            for (var fieldValue : twinUpdate.getFields().values()) {
+                if (mergedValuesKit.get(fieldValue.getTwinClassFieldId()) != null) {
+                    mergedValuesKit.remove(fieldValue.getTwinClassFieldId());
+                    mergedValuesKit.add(fieldValue); //todo refactor this
+                }
             }
         }
-        return true;
+        return twinFieldRuleExecutionService.checkAllRequired(mergedValuesKit, mergedTwinEntity);
     }
 
     private boolean isAllRequiredFieldsFilled(TwinCreate twinCreate) throws ServiceException {
-        for (var classField : twinCreate.getTwinEntity().getTwinClass().getTwinClassFieldKit()) {
-            if (Boolean.TRUE.equals(classField.getRequired()) //todo this is not working correctly with rules
-                    && (twinCreate.getField(classField.getId()) == null || !twinCreate.getField(classField.getId()).isNotEmpty())) {
-                return false;
-            }
+        var mergedTwinEntity = twinCreate.getTwinEntity();
+        if (mergedTwinEntity.getFieldRulesApplyResult() != null && mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
-        return true;
+        return twinFieldRuleExecutionService.checkAllRequired(twinCreate.getFields(), mergedTwinEntity);
     }
 
     public boolean isAllRequiredFieldsFilled(TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getFieldRulesApplyResult() != null && twinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled() != null) {
+            return twinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
+        }
         loadFieldsValues(twinEntity);
-        for (var classField : twinEntity.getTwinClass().getTwinClassFieldKit())
-            if (Boolean.TRUE.equals(classField.getRequired()) && !(twinEntity.getFieldValuesKit().containsKey(classField.getId()) && twinEntity.getFieldValuesKit().get(classField.getId()).isNotEmpty()))
-                return false;
-        return true;
+        return twinFieldRuleExecutionService.checkAllRequired(twinEntity.getFieldValuesKit(), twinEntity);
     }
 
     private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
@@ -1889,6 +1898,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public boolean isRequired(TwinEntity twin, TwinClassFieldEntity twinClassField) {
+        return twinFieldRuleExecutionService.isRequired(twin, twinClassField);
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {
@@ -1974,11 +1987,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         Map<UUID, FieldValue> fields = twinCreate.getFields();
         loadClass(twinEntity);
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
+        twinFieldRuleExecutionService.applyRules(twinCreate.getFields().values(), twinEntity);
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             var fieldValue = getFieldValueSafe(fields, twinClassFieldEntity);
             boolean isMissed = fieldValue == null || fieldValue.isEmpty();
-            if (twinClassFieldEntity.getRequired() && isMissed) {
+            if (twinFieldRuleExecutionService.isRequired(twinEntity, twinClassFieldEntity) && isMissed) {
                 switch (twinCreate.getCreateStrategy()) {
                     case SKETCH:
                         break; // no need to check required fields
