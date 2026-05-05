@@ -7,8 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.base.BaseIntegrationTest;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
@@ -38,15 +38,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = {
-        "spring.flyway.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create",
-        "spring.jpa.show-sql=true",
-        "api.unsecured.enable=false",
-        "api.key.header=X-Twins-Api-Key",
-        "spring.main.allow-bean-definition-overriding=true",
-        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true"
-})
+@Transactional
 public class TwinClassFieldRuleIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
