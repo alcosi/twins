@@ -33,13 +33,13 @@ public class TwinClassFieldRuleMapEntity implements EasyLoggable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
     private TwinClassFieldRuleEntity twinClassFieldRule;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
     private TwinClassFieldEntity twinClassField;
 

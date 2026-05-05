@@ -3,8 +3,8 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +20,8 @@ public class HistorySearch {
     private boolean includeDirectChildren = false;
     private Set<UUID> actorUseridList;
     private Set<UUID> actorUserIdExcludeList;
+    private Set<UUID> twinClassFieldIdList;
+    private Set<UUID> twinClassFieldIdExcludeList;
     private Set<HistoryType> typeList;
     private Set<HistoryType> typeExcludeList;
     private DataTimeRange createdAt;

@@ -21,54 +21,13 @@ import java.util.*;
 public abstract class TwinValidator extends FeaturerTwins {
 
     public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, validatorParams);
-        log.info("Running {} validator[{}] with params: {}", invert ? "inverted " : "", this.getClass().getSimpleName(), properties.toString());
-        if (twinEntity == null && !nullable()) {
-            return buildResult(
-                    false,
-                    invert,
-                    "given twin is null, next validation is skipped",
-                    "given twin is not null");
-        }
-
-        String cacheKey = FeaturerService.toConfigKey(this, validatorParams);
-
-        if (twinEntity.getTwinValidatorResultCache() == null) {
-            twinEntity.setTwinValidatorResultCache(new HashMap<>());
-        }
-
-        Boolean cachedResult = twinEntity.getTwinValidatorResultCache().get(cacheKey);
-        if (cachedResult != null) {
-            return buildResult(
-                    cachedResult,
-                    invert,
-                    "cached validation failed",
-                    "cached validation succeeded but inverted");
-        }
-
-        // Always validate without invert first and cache the result
-        ValidationResult validationResult = isValid(properties, twinEntity, false);
-        boolean isValidWithoutInvert = validationResult.isValid();
-
-        twinEntity.getTwinValidatorResultCache().put(cacheKey, isValidWithoutInvert);
-        log.info("Cached result for validator[{}], key: {}, result: {}", this.getClass().getSimpleName(), cacheKey, isValidWithoutInvert);
-
-        // Apply invert if needed
-        if (invert) {
-            return buildResult(
-                    isValidWithoutInvert,
-                    true,
-                    validationResult.getMessage(),
-                    validationResult.getMessage());
-        }
-        return validationResult;
+        var isValid = isValid(validatorParams, Collections.singletonList(twinEntity), invert);
+        return isValid.getTwinsResults().get(twinEntity.getId());
     }
 
     protected boolean nullable() {
         return false;
     }
-
-    protected abstract ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException;
 
     public CollectionValidationResult isValid(HashMap<String, String> validatorParams, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, validatorParams);
@@ -77,7 +36,7 @@ public abstract class TwinValidator extends FeaturerTwins {
         String cacheKey = FeaturerService.toConfigKey(this, validatorParams);
 
         List<TwinEntity> twinsToValidate = new ArrayList<>();
-        for (TwinEntity twinEntity : twinEntityCollection) {
+        for (var twinEntity : twinEntityCollection) {
             if (twinEntity.getTwinValidatorResultCache() == null) {
                 twinEntity.setTwinValidatorResultCache(new HashMap<>());
             }
@@ -103,7 +62,7 @@ public abstract class TwinValidator extends FeaturerTwins {
 
         // Build final result from cache for all twins
         CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
-        for (TwinEntity twinEntity : twinEntityCollection) {
+        for (var twinEntity : twinEntityCollection) {
             Boolean cachedResult = twinEntity.getTwinValidatorResultCache().get(cacheKey);
             ValidationResult result = buildResult(
                     cachedResult != null && cachedResult,
@@ -118,15 +77,7 @@ public abstract class TwinValidator extends FeaturerTwins {
     /**
      * Must be overridden to reduce db query count
      */
-    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
-        CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
-        ValidationResult singleTwinvalidationResult;
-        for (TwinEntity twinEntity : twinEntityCollection) { // we will validate in loop, and that can produce N+1 query to DB
-            singleTwinvalidationResult = isValid(properties, twinEntity, invert);
-            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), singleTwinvalidationResult);
-        }
-        return collectionValidationResult;
-    }
+    protected abstract CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException;
 
 
     @Data

@@ -10,8 +10,10 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.field.rule.ConditionNode;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -64,6 +66,11 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldConditionEntity, UUID> conditionKit;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ConditionNode> conditionTreeNodes;
 
     @Transient
     @ToString.Exclude

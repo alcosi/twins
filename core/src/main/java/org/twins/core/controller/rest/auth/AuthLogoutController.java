@@ -20,7 +20,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.auth.AuthLogoutRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthLogoutRsDTOv1;
 import org.twins.core.dto.rest.face.FaceViewRsDTOv1;
+import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.mappers.rest.auth.ClientLogoutDataRestDTOReverseMapper;
+import org.twins.core.service.HttpRequestService;
 import org.twins.core.service.auth.IdentityProviderService;
 
 @Tag(description = "Auth logout controller", name = ApiTag.AUTH)
@@ -30,19 +32,28 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthLogoutController extends ApiController {
     private final IdentityProviderService identityProviderService;
     private final ClientLogoutDataRestDTOReverseMapper clientLogoutDataRestDTOReverseMapper;
+    private final HttpRequestService httpRequestService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "authLogoutV1", summary = "Logout from identity provider, linked to current domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Logout success  ", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FaceViewRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
+                    @Schema(implementation = FaceViewRsDTOv1.class))
+            }),
+            @ApiResponse(responseCode = "401", description = "Access is denied")
+    })
     @PostMapping(value = "/auth/logout/v1")
     public ResponseEntity<?> authLoginV1(@RequestBody AuthLogoutRqDTOv1 request) {
         AuthLogoutRsDTOv1 rs = new AuthLogoutRsDTOv1();
         try {
-            identityProviderService.logout(clientLogoutDataRestDTOReverseMapper.convert(request.getAuthData()));
+            ClientLogoutData clientLogoutData = clientLogoutDataRestDTOReverseMapper.convert(request.getAuthData());
+            String authToken = httpRequestService.getAuthTokenFromRequest();
+            if (clientLogoutData == null) {
+                clientLogoutData = new ClientLogoutData();
+            }
+            clientLogoutData.put("authToken", authToken);
+            identityProviderService.logout(clientLogoutData);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

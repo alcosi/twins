@@ -183,7 +183,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField())));
         }
         if (!twin.isSketch() // check required for non-sketch twins
-                && value.getTwinClassField().getRequired()
+                && twinService.isRequired(twin, value.getTwinClassField())
                 && value.isEmpty()) {
             log.error("{} is required", value.getTwinClassField().logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField())));

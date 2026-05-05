@@ -9,7 +9,12 @@ import org.twins.core.dto.rest.trigger.TwinTriggerTaskDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerTaskMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -20,24 +25,25 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = DomainMode.class)
+@MapperModeBinding(modes = TwinTriggerTaskMode.class)
 public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerTaskEntity, TwinTriggerTaskDTOv1> {
     private final TwinTriggerTaskService twinTriggerTaskService;
-    @MapperModePointerBinding(modes = {UserMode.class})
+
+    @MapperModePointerBinding(modes = {UserMode.TwinTriggerTask2UserMode.class})
     private final UserRestDTOMapper userDTOMapper;
-    @MapperModePointerBinding(modes = {BusinessAccountMode.class})
+    @MapperModePointerBinding(modes = {BusinessAccountMode.TwinTriggerTask2BusinessAccountMode.class})
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
-    @MapperModePointerBinding(modes = {StatusMode.class})
+    @MapperModePointerBinding(modes = {StatusMode.TwinTriggerTask2StatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusDTOMapper;
-    @MapperModePointerBinding(modes = {TwinMode.class})
+    @MapperModePointerBinding(modes = {TwinMode.TwinTriggerTask2TwinMode.class})
     private final TwinRestDTOMapperV2 twinDTOMapper;
-    @MapperModePointerBinding(modes = {TwinTriggerMode.class})
+    @MapperModePointerBinding(modes = {TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.class})
     private final TwinTriggerRestDTOMapper twinTriggerDTOMapper;
 
 
     @Override
     public void map(TwinTriggerTaskEntity src, TwinTriggerTaskDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinTriggerMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(TwinTriggerTaskMode.DETAILED)) {
             case DETAILED -> dst
                     .setId(src.getId())
                     .setTwinId(src.getTwinId())

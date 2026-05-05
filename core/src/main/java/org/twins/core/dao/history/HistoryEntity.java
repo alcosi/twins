@@ -13,6 +13,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.history.HistoryType;
 
@@ -63,23 +64,24 @@ public class HistoryEntity implements EasyLoggable {
     @Column(name = "snapshot_message")
     private String snapshotMessage;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
+    @Transient
     private UserEntity actorUser;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "machine_user_id", insertable = false, updatable = false)
+    @Transient
     private UserEntity machineUser;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Transient
+    private TwinClassFieldEntity twinClassField;
 
     @Override
     public String easyLog(Level level) {

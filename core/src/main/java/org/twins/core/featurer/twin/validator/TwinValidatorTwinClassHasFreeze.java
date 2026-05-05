@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -11,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinClassFreezeId;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -23,18 +23,24 @@ import java.util.UUID;
 public class TwinValidatorTwinClassHasFreeze extends TwinValidator {
     @FeaturerParam(name = "Freeze ids", description = "if empty - validator will check any freeze id", order = 1, optional = true)
     public static final FeaturerParamUUIDSet freezeIds = new FeaturerParamUUIDSetTwinClassFreezeId("freezeIds");
+
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> freezeIdSet = freezeIds.extract(properties);
-        UUID twinClassFreezeId = twinEntity.getTwinClass().getTwinClassFreezeId();
+        CollectionValidationResult result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            UUID twinClassFreezeId = twinEntity.getTwinClass().getTwinClassFreezeId();
 
-        boolean isValid = freezeIdSet.isEmpty()
-                ? twinClassFreezeId != null
-                : twinClassFreezeId != null && freezeIdSet.contains(twinClassFreezeId);
+            boolean isValid = freezeIdSet.isEmpty()
+                    ? twinClassFreezeId != null
+                    : twinClassFreezeId != null && freezeIdSet.contains(twinClassFreezeId);
 
-        return buildResult(isValid,
-                invert,
-                twinEntity.getTwinClass().logShort() + " has no freezes from given set",
-                twinEntity.getTwinClass().logShort() + " has freezes from given set");
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.getTwinClass().logShort() + " has no freezes from given set",
+                    twinEntity.getTwinClass().logShort() + " has freezes from given set"));
+        }
+        return result;
     }
 }

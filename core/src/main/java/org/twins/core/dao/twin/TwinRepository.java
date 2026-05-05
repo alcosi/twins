@@ -148,4 +148,57 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("twinId") UUID twinId,
             @Param("linkId") UUID linkId,
             @Param("statusIds") Collection<UUID> statusIds);
+
+    @Query("select distinct tl.dstTwinId, t from TwinEntity t, TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds "
+            + "and tl.linkId = :linkId "
+            + "and t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl2.srcTwinId from TwinLinkEntity tl2 "
+            + "where tl2.dstTwinId = tl.dstTwinId and tl2.linkId = :linkId)")
+    List<Object[]> findDstTwinIdAndTwinsByHeadOfLinkSrcTowardDstTwins(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId);
+
+    @Query("select distinct tl.dstTwinId, t from TwinEntity t, TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds "
+            + "and tl.linkId = :linkId "
+            + "and t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl2.srcTwinId from TwinLinkEntity tl2 "
+            + "where tl2.dstTwinId = tl.dstTwinId and tl2.linkId = :linkId) "
+            + "and t.twinStatusId in :statusIds")
+    List<Object[]> findDstTwinIdAndTwinsByHeadOfLinkSrcTowardDstTwinsStatusesIncluded(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
+            @Param("statusIds") Collection<UUID> statusIds);
+
+    @Query("select distinct tl.dstTwinId, t from TwinEntity t, TwinLinkEntity tl "
+            + "where tl.dstTwinId in :linkDstTwinIds "
+            + "and tl.linkId = :linkId "
+            + "and t.ownerBusinessAccountId = :ownerBusinessAccountId "
+            + "and t.headTwinId in ("
+            + "select tl2.srcTwinId from TwinLinkEntity tl2 "
+            + "where tl2.dstTwinId = tl.dstTwinId and tl2.linkId = :linkId) "
+            + "and t.twinStatusId not in :statusIds")
+    List<Object[]> findDstTwinIdAndTwinsByHeadOfLinkSrcTowardDstTwinsStatusesExcluded(
+            @Param("linkDstTwinIds") Collection<UUID> linkDstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId,
+            @Param("statusIds") Collection<UUID> statusIds);
+
+
+    @Query(value = "SELECT twins_quota_get(:twinClassSchemaSpaceId, :domainId, :businessAccountId, :twinClassId)", nativeQuery = true)
+    Integer getTwinsQuota(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
+
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM twin t
+            WHERE t.owner_business_account_id IS NOT DISTINCT FROM :businessAccountId
+              AND t.twin_class_id = :twinClassId
+              AND t.twin_class_schema_space_id IS NOT DISTINCT FROM :twinClassSchemaSpaceId
+        """, nativeQuery = true)
+    long countTwinsByQuotaKey(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
 }

@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -16,6 +15,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -37,7 +37,7 @@ public class TwinValidatorTwinOfTwinClass extends TwinValidator {
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> classIdSet = classIds.extract(properties);
         Set<UUID> statusIdSet = statusIds.extract(properties);
         BasicSearch search = new BasicSearch();
@@ -46,11 +46,15 @@ public class TwinValidatorTwinOfTwinClass extends TwinValidator {
                 .addStatusId(statusIdSet, false);
 
         long count = twinSearchService.count(search);
-
-        return buildResult(
-                count > 0,
-                invert,
-                "there are no twins of given twin class",
-                "twins of given twin class exist");
+        boolean isValid = count > 0;
+        var result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    "there are no twins of given twin class",
+                    "twins of given twin class exist"));
+        }
+        return result;
     }
 }

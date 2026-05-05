@@ -13,6 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.service.twin.TwinFieldAttributeService;
+import org.twins.core.service.twin.TwinFieldRuleExecutionService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
@@ -40,6 +41,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     private final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
 
     private final TwinService twinService;
+    private final TwinFieldRuleExecutionService twinFieldRuleExecutionService;
 
     @Lazy
     private final TwinFieldAttributeService twinFieldAttributeService;
@@ -54,6 +56,9 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             }
             case SHOW -> {
                 twinService.loadFieldsValues(src);
+                if (mapperContext.hasModeButNot(TwinFieldCollectionFilterRequiredMode.ANY)) {
+                    twinFieldRuleExecutionService.applyRules(src);
+                }
                 Stream<FieldValue> fieldsStream = src.getFieldValuesKit().getCollection().stream()
                         .filter(not(FieldValue::isBaseField));
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterEmptyMode.ANY)) {
@@ -62,8 +67,8 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                     default -> fieldsStream;
                 };
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterRequiredMode.ANY)) {
-                    case ONLY -> fieldsStream.filter(fieldValue -> fieldValue.getTwinClassField().getRequired());
-                    case ONLY_NOT -> fieldsStream.filter(fieldValue -> !fieldValue.getTwinClassField().getRequired());
+                    case ONLY -> fieldsStream.filter(fieldValue -> twinService.isRequired(src, fieldValue.getTwinClassField()));
+                    case ONLY_NOT -> fieldsStream.filter(fieldValue -> !twinService.isRequired(src, fieldValue.getTwinClassField()));
                     default -> fieldsStream;
                 };
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterSystemMode.ANY)) {
@@ -127,7 +132,10 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         twinBaseV3RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         TwinFieldCollectionMode.legacyConverter(mapperContext);
         if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW)) {
-            twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
+            twinService.loadFieldsValues(srcCollection);
+            if (mapperContext.hasModeButNot(TwinFieldCollectionFilterRequiredMode.ANY)) {
+                twinFieldRuleExecutionService.applyRules(srcCollection);
+            }
         }
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadAttributes(srcCollection);

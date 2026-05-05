@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -18,8 +17,6 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.util.Collection;
 import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -39,21 +36,19 @@ public class TwinValidatorTwinHasLinkAndDstTwinHasStatus extends TwinValidator {
     TwinLinkService twinLinkService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        UUID linkIdUUID = linkId.extract(properties);
-        Set<UUID> statusIds = twinStatusIds.extract(properties);
-        boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.isLinkDstTwinStatusIn(twinEntity, linkIdUUID, statusIds);
-
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " has no link[" + linkIdUUID + "] or dst twin status not in " + statusIds,
-                twinEntity.logShort() + " has some link[" + linkIdUUID + "] and dst twin status in " + statusIds);
-    }
-
-    @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
-        twinLinkService.loadTwinLinks(twinEntityCollection); // group loading will reduce db query count
-        return super.isValid(properties, twinEntityCollection, invert);
+        var linkIdUUID = linkId.extract(properties);
+        var statusIds = twinStatusIds.extract(properties);
+        twinLinkService.loadTwinLinks(twinEntityCollection);
+        var result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.isLinkDstTwinStatusIn(twinEntity, linkIdUUID, statusIds);
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " has no link[" + linkIdUUID + "] or dst twin status not in " + statusIds,
+                    twinEntity.logShort() + " has some link[" + linkIdUUID + "] and dst twin status in " + statusIds));
+        }
+        return result;
     }
 }

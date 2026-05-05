@@ -3,6 +3,7 @@ package org.twins.core.featurer.identityprovider;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data
@@ -10,4 +11,5 @@ import java.util.UUID;
 public class TokenMetaData {
     UUID userId;
     UUID businessAccountId;
+    Instant expiresAt;
 }

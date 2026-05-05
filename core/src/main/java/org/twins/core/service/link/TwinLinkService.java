@@ -376,6 +376,28 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkRepository.findDstTwinIdsByLinkId(linkId);
     }
 
+    public Map<UUID, Integer> countBackwardLinks(Collection<UUID> dstTwinIdList, UUID linkId) {
+        if (linkId == null || dstTwinIdList == null || dstTwinIdList.isEmpty())
+            return Collections.emptyMap();
+        List<Object[]> rows = twinLinkRepository.countBackwardLinks(dstTwinIdList, linkId);
+        if (rows == null || rows.isEmpty())
+            return Collections.emptyMap();
+        int expectedSize = rows.size();
+        Map<UUID, Integer> result = new HashMap<>( expectedSize);
+        for (Object[] row : rows) {
+            if (row == null || row.length < 2)
+                continue;
+            Object idObj = row[0];
+            Object cntObj = row[1];
+            if (idObj == null || cntObj == null)
+                continue;
+            UUID id = (UUID) idObj;
+            int cnt = (cntObj instanceof Number n) ? n.intValue() : Integer.parseInt(cntObj.toString());
+            result.put(id, cnt);
+        }
+        return result.isEmpty() ? Collections.emptyMap() : result;
+    }
+
     @Data
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
