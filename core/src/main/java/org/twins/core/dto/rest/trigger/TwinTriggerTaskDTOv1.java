@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.trigger;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;

@@ -23,7 +23,7 @@ import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.EntityKey;
@@ -32,7 +32,6 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
 

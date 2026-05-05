@@ -1,9 +1,9 @@
 package org.twins.core.dao.trigger;
 
-import jakarta.persistence.criteria.Predicate;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 
 import java.util.Set;
 
