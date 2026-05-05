@@ -48,13 +48,13 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
     @Query(value = "select tt from TwinflowTransitionEntity tt " +
             "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
             "and tt.twinflowTransitionAlias.alias = :alias " +
-            "and tt.twinflowTransitionTypeId != :twinflowTransitionType " +
+            "and tt.twinflowTransitionTypeId not in :excludedTransitionTypes " +
             "and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("alias") String alias,
-            @Param("twinflowTransitionType") TwinflowTransitionType twinflowTransitionType,
+            @Param("excludedTransitionTypes") Collection<TwinflowTransitionType> excludedTransitionTypes,
             @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
             @Param("userId") UUID userId,

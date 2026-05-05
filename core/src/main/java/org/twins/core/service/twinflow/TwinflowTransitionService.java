@@ -510,7 +510,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         userGroupService.loadGroupsForCurrentUser();
         TwinflowTransitionEntity transition = twinflowTransitionRepository.findTransitionByAlias(
                 twinEntity.getTwinflow().getId(),
-                twinEntity.getTwinStatusId(), transitionAlias, TwinflowTransitionType.MARKETING,
+                twinEntity.getTwinStatusId(),
+                transitionAlias,
+                List.of(TwinflowTransitionType.MARKETING, TwinflowTransitionType.OPERATION_DISABLE),
                 twinEntity.getPermissionSchemaId(),
                 TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
                 apiUser.getUserId(),
@@ -540,7 +542,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     detectKey.twinflowId,
                     detectKey.srcStatusId,
                     transitionAlias,
-                    TwinflowTransitionType.MARKETING,
+                    List.of(TwinflowTransitionType.MARKETING, TwinflowTransitionType.OPERATION_DISABLE),
                     detectKey.permissionSchemaId,
                     TypedParameterTwins.uuidNullable(detectKey.permissionSpaceId),
                     apiUser.getUserId(),
