@@ -58,6 +58,8 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.sql.I18nSqlBuilder;
+import org.twins.core.service.sql.SqlBuilder;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -111,6 +113,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinService twinService;
     @Autowired
     private CacheManager cacheManager;
+    private final I18nSqlBuilder i18nSqlBuilder;
+    private final SqlBuilder sqlBuilder;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -1011,5 +1015,113 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         } else {
             return null;
         }
+    }
+
+    public String exportToSql(UUID twinClassId, boolean includeFields, boolean includeStatuses, boolean includeTwinflow) throws ServiceException {
+        TwinClassEntity twinClass = findEntitySafe(twinClassId);
+
+        Set<UUID> i18nIds = new HashSet<>();
+        StringBuilder sql = new StringBuilder();
+
+        // Collect i18n IDs from twin class
+        if (twinClass.getNameI18NId() != null) {
+            i18nIds.add(twinClass.getNameI18NId());
+        }
+        if (twinClass.getDescriptionI18NId() != null) {
+            i18nIds.add(twinClass.getDescriptionI18NId());
+        }
+
+        // Load fields if needed
+        if (includeFields) {
+            twinClassFieldService.loadTwinClassFields(twinClass);
+            if (twinClass.getTwinClassFieldKit() != null) {
+                for (TwinClassFieldEntity field : twinClass.getTwinClassFieldKit()) {
+                    if (field.getNameI18nId() != null) {
+                        i18nIds.add(field.getNameI18nId());
+                    }
+                    if (field.getDescriptionI18nId() != null) {
+                        i18nIds.add(field.getDescriptionI18nId());
+                    }
+                }
+            }
+        }
+
+        // Load statuses if needed
+        if (includeStatuses) {
+            twinStatusService.loadStatusesForTwinClasses(twinClass);
+            if (twinClass.getTwinStatusKit() != null) {
+                for (TwinStatusEntity status : twinClass.getTwinStatusKit()) {
+                    if (status.getNameI18nId() != null) {
+                        i18nIds.add(status.getNameI18nId());
+                    }
+                    if (status.getDescriptionI18nId() != null) {
+                        i18nIds.add(status.getDescriptionI18nId());
+                    }
+                }
+            }
+        }
+
+        // Load twinflow if needed
+        TwinflowEntity twinflow = null;
+        if (includeTwinflow) {
+            twinflow = twinflowService.findByTwinClassId(twinClassId);
+            if (twinflow != null) {
+                if (twinflow.getNameI18NId() != null) {
+                    i18nIds.add(twinflow.getNameI18NId());
+                }
+                if (twinflow.getDescriptionI18NId() != null) {
+                    i18nIds.add(twinflow.getDescriptionI18NId());
+                }
+            }
+        }
+
+        // Export i18n first
+        if (!i18nIds.isEmpty()) {
+            for (UUID i18nId : i18nIds) {
+                I18nEntity i18n = i18nService.findEntitySafe(i18nId);
+                i18nService.loadTranslations(i18n);
+                String i18nSql = i18nSqlBuilder.buildI18nInsert(i18n, i18n.getTranslationsKit() != null ? new ArrayList<>(i18n.getTranslationsKit()) : Collections.emptyList());
+                if (!i18nSql.isEmpty()) {
+                    if (!sql.isEmpty()) sql.append("\n");
+                    sql.append(i18nSql);
+                }
+            }
+        }
+
+        // Export twin class
+        String twinClassSql = sqlBuilder.buildInsert(twinClass);
+        if (!twinClassSql.isEmpty()) {
+            if (!sql.isEmpty()) sql.append("\n");
+            sql.append(twinClassSql);
+        }
+
+        // Export statuses
+        if (includeStatuses && twinClass.getTwinStatusKit() != null) {
+            String statusesSql = sqlBuilder.buildInserts(twinClass.getTwinStatusKit());
+            if (!statusesSql.isEmpty()) {
+                if (!sql.isEmpty()) sql.append("\n");
+                sql.append(statusesSql);
+            }
+        }
+
+        // Export twinflow
+        if (includeTwinflow && twinflow != null) {
+            String twinflowSql = sqlBuilder.buildInsert(twinflow);
+            if (!twinflowSql.isEmpty()) {
+                if (!sql.isEmpty()) sql.append("\n");
+                sql.append(twinflowSql);
+            }
+        }
+
+        // Export fields
+        if (includeFields && twinClass.getTwinClassFieldKit() != null) {
+            String fieldsSql = sqlBuilder.buildInserts(twinClass.getTwinClassFieldKit());
+            if (!fieldsSql.isEmpty()) {
+                if (!sql.isEmpty()) sql.append("\n");
+                sql.append(fieldsSql);
+            }
+        }
+
+        return sql.toString();
     }
 }
