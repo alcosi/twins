@@ -281,7 +281,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     public TwinflowEntity findByTwinClassId(UUID twinClassId) {
         List<TwinflowEntity> twinflows = twinflowRepository.findByTwinClassId(twinClassId);
-        return twinflows.isEmpty() ? null : twinflows.get(0);
+        return twinflows.isEmpty() ? null : twinflows.getFirst();
     }
 
     public List<TwinflowSchemaMapEntity> findTwinflowSchemaMapByTwinflowId(UUID twinflowId) {

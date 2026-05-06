@@ -1018,6 +1018,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
+    @Transactional(readOnly = true)
     public String exportToSql(UUID twinClassId, boolean includeFields, boolean includeStatuses, boolean includeTwinflow) throws ServiceException {
         TwinClassEntity twinClass = findEntitySafe(twinClassId);
 
@@ -1037,17 +1038,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (includeFields) {
             twinClassFieldService.loadTwinClassFields(twinClass);
             if (twinClass.getTwinClassFieldKit() != null) {
-                ownFields = twinClass.getTwinClassFieldKit().stream()
-                        .filter(f -> twinClassId.equals(f.getTwinClassId()))
-                        .collect(Collectors.toList());
-                for (TwinClassFieldEntity field : ownFields) {
-                    if (field.getNameI18nId() != null) {
-                        i18nIds.add(field.getNameI18nId());
-                    }
-                    if (field.getDescriptionI18nId() != null) {
-                        i18nIds.add(field.getDescriptionI18nId());
-                    }
-                }
+                ownFields = filterOwnItems(twinClass.getTwinClassFieldKit(), twinClassId, TwinClassFieldEntity::getTwinClassId);
+                Set<UUID> fieldI18nIds = i18nService.collectI18nIds(ownFields,
+                        TwinClassFieldEntity::getNameI18nId,
+                        TwinClassFieldEntity::getDescriptionI18nId);
+                i18nIds.addAll(fieldI18nIds);
             }
         }
 
@@ -1056,17 +1051,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (includeStatuses) {
             twinStatusService.loadStatusesForTwinClasses(twinClass);
             if (twinClass.getTwinStatusKit() != null) {
-                ownStatuses = twinClass.getTwinStatusKit().stream()
-                        .filter(s -> twinClassId.equals(s.getTwinClassId()))
-                        .collect(Collectors.toList());
-                for (TwinStatusEntity status : ownStatuses) {
-                    if (status.getNameI18nId() != null) {
-                        i18nIds.add(status.getNameI18nId());
-                    }
-                    if (status.getDescriptionI18nId() != null) {
-                        i18nIds.add(status.getDescriptionI18nId());
-                    }
-                }
+                ownStatuses = filterOwnItems(twinClass.getTwinStatusKit(), twinClassId, TwinStatusEntity::getTwinClassId);
+                Set<UUID> statusI18nIds = i18nService.collectI18nIds(ownStatuses,
+                        TwinStatusEntity::getNameI18nId,
+                        TwinStatusEntity::getDescriptionI18nId);
+                i18nIds.addAll(statusI18nIds);
             }
         }
 
@@ -1143,5 +1132,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
 
         return sql.toString();
+    }
+
+    private <T> List<T> filterOwnItems(Collection<T> items, UUID twinClassId, Function<T, UUID> twinClassIdExtractor) {
+        return items.stream()
+                .filter(item -> twinClassId.equals(twinClassIdExtractor.apply(item)))
+                .collect(Collectors.toList());
     }
 }

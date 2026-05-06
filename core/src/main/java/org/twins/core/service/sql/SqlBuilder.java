@@ -75,9 +75,9 @@ public class SqlBuilder {
                 if (hstore.length() > 0) {
                     hstore.append(", ");
                 }
-                hstore.append(escapeSqlString(entry.getKey()))
+                hstore.append(formatHstoreValue(entry.getKey()))
                      .append("=>")
-                     .append(escapeSqlString(entry.getValue()));
+                     .append(formatHstoreValue(entry.getValue()));
             }
             return "'" + hstore + "'::hstore";
         }
@@ -118,13 +118,37 @@ public class SqlBuilder {
         return value.replace("'", "''");
     }
 
+    private String formatHstoreValue(String value) {
+        // PostgreSQL hstore quoting rules:
+        // 1. Empty strings must be quoted: ""
+        // 2. Strings with spaces, commas, =>, or double quotes must be quoted
+        // 3. Double quotes inside are escaped by doubling: ""
+        if (value.isEmpty()) {
+            return "\"\"";
+        }
+
+        // Check if value needs quoting
+        boolean needsQuoting = value.contains(" ") || value.contains(",") ||
+                value.contains("=>") || value.contains("\"") ||
+                value.contains("\t") || value.contains("\n") ||
+                value.startsWith("'") || value.startsWith("0") ||
+                value.matches("\\d+"); // Numeric strings need quoting
+
+        if (!needsQuoting) {
+            // Unquoted value (NULL keyword becomes unquoted NULL)
+            return "NULL".equals(value) ? "NULL" : value;
+        }
+
+        // Quote and escape double quotes by doubling
+        return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+
     private EntityMetadata extractMetadata(Class<?> clazz) {
         String tableName = resolveTableName(clazz);
 
         List<String> columns = new ArrayList<>();
         List<Function<Object, Object>> extractors = new ArrayList<>();
         List<Class<?>> fieldTypes = new ArrayList<>();
-        Map<String, String> fieldToColumn = new HashMap<>();
 
         for (Field field : getAllFields(clazz)) {
             field.setAccessible(true);
@@ -153,7 +177,6 @@ public class SqlBuilder {
 
             String columnName = resolveColumnName(field);
             columns.add(columnName);
-            fieldToColumn.put(field.getName(), columnName);
             fieldTypes.add(field.getType());
 
             // Use getter method instead of direct field access for proper lazy loading
@@ -185,7 +208,7 @@ public class SqlBuilder {
             });
         }
 
-        return new EntityMetadata(tableName, columns, extractors, fieldTypes, fieldToColumn);
+        return new EntityMetadata(tableName, columns, extractors, fieldTypes);
     }
 
     private Class<?> getRealClass(Class<?> clazz) {
@@ -227,7 +250,6 @@ public class SqlBuilder {
             String tableName,
             List<String> columns,
             List<Function<Object, Object>> extractors,
-            List<Class<?>> fieldTypes,
-            Map<String, String> fieldToColumn
+            List<Class<?>> fieldTypes
     ) {}
 }

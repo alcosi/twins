@@ -39,24 +39,18 @@ public class TwinClassExportSqlController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> twinClassExportSqlV1(
-            @RequestBody TwinClassExportSqlRqDTOv1 request) {
-        try {
-            String sql = twinClassService.exportToSql(
-                    request.getTwinClassId(),
-                    request.isDuplicateFields(),
-                    request.isDuplicateStatuses(),
-                    request.isDuplicateTwinflow()
-            );
+            @RequestBody TwinClassExportSqlRqDTOv1 request) throws ServiceException {
+        String sql = twinClassService.exportToSql(
+                request.getTwinClassId(),
+                request.isDuplicateFields(),
+                request.isDuplicateStatuses(),
+                request.isDuplicateTwinflow()
+        );
 
-            String filename = "twin_class_" + request.getTwinClassId() + ".sql";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDispositionFormData("attachment", filename);
+        String filename = "twin_class_" + request.getTwinClassId() + ".sql";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDispositionFormData("attachment", filename);
 
-            return new ResponseEntity<>(sql.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.OK);
-        } catch (ServiceException se) {
-            return new ResponseEntity<>(se.getMessage().getBytes(StandardCharsets.UTF_8), HttpStatus.INTERNAL_SERVER_ERROR);
-        } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage().getBytes(StandardCharsets.UTF_8), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return new ResponseEntity<>(sql.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.OK);
     }
 }
