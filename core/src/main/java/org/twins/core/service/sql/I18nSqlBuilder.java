@@ -23,8 +23,6 @@ public class I18nSqlBuilder {
         i18n.getKey();
         i18n.getType(); // Enum with @Convert - needs initialization
 
-        log.info("Building i18n insert for id={}, type={}", i18n.getId(), i18n.getType());
-
         List<String> parts = new ArrayList<>();
 
         String i18nSql = sqlBuilder.buildInsert(i18n);

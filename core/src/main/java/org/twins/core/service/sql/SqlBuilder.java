@@ -21,8 +21,6 @@ public class SqlBuilder {
         Class<?> clazz = getRealClass(entity.getClass());
         EntityMetadata metadata = extractMetadata(clazz);
 
-        log.info("Building INSERT for {} with {} fields", clazz.getSimpleName(), metadata.columns.size());
-
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ").append(metadata.tableName).append(" (");
 

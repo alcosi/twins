@@ -21,11 +21,9 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.twinclass.TwinClassExportSqlRqDTOv1;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassService;
-import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
 
-@Slf4j
 @Tag(name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -44,16 +42,13 @@ public class TwinClassExportSqlController extends ApiController {
             @RequestBody TwinClassExportSqlRqDTOv1 request) {
         try {
             String sql = twinClassService.exportToSql(
-                    request.twinClassId,
-                    request.duplicateFields,
-                    request.duplicateStatuses,
-                    request.duplicateTwinflow
+                    request.getTwinClassId(),
+                    request.isDuplicateFields(),
+                    request.isDuplicateStatuses(),
+                    request.isDuplicateTwinflow()
             );
 
-            log.info("Generated SQL for twinClass {}: length={}, content preview:\n{}",
-                    request.twinClassId, sql.length(), sql.length() > 500 ? sql.substring(0, 500) + "..." : sql);
-
-            String filename = "twin_class_" + request.twinClassId + ".sql";
+            String filename = "twin_class_" + request.getTwinClassId() + ".sql";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDispositionFormData("attachment", filename);
 

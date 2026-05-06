@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface TwinflowSchemaMapRepository extends CrudRepository<TwinflowSchemaMapEntity, UUID>, JpaSpecificationExecutor<TwinflowSchemaMapEntity> {
     TwinflowSchemaMapEntity findByTwinflowSchemaIdAndTwinClassId(UUID twinflowSchemaId, UUID twinClassId);
     List<TwinflowSchemaMapEntity> findByTwinflowSchemaIdAndTwinClassIdIn(UUID twinflowSchemaId, Set<UUID> twinClassId);
+    List<TwinflowSchemaMapEntity> findByTwinflowId(UUID twinflowId);
 }

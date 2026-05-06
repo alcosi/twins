@@ -33,6 +33,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
@@ -1031,11 +1032,15 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             i18nIds.add(twinClass.getDescriptionI18NId());
         }
 
-        // Load fields if needed
+        // Load and filter fields
+        List<TwinClassFieldEntity> ownFields = Collections.emptyList();
         if (includeFields) {
             twinClassFieldService.loadTwinClassFields(twinClass);
             if (twinClass.getTwinClassFieldKit() != null) {
-                for (TwinClassFieldEntity field : twinClass.getTwinClassFieldKit()) {
+                ownFields = twinClass.getTwinClassFieldKit().stream()
+                        .filter(f -> twinClassId.equals(f.getTwinClassId()))
+                        .collect(Collectors.toList());
+                for (TwinClassFieldEntity field : ownFields) {
                     if (field.getNameI18nId() != null) {
                         i18nIds.add(field.getNameI18nId());
                     }
@@ -1046,11 +1051,15 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
         }
 
-        // Load statuses if needed
+        // Load and filter statuses
+        List<TwinStatusEntity> ownStatuses = Collections.emptyList();
         if (includeStatuses) {
             twinStatusService.loadStatusesForTwinClasses(twinClass);
             if (twinClass.getTwinStatusKit() != null) {
-                for (TwinStatusEntity status : twinClass.getTwinStatusKit()) {
+                ownStatuses = twinClass.getTwinStatusKit().stream()
+                        .filter(s -> twinClassId.equals(s.getTwinClassId()))
+                        .collect(Collectors.toList());
+                for (TwinStatusEntity status : ownStatuses) {
                     if (status.getNameI18nId() != null) {
                         i18nIds.add(status.getNameI18nId());
                     }
@@ -1063,6 +1072,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         // Load twinflow if needed
         TwinflowEntity twinflow = null;
+        List<TwinflowSchemaMapEntity> twinflowSchemaMaps = Collections.emptyList();
         if (includeTwinflow) {
             twinflow = twinflowService.findByTwinClassId(twinClassId);
             if (twinflow != null) {
@@ -1072,6 +1082,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (twinflow.getDescriptionI18NId() != null) {
                     i18nIds.add(twinflow.getDescriptionI18NId());
                 }
+                twinflowSchemaMaps = twinflowService.findTwinflowSchemaMapByTwinflowId(twinflow.getId());
             }
         }
 
@@ -1096,8 +1107,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
 
         // Export statuses
-        if (includeStatuses && twinClass.getTwinStatusKit() != null) {
-            String statusesSql = sqlBuilder.buildInserts(twinClass.getTwinStatusKit());
+        if (!ownStatuses.isEmpty()) {
+            String statusesSql = sqlBuilder.buildInserts(ownStatuses);
             if (!statusesSql.isEmpty()) {
                 if (!sql.isEmpty()) sql.append("\n");
                 sql.append(statusesSql);
@@ -1111,11 +1122,20 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (!sql.isEmpty()) sql.append("\n");
                 sql.append(twinflowSql);
             }
+
+            // Export twinflow schema maps
+            if (!twinflowSchemaMaps.isEmpty()) {
+                String schemaMapsSql = sqlBuilder.buildInserts(twinflowSchemaMaps);
+                if (!schemaMapsSql.isEmpty()) {
+                    if (!sql.isEmpty()) sql.append("\n");
+                    sql.append(schemaMapsSql);
+                }
+            }
         }
 
         // Export fields
-        if (includeFields && twinClass.getTwinClassFieldKit() != null) {
-            String fieldsSql = sqlBuilder.buildInserts(twinClass.getTwinClassFieldKit());
+        if (!ownFields.isEmpty()) {
+            String fieldsSql = sqlBuilder.buildInserts(ownFields);
             if (!fieldsSql.isEmpty()) {
                 if (!sql.isEmpty()) sql.append("\n");
                 sql.append(fieldsSql);
