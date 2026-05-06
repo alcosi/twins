@@ -20,25 +20,25 @@ class ClassFinderHasSegmentTest extends BaseUnitTest {
     class ConcatSearch {
 
         @Test
-        void concatSearch_excludeTrue_setsAbstracttToOnlyNot() throws ServiceException {
+        void concatSearch_excludeTrue_setsHasSegmentsToOnlyNot() throws ServiceException {
             var properties = new Properties();
             properties.setProperty("exclude", "true");
             var classSearch = new TwinClassSearch();
 
             classFinder.concatSearch(properties, classSearch);
 
-            assertEquals(Ternary.ONLY_NOT, classSearch.getAbstractt());
+            assertEquals(Ternary.ONLY_NOT, classSearch.getHasSegments());
         }
 
         @Test
-        void concatSearch_excludeFalse_setsAbstracttToOnly() throws ServiceException {
+        void concatSearch_excludeFalse_setsHasSegmentsToOnly() throws ServiceException {
             var properties = new Properties();
             properties.setProperty("exclude", "false");
             var classSearch = new TwinClassSearch();
 
             classFinder.concatSearch(properties, classSearch);
 
-            assertEquals(Ternary.ONLY, classSearch.getAbstractt());
+            assertEquals(Ternary.ONLY, classSearch.getHasSegments());
         }
     }
 }
