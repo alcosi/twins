@@ -59,8 +59,6 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
-import org.twins.core.service.sql.I18nSqlBuilder;
-import org.twins.core.service.sql.SqlBuilder;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -114,8 +112,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinService twinService;
     @Autowired
     private CacheManager cacheManager;
-    private final I18nSqlBuilder i18nSqlBuilder;
-    private final SqlBuilder sqlBuilder;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -1018,125 +1014,4 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    @Transactional(readOnly = true)
-    public String exportToSql(UUID twinClassId, boolean includeFields, boolean includeStatuses, boolean includeTwinflow) throws ServiceException {
-        TwinClassEntity twinClass = findEntitySafe(twinClassId);
-
-        Set<UUID> i18nIds = new HashSet<>();
-        StringBuilder sql = new StringBuilder();
-
-        // Collect i18n IDs from twin class
-        if (twinClass.getNameI18NId() != null) {
-            i18nIds.add(twinClass.getNameI18NId());
-        }
-        if (twinClass.getDescriptionI18NId() != null) {
-            i18nIds.add(twinClass.getDescriptionI18NId());
-        }
-
-        // Load and filter fields
-        List<TwinClassFieldEntity> ownFields = Collections.emptyList();
-        if (includeFields) {
-            twinClassFieldService.loadTwinClassFields(twinClass);
-            if (twinClass.getTwinClassFieldKit() != null) {
-                ownFields = filterOwnItems(twinClass.getTwinClassFieldKit(), twinClassId, TwinClassFieldEntity::getTwinClassId);
-                Set<UUID> fieldI18nIds = i18nService.collectI18nIds(ownFields,
-                        TwinClassFieldEntity::getNameI18nId,
-                        TwinClassFieldEntity::getDescriptionI18nId);
-                i18nIds.addAll(fieldI18nIds);
-            }
-        }
-
-        // Load and filter statuses
-        List<TwinStatusEntity> ownStatuses = Collections.emptyList();
-        if (includeStatuses) {
-            twinStatusService.loadStatusesForTwinClasses(twinClass);
-            if (twinClass.getTwinStatusKit() != null) {
-                ownStatuses = filterOwnItems(twinClass.getTwinStatusKit(), twinClassId, TwinStatusEntity::getTwinClassId);
-                Set<UUID> statusI18nIds = i18nService.collectI18nIds(ownStatuses,
-                        TwinStatusEntity::getNameI18nId,
-                        TwinStatusEntity::getDescriptionI18nId);
-                i18nIds.addAll(statusI18nIds);
-            }
-        }
-
-        // Load twinflow if needed
-        TwinflowEntity twinflow = null;
-        List<TwinflowSchemaMapEntity> twinflowSchemaMaps = Collections.emptyList();
-        if (includeTwinflow) {
-            twinflow = twinflowService.findByTwinClassId(twinClassId);
-            if (twinflow != null) {
-                if (twinflow.getNameI18NId() != null) {
-                    i18nIds.add(twinflow.getNameI18NId());
-                }
-                if (twinflow.getDescriptionI18NId() != null) {
-                    i18nIds.add(twinflow.getDescriptionI18NId());
-                }
-                twinflowSchemaMaps = twinflowService.findTwinflowSchemaMapByTwinflowId(twinflow.getId());
-            }
-        }
-
-        // Export i18n first
-        if (!i18nIds.isEmpty()) {
-            for (UUID i18nId : i18nIds) {
-                I18nEntity i18n = i18nService.findEntitySafe(i18nId);
-                i18nService.loadTranslations(i18n);
-                String i18nSql = i18nSqlBuilder.buildI18nInsert(i18n, i18n.getTranslationsKit() != null ? new ArrayList<>(i18n.getTranslationsKit()) : Collections.emptyList());
-                if (!i18nSql.isEmpty()) {
-                    if (!sql.isEmpty()) sql.append("\n");
-                    sql.append(i18nSql);
-                }
-            }
-        }
-
-        // Export twin class
-        String twinClassSql = sqlBuilder.buildInsert(twinClass);
-        if (!twinClassSql.isEmpty()) {
-            if (!sql.isEmpty()) sql.append("\n");
-            sql.append(twinClassSql);
-        }
-
-        // Export statuses
-        if (!ownStatuses.isEmpty()) {
-            String statusesSql = sqlBuilder.buildInserts(ownStatuses);
-            if (!statusesSql.isEmpty()) {
-                if (!sql.isEmpty()) sql.append("\n");
-                sql.append(statusesSql);
-            }
-        }
-
-        // Export twinflow
-        if (includeTwinflow && twinflow != null) {
-            String twinflowSql = sqlBuilder.buildInsert(twinflow);
-            if (!twinflowSql.isEmpty()) {
-                if (!sql.isEmpty()) sql.append("\n");
-                sql.append(twinflowSql);
-            }
-
-            // Export twinflow schema maps
-            if (!twinflowSchemaMaps.isEmpty()) {
-                String schemaMapsSql = sqlBuilder.buildInserts(twinflowSchemaMaps);
-                if (!schemaMapsSql.isEmpty()) {
-                    if (!sql.isEmpty()) sql.append("\n");
-                    sql.append(schemaMapsSql);
-                }
-            }
-        }
-
-        // Export fields
-        if (!ownFields.isEmpty()) {
-            String fieldsSql = sqlBuilder.buildInserts(ownFields);
-            if (!fieldsSql.isEmpty()) {
-                if (!sql.isEmpty()) sql.append("\n");
-                sql.append(fieldsSql);
-            }
-        }
-
-        return sql.toString();
-    }
-
-    private <T> List<T> filterOwnItems(Collection<T> items, UUID twinClassId, Function<T, UUID> twinClassIdExtractor) {
-        return items.stream()
-                .filter(item -> twinClassId.equals(twinClassIdExtractor.apply(item)))
-                .collect(Collectors.toList());
-    }
 }

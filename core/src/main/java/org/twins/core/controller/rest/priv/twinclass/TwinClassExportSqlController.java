@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,17 +21,18 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.twinclass.TwinClassExportSqlRqDTOv1;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassExportService;
 
 import java.nio.charset.StandardCharsets;
 
 @Tag(name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
+@Slf4j
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_CLASS_MANAGE})
 public class TwinClassExportSqlController extends ApiController {
-    private final TwinClassService twinClassService;
+    private final TwinClassExportService twinClassExportService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassExportSqlV1", summary = "Exports twin class as SQL INSERT statements")
@@ -40,14 +42,19 @@ public class TwinClassExportSqlController extends ApiController {
     @PostMapping(value = "/private/twin_class/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> twinClassExportSqlV1(
             @RequestBody TwinClassExportSqlRqDTOv1 request) throws ServiceException {
-        String sql = twinClassService.exportToSql(
-                request.getTwinClassId(),
-                request.isDuplicateFields(),
-                request.isDuplicateStatuses(),
-                request.isDuplicateTwinflow()
+        log.info("Export SQL for twinClassIds: {}, includeFields={}, includeStatuses={}, includeTwinflow={}",
+                request.getTwinClassIds(), request.isIncludeFields(), request.isIncludeStatuses(), request.isIncludeTwinflow());
+
+        String sql = twinClassExportService.exportToSql(
+                request.getTwinClassIds(),
+                request.isIncludeFields(),
+                request.isIncludeStatuses(),
+                request.isIncludeTwinflow()
         );
 
-        String filename = "twin_class_" + request.getTwinClassId() + ".sql";
+        log.info("Generated SQL length: {}, isEmpty: {}", sql.length(), sql.isEmpty());
+
+        String filename = "twin_classes_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", filename);
 

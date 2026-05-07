@@ -3,6 +3,7 @@ package org.cambium.common.util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
@@ -99,5 +100,11 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                  return collection;
          }
          return null;
+    }
+
+    public static <T, ID> List<T> filterByItemId(Collection<T> items, ID itemId, Function<T, ID> idExtractor) {
+        return items.stream()
+                .filter(item -> itemId.equals(idExtractor.apply(item)))
+                .toList();
     }
 }

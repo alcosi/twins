@@ -1,4 +1,4 @@
-package org.twins.core.service.sql;
+package org.cambium.common.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.Column;
@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -16,28 +17,30 @@ import java.util.stream.Collectors;
 @Component
 public class SqlBuilder {
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Map<Class<?>, EntityMetadata> metadataCache = new ConcurrentHashMap<>();
 
     public String buildInsert(Object entity) {
         Class<?> clazz = getRealClass(entity.getClass());
-        EntityMetadata metadata = extractMetadata(clazz);
+        EntityMetadata metadata = metadataCache.computeIfAbsent(clazz, this::extractMetadata);
 
         StringBuilder sql = new StringBuilder();
-        sql.append("INSERT INTO ").append(metadata.tableName).append(" (");
+        sql.append("INSERT INTO ").append(metadata.tableName()).append(" (");
 
         List<String> columns = new ArrayList<>();
         List<String> values = new ArrayList<>();
 
-        for (int i = 0; i < metadata.columns.size(); i++) {
-            Function<Object, Object> extractor = metadata.extractors.get(i);
+        for (int i = 0; i < metadata.columns().size(); i++) {
+            Function<Object, Object> extractor = metadata.extractors().get(i);
             Object value = extractor.apply(entity);
 
             if (value != null) {
-                columns.add(metadata.columns.get(i));
-                values.add(formatValue(value, metadata.fieldTypes.get(i)));
+                columns.add(metadata.columns().get(i));
+                values.add(formatValue(value));
             }
         }
 
         if (columns.isEmpty()) {
+            log.warn("No columns to insert for entity: {}", clazz.getName());
             return "";
         }
 
@@ -55,7 +58,7 @@ public class SqlBuilder {
                 .collect(Collectors.joining("\n"));
     }
 
-    private String formatValue(Object value, Class<?> fieldType) {
+    private String formatValue(Object value) {
         if (value == null) {
             return "NULL";
         }
@@ -76,8 +79,8 @@ public class SqlBuilder {
                     hstore.append(", ");
                 }
                 hstore.append(formatHstoreValue(entry.getKey()))
-                     .append("=>")
-                     .append(formatHstoreValue(entry.getValue()));
+                        .append("=>")
+                        .append(formatHstoreValue(entry.getValue()));
             }
             return "'" + hstore + "'::hstore";
         }
@@ -119,27 +122,24 @@ public class SqlBuilder {
     }
 
     private String formatHstoreValue(String value) {
-        // PostgreSQL hstore quoting rules:
-        // 1. Empty strings must be quoted: ""
-        // 2. Strings with spaces, commas, =>, or double quotes must be quoted
-        // 3. Double quotes inside are escaped by doubling: ""
+        if (value == null) {
+            return "NULL";
+        }
+
         if (value.isEmpty()) {
             return "\"\"";
         }
 
-        // Check if value needs quoting
         boolean needsQuoting = value.contains(" ") || value.contains(",") ||
                 value.contains("=>") || value.contains("\"") ||
                 value.contains("\t") || value.contains("\n") ||
                 value.startsWith("'") || value.startsWith("0") ||
-                value.matches("\\d+"); // Numeric strings need quoting
+                value.matches("\\d+");
 
         if (!needsQuoting) {
-            // Unquoted value (NULL keyword becomes unquoted NULL)
             return "NULL".equals(value) ? "NULL" : value;
         }
 
-        // Quote and escape double quotes by doubling
         return "\"" + value.replace("\"", "\"\"") + "\"";
     }
 
@@ -179,17 +179,14 @@ public class SqlBuilder {
             columns.add(columnName);
             fieldTypes.add(field.getType());
 
-            // Use getter method instead of direct field access for proper lazy loading
             final String getterName = "get" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
             java.lang.reflect.Method getter;
             try {
                 getter = clazz.getMethod(getterName);
             } catch (NoSuchMethodException e) {
-                // Try "is" prefix for boolean fields
                 try {
                     getter = clazz.getMethod("is" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1));
                 } catch (NoSuchMethodException ex) {
-                    // Fall back to field access if no getter found
                     getter = null;
                 }
             }
@@ -203,11 +200,13 @@ public class SqlBuilder {
                     }
                     return fieldValue;
                 } catch (Exception e) {
+                    log.error("Failed to extract field value: {}#{}", clazz.getSimpleName(), field.getName(), e);
                     throw new RuntimeException(e);
                 }
             });
         }
 
+        log.info("Extracted metadata for {}: {} columns", clazz.getSimpleName(), columns.size());
         return new EntityMetadata(tableName, columns, extractors, fieldTypes);
     }
 
@@ -245,11 +244,4 @@ public class SqlBuilder {
         }
         return fields;
     }
-
-    private record EntityMetadata(
-            String tableName,
-            List<String> columns,
-            List<Function<Object, Object>> extractors,
-            List<Class<?>> fieldTypes
-    ) {}
 }
