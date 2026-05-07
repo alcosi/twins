@@ -206,7 +206,6 @@ public class SqlBuilder {
             });
         }
 
-        log.info("Extracted metadata for {}: {} columns", clazz.getSimpleName(), columns.size());
         return new EntityMetadata(tableName, columns, extractors, fieldTypes);
     }
 

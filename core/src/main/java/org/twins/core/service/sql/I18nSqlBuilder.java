@@ -1,7 +1,6 @@
 package org.twins.core.service.sql;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -10,7 +9,6 @@ import org.twins.core.dao.i18n.I18nTranslationEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class I18nSqlBuilder {

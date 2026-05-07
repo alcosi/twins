@@ -47,9 +47,6 @@ public class TwinClassExportService {
             return "";
         }
 
-        log.debug("Exporting {} twin classes with fields={}, statuses={}, twinflow={}",
-                twinClasses.size(), includeFields, includeStatuses, includeTwinflow);
-
         Map<UUID, List<TwinClassFieldEntity>> fieldsByClass = new HashMap<>();
         Map<UUID, List<TwinStatusEntity>> statusesByClass = new HashMap<>();
         Map<UUID, TwinflowEntity> twinflowByClass = new HashMap<>();
@@ -59,7 +56,6 @@ public class TwinClassExportService {
             for (TwinClassEntity twinClass : twinClasses) {
                 if (twinClass.getTwinClassFieldKit() != null) {
                     List<TwinClassFieldEntity> ownFields = CollectionUtils.filterByItemId(twinClass.getTwinClassFieldKit(), twinClass.getId(), TwinClassFieldEntity::getTwinClassId);
-                    log.debug("Twin class {} has {} own fields", twinClass.getId(), ownFields.size());
                     if (!ownFields.isEmpty()) {
                         fieldsByClass.put(twinClass.getId(), ownFields);
                     }
@@ -72,7 +68,6 @@ public class TwinClassExportService {
             for (TwinClassEntity twinClass : twinClasses) {
                 if (twinClass.getTwinStatusKit() != null) {
                     List<TwinStatusEntity> ownStatuses = CollectionUtils.filterByItemId(twinClass.getTwinStatusKit(), twinClass.getId(), TwinStatusEntity::getTwinClassId);
-                    log.debug("Twin class {} has {} own statuses", twinClass.getId(), ownStatuses.size());
                     if (!ownStatuses.isEmpty()) {
                         statusesByClass.put(twinClass.getId(), ownStatuses);
                     }
@@ -83,14 +78,12 @@ public class TwinClassExportService {
         if (includeTwinflow) {
             List<UUID> classIds = twinClasses.stream().map(TwinClassEntity::getId).toList();
             List<TwinflowEntity> twinflows = twinflowService.findByTwinClassIdIn(classIds);
-            log.debug("Found {} twinflows", twinflows.size());
             for (TwinflowEntity twinflow : twinflows) {
                 twinflowByClass.put(twinflow.getTwinClassId(), twinflow);
             }
         }
 
         Set<UUID> i18nIds = collectI18nIds(twinClasses, fieldsByClass, statusesByClass, twinflowByClass);
-        log.debug("Collected {} i18n IDs", i18nIds.size());
 
         StringBuilder result = new StringBuilder();
         i18nExportService.appendI18nSql(result, i18nIds);
@@ -111,9 +104,7 @@ public class TwinClassExportService {
             twinClassFieldExportService.appendFieldsSql(result, fieldsByClass);
         }
 
-        String sql = result.toString();
-        log.debug("Generated SQL length: {}", sql.length());
-        return sql;
+        return result.toString();
     }
 
     private Set<UUID> collectI18nIds(Collection<TwinClassEntity> twinClasses,

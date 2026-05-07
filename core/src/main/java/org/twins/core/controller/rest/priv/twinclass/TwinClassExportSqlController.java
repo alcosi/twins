@@ -42,17 +42,12 @@ public class TwinClassExportSqlController extends ApiController {
     @PostMapping(value = "/private/twin_class/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> twinClassExportSqlV1(
             @RequestBody TwinClassExportSqlRqDTOv1 request) throws ServiceException {
-        log.info("Export SQL for twinClassIds: {}, includeFields={}, includeStatuses={}, includeTwinflow={}",
-                request.getTwinClassIds(), request.isIncludeFields(), request.isIncludeStatuses(), request.isIncludeTwinflow());
-
         String sql = twinClassExportService.exportToSql(
                 request.getTwinClassIds(),
                 request.isIncludeFields(),
                 request.isIncludeStatuses(),
                 request.isIncludeTwinflow()
         );
-
-        log.info("Generated SQL length: {}, isEmpty: {}", sql.length(), sql.isEmpty());
 
         String filename = "twin_classes_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();
