@@ -1056,6 +1056,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
                 twinEntity
                         .setHeadTwinId(headTwin.getId())
+                        .setHeadTwin(headTwin)
                         .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
         }
     }
