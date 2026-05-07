@@ -17,6 +17,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -41,6 +42,7 @@ import java.net.URLEncoder;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -58,10 +60,12 @@ import static org.twins.core.exception.ErrorCodeTwins.*;
 @Slf4j
 public class IdentityProviderAlcosi extends IdentityProviderConnector {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final IdentityErrorParser.Implementation parser = new IdentityErrorParser.Implementation();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final AuthService authService;
+    @Qualifier("logoutTaskExecutor")
+    private final Executor logoutTaskExecutor;
 
     @FeaturerParam(name = "Identity server token base uri")
     public static final FeaturerParamString identityServerTokenBaseUri = new FeaturerParamString("identityServerTokenBaseUri");
@@ -147,7 +151,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         return new TokenMetaData()
                 .setUserId(userId)
                 .setBusinessAccountId(businessAccountId)
-                .setExpiresAt(Instant.ofEpochSecond(claims.get("exp").asLong()));
+                .setExpiresAt(claims.get("exp") != null ? Instant.ofEpochSecond(claims.get("exp").asLong()) : null);
     }
 
     @Override
@@ -379,7 +383,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
             } catch (Exception exception) {
                 log.error("Error while revoking token");
             }
-        });
+        }, logoutTaskExecutor);
     }
 
     private <T> ResponseEntity<T> makeRequest(RequestEntity<?> requestEntity, Class<T> responseType) throws ServiceException {
