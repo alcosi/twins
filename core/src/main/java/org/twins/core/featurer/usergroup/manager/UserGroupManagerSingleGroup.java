@@ -61,7 +61,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
         if (CollectionUtils.isNotEmpty(userGroupExitList)) {
             List<UserGroupEntity> exitedGroups = new ArrayList<>(), leftGroups = new ArrayList<>();
             for (UserGroupEntity currentlyEnteredGroup : user.getUserGroups().getList()) {
-                if (userGroupExitList.stream().anyMatch(id -> id.equals(currentlyEnteredGroup.getId())))
+                if (userGroupExitList.contains(currentlyEnteredGroup.getId()))
                     exitedGroups.add(currentlyEnteredGroup);
                 else
                     leftGroups.add(currentlyEnteredGroup);
