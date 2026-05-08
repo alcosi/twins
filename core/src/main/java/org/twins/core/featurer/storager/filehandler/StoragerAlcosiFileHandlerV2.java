@@ -131,8 +131,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
             }
-        } catch (Throwable t) {
-            log.info("Unable to delete files in file-handler service: {}", t.getMessage(), t);
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.info("Unable to delete files in file-handler service: {}", e.getMessage(), e);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to delete files in file-handler service");
         }
     }
@@ -189,8 +191,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                         log.info("Type field in tasks params is not unique");
                         throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                     }
-                } catch (Throwable t) {
-                    log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
+                } catch (ServiceException e) {
+                    throw e;
+                } catch (Exception e) {
+                    log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, e.getMessage(), e);
                     throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                 }
 
@@ -223,8 +227,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
                 return new AddedFileKey(prepareObjectLink(body.originalUrl(), properties), fileSize, modifications);
             }
-        } catch (Throwable t) {
-            log.info("Unable to save file in file-handler service: {}", t.getMessage(), t);
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.info("Unable to save file in file-handler service: {}", e.getMessage(), e);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to save file in file-handler service");
         }
     }
@@ -240,10 +246,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         }
 
         var replaceMap = basePathReplaceMap.extract(properties);
-        var result = "";
+        var result = objectLink;
 
         for (var entry : replaceMap.entrySet()) {
-            result = objectLink.replace(entry.getKey(), entry.getValue());
+            result = result.replace(entry.getKey(), entry.getValue());
         }
 
         return result;

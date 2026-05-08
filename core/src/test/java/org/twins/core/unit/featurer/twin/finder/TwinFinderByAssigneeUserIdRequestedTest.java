@@ -1,0 +1,101 @@
+package org.twins.core.featurer.twin.finder;
+
+import org.cambium.common.exception.ServiceException;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.twins.core.base.BaseUnitTest;
+import org.twins.core.domain.search.TwinSearch;
+
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class TwinFinderByAssigneeUserIdRequestedTest extends BaseUnitTest {
+
+    private final TwinFinderByAssigneeUserIdRequested finder = new TwinFinderByAssigneeUserIdRequested() {};
+
+    @Nested
+    class Concat {
+
+        @Test
+        void concat_singleUserId_addsToSearch() throws ServiceException {
+            var userId = UUID.randomUUID();
+
+            var properties = new Properties();
+            properties.setProperty("paramKey", "userId");
+            properties.setProperty("exclude", "false");
+            var twinSearch = new TwinSearch();
+            var namedParams = Map.of("userId", userId.toString());
+
+            finder.concat(twinSearch, properties, namedParams);
+
+            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
+            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId));
+        }
+
+        @Test
+        void concat_multipleUserIds_addsToSearch() throws ServiceException {
+            var userId1 = UUID.randomUUID();
+            var userId2 = UUID.randomUUID();
+
+            var properties = new Properties();
+            properties.setProperty("paramKey", "userId");
+            properties.setProperty("exclude", "false");
+            var twinSearch = new TwinSearch();
+            var namedParams = Map.of("userId", userId1 + "," + userId2);
+
+            finder.concat(twinSearch, properties, namedParams);
+
+            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
+            assertEquals(2, twinSearch.getAssigneeUserIdExcludeList().size());
+            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId1));
+            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId2));
+        }
+
+        @Test
+        void concat_excludeTrue_addsToAssigneeUserIdList() throws ServiceException {
+            var userId = UUID.randomUUID();
+
+            var properties = new Properties();
+            properties.setProperty("paramKey", "userId");
+            properties.setProperty("exclude", "true");
+            var twinSearch = new TwinSearch();
+            var namedParams = Map.of("userId", userId.toString());
+
+            finder.concat(twinSearch, properties, namedParams);
+
+            assertNotNull(twinSearch.getAssigneeUserIdList());
+            assertTrue(twinSearch.getAssigneeUserIdList().contains(userId));
+        }
+
+        @Test
+        void concat_emptyUserId_returnsWithoutModification() throws ServiceException {
+            var properties = new Properties();
+            properties.setProperty("paramKey", "userId");
+            properties.setProperty("exclude", "false");
+            var twinSearch = new TwinSearch();
+            var namedParams = Map.of("userId", "");
+
+            finder.concat(twinSearch, properties, namedParams);
+
+            assertNull(twinSearch.getAssigneeUserIdList());
+            assertNull(twinSearch.getAssigneeUserIdExcludeList());
+        }
+
+        @Test
+        void concat_missingUserId_returnsWithoutModification() throws ServiceException {
+            var properties = new Properties();
+            properties.setProperty("paramKey", "userId");
+            properties.setProperty("exclude", "false");
+            properties.setProperty("required", "false");
+            var twinSearch = new TwinSearch();
+
+            finder.concat(twinSearch, properties, Map.of());
+
+            assertNull(twinSearch.getAssigneeUserIdList());
+            assertNull(twinSearch.getAssigneeUserIdExcludeList());
+        }
+    }
+}

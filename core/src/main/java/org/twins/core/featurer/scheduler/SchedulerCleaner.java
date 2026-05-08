@@ -39,10 +39,6 @@ public abstract class SchedulerCleaner extends Scheduler {
                     : deleteRecordsAfterInterval(interval);
 
             return deletedCount + " task(s) from db was deleted";
-        } catch (Exception e) {
-            log.error("Exception: ", e);
-
-            return "Processing tasks failed with exception: " + e;
         } finally {
             LoggerUtils.cleanMDC();
         }
