@@ -200,4 +200,13 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
 
     @Query("select tl.dstTwinId as id, count(tl) as cnt from TwinLinkEntity tl where tl.linkId = :linkId and tl.dstTwinId in :dstTwinIdList group by tl.dstTwinId")
     List<Object[]> countBackwardLinks(@Param("dstTwinIdList") Collection<UUID> dstTwinIdList, @Param("linkId") UUID linkId);
+
+    @Query(value = """
+            SELECT tl.dst_twin_id
+            FROM twin_link tl
+            WHERE tl.src_twin_id = :srcTwinId
+              AND tl.link_id = :linkId
+            LIMIT 1
+            """, nativeQuery = true)
+    UUID findDstTwinIdBySrcTwinIdAndLinkId(@Param("srcTwinId") UUID srcTwinId, @Param("linkId") UUID linkId);
 }
