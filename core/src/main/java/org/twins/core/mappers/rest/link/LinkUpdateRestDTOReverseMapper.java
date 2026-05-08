@@ -23,6 +23,8 @@ public class LinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<LinkUpda
         linkSaveRestDTOReverseMapper.map(src, dst, mapperContext);
         dst
                 .setSrcTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getSrcTwinClassUpdate()))
-                .setDstTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getDstTwinClassUpdate()));
+                .setDstTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getDstTwinClassUpdate()))
+                .setSrcTwinClassInheritable(src.getSrcTwinClassInheritable())
+                .setDstTwinClassInheritable(src.getDstTwinClassInheritable());
     }
 }

@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -144,7 +144,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     public void loadTwinflow(Collection<TwinEntity> twinEntityList) throws ServiceException {
-        var needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getTwinClassId);
+        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
         for (TwinEntity twinEntity : twinEntityList) {
             if (twinEntity.getTwinflow() != null)
                 continue;
@@ -173,24 +173,39 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     public void loadTwinflows(List<TwinClassEntity> twinClasses) {
-        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
-        Set<UUID> needLoadClassesIds = new HashSet<>();
-        for (var twinClass : twinClasses) {
-            if (twinClass.getTwinflowKit() != null)
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID> extendsClassesSet = null;
+        for (TwinClassEntity twinClassEntity : twinClasses) {
+            if (twinClassEntity.getTwinflowKit() != null)
                 continue;
-            twinClass.setTwinflowKit(new Kit<>(TwinflowEntity::getId));
-            needLoad.add(twinClass);
-            needLoadClassesIds.addAll(twinClass.getExtendedClassIdSet()); //current class id is already in this set
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
+            twinClassEntity.setTwinflowKit(new Kit<>(TwinflowEntity::getId));
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1)
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
         }
         if (KitUtils.isEmpty(needLoad))
             return;
-        List<TwinflowEntity> twinflows = twinflowRepository.findByTwinClassIdIn(needLoadClassesIds);
-        if (CollectionUtils.isEmpty(twinflows))
+        if (CollectionUtils.isEmpty(extendsClassesSet))
+            extendsClassesSet = Collections.emptySet();
+
+        List<TwinflowEntity> loaded = twinflowRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
             return;
-        KitGrouped<TwinflowEntity, UUID, UUID> loaded = new KitGrouped<>(twinflows, TwinflowEntity::getId, TwinflowEntity::getTwinClassId);
-        for (var twinClass : needLoad.getCollection()) {
-            for (var extendedTwinClassId : twinClass.getExtendedClassIdSet()) {
-                twinClass.getTwinflowKit().addAll(loaded.getGrouped(extendedTwinClassId));
+
+        KitGrouped<TwinflowEntity, UUID, UUID> twinflows = new KitGrouped<>(loaded, TwinflowEntity::getId, TwinflowEntity::getTwinClassId);
+        for (var twinClassEntity : needLoad) {
+            for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                var currentClassTwinflows = twinflows.getGrouped(extendsTwinClassId);
+                if (currentClassTwinflows == null)
+                    continue;
+                if (extendsTwinClassId.equals(twinClassEntity.getId())) {
+                    twinClassEntity.getTwinflowKit().addAll(currentClassTwinflows);
+                    continue;
+                }
+                for (var twinflowInherited : currentClassTwinflows) {
+                    if (Boolean.TRUE.equals(twinflowInherited.getInheritable()))
+                        twinClassEntity.getTwinflowKit().add(twinflowInherited);
+                }
             }
         }
     }
@@ -229,6 +244,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+        if (twinflowEntity.getInheritable() == null) {
+            twinflowEntity.setInheritable(true);
+        }
         return saveSafe(twinflowEntity);
     }
 
@@ -249,6 +267,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWINFLOW_NAME, dbTwinflowEntity, TwinflowEntity::getNameI18NId, TwinflowEntity::setNameI18NId, TwinflowEntity.Fields.nameI18NId, changesHelper);
         i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWINFLOW_DESCRIPTION, dbTwinflowEntity, TwinflowEntity::getDescriptionI18NId, TwinflowEntity::setDescriptionI18NId, TwinflowEntity.Fields.descriptionI18NId, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
+        updateEntityFieldByValue(twinflowEntity.getInheritable(), dbTwinflowEntity,
+                TwinflowEntity::getInheritable, TwinflowEntity::setInheritable, TwinflowEntity.Fields.inheritable, changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
         if (changesHelper.hasChanges()) {
             CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
