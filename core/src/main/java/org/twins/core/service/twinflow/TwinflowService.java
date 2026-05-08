@@ -291,4 +291,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public List<TwinflowSchemaMapEntity> findTwinflowSchemaMapByTwinflowId(UUID twinflowId) {
         return twinflowSchemaMapRepository.findByTwinflowId(twinflowId);
     }
+
+    public List<TwinflowSchemaMapEntity> findTwinflowSchemaMapByTwinflowIdIn(Collection<UUID> twinflowIds) {
+        return twinflowSchemaMapRepository.findByTwinflowIdIn(twinflowIds);
+    }
 }

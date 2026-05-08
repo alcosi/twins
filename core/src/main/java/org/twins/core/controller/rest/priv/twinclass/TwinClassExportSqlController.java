@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
@@ -40,7 +41,7 @@ public class TwinClassExportSqlController extends ApiController {
             @ApiResponse(responseCode = "200", description = "SQL file"),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/export/sql/v1", produces = "text/sql;charset=UTF-8")
-    public ResponseEntity<byte[]> twinClassExportSqlV1(
+    public ResponseEntity<StreamingResponseBody> twinClassExportSqlV1(
             @RequestBody TwinClassExportSqlRqDTOv1 request) throws ServiceException {
         String sql = twinClassExportService.exportToSql(
                 request.getTwinClassIds(),
@@ -52,7 +53,12 @@ public class TwinClassExportSqlController extends ApiController {
         String filename = "twin_classes_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", filename);
+        headers.setContentType(MediaType.valueOf("text/sql;charset=UTF-8"));
 
-        return new ResponseEntity<>(sql.getBytes(StandardCharsets.UTF_8), headers, HttpStatus.OK);
+        StreamingResponseBody stream = outputStream -> {
+            outputStream.write(sql.getBytes(StandardCharsets.UTF_8));
+        };
+
+        return new ResponseEntity<>(stream, headers, HttpStatus.OK);
     }
 }

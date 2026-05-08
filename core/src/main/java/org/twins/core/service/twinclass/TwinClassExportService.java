@@ -88,8 +88,9 @@ public class TwinClassExportService {
         StringBuilder result = new StringBuilder();
         i18nExportService.appendI18nSql(result, i18nIds);
 
-        for (TwinClassEntity twinClass : twinClasses) {
-            appendTwinClassSql(result, twinClass);
+        String twinClassesSql = sqlBuilder.buildInserts(twinClasses);
+        if (!twinClassesSql.isEmpty()) {
+            result.append(twinClassesSql);
         }
 
         if (!statusesByClass.isEmpty()) {
@@ -144,13 +145,5 @@ public class TwinClassExportService {
         }
 
         return i18nIds;
-    }
-
-    private void appendTwinClassSql(StringBuilder sql, TwinClassEntity twinClass) {
-        String twinClassSql = sqlBuilder.buildInsert(twinClass);
-        if (!twinClassSql.isEmpty()) {
-            if (!sql.isEmpty()) sql.append("\n");
-            sql.append(twinClassSql);
-        }
     }
 }
