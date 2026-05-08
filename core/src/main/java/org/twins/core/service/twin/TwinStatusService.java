@@ -136,6 +136,10 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         }
     }
 
+    public List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIds) {
+        return twinStatusRepository.findByTwinClassIdIn(twinClassIds);
+    }
+
     public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {
         if (twinStatusEntity.getTwinClassId() == twinEntity.getTwinClassId()) {
             return true;
