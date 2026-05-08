@@ -94,14 +94,14 @@ Legend: [ ] = not started · [~] = in progress · [x] = done · ✅ = reviewed
 - SluggerDomainScopeDomainManage
 - SluggerSystemScopeDomainManage
 
-### Group 13 — widget · ~5 classes · [x]
+### Group 13 — widget · ~5 classes · [x] ✅
 - WidgetAccessorAllowAny
 - WidgetAccessorAllowForKeys
 - WidgetAccessorAllowForSpace
 - WidgetAccessorDenyForKeys
 - DataGrabber (base/stub)
 
-### Group 14 — storager · ~8 classes · [x]
+### Group 14 — storager · ~8 classes · [x] ✅
 - StoragerExternalUri
 - StoragerLocalDynamic
 - StoragerLocalStatic
@@ -110,7 +110,7 @@ Legend: [ ] = not started · [~] = in progress · [x] = done · ✅ = reviewed
 - StoragerAlcosiFileHandler
 - StoragerAlcosiFileHandlerV2
 
-### Group 15 — scheduler · ~22 classes · [x]
+### Group 15 — scheduler · ~22 classes · [x] ✅
 - SchedulerAttachmentDeleteTaskCleaner / TaskRunner
 - SchedulerDraftCommitTaskRunner
 - SchedulerDraftEraseScopeCollectTaskRunner
