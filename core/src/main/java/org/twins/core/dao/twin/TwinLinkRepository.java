@@ -198,6 +198,33 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
             """, nativeQuery = true)
     Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(@Param("twinIds") Collection<UUID> twinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
 
+    /**
+     * Same as {@link #findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds}, but each endpoint may instead be
+     * one of {@code factoryInputTwinIds} (status check waived for factory pipeline inputs).
+     */
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND tl.link_id IN :linkIds
+              AND (
+                  src.twin_status_id IN :twinStatusIds
+                  OR src.id IN :factoryInputTwinIds
+              )
+              AND (
+                  dst.twin_status_id IN :twinStatusIds
+                  OR dst.id IN :factoryInputTwinIds
+              )
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrFactoryInputTwins(
+            @Param("twinIds") Collection<UUID> twinIds,
+            @Param("linkIds") Collection<UUID> linkIds,
+            @Param("twinStatusIds") Collection<UUID> twinStatusIds,
+            @Param("factoryInputTwinIds") Collection<UUID> factoryInputTwinIds);
+
     @Query("select tl.dstTwinId as id, count(tl) as cnt from TwinLinkEntity tl where tl.linkId = :linkId and tl.dstTwinId in :dstTwinIdList group by tl.dstTwinId")
     List<Object[]> countBackwardLinks(@Param("dstTwinIdList") Collection<UUID> dstTwinIdList, @Param("linkId") UUID linkId);
 }
