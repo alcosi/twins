@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.Ternary;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
@@ -29,4 +30,6 @@ public class LinkSearch {
     private Set<LinkType> typeNotLikeList;
     private Set<LinkStrength> strengthLikeList;
     private Set<LinkStrength> strengthNotLikeList;
+    private Ternary srcTwinClassInheritable;
+    private Ternary dstTwinClassInheritable;
 }

@@ -43,6 +43,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setTwinClassId(src.getTwinClassId())
+                        .setInheritable(src.getInheritable())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setInitialStatusId(src.getInitialTwinStatusId())

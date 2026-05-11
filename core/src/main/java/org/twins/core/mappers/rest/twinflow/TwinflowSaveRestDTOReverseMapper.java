@@ -17,6 +17,6 @@ public class TwinflowSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Twinfl
         dst
                 .setInitialTwinStatusId(src.getInitialStatusId())
                 .setInitialSketchTwinStatusId(src.getInitialSketchStatusId())
-        ;
+                .setInheritable(src.getInheritable());
     }
 }

@@ -47,7 +47,7 @@ public class LogSupportService {
         var twinClasses = twinClassSearchService.searchTwinClasses(null);
         twinStatusService.loadStatusesForTwinClasses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
-        linkService.loadLinksForTwinClasses(twinClasses);
+        linkService.loadLinks(twinClasses);
         twinflowService.loadTwinflows(twinClasses);
         twinflowTransitionService.loadAllTransitions(twinClasses);
 

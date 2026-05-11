@@ -40,6 +40,9 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
     @Schema(description = "System field", example = "true")
     public Boolean system;
 
+    @Schema(description = "Inheritable field", example = "true")
+    public Boolean inheritable;
+
     @Schema(description = "external id", example = "")
     public String externalId;
 
