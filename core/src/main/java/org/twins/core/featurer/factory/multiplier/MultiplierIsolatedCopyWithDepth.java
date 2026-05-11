@@ -128,6 +128,15 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
 
         var origTwinLinksGrouped = new KitGrouped<>(origTwinLinks, TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
 
+        // Build in-degree map for topological sort (how many links point to each twin)
+        Map<UUID, Integer> inDegreeMap = new HashMap<>();
+        for (TwinEntity twin : origTwins) {
+            inDegreeMap.put(twin.getId(), 0);
+        }
+        for (TwinLinkEntity link : origTwinLinks) {
+            inDegreeMap.merge(link.getDstTwinId(), 1, Integer::sum);
+        }
+
         // sort to have confidence that twin on every depth level in processing has an already created parent
         var origTwinsSorted = origTwins.stream()
                 .sorted((t1, t2) -> {
@@ -143,8 +152,15 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                     // secondary sort: twins without links go first
                     boolean t1HasLinks = origTwinLinksGrouped.containsGroupedKey(t1.getId());
                     boolean t2HasLinks = origTwinLinksGrouped.containsGroupedKey(t2.getId());
+                    int linksComparison = Boolean.compare(t1HasLinks, t2HasLinks);
+                    if (linksComparison != 0) {
+                        return linksComparison;
+                    }
 
-                    return Boolean.compare(t1HasLinks, t2HasLinks);
+                    // tertiary sort: twins that are referenced by more links go first (topological order)
+                    int t1InDegree = inDegreeMap.getOrDefault(t1.getId(), 0);
+                    int t2InDegree = inDegreeMap.getOrDefault(t2.getId(), 0);
+                    return Integer.compare(t2InDegree, t1InDegree); // reverse order - higher in-degree first
                 })
                 .toList();
 
