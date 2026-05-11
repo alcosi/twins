@@ -109,7 +109,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             return;
         if (extendsClassesSet == null)
             extendsClassesSet = Collections.emptySet();
-        var loaded = twinStatusRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        var loaded = twinStatusRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
             return;
         KitGrouped<TwinStatusEntity, UUID, UUID> statusGroupedByClass = new KitGrouped<>(loaded, TwinStatusEntity::getId, TwinStatusEntity::getTwinClassId);

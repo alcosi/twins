@@ -188,7 +188,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (CollectionUtils.isEmpty(extendsClassesSet))
             extendsClassesSet = Collections.emptySet();
 
-        List<TwinflowEntity> loaded = twinflowRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        List<TwinflowEntity> loaded = twinflowRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
             return;
 
