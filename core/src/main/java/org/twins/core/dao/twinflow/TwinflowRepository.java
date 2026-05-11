@@ -36,7 +36,9 @@ public interface TwinflowRepository extends CrudRepository<TwinflowEntity, UUID>
     String CACHE_TWINFLOW_BY_TWIN_CLASS_ID_IN_INHERITABLE = "TwinflowRepository.findByTwinClassIdInInheritable";
     @Cacheable(value = CACHE_TWINFLOW_BY_TWIN_CLASS_ID_IN_INHERITABLE, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#mainTwinClassIdList, #extendsTwinClassIdList)")
     @Query(value = "from TwinflowEntity where twinClassId in :mainTwinClassIdList or (twinClassId in :extendsTwinClassIdList and inheritable)")
-    List<TwinflowEntity> findByTwinClassIdIn(@Param("mainTwinClassIdList") Set<UUID> mainTwinClassIdList, @Param("extendsTwinClassIdList") Set<UUID> extendsTwinClassIdList);
+    List<TwinflowEntity> findByTwinClassIdInInheritable(@Param("mainTwinClassIdList") Set<UUID> mainTwinClassIdList, @Param("extendsTwinClassIdList") Set<UUID> extendsTwinClassIdList);
+
+    List<TwinflowEntity> findByTwinClassIdIn(Collection<UUID> twinClassIds);
 
     @Query("select t.id from TwinflowEntity t where t.createdByUserId = :businessAccountId and (t.twinClass.domainId = :domainId or t.twinClass.domainId is null)")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);

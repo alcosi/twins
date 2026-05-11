@@ -270,6 +270,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
     }
 
+    public List<TwinClassFieldEntity> findByTwinClassIdIn(Set<UUID> twinClassIds) {
+        return twinClassFieldRepository.findByTwinClassIdIn(twinClassIds);
+    }
+
     public TwinClassFieldEntity findByTwinClassKeyAndKey(String twinClassKey, String fieldKey) throws ServiceException {
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldRepository.findByTwinClass_KeyAndKey(twinClassKey, fieldKey);
         return checkEntityReadAllow(twinClassFieldEntity);

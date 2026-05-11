@@ -1,23 +1,15 @@
-package org.twins.core.service.twinclass;
+package org.twins.core.integration.service.twinclass;
 
 import jakarta.persistence.EntityManager;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.twins.core.dao.businessaccount.BusinessAccountRepository;
+import org.twins.core.base.BaseIntegrationTest;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.idp.IdentityProviderEntity;
@@ -34,158 +26,56 @@ import org.twins.core.enums.domain.DomainStatus;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.user.UserStatus;
-import org.twins.core.service.SystemEntityService;
-import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.MapperModesResolveService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.twin.*;
-import org.twins.core.service.twinflow.TwinflowService;
-import org.twins.core.service.user.UserService;
+import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(properties = {
-        "spring.flyway.enabled=false",
-        "spring.jpa.hibernate.ddl-auto=create",
-        "spring.jpa.show-sql=true",
-        "api.unsecured.enable=false",
-        "api.key.header=X-Twins-Api-Key",
-        "spring.main.allow-bean-definition-overriding=true",
-        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true"
-})
-@Testcontainers
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
-public class TwinClassFieldRuleIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    public static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withUsername("postgres")
-            .withPassword("postgres")
-            .withInitScript("init_db.sql");
+public class TwinClassFieldRuleIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private TwinClassFieldRuleMapService ruleMapService;
-
     @Autowired
     private TwinClassFieldService fieldService;
-
-    @MockBean
-    private org.twins.core.service.MapperModesResolveService mapperModesResolveService;
-
-    @MockBean
-    private TwinClassService twinClassService;
-
-    @MockBean
-    private TwinService twinService;
-
     @Autowired
     private PermissionSchemaRepository permissionSchemaRepository;
-
-    @MockBean
-    private BusinessAccountRepository businessAccountRepository;
-
-    @MockBean
-    private SystemEntityService systemEntityService;
-
-    @MockBean
-    private AuthService authService;
-
-    @MockBean
-    private FeaturerService featurerService;
-
-    @MockBean
-    private TwinSearchService twinSearchService;
-
-    @MockBean
-    private TwinflowService twinflowService;
-
-    @MockBean
-    private DomainService domainService;
-
-    @MockBean
-    private PermissionService permissionService;
-
-    @MockBean
-    private TwinStatusService twinStatusService;
-
-    @MockBean
-    private UserService userService;
-
-    @MockBean
-    private I18nService i18nService;
-
-    @MockBean
-    private TwinClassFreezeService twinClassFreezeService;
-
-    @MockBean
-    private TwinMarkerService twinMarkerService;
-
-    @MockBean
-    private TwinTagService twinTagService;
-
-    @MockBean
-    private TwinChangesService twinChangesService;
-
-    @MockBean
-    private TwinLinkService twinLinkService;
-
-    @MockBean
-    private HistoryService historyService;
-
-    @MockBean
-    private DataListService dataListService;
-
-    @MockBean
-    private TwinAliasService twinAliasService;
-
-    @MockBean
-    private TwinFieldAttributeService twinFieldAttributeService;
-
-    @MockBean
-    private TwinStatusTriggerService twinStatusTriggerService;
-
     @Autowired
     private TwinClassFieldRuleRepository ruleRepository;
-
     @Autowired
     private TwinClassFieldRepository fieldRepository;
-
     @Autowired
     private TwinClassFieldRuleMapRepository ruleMapRepository;
-
     @Autowired
     private TwinClassRepository twinClassRepository;
-
     @Autowired
     private DomainRepository domainRepository;
-
     @Autowired
     private IdentityProviderRepository identityProviderRepository;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private TwinflowSchemaRepository twinflowSchemaRepository;
-
     @Autowired
     private TwinClassSchemaRepository twinClassSchemaRepository;
-
     @Autowired
     private EntityManager entityManager;
 
-    @Autowired
-    private TaskScheduler taskScheduler; // TaskScheduler can stay real or be mocked. If it causes issues, I'll mock it.
+    @MockitoBean
+    private TwinClassService twinClassService;
+    @MockitoBean
+    private AuthService authService;
+    @MockitoBean
+    private MapperModesResolveService mapperModesResolveService;
+    @MockitoBean
+    private I18nService i18nService;
 
     private UUID domainId;
     private TwinClassEntity twinClass;
@@ -294,6 +184,7 @@ public class TwinClassFieldRuleIntegrationTest {
                 .setFieldInitializerFeaturerId(2601)
                 .setRequired(false)
                 .setSystem(false)
+                .setInheritable(false)
                 .setDependentField(false)
                 .setHasDependentFields(false)
                 .setProjectionField(false)
@@ -331,7 +222,7 @@ public class TwinClassFieldRuleIntegrationTest {
         TwinClassFieldEntity fieldFromDb = fieldRepository.findById(field.getId()).orElseThrow();
 
         // This is the call we refactored
-        ruleMapService.loadRules(Collections.singletonList(fieldFromDb));
+        ruleMapService.loadRules(fieldFromDb);
 
         assertNotNull(fieldFromDb.getRuleKit());
         assertEquals(1, fieldFromDb.getRuleKit().size());
