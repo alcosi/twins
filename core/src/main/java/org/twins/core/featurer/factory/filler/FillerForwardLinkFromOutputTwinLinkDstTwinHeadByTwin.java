@@ -37,7 +37,7 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinHeadByTwin extends Filler
     @Autowired
     TwinService twinService;
 
-    @FeaturerParam(name = "First hop link", description = "", order = 2)
+    @FeaturerParam(name = "Head hunter link", description = "", order = 2)
     public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUIDTwinsLinkId("headHunterLink");
 
     @FeaturerParam(name = "New link id", description = "", order = 1)
@@ -45,6 +45,7 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinHeadByTwin extends Filler
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+        UUID headHunterLinkId = headHunterLink.extract(properties);
         TwinEntity outputTwin = factoryItem.getTwin();
         if (outputTwin == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output twin is empty");
@@ -54,17 +55,16 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinHeadByTwin extends Filler
         }
         List<TwinLinkEntity> outputTwinLinks = twinCreate.getLinksEntityList();
         if (CollectionUtils.isEmpty(outputTwinLinks)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLink.extract(properties) + "] configured from " + outputTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLinkId + "] configured from " + outputTwin.logShort());
         }
-        UUID headHunterLinkId = headHunterLink.extract(properties);
         List<TwinLinkEntity> matchedLinks = outputTwinLinks.stream()
                 .filter(twinLink -> headHunterLinkId.equals(twinLink.getLinkId()))
                 .toList();
         if (CollectionUtils.isEmpty(matchedLinks)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLink.extract(properties) + "] configured from " + outputTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLinkId + "] configured from " + outputTwin.logShort());
         }
         if (matchedLinks.size() != 1) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLink.extract(properties) + "] configured from " + outputTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLinkId + "] configured from " + outputTwin.logShort());
         }
         TwinLinkEntity matchedLink = matchedLinks.getFirst();
         TwinEntity dstTwin = matchedLink.getDstTwin();

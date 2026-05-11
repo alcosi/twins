@@ -7,10 +7,10 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -42,7 +42,7 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
 
 
     @FeaturerParam(name = "First hop link", description = "First-hop link id from output TwinCreate links", order = 1)
-    public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUIDTwinsLinkId("headHunterLink");
+    public static final FeaturerParamUUID firstHopLink = new FeaturerParamUUIDTwinsLinkId("firstHopLink");
 
     @FeaturerParam(name = "Second hop link", description = "Second-hop link id via DB from first-hop dst twin", order = 2)
     public static final FeaturerParamUUID secondHopLink = new FeaturerParamUUIDTwinsLinkId("secondHopLink");
@@ -60,7 +60,7 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output is not TwinCreate");
         }
 
-        UUID firstHop = headHunterLink.extract(properties);
+        UUID firstHop = firstHopLink.extract(properties);
         List<TwinLinkEntity> outputTwinLinks = twinCreate.getLinksEntityList();
         if (outputTwinLinks == null || outputTwinLinks.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHop + "] configured from " + contextTwin.logShort());
@@ -71,7 +71,7 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
         if (firstHopLinks.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHop + "] configured from " + contextTwin.logShort());
         }
-        if (firstHopLinks.size() != 1) {
+        if (firstHopLinks.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + firstHop + "] configured from " + contextTwin.logShort());
         }
 
