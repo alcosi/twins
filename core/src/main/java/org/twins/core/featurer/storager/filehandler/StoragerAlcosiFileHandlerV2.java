@@ -237,10 +237,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         }
 
         var replaceMap = basePathReplaceMap.extract(properties);
-        var result = "";
+        var result = objectLink;
 
         for (var entry : replaceMap.entrySet()) {
-            result = objectLink.replace(entry.getKey(), entry.getValue());
+            result = result.replace(entry.getKey(), entry.getValue());
         }
 
         return result;
