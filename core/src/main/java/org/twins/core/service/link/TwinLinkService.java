@@ -500,4 +500,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
         return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
     }
+
+    public Set<TwinLinkEntity> findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(Collection<UUID> linkIds, Collection<UUID> twinIds) {
+        if (CollectionUtils.isEmpty(linkIds) || CollectionUtils.isEmpty(twinIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(linkIds, twinIds);
+    }
 }
