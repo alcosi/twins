@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -108,7 +109,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             return;
         if (extendsClassesSet == null)
             extendsClassesSet = Collections.emptySet();
-        var loaded = twinStatusRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        var loaded = twinStatusRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
             return;
         KitGrouped<TwinStatusEntity, UUID, UUID> statusGroupedByClass = new KitGrouped<>(loaded, TwinStatusEntity::getId, TwinStatusEntity::getTwinClassId);
@@ -127,6 +128,17 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 }
             }
         }
+    }
+
+    public List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIds) {
+        return twinStatusRepository.findByTwinClassIdIn(twinClassIds);
+    }
+
+    public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {
+        if (twinStatusEntity.getTwinClassId() == twinEntity.getTwinClassId()) {
+            return true;
+        }
+        return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
     }
 
     @Transactional(rollbackFor = Throwable.class)

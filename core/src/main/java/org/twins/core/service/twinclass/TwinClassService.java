@@ -33,6 +33,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
@@ -1048,4 +1049,5 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return null;
         }
     }
+
 }

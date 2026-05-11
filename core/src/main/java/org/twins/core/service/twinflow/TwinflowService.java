@@ -188,7 +188,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (CollectionUtils.isEmpty(extendsClassesSet))
             extendsClassesSet = Collections.emptySet();
 
-        List<TwinflowEntity> loaded = twinflowRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
+        List<TwinflowEntity> loaded = twinflowRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
             return;
 
@@ -297,5 +297,22 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_INCORRECT, "configured status[{}] is not a sketch status", sketchStatus);
         }
         return twinflow.getInitialSketchTwinStatus();
+    }
+
+    public TwinflowEntity findByTwinClassId(UUID twinClassId) {
+        List<TwinflowEntity> twinflows = twinflowRepository.findByTwinClassId(twinClassId);
+        return twinflows.isEmpty() ? null : twinflows.getFirst();
+    }
+
+    public List<TwinflowEntity> findByTwinClassIdIn(Collection<UUID> twinClassIds) {
+        return twinflowRepository.findByTwinClassIdIn(twinClassIds);
+    }
+
+    public List<TwinflowSchemaMapEntity> findTwinflowSchemaMapByTwinflowId(UUID twinflowId) {
+        return twinflowSchemaMapRepository.findByTwinflowId(twinflowId);
+    }
+
+    public List<TwinflowSchemaMapEntity> findTwinflowSchemaMapByTwinflowIdIn(Collection<UUID> twinflowIds) {
+        return twinflowSchemaMapRepository.findByTwinflowIdIn(twinflowIds);
     }
 }

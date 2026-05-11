@@ -464,4 +464,30 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
             fieldSetter.accept(targetEntity, savedI18n.getId());
         }
     }
+
+    /**
+     * Collects i18n IDs from a collection of entities.
+     *
+     * @param items the collection of entities
+     * @param nameI18nExtractor function to extract name i18n ID from entity
+     * @param descriptionI18nExtractor function to extract description i18n ID from entity
+     * @param <T> the entity type
+     * @return set of collected i18n IDs
+     */
+    public <T> Set<UUID> collectI18nIds(Collection<T> items,
+                                         Function<T, UUID> nameI18nExtractor,
+                                         Function<T, UUID> descriptionI18nExtractor) {
+        Set<UUID> i18nIds = new HashSet<>();
+        for (T item : items) {
+            UUID nameI18nId = nameI18nExtractor.apply(item);
+            if (nameI18nId != null) {
+                i18nIds.add(nameI18nId);
+            }
+            UUID descI18nId = descriptionI18nExtractor.apply(item);
+            if (descI18nId != null) {
+                i18nIds.add(descI18nId);
+            }
+        }
+        return i18nIds;
+    }
 }
