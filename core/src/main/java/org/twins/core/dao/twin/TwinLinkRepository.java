@@ -212,4 +212,12 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
               AND (tl.src_twin_id IN :twinIds OR tl.dst_twin_id IN :twinIds)
             """, nativeQuery = true)
     Set<TwinLinkEntity> findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(@Param("linkIds") Collection<UUID> linkIds, @Param("twinIds") Collection<UUID> twinIds);
+
+    @Query(value = """
+            SELECT tl.dst_twin_id
+            FROM twin_link tl
+            WHERE tl.src_twin_id = :srcTwinId
+              AND tl.link_id = :linkId
+            """, nativeQuery = true)
+    List<UUID> findDstTwinIdsBySrcTwinIdAndLinkId(@Param("srcTwinId") UUID srcTwinId, @Param("linkId") UUID linkId);
 }
