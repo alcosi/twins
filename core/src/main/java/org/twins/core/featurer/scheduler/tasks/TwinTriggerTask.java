@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.service.auth.AuthService;

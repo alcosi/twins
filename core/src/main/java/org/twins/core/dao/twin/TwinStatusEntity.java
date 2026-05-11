@@ -32,6 +32,9 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "inheritable")
+    private Boolean inheritable;
+
     @Column(name = "key")
     private String key;
 

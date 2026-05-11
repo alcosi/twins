@@ -12,6 +12,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 
 import java.sql.Timestamp;
 import java.util.UUID;

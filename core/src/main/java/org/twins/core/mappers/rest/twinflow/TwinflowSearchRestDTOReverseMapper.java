@@ -18,6 +18,7 @@ public class TwinflowSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
                 .setIdExcludeList(src.getIdExcludeList())
                 .setTwinClassIdMap(src.getTwinClassIdMap())
                 .setTwinClassIdExcludeMap(src.getTwinClassIdExcludeMap())
+                .setInheritable(src.getInheritable())
                 .setNameI18nLikeList(src.getNameI18nLikeList())
                 .setNameI18nNotLikeList(src.getNameI18nNotLikeList())
                 .setDescriptionI18nLikeList(src.getDescriptionI18nLikeList())

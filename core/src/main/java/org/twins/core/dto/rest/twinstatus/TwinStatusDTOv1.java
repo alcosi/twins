@@ -38,6 +38,9 @@ public class TwinStatusDTOv1 {
     @Schema(description = "font color hex", example = DTOExamples.COLOR_HEX)
     public String fontColor;
 
+    @Schema(description = "is inheritable", example = "")
+    public Boolean inheritable;
+
     @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
     @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;

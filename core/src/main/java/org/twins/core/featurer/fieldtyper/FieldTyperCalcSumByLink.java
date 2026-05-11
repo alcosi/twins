@@ -51,7 +51,7 @@ public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptor
                 linkedTwinOfClassIds.extract(properties),
                 srcElseDst.extract(properties),
                 statusExclude.extract(properties),
-                linkId.extract(properties)
+                linkIds.extract(properties)
         );
     }
 }

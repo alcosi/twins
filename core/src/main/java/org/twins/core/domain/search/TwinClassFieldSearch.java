@@ -44,6 +44,7 @@ public class TwinClassFieldSearch {
     private Set<UUID> editPermissionIdExcludeList;
     private Ternary required;
     private Ternary system;
+    private Ternary inheritable;
     private Ternary dependentField;
     private Ternary hasDependentFields;
     private boolean excludeSystemFields = true;

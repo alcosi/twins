@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.QuotaKey;
+import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
@@ -336,7 +337,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinField wrapField(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        if (!twinClassService.isInstanceOf(twinEntity.getTwinClass(), twinClassFieldEntity.getTwinClassId()))
+        if (twinClassFieldService.isInvalidForClass(twinEntity.getTwinClass(), twinClassFieldEntity))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, twinClassFieldEntity.logShort()
                     + "is nou suitable for " + twinEntity.logNormal());
         return new TwinField(twinEntity, twinClassFieldEntity);
@@ -1055,6 +1056,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
                 twinEntity
                         .setHeadTwinId(headTwin.getId())
+                        .setHeadTwin(headTwin)
                         .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
         }
     }
@@ -1623,6 +1625,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinClassFieldEntity inheritedTwinClassFieldEntity : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (skipFromTwinClass != null && skipFromTwinClass.getTwinClassFieldKit().containsKey(inheritedTwinClassFieldEntity.getId()))
                 continue;
+            if (Boolean.FALSE.equals(inheritedTwinClassFieldEntity.getInheritable()))
+                continue;
             var fieldTyper = featurerService.getFeaturer(inheritedTwinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
             TwinFieldStorage twinFieldStorage = fieldTyper.getStorage(inheritedTwinClassFieldEntity);
             inheritedTwinClassFieldIdsByStorage
@@ -1836,22 +1840,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 continue;
             }
 
-            for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
-                if (!rule.isActive()) continue;
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = rules.getGrouped(TwinClassFieldAction.EDIT).stream()
+                    .filter(TwinClassFieldActionValidatorRuleEntity::isActive)
+                    .toList();
 
-                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, rule);
-
-                Iterator<TwinEntity> iterator = twins.iterator();
-                while (iterator.hasNext()) {
-                    var twin = iterator.next();
-                    if (!batchResults.get(twin.getId()).isValid()) {
-                        twin.getTwinFieldEditability().put(field.getId(), false);
-                        iterator.remove();
-                    }
+            if (activeRules.isEmpty()) {
+                for (var twin : twins) {
+                    twin.getTwinFieldEditability().put(field.getId(), true);
                 }
+                continue;
+            }
 
-                if (twins.isEmpty()) {
-                    break;
+            Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, activeRules);
+
+            for (var twin : twins) {
+                if (!batchResults.get(twin.getId()).isValid()) {
+                    twin.getTwinFieldEditability().put(field.getId(), false);
                 }
             }
         }
