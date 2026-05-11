@@ -219,5 +219,5 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
             WHERE tl.src_twin_id = :srcTwinId
               AND tl.link_id = :linkId
             """, nativeQuery = true)
-    UUID findDstTwinIdBySrcTwinIdAndLinkId(@Param("srcTwinId") UUID srcTwinId, @Param("linkId") UUID linkId);
+    List<UUID> findDstTwinIdsBySrcTwinIdAndLinkId(@Param("srcTwinId") UUID srcTwinId, @Param("linkId") UUID linkId);
 }

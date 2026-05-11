@@ -85,13 +85,14 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
         }
 
         UUID secondHop = secondHopLink.extract(properties);
-        UUID secondHopDstTwinId = twinLinkRepository.findDstTwinIdBySrcTwinIdAndLinkId(firstHopDstTwinId, secondHop);
-        if (secondHopDstTwinId == null) {
-            throw new ServiceException(
-                    ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
-                    "No links[" + secondHop + "] configured from twin[" + firstHopDstTwinId + "]"
-            );
+        List<UUID> secondHopDstTwinIds = twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(firstHopDstTwinId, secondHop);
+        if (secondHopDstTwinIds.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + secondHop + "] configured from twin[" + firstHopDstTwinId + "]");
         }
+        if (secondHopDstTwinIds.size() > 1) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Too many links[" + secondHop + "] configured from twin[" + firstHopDstTwinId + "]");
+        }
+        UUID secondHopDstTwinId = secondHopDstTwinIds.getFirst();
         TwinEntity detectedDstTwin = twinService.findEntitySafe(secondHopDstTwinId);
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
         TwinLinkEntity newLink = new TwinLinkEntity()
