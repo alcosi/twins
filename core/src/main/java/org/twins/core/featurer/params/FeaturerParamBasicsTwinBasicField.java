@@ -20,14 +20,11 @@ public class FeaturerParamBasicsTwinBasicField extends FeaturerParam<TwinBasicFi
 
     @Override
     public TwinBasicFields.Basics extract(Properties properties) {
-        if (!properties.containsKey(key)) {
+        String property = properties.getProperty(key);
+        if (property == null || property.isBlank()) {
             return null;
         }
-        Object raw = properties.get(key);
-        if (raw == null || raw.toString().isBlank()) {
-            return null;
-        }
-        return TwinBasicFields.Basics.valueOf(raw.toString().strip());
+        return TwinBasicFields.Basics.valueOf(property.strip());
     }
 
     @Override
