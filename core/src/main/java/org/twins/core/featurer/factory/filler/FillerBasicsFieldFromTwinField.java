@@ -44,7 +44,7 @@ public class FillerBasicsFieldFromTwinField extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         UUID sourceFieldId = fieldId.extract(properties);
-        TwinBasicFields.Basics dstUserBasic = extractDstBasicsUserOptional(properties);
+        TwinBasicFields.Basics dstUserBasic = dstBasicsUser.extract(properties);
         FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, sourceFieldId);
         if (fieldValue == null) {
             throw new ServiceException(
@@ -64,17 +64,6 @@ public class FillerBasicsFieldFromTwinField extends Filler {
         }
         log.info("{} with field[{}] will be filled from context {}", outputTwinEntity.logShort(), fieldName, fieldValue.getTwinClassField().logShort()
         );
-    }
-
-    private static TwinBasicFields.Basics extractDstBasicsUserOptional(Properties properties) {
-        if (!properties.containsKey(dstBasicsUser.getKey())) {
-            return null;
-        }
-        Object raw = properties.get(dstBasicsUser.getKey());
-        if (raw == null || raw.toString().isBlank()) {
-            return null;
-        }
-        return dstBasicsUser.extract(properties);
     }
 
     private String handleTextField(UUID fieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) throws ServiceException {

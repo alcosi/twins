@@ -18,7 +18,18 @@ public class FeaturerParamBasicsTwinBasicField extends FeaturerParam<TwinBasicFi
 
     @Override
     public TwinBasicFields.Basics extract(Properties properties) {
-        TwinBasicFields.Basics ret = TwinBasicFields.Basics.valueOf(properties.get(key).toString());
-        return ret;
+        if (!properties.containsKey(key)) {
+            return null;
+        }
+        Object raw = properties.get(key);
+        if (raw == null || raw.toString().isBlank()) {
+            return null;
+        }
+        String value = raw.toString().strip();
+        try {
+            return TwinBasicFields.Basics.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("param[" + key + "] value[" + value + "] is not valid twin basic field", e);
+        }
     }
 }
