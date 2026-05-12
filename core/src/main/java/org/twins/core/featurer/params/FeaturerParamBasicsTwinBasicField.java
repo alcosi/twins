@@ -25,11 +25,6 @@ public class FeaturerParamBasicsTwinBasicField extends FeaturerParam<TwinBasicFi
         if (raw == null || raw.toString().isBlank()) {
             return null;
         }
-        String value = raw.toString().strip();
-        try {
-            return TwinBasicFields.Basics.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("param[" + key + "] value[" + value + "] is not valid twin basic field", e);
-        }
+        return TwinBasicFields.Basics.valueOf(raw.toString().strip());
     }
 }
