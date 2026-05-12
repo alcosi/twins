@@ -45,7 +45,7 @@ public class FillerBasicsAssigneeFromContext extends Filler {
                 .setAssignerUserId(assignee.getId());
     }
 
-    static UserEntity extractSingleUserOrThrow(FieldValue fieldValue) throws ServiceException {
+    protected static UserEntity extractSingleUserOrThrow(FieldValue fieldValue) throws ServiceException {
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
             if (fieldValueUser.isEmpty()) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
