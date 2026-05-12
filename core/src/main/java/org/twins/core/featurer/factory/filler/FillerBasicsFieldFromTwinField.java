@@ -140,7 +140,7 @@ public class FillerBasicsFieldFromTwinField extends Filler {
                         .setCreatedByUserId(user.getId());
                 yield TwinEntity.Fields.createdByUserId;
             }
-            case name, description -> throw new ServiceException(
+            default -> throw new ServiceException(
                     ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
                     "dstBasicsUser for user fields must be assigneeUserId or createdByUserId, got: " + dstUserBasic
             );
