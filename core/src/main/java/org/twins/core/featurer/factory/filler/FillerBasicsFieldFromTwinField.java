@@ -46,6 +46,12 @@ public class FillerBasicsFieldFromTwinField extends Filler {
         UUID sourceFieldId = fieldId.extract(properties);
         TwinBasicFields.Basics dstUserBasic = extractDstBasicsUserOptional(properties);
         FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, sourceFieldId);
+        if (fieldValue == null) {
+            throw new ServiceException(
+                    ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
+                    "Field value for fieldId[" + sourceFieldId + "] is not found"
+            );
+        }
         String fieldName;
         switch (fieldValue) {
             case FieldValueText fieldValueText -> fieldName = handleTextField(sourceFieldId, fieldValueText, outputTwinEntity);
@@ -71,7 +77,10 @@ public class FillerBasicsFieldFromTwinField extends Filler {
         return dstBasicsUser.extract(properties);
     }
 
-    private String handleTextField(UUID fieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
+    private String handleTextField(UUID fieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) throws ServiceException {
+        if (fieldValueText.getValue() == null || fieldValueText.getValue().isBlank()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValueText.getTwinClassField().logShort() + " is not filled");
+        }
         if (fieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME)) {
             outputTwinEntity.setName(fieldValueText.getValue());
             return TwinEntity.Fields.name;
@@ -79,7 +88,7 @@ public class FillerBasicsFieldFromTwinField extends Filler {
             outputTwinEntity.setDescription(fieldValueText.getValue());
             return TwinEntity.Fields.description;
         }
-        return null;
+        throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Text field " + fieldValueText.getTwinClassField().logShort() + ": set fieldId to system name/description field id, or use user field mapping for user basics");
     }
 
     private String handleUserField(FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue, UUID sourceFieldId, TwinBasicFields.Basics dstUserBasic) throws ServiceException {
@@ -104,6 +113,9 @@ public class FillerBasicsFieldFromTwinField extends Filler {
     }
 
     private String mapUserToOutputTwinBasics(UserEntity user, TwinEntity outputTwinEntity, FieldValue fieldValue, UUID sourceFieldId, TwinBasicFields.Basics dstUserBasic) throws ServiceException {
+        if (user == null || user.getId() == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " contains empty user");
+        }
         if (dstUserBasic != null) {
             return applyUserToOutputBasics(outputTwinEntity, user, dstUserBasic);
         }
