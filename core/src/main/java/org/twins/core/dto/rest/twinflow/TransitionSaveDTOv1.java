@@ -39,7 +39,7 @@ public class TransitionSaveDTOv1 {
     @Schema(description = "twinflow transition type id", example = DTOExamples.TWINFLOW_TRANSITION_TYPE_ID)
     public TwinflowTransitionType twinflowTransitionTypeId;
 
-    @JsonIgnore
+    @Schema(description = "twinflow id", example = DTOExamples.TWINFLOW_ID)
     public UUID twinflowId;
 
 }
