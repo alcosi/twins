@@ -211,10 +211,21 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                 .map(TwinEntity::getId)
                 .collect(Collectors.toSet());
 
-        // ── Step 4: Sort originals for correct processing order ───────────
+        // ── Step 4: Build in-degree map for topological sort ───────────────
+        // in-degree = how many links point to each twin (higher = should be processed first)
+        Map<UUID, Integer> inDegreeMap = new HashMap<>();
+        for (TwinEntity twin : origTwins) {
+            inDegreeMap.put(twin.getId(), 0);
+        }
+        for (TwinLinkEntity link : linksData.origTwinLinks()) {
+            inDegreeMap.merge(link.getDstTwinId(), 1, Integer::sum);
+        }
+
+        // ── Step 5: Sort originals for correct processing order ───────────
         // Primary:   ascending hierarchy depth (parents before children)
         // Secondary: twins WITHOUT outgoing links first, so that when we process
         //            a twin WITH links, the dst twin's copy already exists in copyContextMap
+        // Tertiary:  twins that are referenced by more links go first (topological order)
         var origTwinsSorted = origTwins.stream()
                 .sorted((t1, t2) -> {
                     var h1 = StringUtils.countMatches(t1.getHierarchyTree(), '.');
@@ -227,12 +238,19 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
 
                     boolean t1HasLinks = origTwinLinksGrouped.containsGroupedKey(t1.getId());
                     boolean t2HasLinks = origTwinLinksGrouped.containsGroupedKey(t2.getId());
+                    int linksComparison = Boolean.compare(t1HasLinks, t2HasLinks);
+                    if (linksComparison != 0) {
+                        return linksComparison;
+                    }
 
-                    return Boolean.compare(t1HasLinks, t2HasLinks);
+                    // tertiary sort: twins that are referenced by more links go first (topological order)
+                    int t1InDegree = inDegreeMap.getOrDefault(t1.getId(), 0);
+                    int t2InDegree = inDegreeMap.getOrDefault(t2.getId(), 0);
+                    return Integer.compare(t2InDegree, t1InDegree); // reverse order - higher in-degree first
                 })
                 .toList();
 
-        // ── Step 5: Create copies and replicate links ─────────────────────
+        // ── Step 6: Create copies and replicate links ─────────────────────
         for (var origTwin : origTwinsSorted) {
             if (!twinsToCopyIds.contains(origTwin.getId())) {
                 continue;
@@ -249,7 +267,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             }
         }
 
-        // ── Step 6: Wrap each copy into a FactoryItem for downstream processing ──
+        // ── Step 7: Wrap each copy into a FactoryItem for downstream processing ──
         var ret = new ArrayList<FactoryItem>(copyContextMap.size());
         for (var ctx : copyContextMap.values()) {
             if (ctx.getTwinCopy() == null) {
