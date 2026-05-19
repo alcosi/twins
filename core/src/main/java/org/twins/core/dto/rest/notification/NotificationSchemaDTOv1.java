@@ -1,10 +1,15 @@
 package org.twins.core.dto.rest.notification;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -20,9 +25,11 @@ public class NotificationSchemaDTOv1 {
     @Schema(description = "description")
     public String description;
 
-    @Schema(description = "name i18n id", example = "")
-    public UUID nameI18nId;
+    @Schema(description = "created by user id")
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
+    public UUID createdByUserId;
 
-    @Schema(description = "description i18n id", example = "")
-    public UUID descriptionI18nId;
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
 }
