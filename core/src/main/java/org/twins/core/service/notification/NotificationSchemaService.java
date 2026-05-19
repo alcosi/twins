@@ -22,6 +22,8 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -75,7 +77,7 @@ public class NotificationSchemaService extends EntitySecureFindServiceImpl<Notif
                     .setNameI18nId(notificationSchema.getNameI18n() != null ? notificationSchema.getNameI18n().getId() : null)
                     .setDescriptionI18nId(notificationSchema.getDescriptionI18n() != null ? notificationSchema.getDescriptionI18n().getId() : null)
                     .setCreatedByUserId(authService.getApiUser().getUserId())
-                    .setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                    .setCreatedAt(Timestamp.from(Instant.now()));
             entitiesToSave.add(entity);
         }
 

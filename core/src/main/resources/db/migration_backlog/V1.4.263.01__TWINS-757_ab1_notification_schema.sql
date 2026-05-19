@@ -3,11 +3,16 @@ ALTER TABLE notification_schema
     ADD COLUMN IF NOT EXISTS created_by_user_id uuid;
 
 ALTER TABLE notification_schema
-    ADD COLUMN IF NOT EXISTS created_at timestamp;
+    ADD COLUMN IF NOT EXISTS created_at timestamp DEFAULT CURRENT_TIMESTAMP;
 
 ALTER TABLE notification_schema
-    ADD CONSTRAINT fk_notification_schema_created_by_user
-        FOREIGN KEY (created_by_user_id) REFERENCES "user"(id);
+    ADD CONSTRAINT notification_schema_created_by_user_id_fk
+        FOREIGN KEY (created_by_user_id) REFERENCES "user"(id)
+        ON UPDATE CASCADE ON DELETE SET NULL;
+
+-- Indexes for new columns
+CREATE INDEX IF NOT EXISTS idx_notification_schema_created_by_user_id ON notification_schema(created_by_user_id);
+CREATE INDEX IF NOT EXISTS idx_notification_schema_created_at ON notification_schema(created_at);
 
 -- Add NOTIFICATION_SCHEMA_DESCRIPTION i18n type
 INSERT INTO i18n_type (id, name) VALUES ('notificationSchemaDescription', 'notification schema description') ON CONFLICT ON CONSTRAINT i18n_type_pk DO NOTHING;

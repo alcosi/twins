@@ -16,9 +16,12 @@ import org.twins.core.dao.notification.NotificationSchemaRepository;
 import org.twins.core.domain.search.NotificationSchemaSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Locale;
 import java.util.UUID;
 
-import static org.twins.core.dao.specifications.CommonSpecification.*;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
 @Slf4j
 @Service
@@ -30,6 +33,9 @@ public class NotificationSchemaSearchService {
 
     public PaginationResult<NotificationSchemaEntity> findNotificationSchemasByDomain(NotificationSchemaSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
+        if (search == null) {
+            search = new NotificationSchemaSearch();
+        }
         Specification<NotificationSchemaEntity> spec = createNotificationSchemaSearchSpecification(search)
                 .and(checkFieldUuid(domainId, NotificationSchemaEntity.Fields.domainId));
         Page<NotificationSchemaEntity> ret = notificationSchemaRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
@@ -37,9 +43,10 @@ public class NotificationSchemaSearchService {
     }
 
     private Specification<NotificationSchemaEntity> createNotificationSchemaSearchSpecification(NotificationSchemaSearch search) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
         return Specification.allOf(
-                checkFieldLikeContainsIn(search.getNameLikeList(), false, false, NotificationSchemaEntity.Fields.nameI18nId),
-                checkFieldLikeContainsIn(search.getNameNotLikeList(), true, true, NotificationSchemaEntity.Fields.nameI18nId),
+                joinAndSearchByI18NField(NotificationSchemaEntity.Fields.nameI18n, search.getNameLikeList(), locale, true, false),
+                joinAndSearchByI18NField(NotificationSchemaEntity.Fields.nameI18n, search.getNameNotLikeList(), locale, true, true),
                 checkUuidIn(search.getIdList(), false, true, NotificationSchemaEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, NotificationSchemaEntity.Fields.id),
                 checkUuidIn(search.getCreatedByUserIdList(), false, true, NotificationSchemaEntity.Fields.createdByUserId),
