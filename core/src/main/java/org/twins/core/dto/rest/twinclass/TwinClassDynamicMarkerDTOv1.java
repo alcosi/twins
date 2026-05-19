@@ -22,6 +22,9 @@ public class TwinClassDynamicMarkerDTOv1 {
     @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
+    @Schema(description = "is inheritable", example = "")
+    public Boolean inheritable;
+
     @Schema(description = "twin validator set id")
     @RelatedObject(type = TwinValidatorSetDTOv1.class, name = "twinValidatorSet")
     public UUID twinValidatorSetId;

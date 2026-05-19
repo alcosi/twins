@@ -500,4 +500,25 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
         return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
     }
+
+    public Set<TwinLinkEntity> findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(Collection<UUID> linkIds, Collection<UUID> twinIds) {
+        if (CollectionUtils.isEmpty(linkIds) || CollectionUtils.isEmpty(twinIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(linkIds, twinIds);
+    }
+
+    /**
+     * Like {@link #findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds}, but factory input twins skip the status filter
+     * on their endpoint (so links to/from roots passed into the factory are still loaded).
+     */
+    public Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(Collection<UUID> twinIds, Collection<UUID> linkIds, Collection<UUID> twinStatusIds, Collection<UUID> inputTwinIds) {
+        if (CollectionUtils.isEmpty(twinIds) || CollectionUtils.isEmpty(linkIds) || CollectionUtils.isEmpty(twinStatusIds)) {
+            return Collections.emptySet();
+        }
+        if (CollectionUtils.isEmpty(inputTwinIds)) {
+            return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
+        }
+        return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(twinIds, linkIds, twinStatusIds, inputTwinIds);
+    }
 }

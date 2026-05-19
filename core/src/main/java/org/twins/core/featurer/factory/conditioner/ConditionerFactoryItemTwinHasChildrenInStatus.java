@@ -47,9 +47,11 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         BasicSearch search = new BasicSearch().setCheckViewPermission(false);
 
-        search.setHierarchyChildrenSearch(
-                new HierarchySearch().setDepth(depth.extract(properties))
-        );
+        search
+                .addHeadTwinId(factoryItem.getOutput().getTwinEntity().getId())
+                .setHierarchyChildrenSearch(
+                        new HierarchySearch().setDepth(depth.extract(properties))
+                );
 
         Set<UUID> statusIdsExtracted = statusIds.extract(properties);
 
@@ -57,9 +59,10 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
             search.addStatusId(statusIdsExtracted, false);
         }
 
-        if (excludeFactoryInput.extract(properties))
+        if (excludeFactoryInput.extract(properties)) {
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
-        long count = twinSearchService.count(search);
-        return count > 0;
+        }
+
+        return twinSearchService.exists(search);
     }
 }

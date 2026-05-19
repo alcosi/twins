@@ -15,7 +15,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -41,7 +41,7 @@ public class FillerFieldFromContextTwinLinkedByLinkTwinField extends Filler {
 
     @Lazy
     @Autowired
-    TwinClassService twinClassService;
+    TwinClassFieldService twinClassFieldService;
 
 
     @Override
@@ -49,7 +49,7 @@ public class FillerFieldFromContextTwinLinkedByLinkTwinField extends Filler {
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue fieldValue = fieldLookupers.getFromContextTwinLinkedByLinkTwinFields().lookupFieldValue(factoryItem, linkId.extract(properties), srcTwinClassFieldId.extract(properties));
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
-        if (!twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField().getTwinClassId()))
+        if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId +"]");
         factoryItem.getOutput().addField(clone);
     }

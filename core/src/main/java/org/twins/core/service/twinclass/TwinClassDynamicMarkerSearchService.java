@@ -15,7 +15,7 @@ import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
 import org.twins.core.domain.search.TwinClassDynamicMarkerSearch;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
 @Service
@@ -36,8 +36,9 @@ public class TwinClassDynamicMarkerSearchService {
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.id),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
+                checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdMap()), false, TwinClassDynamicMarkerEntity.Fields.twinClassId, TwinClassDynamicMarkerEntity.Fields.inheritable),
+                checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdExcludeMap()), true, TwinClassDynamicMarkerEntity.Fields.twinClassId, TwinClassDynamicMarkerEntity.Fields.inheritable),
+                checkTernary(search.getInheritable(), TwinClassDynamicMarkerEntity.Fields.inheritable),
                 checkUuidIn(search.getTwinValidatorSetIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.twinValidatorSetId),
                 checkUuidIn(search.getTwinValidatorSetIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.twinValidatorSetId),
                 checkUuidIn(search.getMarkerDataListOptionIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.markerDataListOptionId),

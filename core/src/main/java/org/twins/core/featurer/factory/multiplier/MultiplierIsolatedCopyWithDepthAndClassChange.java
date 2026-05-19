@@ -105,7 +105,10 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
     @FeaturerParam(name = "Children Depth", description = "Level of depth in twin hierarchy tree", optional = true, defaultValue = "0")
     public static final FeaturerParamInt childrenDepth = new FeaturerParamInt("childrenDepth");
 
-    /** Optional status filter — only children with one of these statuses will be included. */
+    /**
+     * Optional status filter — only children with one of these statuses will be included in hierarchy / link expansion.
+     * When loading links to replicate, factory step <b>input</b> twins skip this filter on their endpoint (links to/from them are kept).
+     */
     @FeaturerParam(name = "Children statuses", description = "Statuses that are used to filter twin children", optional = true)
     public static final FeaturerParamUUIDSetTwinsStatusId childrenStatuses = new FeaturerParamUUIDSetTwinsStatusId("childrenStatuses");
 
@@ -182,6 +185,10 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         var copyTwinIdsMap = new HashMap<UUID, UUID>();
         var origTwins = new HashSet<TwinEntity>();
 
+        var factoryInputTwinIds = inputFactoryItemList.stream()
+                .map(fi -> fi.getTwin().getId())
+                .collect(Collectors.toSet());
+
         for (var factoryItem : inputFactoryItemList) {
             var twin = factoryItem.getTwin();
             origTwins.add(twin);
@@ -191,7 +198,11 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         origTwins.addAll(findTwinsByHierarchy(depth, copyContextMap, childrenStatusIds));
         origTwins.addAll(findTwinsByLinks(origTwins, childrenStatusIds, properties));
 
-        var linksData = findLinksData(origTwins.stream().map(TwinEntity::getId).collect(Collectors.toSet()), linkReplaceMap, childrenStatusIds);
+        var linksData = findLinksData(
+                origTwins.stream().map(TwinEntity::getId).collect(Collectors.toSet()),
+                linkReplaceMap,
+                childrenStatusIds,
+                factoryInputTwinIds);
         var origTwinLinksGrouped = new KitGrouped<>(linksData.origTwinLinks(), TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
 
         // ── Step 3: Filter — only twins whose class is in the replace map are eligible ──
@@ -200,10 +211,21 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                 .map(TwinEntity::getId)
                 .collect(Collectors.toSet());
 
-        // ── Step 4: Sort originals for correct processing order ───────────
+        // ── Step 4: Build in-degree map for topological sort ───────────────
+        // in-degree = how many links point to each twin (higher = should be processed first)
+        Map<UUID, Integer> inDegreeMap = new HashMap<>();
+        for (TwinEntity twin : origTwins) {
+            inDegreeMap.put(twin.getId(), 0);
+        }
+        for (TwinLinkEntity link : linksData.origTwinLinks()) {
+            inDegreeMap.merge(link.getDstTwinId(), 1, Integer::sum);
+        }
+
+        // ── Step 5: Sort originals for correct processing order ───────────
         // Primary:   ascending hierarchy depth (parents before children)
         // Secondary: twins WITHOUT outgoing links first, so that when we process
         //            a twin WITH links, the dst twin's copy already exists in copyContextMap
+        // Tertiary:  twins that are referenced by more links go first (topological order)
         var origTwinsSorted = origTwins.stream()
                 .sorted((t1, t2) -> {
                     var h1 = StringUtils.countMatches(t1.getHierarchyTree(), '.');
@@ -216,12 +238,19 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
 
                     boolean t1HasLinks = origTwinLinksGrouped.containsGroupedKey(t1.getId());
                     boolean t2HasLinks = origTwinLinksGrouped.containsGroupedKey(t2.getId());
+                    int linksComparison = Boolean.compare(t1HasLinks, t2HasLinks);
+                    if (linksComparison != 0) {
+                        return linksComparison;
+                    }
 
-                    return Boolean.compare(t1HasLinks, t2HasLinks);
+                    // tertiary sort: twins that are referenced by more links go first (topological order)
+                    int t1InDegree = inDegreeMap.getOrDefault(t1.getId(), 0);
+                    int t2InDegree = inDegreeMap.getOrDefault(t2.getId(), 0);
+                    return Integer.compare(t2InDegree, t1InDegree); // reverse order - higher in-degree first
                 })
                 .toList();
 
-        // ── Step 5: Create copies and replicate links ─────────────────────
+        // ── Step 6: Create copies and replicate links ─────────────────────
         for (var origTwin : origTwinsSorted) {
             if (!twinsToCopyIds.contains(origTwin.getId())) {
                 continue;
@@ -238,7 +267,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             }
         }
 
-        // ── Step 6: Wrap each copy into a FactoryItem for downstream processing ──
+        // ── Step 7: Wrap each copy into a FactoryItem for downstream processing ──
         var ret = new ArrayList<FactoryItem>(copyContextMap.size());
         for (var ctx : copyContextMap.values()) {
             if (ctx.getTwinCopy() == null) {
@@ -399,8 +428,10 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
      * (the collected original twins) and whose link type is in {@code linkReplaceMap},
      * plus replacement {@link LinkEntity} rows. No {@code hierarchy_tree} filter —
      * cross-branch links (e.g. portion → task) are included if both twins were collected.
+     *
+     * @param factoryInputTwinIds pipeline input twins skip {@code childrenStatusIds} on their link endpoint
      */
-    private LinksData findLinksData(Set<UUID> twinIds, Map<UUID, UUID> linkReplaceMap, Set<UUID> childrenStatusIds) throws ServiceException {
+    private LinksData findLinksData(Set<UUID> twinIds, Map<UUID, UUID> linkReplaceMap, Set<UUID> childrenStatusIds, Set<UUID> factoryInputTwinIds) throws ServiceException {
         if (linkReplaceMap.isEmpty()) {
             return LinksData.EMPTY;
         }
@@ -413,7 +444,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
 
         var origTwinLinks = childrenStatusIds.isEmpty()
                 ? twinLinkService.findAllBetweenTwinsInAndLinkIdIn(twinIds, linkReplaceMap.keySet())
-                : twinLinkService.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkReplaceMap.keySet(), childrenStatusIds);
+                : twinLinkService.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(twinIds, linkReplaceMap.keySet(), childrenStatusIds, factoryInputTwinIds);
 
         return new LinksData(origTwinLinks, newLinks);
     }

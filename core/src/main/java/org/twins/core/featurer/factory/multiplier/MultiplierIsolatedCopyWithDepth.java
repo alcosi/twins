@@ -21,9 +21,11 @@ import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -45,8 +47,12 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
     @FeaturerParam(name = "Children statuses", description = "Statuses that are used to filter twin children", optional = true)
     public static final FeaturerParamUUIDSetTwinsStatusId childrenStatuses = new FeaturerParamUUIDSetTwinsStatusId("childrenStatuses");
 
+    @FeaturerParam(name = "Link ids", description = "Link types to include connected twins (non-hierarchical). Connected twins will be copied without their children.", optional = true)
+    public static final FeaturerParamUUIDSetTwinsLinkId linkIds = new FeaturerParamUUIDSetTwinsLinkId("linkIds");
+
     private final TwinSearchService twinSearchService;
     private final TwinLinkService twinLinkService;
+    private final TwinService twinService;
 
     @Data
     @Accessors(chain = true)
@@ -61,6 +67,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         var user = authService.getApiUser().getUser();
         var childrenStatusIds = childrenStatuses.extract(properties);
         var depth = childrenDepth.extract(properties);
+        var linkIdsParam = linkIds.extract(properties);
         var copyContextMap = new LinkedHashMap<UUID, CopyContext>();
         var origTwins = new HashSet<TwinEntity>(inputFactoryItemList.size());
 
@@ -89,11 +96,46 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
             collectedTwinIds.add(t.getId());
         }
 
+        // Find connected twins by specified link types
+        if (!linkIdsParam.isEmpty()) {
+            // Find links where src OR dst is in collectedTwinIds
+            Set<TwinLinkEntity> linkTypeLinks = twinLinkService.findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(linkIdsParam, collectedTwinIds);
+
+            Set<UUID> connectedTwinIds = new HashSet<>();
+            for (var link : linkTypeLinks) {
+                // Add src if it's not in collectedTwinIds
+                if (!collectedTwinIds.contains(link.getSrcTwinId())) {
+                    connectedTwinIds.add(link.getSrcTwinId());
+                }
+                // Add dst if it's not in collectedTwinIds
+                if (!collectedTwinIds.contains(link.getDstTwinId())) {
+                    connectedTwinIds.add(link.getDstTwinId());
+                }
+            }
+
+            if (!connectedTwinIds.isEmpty()) {
+                var connectedTwins = twinService.findEntitiesSafe(connectedTwinIds);
+                origTwins.addAll(connectedTwins);
+                for (var t : connectedTwins) {
+                    collectedTwinIds.add(t.getId());
+                }
+            }
+        }
+
         Set<TwinLinkEntity> origTwinLinks = childrenStatusIds.isEmpty()
                 ? twinLinkService.findAllBetweenTwinsIn(collectedTwinIds)
                 : twinLinkService.findAllBetweenTwinsInAndTwinsInStatusIds(collectedTwinIds, childrenStatusIds);
 
         var origTwinLinksGrouped = new KitGrouped<>(origTwinLinks, TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
+
+        // Build in-degree map for topological sort (how many links point to each twin)
+        Map<UUID, Integer> inDegreeMap = new HashMap<>();
+        for (TwinEntity twin : origTwins) {
+            inDegreeMap.put(twin.getId(), 0);
+        }
+        for (TwinLinkEntity link : origTwinLinks) {
+            inDegreeMap.merge(link.getDstTwinId(), 1, Integer::sum);
+        }
 
         // sort to have confidence that twin on every depth level in processing has an already created parent
         var origTwinsSorted = origTwins.stream()
@@ -110,8 +152,15 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                     // secondary sort: twins without links go first
                     boolean t1HasLinks = origTwinLinksGrouped.containsGroupedKey(t1.getId());
                     boolean t2HasLinks = origTwinLinksGrouped.containsGroupedKey(t2.getId());
+                    int linksComparison = Boolean.compare(t1HasLinks, t2HasLinks);
+                    if (linksComparison != 0) {
+                        return linksComparison;
+                    }
 
-                    return Boolean.compare(t1HasLinks, t2HasLinks);
+                    // tertiary sort: twins that are referenced by more links go first (topological order)
+                    int t1InDegree = inDegreeMap.getOrDefault(t1.getId(), 0);
+                    int t2InDegree = inDegreeMap.getOrDefault(t2.getId(), 0);
+                    return Integer.compare(t2InDegree, t1InDegree); // reverse order - higher in-degree first
                 })
                 .toList();
 
@@ -150,16 +199,22 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         // get existing context (for input twins) or create a new one (usually for children)
         var copyContext = copyContextMap.computeIfAbsent(
                 origTwin.getId(),
-                k -> new CopyContext()
-                        .setOrigFactoryItem(
-                                new FactoryItem()
-                                        .setOutput(
-                                                new TwinUpdate().setDbTwinEntity(origTwin)
-                                        )
-                                        .setContextFactoryItemList(
-                                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
-                                        )
-                        )
+                k -> {
+                    var factoryItem = new FactoryItem()
+                            .setOutput(new TwinUpdate().setDbTwinEntity(origTwin));
+
+                    // Set context factory item list - use head twin context if available, otherwise use input factory item
+                    if (origTwin.getHeadTwinId() != null && copyContextMap.containsKey(origTwin.getHeadTwinId())) {
+                        factoryItem.setContextFactoryItemList(
+                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
+                        );
+                    } else {
+                        // For top-level twins or when head is not yet processed, use the twin itself as context
+                        factoryItem.setContextFactoryItemList(List.of(factoryItem));
+                    }
+
+                    return new CopyContext().setOrigFactoryItem(factoryItem);
+                }
         );
 
         if (copyContext.getTwinCopy() != null) {
@@ -177,14 +232,18 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                 .setCreatedByUserId(user.getId())
                 .setCreatedByUser(user);
 
-        if (copyContextMap.containsKey(origTwin.getHeadTwinId())) {
-            var headTwinCopy = copyContextMap
-                    .get(origTwin.getHeadTwinId())
-                    .getTwinCopy();
-
-            twinCopy
-                    .setHeadTwin(headTwinCopy)
-                    .setHeadTwinId(headTwinCopy.getId());
+        var origHeadTwinId = origTwin.getHeadTwinId();
+        if (origHeadTwinId != null) {
+            if (copyContextMap.containsKey(origHeadTwinId)) {
+                // Parent is being copied — point to the copy
+                var headTwinCopy = copyContextMap.get(origHeadTwinId).getTwinCopy();
+                twinCopy
+                        .setHeadTwin(headTwinCopy)
+                        .setHeadTwinId(headTwinCopy.getId());
+            } else {
+                // Parent is outside the copy scope — keep the original reference
+                twinCopy.setHeadTwinId(origHeadTwinId);
+            }
         }
 
         // setting twin copy in context

@@ -3,6 +3,7 @@ package org.cambium.common.util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
@@ -12,6 +13,10 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                 .sorted()
                 .map(T::toString)
                 .collect(Collectors.joining(","));
+    }
+
+    public static <T> String generateUniqueKey(Collection<T> collection1, Collection<T> collection2) {
+        return generateUniqueKey(collection1) + "|" + generateUniqueKey(collection2);
     }
 
     public static List<String> singletonListOrNull(String string) {
@@ -99,5 +104,11 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                  return collection;
          }
          return null;
+    }
+
+    public static <T, ID> List<T> filterByItemId(Collection<T> items, ID itemId, Function<T, ID> idExtractor) {
+        return items.stream()
+                .filter(item -> itemId.equals(idExtractor.apply(item)))
+                .toList();
     }
 }

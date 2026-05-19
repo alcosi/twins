@@ -2,7 +2,9 @@ package org.twins.core.dao.twin;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.twins.core.enums.status.StatusType;
 
@@ -15,6 +17,11 @@ public interface TwinStatusRepository extends CrudRepository<TwinStatusEntity, U
     String CACHE_TWIN_STATUS_TYPE = "TwinStatusRepository.existsByIdAndType";
 
     List<TwinStatusEntity> findByTwinClassId(UUID twinClassId);
+
+    String CACHE_TWIN_STATUS_BY_TWIN_CLASS_ID_IN_INHERITABLE = "TwinStatusRepository.findByTwinClassIdInInheritable";
+    @Cacheable(value = CACHE_TWIN_STATUS_BY_TWIN_CLASS_ID_IN_INHERITABLE, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#mainTwinClassIdList, #extendsTwinClassIdList)")
+    @Query(value = "from TwinStatusEntity where twinClassId in :mainTwinClassIdList or (twinClassId in :extendsTwinClassIdList and inheritable)")
+    List<TwinStatusEntity> findByTwinClassIdInInheritable(@Param("mainTwinClassIdList") Set<UUID> mainTwinClassIdList, @Param("extendsTwinClassIdList") Set<UUID> extendsTwinClassIdList);
 
     List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
 

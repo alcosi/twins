@@ -33,6 +33,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
@@ -68,7 +69,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
-import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Slf4j
 @Service
@@ -423,6 +423,16 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }
         return true;
+    }
+
+    public boolean isInheritedFromClass(TwinClassEntity instanceClass, UUID fromClass, boolean inheritable) throws ServiceException {
+        if (instanceClass.getId().equals(fromClass)) {
+            return true;
+        } else if (!inheritable) {
+            return false;
+        } else {
+            return instanceClass.getExtendedClassIdSet().contains(fromClass);
+        }
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -980,11 +990,38 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return ret;
         List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad);
         for (TwinClassExtendsProjection childClass : twinClassExtendsProjectionList) {
-            for (String hierarchyItem : convertUuidFromLtreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
+            for (String hierarchyItem : LTreeUtils.convertUuidFromLTreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
                 ret.add(UUID.fromString(hierarchyItem));
         }
         return ret;
     }
+
+    public Set<ClassWithExtends> loadExtends(Map<UUID, Boolean> twinClassIdMap) throws ServiceException {
+        if (MapUtils.isEmpty(twinClassIdMap))
+            return Collections.emptySet();
+        List<UUID> detectExtends = new ArrayList<>();
+        Set<ClassWithExtends> result = new HashSet<>();
+        // Collect IDs that should not be loaded (value is FALSE) and add with empty extends
+        for (var entry : twinClassIdMap.entrySet()) {
+            UUID id = entry.getKey();
+            Boolean collectExtends = entry.getValue();
+            if (Boolean.TRUE.equals(collectExtends)) {
+                detectExtends.add(id);
+            } else {
+                result.add(new ClassWithExtends(id, Collections.emptySet()));
+            }
+        }
+        if (CollectionUtils.isEmpty(detectExtends))
+            return result;
+        // Load hierarchy for required IDs and build per-class extends set
+        List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), detectExtends);
+        for (TwinClassExtendsProjection classWithExtends : twinClassExtendsProjectionList) {
+            result.add(new ClassWithExtends(classWithExtends.getId(), LTreeUtils.toUuidsSortedSet(classWithExtends.getExtendsHierarchyTree(), true)));
+        }
+        return result;
+    }
+
+    public record ClassWithExtends(UUID twinClassId, Set<UUID> extendsTwinClassIds) {};
 
     public boolean allExist(Set<UUID> twinClassIds) {
         return twinClassRepository.existsAll(twinClassIds);
@@ -1012,4 +1049,5 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return null;
         }
     }
+
 }

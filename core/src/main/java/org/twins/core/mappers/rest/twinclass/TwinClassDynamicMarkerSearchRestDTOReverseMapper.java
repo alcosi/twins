@@ -16,6 +16,7 @@ public class TwinClassDynamicMarkerSearchRestDTOReverseMapper extends RestSimple
                 .setIdExcludeList(src.getIdExcludeList())
                 .setTwinClassIdMap(src.getTwinClassIdMap())
                 .setTwinClassIdExcludeMap(src.getTwinClassIdExcludeMap())
+                .setInheritable(src.getInheritable())
                 .setTwinValidatorSetIdList(src.getTwinValidatorSetIdList())
                 .setTwinValidatorSetIdExcludeList(src.getTwinValidatorSetIdExcludeList())
                 .setMarkerDataListOptionIdList(src.getMarkerDataListOptionIdList())

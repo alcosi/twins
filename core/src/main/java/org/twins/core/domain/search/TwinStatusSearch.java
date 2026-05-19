@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.Ternary;
 
 import java.util.Map;
 import java.util.Set;
@@ -22,4 +23,5 @@ public class TwinStatusSearch {
     private Set<String> nameI18nNotLikeList;
     private Set<String> descriptionI18nLikeList;
     private Set<String> descriptionI18nNotLikeList;
+    private Ternary inheritable;
 }

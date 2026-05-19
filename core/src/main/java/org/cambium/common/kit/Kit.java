@@ -72,6 +72,13 @@ public class Kit<E, K> implements Iterable<E> {
         return (Kit<E, K>) EMPTY;
     }
 
+    public static <E1, K1> Kit<E1, K1> safeAdd(Kit<E1, K1> kit, Function<? super E1, ? extends K1> functionGetId, E1 element) {
+        if (kit == null)
+            kit = new Kit<>(functionGetId);
+        kit.add(element);
+        return kit;
+    }
+
     public Collection<E> getCollection() {
         if (map == null || map.isEmpty())
             return Collections.emptyList();

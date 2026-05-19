@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Map;
@@ -27,6 +29,9 @@ public class TwinflowSearchRqDTOv1 extends Request {
 
     @Schema(description = "twin class id exclude map")
     public Map<UUID, Boolean> twinClassIdExcludeMap;
+
+    @Schema(description = "inheritable", example = DTOExamples.TERNARY)
+    public Ternary inheritable;
 
     @Schema(description = "name i18n keyword list(AND)")
     public Set<String> nameI18nLikeList;

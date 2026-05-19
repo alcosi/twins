@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.Request;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
-import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
 import java.util.UUID;
@@ -28,11 +30,17 @@ public class LinkSearchRqDTOv1 extends Request {
     @Schema(description = "src twin class id exclude list")
     public Set<UUID> srcTwinClassIdExcludeList;
 
+    @Schema(description = "src twin class inheritable", example = DTOExamples.TERNARY)
+    public Ternary srcTwinClassInheritable;
+
     @Schema(description = "dst twin class id list")
     public Set<UUID> dstTwinClassIdList;
 
     @Schema(description = "dst twin class id exclude list")
     public Set<UUID> dstTwinClassIdExcludeList;
+
+    @Schema(description = "dst twin class inheritable", example = DTOExamples.TERNARY)
+    public Ternary dstTwinClassInheritable;
 
     @Schema(description = "src or dst twin class id list")
     public Set<UUID> srcOrDstTwinClassIdList;
