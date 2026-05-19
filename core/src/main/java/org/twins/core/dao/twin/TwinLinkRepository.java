@@ -200,7 +200,7 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
 
     /**
      * Same as {@link #findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds}, but each endpoint may instead be
-     * one of {@code factoryInputTwinIds} (status check waived for factory pipeline inputs).
+     * one of {@code inputTwinIds} (status check waived for pipeline inputs).
      */
     @Query(value = """
             SELECT tl.*
@@ -212,18 +212,18 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
               AND tl.link_id IN :linkIds
               AND (
                   src.twin_status_id IN :twinStatusIds
-                  OR src.id IN :factoryInputTwinIds
+                  OR src.id IN :inputTwinIds
               )
               AND (
                   dst.twin_status_id IN :twinStatusIds
-                  OR dst.id IN :factoryInputTwinIds
+                  OR dst.id IN :inputTwinIds
               )
             """, nativeQuery = true)
-    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrFactoryInputTwins(
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(
             @Param("twinIds") Collection<UUID> twinIds,
             @Param("linkIds") Collection<UUID> linkIds,
             @Param("twinStatusIds") Collection<UUID> twinStatusIds,
-            @Param("factoryInputTwinIds") Collection<UUID> factoryInputTwinIds);
+            @Param("inputTwinIds") Collection<UUID> inputTwinIds);
 
     @Query("select tl.dstTwinId as id, count(tl) as cnt from TwinLinkEntity tl where tl.linkId = :linkId and tl.dstTwinId in :dstTwinIdList group by tl.dstTwinId")
     List<Object[]> countBackwardLinks(@Param("dstTwinIdList") Collection<UUID> dstTwinIdList, @Param("linkId") UUID linkId);

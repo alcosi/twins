@@ -431,11 +431,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
      *
      * @param factoryInputTwinIds pipeline input twins skip {@code childrenStatusIds} on their link endpoint
      */
-    private LinksData findLinksData(
-            Set<UUID> twinIds,
-            Map<UUID, UUID> linkReplaceMap,
-            Set<UUID> childrenStatusIds,
-            Set<UUID> factoryInputTwinIds) throws ServiceException {
+    private LinksData findLinksData(Set<UUID> twinIds, Map<UUID, UUID> linkReplaceMap, Set<UUID> childrenStatusIds, Set<UUID> factoryInputTwinIds) throws ServiceException {
         if (linkReplaceMap.isEmpty()) {
             return LinksData.EMPTY;
         }
@@ -448,8 +444,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
 
         var origTwinLinks = childrenStatusIds.isEmpty()
                 ? twinLinkService.findAllBetweenTwinsInAndLinkIdIn(twinIds, linkReplaceMap.keySet())
-                : twinLinkService.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrFactoryInputTwins(
-                        twinIds, linkReplaceMap.keySet(), childrenStatusIds, factoryInputTwinIds);
+                : twinLinkService.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(twinIds, linkReplaceMap.keySet(), childrenStatusIds, factoryInputTwinIds);
 
         return new LinksData(origTwinLinks, newLinks);
     }
