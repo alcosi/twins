@@ -63,6 +63,6 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
         }
 
-        return twinSearchService.count(search) > 0;
+        return twinSearchService.exists(search);
     }
 }
