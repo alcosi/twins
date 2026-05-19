@@ -5,7 +5,9 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.bouncycastle.util.Strings;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -254,7 +256,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
         if (!idsForReload.isEmpty()) {
             var loadedOptions = findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead);
-            valueSelect.setItems(loadedOptions);
+            valueSelect.setItems(loadedOptions.getCollection());
         }
     }
 
@@ -364,11 +366,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 .setOptionLikeList(incompleteOptionKit.getIdSet());
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
-        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getOption);
+        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(
+                dataListOptionSearchService.findDataListOptions(dataListOptionSearch),
+                DataListOptionEntity::getOption, Strings::toLowerCase, DuplicateKeyMode.THROW);
         options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
-                .filter(incomplete -> !existedOptions.containsKeyIgnoreCase(incomplete))
+                .filter(incomplete -> !existedOptions.containsKey(incomplete))
                 .collect(Collectors.toList());
 
         if (!missedList.isEmpty()) {

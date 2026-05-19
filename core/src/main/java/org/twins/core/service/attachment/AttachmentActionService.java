@@ -80,7 +80,7 @@ public class AttachmentActionService {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                twinValidatorService.loadValidators(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules());
+                twinValidatorService.loadValidators(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules().getCollection());
                 List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionAlienValidatorRule.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 boolean allRuleValidatorsAreValid = true;

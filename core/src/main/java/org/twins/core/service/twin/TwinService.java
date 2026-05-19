@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.QuotaKey;
-import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
@@ -36,6 +35,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.*;
@@ -560,7 +560,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     twin.setPermissionSchemaId(authService.getApiUser().getUser().getDetectedPermissionSchemaId());
                 }
             }
-            if (CollectionUtils.isNotEmpty(twinToCheck)) {
+            if (KitUtils.isNotEmpty(twinToCheck)) {
                 var validHeads = twinHeadService.checkValidHeadsForClass(twinToCheck.getGroupedKeySet(), twinClass);
                 for (var twin : twinToCheck) {
                     var headTwin = validHeads.get(twin.getHeadTwinId());
@@ -932,7 +932,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         loadFieldsValues(twinUpdate.getDbTwinEntity());
         var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId);
         if (KitUtils.isNotEmpty(mergedTwinEntity.getFieldValuesKit())) {
-            mergedValuesKit.addAll(mergedTwinEntity.getFieldValuesKit());
+            mergedValuesKit.addAll(mergedTwinEntity.getFieldValuesKit().getCollection());
         }
         // let's override with updates
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {

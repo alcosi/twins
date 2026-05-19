@@ -11,8 +11,6 @@ public class KitGrouped<E, K, GK> extends Kit<E, K> {
         @Override public boolean add(Object e) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
         @Override public boolean addAll(Collection c) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
         @Override public boolean remove(Object o) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
-        @Override public boolean removeAll(Collection c) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
-        @Override public boolean retainAll(Collection c) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
         @Override public void clear() { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
     };
 
@@ -56,7 +54,7 @@ public class KitGrouped<E, K, GK> extends Kit<E, K> {
         if (isEmpty() || functionGetGroupingId == null)
             return Collections.emptyMap();
         groupedMap = new HashMap<>();
-        for (E entity : collection) {
+        for (E entity : this) {
             GK groupingId = functionGetGroupingId.apply(entity);
             groupedMap.computeIfAbsent(groupingId, k -> new ArrayList<>());
             groupedMap.get(groupingId).add(entity);

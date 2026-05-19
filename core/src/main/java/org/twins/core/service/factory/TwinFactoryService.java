@@ -479,7 +479,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     public boolean mustBeDrafted(FactoryResultUncommited factoryResultUncommited) {
-        return CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes());
+        return KitUtils.isNotEmpty(factoryResultUncommited.getDeletes());
     }
 
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {

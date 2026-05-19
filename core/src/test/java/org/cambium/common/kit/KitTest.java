@@ -58,39 +58,40 @@ public class KitTest {
         }
     }
 
-    // ===== DuplicateKeyMode.SILENT (default) =====
+    // ===== DuplicateKeyMode.IGNORE (default) =====
 
     @Nested
-    class DuplicateKeySilent {
+    class DuplicateKeyIgnore {
         @Test
-        public void testAddDuplicateKeySilentKeepsFirst() {
+        public void testAddDuplicateKeyIgnoreKeepsFirst() {
             UUID uuid = id();
             var first = new EntityStub(uuid, "first");
             var second = new EntityStub(uuid, "second");
-            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId, DuplicateKeyMode.SILENT);
+            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId, DuplicateKeyMode.IGNORE);
             kit.add(first);
             kit.add(second);
             assertEquals(first, kit.get(uuid));
-            assertEquals(2, kit.size());
+            assertEquals(1, kit.size());
         }
 
         @Test
         public void testAddSameInstanceReturnsFalse() {
             UUID uuid = id();
             var entity = new EntityStub(uuid, "test");
-            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId, DuplicateKeyMode.SILENT);
+            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId, DuplicateKeyMode.IGNORE);
             assertTrue(kit.add(entity));
             assertFalse(kit.add(entity));
             assertEquals(1, kit.size());
         }
 
         @Test
-        public void testDuplicateSilentViaInitialCollection() {
+        public void testDuplicateIgnoreViaInitialCollection() {
             UUID uuid = id();
             var first = new EntityStub(uuid, "first");
             var second = new EntityStub(uuid, "second");
-            Kit<EntityStub, UUID> kit = new Kit<>(Arrays.asList(first, second), EntityStub::getId);
+            Kit<EntityStub, UUID> kit = new Kit<>(Arrays.asList(first, second), EntityStub::getId, DuplicateKeyMode.IGNORE);
             assertEquals(first, kit.get(uuid));
+            assertEquals(1, kit.size());
         }
     }
 
@@ -199,7 +200,7 @@ public class KitTest {
         }
     }
 
-    // ===== remove / removeAll / clear =====
+    // ===== remove / clear =====
 
     @Nested
     class RemoveTests {
@@ -218,19 +219,6 @@ public class KitTest {
         public void testRemoveFromEmptyKit() {
             Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId);
             assertFalse(kit.remove(new EntityStub(id(), "x")));
-        }
-
-        @Test
-        public void testRemoveAll() {
-            var e1 = new EntityStub(id(), "a");
-            var e2 = new EntityStub(id(), "b");
-            var e3 = new EntityStub(id(), "c");
-            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId);
-            kit.addAll(Arrays.asList(e1, e2, e3));
-            kit.removeAll(Arrays.asList(e1, e2));
-            assertNull(kit.get(e1.getId()));
-            assertNull(kit.get(e2.getId()));
-            assertEquals(e3, kit.get(e3.getId()));
         }
 
         @Test
@@ -281,7 +269,7 @@ public class KitTest {
         }
     }
 
-    // ===== containsKey / containsKeyIgnoreCase =====
+    // ===== containsKey =====
 
     @Nested
     class ContainsKeyTests {
@@ -295,21 +283,13 @@ public class KitTest {
         }
 
         @Test
-        public void testContainsKeyIgnoreCase() {
-            Kit<String, String> kit = new Kit<>(Function.identity());
+        public void testContainsKeyCaseInsensitive() {
+            Kit<String, String> kit = new Kit<>(Function.identity(), String::toLowerCase);
             kit.add("Hello");
-            assertTrue(kit.containsKeyIgnoreCase("hello"));
-            assertTrue(kit.containsKeyIgnoreCase("HELLO"));
-            assertTrue(kit.containsKeyIgnoreCase("Hello"));
-            assertFalse(kit.containsKeyIgnoreCase("world"));
-        }
-
-        @Test
-        public void testContainsKeyIgnoreCaseWithNonStringKey() {
-            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId);
-            UUID uuid = id();
-            kit.add(new EntityStub(uuid, "test"));
-            assertTrue(kit.containsKeyIgnoreCase(uuid));
+            assertTrue(kit.containsKey("hello"));
+            assertTrue(kit.containsKey("HELLO"));
+            assertTrue(kit.containsKey("Hello"));
+            assertFalse(kit.containsKey("world"));
         }
     }
 

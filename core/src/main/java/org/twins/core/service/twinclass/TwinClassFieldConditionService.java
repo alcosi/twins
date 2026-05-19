@@ -197,7 +197,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
             return;
         }
         loadConditions(rule);
-        var conditionTree = buildNewConditionTree(rule.getConditionKit());
+        var conditionTree = buildNewConditionTree(rule.getConditionKit().getCollection());
         rule.setConditionTreeNodes(conditionTree);
     }
 

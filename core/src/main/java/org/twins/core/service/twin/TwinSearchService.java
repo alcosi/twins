@@ -14,6 +14,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
@@ -235,7 +236,7 @@ public class TwinSearchService {
             // narrow sort overrides every search sort
             if (searchByAlias.getNarrow() != null && CollectionUtils.isNotEmpty(searchByAlias.getNarrow().getSorts())) {
                 basicSearch.setSorts(searchByAlias.getNarrow().getSorts());
-            } else if (CollectionUtils.isNotEmpty(twinSearchEntity.getSortKit())) {
+            } else if (KitUtils.isNotEmpty(twinSearchEntity.getSortKit())) {
                 addSorts(twinSearchEntity, basicSearch);
             }
             if (twinSearchEntity.getHeadTwinSearchId() != null) {

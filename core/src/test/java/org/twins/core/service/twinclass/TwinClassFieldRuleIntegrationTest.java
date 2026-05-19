@@ -331,7 +331,7 @@ public class TwinClassFieldRuleIntegrationTest {
         TwinClassFieldEntity fieldFromDb = fieldRepository.findById(field.getId()).orElseThrow();
 
         // This is the call we refactored
-        ruleMapService.loadRules(Collections.singletonList(fieldFromDb));
+        ruleMapService.loadRules(fieldFromDb);
 
         assertNotNull(fieldFromDb.getRuleKit());
         assertEquals(1, fieldFromDb.getRuleKit().size());

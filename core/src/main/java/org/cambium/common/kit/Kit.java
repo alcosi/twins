@@ -1,32 +1,31 @@
 package org.cambium.common.kit;
 
+import lombok.Getter;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Dual-access container: implements Collection&lt;E&gt; for sequential access
- * and provides Map&lt;K, E&gt; for key-based lookup via functionGetId.
+ * Dual-access container: implements Iterable&lt;E&gt; for sequential access
+ * and provides Map&lt;K, E&gt; for key-based lookup via functionGetKey.
  * <p>
  * Not thread-safe. Do not share between threads.
  * <p>
  * Duplicate key handling depends on {@link DuplicateKeyMode}:
  * <ul>
- *   <li>SILENT (default) — keeps the first element, silently discards duplicates</li>
+ *   <li>IGNORE (default) — keeps the first element, silently discards duplicates</li>
  *   <li>REPLACE — replaces with the newer element</li>
  *   <li>THROW — throws ServiceException if a different object with the same key is added</li>
  * </ul>
  * Duplicate detection uses a three-level check: identity (==) → equals() → action.
  */
-public class Kit<E, K> implements Collection<E> {
-    protected Collection<E> collection;
-    protected Map<K, E> map;
-    protected TreeMap<String, E> caseInsensitiveMap;
-    protected final Function<? super E, ? extends K> functionGetId;
+public class Kit<E, K> implements Iterable<E> {
+    protected LinkedHashMap<K, E> map;
+    protected final Function<? super E, ? extends K> functionGetKey;
+    protected final Function<? super K, ? extends K> functionFormatKey;
+    @Getter
     protected final DuplicateKeyMode duplicateKeyMode;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -34,89 +33,88 @@ public class Kit<E, K> implements Collection<E> {
         @Override public boolean add(Object e) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
         @Override public boolean addAll(Collection c) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
         @Override public boolean remove(Object o) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
-        @Override public boolean removeAll(Collection c) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
-        @Override public boolean retainAll(Collection c) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
         @Override public void clear() { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
     };
 
-    public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetId) {
-        this(collection, functionGetId, DuplicateKeyMode.SILENT);
+    public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetKey) {
+        this(collection, functionGetKey, DuplicateKeyMode.THROW);
     }
 
-    public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetId, DuplicateKeyMode duplicateKeyMode) {
-        this.collection = collection;
-        this.functionGetId = functionGetId;
-        this.duplicateKeyMode = duplicateKeyMode != null ? duplicateKeyMode : DuplicateKeyMode.SILENT;
-        if (this.duplicateKeyMode == DuplicateKeyMode.THROW && collection != null && !collection.isEmpty()) {
-            getMap();
+    public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetKey, DuplicateKeyMode duplicateKeyMode) {
+        this(collection, functionGetKey, null, duplicateKeyMode);
+    }
+
+    public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetKey, Function<? super K, ? extends K> functionFormatKey, DuplicateKeyMode duplicateKeyMode) {
+        this.functionGetKey = functionGetKey;
+        this.functionFormatKey = functionFormatKey;
+        this.duplicateKeyMode = duplicateKeyMode != null ? duplicateKeyMode : DuplicateKeyMode.THROW;
+        if (collection != null && !collection.isEmpty()) {
+            map = new LinkedHashMap<>(collection.size() * 4 / 3 + 1);
+            for (E e : collection)
+                add(e);
         }
     }
 
-    public Kit(Function<? super E, ? extends K> functionGetId) {
-        this(functionGetId, DuplicateKeyMode.SILENT);
+    public Kit(Function<? super E, ? extends K> functionGetKey) {
+        this(null, functionGetKey, DuplicateKeyMode.IGNORE);
     }
 
-    public Kit(Function<? super E, ? extends K> functionGetId, DuplicateKeyMode duplicateKeyMode) {
-        this.functionGetId = functionGetId;
-        this.duplicateKeyMode = duplicateKeyMode != null ? duplicateKeyMode : DuplicateKeyMode.SILENT;
+    public Kit(Function<? super E, ? extends K> functionGetKey, Function<? super K, ? extends K> functionFormatKey) {
+        this(null, functionGetKey, functionFormatKey, DuplicateKeyMode.IGNORE);
     }
 
-    /**
-     * Type-safe alternative to Kit.EMPTY. Returns the shared immutable empty Kit instance.
-     */
+    public Kit(Function<? super E, ? extends K> functionGetKey, DuplicateKeyMode duplicateKeyMode) {
+        this(null, functionGetKey, duplicateKeyMode);
+    }
+
     @SuppressWarnings("unchecked")
     public static <E, K> Kit<E, K> emptyKit() {
         return (Kit<E, K>) EMPTY;
     }
 
     public Collection<E> getCollection() {
-        if (collection != null)
-            return collection;
-        return Collections.emptyList();
+        if (map == null || map.isEmpty())
+            return Collections.emptyList();
+        return Collections.unmodifiableCollection(map.values());
     }
 
     public List<E> getList() {
-        if (collection == null)
+        if (map == null || map.isEmpty())
             return Collections.emptyList();
-        if (collection instanceof List)
-            return (List<E>) collection;
-        else
-            return new ArrayList<>(collection);
+        return new ArrayList<>(map.values());
     }
 
     public boolean add(E e) {
-        if (collection == null)
-            collection = new ArrayList<>();
-        K key = functionGetId.apply(e);
-        if (map == null && !isEmpty())
-            getMap();
-        if (map != null) {
-            E existing = map.get(key);
-            if (existing != null) {
-                if (existing == e)
-                    return false;
-                switch (duplicateKeyMode) {
-                    case REPLACE -> { map.put(key, e); caseInsensitiveMap = null; }
-                    case THROW -> {
-                        if (!existing.equals(e))
-                            throw new IllegalStateException(
-                                    "Kit already contains entry with key " + key
-                                            + ", existing: " + existing + ", new: " + e);
-                        return false;
-                    }
-                    default -> {}
+        if (map == null)
+            map = new LinkedHashMap<>();
+        K key = functionGetKey.apply(e);
+        if (functionFormatKey != null) {
+            key = functionFormatKey.apply(key);
+        }
+        E existing = map.get(key);
+        if (existing != null) {
+            if (existing == e)
+                return false;
+            switch (duplicateKeyMode) {
+                case REPLACE -> {
+                    map.put(key, e);
+                    return true;
                 }
-            } else {
-                map.put(key, e);
-                caseInsensitiveMap = null;
+                case THROW -> {
+                    if (!existing.equals(e))
+                        throw new IllegalStateException(
+                            "Kit already contains entry with key " + key
+                                + ", existing: " + existing + ", new: " + e);
+                    return false;
+                }
+                default -> { return false; } // IGNORE — keep first, don't add
             }
         }
-        return collection.add(e);
+        map.put(key, e);
+        return true;
     }
 
     public boolean addAll(Collection<? extends E> c) {
-        if (collection == null)
-            collection = new ArrayList<>();
         boolean modified = false;
         for (E e : c) {
             if (add(e))
@@ -126,62 +124,25 @@ public class Kit<E, K> implements Collection<E> {
     }
 
     public Map<K, E> getMap() {
-        if (map != null)
-            return map;
-        if (collection == null)
+        if (map == null)
             return Collections.emptyMap();
-        int size = collection.size();
-        map = new LinkedHashMap<>(size * 4 / 3 + 1);
-        for (E e : collection) {
-            K key = functionGetId.apply(e);
-            E existing = map.get(key);
-            if (existing == null) {
-                map.put(key, e);
-            } else {
-                switch (duplicateKeyMode) {
-                    case REPLACE -> map.put(key, e);
-                    case THROW -> {
-                        if (existing != e && !existing.equals(e))
-                            throw new IllegalStateException(
-                                    "Kit already contains entry with key " + key
-                                            + ", existing: " + existing + ", new: " + e);
-                    }
-                    default -> {}
-                }
-            }
-        }
         return map;
     }
 
-    public boolean containsKey(K key) {
-        getMap();
-        if (map == null)
-            return false;
-        return map.containsKey(key);
+    protected K formatKey(K key) {
+        return functionFormatKey != null ? functionFormatKey.apply(key) : key;
     }
 
-    public boolean containsKeyIgnoreCase(K key) {
-        getMap();
-        if (map == null || key == null)
+    public boolean containsKey(K key) {
+        if (map == null)
             return false;
-        if (!(key instanceof String))
-            return map.containsKey(key);
-        String searchKey = (String) key;
-        if (caseInsensitiveMap == null) {
-            caseInsensitiveMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-            for (Map.Entry<K, E> entry : map.entrySet()) {
-                if (entry.getKey() instanceof String)
-                    caseInsensitiveMap.put((String) entry.getKey(), entry.getValue());
-            }
-        }
-        return caseInsensitiveMap.containsKey(searchKey);
+        return map.containsKey(formatKey(key));
     }
 
     public E get(K key) {
-        getMap();
         if (map == null)
             return null;
-        return map.get(key);
+        return map.get(formatKey(key));
     }
 
     public E getSafe(K key) throws ServiceException {
@@ -193,8 +154,6 @@ public class Kit<E, K> implements Collection<E> {
 
     public Set<K> getIdSet() {
         if (map == null)
-            getMap();
-        if (map == null)
             return Collections.emptySet();
         return map.keySet();
     }
@@ -205,142 +164,57 @@ public class Kit<E, K> implements Collection<E> {
 
     @Override
     public String toString() {
-        return "size = " + (collection != null ? CollectionUtils.size(collection) : "0");
+        return "size = " + (map != null ? map.size() : "0");
     }
 
-    //collection stuff
-
-    @Override
     public boolean remove(Object o) {
-        if (collection == null)
+        if (map == null)
             return false;
-        boolean ret = collection.remove(o);
-        if (ret && map != null) {
-            try {
-                @SuppressWarnings("unchecked")
-                K key = functionGetId.apply((E) o);
-                map.remove(key);
-                caseInsensitiveMap = null;
-            } catch (ClassCastException ignored) {
-            }
+        try {
+            @SuppressWarnings("unchecked")
+            K key = functionGetKey.apply((E) o);
+            return map.remove(formatKey(key)) != null;
+        } catch (ClassCastException ignored) {
+            return false;
         }
-        return ret;
     }
 
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        if (collection == null)
-            return c.isEmpty();
-        return collection.containsAll(c);
+    public boolean contains(Object o) {
+        return map != null && map.containsValue(o);
     }
 
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        if (collection == null)
-            return false;
-        boolean ret = collection.removeAll(c);
-        if (ret) {
-            if (map != null) {
-                for (Object o : c) {
-                    try {
-                        @SuppressWarnings("unchecked")
-                        K key = functionGetId.apply((E) o);
-                        map.remove(key);
-                    } catch (ClassCastException ignored) {
-                    }
-                }
-                caseInsensitiveMap = null;
-            }
-        }
-        return ret;
-    }
-
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        if (collection == null)
-            return false;
-        map = null;
-        caseInsensitiveMap = null;
-        return collection.retainAll(c);
-    }
-
-    @Override
     public void clear() {
-        map = null;
-        caseInsensitiveMap = null;
-        if (collection != null)
-            collection.clear();
+        if (map != null)
+            map.clear();
     }
 
-    @Override
     public int size() {
-        if (collection == null)
-            return 0;
-        return CollectionUtils.size(collection);
+        return map == null ? 0 : map.size();
     }
 
     public boolean isEmpty() {
-        return collection == null || collection.isEmpty();
-    }
-
-    @Override
-    public boolean contains(Object o) {
-        return collection != null && collection.contains(o);
-    }
-
-    @Override
-    public Iterator<E> iterator() {
-        return new KitIterator();
-    }
-
-    @Override
-    public Object[] toArray() {
-        return collection != null ? collection.toArray() : new Object[0];
-    }
-
-    @Override
-    public <T> T[] toArray(T[] a) {
-        if (collection != null)
-            return collection.toArray(a);
-        if (a.length > 0)
-            a[0] = null;
-        return a;
+        return map == null || map.isEmpty();
     }
 
     public boolean isNotEmpty() {
         return !isEmpty();
     }
 
-    public DuplicateKeyMode getDuplicateKeyMode() {
-        return duplicateKeyMode;
+    @Override
+    public Iterator<E> iterator() {
+        return map != null ? map.values().iterator() : Collections.emptyIterator();
     }
 
-    private class KitIterator implements Iterator<E> {
-        Iterator<E> collectionIterator = collection != null ? collection.iterator() : Collections.emptyIterator();
-        E currentItem;
-
-        @Override
-        public boolean hasNext() {
-            return collectionIterator.hasNext();
-        }
-
-        @Override
-        public E next() {
-            currentItem = collectionIterator.next();
-            return currentItem;
-        }
-
-        @Override
-        public void remove() {
-            collectionIterator.remove();
-            if (map != null && currentItem != null)
-                map.remove(functionGetId.apply(currentItem));
-            caseInsensitiveMap = null;
-        }
-
-        @Override
-        public void forEachRemaining(Consumer<? super E> action) {
-            collectionIterator.forEachRemaining(action);
-        }
+    public Object[] toArray() {
+        return map != null ? map.values().toArray() : new Object[0];
     }
+
+    public <T> T[] toArray(T[] a) {
+        if (map != null)
+            return map.values().toArray(a);
+        if (a.length > 0)
+            a[0] = null;
+        return a;
+    }
+
 }
