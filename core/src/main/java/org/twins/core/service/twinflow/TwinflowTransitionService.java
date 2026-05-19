@@ -11,6 +11,7 @@ import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
@@ -172,8 +173,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void loadAllTransitions(List<TwinClassEntity> twinClasses) {
         for (TwinClassEntity twinClass : twinClasses) {
             twinflowService.loadTwinflows(twinClass);
-            if (null != twinClass.getTwinflowKit() && twinClass.getTwinflowKit().isNotEmpty())
-                twinClass.setTransitionsKit(new Kit<>(twinflowTransitionRepository.findByTwinflowIdIn(twinClass.getTwinflowKit().getIdSet()), TwinflowTransitionEntity::getTwinflowId));
+            if (KitUtils.isNotEmpty(twinClass.getTwinflowKit()))
+                twinClass.setTransitionsKit(new Kit<>(twinflowTransitionRepository.findByTwinflowIdIn(twinClass.getTwinflowKit().getIdSet()), TwinflowTransitionEntity::getId, DuplicateKeyMode.IGNORE));
         }
     }
 
