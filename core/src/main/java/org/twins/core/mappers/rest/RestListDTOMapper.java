@@ -33,6 +33,12 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
         return convertCollection(srcKit.getCollection(), mapperContext);
     }
 
+    public List<S> convertCollection(Kit<T, ?> srcKit) throws Exception {
+        if (srcKit == null)
+            return null;
+        return convertCollection(srcKit.getCollection(), new MapperContext());
+    }
+
     public Map<UUID, S> convertMap(Map<UUID, T> srcMap, MapperContext mapperContext) throws Exception {
         if (srcMap == null)
             return null;

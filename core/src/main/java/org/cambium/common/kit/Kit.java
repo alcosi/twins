@@ -17,7 +17,7 @@ import java.util.function.Function;
  * <ul>
  *   <li>IGNORE (default) — keeps the first element, silently discards duplicates</li>
  *   <li>REPLACE — replaces with the newer element</li>
- *   <li>THROW — throws ServiceException if a different object with the same key is added</li>
+ *   <li>THROW — throws IllegalStateException if a different object with the same key is added</li>
  * </ul>
  * Duplicate detection uses a three-level check: identity (==) → equals() → action.
  */
@@ -126,7 +126,7 @@ public class Kit<E, K> implements Iterable<E> {
     public Map<K, E> getMap() {
         if (map == null)
             return Collections.emptyMap();
-        return map;
+        return Collections.unmodifiableMap(map);
     }
 
     protected K formatKey(K key) {
@@ -155,7 +155,7 @@ public class Kit<E, K> implements Iterable<E> {
     public Set<K> getIdSet() {
         if (map == null)
             return Collections.emptySet();
-        return map.keySet();
+        return Collections.unmodifiableSet(map.keySet());
     }
 
     public Set<K> getIdSetSafe() {
@@ -165,6 +165,12 @@ public class Kit<E, K> implements Iterable<E> {
     @Override
     public String toString() {
         return "size = " + (map != null ? map.size() : "0");
+    }
+
+    public E removeByKey(K key) {
+        if (map == null)
+            return null;
+        return map.remove(formatKey(key));
     }
 
     public boolean remove(Object o) {
