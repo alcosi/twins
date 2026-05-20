@@ -581,6 +581,14 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkFieldIn(final Collection<?> values, boolean not, final String field) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(values))
+                return cb.conjunction();
+            return not ? cb.not(root.get(field).in(values)) : root.get(field).in(values);
+        };
+    }
+
     public static <T> Specification<T> checkFieldLongRange(
             final LongRange range,
             final String... fieldPath) {
