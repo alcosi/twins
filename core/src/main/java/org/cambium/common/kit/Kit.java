@@ -92,33 +92,42 @@ public class Kit<E, K> implements Iterable<E> {
     }
 
     public boolean add(E e) {
-        if (map == null)
+        if (map == null) {
             map = new LinkedHashMap<>();
+        }
         K key = functionGetKey.apply(e);
         if (functionFormatKey != null) {
             key = functionFormatKey.apply(key);
         }
+
         E existing = map.get(key);
-        if (existing != null) {
-            if (existing == e)
-                return false;
-            switch (duplicateKeyMode) {
-                case REPLACE -> {
-                    map.put(key, e);
-                    return true;
-                }
-                case THROW -> {
-                    if (!existing.equals(e))
-                        throw new IllegalStateException(
-                            "Kit already contains entry with key " + key
-                                + ", existing: " + existing + ", new: " + e);
-                    return false;
-                }
-                default -> { return false; } // IGNORE — keep first, don't add
-            }
+        if (existing == null) {
+            map.put(key, e);
+            return true;
         }
-        map.put(key, e);
-        return true;
+
+        if (existing == e) {
+            return false;
+        }
+
+        return switch (duplicateKeyMode) {
+            case REPLACE -> {
+                map.put(key, e);
+                yield true;
+            }
+
+            case THROW -> {
+                if (!existing.equals(e)) {
+                    throw new IllegalStateException(
+                            "Kit already contains entry with key " + key
+                                    + ", existing: " + existing + ", new: " + e
+                    );
+                }
+                yield false;
+            }
+
+            default -> false; // IGNORE
+        };
     }
 
     public boolean addAll(Collection<? extends E> c) {

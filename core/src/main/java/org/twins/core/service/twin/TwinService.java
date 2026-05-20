@@ -11,6 +11,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.*;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
@@ -930,19 +931,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
         loadFieldsValues(twinUpdate.getDbTwinEntity());
-        var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId);
+        var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId, DuplicateKeyMode.REPLACE);
         if (KitUtils.isNotEmpty(mergedTwinEntity.getFieldValuesKit())) {
             mergedValuesKit.addAll(mergedTwinEntity.getFieldValuesKit().getCollection());
         }
         // let's override with updates
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            for (var fieldValue : twinUpdate.getFields().values()) {
-                var existingFieldValue = mergedValuesKit.get(fieldValue.getTwinClassFieldId());
-                if (existingFieldValue != null) {
-                    mergedValuesKit.remove(existingFieldValue);
-                }
-                mergedValuesKit.add(fieldValue); //todo refactor this
-            }
+            mergedValuesKit.addAll(twinUpdate.getFields().values());
         }
         return twinFieldRuleExecutionService.checkAllRequired(mergedValuesKit, mergedTwinEntity);
     }
