@@ -21,7 +21,7 @@ public class I18nExportService {
         StringBuilder result = new StringBuilder();
         for (I18nEntity i18n : i18nEntities) {
             String i18nSql = i18nSqlBuilder.buildI18nInsert(i18n,
-                    i18n.getTranslationsKit() != null ? new ArrayList<>(i18n.getTranslationsKit()) : Collections.emptyList());
+                    i18n.getTranslationsKit() != null ? new ArrayList<>(i18n.getTranslationsKit().getList()) : Collections.emptyList());
             if (!i18nSql.isEmpty()) {
                 if (!result.isEmpty()) result.append("\n");
                 result.append(i18nSql);

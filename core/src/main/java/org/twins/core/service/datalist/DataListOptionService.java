@@ -5,7 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.bouncycastle.util.Strings;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
@@ -368,7 +367,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
         Kit<DataListOptionEntity, String> existedOptions = new Kit<>(
                 dataListOptionSearchService.findDataListOptions(dataListOptionSearch),
-                DataListOptionEntity::getOption, Strings::toLowerCase, DuplicateKeyMode.THROW);
+                DataListOptionEntity::getOption, String::toLowerCase, DuplicateKeyMode.THROW);
         options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
