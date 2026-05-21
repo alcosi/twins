@@ -5,9 +5,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.UUID;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinClassFieldConditionCreateV1")
-public class TwinClassFieldConditionCreateDTOv1 extends TwinClassFieldConditionSaveDTOv1 {
+@Schema(name = "TwinClassFieldConditionUpdateV1")
+public class TwinClassFieldConditionUpdateDTOv1 extends TwinClassFieldConditionSaveDTOv1 {
+
+    @Schema(description = "id")
+    public UUID id;
 }
