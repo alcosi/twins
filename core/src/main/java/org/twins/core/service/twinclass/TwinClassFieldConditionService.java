@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -125,7 +124,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
             else
                 newFeaturerId = dbConditionEntity.getConditionEvaluatorFeaturerId(); // only params where changed
         }
-        if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbConditionEntity.getConditionEvaluatorFeaturerId(), newFeaturerId)) {
+        if (changesHelper.isChanged(TwinClassFieldConditionEntity.Fields.conditionEvaluatorFeaturerId, dbConditionEntity.getConditionEvaluatorFeaturerId(), newFeaturerId)) {
             FeaturerEntity newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
             dbConditionEntity
                     .setConditionEvaluatorFeaturerId(newMultiplierFeaturer.getId());

@@ -723,7 +723,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             else
                 newFeaturerId = dbTwinClassFieldEntity.getTwinSorterFeaturerId(); // only params where changed
         }
-        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.twinSorterFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
+        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.twinSorterFeaturerId, dbTwinClassFieldEntity.getTwinSorterFeaturerId(), newFeaturerId)) {
             featurerService.checkValid(newFeaturerId, newFeaturerParams, TwinSorter.class);
             dbTwinClassFieldEntity
                     .setTwinSorterFeaturerId(newFeaturerId);

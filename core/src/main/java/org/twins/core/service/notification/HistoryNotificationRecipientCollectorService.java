@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorEntity;
 import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorRepository;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorUpdate;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
@@ -136,7 +135,7 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
         if (!MapUtils.areEqual(dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams)) {
-            changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams);
+            changesHelper.add(HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverParams, dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams);
             dbHistoryNotificationRecipientCollectorEntity
                     .setRecipientResolverParams(newFeaturerParams);
         }

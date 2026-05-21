@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
@@ -112,13 +111,13 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
             else
                 newFeaturerId = dbEntity.getFillerFeaturerId(); // only params where changed
         }
-        if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbEntity.getFillerFeaturerId(), newFeaturerId)) {
+        if (changesHelper.isChanged(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, dbEntity.getFillerFeaturerId(), newFeaturerId)) {
             FeaturerEntity newFillerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Filler.class);
             dbEntity.setFillerFeaturerId(newFillerFeaturer.getId());
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
         if (!MapUtils.areEqual(dbEntity.getFillerParams(), newFeaturerParams)) {
-            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbEntity.getFillerParams(), newFeaturerParams);
+            changesHelper.add(TwinFactoryPipelineStepEntity.Fields.fillerParams, dbEntity.getFillerParams(), newFeaturerParams);
             dbEntity
                     .setFillerParams(newFeaturerParams);
         }

@@ -720,7 +720,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
             dbTwinClassEntity.setHeadHunterFeaturerId(newHeadHunterFeaturer.getId());
         }
-        featurerService.prepareForStore(dbTwinClassEntity.getHeadHunterFeaturerId(), headHunterParams);
+        featurerService.prepareForStore(newHeadhunterFeaturerId, headHunterParams);
         if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
             changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity

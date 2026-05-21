@@ -10,6 +10,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -169,7 +170,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     public void updateFieldTwinTriggerFeaturerId(TwinTriggerEntity dbTwinTriggerEntity, Integer newFeaturerId,
                                                  HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         if (newFeaturerId == null || newFeaturerId == 0) {
-            if (newFeaturerParams.isEmpty())
+            if (MapUtils.isEmpty(newFeaturerParams))
                 return; // nothing was changed
             else
                 newFeaturerId = dbTwinTriggerEntity.getTwinTriggerFeaturerId(); // only params were changed
@@ -180,7 +181,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
             dbTwinTriggerEntity.setTwinTriggerFeaturerId(newFeaturerId);
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!newFeaturerParams.equals(dbTwinTriggerEntity.getTwinTriggerParam())) {
+        if (!MapUtils.areEqual(dbTwinTriggerEntity.getTwinTriggerParam(), newFeaturerParams)) {
             changesHelper.add(TwinTriggerEntity.Fields.twinTriggerParam,
                     dbTwinTriggerEntity.getTwinTriggerParam(), newFeaturerParams);
             dbTwinTriggerEntity.setTwinTriggerParam(newFeaturerParams);
