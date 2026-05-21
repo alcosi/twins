@@ -8,9 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.MapUtils;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -20,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
-import org.twins.core.service.auth.AuthService;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -34,9 +30,7 @@ import java.util.function.Function;
 public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<TwinFactoryPipelineStepEntity> {
     @Getter
     private final TwinFactoryPipelineStepRepository repository;
-    private final AuthService authService;
     private final FactoryPipelineService factoryPipelineService;
-    private final FeaturerService featurerService;
     private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
@@ -68,8 +62,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
             case beforeSave:
                 if (entity.getTwinFactoryPipeline() == null || !entity.getTwinFactoryPipeline().getId().equals(entity.getTwinFactoryPipelineId()))
                     entity.setTwinFactoryPipeline(factoryPipelineService.findEntitySafe(entity.getTwinFactoryPipelineId()));
-                featurerService.checkValid(entity.getFillerFeaturerId(), entity.getFillerParams(), Filler.class);
-                featurerService.prepareForStore(entity.getFillerFeaturerId(), entity.getFillerParams());
+                validateAndPrepareFeaturer(entity.getFillerFeaturerId(), entity.getFillerParams(), Filler.class);
                 if (entity.getTwinFactoryConditionSetId() != null && (entity.getTwinFactoryConditionSet() == null || !entity.getTwinFactoryConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
                     entity.setTwinFactoryConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
         }
@@ -105,22 +98,11 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
     }
 
     public void updateFillerFeaturerId(TwinFactoryPipelineStepEntity dbEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbEntity.getFillerFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, dbEntity.getFillerFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newFillerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Filler.class);
-            dbEntity.setFillerFeaturerId(newFillerFeaturer.getId());
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbEntity.getFillerParams(), newFeaturerParams)) {
-            changesHelper.add(TwinFactoryPipelineStepEntity.Fields.fillerParams, dbEntity.getFillerParams(), newFeaturerParams);
-            dbEntity
-                    .setFillerParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbEntity, newFeaturerId, newFeaturerParams,
+                TwinFactoryPipelineStepEntity::getFillerFeaturerId, TwinFactoryPipelineStepEntity::setFillerFeaturerId,
+                TwinFactoryPipelineStepEntity::getFillerParams, TwinFactoryPipelineStepEntity::setFillerParams,
+                TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, TwinFactoryPipelineStepEntity.Fields.fillerParams,
+                Filler.class, changesHelper);
     }
 
     @Transactional

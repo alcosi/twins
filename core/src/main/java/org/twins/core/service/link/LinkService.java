@@ -12,7 +12,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.CacheManager;
@@ -257,16 +256,11 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     }
 
     public void updateLinkerFeaturer(LinkEntity dbLinkEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> linkerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (changesHelper.isChanged(LinkEntity.Fields.linkerFeaturerId, dbLinkEntity.getLinkerFeaturerId(), newHeadhunterFeaturerId)) {
-            FeaturerEntity newLinkerFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, linkerParams, Linker.class);
-            dbLinkEntity.setLinkerFeaturerId(newLinkerFeaturer.getId());
-        }
-        featurerService.prepareForStore(newHeadhunterFeaturerId, linkerParams);
-        if (!MapUtils.areEqual(dbLinkEntity.getLinkerParams(), linkerParams)) {
-            changesHelper.add(LinkEntity.Fields.linkerParams, dbLinkEntity.getLinkerParams(), linkerParams);
-            dbLinkEntity
-                    .setLinkerParams(linkerParams);
-        }
+        updateEntityFeaturerField(dbLinkEntity, newHeadhunterFeaturerId, linkerParams,
+                LinkEntity::getLinkerFeaturerId, LinkEntity::setLinkerFeaturerId,
+                LinkEntity::getLinkerParams, LinkEntity::setLinkerParams,
+                LinkEntity.Fields.linkerFeaturerId, LinkEntity.Fields.linkerParams,
+                Linker.class, changesHelper);
     }
 
     public FindTwinClassLinksResult findLinks(UUID twinClassId) throws ServiceException {

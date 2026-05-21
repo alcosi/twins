@@ -12,8 +12,6 @@ import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -98,8 +96,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final DomainService domainService;
     @Lazy
     private final AuthService authService;
-    @Lazy
-    private final FeaturerService featurerService;
     @Lazy
     private final TwinMarkerService twinMarkerService;
     @Lazy
@@ -480,8 +476,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
 
             if (twinClass.getHeadHunterFeaturerId() != null) {
-                featurerService.checkValid(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
-                featurerService.prepareForStore(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams());
+                validateAndPrepareFeaturer(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
             }
 
             if (twinClass.getExtendsTwinClassId() != null) {
@@ -716,16 +711,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
-        if (changesHelper.isChanged(TwinClassEntity.Fields.headHunterFeaturerId, dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
-            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
-            dbTwinClassEntity.setHeadHunterFeaturerId(newHeadHunterFeaturer.getId());
-        }
-        featurerService.prepareForStore(newHeadhunterFeaturerId, headHunterParams);
-        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
-            changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
-            dbTwinClassEntity
-                    .setHeadHunterParams(headHunterParams);
-        }
+        updateEntityFeaturerField(dbTwinClassEntity, newHeadhunterFeaturerId, headHunterParams,
+                TwinClassEntity::getHeadHunterFeaturerId, TwinClassEntity::setHeadHunterFeaturerId,
+                TwinClassEntity::getHeadHunterParams, TwinClassEntity::setHeadHunterParams,
+                TwinClassEntity.Fields.headHunterFeaturerId, TwinClassEntity.Fields.headHunterParams,
+                HeadHunter.class, changesHelper);
     }
 
     public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {

@@ -10,10 +10,8 @@ import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -179,42 +177,19 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     public void updateBusinessAccountInitiatorFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbDomainEntity.getBusinessAccountInitiatorFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(DomainEntity.Fields.businessAccountInitiatorFeaturerId, dbDomainEntity.getBusinessAccountInitiatorFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newBusinessAccountInitiatorFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, BusinessAccountInitiator.class);
-            dbDomainEntity
-                    .setBusinessAccountInitiatorFeaturerId(newBusinessAccountInitiatorFeaturer.getId());
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams)) {
-            changesHelper.add(DomainEntity.Fields.businessAccountInitiatorParams, dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams);
-            dbDomainEntity
-                    .setBusinessAccountInitiatorParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbDomainEntity, newFeaturerId, newFeaturerParams,
+                DomainEntity::getBusinessAccountInitiatorFeaturerId, DomainEntity::setBusinessAccountInitiatorFeaturerId,
+                DomainEntity::getBusinessAccountInitiatorParams, DomainEntity::setBusinessAccountInitiatorParams,
+                DomainEntity.Fields.businessAccountInitiatorFeaturerId, DomainEntity.Fields.businessAccountInitiatorParams,
+                BusinessAccountInitiator.class, changesHelper);
     }
 
     public void updateUserGroupManagerFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbDomainEntity.getUserGroupManagerFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(DomainEntity.Fields.userGroupManagerFeaturerId, dbDomainEntity.getUserGroupManagerFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newUserGroupManagerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, UserGroupManager.class);
-            dbDomainEntity.setUserGroupManagerFeaturerId(newUserGroupManagerFeaturer.getId());
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams)) {
-            changesHelper.add(DomainEntity.Fields.userGroupManagerParams, dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams);
-            dbDomainEntity
-                    .setUserGroupManagerParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbDomainEntity, newFeaturerId, newFeaturerParams,
+                DomainEntity::getUserGroupManagerFeaturerId, DomainEntity::setUserGroupManagerFeaturerId,
+                DomainEntity::getUserGroupManagerParams, DomainEntity::setUserGroupManagerParams,
+                DomainEntity.Fields.userGroupManagerFeaturerId, DomainEntity.Fields.userGroupManagerParams,
+                UserGroupManager.class, changesHelper);
     }
 
     protected DomainEntity processIcons(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {

@@ -9,8 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.MapUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -36,8 +34,6 @@ import java.util.stream.StreamSupport;
 public class HistoryNotificationRecipientCollectorService extends EntitySecureFindServiceImpl<HistoryNotificationRecipientCollectorEntity> {
     private final HistoryNotificationRecipientCollectorRepository repository;
     private final HistoryNotificationRecipientCollectorUpdateDTOReverseMapper updateDTOReverseMapper;
-    @Lazy
-    private final FeaturerService featurerService;
 
     @Override
     public CrudRepository<HistoryNotificationRecipientCollectorEntity, UUID> entityRepository() {
@@ -70,8 +66,7 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
         for (HistoryNotificationRecipientCollectorCreate recipientCollector : recipientCollectors) {
             HashMap<String, String> recipientResolverParams = new HashMap<>(recipientCollector.getRecipientResolverParams());
             if (recipientCollector.getRecipientResolverFeaturerId() != null) {
-                featurerService.checkValid(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams, RecipientResolver.class);
-                featurerService.prepareForStore(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams);
+                validateAndPrepareFeaturer(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams, RecipientResolver.class);
             } else {
                 throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
             }
@@ -122,23 +117,11 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
     }
 
     public void updateFieldRecipientResolverFeaturerId(HistoryNotificationRecipientCollectorEntity dbHistoryNotificationRecipientCollectorEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId, dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, RecipientResolver.class);
-            dbHistoryNotificationRecipientCollectorEntity
-                    .setRecipientResolverFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams)) {
-            changesHelper.add(HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverParams, dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams);
-            dbHistoryNotificationRecipientCollectorEntity
-                    .setRecipientResolverParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbHistoryNotificationRecipientCollectorEntity, newFeaturerId, newFeaturerParams,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturerId, HistoryNotificationRecipientCollectorEntity::setRecipientResolverFeaturerId,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverParams, HistoryNotificationRecipientCollectorEntity::setRecipientResolverParams,
+                HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId, HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverParams,
+                RecipientResolver.class, changesHelper);
     }
 
 

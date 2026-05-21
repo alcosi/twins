@@ -7,9 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.*;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -37,8 +38,6 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     public static final int MAX_RECURSION_DEPTH = 5;
 
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;
-    @Lazy
-    private final FeaturerService featurerService;
 
     @Lazy
     private final TwinClassService twinClassService;
@@ -118,23 +117,11 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     }
 
     public void updateEvaluatorFeaturer(TwinClassFieldConditionEntity dbConditionEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbConditionEntity.getConditionEvaluatorFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinClassFieldConditionEntity.Fields.conditionEvaluatorFeaturerId, dbConditionEntity.getConditionEvaluatorFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
-            dbConditionEntity
-                    .setConditionEvaluatorFeaturerId(newMultiplierFeaturer.getId());
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbConditionEntity.getConditionEvaluatorParams(), newFeaturerParams)) {
-            changesHelper.add(TwinClassFieldConditionEntity.Fields.conditionEvaluatorParams, dbConditionEntity.getConditionEvaluatorParams(), newFeaturerParams);
-            dbConditionEntity
-                    .setConditionEvaluatorParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbConditionEntity, newFeaturerId, newFeaturerParams,
+                TwinClassFieldConditionEntity::getConditionEvaluatorFeaturerId, TwinClassFieldConditionEntity::setConditionEvaluatorFeaturerId,
+                TwinClassFieldConditionEntity::getConditionEvaluatorParams, TwinClassFieldConditionEntity::setConditionEvaluatorParams,
+                TwinClassFieldConditionEntity.Fields.conditionEvaluatorFeaturerId, TwinClassFieldConditionEntity.Fields.conditionEvaluatorParams,
+                Multiplier.class, changesHelper);
     }
 
     @Transactional(rollbackFor = Throwable.class)

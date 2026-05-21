@@ -10,7 +10,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -93,8 +92,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                     : new HashMap<>();
 
             if (trigger.getTriggerFeaturerId() != null) {
-                featurerService.checkValid(trigger.getTriggerFeaturerId(), triggerParams, TwinTrigger.class);
-                featurerService.prepareForStore(trigger.getTriggerFeaturerId(), triggerParams);
+                validateAndPrepareFeaturer(trigger.getTriggerFeaturerId(), triggerParams, TwinTrigger.class);
             } else {
                 throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
             }
@@ -169,23 +167,11 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
     public void updateFieldTwinTriggerFeaturerId(TwinTriggerEntity dbTwinTriggerEntity, Integer newFeaturerId,
                                                  HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; // nothing was changed
-            else
-                newFeaturerId = dbTwinTriggerEntity.getTwinTriggerFeaturerId(); // only params were changed
-        }
-        if (changesHelper.isChanged(TwinTriggerEntity.Fields.twinTriggerFeaturerId,
-                dbTwinTriggerEntity.getTwinTriggerFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, TwinTrigger.class);
-            dbTwinTriggerEntity.setTwinTriggerFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbTwinTriggerEntity.getTwinTriggerParam(), newFeaturerParams)) {
-            changesHelper.add(TwinTriggerEntity.Fields.twinTriggerParam,
-                    dbTwinTriggerEntity.getTwinTriggerParam(), newFeaturerParams);
-            dbTwinTriggerEntity.setTwinTriggerParam(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbTwinTriggerEntity, newFeaturerId, newFeaturerParams,
+                TwinTriggerEntity::getTwinTriggerFeaturerId, TwinTriggerEntity::setTwinTriggerFeaturerId,
+                TwinTriggerEntity::getTwinTriggerParam, TwinTriggerEntity::setTwinTriggerParam,
+                TwinTriggerEntity.Fields.twinTriggerFeaturerId, TwinTriggerEntity.Fields.twinTriggerParam,
+                TwinTrigger.class, changesHelper);
     }
 
     @Transactional(rollbackFor = Throwable.class)
