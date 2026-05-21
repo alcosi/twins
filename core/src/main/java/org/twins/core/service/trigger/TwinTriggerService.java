@@ -113,18 +113,6 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
         return StreamSupport.stream(saveSafe(triggersToSave).spliterator(), false).toList();
     }
 
-    public void loadTwinTriggerFeaturer(TwinTriggerEntity entity) {
-        loadTwinTriggerFeaturer(List.of(entity));
-    }
-
-    public void loadTwinTriggerFeaturer(Collection<TwinTriggerEntity> entities) {
-        featurerService.loadFeaturers(entities,
-                TwinTriggerEntity::getId,
-                TwinTriggerEntity::getTwinTriggerFeaturerId,
-                TwinTriggerEntity::getTwinTriggerFeaturer,
-                TwinTriggerEntity::setTwinTriggerFeaturer);
-    }
-
     public void loadJobTwinClass(TwinTriggerEntity entity) throws ServiceException {
         loadJobTwinClass(List.of(entity));
     }

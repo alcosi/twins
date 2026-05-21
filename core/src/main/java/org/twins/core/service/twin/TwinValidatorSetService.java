@@ -242,16 +242,4 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
         return allEntities;
     }
-
-    public void loadTwinValidator(TwinValidatorEntity src) {
-        loadTwinValidators(Collections.singletonList(src));
-    }
-
-    public void loadTwinValidators(Collection<TwinValidatorEntity> srcCollection) {
-        featurerService.loadFeaturers(srcCollection,
-                TwinValidatorEntity::getId,
-                TwinValidatorEntity::getTwinValidatorFeaturerId,
-                TwinValidatorEntity::getTwinValidatorFeaturer,
-                TwinValidatorEntity::setTwinValidatorFeaturer);
-    }
 }

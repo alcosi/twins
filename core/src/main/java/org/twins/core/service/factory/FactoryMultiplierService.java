@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
@@ -25,8 +24,6 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -76,10 +73,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
                     entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
-                if (entity.getMultiplierFeaturer() == null || !(entity.getMultiplierFeaturer().getId() == (entity.getMultiplierFeaturerId()))) {
-                    entity.setMultiplierFeaturer(featurerService.checkValid(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class));
-                    featurerService.prepareForStore(entity.getMultiplierFeaturerId(), entity.getMultiplierParams());
-                }
+                featurerService.checkValid(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class);
+                featurerService.prepareForStore(entity.getMultiplierFeaturerId(), entity.getMultiplierParams());
         }
         return true;
     }
@@ -115,9 +110,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         }
         if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbMultiplierEntity.getMultiplierFeaturerId(), newFeaturerId)) {
             FeaturerEntity newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
-            dbMultiplierEntity
-                    .setMultiplierFeaturerId(newMultiplierFeaturer.getId())
-                    .setMultiplierFeaturer(newMultiplierFeaturer);
+            dbMultiplierEntity.setMultiplierFeaturerId(newMultiplierFeaturer.getId());
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
         if (!MapUtils.areEqual(dbMultiplierEntity.getMultiplierParams(), newFeaturerParams)) {
@@ -127,16 +120,4 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         }
     }
 
-    public void loadMultiplier(TwinFactoryMultiplierEntity src) {
-        loadMultipliers(Collections.singleton(src) );
-    }
-
-    public void loadMultipliers(Collection<TwinFactoryMultiplierEntity> srcCollection) {
-        featurerService.loadFeaturers(srcCollection,
-                TwinFactoryMultiplierEntity::getId,
-                TwinFactoryMultiplierEntity::getMultiplierFeaturerId,
-                TwinFactoryMultiplierEntity::getMultiplierFeaturer,
-                TwinFactoryMultiplierEntity::setMultiplierFeaturer
-        );
-    }
 }

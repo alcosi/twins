@@ -207,9 +207,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         }
         if (changesHelper.isChanged(DomainEntity.Fields.userGroupManagerFeaturerId, dbDomainEntity.getUserGroupManagerFeaturerId(), newFeaturerId)) {
             FeaturerEntity newUserGroupManagerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, UserGroupManager.class);
-            dbDomainEntity
-                    .setUserGroupManagerFeaturerId(newUserGroupManagerFeaturer.getId())
-                    .setUserGroupManagerFeaturer(newUserGroupManagerFeaturer);
+            dbDomainEntity.setUserGroupManagerFeaturerId(newUserGroupManagerFeaturer.getId());
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
         if (!MapUtils.areEqual(dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams)) {
@@ -368,15 +366,4 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         });
     }
 
-    public void loadUserGroupManager(DomainEntity src) {
-        loadUserGroupManagers(Collections.singletonList(src));
-    }
-
-    public void loadUserGroupManagers(Collection<DomainEntity> srcCollection) {
-        featurerService.loadFeaturers(srcCollection,
-                DomainEntity::getId,
-                DomainEntity::getUserGroupManagerFeaturerId,
-                DomainEntity::getUserGroupManagerFeaturer,
-                DomainEntity::setUserGroupManagerFeaturer);
-    }
 }

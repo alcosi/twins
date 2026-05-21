@@ -14,8 +14,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.HistoryNotificationRecipi
 import org.twins.core.mappers.rest.mappercontext.modes.HistoryNotificationRecipientMode;
 import org.twins.core.service.notification.HistoryNotificationRecipientCollectorService;
 
-import java.util.Collection;
-
 @RequiredArgsConstructor
 @MapperModeBinding(modes = HistoryNotificationRecipientCollectorMode.class)
 @Component
@@ -52,17 +50,9 @@ public class HistoryNotificationRecipientCollectorDTOMapperV1 extends RestSimple
 
         if (mapperContext.hasModeButNot(FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.HIDE)) {
             dst.setRecipientResolverFeaturerId(src.getRecipientResolverFeaturerId());
-            historyNotificationRecipientCollectorService.loadRecipientResolverFeaturer(src);
-            featurerRestDTOMapper.postpone(src.getRecipientResolverFeaturer(),
+            featurerRestDTOMapper.postpone(src.getRecipientResolverFeaturerId(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.SHORT)));
         }
     }
 
-    @Override
-    public void beforeCollectionConversion(Collection<HistoryNotificationRecipientCollectorEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.HIDE)) {
-            historyNotificationRecipientCollectorService.loadRecipientResolverFeaturer(srcCollection);
-        }
-    }
 }

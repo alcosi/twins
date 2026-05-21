@@ -13,8 +13,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.SchedulerMode;
 import org.twins.core.service.scheduler.SchedulerService;
 
-import java.util.Collection;
-
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = SchedulerMode.class)
@@ -45,22 +43,8 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
         }
 
         if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
-            schedulerService.loadFeaturer(src);
             dst.setSchedulerFeaturerId(src.getSchedulerFeaturerId());
-            featurerRestDTOMapper.postpone(src.getSchedulerFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Scheduler2FeaturerMode.SHORT)));
-        }
-    }
-
-    @Override
-    public void beforeCollectionConversion(Collection<SchedulerEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
-
-        if (srcCollection.isEmpty()) {
-            return;
-        }
-
-        if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
-            schedulerService.loadFeaturers(srcCollection);
+            featurerRestDTOMapper.postpone(src.getSchedulerFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Scheduler2FeaturerMode.SHORT)));
         }
     }
 }

@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -51,11 +50,6 @@ public class TwinTriggerEntity implements EasyLoggable {
 
     @Column(name = "job_twin_class_id")
     private UUID jobTwinClassId;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity twinTriggerFeaturer;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

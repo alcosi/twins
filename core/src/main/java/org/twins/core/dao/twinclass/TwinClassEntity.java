@@ -12,7 +12,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.LTreeUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
@@ -154,11 +153,6 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "has_dynamic_markers")
     private Boolean hasDynamicMarkers;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity headHunterFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "head_hunter_featurer_params", columnDefinition = "hstore")

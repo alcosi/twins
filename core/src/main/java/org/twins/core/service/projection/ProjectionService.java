@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.projection.ProjectionRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -153,7 +152,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
         if (!MapUtils.areEqual(dbProjectionEntity.getFieldProjectorParams(), newFeaturerParams)) {
             changesHelper.add(ProjectionEntity.Fields.fieldProjectorParams, dbProjectionEntity.getFieldProjectorParams(), newFeaturerParams);
             dbProjectionEntity
-                    .setFieldProjectorFeaturerId(newFeaturerId);
+                    .setFieldProjectorParams(newFeaturerParams);
         }
     }
 
@@ -161,15 +160,4 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
         deleteSafe(projectionIds);
     }
 
-    public void loadProjectorFeaturer(ProjectionEntity entity) {
-        loadProjectorFeaturer(List.of(entity));
-    }
-
-    public void loadProjectorFeaturer(Collection<ProjectionEntity> entities) {
-        featurerService.loadFeaturers(entities,
-                ProjectionEntity::getId,
-                ProjectionEntity::getFieldProjectorFeaturerId,
-                ProjectionEntity::getFieldProjectorFeaturer,
-                ProjectionEntity::setFieldProjectorFeaturer);
-    }
 }

@@ -3,10 +3,7 @@ package org.twins.core.dao.link;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -33,11 +30,6 @@ public class LinkTriggerEntity {
 
     @Column(name = "link_trigger_featurer_id")
     private Integer linkTriggerFeaturerId;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity linkTriggerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "link_trigger_params", columnDefinition = "hstore")
