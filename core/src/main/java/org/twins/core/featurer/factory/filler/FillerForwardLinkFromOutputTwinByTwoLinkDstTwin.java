@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -25,13 +26,14 @@ import java.util.UUID;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_2350,
-        name = "Forward link from output TwinCreate first-hop dst second-hop dst",
-        description = "Find first-hop link in output TwinCreate links. " +
+        name = "Forward link from output twin by first link dst and second link dst twin",
+        description = "Find first-hop link in output links. " +
                 "Take its dst twin. " +
                 "Find second-hop link from that twin via DB. " +
                 "Create new link of given type from current twin to second-hop dst twin"
 )
-public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends FillerLinks {
+public class FillerForwardLinkFromOutputTwinByTwoLinkDstTwin extends FillerLinks {
+
     @Lazy
     @Autowired
     TwinService twinService;
@@ -41,7 +43,7 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
     TwinLinkRepository twinLinkRepository;
 
 
-    @FeaturerParam(name = "First hop link", description = "First-hop link id from output TwinCreate links", order = 1)
+    @FeaturerParam(name = "First hop link", description = "First-hop link id from output twin links", order = 1)
     public static final FeaturerParamUUID firstHopLink = new FeaturerParamUUIDTwinsLinkId("firstHopLink");
 
     @FeaturerParam(name = "Second hop link", description = "Second-hop link id via DB from first-hop dst twin", order = 2)
@@ -60,19 +62,35 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output is not TwinCreate");
         }
 
-        UUID firstHop = firstHopLink.extract(properties);
+        UUID firstHopDstTwinId = getDstTwinIdByFirstLink(properties, twinCreate, contextTwin);
+
+        UUID secondHopDstTwinId = getDstTwinIdBySecondLink(properties, firstHopDstTwinId);
+
+        TwinEntity detectedDstTwin = twinService.findEntitySafe(secondHopDstTwinId);
+        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
+        TwinLinkEntity newLink = new TwinLinkEntity()
+                .setLink(link)
+                .setLinkId(link.getId())
+                .setDstTwin(detectedDstTwin)
+                .setDstTwinId(detectedDstTwin.getId());
+        addLink(factoryItem.getOutput(), newLink);
+    }
+
+    @NotNull
+    private static UUID getDstTwinIdByFirstLink(Properties properties, TwinCreate twinCreate, TwinEntity contextTwin) throws ServiceException {
+        UUID firstHopLinkId = firstHopLink.extract(properties);
         List<TwinLinkEntity> outputTwinLinks = twinCreate.getLinksEntityList();
         if (outputTwinLinks == null || outputTwinLinks.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHop + "] configured from " + contextTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHopLinkId + "] configured from " + contextTwin.logShort());
         }
         List<TwinLinkEntity> firstHopLinks = outputTwinLinks.stream()
-                .filter(twinLink -> firstHop.equals(twinLink.getLinkId()))
+                .filter(twinLink -> firstHopLinkId.equals(twinLink.getLinkId()))
                 .toList();
         if (firstHopLinks.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHop + "] configured from " + contextTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHopLinkId + "] configured from " + contextTwin.logShort());
         }
         if (firstHopLinks.size() > 1) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + firstHop + "] configured from " + contextTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + firstHopLinkId + "] configured from " + contextTwin.logShort());
         }
 
         TwinLinkEntity firstHopLinkEntity = firstHopLinks.getFirst();
@@ -83,23 +101,20 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinLinkDstTwin extends Fille
         if (firstHopDstTwinId == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "First hop link has empty dstTwin and dstTwinId");
         }
+        return firstHopDstTwinId;
+    }
 
-        UUID secondHop = secondHopLink.extract(properties);
-        List<UUID> secondHopDstTwinIds = twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(firstHopDstTwinId, secondHop);
+    @NotNull
+    private UUID getDstTwinIdBySecondLink(Properties properties, UUID firstHopDstTwinId) throws ServiceException {
+        UUID secondHopLinkId = secondHopLink.extract(properties);
+        List<UUID> secondHopDstTwinIds = twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(firstHopDstTwinId, secondHopLinkId);
         if (secondHopDstTwinIds.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + secondHop + "] configured from twin[" + firstHopDstTwinId + "]");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + secondHopLinkId + "] configured from twin[" + firstHopDstTwinId + "]");
         }
         if (secondHopDstTwinIds.size() > 1) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Too many links[" + secondHop + "] configured from twin[" + firstHopDstTwinId + "]");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Too many links[" + secondHopLinkId + "] configured from twin[" + firstHopDstTwinId + "]");
         }
         UUID secondHopDstTwinId = secondHopDstTwinIds.getFirst();
-        TwinEntity detectedDstTwin = twinService.findEntitySafe(secondHopDstTwinId);
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(detectedDstTwin)
-                .setDstTwinId(detectedDstTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        return secondHopDstTwinId;
     }
 }
