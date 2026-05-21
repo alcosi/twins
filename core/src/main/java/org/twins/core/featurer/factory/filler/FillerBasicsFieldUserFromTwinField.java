@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2353,
+@Featurer(id = FeaturerTwins.ID_2354,
         name = "Basic user field from twin field",
         description = "Maps a custom user field to output twin assignee/creator basics via dstBasicsUserFiledName")
 @Slf4j
