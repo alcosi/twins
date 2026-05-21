@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -94,7 +94,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
         if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE)) {
             attachmentService.loadAttachmentModifications(src);
             dst.setModifications(new HashMap<>());
-            if (CollectionUtils.isNotEmpty(src.getModifications()))
+            if (KitUtils.isNotEmpty(src.getModifications()))
                 for (TwinAttachmentModificationEntity mod : src.getModifications())
                     dst.getModifications().put(mod.getModificationType(), mod.getStorageFileKey());
         }

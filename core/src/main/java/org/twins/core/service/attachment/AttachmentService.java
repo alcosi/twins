@@ -157,7 +157,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                                     .add(historyService.attachmentCreate(attachmentEntity));
                         }
 
-                        if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                        if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                             attachmentEntity.getModifications().forEach(mod -> {
                                 if (mod.getTwinAttachmentId() == null) {
                                     mod.setTwinAttachment(attachmentEntity);
@@ -165,7 +165,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                                 }
                             });
 
-                            twinChangesCollector.addAll(attachmentEntity.getModifications());
+                            twinChangesCollector.addAll(attachmentEntity.getModifications().getCollection());
                         }
 
                     } catch (Throwable t) {
@@ -264,10 +264,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public TwinAttachmentEntity findFirstAttachment(TwinEntity twin, UUID twinClassFieldId) {
         loadAttachments(twin);
         var attachments = twin.getAttachmentKit();
-        if (CollectionUtils.isEmpty(attachments)) {
+        if (KitUtils.isEmpty(attachments)) {
             return null;
         }
-        return attachments.stream()
+        return attachments.getCollection().stream()
                 .filter(a -> {
                     if (twinClassFieldId == null) {
                         // Direct twin attachments only
@@ -468,7 +468,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                                                TwinAttachmentEntity dbAttachmentEntity,
                                                TwinChangesCollector twinChangesCollector) throws ServiceException {
         loadAttachmentModifications(dbAttachmentEntity);
-        List<TwinAttachmentModificationEntity> incomingMods = new ArrayList<>(attachmentEntity.getModifications());
+        List<TwinAttachmentModificationEntity> incomingMods = attachmentEntity.getModifications().getList();
 
         List<TwinAttachmentModificationEntity> toUpdate = new ArrayList<>();
         List<TwinAttachmentModificationEntity> toCreate = new ArrayList<>();

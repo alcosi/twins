@@ -4,14 +4,13 @@ import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv2;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
@@ -25,10 +24,9 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.isNull;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -77,9 +75,9 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest {
         when(userEntity.getId()).thenReturn(UUID.randomUUID());
         when(userService.checkId(any(), any())).thenReturn(null);
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(any(), any())).thenReturn(Collections.emptyList());
-        when(attachmentCreateRestDTOReverseMapper.convertCollection(any())).thenReturn(Collections.emptyList());
-        when(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(any())).thenReturn(Collections.emptyList());
-        when(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(any())).thenReturn(Collections.emptyList());
+        when(attachmentCreateRestDTOReverseMapper.convertCollection(any(Collection.class))).thenReturn(Collections.emptyList());
+        when(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(any(Collection.class))).thenReturn(Collections.emptyList());
+        when(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(any(Collection.class))).thenReturn(Collections.emptyList());
     }
 
     @Test

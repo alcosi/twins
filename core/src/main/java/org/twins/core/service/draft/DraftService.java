@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -423,7 +424,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         for (FactoryResultUncommited factoryResult : factoryResultsUncommited) {
             draftFactoryResult(draftCollector, factoryResult, null);
             flush(draftCollector);
-            if (CollectionUtils.isNotEmpty(factoryResult.getDeletes())) {
+            if (KitUtils.isNotEmpty(factoryResult.getDeletes())) {
                 createEraseScope(draftCollector);
             }
         }
@@ -433,13 +434,13 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private DraftCollector draftFactoryResult(DraftCollector draftCollector, FactoryResultUncommited factoryResultUncommited, TwinEntity reasonTwin) throws ServiceException {
         if (!factoryResultUncommited.isCommittable()) // we will anyway create draft to show locked twin
             draftCollector.getDraftEntity().setStatus(DraftStatus.LOCKED);
-        if (CollectionUtils.isNotEmpty(factoryResultUncommited.getCreates()))
+        if (KitUtils.isNotEmpty(factoryResultUncommited.getCreates()))
             for (TwinCreate twinCreate : factoryResultUncommited.getCreates())
                 draftTwinCreate(draftCollector, twinCreate);
-        if (CollectionUtils.isNotEmpty(factoryResultUncommited.getUpdates()))
+        if (KitUtils.isNotEmpty(factoryResultUncommited.getUpdates()))
             for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates())
                 draftTwinUpdate(draftCollector, twinUpdate);
-        if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
+        if (KitUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
             for (TwinDelete twinDelete : factoryResultUncommited.getDeletes()) {
                 if (reasonTwin != null && twinDelete.getTwinId().equals(reasonTwin.getId())) {
                     // 1. if some twin was selected for erase (in UNDETECTED state)
@@ -924,7 +925,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setTitle(twinAttachmentEntity.getTitle())
                 .setDescription(twinAttachmentEntity.getDescription())
                 .setStorageFileKey(twinAttachmentEntity.getStorageFileKey())
-                .setModifications(convertAttachmentModificationsToString(twinAttachmentEntity.getModifications()))
+                .setModifications(convertAttachmentModificationsToString(twinAttachmentEntity.getModifications().getCollection()))
                 .setViewPermissionId(twinAttachmentEntity.getViewPermissionId())
                 .setTwinClassFieldId(twinAttachmentEntity.getTwinClassFieldId()) // not sure that we should allow this on update
                 .setTwinCommentId(twinAttachmentEntity.getTwinCommentId())

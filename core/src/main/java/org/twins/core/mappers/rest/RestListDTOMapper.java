@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest;
 
 
+import org.cambium.common.kit.Kit;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.util.*;
@@ -24,6 +25,18 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
         if (srcList == null)
             return null;
         return convertCollection(srcList, new MapperContext());
+    }
+
+    public List<S> convertCollection(Kit<T, ?> srcKit, MapperContext mapperContext) throws Exception {
+        if (srcKit == null)
+            return null;
+        return convertCollection(srcKit.getCollection(), mapperContext);
+    }
+
+    public List<S> convertCollection(Kit<T, ?> srcKit) throws Exception {
+        if (srcKit == null)
+            return null;
+        return convertCollection(srcKit.getCollection(), new MapperContext());
     }
 
     public Map<UUID, S> convertMap(Map<UUID, T> srcMap, MapperContext mapperContext) throws Exception {

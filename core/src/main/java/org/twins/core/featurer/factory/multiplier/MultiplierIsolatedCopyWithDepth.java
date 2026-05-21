@@ -115,7 +115,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
 
             if (!connectedTwinIds.isEmpty()) {
                 var connectedTwins = twinService.findEntitiesSafe(connectedTwinIds);
-                origTwins.addAll(connectedTwins);
+                origTwins.addAll(connectedTwins.getCollection());
                 for (var t : connectedTwins) {
                     collectedTwinIds.add(t.getId());
                 }

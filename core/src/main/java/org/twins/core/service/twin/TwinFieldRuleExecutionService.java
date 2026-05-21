@@ -79,7 +79,7 @@ public class TwinFieldRuleExecutionService {
     public void applyRules(Collection<TwinEntity> twinEntities) throws ServiceException {
         for (var twinEntity : twinEntities) {
             if (twinEntity.getFieldRulesApplyResult() == null) {
-                twinEntity.setFieldRulesApplyResult(applyRulesOnValues(twinEntity.getFieldValuesKit()));
+                twinEntity.setFieldRulesApplyResult(applyRulesOnValues(twinEntity.getFieldValuesKit().getCollection()));
             }
         }
     }
