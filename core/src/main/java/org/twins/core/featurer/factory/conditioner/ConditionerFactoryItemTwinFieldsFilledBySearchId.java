@@ -56,12 +56,12 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
 
         Kit<FieldValue, UUID> fieldValuesKit = twin.getFieldValuesKit();
 
-        if (CollectionUtils.isEmpty(fieldValuesKit)) {
+        if (fieldValuesKit.isEmpty()) {
             log.warn("no field values found");
             return false;
         }
 
-        twinFieldRuleExecutionService.applyRules(fieldValuesKit, twin);
+        twinFieldRuleExecutionService.applyRules(fieldValuesKit.getCollection(), twin);
         for (TwinClassFieldEntity field : requiredFields) {
             Map<String, String> extProps = field.getExternalProperties();
             boolean requiredOnAnyMarketplace = extProps != null

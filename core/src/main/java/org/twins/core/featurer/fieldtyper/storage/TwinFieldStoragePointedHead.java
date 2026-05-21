@@ -25,7 +25,7 @@ public class TwinFieldStoragePointedHead extends TwinFieldStorageSpirit {
                 headTwins.add(twinEntity.getHeadTwin());
             }
         }
-        twinService.loadFieldsValues(headTwins);
+        twinService.loadFieldsValues(headTwins.getList());
     }
 
     @Override
