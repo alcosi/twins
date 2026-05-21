@@ -416,16 +416,15 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
 
         if (changesHelper.isChanged(featurerIdField, currentFeaturerId, newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, expectedClass);
             setFeaturerId.accept(dbEntity, newFeaturerId);
         }
 
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-
-        if (!MapUtils.areEqual(currentParams, newFeaturerParams)) {
-            changesHelper.add(paramsField, currentParams, newFeaturerParams);
+        if (changesHelper.isChanged(paramsField, currentParams, newFeaturerParams)) {
             setParams.accept(dbEntity, newFeaturerParams);
         }
+
+        featurerService.checkValid(newFeaturerId, newFeaturerParams, expectedClass);
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
     }
 
     protected void validateAndPrepareFeaturer(
