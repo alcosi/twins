@@ -445,7 +445,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return filtered;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public FactoryResultCommited commitResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         if (!factoryResultUncommited.isCommittable())
             throw new ServiceException(ErrorCodeTwins.FACTORY_RESULT_LOCKED);
