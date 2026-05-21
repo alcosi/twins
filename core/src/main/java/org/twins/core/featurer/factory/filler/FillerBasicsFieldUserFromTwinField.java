@@ -39,9 +39,6 @@ public class FillerBasicsFieldUserFromTwinField extends Filler {
         UUID sourceFieldId = fieldId.extract(properties);
         TwinBasicFields.Basics dstUserBasic = dstBasicsUserFiledName.extract(properties);
         FieldValue fieldValue = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, sourceFieldId);
-        if (fieldValue == null) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Field value for fieldId[" + sourceFieldId + "] is not found");
-        }
         UserEntity user = extractSingleUser(fieldValue);
         String fieldName = applyUserToOutputBasics(outputTwinEntity, user, dstUserBasic);
         log.info("{} with field[{}] will be filled from context {}", outputTwinEntity.logShort(), fieldName, fieldValue.getTwinClassField().logShort());
