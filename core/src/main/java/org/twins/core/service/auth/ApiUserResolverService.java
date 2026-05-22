@@ -9,6 +9,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -70,6 +71,7 @@ public class ApiUserResolverService {
         loadDBU(domainId, businessAccountId, userId, new DBU(), true);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public void loadDBU(UUID domainId, UUID businessAccountId, UUID userId, DBU dbu, boolean checkMembershipMode) throws ServiceException {
         if (checkMembershipMode) {
             if (isUserSpecified(userId) && isDomainSpecified(domainId) && isBusinessAccountSpecified(businessAccountId) && (dbu.getDomain() == null || dbu.getBusinessAccount() == null || dbu.getUser() == null)) {

@@ -95,7 +95,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION domain_business_account_user_before_update_wrapper()
     RETURNS trigger AS $$
 BEGIN
-    RAISE EXCEPTION 'Direct update of domain_business_account_user is forbidden. Data is managed by triggers.';
+    IF OLD.user_id IS DISTINCT FROM NEW.user_id
+        OR OLD.domain_id IS DISTINCT FROM NEW.domain_id
+        OR OLD.business_account_id IS DISTINCT FROM NEW.business_account_id
+        OR OLD.domain_user_id IS DISTINCT FROM NEW.domain_user_id
+        OR OLD.domain_business_account_id IS DISTINCT FROM NEW.domain_business_account_id
+        OR OLD.business_account_user_id IS DISTINCT FROM NEW.business_account_user_id THEN
+        RAISE EXCEPTION 'Direct update of domain_business_account_user is forbidden. Data is managed by triggers.';
+    END IF;
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -134,7 +142,7 @@ BEGIN
             ON dba.domain_id = du.domain_id
         INNER JOIN business_account_user bau
             ON bau.user_id = du.user_id
-            AND bau.business_account_id = dba.business_account_id;
+            AND bau.business_account_id = dba.business_account_id on conflict do nothing ;
 
     PERFORM set_config('app.domain_business_account_user_insert', 'off', true);
 END $$;
