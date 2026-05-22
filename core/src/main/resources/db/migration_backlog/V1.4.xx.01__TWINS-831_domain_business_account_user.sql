@@ -115,26 +115,29 @@ CREATE TRIGGER domain_business_account_user_before_update_wrapper_trigger
 -- 4. Initial data population from existing relationships
 -- ============================================================
 
-PERFORM set_config('app.domain_business_account_user_insert', 'on', true);
+DO $$
+BEGIN
+    PERFORM set_config('app.domain_business_account_user_insert', 'on', true);
 
-INSERT INTO domain_business_account_user (domain_user_id, domain_business_account_id, business_account_user_id,
-                                          user_id, domain_id, business_account_id, created_at)
-SELECT
-    du.id,
-    dba.id,
-    bau.id,
-    du.user_id,
-    du.domain_id,
-    bau.business_account_id,
-    GREATEST(du.created_at, dba.created_at, bau.created_at)
-FROM domain_user du
-    INNER JOIN domain_business_account dba
-        ON dba.domain_id = du.domain_id
-    INNER JOIN business_account_user bau
-        ON bau.user_id = du.user_id
-        AND bau.business_account_id = dba.business_account_id;
+    INSERT INTO domain_business_account_user (domain_user_id, domain_business_account_id, business_account_user_id,
+                                              user_id, domain_id, business_account_id, created_at)
+    SELECT
+        du.id,
+        dba.id,
+        bau.id,
+        du.user_id,
+        du.domain_id,
+        bau.business_account_id,
+        GREATEST(du.created_at, dba.created_at, bau.created_at)
+    FROM domain_user du
+        INNER JOIN domain_business_account dba
+            ON dba.domain_id = du.domain_id
+        INNER JOIN business_account_user bau
+            ON bau.user_id = du.user_id
+            AND bau.business_account_id = dba.business_account_id;
 
-PERFORM set_config('app.domain_business_account_user_insert', 'off', true);
+    PERFORM set_config('app.domain_business_account_user_insert', 'off', true);
+END $$;
 
 -- ============================================================
 -- 5. Stored procedures for materialization sync logic

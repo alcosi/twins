@@ -18,8 +18,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLocalDateTimeBetween;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 import static org.twins.core.dao.specifications.domain.DomainBusinessAccountUserSpecification.checkUserGroupIdIn;
 
 @Slf4j
@@ -51,9 +50,5 @@ public class DomainBusinessAccountUserSearchService {
                 checkFieldLocalDateTimeBetween(search.getLastActivityAtRange(), DomainBusinessAccountUserEntity.Fields.lastActivityAt),
                 checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt)
         );
-    }
-
-    private static Specification<DomainBusinessAccountUserEntity> checkFieldUuid(UUID value, String field) {
-        return (root, query, cb) -> value == null ? cb.conjunction() : cb.equal(root.get(field), value);
     }
 }
