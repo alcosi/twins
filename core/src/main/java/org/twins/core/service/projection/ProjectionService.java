@@ -8,8 +8,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.MapUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -18,11 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.projection.ProjectionRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinPointerService;
 
 import java.util.*;
@@ -37,8 +33,6 @@ import java.util.stream.StreamSupport;
 public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEntity> {
     private final ProjectionRepository projectionRepository;
     private final TwinPointerService twinPointerService;
-    private final FeaturerService featurerService;
-    private final AuthService authService;
 
     @Override
     public CrudRepository<ProjectionEntity, UUID> entityRepository() {
@@ -138,38 +132,15 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
     }
 
     public void updateFieldProjectorFeaturerId(ProjectionEntity dbProjectionEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbProjectionEntity.getFieldProjectorFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(ProjectionEntity.Fields.fieldProjectorFeaturerId, dbProjectionEntity.getFieldProjectorFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
-            dbProjectionEntity
-                    .setFieldProjectorFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbProjectionEntity.getFieldProjectorParams(), newFeaturerParams)) {
-            changesHelper.add(ProjectionEntity.Fields.fieldProjectorParams, dbProjectionEntity.getFieldProjectorParams(), newFeaturerParams);
-            dbProjectionEntity
-                    .setFieldProjectorFeaturerId(newFeaturerId);
-        }
+        updateEntityFeaturerField(dbProjectionEntity, newFeaturerId, newFeaturerParams,
+                ProjectionEntity::getFieldProjectorFeaturerId, ProjectionEntity::setFieldProjectorFeaturerId,
+                ProjectionEntity::getFieldProjectorParams, ProjectionEntity::setFieldProjectorParams,
+                ProjectionEntity.Fields.fieldProjectorFeaturerId, ProjectionEntity.Fields.fieldProjectorParams,
+                FieldTyper.class, changesHelper);
     }
 
     public void deleteProjections(Set<UUID> projectionIds) throws ServiceException {
         deleteSafe(projectionIds);
     }
 
-    public void loadProjectorFeaturer(ProjectionEntity entity) {
-        loadProjectorFeaturer(List.of(entity));
-    }
-
-    public void loadProjectorFeaturer(Collection<ProjectionEntity> entities) {
-        featurerService.loadFeaturers(entities,
-                ProjectionEntity::getId,
-                ProjectionEntity::getFieldProjectorFeaturerId,
-                ProjectionEntity::getFieldProjectorFeaturer,
-                ProjectionEntity::setFieldProjectorFeaturer);
-    }
 }

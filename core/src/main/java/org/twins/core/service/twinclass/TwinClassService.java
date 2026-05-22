@@ -12,8 +12,6 @@ import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -33,7 +31,6 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
@@ -99,8 +96,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final DomainService domainService;
     @Lazy
     private final AuthService authService;
-    @Lazy
-    private final FeaturerService featurerService;
     @Lazy
     private final TwinMarkerService twinMarkerService;
     @Lazy
@@ -481,8 +476,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
 
             if (twinClass.getHeadHunterFeaturerId() != null) {
-                featurerService.checkValid(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
-                featurerService.prepareForStore(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams());
+                validateAndPrepareFeaturer(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
             }
 
             if (twinClass.getExtendsTwinClassId() != null) {
@@ -671,7 +665,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassFreezeId, TwinClassEntity::setTwinClassFreezeId, TwinClassEntity.Fields.twinClassFreezeId, changesHelper);
 
 
-            updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
+            updateHeadHunterFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
             i18nService.updateI18nFieldForEntity(twinClassUpdate.getNameI18n(), I18nType.TWIN_CLASS_NAME, dbTwinClassEntity, TwinClassEntity::getNameI18NId, TwinClassEntity::setNameI18NId, TwinClassEntity.Fields.nameI18NId, changesHelper);
             i18nService.updateI18nFieldForEntity(twinClassUpdate.getDescriptionI18n(), I18nType.TWIN_CLASS_DESCRIPTION, dbTwinClassEntity, TwinClassEntity::getDescriptionI18NId, TwinClassEntity::setDescriptionI18NId, TwinClassEntity.Fields.descriptionI18NId, changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
@@ -716,19 +710,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    public void updateTwinClassFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
-        if (changesHelper.isChanged(TwinClassEntity.Fields.headHunterFeaturerId, dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
-            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
-            dbTwinClassEntity
-                    .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
-                    .setHeadHunterFeaturer(newHeadHunterFeaturer);
-        }
-        featurerService.prepareForStore(dbTwinClassEntity.getHeadHunterFeaturerId(), headHunterParams);
-        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
-            changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
-            dbTwinClassEntity
-                    .setHeadHunterParams(headHunterParams);
-        }
+    public void updateHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
+        updateEntityFeaturerField(dbTwinClassEntity, newHeadhunterFeaturerId, headHunterParams,
+                TwinClassEntity::getHeadHunterFeaturerId, TwinClassEntity::setHeadHunterFeaturerId,
+                TwinClassEntity::getHeadHunterParams, TwinClassEntity::setHeadHunterParams,
+                TwinClassEntity.Fields.headHunterFeaturerId, TwinClassEntity.Fields.headHunterParams,
+                HeadHunter.class, changesHelper);
     }
 
     public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
@@ -921,18 +908,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {
         DomainType domainType = authService.getApiUser().getDomain().getDomainType();
         return domainTypeTwinClassOwnerTypeRepository.findAllTwinClassOwnerTypesByDomainTypeId(domainType);
-    }
-
-    public void loadHeadHunter(TwinClassEntity twinClassEntity) {
-        loadHeadHunter(Collections.singletonList(twinClassEntity));
-    }
-
-    public void loadHeadHunter(Collection<TwinClassEntity> collection) {
-        featurerService.loadFeaturers(collection,
-                TwinClassEntity::getId,
-                TwinClassEntity::getHeadHunterFeaturerId,
-                TwinClassEntity::getHeadHunterFeaturer,
-                TwinClassEntity::setHeadHunterFeaturer);
     }
 
     public void loadFreeze(TwinClassEntity src) throws ServiceException {

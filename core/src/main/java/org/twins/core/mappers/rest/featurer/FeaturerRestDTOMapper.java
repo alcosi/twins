@@ -62,4 +62,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         return mapperContext.hasModeOrEmpty(FeaturerMode.HIDE);
     }
 
+    public void postpone(Integer featurerId, MapperContext mapperContext) {
+        postpone(featurerService.getFeaturerEntity(featurerId), mapperContext);
+    }
 }

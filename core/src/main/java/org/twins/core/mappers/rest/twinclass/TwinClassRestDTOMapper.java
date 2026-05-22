@@ -265,9 +265,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             permissionRestDTOMapper.postpone(src.getDeletePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
-            twinClassService.loadHeadHunter(src);
             dst.setHeadHunterFeaturerId(src.getHeadHunterFeaturerId());
-            featurerRestDTOMapper.postpone(src.getHeadHunterFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT)));
+            featurerRestDTOMapper.postpone(src.getHeadHunterFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(FaceMode.TwinClassPage2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
@@ -305,9 +304,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
             twinClassService.loadPermissions(srcCollection);
         }
-        if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
-            twinClassService.loadHeadHunter(srcCollection);
-        }
+        // FeaturerMode.TwinClass2FeaturerMode — загрузка FeaturerEntity больше не нужна, postpone работает по ID
         if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
             twinClassService.loadSegments(srcCollection);
         }

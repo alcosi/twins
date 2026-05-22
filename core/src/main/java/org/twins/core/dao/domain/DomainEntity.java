@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
@@ -129,11 +128,6 @@ public class DomainEntity implements EasyLoggable {
 
     @Column(name = "notification_schema_id")
     private UUID notificationSchemaId;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity userGroupManagerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_group_manager_params", columnDefinition = "hstore")

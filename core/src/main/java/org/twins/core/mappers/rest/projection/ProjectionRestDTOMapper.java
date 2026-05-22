@@ -16,8 +16,6 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.face.FaceTwinPointerService;
 import org.twins.core.service.projection.ProjectionService;
 
-import java.util.Collection;
-
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = ProjectionMode.class)
@@ -90,20 +88,7 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
         if (mapperContext.hasModeButNot(FeaturerMode.Projection2FeaturerMode.HIDE)) {
             dst
                     .setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId());
-            projectionService.loadProjectorFeaturer(src);
-            featurerRestDTOMapper.postpone(src.getFieldProjectorFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Projection2FeaturerMode.SHORT)));
+            featurerRestDTOMapper.postpone(src.getFieldProjectorFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Projection2FeaturerMode.SHORT)));
         }
-    }
-
-    @Override
-    public void beforeCollectionConversion(Collection<ProjectionEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (srcCollection.isEmpty()) {
-            return;
-        }
-        if (mapperContext.hasModeButNot(FeaturerMode.Projection2FeaturerMode.HIDE)) {
-            projectionService.loadProjectorFeaturer(srcCollection);
-        }
-
     }
 }

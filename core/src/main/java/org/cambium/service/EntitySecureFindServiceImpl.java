@@ -7,6 +7,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
+import org.cambium.featurer.Featurer;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -33,6 +35,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Autowired
     protected AuthService authService;
+
+    @Autowired
+    protected FeaturerService featurerService;
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -386,6 +391,48 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
 
         setFunction.accept(dbEntity, (R) updateValue);
+    }
+
+    protected <T> void updateEntityFeaturerField(
+            T dbEntity,
+            Integer newFeaturerId,
+            HashMap<String, String> newFeaturerParams,
+            Function<T, Integer> getFeaturerId,
+            BiConsumer<T, Integer> setFeaturerId,
+            Function<T, HashMap<String, String>> getParams,
+            BiConsumer<T, HashMap<String, String>> setParams,
+            String featurerIdField,
+            String paramsField,
+            Class<? extends Featurer> expectedClass,
+            ChangesHelper changesHelper) throws ServiceException {
+
+        Integer currentFeaturerId = getFeaturerId.apply(dbEntity);
+        HashMap<String, String> currentParams = getParams.apply(dbEntity);
+
+        if (newFeaturerId == null || newFeaturerId == 0) {
+            if (MapUtils.isEmpty(newFeaturerParams))
+                return;
+            newFeaturerId = currentFeaturerId;
+        }
+
+        if (changesHelper.isChanged(featurerIdField, currentFeaturerId, newFeaturerId)) {
+            featurerService.checkValid(newFeaturerId, newFeaturerParams, expectedClass);
+            setFeaturerId.accept(dbEntity, newFeaturerId);
+        }
+
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
+
+        if (changesHelper.isChanged(paramsField, currentParams, newFeaturerParams)) {
+            setParams.accept(dbEntity, newFeaturerParams);
+        }
+    }
+
+    protected void validateAndPrepareFeaturer(
+            Integer featurerId,
+            HashMap<String, String> featurerParams,
+            Class<? extends Featurer> expectedClass) throws ServiceException {
+        featurerService.checkValid(featurerId, featurerParams, expectedClass);
+        featurerService.prepareForStore(featurerId, featurerParams);
     }
 
     public <E, K> void load(Collection<E> srcCollection,

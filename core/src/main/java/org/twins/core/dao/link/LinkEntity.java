@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -110,11 +109,6 @@ public class LinkEntity implements EasyLoggable {
 
     @Column(name = "linker_featurer_id")
     private Integer linkerFeaturerId;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity linkerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "linker_params", columnDefinition = "hstore")

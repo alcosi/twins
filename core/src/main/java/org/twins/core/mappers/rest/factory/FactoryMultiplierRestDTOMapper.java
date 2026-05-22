@@ -63,8 +63,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
             dst.setMultiplierFeaturerId(src.getMultiplierFeaturerId());
-            factoryMultiplierService.loadMultiplier(src);
-            featurerRestDTOMapper.postpone(src.getMultiplierFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT));
+            featurerRestDTOMapper.postpone(src.getMultiplierFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT));
         }
     }
 
@@ -73,9 +72,6 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(FactoryMultiplierFiltersCountMode.SHOW)) {
             twinFactoryService.countFactoryMultiplierFilters(srcCollection);
-        }
-        if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
-            factoryMultiplierService.loadMultipliers(srcCollection);
         }
     }
 }

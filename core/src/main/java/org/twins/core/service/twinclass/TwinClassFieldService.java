@@ -523,8 +523,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getFieldTyperFeaturerId() != null) {
-                featurerService.checkValid(field.getFieldTyperFeaturerId(), field.getFieldTyperParams(), FieldTyper.class);
-                featurerService.prepareForStore(field.getFieldTyperFeaturerId(), field.getFieldTyperParams());
+                validateAndPrepareFeaturer(field.getFieldTyperFeaturerId(), field.getFieldTyperParams(), FieldTyper.class);
             } else {
                 field
                         .setFieldTyperFeaturerId(1301)
@@ -532,8 +531,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getTwinSorterFeaturerId() != null) {
-                featurerService.checkValid(field.getTwinSorterFeaturerId(), field.getTwinSorterParams(), TwinSorter.class);
-                featurerService.prepareForStore(field.getTwinSorterFeaturerId(), field.getTwinSorterParams());
+                validateAndPrepareFeaturer(field.getTwinSorterFeaturerId(), field.getTwinSorterParams(), TwinSorter.class);
             } else {
                 field
                         .setTwinSorterFeaturerId(FeaturerTwins.ID_4101)
@@ -541,8 +539,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getFieldInitializerFeaturerId() != null) {
-                featurerService.checkValid(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams(), FieldInitializer.class);
-                featurerService.prepareForStore(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams());
+                validateAndPrepareFeaturer(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams(), FieldInitializer.class);
             } else {
                 field
                         .setFieldInitializerFeaturerId(FeaturerTwins.ID_5301)
@@ -695,65 +692,32 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
 
     public void updateTwinClassField_FieldTyperFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbTwinClassFieldEntity.getFieldTyperFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.fieldTyperFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
-            if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
-            dbTwinClassFieldEntity
-                    .setFieldTyperFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams)) {
-            changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
-            dbTwinClassFieldEntity
-                    .setFieldTyperParams(newFeaturerParams);
-        }
+        // Pre-check: can't change field typer if twins with this field already exist
+        if (newFeaturerId != null && newFeaturerId != 0
+                && !newFeaturerId.equals(dbTwinClassFieldEntity.getFieldTyperFeaturerId())
+                && twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
+        updateEntityFeaturerField(dbTwinClassFieldEntity, newFeaturerId, newFeaturerParams,
+                TwinClassFieldEntity::getFieldTyperFeaturerId, TwinClassFieldEntity::setFieldTyperFeaturerId,
+                TwinClassFieldEntity::getFieldTyperParams, TwinClassFieldEntity::setFieldTyperParams,
+                TwinClassFieldEntity.Fields.fieldTyperFeaturerId, TwinClassFieldEntity.Fields.fieldTyperParams,
+                FieldTyper.class, changesHelper);
     }
 
     public void updateTwinClassField_TwinSorterFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbTwinClassFieldEntity.getTwinSorterFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.twinSorterFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, TwinSorter.class);
-            dbTwinClassFieldEntity
-                    .setTwinSorterFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbTwinClassFieldEntity.getTwinSorterParams(), newFeaturerParams)) {
-            changesHelper.add(TwinClassFieldEntity.Fields.twinSorterParams, dbTwinClassFieldEntity.getTwinSorterParams(), newFeaturerParams);
-            dbTwinClassFieldEntity
-                    .setTwinSorterParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbTwinClassFieldEntity, newFeaturerId, newFeaturerParams,
+                TwinClassFieldEntity::getTwinSorterFeaturerId, TwinClassFieldEntity::setTwinSorterFeaturerId,
+                TwinClassFieldEntity::getTwinSorterParams, TwinClassFieldEntity::setTwinSorterParams,
+                TwinClassFieldEntity.Fields.twinSorterFeaturerId, TwinClassFieldEntity.Fields.twinSorterParams,
+                TwinSorter.class, changesHelper);
     }
 
     public void updateTwinClassField_FieldInitializerFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbTwinClassFieldEntity.getFieldInitializerFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.fieldInitializerFeaturerId, dbTwinClassFieldEntity.getFieldInitializerFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldInitializer.class);
-            dbTwinClassFieldEntity
-                    .setFieldInitializerFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldInitializerParams(), newFeaturerParams)) {
-            changesHelper.add(TwinClassFieldEntity.Fields.fieldInitializerParams, dbTwinClassFieldEntity.getFieldInitializerParams(), newFeaturerParams);
-            dbTwinClassFieldEntity
-                    .setFieldInitializerParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbTwinClassFieldEntity, newFeaturerId, newFeaturerParams,
+                TwinClassFieldEntity::getFieldInitializerFeaturerId, TwinClassFieldEntity::setFieldInitializerFeaturerId,
+                TwinClassFieldEntity::getFieldInitializerParams, TwinClassFieldEntity::setFieldInitializerParams,
+                TwinClassFieldEntity.Fields.fieldInitializerFeaturerId, TwinClassFieldEntity.Fields.fieldInitializerParams,
+                FieldInitializer.class, changesHelper);
     }
 
     public void updateTwinClassFieldViewPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {

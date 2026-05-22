@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -41,11 +40,6 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
 
     @Column(name = "description")
     private String description;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity multiplierFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "multiplier_params", columnDefinition = "hstore")

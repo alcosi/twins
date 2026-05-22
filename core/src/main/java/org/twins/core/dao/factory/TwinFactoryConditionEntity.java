@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -43,11 +42,6 @@ public class TwinFactoryConditionEntity implements EasyLoggable {
 
     @Column(name = "invert")
     private Boolean invert;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity conditionerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "conditioner_params", columnDefinition = "hstore")

@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -86,11 +85,6 @@ public class ProjectionEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projection_type_id", insertable = false, updatable = false)
     private ProjectionTypeEntity ProjectionType;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity fieldProjectorFeaturer;
 
     @Override
     public String easyLog(Level level) {
