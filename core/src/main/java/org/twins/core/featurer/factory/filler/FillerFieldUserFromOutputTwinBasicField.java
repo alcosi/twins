@@ -22,15 +22,14 @@ import java.util.Properties;
 
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2333,
-        name = "Field user from context twin basic field",
-        description = "Fill the user field with assignee-or-creator of context twin")
+@Featurer(id = FeaturerTwins.ID_2353,
+        name = "Field user from output twin basic field",
+        description = "Fill the user field with assignee-or-creator of the same factory item output twin")
 @Slf4j
-public class FillerFieldUserFromContextTwinBasicField extends Filler {
+public class FillerFieldUserFromOutputTwinBasicField extends Filler {
 
     @FeaturerParam(name = "Twin class field id", description = "TwinClassFieldId for filling", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
-
 
     @FeaturerParam(name = "Field", description = "Basic field to check", order = 2)
     public static final FeaturerParamBasicsTwinBasicField field = new FeaturerParamBasicsTwinBasicField("field");
@@ -41,21 +40,21 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity factoryItemTwin = factoryItem.checkSingleContextTwin();
+        TwinEntity outputTwin = factoryItem.getOutput().getTwinEntity();
         TwinBasicFields.Basics fieldName = field.extract(properties);
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
         switch (fieldName) {
             case createdByUserId -> {
-                if (null == factoryItemTwin.getCreatedByUserId()) {
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No creator detected for twin: " + factoryItemTwin.logDetailed());
+                if (outputTwin.getCreatedByUserId() == null) {
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No creator detected for twin: " + outputTwin.logDetailed());
                 }
-                fieldValue.add(factoryItemTwin.getCreatedByUser());
+                fieldValue.add(outputTwin.getCreatedByUser());
             }
             case assigneeUserId -> {
-                if (null == factoryItemTwin.getAssignerUserId()) {
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee detected for twin: " + factoryItemTwin.logDetailed());
+                if (outputTwin.getAssignerUserId() == null) {
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee detected for twin: " + outputTwin.logDetailed());
                 }
-                fieldValue.add(factoryItemTwin.getAssignerUser());
+                fieldValue.add(outputTwin.getAssignerUser());
             }
             default ->
                     throw new ServiceException(ErrorCodeTwins.TWIN_BASIC_FIELD_UNKNOWN, "Unknown/Unsupported in featurer twin basic field: " + fieldName);

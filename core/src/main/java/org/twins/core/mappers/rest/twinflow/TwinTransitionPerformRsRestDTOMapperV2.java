@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.twinflow;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -40,7 +39,7 @@ public class TwinTransitionPerformRsRestDTOMapperV2 extends RestSimpleDTOMapper<
             switch (mapperContext.getModeOrUse(TransitionResultMode.DETAILED)) {
                 case DETAILED:
                     Kit<TwinDTOv2, UUID> processedList = new Kit<>(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getProcessedTwinList(), mapperContext.forkOnPoint(TwinMode.TransitionResult2TwinMode.SHORT)), TwinDTOv2::id);
-                    if (CollectionUtils.isNotEmpty(processedList)) {
+                    if (processedList.isNotEmpty()) {
                         Map<UUID, List<TwinDTOv2>> processedGroupedByClass = new HashMap<>();
                         for (TwinEntity twin : transitionResultMinor.getProcessedTwinList()) {
                             List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twin.getTwinClassId(), k -> new ArrayList<>());

@@ -445,7 +445,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return filtered;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public FactoryResultCommited commitResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         if (!factoryResultUncommited.isCommittable())
             throw new ServiceException(ErrorCodeTwins.FACTORY_RESULT_LOCKED);
@@ -479,7 +479,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     public boolean mustBeDrafted(FactoryResultUncommited factoryResultUncommited) {
-        return CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes());
+        return KitUtils.isNotEmpty(factoryResultUncommited.getDeletes());
     }
 
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {

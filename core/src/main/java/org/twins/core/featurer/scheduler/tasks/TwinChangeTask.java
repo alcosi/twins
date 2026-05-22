@@ -2,7 +2,7 @@ package org.twins.core.featurer.scheduler.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -60,7 +60,7 @@ public class TwinChangeTask implements Runnable {
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
 //                    .setBasics(transitionContext.getBasics());
             FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinChangeTaskEntity.getTwinFactoryId(), factoryContext);
-            if (CollectionUtils.isNotEmpty(result.getDeletes())) {
+            if (KitUtils.isNotEmpty(result.getDeletes())) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "deletes are currently not supported by  tasks");
             }
             for (var twinCreate : result.getCreates() ) {

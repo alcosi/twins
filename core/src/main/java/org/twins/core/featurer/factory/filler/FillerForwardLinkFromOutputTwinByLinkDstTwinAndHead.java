@@ -25,27 +25,26 @@ import java.util.UUID;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_2351,
-        name = "Forward link from output TwinCreate link dst twin head",
-        description = "Finds link in output TwinCreate links. " +
+        name = "Forward link from output twin by link dst and head twin",
+        description = "Finds link in output twin links. " +
                 "Get dst twin for this link. " +
                 "Get head of this dst twin. " +
                 "Create new link of given type from current twin pointing to this head"
 )
-public class FillerForwardLinkFromOutputTwinLinkDstTwinHeadByTwin extends FillerLinks {
+public class FillerForwardLinkFromOutputTwinByLinkDstTwinAndHead extends FillerLinks {
 
     @Lazy
     @Autowired
     TwinService twinService;
 
-    @FeaturerParam(name = "Head hunter link", description = "", order = 2)
-    public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUIDTwinsLinkId("headHunterLink");
+    @FeaturerParam(name = "Head hunter link", description = "", order = 1)
+    public static final FeaturerParamUUID firstHopLink = new FeaturerParamUUIDTwinsLinkId("firstHopLink");
 
-    @FeaturerParam(name = "New link id", description = "", order = 1)
+    @FeaturerParam(name = "New link id", description = "", order = 2)
     public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        UUID headHunterLinkId = headHunterLink.extract(properties);
         TwinEntity outputTwin = factoryItem.getTwin();
         if (outputTwin == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output twin is empty");
@@ -53,18 +52,34 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinHeadByTwin extends Filler
         if (!(factoryItem.getOutput() instanceof TwinCreate twinCreate)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output is not TwinCreate");
         }
+
+        TwinEntity dstTwin = getDstTwinByLink(properties, twinCreate, outputTwin);
+
+        TwinEntity detectedHead = twinService.loadHeadForTwin(dstTwin);
+
+        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
+        TwinLinkEntity newLink = new TwinLinkEntity()
+                .setLink(link)
+                .setLinkId(link.getId())
+                .setDstTwin(detectedHead)
+                .setDstTwinId(detectedHead.getId());
+        addLink(factoryItem.getOutput(), newLink);
+    }
+
+    private TwinEntity getDstTwinByLink(Properties properties, TwinCreate twinCreate, TwinEntity outputTwin) throws ServiceException {
+        UUID firstHopLinkId = firstHopLink.extract(properties);
         List<TwinLinkEntity> outputTwinLinks = twinCreate.getLinksEntityList();
         if (CollectionUtils.isEmpty(outputTwinLinks)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLinkId + "] configured from " + outputTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHopLinkId + "] configured from " + outputTwin.logShort());
         }
         List<TwinLinkEntity> matchedLinks = outputTwinLinks.stream()
-                .filter(twinLink -> headHunterLinkId.equals(twinLink.getLinkId()))
+                .filter(twinLink -> firstHopLinkId.equals(twinLink.getLinkId()))
                 .toList();
         if (CollectionUtils.isEmpty(matchedLinks)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLinkId + "] configured from " + outputTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + firstHopLinkId + "] configured from " + outputTwin.logShort());
         }
         if (matchedLinks.size() != 1) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLinkId + "] configured from " + outputTwin.logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + firstHopLinkId + "] configured from " + outputTwin.logShort());
         }
         TwinLinkEntity matchedLink = matchedLinks.getFirst();
         TwinEntity dstTwin = matchedLink.getDstTwin();
@@ -74,14 +89,6 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinHeadByTwin extends Filler
             }
             dstTwin = twinService.findEntitySafe(matchedLink.getDstTwinId());
         }
-
-        TwinEntity detectedHead = twinService.loadHeadForTwin(dstTwin);
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        return dstTwin;
     }
 }

@@ -5,8 +5,8 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAliasEntity;
-import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinAliasMode;
@@ -27,7 +27,7 @@ public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Set<
         Set<String> result = new HashSet<>();
         twinAliasService.loadAliases(src);
         if (mapperContext.getModeOrUse(TwinAliasMode.HIDE) == TwinAliasMode.ALL)
-            return src.getTwinAliases().stream().map(TwinAliasEntity::getAlias).collect(Collectors.toSet());
+            return src.getTwinAliases().getCollection().stream().map(TwinAliasEntity::getAlias).collect(Collectors.toSet());
         TwinAliasType twinAliasType = null;
         switch (mapperContext.getModeOrUse(TwinAliasMode.HIDE)) {
             case B:

@@ -81,7 +81,7 @@ public class CommentActionService {
                     log.info("{} will not be used, since it is inactive.", twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                twinValidatorService.loadValidators(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules());
+                twinValidatorService.loadValidators(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules().getCollection());
                 List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;

@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.service.sql.I18nSqlBuilder;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +24,7 @@ public class I18nExportService {
         StringBuilder result = new StringBuilder();
         for (I18nEntity i18n : i18nEntities) {
             String i18nSql = i18nSqlBuilder.buildI18nInsert(i18n,
-                    i18n.getTranslationsKit() != null ? new ArrayList<>(i18n.getTranslationsKit()) : Collections.emptyList());
+                    i18n.getTranslationsKit() != null ? i18n.getTranslationsKit().getList() : Collections.emptyList());
             if (!i18nSql.isEmpty()) {
                 if (!result.isEmpty()) result.append("\n");
                 result.append(i18nSql);

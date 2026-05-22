@@ -225,7 +225,7 @@ public class FeaturerService {
             if (featurerEntity.getParams() == null)
                 needLoad.add(featurerEntity);
         }
-        if (CollectionUtils.isEmpty(needLoad))
+        if (needLoad.isEmpty())
             return;
         List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(needLoad.getIdSet());
         if (CollectionUtils.isEmpty(allParams))

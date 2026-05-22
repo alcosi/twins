@@ -10,8 +10,14 @@ import java.util.function.Function;
 public class KitGroupedObj<E, K, GK, GE> extends KitGrouped<E, K, GK> {
     protected Map<GK, GE> groupingObjectMap;
     private final Function<? super E, ? extends GE> functionGetGroupingObject;
+
     public KitGroupedObj(Collection<E> collection, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId, Function<? super E, ? extends GE> functionGetGroupingObject) {
         super(collection, functionGetId, functionGetGroupingId);
+        this.functionGetGroupingObject = functionGetGroupingObject;
+    }
+
+    public KitGroupedObj(Collection<E> collection, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId, Function<? super E, ? extends GE> functionGetGroupingObject, DuplicateKeyMode duplicateKeyMode) {
+        super(collection, functionGetId, functionGetGroupingId, duplicateKeyMode);
         this.functionGetGroupingObject = functionGetGroupingObject;
     }
 
@@ -20,9 +26,14 @@ public class KitGroupedObj<E, K, GK, GE> extends KitGrouped<E, K, GK> {
         this.functionGetGroupingObject = functionGetGroupingObject;
     }
 
+    public KitGroupedObj(Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId, Function<? super E, ? extends GE> functionGetGroupingObject, DuplicateKeyMode duplicateKeyMode) {
+        super(functionGetId, functionGetGroupingId, duplicateKeyMode);
+        this.functionGetGroupingObject = functionGetGroupingObject;
+    }
+
     @Override
     public boolean add(E e) {
-        groupingObjectMap = null; //invalidate
+        groupingObjectMap = null;
         return super.add(e);
     }
 
@@ -30,25 +41,22 @@ public class KitGroupedObj<E, K, GK, GE> extends KitGrouped<E, K, GK> {
         if (groupingObjectMap != null)
             return groupingObjectMap;
         if (isEmpty() || functionGetGroupingObject == null)
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
         getGroupedMap();
-        if (groupedMap == null) // looks like this is too much
-            return Collections.EMPTY_MAP;
+        if (groupedMap == null)
+            return Collections.emptyMap();
         groupingObjectMap = new HashMap<>();
-        GK groupingId;
-        GE groupingObject;
         for (Map.Entry<GK, List<E>> entry : groupedMap.entrySet()) {
-            groupingId = entry.getKey();
-            if (CollectionUtils.isEmpty(entry.getValue())) // this is not possible, but let's do extra check
+            GK groupingId = entry.getKey();
+            if (CollectionUtils.isEmpty(entry.getValue()))
                 continue;
-            groupingObject = functionGetGroupingObject.apply(entry.getValue().get(0));
+            GE groupingObject = functionGetGroupingObject.apply(entry.getValue().get(0));
             groupingObjectMap.put(groupingId, groupingObject);
         }
         return groupingObjectMap;
     }
 
     public List<ImmutablePair<GE, List<E>>> getGroupedList() {
-        //todo cache result in variable
         var ret = new ArrayList<ImmutablePair<GE, List<E>>>();
         for (var entry : getGroupedMap().entrySet()) {
             ret.add(new ImmutablePair<>(getGroupingObject(entry.getKey()), entry.getValue()));

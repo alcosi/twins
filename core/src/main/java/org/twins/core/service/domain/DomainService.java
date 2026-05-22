@@ -333,6 +333,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .collect(Collectors.toSet());
         Map<UUID, StorageEntity> storages = storageService
                 .findEntities(resourceIdList, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
+                .getCollection()
                 .stream()
                 .collect(Collectors.toMap(StorageEntity::getId, e -> e));
         domains.forEach(domain -> {
