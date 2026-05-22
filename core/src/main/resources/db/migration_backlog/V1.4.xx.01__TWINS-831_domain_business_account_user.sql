@@ -16,14 +16,14 @@
 --   domain_user_id, domain_business_account_id, business_account_user_id
 
 -- ============================================================
--- 1. Add last_login_at column to user-related tables
+-- 1. Add last_activity_at column to user-related tables
 -- ============================================================
 
 ALTER TABLE domain_user
-    ADD COLUMN IF NOT EXISTS last_login_at timestamp without time zone;
+    ADD COLUMN IF NOT EXISTS last_activity_at timestamp without time zone;
 
 ALTER TABLE business_account_user
-    ADD COLUMN IF NOT EXISTS last_login_at timestamp without time zone;
+    ADD COLUMN IF NOT EXISTS last_activity_at timestamp without time zone;
 
 -- ============================================================
 -- 2. Create domain_business_account_user table
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS domain_business_account_user (
     user_id uuid NOT NULL,
     domain_id uuid NOT NULL,
     business_account_id uuid NOT NULL,
-    last_login_at timestamp without time zone,
+    last_activity_at timestamp without time zone,
     created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT domain_business_account_user_pk

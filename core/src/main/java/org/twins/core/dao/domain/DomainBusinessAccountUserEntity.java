@@ -43,8 +43,8 @@ public class DomainBusinessAccountUserEntity implements EasyLoggable {
     @Column(name = "business_account_user_id", insertable = false, updatable = false)
     private UUID businessAccountUserId;
 
-    @Column(name = "last_login_at")
-    private Timestamp lastLoginAt;
+    @Column(name = "last_activity_at")
+    private Timestamp lastActivityAt;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
