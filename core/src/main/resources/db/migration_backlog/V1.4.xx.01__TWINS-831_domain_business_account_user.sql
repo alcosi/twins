@@ -11,6 +11,7 @@
 --   3. user belongs to business_account (business_account_user)
 --
 -- PK is composite (user_id, domain_id, business_account_id) — the natural business key.
+-- Direct INSERT/UPDATE is forbidden; data is managed exclusively by triggers.
 -- Deletion is handled automatically via FK ON DELETE CASCADE on:
 --   domain_user_id, domain_business_account_id, business_account_user_id
 
@@ -74,8 +75,43 @@ CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_business_account_use
     ON domain_business_account_user(business_account_user_id);
 
 -- ============================================================
--- 3. Initial data population from existing relationships
+-- 3. Protection: forbid direct INSERT/UPDATE on materialization table
 -- ============================================================
+
+CREATE OR REPLACE FUNCTION domain_business_account_user_before_insert_wrapper()
+    RETURNS trigger AS $$
+BEGIN
+    IF current_setting('app.domain_business_account_user_insert', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'Direct insert into domain_business_account_user is forbidden. Data is managed by triggers.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION domain_business_account_user_before_update_wrapper()
+    RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'Direct update of domain_business_account_user is forbidden. Data is managed by triggers.';
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS domain_business_account_user_before_insert_wrapper_trigger ON domain_business_account_user;
+CREATE TRIGGER domain_business_account_user_before_insert_wrapper_trigger
+    BEFORE INSERT ON domain_business_account_user
+    FOR EACH ROW
+    EXECUTE FUNCTION domain_business_account_user_before_insert_wrapper();
+
+DROP TRIGGER IF EXISTS domain_business_account_user_before_update_wrapper_trigger ON domain_business_account_user;
+CREATE TRIGGER domain_business_account_user_before_update_wrapper_trigger
+    BEFORE UPDATE ON domain_business_account_user
+    FOR EACH ROW
+    EXECUTE FUNCTION domain_business_account_user_before_update_wrapper();
+
+-- ============================================================
+-- 4. Initial data population from existing relationships
+-- ============================================================
+
+PERFORM set_config('app.domain_business_account_user_insert', 'on', true);
 
 INSERT INTO domain_business_account_user (domain_user_id, domain_business_account_id, business_account_user_id,
                                           user_id, domain_id, business_account_id, created_at)
@@ -94,8 +130,10 @@ FROM domain_user du
         ON bau.user_id = du.user_id
         AND bau.business_account_id = dba.business_account_id;
 
+PERFORM set_config('app.domain_business_account_user_insert', 'off', true);
+
 -- ============================================================
--- 4. Stored procedures for materialization sync logic
+-- 5. Stored procedures for materialization sync logic
 --    (delete not needed — handled by FK ON DELETE CASCADE)
 -- ============================================================
 
@@ -107,6 +145,7 @@ CREATE OR REPLACE FUNCTION domain_business_account_user_insert_by_domain_user(
     p_domain_id uuid
 ) RETURNS void AS $$
 BEGIN
+    PERFORM set_config('app.domain_business_account_user_insert', 'on', true);
     INSERT INTO domain_business_account_user
         (domain_user_id, domain_business_account_id, business_account_user_id,
          user_id, domain_id, business_account_id, created_at)
@@ -135,6 +174,7 @@ CREATE OR REPLACE FUNCTION domain_business_account_user_insert_by_domain_busines
     p_domain_id uuid
 ) RETURNS void AS $$
 BEGIN
+    PERFORM set_config('app.domain_business_account_user_insert', 'on', true);
     INSERT INTO domain_business_account_user
         (domain_user_id, domain_business_account_id, business_account_user_id,
          user_id, domain_id, business_account_id, created_at)
@@ -163,6 +203,7 @@ CREATE OR REPLACE FUNCTION domain_business_account_user_insert_by_business_accou
     p_business_account_id uuid
 ) RETURNS void AS $$
 BEGIN
+    PERFORM set_config('app.domain_business_account_user_insert', 'on', true);
     INSERT INTO domain_business_account_user
         (domain_user_id, domain_business_account_id, business_account_user_id,
          user_id, domain_id, business_account_id, created_at)
@@ -184,7 +225,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================
--- 5. Wrapper functions
+-- 6. Wrapper functions
 -- ============================================================
 
 -- --- domain_user: forbid changing key fields on UPDATE ---------------------
@@ -240,7 +281,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================
--- 6. Triggers
+-- 7. Triggers
 -- ============================================================
 
 -- --- domain_user ---
