@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DomainUserSearchRsV1")
-public class DomainUserSearchRsDTOv1 extends DomainUserListRsDTOv1 {
+@Schema(name = "DomainBusinessAccountUserSearchRsV1")
+public class DomainBusinessAccountUserSearchRsDTOv1 extends DomainBusinessAccountUserListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

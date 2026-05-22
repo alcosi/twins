@@ -84,10 +84,6 @@ public class BusinessAccountUserService extends EntitySecureFindServiceImpl<Busi
         entitySmartService.deleteAndLog(businessAccountUserEntity.id(), businessAccountUserRepository);
     }
 
-    public void loadBusinessAccounts(DomainUserEntity domainUser) {
-        loadBusinessAccounts(Collections.singletonList(domainUser));
-    }
-
     public List<UUID> findUserIdsByBusinessAccountId(UUID businessAccountId) {
         return businessAccountUserRepository.findUserIdByBusinessAccountId(businessAccountId);
     }

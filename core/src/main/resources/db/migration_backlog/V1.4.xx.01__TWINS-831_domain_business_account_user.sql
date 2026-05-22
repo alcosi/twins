@@ -73,6 +73,10 @@ CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_domain_business_acco
     ON domain_business_account_user(domain_business_account_id);
 CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_business_account_user_id
     ON domain_business_account_user(business_account_user_id);
+CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_domain_id_created_at
+    ON domain_business_account_user(domain_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_domain_id_last_activity_at
+    ON domain_business_account_user(domain_id, last_activity_at);
 
 -- ============================================================
 -- 3. Protection: forbid direct INSERT/UPDATE on materialization table

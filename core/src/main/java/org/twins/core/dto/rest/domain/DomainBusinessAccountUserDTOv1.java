@@ -15,20 +15,21 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "BusinessAccountUserV1")
-public class BusinessAccountUserDTOv1 {
-    @Schema(description = "id")
-    public UUID id;
-
+@Schema(name = "DomainBusinessAccountUserV1")
+public class DomainBusinessAccountUserDTOv1 {
     @Schema(description = "user id", example = DTOExamples.USER_ID)
     @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 
-    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
-    @Schema(description = "created at", example = DTOExamples.INSTANT)
-    public LocalDateTime createdAt;
-
     @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
     public UUID businessAccountId;
+
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "last activity at", example = DTOExamples.INSTANT)
+    public LocalDateTime lastActivityAt;
+
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
 }
