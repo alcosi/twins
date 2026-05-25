@@ -34,7 +34,7 @@ public class DomainBusinessAccountUserSearchService {
             search = new DomainBusinessAccountUserSearch();
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<DomainBusinessAccountUserEntity> spec = createSearchSpecification(search, domainId);
-        Page<DomainBusinessAccountUserEntity> page = domainBusinessAccountUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        Page<DomainBusinessAccountUserEntity> page = domainBusinessAccountUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
@@ -48,7 +48,8 @@ public class DomainBusinessAccountUserSearchService {
                 checkUserGroupIdIn(search.getUserGroupIdList(), false),
                 checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true),
                 checkFieldLocalDateTimeBetween(search.getLastActivityAtRange(), DomainBusinessAccountUserEntity.Fields.lastActivityAt),
-                checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt),
+                toSortSpecification(search.getSortOption())
         );
     }
 }

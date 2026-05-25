@@ -19,7 +19,6 @@ public class DomainBusinessAccountUserSpecification extends CommonSpecification<
             if (CollectionUtils.isEmpty(userGroupIds))
                 return cb.conjunction();
 
-            query.distinct(true);
             Subquery<UUID> subquery = query.subquery(UUID.class);
             Root<UserGroupMapEntity> subRoot = subquery.from(UserGroupMapEntity.class);
             subquery.select(subRoot.get(UserGroupMapEntity.Fields.userId));
