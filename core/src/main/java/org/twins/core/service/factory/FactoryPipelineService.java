@@ -22,6 +22,8 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -111,5 +113,9 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
+    }
+
+    public List<TwinFactoryPipelineEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
     }
 }

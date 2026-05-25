@@ -18,7 +18,9 @@ import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -108,6 +110,10 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
     @Transactional
     public void deleteById(UUID id) throws ServiceException {
         deleteSafe(id);
+    }
+
+    public List<TwinFactoryPipelineStepEntity> findByTwinFactoryPipelineIdIn(Collection<UUID> pipelineIds) {
+        return repository.findByTwinFactoryPipelineIdIn(pipelineIds);
     }
 
 }

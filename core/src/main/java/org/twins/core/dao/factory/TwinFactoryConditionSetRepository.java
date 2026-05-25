@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,4 +17,6 @@ public interface TwinFactoryConditionSetRepository extends CrudRepository<TwinFa
     @Override
     @Cacheable(value = CACHE_CONDITION_SET_BY_ID, key = "#uuid")
     Optional<TwinFactoryConditionSetEntity> findById(UUID uuid);
+
+    List<TwinFactoryConditionSetEntity> findByTwinFactoryId(UUID twinFactoryId);
 }

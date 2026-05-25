@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionRepository;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -133,6 +134,10 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
             dbEntity
                     .setConditionerParams(newConditionerParams);
         }
+    }
+
+    public List<TwinFactoryConditionEntity> findByTwinFactoryConditionSetIdIn(Collection<UUID> conditionSetIds) {
+        return repository.findByTwinFactoryConditionSetIdIn(conditionSetIds);
     }
 
 }

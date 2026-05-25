@@ -17,6 +17,8 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -53,5 +55,9 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     @Override
     public boolean validateEntity(TwinFactoryMultiplierFilterEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+    }
+
+    public List<TwinFactoryMultiplierFilterEntity> findByTwinFactoryMultiplierIdIn(Collection<UUID> multiplierIds) {
+        return repository.findByTwinFactoryMultiplierIdIn(multiplierIds);
     }
 }

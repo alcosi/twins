@@ -20,6 +20,8 @@ import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -95,4 +97,7 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         deleteSafe(id);
     }
 
+    public List<TwinFactoryEraserEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
 }
