@@ -34,15 +34,12 @@ public class DomainBusinessAccountUserSearchService {
             search = new DomainBusinessAccountUserSearch();
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<DomainBusinessAccountUserEntity> spec = createSearchSpecification(search, domainId);
-        SimplePagination paginationNoSort = new SimplePagination()
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        Page<DomainBusinessAccountUserEntity> page = domainBusinessAccountUserRepository.findAll(spec, PaginationUtils.pageableOffset(paginationNoSort));
+        Page<DomainBusinessAccountUserEntity> page = domainBusinessAccountUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
     private Specification<DomainBusinessAccountUserEntity> createSearchSpecification(DomainBusinessAccountUserSearch search, UUID domainId) {
-        Specification<DomainBusinessAccountUserEntity> spec = Specification.allOf(
+        return Specification.allOf(
                 checkFieldUuid(domainId, DomainBusinessAccountUserEntity.Fields.domainId),
                 checkUuidIn(search.getUserIdList(), false, false, DomainBusinessAccountUserEntity.Fields.userId),
                 checkUuidIn(search.getUserIdExcludeList(), true, false, DomainBusinessAccountUserEntity.Fields.userId),
@@ -51,13 +48,8 @@ public class DomainBusinessAccountUserSearchService {
                 checkUserGroupIdIn(search.getUserGroupIdList(), false),
                 checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true),
                 checkFieldLocalDateTimeBetween(search.getLastActivityAtRange(), DomainBusinessAccountUserEntity.Fields.lastActivityAt),
-                checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt),
+                toSortSpecification(search.getSortOption())
         );
-        if (search.getSortOption() != null && search.getSortOption().getSortField() != null) {
-            Specification<DomainBusinessAccountUserEntity> sortSpec = search.getSortOption().toSortSpecification();
-            if (sortSpec != null)
-                spec = Specification.allOf(spec, sortSpec);
-        }
-        return spec;
     }
 }
