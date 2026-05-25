@@ -195,4 +195,24 @@ public enum BusinessAccountMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainBusinessAccountUser2BusinessAccountMode implements MapperModePointer<BusinessAccountMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public BusinessAccountMode point() {
+            return switch (this) {
+                case HIDE -> BusinessAccountMode.HIDE;
+                case SHORT -> BusinessAccountMode.SHORT;
+                case DETAILED -> BusinessAccountMode.DETAILED;
+            };
+        }
+    }
 }

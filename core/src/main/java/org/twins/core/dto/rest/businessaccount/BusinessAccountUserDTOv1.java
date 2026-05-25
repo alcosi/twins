@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.domain;
+package org.twins.core.dto.rest.businessaccount;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
@@ -27,6 +26,10 @@ public class BusinessAccountUserDTOv1 {
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
+
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "last activity at", example = DTOExamples.INSTANT)
+    public LocalDateTime lastActivityAt;
 
     @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")

@@ -49,6 +49,9 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "last_active_business_account_id")
     private UUID lastActiveBusinessAccountId;
 
+    @Column(name = "last_activity_at")
+    private Timestamp lastActivityAt;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

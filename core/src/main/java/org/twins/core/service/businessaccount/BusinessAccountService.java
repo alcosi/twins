@@ -5,9 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -16,9 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
-import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
-import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.service.SystemEntityService;
@@ -27,7 +22,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Slf4j
@@ -85,24 +80,5 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
 
     public void updateBusinessAccount(BusinessAccountEntity businessAccountEntity) throws ServiceException {
         businessAccountRepository.save(businessAccountEntity);
-    }
-
-    public void loadBusinessAccounts(DomainUserEntity domainUser) {
-        loadBusinessAccounts(Collections.singletonList(domainUser));
-    }
-
-    public void loadBusinessAccounts(Collection<DomainUserEntity> domainUserList) {
-        if (CollectionUtils.isEmpty(domainUserList))
-            return;
-        Map<UUID, DomainUserEntity> needLoad = new HashMap<>();
-        for (DomainUserEntity domainUser : domainUserList)
-            if (domainUser.getBusinessAccountUserKit() == null)
-                needLoad.put(domainUser.getUserId(), domainUser);
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<BusinessAccountUserEntity, UUID, UUID> businessAccountUserKit = new KitGrouped<>(
-                businessAccountUserRepository.findByUserIdIn(needLoad.keySet()), BusinessAccountUserEntity::getId, BusinessAccountUserEntity::getUserId);
-        for (Map.Entry<UUID, DomainUserEntity> entry : needLoad.entrySet())
-            entry.getValue().setBusinessAccountUserKit(new Kit<>(businessAccountUserKit.getGrouped(entry.getKey()), BusinessAccountUserEntity::getId));
     }
 }
