@@ -160,21 +160,33 @@ twin_class_after_delete_wrapper_trigger
 
 # Stored Procedures Called from Wrappers
 
-Procedure names should clearly describe the performed action.
-
-Pattern:
+Procedure names must follow the pattern:
 
 ```text
-{action}_{entity}_{details}
+{table_or_entity}_{action}
 ```
+
+The function name should clearly describe:
+
+* the table or entity being processed,
+* and the action being performed.
+
+This naming convention ensures:
+
+* predictable structure,
+* easier navigation,
+* better readability,
+* consistent architecture across the project.
 
 ## Examples
 
 ```text
-hierarchy_twin_class_extends_process_tree_update()
-permissions_autoupdate_on_twin_class_update()
-twin_class_on_delete_i18n_and_translations_delete()
-update_direct_children_counters()
+twin_class_extends_process_tree_update()
+twin_class_permissions_autoupdate()
+twin_class_i18n_and_translations_delete()
+twin_class_direct_children_counters_update()
+twin_attachment_storage_counters_update()
+domain_business_account_storage_usage_recalculate()
 ```
 
 ---
@@ -188,14 +200,14 @@ CREATE OR REPLACE FUNCTION twin_class_after_insert_wrapper()
     RETURNS trigger AS $$
 BEGIN
     -- Update hierarchy
-    PERFORM hierarchy_twin_class_extends_process_tree_update(OLD, NEW, TG_OP);
+    PERFORM twin_class_extends_process_tree_update(OLD, NEW, TG_OP);
 
     -- Validate business rules
     PERFORM twin_class_has_segments_check(NEW.head_twin_class_id);
 
     -- Update counters
     IF NEW.extends_twin_class_id IS NOT NULL THEN
-        PERFORM update_direct_children_counters(
+        PERFORM twin_class_direct_children_counters_update(
             NEW.extends_twin_class_id,
             'extends'
         );
@@ -216,7 +228,7 @@ CREATE OR REPLACE FUNCTION twin_class_after_update_wrapper()
 BEGIN
     IF NEW.extends_twin_class_id IS DISTINCT FROM OLD.extends_twin_class_id THEN
 
-        PERFORM hierarchy_twin_class_extends_process_tree_update(
+        PERFORM twin_class_extends_process_tree_update(
             OLD,
             NEW,
             TG_OP
@@ -224,7 +236,7 @@ BEGIN
 
         -- Update old parent
         IF OLD.extends_twin_class_id IS NOT NULL THEN
-            PERFORM update_direct_children_counters(
+            PERFORM twin_class_direct_children_counters_update(
                 OLD.extends_twin_class_id,
                 'extends'
             );
@@ -232,7 +244,7 @@ BEGIN
 
         -- Update new parent
         IF NEW.extends_twin_class_id IS NOT NULL THEN
-            PERFORM update_direct_children_counters(
+            PERFORM twin_class_direct_children_counters_update(
                 NEW.extends_twin_class_id,
                 'extends'
             );
@@ -240,7 +252,7 @@ BEGIN
     END IF;
 
     IF NEW.key IS DISTINCT FROM OLD.key THEN
-        PERFORM permissions_autoupdate_on_twin_class_update(OLD, NEW);
+        PERFORM twin_class_permissions_autoupdate(OLD, NEW);
     END IF;
 
     RETURN NEW;
@@ -257,11 +269,11 @@ CREATE OR REPLACE FUNCTION twin_class_after_delete_wrapper()
     RETURNS trigger AS $$
 BEGIN
     -- Cleanup related data
-    PERFORM twin_class_on_delete_i18n_and_translations_delete(OLD);
+    PERFORM twin_class_i18n_and_translations_delete(OLD);
 
     -- Update counters
     IF OLD.extends_twin_class_id IS NOT NULL THEN
-        PERFORM update_direct_children_counters(
+        PERFORM twin_class_direct_children_counters_update(
             OLD.extends_twin_class_id,
             'extends'
         );
@@ -323,259 +335,6 @@ CREATE TRIGGER trigger_name
 
 ---
 
-# Real Project Example — `twin_class`
-
-## Example 1 — Updating Direct Children Counters
-
-Migration:
-
-```text
-V1.4.130.01__TWINS-704_kk1_class_count_children.sql
-```
-
----
-
-# Step 1 — Create Counter Update Procedure
-
-```sql
-CREATE OR REPLACE FUNCTION update_direct_children_counters(
-    p_parent_id UUID,
-    p_hierarchy_type TEXT
-) RETURNS VOID AS $$
-DECLARE
-    v_direct_children_count INT;
-BEGIN
-    IF p_hierarchy_type = 'extends' THEN
-
-        SELECT COUNT(*)
-        INTO v_direct_children_count
-        FROM twin_class
-        WHERE extends_twin_class_id = p_parent_id;
-
-        UPDATE twin_class
-        SET extends_hierarchy_counter_direct_children =
-            COALESCE(v_direct_children_count, 0)
-        WHERE id = p_parent_id;
-
-    ELSIF p_hierarchy_type = 'head' THEN
-
-        SELECT COUNT(*)
-        INTO v_direct_children_count
-        FROM twin_class
-        WHERE head_twin_class_id = p_parent_id;
-
-        UPDATE twin_class
-        SET head_hierarchy_counter_direct_children =
-            COALESCE(v_direct_children_count, 0)
-        WHERE id = p_parent_id;
-
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-```
-
----
-
-# Step 2 — Update INSERT Wrapper
-
-```sql
-CREATE OR REPLACE FUNCTION twin_class_after_insert_wrapper()
-    RETURNS trigger AS $$
-BEGIN
-    PERFORM hierarchy_twin_class_extends_process_tree_update(
-        OLD,
-        NEW,
-        TG_OP
-    );
-
-    PERFORM twin_class_has_segments_check(NEW.head_twin_class_id);
-
-    IF NEW.extends_twin_class_id IS NOT NULL THEN
-        PERFORM update_direct_children_counters(
-            NEW.extends_twin_class_id,
-            'extends'
-        );
-    END IF;
-
-    IF NEW.head_twin_class_id IS NOT NULL THEN
-        PERFORM update_direct_children_counters(
-            NEW.head_twin_class_id,
-            'head'
-        );
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-
----
-
-# Step 3 — Update UPDATE Wrapper
-
-```sql
-CREATE OR REPLACE FUNCTION twin_class_after_update_wrapper()
-    RETURNS trigger AS $$
-BEGIN
-    IF NEW.extends_twin_class_id IS DISTINCT FROM OLD.extends_twin_class_id THEN
-
-        IF OLD.extends_twin_class_id IS NOT NULL THEN
-            PERFORM update_direct_children_counters(
-                OLD.extends_twin_class_id,
-                'extends'
-            );
-        END IF;
-
-        IF NEW.extends_twin_class_id IS NOT NULL THEN
-            PERFORM update_direct_children_counters(
-                NEW.extends_twin_class_id,
-                'extends'
-            );
-        END IF;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-
----
-
-# Example 2 — Attachment Processing (`twin_attachment`)
-
-Migration:
-
-```text
-V1.4.33.01__TWINS-598_ec1_attachment_triggers.sql
-```
-
----
-
-# INSERT Wrapper
-
-```sql
-CREATE OR REPLACE FUNCTION twin_attachment_after_insert_wrapper()
-    RETURNS trigger AS $$
-BEGIN
-    -- Update BusinessAccount counters
-    UPDATE domain_business_account dba
-    SET attachments_storage_used_count =
-            attachments_storage_used_count + 1,
-        attachments_storage_used_size =
-            attachments_storage_used_size + NEW.size
-    FROM twin te
-    WHERE te.id = NEW.twin_id
-      AND dba.business_account_id = te.owner_business_account_id;
-
-    -- Update Domain counters
-    UPDATE domain d
-    SET attachments_storage_used_count =
-            attachments_storage_used_count + 1,
-        attachments_storage_used_size =
-            attachments_storage_used_size + NEW.size
-    FROM twin te
-    JOIN twin_class tc ON te.twin_class_id = tc.id
-    WHERE te.id = NEW.twin_id
-      AND d.id = tc.domain_id;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-```
-
----
-
-# DELETE Wrapper
-
-```sql
-CREATE OR REPLACE FUNCTION twin_attachment_after_delete_wrapper()
-    RETURNS trigger AS $$
-BEGIN
-    -- Decrease BusinessAccount counters
-    UPDATE domain_business_account dba
-    SET attachments_storage_used_count =
-            attachments_storage_used_count - 1,
-        attachments_storage_used_size =
-            attachments_storage_used_size - OLD.size
-    FROM twin te
-    WHERE te.id = OLD.twin_id
-      AND dba.business_account_id = te.owner_business_account_id;
-
-    -- Decrease Domain counters
-    UPDATE domain d
-    SET attachments_storage_used_count =
-            attachments_storage_used_count - 1,
-        attachments_storage_used_size =
-            attachments_storage_used_size - OLD.size
-    FROM twin te
-    JOIN twin_class tc ON te.twin_class_id = tc.id
-    WHERE te.id = OLD.twin_id
-      AND d.id = tc.domain_id;
-
-    -- Create storage cleanup task
-    INSERT INTO twin_attachment_delete_task(
-        id,
-        twin_attachment_id,
-        storage_id,
-        storage_file_key,
-        status,
-        created_at
-    )
-    VALUES (
-        uuid_generate_v4(),
-        OLD.id,
-        OLD.storage_id,
-        OLD.storage_file_key,
-        'NEED_START',
-        now()
-    );
-
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-```
-
----
-
-# Passing Parameters to Procedures
-
-# Standard Trigger Variables
-
-Wrapper functions have access to:
-
-| Variable | Description            |
-| -------- | ---------------------- |
-| `OLD`    | Previous row value     |
-| `NEW`    | New row value          |
-| `TG_OP`  | Trigger operation type |
-
----
-
-# Procedure Invocation Styles
-
-## Pass entire OLD and NEW
-
-```sql
-PERFORM hierarchy_twin_class_extends_process_tree_update(
-    OLD,
-    NEW,
-    TG_OP
-);
-```
-
----
-
-## Pass specific fields
-
-```sql
-PERFORM update_direct_children_counters(
-    NEW.extends_twin_class_id,
-    'extends'
-);
-```
-
----
-
 # Development Recommendations
 
 # ✅ Best Practices
@@ -595,7 +354,7 @@ END IF;
 
 ```sql
 IF NEW.key IS DISTINCT FROM OLD.key THEN
-    PERFORM permissions_autoupdate_on_twin_class_update(OLD, NEW);
+    PERFORM twin_class_permissions_autoupdate(OLD, NEW);
 END IF;
 ```
 
@@ -607,11 +366,11 @@ END IF;
 IF NEW.parent_id IS DISTINCT FROM OLD.parent_id THEN
 
     IF OLD.parent_id IS NOT NULL THEN
-        PERFORM decrement_counter(OLD.parent_id);
+        PERFORM twin_class_counter_decrement(OLD.parent_id);
     END IF;
 
     IF NEW.parent_id IS NOT NULL THEN
-        PERFORM increment_counter(NEW.parent_id);
+        PERFORM twin_class_counter_increment(NEW.parent_id);
     END IF;
 END IF;
 ```
@@ -623,12 +382,12 @@ END IF;
 ```sql
 IF NEW.marker_data_list_id
     IS DISTINCT FROM OLD.marker_data_list_id THEN
-    PERFORM twin_class_update_inherited_marker_data_list(OLD, NEW);
+    PERFORM twin_class_inherited_marker_data_list_update(OLD, NEW);
 END IF;
 
 IF NEW.tag_data_list_id
     IS DISTINCT FROM OLD.tag_data_list_id THEN
-    PERFORM twin_class_update_inherited_tag_data_list(OLD, NEW);
+    PERFORM twin_class_inherited_tag_data_list_update(OLD, NEW);
 END IF;
 ```
 
@@ -725,6 +484,7 @@ CREATE TRIGGER twin_class_after_insert_wrapper_trigger
 
 * [ ] Determine required operations (`INSERT`, `UPDATE`, `DELETE`)
 * [ ] Create dedicated stored procedures if needed
+* [ ] Ensure function names follow `{table_or_entity}_{action}`
 * [ ] Decide whether helper functions should be `IMMUTABLE`
 * [ ] Create or update wrapper function using naming convention
 * [ ] Add field-change checks before heavy logic
