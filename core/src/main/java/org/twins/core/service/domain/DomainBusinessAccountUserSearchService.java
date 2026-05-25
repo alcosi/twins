@@ -34,12 +34,15 @@ public class DomainBusinessAccountUserSearchService {
             search = new DomainBusinessAccountUserSearch();
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<DomainBusinessAccountUserEntity> spec = createSearchSpecification(search, domainId);
-        Page<DomainBusinessAccountUserEntity> page = domainBusinessAccountUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        SimplePagination paginationNoSort = new SimplePagination()
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        Page<DomainBusinessAccountUserEntity> page = domainBusinessAccountUserRepository.findAll(spec, PaginationUtils.pageableOffset(paginationNoSort));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
     private Specification<DomainBusinessAccountUserEntity> createSearchSpecification(DomainBusinessAccountUserSearch search, UUID domainId) {
-        return Specification.allOf(
+        Specification<DomainBusinessAccountUserEntity> spec = Specification.allOf(
                 checkFieldUuid(domainId, DomainBusinessAccountUserEntity.Fields.domainId),
                 checkUuidIn(search.getUserIdList(), false, false, DomainBusinessAccountUserEntity.Fields.userId),
                 checkUuidIn(search.getUserIdExcludeList(), true, false, DomainBusinessAccountUserEntity.Fields.userId),
@@ -50,5 +53,11 @@ public class DomainBusinessAccountUserSearchService {
                 checkFieldLocalDateTimeBetween(search.getLastActivityAtRange(), DomainBusinessAccountUserEntity.Fields.lastActivityAt),
                 checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt)
         );
+        if (search.getSortOption() != null && search.getSortOption().getSortField() != null) {
+            Specification<DomainBusinessAccountUserEntity> sortSpec = search.getSortOption().toSortSpecification();
+            if (sortSpec != null)
+                spec = Specification.allOf(spec, sortSpec);
+        }
+        return spec;
     }
 }

@@ -55,7 +55,7 @@ public class DomainBusinessAccountUserSearchController extends ApiController {
     @PostMapping(value = "/private/domain/business_account_user/search/v1")
     public ResponseEntity<?> domainBusinessAccountUserSearchV1(
             @MapperContextBinding(roots = DomainBusinessAccountUserRestDTOMapper.class, response = DomainBusinessAccountUserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams(sortField = DomainBusinessAccountUserEntity.Fields.createdAt) SimplePagination pagination,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody DomainBusinessAccountUserSearchRqDTOv1 request) {
         DomainBusinessAccountUserSearchRsDTOv1 rs = new DomainBusinessAccountUserSearchRsDTOv1();
         try {

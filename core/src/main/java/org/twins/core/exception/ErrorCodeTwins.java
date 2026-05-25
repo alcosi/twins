@@ -17,6 +17,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     CONFIGURATION_IS_INVALID(10006, "some part of domain config is invalid"),
     UUID_MISMATCH(10007, "uuid is mismatch"),
     RECURSIVE_LOAD_DETECTED(10008, "twin marker recursive load detected"),
+    SORT_FIELD_INCORRECT(10009, "sort field is incorrect" ),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
