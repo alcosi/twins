@@ -9,8 +9,10 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -32,4 +34,8 @@ public class DomainBusinessAccountUserDTOv1 {
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
+
+    @Schema(description = "an ids of user groups")
+    @RelatedObject(type = UserGroupDTOv1.class, name = "userGroupList")
+    public Set<UUID> userGroupIds;
 }

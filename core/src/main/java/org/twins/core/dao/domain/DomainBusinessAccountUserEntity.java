@@ -7,9 +7,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -84,6 +86,11 @@ public class DomainBusinessAccountUserEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private BusinessAccountEntity businessAccount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<UserGroupEntity, UUID> userGroupKit;
 
     @Data
     public static class Pk implements Serializable {
