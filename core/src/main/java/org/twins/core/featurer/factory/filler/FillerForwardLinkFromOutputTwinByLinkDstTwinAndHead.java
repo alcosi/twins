@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+@Deprecated
 @Component
 @Featurer(
         id = FeaturerTwins.ID_2351,
