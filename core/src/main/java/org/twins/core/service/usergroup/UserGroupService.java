@@ -128,7 +128,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         for (var entry : needLoad.entrySet()) {
             List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroups(apiUser.getDomainId(), entry.getKey(), entry.getValue().keySet());
             if (CollectionUtils.isEmpty(userGroups))
-                return;
+                continue;
             for (UserGroupMapEntity userGroupMap : userGroups) {
                 DomainBusinessAccountUserEntity entity = needLoad.get(userGroupMap.getBusinessAccountId()).get(userGroupMap.getUserId());
                 if (entity != null)
