@@ -16,6 +16,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 
 import java.util.Hashtable;
 
+import static org.cambium.common.util.DateUtils.convertOrNull;
 
 @Component
 @RequiredArgsConstructor
@@ -42,7 +43,8 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
                         .setFontColor(src.getFontColor())
                         .setDataListId(src.getDataListId())
                         .setBusinessAccountId(src.getBusinessAccountId())
-                        .setCustom(src.isCustom());
+                        .setCustom(src.isCustom())
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()));
             case SHORT ->
                 dst
                         .setId(src.getId())
