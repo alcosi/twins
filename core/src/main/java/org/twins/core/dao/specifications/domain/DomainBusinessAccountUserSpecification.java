@@ -28,6 +28,10 @@ public class DomainBusinessAccountUserSpecification extends CommonSpecification<
                             subRoot.get(UserGroupMapEntity.Fields.userGroupId).in(userGroupIds),
                             cb.equal(subRoot.get(UserGroupMapEntity.Fields.domainId), root.get(DomainBusinessAccountUserEntity.Fields.domainId)),
                             cb.or(
+                                    cb.isNull(subRoot.get(UserGroupMapEntity.Fields.businessAccountId)),
+                                    cb.equal(subRoot.get(UserGroupMapEntity.Fields.businessAccountId), root.get(DomainBusinessAccountUserEntity.Fields.businessAccountId))
+                            ),
+                            cb.or(
                                     cb.isTrue(subRoot.get(UserGroupMapEntity.Fields.addedManually)),
                                     cb.gt(subRoot.get(UserGroupMapEntity.Fields.involvesCount), 0)
                             )
