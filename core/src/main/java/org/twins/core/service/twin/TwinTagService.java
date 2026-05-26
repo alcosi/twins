@@ -9,6 +9,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -100,26 +101,23 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     // usage log
 
     public void loadTags(Collection<TwinEntity> twinEntityList) {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getTwinTagKit() == null)
-                needLoad.put(twinEntity.getId(), twinEntity);
+                needLoad.add(twinEntity);
         if (needLoad.isEmpty())
             return;
-        List<TwinTagEntity> twinTagEntityList = twinTagRepository.findByTwinIdIn(needLoad.keySet());
-        if (CollectionUtils.isEmpty(twinTagEntityList))
-            return;
-        Map<UUID, List<DataListOptionEntity>> tagsMap = new HashMap<>(); // key - twinId
-        for (TwinTagEntity twinTagEntity : twinTagEntityList) { //grouping by twin
-            tagsMap.computeIfAbsent(twinTagEntity.getTwinId(), k -> new ArrayList<>());
-            tagsMap.get(twinTagEntity.getTwinId()).add(twinTagEntity.getTagDataListOption());
-        }
-        TwinEntity twinEntity;
-        List<DataListOptionEntity> twinTags;
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
-            twinEntity = entry.getValue();
-            twinTags = tagsMap.get(entry.getKey());
-            twinEntity.setTwinTagKit(new Kit<>(twinTags, DataListOptionEntity::getId));
+        KitGrouped<TwinTagEntity, UUID, UUID> tagsGrouped = new KitGrouped<>(
+            twinTagRepository.findByTwinIdIn(needLoad.getIdSet()),
+            TwinTagEntity::getId,
+            TwinTagEntity::getTwinId);
+        for (TwinEntity twinEntity : needLoad) {
+            if (tagsGrouped.containsGroupedKey(twinEntity.getId()))
+                twinEntity.setTwinTagKit(new Kit<>(
+                    tagsGrouped.getGrouped(twinEntity.getId()).stream().map(TwinTagEntity::getTagDataListOption).toList(),
+                    DataListOptionEntity::getId));
+            else
+                twinEntity.setTwinTagKit(Kit.emptyKit());
         }
     }
 

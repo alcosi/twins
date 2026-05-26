@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
@@ -46,7 +47,10 @@ import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
@@ -176,24 +180,21 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     }
 
     public void loadAttachments(Collection<TwinCommentEntity> twinCommentList) {
-        Map<UUID, TwinCommentEntity> needLoad = new HashMap<>();
+        Kit<TwinCommentEntity, UUID> needLoad = new Kit<>(TwinCommentEntity::getId);
         for (TwinCommentEntity twinComment : twinCommentList)
             if (twinComment.getAttachmentKit() == null)
-                needLoad.put(twinComment.getId(), twinComment);
-        if (needLoad.size() == 0)
+                needLoad.add(twinComment);
+        if (needLoad.isEmpty())
             return;
-        List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinCommentIdIn(needLoad.keySet());
-        if (CollectionUtils.isEmpty(attachmentEntityList))
-            return;
-        Map<UUID, List<TwinAttachmentEntity>> attachmentMap = new HashMap<>(); // key - twinCommentId
-        for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) { //grouping by twinCommentId
-            attachmentMap.computeIfAbsent(attachmentEntity.getTwinCommentId(), k -> new ArrayList<>());
-            attachmentMap.get(attachmentEntity.getTwinCommentId()).add(attachmentEntity);
-        }
-        TwinCommentEntity twinComment;
-        for (Map.Entry<UUID, List<TwinAttachmentEntity>> entry : attachmentMap.entrySet()) {
-            twinComment = needLoad.get(entry.getKey());
-            twinComment.setAttachmentKit(new Kit<>(entry.getValue(), TwinAttachmentEntity::getId));
+        KitGrouped<TwinAttachmentEntity, UUID, UUID> attachmentsGrouped = new KitGrouped<>(
+            attachmentRepository.findByTwinCommentIdIn(needLoad.getIdSet()),
+            TwinAttachmentEntity::getId,
+            TwinAttachmentEntity::getTwinCommentId);
+        for (TwinCommentEntity twinComment : needLoad) {
+            if (attachmentsGrouped.containsGroupedKey(twinComment.getId()))
+                twinComment.setAttachmentKit(new Kit<>(attachmentsGrouped.getGrouped(twinComment.getId()), TwinAttachmentEntity::getId));
+            else
+                twinComment.setAttachmentKit(Kit.emptyKit());
         }
     }
 
