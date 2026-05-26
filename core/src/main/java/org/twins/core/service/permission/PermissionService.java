@@ -484,5 +484,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         VIEW, EDIT, CREATE, DELETE
     }
 
+    public boolean canViewTwinsOwnedByBusinessAccounts(Set<UUID> businessAccountIds) throws ServiceException {
+        if (businessAccountIds == null || currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
+            return true;
+        else if (businessAccountIds.size() == 1 && businessAccountIds.contains(authService.getApiUser().getBusinessAccountId()))
+            return true;
+        else
+            return false; //todo perhaps we can check user BAs registration
+    }
+
 }
 
