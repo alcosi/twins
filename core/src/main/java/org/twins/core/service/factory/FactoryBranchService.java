@@ -10,16 +10,21 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
+import org.cambium.common.util.KitUtils;
 
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -28,6 +33,10 @@ import java.util.function.Function;
 public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
+    @Lazy
+    private final I18nService i18nService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
@@ -101,5 +110,24 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     @Override
     public boolean validateEntity(TwinFactoryBranchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public void duplicateBranchesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryBranchEntity> branches = twinFactoryBranchRepository.findByTwinFactoryId(fromFactory.getId());
+        if (KitUtils.isEmpty(branches)) {
+            return;
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryBranchEntity>();
+        for (TwinFactoryBranchEntity originalBranch : branches) {
+            TwinFactoryBranchEntity duplicateBranch = new TwinFactoryBranchEntity()
+                    .setTwinFactoryId(toFactory.getId())
+                    .setTwinFactoryConditionSetId(originalBranch.getTwinFactoryConditionSetId())
+                    .setTwinFactoryConditionInvert(originalBranch.getTwinFactoryConditionInvert())
+                    .setActive(originalBranch.getActive())
+                    .setNextTwinFactoryId(originalBranch.getNextTwinFactoryId())
+                    .setDescription(originalBranch.getDescription());
+            entitiesForSave.add(duplicateBranch);
+        }
+        saveSafe(entitiesForSave);
     }
 }

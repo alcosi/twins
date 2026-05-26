@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -159,5 +161,25 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
+    }
+
+    public void duplicateTriggersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryTriggerEntity> triggers = repository.findByTwinFactoryId(fromFactory.getId());
+        if (KitUtils.isEmpty(triggers)) {
+            return;
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryTriggerEntity>();
+        for (TwinFactoryTriggerEntity originalTrigger : triggers) {
+            TwinFactoryTriggerEntity duplicateTrigger = new TwinFactoryTriggerEntity()
+                    .setTwinFactoryId(toFactory.getId())
+                    .setInputTwinClassId(originalTrigger.getInputTwinClassId())
+                    .setTwinFactoryConditionSetId(originalTrigger.getTwinFactoryConditionSetId())
+                    .setTwinFactoryConditionInvert(originalTrigger.getTwinFactoryConditionInvert())
+                    .setTwinTriggerId(originalTrigger.getTwinTriggerId())
+                    .setAsync(originalTrigger.getAsync())
+                    .setActive(originalTrigger.getActive());
+            entitiesForSave.add(duplicateTrigger);
+        }
+        saveSafe(entitiesForSave);
     }
 }

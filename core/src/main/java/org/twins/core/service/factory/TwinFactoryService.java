@@ -53,6 +53,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.RowUtils.mapUuidInt;
 
@@ -88,6 +89,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private final TwinFactoryTriggerRepository twinFactoryTriggerRepository;
     @Lazy
     private final TwinTriggerService twinTriggerService;
+    @Lazy
+    private final FactoryBranchService factoryBranchService;
+    @Lazy
+    private final FactoryMultiplierService factoryMultiplierService;
+    @Lazy
+    private final FactoryPipelineService factoryPipelineService;
+    @Lazy
+    private final FactoryEraserService factoryEraserService;
+    @Lazy
+    private final FactoryTriggerService factoryTriggerService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -157,6 +168,87 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         i18nService.saveTranslations(I18nType.TWIN_FACTORY_DESCRIPTION, descriptionI18n);
         if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
             dbEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+    @Transactional
+    public Collection<TwinFactoryEntity> duplicate(Collection<FactoryDuplicate> duplicates) throws ServiceException {
+        var newKeys = new HashSet<String>();
+        var apiUser = authService.getApiUser();
+        for (var duplicate : duplicates) {
+            if (newKeys.contains(duplicate.getNewKey()))
+                throw new ServiceException(ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE, "factory key[" + duplicate.getNewKey() + "] is duplicated in request");
+            else
+                newKeys.add(duplicate.getNewKey());
+            duplicate.setNewFactoryId(UUID.nameUUIDFromBytes((duplicate.getNewKey() + apiUser.getDomainId()).getBytes()));
+        }
+        loadOriginalFactory(duplicates);
+        var entitiesToSave = new ArrayList<TwinFactoryEntity>();
+        var needLoadBranches = new ArrayList<TwinFactoryEntity>();
+        var needLoadMultipliers = new ArrayList<TwinFactoryEntity>();
+        var needLoadPipelines = new ArrayList<TwinFactoryEntity>();
+        var needLoadErasers = new ArrayList<TwinFactoryEntity>();
+        var needLoadTriggers = new ArrayList<TwinFactoryEntity>();
+        for (var duplicate : duplicates) {
+            var originalFactory = duplicate.getOriginalFactory();
+            log.info("{} will be duplicated with new key[{}]", originalFactory.logShort(), duplicate.getNewKey());
+            TwinFactoryEntity duplicateFactoryEntity = new TwinFactoryEntity()
+                    .setKey(duplicate.getNewKey())
+                    .setCreatedByUserId(apiUser.getUser().getId())
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setDomainId(originalFactory.getDomainId());
+            if (originalFactory.getNameI18NId() != null) {
+                I18nEntity i18nDuplicate = i18nService.duplicateI18n(originalFactory.getNameI18NId());
+                duplicateFactoryEntity.setNameI18NId(i18nDuplicate.getId());
+            }
+            if (originalFactory.getDescriptionI18NId() != null) {
+                I18nEntity i18nDuplicate = i18nService.duplicateI18n(originalFactory.getDescriptionI18NId());
+                duplicateFactoryEntity.setDescriptionI18NId(i18nDuplicate.getId());
+            }
+            duplicate.setNewFactory(duplicateFactoryEntity);
+            entitiesToSave.add(duplicateFactoryEntity);
+            if (duplicate.isDuplicateBranches()) {
+                needLoadBranches.add(duplicate.getOriginalFactory());
+            }
+            if (duplicate.isDuplicateMultipliers()) {
+                needLoadMultipliers.add(duplicate.getOriginalFactory());
+            }
+            if (duplicate.isDuplicatePipelines()) {
+                needLoadPipelines.add(duplicate.getOriginalFactory());
+            }
+            if (duplicate.isDuplicateErasers()) {
+                needLoadErasers.add(duplicate.getOriginalFactory());
+            }
+            if (duplicate.isDuplicateTriggers()) {
+                needLoadTriggers.add(duplicate.getOriginalFactory());
+            }
+        }
+        var savedFactories = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+        for (var duplicate : duplicates) {
+            if (duplicate.isDuplicateBranches()) {
+                factoryBranchService.duplicateBranchesForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+            }
+            if (duplicate.isDuplicateMultipliers()) {
+                factoryMultiplierService.duplicateMultipliersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+            }
+            if (duplicate.isDuplicatePipelines()) {
+                factoryPipelineService.duplicatePipelinesForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+            }
+            if (duplicate.isDuplicateErasers()) {
+                factoryEraserService.duplicateErasersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+            }
+            if (duplicate.isDuplicateTriggers()) {
+                factoryTriggerService.duplicateTriggersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+            }
+        }
+        return savedFactories;
+    }
+
+    private void loadOriginalFactory(Collection<FactoryDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                FactoryDuplicate::getNewFactoryId,
+                FactoryDuplicate::getOriginalFactoryId,
+                FactoryDuplicate::getOriginalFactory,
+                FactoryDuplicate::setOriginalFactory);
     }
 
     public FactoryResultUncommited runFactoryAndCollectResult(UUID factoryId, FactoryContext factoryContext) throws ServiceException {

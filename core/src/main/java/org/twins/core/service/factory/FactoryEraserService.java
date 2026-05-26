@@ -17,11 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
+import org.cambium.common.util.KitUtils;
 
 @Slf4j
 @Service
@@ -93,6 +97,26 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Transactional
     public void deleteEraser(UUID id) throws ServiceException {
         deleteSafe(id);
+    }
+
+    public void duplicateErasersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryEraserEntity> erasers = repository.findByTwinFactoryId(fromFactory.getId());
+        if (KitUtils.isEmpty(erasers)) {
+            return;
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryEraserEntity>();
+        for (TwinFactoryEraserEntity originalEraser : erasers) {
+            TwinFactoryEraserEntity duplicateEraser = new TwinFactoryEraserEntity()
+                    .setTwinFactoryId(toFactory.getId())
+                    .setInputTwinClassId(originalEraser.getInputTwinClassId())
+                    .setTwinFactoryConditionSetId(originalEraser.getTwinFactoryConditionSetId())
+                    .setTwinFactoryConditionInvert(originalEraser.getTwinFactoryConditionInvert())
+                    .setEraserAction(originalEraser.getEraserAction())
+                    .setDescription(originalEraser.getDescription())
+                    .setActive(originalEraser.getActive());
+            entitiesForSave.add(duplicateEraser);
+        }
+        saveSafe(entitiesForSave);
     }
 
 }

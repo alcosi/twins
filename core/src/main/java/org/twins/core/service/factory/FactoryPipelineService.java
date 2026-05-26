@@ -17,13 +17,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
+import org.cambium.common.util.KitUtils;
 
 @Slf4j
 @Service
@@ -111,5 +115,29 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
+    }
+
+    public void duplicatePipelinesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryPipelineEntity> pipelines = repository.findByTwinFactoryId(fromFactory.getId());
+        if (KitUtils.isEmpty(pipelines)) {
+            return;
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryPipelineEntity>();
+        for (TwinFactoryPipelineEntity originalPipeline : pipelines) {
+            TwinFactoryPipelineEntity duplicatePipeline = new TwinFactoryPipelineEntity()
+                    .setTwinFactoryId(toFactory.getId())
+                    .setInputTwinClassId(originalPipeline.getInputTwinClassId())
+                    .setTwinFactoryConditionSetId(originalPipeline.getTwinFactoryConditionSetId())
+                    .setTwinFactoryConditionInvert(originalPipeline.getTwinFactoryConditionInvert())
+                    .setOutputTwinStatusId(originalPipeline.getOutputTwinStatusId())
+                    .setNextTwinFactoryId(originalPipeline.getNextTwinFactoryId())
+                    .setNextTwinFactoryLimitScope(originalPipeline.getNextTwinFactoryLimitScope())
+                    .setAfterCommitTwinFactoryId(originalPipeline.getAfterCommitTwinFactoryId())
+                    .setTemplateTwinId(originalPipeline.getTemplateTwinId())
+                    .setDescription(originalPipeline.getDescription())
+                    .setActive(originalPipeline.getActive());
+            entitiesForSave.add(duplicatePipeline);
+        }
+        saveSafe(entitiesForSave);
     }
 }

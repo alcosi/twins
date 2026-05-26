@@ -16,12 +16,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
+import org.cambium.common.util.KitUtils;
 
 @Slf4j
 @Service
@@ -97,6 +101,23 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 TwinFactoryMultiplierEntity::getMultiplierParams, TwinFactoryMultiplierEntity::setMultiplierParams,
                 TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, TwinFactoryMultiplierEntity.Fields.multiplierParams,
                 Multiplier.class, changesHelper);
+    }
+
+    public void duplicateMultipliersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryMultiplierEntity> multipliers = repository.findByTwinFactoryId(fromFactory.getId());
+        if (KitUtils.isEmpty(multipliers)) {
+            return;
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryMultiplierEntity>();
+        for (TwinFactoryMultiplierEntity originalMultiplier : multipliers) {
+            TwinFactoryMultiplierEntity duplicateMultiplier = new TwinFactoryMultiplierEntity()
+                    .setTwinFactoryId(toFactory.getId())
+                    .setInputTwinClassId(originalMultiplier.getInputTwinClassId())
+                    .setMultiplierFeaturerId(originalMultiplier.getMultiplierFeaturerId())
+                    .setMultiplierParams(originalMultiplier.getMultiplierParams());
+            entitiesForSave.add(duplicateMultiplier);
+        }
+        saveSafe(entitiesForSave);
     }
 
 }
