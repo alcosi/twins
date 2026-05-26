@@ -11,9 +11,14 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class FactoryTriggerExportService {
+    private final FactoryTriggerService factoryTriggerService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final SqlBuilder sqlBuilder;
+
+    public String exportToSql(Set<UUID> triggerIds) throws ServiceException {
+        return exportToSql(factoryTriggerService.findEntitiesSafe(triggerIds).getList());
+    }
 
     public String exportToSql(Collection<TwinFactoryTriggerEntity> triggers) throws ServiceException {
         if (triggers.isEmpty()) {

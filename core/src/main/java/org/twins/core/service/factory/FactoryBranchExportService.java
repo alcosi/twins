@@ -11,9 +11,14 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class FactoryBranchExportService {
+    private final FactoryBranchService factoryBranchService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final SqlBuilder sqlBuilder;
+
+    public String exportToSql(Set<UUID> branchIds) throws ServiceException {
+        return exportToSql(factoryBranchService.findEntitiesSafe(branchIds).getList());
+    }
 
     public String exportToSql(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
         if (branches.isEmpty()) {

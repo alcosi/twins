@@ -11,9 +11,14 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class FactoryEraserExportService {
+    private final FactoryEraserService factoryEraserService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final SqlBuilder sqlBuilder;
+
+    public String exportToSql(Set<UUID> eraserIds) throws ServiceException {
+        return exportToSql(factoryEraserService.findEntitiesSafe(eraserIds).getList());
+    }
 
     public String exportToSql(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
         if (erasers.isEmpty()) {

@@ -12,10 +12,15 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class FactoryMultiplierExportService {
+    private final FactoryMultiplierService factoryMultiplierService;
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final SqlBuilder sqlBuilder;
+
+    public String exportToSql(Set<UUID> multiplierIds) throws ServiceException {
+        return exportToSql(factoryMultiplierService.findEntitiesSafe(multiplierIds).getList());
+    }
 
     public String exportToSql(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
         if (multipliers.isEmpty()) {

@@ -12,10 +12,15 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class FactoryPipelineExportService {
+    private final FactoryPipelineService factoryPipelineService;
     private final FactoryPipelineStepService factoryPipelineStepService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final SqlBuilder sqlBuilder;
+
+    public String exportToSql(Set<UUID> pipelineIds) throws ServiceException {
+        return exportToSql(factoryPipelineService.findEntitiesSafe(pipelineIds).getList());
+    }
 
     public String exportToSql(Collection<TwinFactoryPipelineEntity> pipelines) throws ServiceException {
         if (pipelines.isEmpty()) {

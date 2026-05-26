@@ -79,8 +79,7 @@ public class FactoryExportService {
 
         // Branches
         if (includeBranches) {
-            List<UUID> factoryIdList = new ArrayList<>(factoryIds);
-            List<TwinFactoryBranchEntity> branches = factoryBranchService.findByTwinFactoryIdIn(factoryIdList);
+            List<TwinFactoryBranchEntity> branches = factoryBranchService.findByTwinFactoryIdIn(factoryIds);
             if (!branches.isEmpty()) {
                 String branchesSql = branchExportService.exportToSql(branches);
                 if (!branchesSql.isEmpty()) {
@@ -91,8 +90,7 @@ public class FactoryExportService {
 
         // Multipliers
         if (includeMultipliers) {
-            List<UUID> factoryIdList = new ArrayList<>(factoryIds);
-            List<TwinFactoryMultiplierEntity> multipliers = factoryMultiplierService.findByTwinFactoryIdIn(factoryIdList);
+            List<TwinFactoryMultiplierEntity> multipliers = factoryMultiplierService.findByTwinFactoryIdIn(factoryIds);
             if (!multipliers.isEmpty()) {
                 String multipliersSql = multiplierExportService.exportToSql(multipliers);
                 if (!multipliersSql.isEmpty()) {
@@ -103,8 +101,7 @@ public class FactoryExportService {
 
         // Pipelines
         if (includePipelines) {
-            List<UUID> factoryIdList = new ArrayList<>(factoryIds);
-            List<TwinFactoryPipelineEntity> pipelines = factoryPipelineService.findByTwinFactoryIdIn(factoryIdList);
+            List<TwinFactoryPipelineEntity> pipelines = factoryPipelineService.findByTwinFactoryIdIn(factoryIds);
             if (!pipelines.isEmpty()) {
                 String pipelinesSql = pipelineExportService.exportToSql(pipelines);
                 if (!pipelinesSql.isEmpty()) {
@@ -115,8 +112,7 @@ public class FactoryExportService {
 
         // Erasers
         if (includeErasers) {
-            List<UUID> factoryIdList = new ArrayList<>(factoryIds);
-            List<TwinFactoryEraserEntity> erasers = factoryEraserService.findByTwinFactoryIdIn(factoryIdList);
+            List<TwinFactoryEraserEntity> erasers = factoryEraserService.findByTwinFactoryIdIn(factoryIds);
             if (!erasers.isEmpty()) {
                 String erasersSql = eraserExportService.exportToSql(erasers);
                 if (!erasersSql.isEmpty()) {
@@ -127,8 +123,7 @@ public class FactoryExportService {
 
         // Triggers
         if (includeTriggers) {
-            List<UUID> factoryIdList = new ArrayList<>(factoryIds);
-            List<TwinFactoryTriggerEntity> triggers = factoryTriggerService.findByTwinFactoryIdIn(factoryIdList);
+            List<TwinFactoryTriggerEntity> triggers = factoryTriggerService.findByTwinFactoryIdIn(factoryIds);
             if (!triggers.isEmpty()) {
                 String triggersSql = triggerExportService.exportToSql(triggers);
                 if (!triggersSql.isEmpty()) {
