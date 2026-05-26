@@ -5,6 +5,8 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
@@ -14,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
 import org.twins.core.service.trigger.TwinTriggerService;
@@ -159,5 +162,31 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
+    }
+
+    public void loadFactoryTriggers(TwinFactoryEntity factory) {
+        loadFactoryTriggers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryTriggers(Collection<TwinFactoryEntity> factories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity factory : factories) {
+            if (factory.getTwinFactoryTriggerKit() == null)
+                needLoad.add(factory);
+        }
+        if (needLoad.isEmpty())
+            return;
+
+        KitGrouped<TwinFactoryTriggerEntity, UUID, UUID> grouped = new KitGrouped<>(
+            repository.findByTwinFactoryIdIn(needLoad.getIdSet()),
+            TwinFactoryTriggerEntity::getId,
+            TwinFactoryTriggerEntity::getTwinFactoryId);
+
+        for (TwinFactoryEntity factory : needLoad) {
+            if (grouped.containsGroupedKey(factory.getId()))
+                factory.setTwinFactoryTriggerKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryTriggerEntity::getId));
+            else
+                factory.setTwinFactoryTriggerKit(Kit.emptyKit());
+        }
     }
 }

@@ -166,6 +166,31 @@ public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceExc
 * `load{FieldName}(E entity)` — overload for a single element, delegates to `load{FieldName}(Collection<E>)`
 * Always provide an overload for `Collection` — single-element version should use `Collections.singletonList()`
 
+## Load Method Placement
+
+Load methods are placed in the service that owns the corresponding repository (i.e., the service managing the child entity), not in the parent entity's service. A coordinating method (e.g., `loadFactoryElements`) may reside in the parent service and delegate to sub-services.
+
+**Why:** the service managing an entity has access to its repository and understands its loading specifics. This reduces coupling — the parent service doesn't bloat with load methods for every child type.
+
+**Example:**
+```
+TwinFactoryEntity
+  ├── twinFactoryMultiplierKit       → FactoryMultiplierService.loadFactoryMultipliers()
+  ├── twinFactoryPipelineKit         → FactoryPipelineService.loadFactoryPipelines()
+  ├── twinFactoryBranchKit           → FactoryBranchService.loadFactoryBranches()
+  ├── twinFactoryEraserKit           → FactoryEraserService.loadFactoryErasers()
+  └── twinFactoryTriggerKit          → FactoryTriggerService.loadFactoryTriggers()
+
+TwinFactoryPipelineEntity
+  └── twinFactoryPipelineStepKit     → FactoryPipelineStepService.loadFactoryPipelineSteps()
+
+TwinFactoryMultiplierEntity
+  └── twinFactoryMultiplierFilterKit → FactoryMultiplierService.loadFactoryMultiplierFilters()
+
+Coordination:
+  TwinFactoryService.loadFactoryElements() — delegates to all sub-services
+```
+
 ## Examples in the Codebase
 
 | Service                               | Method                                                                | Variant       |
@@ -180,3 +205,9 @@ public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceExc
 | `TwinMarkerService`                   | `loadMarkers`                                                         | D + LoadState |
 | `CommentActionService`                | `loadCommentActions`, `loadClassCommentActions*`                      | D + cascading |
 | `HistoryNotificationRecipientService` | `loadCreatedByUser`                                                   | A             |
+| `FactoryMultiplierService`            | `loadFactoryMultipliers`, `loadFactoryMultiplierFilters`              | D             |
+| `FactoryPipelineService`              | `loadFactoryPipelines`                                                | D             |
+| `FactoryPipelineStepService`          | `loadFactoryPipelineSteps`                                            | D             |
+| `FactoryBranchService`                | `loadFactoryBranches`                                                 | D             |
+| `FactoryEraserService`                | `loadFactoryErasers`                                                  | D             |
+| `FactoryTriggerService`               | `loadFactoryTriggers`                                                 | D             |

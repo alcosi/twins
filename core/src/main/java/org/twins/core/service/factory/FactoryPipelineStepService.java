@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -14,10 +16,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -110,4 +115,29 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         deleteSafe(id);
     }
 
+    public void loadFactoryPipelineSteps(TwinFactoryPipelineEntity pipeline) {
+        loadFactoryPipelineSteps(Collections.singletonList(pipeline));
+    }
+
+    public void loadFactoryPipelineSteps(Collection<TwinFactoryPipelineEntity> pipelines) {
+        Kit<TwinFactoryPipelineEntity, UUID> needLoad = new Kit<>(TwinFactoryPipelineEntity::getId);
+        for (TwinFactoryPipelineEntity pipeline : pipelines) {
+            if (pipeline.getTwinFactoryPipelineStepKit() == null)
+                needLoad.add(pipeline);
+        }
+        if (needLoad.isEmpty())
+            return;
+
+        KitGrouped<TwinFactoryPipelineStepEntity, UUID, UUID> grouped = new KitGrouped<>(
+            repository.findByTwinFactoryPipelineIdInOrderByOrderAsc(needLoad.getIdSet()),
+            TwinFactoryPipelineStepEntity::getId,
+            TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId);
+
+        for (TwinFactoryPipelineEntity pipeline : needLoad) {
+            if (grouped.containsGroupedKey(pipeline.getId()))
+                pipeline.setTwinFactoryPipelineStepKit(new Kit<>(grouped.getGrouped(pipeline.getId()), TwinFactoryPipelineStepEntity::getId));
+            else
+                pipeline.setTwinFactoryPipelineStepKit(Kit.emptyKit());
+        }
+    }
 }

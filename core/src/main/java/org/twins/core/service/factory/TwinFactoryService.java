@@ -68,6 +68,13 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryBranchRepository twinFactoryBranchRepository;
     final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
     final TwinFactoryEraserRepository twinFactoryEraserRepository;
+    final FactoryMultiplierService factoryMultiplierService;
+    final FactoryMultiplierFilterService factoryMultiplierFilterService;
+    final FactoryPipelineService factoryPipelineService;
+    final FactoryPipelineStepService factoryPipelineStepService;
+    final FactoryBranchService factoryBranchService;
+    final FactoryEraserService factoryEraserService;
+    final FactoryTriggerService factoryTriggerService;
     final TwinService twinService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
@@ -200,6 +207,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "Incorrect factory config: recursion call. Current branch[" + factoryContext.getCurrentFactoryBranchId() + "]");
         else
             factoryContext.currentFactoryBranchLevelDown(factoryEntity.getId()); //branchId must be incremented
+        loadFactoryElements(factoryEntity);
         runMultipliers(factoryEntity, factoryContext);
         runPipelines(factoryEntity, factoryContext);
         runBranches(factoryEntity, factoryContext);
@@ -210,14 +218,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     private void runMultipliers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
-        List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryEntity.getId()); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
-        log.info("Loaded " + factoryMultiplierEntityList.size() + " multipliers");
-        if (CollectionUtils.isEmpty(factoryMultiplierEntityList)) {
+        Kit<TwinFactoryMultiplierEntity, UUID> factoryMultiplierEntityKit = factoryEntity.getTwinFactoryMultiplierKit();
+        log.info("Loaded {} multipliers", factoryMultiplierEntityKit.size());
+        if (KitUtils.isEmpty(factoryMultiplierEntityKit)) {
             return;
         }
         Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
         LoggerUtils.traceTreeLevelDown();
-        for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
+        for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityKit) {
             log.info("Checking input for " + factoryMultiplierEntity.logNormal() + " **" + factoryMultiplierEntity.getDescription() + "**");
             if (!factoryMultiplierEntity.getActive()) {
                 log.info("Skipping: not active[" + factoryMultiplierEntity.getId() + "]");
@@ -235,12 +243,12 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             LoggerUtils.traceTreeLevelDown();
 
             List<FactoryItem> multiplierOutputFiltered = new ArrayList<>();
-            List<TwinFactoryMultiplierFilterEntity> multiplierFilters = twinFactoryMultiplierFilterRepository.findByTwinFactoryMultiplierId(factoryMultiplierEntity.getId());
-            if (!multiplierFilters.isEmpty()) {
+            Kit<TwinFactoryMultiplierFilterEntity, UUID> multiplierFilterKit = factoryMultiplierEntity.getTwinFactoryMultiplierFilterKit();
+            if (KitUtils.isNotEmpty(multiplierFilterKit)) {
                 log.info("Filtering multiplier output...");
                 for (FactoryItem factoryItem : multiplierOutput) {
                     boolean allowed = false;
-                    for (TwinFactoryMultiplierFilterEntity filter : multiplierFilters) {
+                    for (TwinFactoryMultiplierFilterEntity filter : multiplierFilterKit) {
                         if (!filter.getInputTwinClassId().equals(factoryItem.getOutput().getTwinEntity().getTwinClassId()))
                             continue;
                         if (filter.isActive()) {
@@ -265,10 +273,17 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     private void runPipelines(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
-        List<TwinFactoryPipelineEntity> factoryPipelineEntityList = twinFactoryPipelineRepository.findByTwinFactoryIdAndActiveTrue(factoryEntity.getId());
-        log.info("Loaded " + factoryPipelineEntityList.size() + " pipelines");
+        Kit<TwinFactoryPipelineEntity, UUID> factoryPipelineEntityKit = factoryEntity.getTwinFactoryPipelineKit();
+        log.info("Loaded {} pipelines", factoryPipelineEntityKit.size());
+        if (KitUtils.isEmpty(factoryPipelineEntityKit)) {
+            return;
+        }
         LoggerUtils.traceTreeLevelDown();
-        for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {
+        for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityKit) {
+            if (!Boolean.TRUE.equals(factoryPipelineEntity.getActive())) {
+                log.info("Skipping inactive {}", factoryPipelineEntity.logNormal());
+                continue;
+            }
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
             Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.getTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(pipelineInputList)) {
@@ -299,10 +314,17 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     private void runBranches(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
-        List<TwinFactoryBranchEntity> factoryBranchEntityList = twinFactoryBranchRepository.findByTwinFactoryIdAndActiveTrue(factoryEntity.getId());
-        log.info("Loaded " + factoryBranchEntityList.size() + " branches");
+        Kit<TwinFactoryBranchEntity, UUID> factoryBranchEntityKit = factoryEntity.getTwinFactoryBranchKit();
+        log.info("Loaded {} branches", factoryBranchEntityKit.size());
+        if (KitUtils.isEmpty(factoryBranchEntityKit)) {
+            return;
+        }
         LoggerUtils.traceTreeLevelDown();
-        for (TwinFactoryBranchEntity factoryBranchEntity : factoryBranchEntityList) {
+        for (TwinFactoryBranchEntity factoryBranchEntity : factoryBranchEntityKit) {
+            if (!Boolean.TRUE.equals(factoryBranchEntity.getActive())) {
+                log.info("Skipping inactive {}", factoryBranchEntity.logNormal());
+                continue;
+            }
             log.info("Checking input for " + factoryBranchEntity.logNormal() + " **" + factoryBranchEntity.getDescription() + "** ");
             boolean selected = false;
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
@@ -327,7 +349,10 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     private void runPipelineSteps(FactoryContext factoryContext, TwinFactoryPipelineEntity factoryPipelineEntity, Set<FactoryItem> pipelineInputList) throws ServiceException {
         log.info("Running {} **{}** ", factoryPipelineEntity.logNormal(), factoryPipelineEntity.getDescription());
-        List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = twinFactoryPipelineStepRepository.findByTwinFactoryPipelineIdAndActiveTrueOrderByOrder(factoryPipelineEntity.getId());
+        Kit<TwinFactoryPipelineStepEntity, UUID> pipelineStepEntityKit = factoryPipelineEntity.getTwinFactoryPipelineStepKit();
+        if (KitUtils.isEmpty(pipelineStepEntityKit)) {
+            return;
+        }
         LoggerUtils.traceTreeLevelDown();
         for (FactoryItem pipelineInput : pipelineInputList) {
             log.info("Processing {}", pipelineInput.logDetailed());
@@ -336,9 +361,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 pipelineInput.getOutput().getTwinEntity().setId(UuidUtils.generate()); //generating id for using in fillers (if some field must be created)
             String logMsg, stepOrder;
             LoggerUtils.traceTreeLevelDown();
+            List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = pipelineStepEntityKit.getList();
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {
                 stepOrder = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " ";
                 TwinFactoryPipelineStepEntity pipelineStepEntity = pipelineStepEntityList.get(step);
+                if (!Boolean.TRUE.equals(pipelineStepEntity.getActive())) {
+                    log.info("Skipping inactive {}", pipelineStepEntity.logNormal());
+                    continue;
+                }
                 if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.getTwinFactoryConditionInvert(), pipelineInput)) {
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
@@ -369,10 +399,17 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     private void runErasers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
-        List<TwinFactoryEraserEntity> eraserEntityList = twinFactoryEraserRepository.findByTwinFactoryIdAndActiveTrue(factoryEntity.getId());
-        log.info("Loaded {} erasers", eraserEntityList.size());
+        Kit<TwinFactoryEraserEntity, UUID> eraserEntityKit = factoryEntity.getTwinFactoryEraserKit();
+        log.info("Loaded {} erasers", eraserEntityKit.size());
+        if (KitUtils.isEmpty(eraserEntityKit)) {
+            return;
+        }
         LoggerUtils.traceTreeLevelDown();
-        for (TwinFactoryEraserEntity eraserEntity : eraserEntityList) {
+        for (TwinFactoryEraserEntity eraserEntity : eraserEntityKit) {
+            if (!Boolean.TRUE.equals(eraserEntity.getActive())) {
+                log.info("Skipping inactive {}", eraserEntity.logNormal());
+                continue;
+            }
             log.info("Checking input for {} **{}** ", eraserEntity.logNormal(), eraserEntity.getDescription());
             Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.getTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(eraserInputList)) {
@@ -394,15 +431,15 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     private void runTriggers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
-        List<TwinFactoryTriggerEntity> factoryTriggerEntityList = twinFactoryTriggerRepository.findByTwinFactoryId(factoryEntity.getId());
-        log.info("Loaded {} triggers", factoryTriggerEntityList.size());
-        if (CollectionUtils.isEmpty(factoryTriggerEntityList)) {
+        Kit<TwinFactoryTriggerEntity, UUID> factoryTriggerEntityKit = factoryEntity.getTwinFactoryTriggerKit();
+        log.info("Loaded {} triggers", factoryTriggerEntityKit.size());
+        if (KitUtils.isEmpty(factoryTriggerEntityKit)) {
             return;
         }
         LoggerUtils.traceTreeLevelDown();
-        for (TwinFactoryTriggerEntity factoryTriggerEntity : factoryTriggerEntityList) {
-            if (!factoryTriggerEntity.getActive()) {
-                log.info("Skipping inactive trigger: {}", factoryTriggerEntity.logNormal());
+        for (TwinFactoryTriggerEntity factoryTriggerEntity : factoryTriggerEntityKit) {
+            if (!Boolean.TRUE.equals(factoryTriggerEntity.getActive())) {
+                log.info("Skipping inactive {}", factoryTriggerEntity.logNormal());
                 continue;
             }
             Set<FactoryItem> triggerInputList = getInputItems(factoryContext, factoryTriggerEntity.getInputTwinClassId(),
@@ -548,6 +585,28 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return null;
     }
 
+
+    public void loadFactoryElements(TwinFactoryEntity factory) {
+        loadFactoryElements(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryElements(Collection<TwinFactoryEntity> factories) {
+        factoryMultiplierService.loadFactoryMultipliers(factories);
+        var multipliers = new ArrayList<TwinFactoryMultiplierEntity>();
+        for (TwinFactoryEntity factory : factories) {
+            multipliers.addAll(factory.getTwinFactoryMultiplierKit().getCollection());
+        }
+        factoryMultiplierFilterService.loadFactoryMultiplierFilters(multipliers);
+        factoryPipelineService.loadFactoryPipelines(factories);
+        var pipelines = new ArrayList<TwinFactoryPipelineEntity>();
+        for (TwinFactoryEntity factory : factories) {
+            pipelines.addAll(factory.getTwinFactoryPipelineKit().getCollection());
+        }
+        factoryPipelineStepService.loadFactoryPipelineSteps(pipelines);
+        factoryBranchService.loadFactoryBranches(factories);
+        factoryEraserService.loadFactoryErasers(factories);
+        factoryTriggerService.loadFactoryTriggers(factories);
+    }
 
     public void countFactoryUsages(TwinFactoryEntity twinFactory) {
         countFactoryUsages(Collections.singletonList(twinFactory));

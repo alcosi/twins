@@ -7,16 +7,21 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -53,5 +58,31 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     @Override
     public boolean validateEntity(TwinFactoryMultiplierFilterEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+    }
+
+    public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
+    }
+
+    public void loadFactoryMultiplierFilters(Collection<TwinFactoryMultiplierEntity> multipliers) {
+        Kit<TwinFactoryMultiplierEntity, UUID> needLoad = new Kit<>(TwinFactoryMultiplierEntity::getId);
+        for (TwinFactoryMultiplierEntity multiplier : multipliers) {
+            if (multiplier.getTwinFactoryMultiplierFilterKit() == null)
+                needLoad.add(multiplier);
+        }
+        if (needLoad.isEmpty())
+            return;
+
+        KitGrouped<TwinFactoryMultiplierFilterEntity, UUID, UUID> grouped = new KitGrouped<>(
+            repository.findByTwinFactoryMultiplierIdIn(needLoad.getIdSet()),
+            TwinFactoryMultiplierFilterEntity::getId,
+            TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
+
+        for (TwinFactoryMultiplierEntity multiplier : needLoad) {
+            if (grouped.containsGroupedKey(multiplier.getId()))
+                multiplier.setTwinFactoryMultiplierFilterKit(new Kit<>(grouped.getGrouped(multiplier.getId()), TwinFactoryMultiplierFilterEntity::getId));
+            else
+                multiplier.setTwinFactoryMultiplierFilterKit(Kit.emptyKit());
+        }
     }
 }

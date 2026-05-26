@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -14,11 +16,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -99,4 +104,29 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 Multiplier.class, changesHelper);
     }
 
+    public void loadFactoryMultipliers(TwinFactoryEntity factory) {
+        loadFactoryMultipliers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryMultipliers(Collection<TwinFactoryEntity> factories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity factory : factories) {
+            if (factory.getTwinFactoryMultiplierKit() == null)
+                needLoad.add(factory);
+        }
+        if (needLoad.isEmpty())
+            return;
+
+        KitGrouped<TwinFactoryMultiplierEntity, UUID, UUID> grouped = new KitGrouped<>(
+            repository.findByTwinFactoryIdIn(needLoad.getIdSet()),
+            TwinFactoryMultiplierEntity::getId,
+            TwinFactoryMultiplierEntity::getTwinFactoryId);
+
+        for (TwinFactoryEntity factory : needLoad) {
+            if (grouped.containsGroupedKey(factory.getId()))
+                factory.setTwinFactoryMultiplierKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryMultiplierEntity::getId));
+            else
+                factory.setTwinFactoryMultiplierKit(Kit.emptyKit());
+        }
+    }
 }

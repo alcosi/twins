@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -99,6 +100,11 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
 
     @Transient
     private Integer pipelineStepsCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryPipelineStepEntity, UUID> twinFactoryPipelineStepKit;
 
     public String easyLog(Level level) {
         return switch (level) {
