@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
@@ -19,13 +20,25 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "DomainBusinessAccountUserV1")
 public class DomainBusinessAccountUserDTOv1 {
-    @Schema(description = "user id", example = DTOExamples.USER_ID)
+    @Schema(description = "user id", example = DTOExamples.UUID_ID)
     @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 
-    @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    @Schema(description = "business account id", example = DTOExamples.UUID_ID)
     @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
     public UUID businessAccountId;
+
+    @Schema(description = "domain business account id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = DomainBusinessAccountDTOv1.class, name = "domainBusinessAccount")
+    public UUID domainBusinessAccountId;
+
+    @Schema(description = "domain user id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = DomainUserDTOv1.class, name = "domainUser")
+    public UUID domainUserId;
+
+    @Schema(description = "business account user id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = BusinessAccountUserDTOv1.class, name = "businessAccountUser")
+    public UUID businessAccountUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "last activity at", example = DTOExamples.INSTANT)
