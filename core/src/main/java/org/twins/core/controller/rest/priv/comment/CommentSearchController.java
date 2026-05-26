@@ -61,8 +61,8 @@ public class CommentSearchController extends ApiController {
             PaginationResult<TwinCommentEntity> twinStatusList = commentService
                     .findComments(searchRestDTOMapper.convert(request), pagination);
             rs
-                    .setComments(viewRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinStatusList));
+                    .setPagination(paginationMapper.convert(twinStatusList))
+                    .setComments(viewRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
