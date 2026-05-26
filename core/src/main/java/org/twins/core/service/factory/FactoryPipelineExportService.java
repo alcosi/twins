@@ -52,8 +52,7 @@ public class FactoryPipelineExportService {
 
         // Export ConditionSets and Conditions
         if (!conditionSetIds.isEmpty()) {
-            List<UUID> conditionSetIdList = new ArrayList<>(conditionSetIds);
-            var conditionSetKit = factoryConditionSetService.findEntitiesSafe(conditionSetIdList);
+            var conditionSetKit = factoryConditionSetService.findEntitiesSafe(conditionSetIds);
             if (!conditionSetKit.getList().isEmpty()) {
                 String conditionSetSql = conditionSetExportService.exportToSql(conditionSetKit.getList());
                 if (!conditionSetSql.isEmpty()) {
