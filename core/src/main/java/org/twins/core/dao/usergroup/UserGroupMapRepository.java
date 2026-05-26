@@ -89,4 +89,15 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
                       )
             """)
     List<UserGroupMapEntity> getGroups(UUID domainId, UUID businessAccountId, Set<UUID> userIdSet);
+
+    @Query("""
+                select ugm
+                from UserGroupMapEntity ugm
+                where ugm.userId in :userIdSet
+                  and (ugm.addedManually or ugm.involvesCount > 0)
+                  and ugm.domainId = :domainId
+                  and ugm.businessAccountId = :businessAccountId
+
+            """)
+    List<UserGroupMapEntity> getGroupsStrict(UUID domainId, UUID businessAccountId, Set<UUID> userIdSet);
 }
