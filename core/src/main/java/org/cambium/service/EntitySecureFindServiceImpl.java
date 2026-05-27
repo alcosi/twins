@@ -465,7 +465,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             Function<R, K> queryResultGetGroupId) {
         Kit<S, K> needLoad = new Kit<>(srcGetId);
         for (S src : srcCollection)
-            if (srcGetKitField.apply(src) == null && srcGetId.apply(src) != null)
+            if (srcGetKitField.apply(src) == null)
                 needLoad.add(src);
         if (needLoad.isEmpty())
             return;
@@ -494,7 +494,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             Function<Q, K> queryResultGetGroupId) {
         Kit<S, K> needLoad = new Kit<>(srcGetId);
         for (S src : srcCollection)
-            if (srcGetKitField.apply(src) == null && srcGetId.apply(src) != null)
+            if (srcGetKitField.apply(src) == null)
                 needLoad.add(src);
         if (needLoad.isEmpty())
             return;
