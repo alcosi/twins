@@ -69,12 +69,12 @@ public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAcco
 
 ### Variant D: Load with KitGrouped (one-to-many)
 
-Used for loading collections of related entities (one-to-many). Delegates to `EntitySecureFindServiceImpl.loadKitGrouped()`.
+Used for loading collections of related entities (one-to-many). Delegates to `EntitySecureFindServiceImpl.loadKit()`.
 
 ```java
 // AttachmentService.loadAttachments()
 public void loadAttachments(Collection<TwinEntity> twinEntityList) {
-    loadKitGrouped(
+    loadKit(
         twinEntityList,
         TwinEntity::getId,                          // source entity ID getter
         TwinEntity::getAttachmentKit,               // @Transient field getter (null = not loaded)
@@ -85,7 +85,7 @@ public void loadAttachments(Collection<TwinEntity> twinEntityList) {
 }
 ```
 
-**What `loadKitGrouped()` does** (`EntitySecureFindServiceImpl`):
+**What `loadKit()` does** (`EntitySecureFindServiceImpl`):
 
 1. Builds `Kit<S, UUID> needLoad` — filters entities where @Transient field is null
 2. Calls `queryFunction.apply(needLoad.getIdSet())` — single batch query
@@ -97,7 +97,7 @@ public void loadAttachments(Collection<TwinEntity> twinEntityList) {
 ```java
 // TwinTagService.loadTags()
 public void loadTags(Collection<TwinEntity> twinEntityList) {
-    loadKitGrouped(
+    loadKit(
         twinEntityList,
         TwinEntity::getId,
         TwinEntity::getTwinTagKit,
@@ -110,7 +110,7 @@ public void loadTags(Collection<TwinEntity> twinEntityList) {
 }
 ```
 
-**With KitGrouped result** (when result needs secondary grouping — cannot use `loadKitGrouped`, write manually):
+**With KitGrouped result** (when result needs secondary grouping — cannot use `loadKit`, write manually):
 
 ```java
 // TwinFieldAttributeService.loadAttributes()
@@ -140,7 +140,7 @@ public void loadAttributes(Collection<TwinEntity> twinEntityList) {
 
 **Key points:**
 
-* `loadKitGrouped()` handles the full cycle: filter → query → group → assign
+* `loadKit()` handles the full cycle: filter → query → group → assign
 * No extra allocations — Kit is created only when data exists, otherwise `Kit.emptyKit()` singleton is used
 * Use custom setter lambda when transformation is needed (e.g., extracting nested objects)
 * When result needs `KitGrouped` (not `Kit`), write the pattern manually

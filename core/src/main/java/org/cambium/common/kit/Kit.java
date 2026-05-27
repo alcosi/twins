@@ -99,7 +99,10 @@ public class Kit<E, K> implements Iterable<E> {
         if (functionFormatKey != null) {
             key = functionFormatKey.apply(key);
         }
-
+        if (key == null) {
+            throw new NullPointerException(
+                    "Kit does not supports null keys. Element: " + e);
+        }
         E existing = map.get(key);
         if (existing == null) {
             map.put(key, e);

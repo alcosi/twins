@@ -19,10 +19,13 @@ public class KitUtils {
             Collection<E> srcCollection, Function<? super E, ? extends K> functionGetId,
             Function<? super E, ? extends GK> functionGetGroupingId,
             Function<? super E, ? extends GE> functionGetGroupingObject) {
-        KitGrouped<E, K, GK> needLoad = new KitGrouped<>(functionGetId, functionGetGroupingId);
+        KitGrouped<E, K, GK> needLoad = null;
         for (var item : srcCollection) {
-            if (functionGetGroupingObject.apply(item) == null && functionGetGroupingId.apply(item) != null)
+            if (functionGetGroupingObject.apply(item) == null && functionGetGroupingId.apply(item) != null) {
+                if (needLoad == null)
+                    needLoad = new KitGrouped<>(functionGetId, functionGetGroupingId);
                 needLoad.add(item);
+            }
         }
         return needLoad;
     }

@@ -463,11 +463,15 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             Function<Set<K>, Collection<R>> queryFunction,
             Function<R, RI> queryResultGetId,
             Function<R, K> queryResultGetGroupId) {
-        Kit<S, K> needLoad = new Kit<>(srcGetId);
-        for (S src : srcCollection)
-            if (srcGetKitField.apply(src) == null)
+        Kit<S, K> needLoad = null;
+        for (S src : srcCollection) {
+            if (srcGetKitField.apply(src) == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(srcGetId);
                 needLoad.add(src);
-        if (needLoad.isEmpty())
+            }
+        }
+        if (needLoad == null)
             return;
         KitGrouped<R, RI, K> grouped = new KitGrouped<>(
             queryFunction.apply(needLoad.getIdSet()),
@@ -492,11 +496,15 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             Function<TL, RI> resultGetId,
             Function<Q, RI> queryResultGetId,
             Function<Q, K> queryResultGetGroupId) {
-        Kit<S, K> needLoad = new Kit<>(srcGetId);
-        for (S src : srcCollection)
-            if (srcGetKitField.apply(src) == null)
+        Kit<S, K> needLoad = null;
+        for (S src : srcCollection) {
+            if (srcGetKitField.apply(src) == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(srcGetId);
                 needLoad.add(src);
-        if (needLoad.isEmpty())
+            }
+        }
+        if (needLoad == null)
             return;
         KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
             queryFunction.apply(needLoad.getIdSet()),
