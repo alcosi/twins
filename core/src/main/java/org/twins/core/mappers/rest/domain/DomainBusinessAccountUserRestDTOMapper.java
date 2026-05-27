@@ -42,6 +42,9 @@ public class DomainBusinessAccountUserRestDTOMapper extends RestSimpleDTOMapper<
                 dst
                         .setUserId(src.getUserId())
                         .setBusinessAccountId(src.getBusinessAccountId())
+                        .setBusinessAccountUserId(src.getBusinessAccountUserId())
+                        .setDomainBusinessAccountId(src.getDomainBusinessAccountId())
+                        .setDomainUserId(src.getDomainUserId())
                         .setLastActivityAt(src.getLastActivityAt() != null ? src.getLastActivityAt().toLocalDateTime() : null)
                         .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null);
                 break;
@@ -51,6 +54,7 @@ public class DomainBusinessAccountUserRestDTOMapper extends RestSimpleDTOMapper<
                         .setBusinessAccountId(src.getBusinessAccountId());
                 break;
         }
+        //todo postpone BAU, DBA, DU objects
         if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE)) {
             dst.setUserId(src.getUserId());
             userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainBusinessAccountUser2UserMode.SHORT)));

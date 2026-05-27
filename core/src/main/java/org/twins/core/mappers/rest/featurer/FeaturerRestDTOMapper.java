@@ -63,6 +63,8 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     }
 
     public void postpone(Integer featurerId, MapperContext mapperContext) {
-        postpone(featurerService.getFeaturerEntity(featurerId), mapperContext);
+        if (featurerId != null) {
+            postpone(featurerService.getFeaturerEntity(featurerId), mapperContext);
+        }
     }
 }

@@ -9,7 +9,10 @@ import org.twins.core.dto.rest.IntegerRangeDTOv1;
 import org.twins.core.dto.rest.twinclass.HierarchySearchDTOv1;
 import org.twins.core.enums.twin.Touch;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -104,6 +107,9 @@ public class TwinSearchDTOv1 {
 
     @Schema(description = "Twin touch exclude list ids")
     public List<Touch> touchExcludeList;
+
+    @Schema(description = "Owner business account id list")
+    public Set<UUID> ownerBusinessAccountIdList;
 
     @Deprecated
     @Schema(description = "Twin Field Search. Key TwinClassField id.", type = "object", additionalPropertiesSchema = TwinFieldSearchDTOv1.class, example = """

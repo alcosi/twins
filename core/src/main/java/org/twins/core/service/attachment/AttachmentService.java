@@ -288,26 +288,21 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     public void loadAttachments(Collection<TwinEntity> twinEntityList) {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentKit() == null) {
-                twinEntity.setAttachmentKit(new Kit<>(new ArrayList<>(), TwinAttachmentEntity::getId));
-                needLoad.put(twinEntity.getId(), twinEntity);
-            }
+            if (twinEntity.getAttachmentKit() == null)
+                needLoad.add(twinEntity);
         if (needLoad.isEmpty())
             return;
-        List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinIdIn(needLoad.keySet());
-        if (CollectionUtils.isEmpty(attachmentEntityList))
-            return;
-        Map<UUID, List<TwinAttachmentEntity>> attachmentMap = new HashMap<>(); // key - twinId
-        for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) { //grouping by twin
-            attachmentMap.computeIfAbsent(attachmentEntity.getTwinId(), k -> new ArrayList<>());
-            attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
-        }
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
-            List<TwinAttachmentEntity> twinAttachmentsList = attachmentMap.get(entry.getKey());
-            if (!CollectionUtils.isEmpty(twinAttachmentsList))
-                entry.getValue().getAttachmentKit().addAll(twinAttachmentsList);
+        KitGrouped<TwinAttachmentEntity, UUID, UUID> attachmentsGrouped = new KitGrouped<>(
+            twinAttachmentRepository.findByTwinIdIn(needLoad.getIdSet()),
+            TwinAttachmentEntity::getId,
+            TwinAttachmentEntity::getTwinId);
+        for (TwinEntity twinEntity : needLoad) {
+            if (attachmentsGrouped.containsGroupedKey(twinEntity.getId()))
+                twinEntity.setAttachmentKit(new Kit<>(attachmentsGrouped.getGrouped(twinEntity.getId()), TwinAttachmentEntity::getId));
+            else
+                twinEntity.setAttachmentKit(Kit.emptyKit());
         }
     }
 
