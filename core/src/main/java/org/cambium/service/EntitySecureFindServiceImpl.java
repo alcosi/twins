@@ -455,26 +455,26 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
-    public <S, R> void loadKit(
+    public <S, R, K, RI> void loadKit(
             Collection<S> srcCollection,
-            Function<S, UUID> srcGetId,
-            Function<S, Kit<R, UUID>> srcGetKitField,
-            BiConsumer<S, Kit<R, UUID>> srcSetKitField,
-            Function<Set<UUID>, Collection<R>> queryFunction,
-            Function<R, UUID> queryResultGetId,
-            Function<R, UUID> queryResultGetGroupId) {
-        Kit<S, UUID> needLoad = new Kit<>(srcGetId);
+            Function<S, K> srcGetId,
+            Function<S, Kit<R, RI>> srcGetKitField,
+            BiConsumer<S, Kit<R, RI>> srcSetKitField,
+            Function<Set<K>, Collection<R>> queryFunction,
+            Function<R, RI> queryResultGetId,
+            Function<R, K> queryResultGetGroupId) {
+        Kit<S, K> needLoad = new Kit<>(srcGetId);
         for (S src : srcCollection)
-            if (srcGetKitField.apply(src) == null)
+            if (srcGetKitField.apply(src) == null && srcGetId.apply(src) != null)
                 needLoad.add(src);
         if (needLoad.isEmpty())
             return;
-        KitGrouped<R, UUID, UUID> grouped = new KitGrouped<>(
+        KitGrouped<R, RI, K> grouped = new KitGrouped<>(
             queryFunction.apply(needLoad.getIdSet()),
             queryResultGetId,
             queryResultGetGroupId);
         for (S src : needLoad) {
-            UUID id = srcGetId.apply(src);
+            K id = srcGetId.apply(src);
             if (grouped.containsGroupedKey(id))
                 srcSetKitField.accept(src, new Kit<>(grouped.getGrouped(id), queryResultGetId));
             else
@@ -482,28 +482,28 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
-    public <S, Q, T> void loadKit(
+    public <S, Q, TL, K, RI> void loadKit(
             Collection<S> srcCollection,
-            Function<S, UUID> srcGetId,
-            Function<S, Kit<T, UUID>> srcGetKitField,
-            BiConsumer<S, Kit<T, UUID>> srcSetKitField,
-            Function<Set<UUID>, Collection<Q>> queryFunction,
-            Function<Q, T> transformFunction,
-            Function<T, UUID> resultGetId,
-            Function<Q, UUID> queryResultGetId,
-            Function<Q, UUID> queryResultGetGroupId) {
-        Kit<S, UUID> needLoad = new Kit<>(srcGetId);
+            Function<S, K> srcGetId,
+            Function<S, Kit<TL, RI>> srcGetKitField,
+            BiConsumer<S, Kit<TL, RI>> srcSetKitField,
+            Function<Set<K>, Collection<Q>> queryFunction,
+            Function<Q, TL> transformFunction,
+            Function<TL, RI> resultGetId,
+            Function<Q, RI> queryResultGetId,
+            Function<Q, K> queryResultGetGroupId) {
+        Kit<S, K> needLoad = new Kit<>(srcGetId);
         for (S src : srcCollection)
-            if (srcGetKitField.apply(src) == null)
+            if (srcGetKitField.apply(src) == null && srcGetId.apply(src) != null)
                 needLoad.add(src);
         if (needLoad.isEmpty())
             return;
-        KitGrouped<Q, UUID, UUID> grouped = new KitGrouped<>(
+        KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
             queryFunction.apply(needLoad.getIdSet()),
             queryResultGetId,
             queryResultGetGroupId);
         for (S src : needLoad) {
-            UUID id = srcGetId.apply(src);
+            K id = srcGetId.apply(src);
             if (grouped.containsGroupedKey(id))
                 srcSetKitField.accept(src, new Kit<>(
                     grouped.getGrouped(id).stream().map(transformFunction).toList(),
