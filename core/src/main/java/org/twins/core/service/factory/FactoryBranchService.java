@@ -5,8 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -113,24 +111,13 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     public void loadFactoryBranches(Collection<TwinFactoryEntity> factories) {
-        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
-        for (TwinFactoryEntity factory : factories) {
-            if (factory.getTwinFactoryBranchKit() == null)
-                needLoad.add(factory);
-        }
-        if (needLoad.isEmpty())
-            return;
-
-        KitGrouped<TwinFactoryBranchEntity, UUID, UUID> grouped = new KitGrouped<>(
-            twinFactoryBranchRepository.findByTwinFactoryIdIn(needLoad.getIdSet()),
-            TwinFactoryBranchEntity::getId,
-            TwinFactoryBranchEntity::getTwinFactoryId);
-
-        for (TwinFactoryEntity factory : needLoad) {
-            if (grouped.containsGroupedKey(factory.getId()))
-                factory.setTwinFactoryBranchKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryBranchEntity::getId));
-            else
-                factory.setTwinFactoryBranchKit(Kit.emptyKit());
-        }
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryBranchKit,
+                TwinFactoryEntity::setTwinFactoryBranchKit,
+                twinFactoryBranchRepository::findByTwinFactoryIdIn,
+                TwinFactoryBranchEntity::getId,
+                TwinFactoryBranchEntity::getTwinFactoryId);
     }
 }

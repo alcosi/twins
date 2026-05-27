@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -19,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
@@ -35,7 +32,7 @@ import java.util.function.Function;
 public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactoryEraserEntity> {
     @Getter
     private final TwinFactoryEraserRepository repository;
-    private final AuthService authService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
 
@@ -104,24 +101,13 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     public void loadFactoryErasers(Collection<TwinFactoryEntity> factories) {
-        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
-        for (TwinFactoryEntity factory : factories) {
-            if (factory.getTwinFactoryEraserKit() == null)
-                needLoad.add(factory);
-        }
-        if (needLoad.isEmpty())
-            return;
-
-        KitGrouped<TwinFactoryEraserEntity, UUID, UUID> grouped = new KitGrouped<>(
-            repository.findByTwinFactoryIdIn(needLoad.getIdSet()),
-            TwinFactoryEraserEntity::getId,
-            TwinFactoryEraserEntity::getTwinFactoryId);
-
-        for (TwinFactoryEntity factory : needLoad) {
-            if (grouped.containsGroupedKey(factory.getId()))
-                factory.setTwinFactoryEraserKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryEraserEntity::getId));
-            else
-                factory.setTwinFactoryEraserKit(Kit.emptyKit());
-        }
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryEraserKit,
+                TwinFactoryEntity::setTwinFactoryEraserKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryEraserEntity::getId,
+                TwinFactoryEraserEntity::getTwinFactoryId);
     }
 }

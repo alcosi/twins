@@ -51,21 +51,14 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     }
 
     public void loadConditions(Collection<TwinClassFieldRuleEntity> ruleEntities) {
-        Kit<TwinClassFieldRuleEntity, UUID> needLoad = new Kit<>(TwinClassFieldRuleEntity::getId);
-        for (TwinClassFieldRuleEntity ruleEntity : ruleEntities) {
-            if (ruleEntity.getConditionKit() == null) {
-                needLoad.add(ruleEntity);
-            }
-        }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<TwinClassFieldConditionEntity, UUID, UUID> conditions = new KitGrouped<>(twinClassFieldConditionRepository.findByTwinClassFieldRuleIdIn(needLoad.getIdSet()), TwinClassFieldConditionEntity::getId, TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
-        for (TwinClassFieldRuleEntity ruleEntity : needLoad) {
-            if (conditions.containsGroupedKey(ruleEntity.getId()))
-                ruleEntity.setConditionKit(new Kit<>(conditions.getGrouped(ruleEntity.getId()), TwinClassFieldConditionEntity::getId));
-            else
-                ruleEntity.setConditionKit(Kit.EMPTY);
-        }
+        loadKit(
+            ruleEntities,
+            TwinClassFieldRuleEntity::getId,
+            TwinClassFieldRuleEntity::getConditionKit,
+            TwinClassFieldRuleEntity::setConditionKit,
+            twinClassFieldConditionRepository::findByTwinClassFieldRuleIdIn,
+                TwinClassFieldConditionEntity::getId,
+            TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
     }
 
     public void loadBaseTwinClassField(TwinClassFieldConditionEntity conditionEntity) throws ServiceException {

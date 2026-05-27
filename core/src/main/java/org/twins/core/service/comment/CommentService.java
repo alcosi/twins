@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
@@ -180,22 +179,15 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     }
 
     public void loadAttachments(Collection<TwinCommentEntity> twinCommentList) {
-        Kit<TwinCommentEntity, UUID> needLoad = new Kit<>(TwinCommentEntity::getId);
-        for (TwinCommentEntity twinComment : twinCommentList)
-            if (twinComment.getAttachmentKit() == null)
-                needLoad.add(twinComment);
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<TwinAttachmentEntity, UUID, UUID> attachmentsGrouped = new KitGrouped<>(
-            attachmentRepository.findByTwinCommentIdIn(needLoad.getIdSet()),
-            TwinAttachmentEntity::getId,
-            TwinAttachmentEntity::getTwinCommentId);
-        for (TwinCommentEntity twinComment : needLoad) {
-            if (attachmentsGrouped.containsGroupedKey(twinComment.getId()))
-                twinComment.setAttachmentKit(new Kit<>(attachmentsGrouped.getGrouped(twinComment.getId()), TwinAttachmentEntity::getId));
-            else
-                twinComment.setAttachmentKit(Kit.emptyKit());
-        }
+        loadKit(
+            twinCommentList,
+            TwinCommentEntity::getId,
+            TwinCommentEntity::getAttachmentKit,
+            TwinCommentEntity::setAttachmentKit,
+            attachmentRepository::findByTwinCommentIdIn,
+                TwinAttachmentEntity::getId,
+            TwinAttachmentEntity::getTwinCommentId
+        );
     }
 
     @Data

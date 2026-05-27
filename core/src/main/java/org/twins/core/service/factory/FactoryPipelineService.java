@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -39,6 +37,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final TwinFactoryPipelineRepository repository;
     private final AuthService authService;
     private final TwinClassService twinClassService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
@@ -122,24 +121,13 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     }
 
     public void loadFactoryPipelines(Collection<TwinFactoryEntity> factories) {
-        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
-        for (TwinFactoryEntity factory : factories) {
-            if (factory.getTwinFactoryPipelineKit() == null)
-                needLoad.add(factory);
-        }
-        if (needLoad.isEmpty())
-            return;
-
-        KitGrouped<TwinFactoryPipelineEntity, UUID, UUID> grouped = new KitGrouped<>(
-            repository.findByTwinFactoryIdIn(needLoad.getIdSet()),
-            TwinFactoryPipelineEntity::getId,
-            TwinFactoryPipelineEntity::getTwinFactoryId);
-
-        for (TwinFactoryEntity factory : needLoad) {
-            if (grouped.containsGroupedKey(factory.getId()))
-                factory.setTwinFactoryPipelineKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryPipelineEntity::getId));
-            else
-                factory.setTwinFactoryPipelineKit(Kit.emptyKit());
-        }
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryPipelineKit,
+                TwinFactoryEntity::setTwinFactoryPipelineKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryPipelineEntity::getId,
+                TwinFactoryPipelineEntity::getTwinFactoryId);
     }
 }

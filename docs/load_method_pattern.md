@@ -69,7 +69,48 @@ public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAcco
 
 ### Variant D: Load with KitGrouped (one-to-many)
 
-Used for loading collections of related entities (one-to-many). Uses `KitGrouped` for grouping results and `Kit` for indexing source entities.
+Used for loading collections of related entities (one-to-many). Delegates to `EntitySecureFindServiceImpl.loadKitGrouped()`.
+
+```java
+// AttachmentService.loadAttachments()
+public void loadAttachments(Collection<TwinEntity> twinEntityList) {
+    loadKitGrouped(
+        twinEntityList,
+        TwinEntity::getId,                          // source entity ID getter
+        TwinEntity::getAttachmentKit,               // @Transient field getter (null = not loaded)
+        twinAttachmentRepository::findByTwinIdIn,   // batch query (Set<UUID> → Collection<R>)
+        TwinAttachmentEntity::getId,                // result entity ID getter
+        TwinAttachmentEntity::getTwinId,            // result entity FK to source
+        TwinEntity::setAttachmentKit);              // setter
+}
+```
+
+**What `loadKitGrouped()` does** (`EntitySecureFindServiceImpl`):
+
+1. Builds `Kit<S, UUID> needLoad` — filters entities where @Transient field is null
+2. Calls `queryFunction.apply(needLoad.getIdSet())` — single batch query
+3. Wraps results into `KitGrouped<R, UUID, UUID>` — groups by FK to source
+4. For each source: if data exists → `new Kit<>(groupedList, resultGetId)`, else → `Kit.emptyKit()`
+
+**With element transformation** (when result entities need mapping before storing):
+
+```java
+// TwinTagService.loadTags()
+public void loadTags(Collection<TwinEntity> twinEntityList) {
+    loadKitGrouped(
+        twinEntityList,
+        TwinEntity::getId,
+        TwinEntity::getTwinTagKit,
+        twinTagRepository::findByTwinIdIn,
+        TwinTagEntity::getId,
+        TwinTagEntity::getTwinId,
+        (twin, kit) -> twin.setTwinTagKit(kit.isEmpty()
+            ? Kit.emptyKit()
+            : new Kit<>(kit.getList().stream().map(TwinTagEntity::getTagDataListOption).toList(), DataListOptionEntity::getId)));
+}
+```
+
+**With KitGrouped result** (when result needs secondary grouping — cannot use `loadKitGrouped`, write manually):
 
 ```java
 // TwinFieldAttributeService.loadAttributes()
@@ -81,12 +122,10 @@ public void loadAttributes(Collection<TwinEntity> twinEntityList) {
     }
     if (needLoad.isEmpty())
         return;
-
     KitGrouped<TwinFieldAttributeEntity, UUID, UUID> attributes = new KitGrouped<>(
         twinFieldAttributeRepository.findByTwinIdIn(needLoad.getIdSet()),
         TwinFieldAttributeEntity::getId,
         TwinFieldAttributeEntity::getTwinId);
-
     for (TwinEntity twinEntity : needLoad) {
         if (attributes.containsGroupedKey(twinEntity.getId()))
             twinEntity.setTwinFieldAttributeKit(new KitGrouped<>(
@@ -101,10 +140,10 @@ public void loadAttributes(Collection<TwinEntity> twinEntityList) {
 
 **Key points:**
 
-* `Kit` instead of `Map` for `needLoad` — automatically indexed by ID
-* `KitGrouped` for results — automatically grouped by the specified key
-* Explicit assignment of `KitGrouped.EMPTY` / `Kit.emptyKit()` when no data exists (prevents repeated loading attempts)
+* `loadKitGrouped()` handles the full cycle: filter → query → group → assign
 * No extra allocations — Kit is created only when data exists, otherwise `Kit.emptyKit()` singleton is used
+* Use custom setter lambda when transformation is needed (e.g., extracting nested objects)
+* When result needs `KitGrouped` (not `Kit`), write the pattern manually
 
 ## Load State Management (LoadState)
 

@@ -5,8 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
@@ -33,6 +31,7 @@ import java.util.stream.StreamSupport;
 @AllArgsConstructor
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
@@ -169,24 +168,13 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
     }
 
     public void loadFactoryTriggers(Collection<TwinFactoryEntity> factories) {
-        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
-        for (TwinFactoryEntity factory : factories) {
-            if (factory.getTwinFactoryTriggerKit() == null)
-                needLoad.add(factory);
-        }
-        if (needLoad.isEmpty())
-            return;
-
-        KitGrouped<TwinFactoryTriggerEntity, UUID, UUID> grouped = new KitGrouped<>(
-            repository.findByTwinFactoryIdIn(needLoad.getIdSet()),
-            TwinFactoryTriggerEntity::getId,
-            TwinFactoryTriggerEntity::getTwinFactoryId);
-
-        for (TwinFactoryEntity factory : needLoad) {
-            if (grouped.containsGroupedKey(factory.getId()))
-                factory.setTwinFactoryTriggerKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryTriggerEntity::getId));
-            else
-                factory.setTwinFactoryTriggerKit(Kit.emptyKit());
-        }
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryTriggerKit,
+                TwinFactoryEntity::setTwinFactoryTriggerKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinFactoryId);
     }
 }

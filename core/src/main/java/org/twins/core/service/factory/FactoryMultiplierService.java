@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -37,6 +35,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     @Getter
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
 
     @Override
@@ -109,24 +108,13 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     }
 
     public void loadFactoryMultipliers(Collection<TwinFactoryEntity> factories) {
-        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
-        for (TwinFactoryEntity factory : factories) {
-            if (factory.getTwinFactoryMultiplierKit() == null)
-                needLoad.add(factory);
-        }
-        if (needLoad.isEmpty())
-            return;
-
-        KitGrouped<TwinFactoryMultiplierEntity, UUID, UUID> grouped = new KitGrouped<>(
-            repository.findByTwinFactoryIdIn(needLoad.getIdSet()),
-            TwinFactoryMultiplierEntity::getId,
-            TwinFactoryMultiplierEntity::getTwinFactoryId);
-
-        for (TwinFactoryEntity factory : needLoad) {
-            if (grouped.containsGroupedKey(factory.getId()))
-                factory.setTwinFactoryMultiplierKit(new Kit<>(grouped.getGrouped(factory.getId()), TwinFactoryMultiplierEntity::getId));
-            else
-                factory.setTwinFactoryMultiplierKit(Kit.emptyKit());
-        }
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryMultiplierKit,
+                TwinFactoryEntity::setTwinFactoryMultiplierKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryMultiplierEntity::getId,
+                TwinFactoryMultiplierEntity::getTwinFactoryId);
     }
 }
