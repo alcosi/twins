@@ -201,4 +201,27 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
               AND t.twin_class_schema_space_id IS NOT DISTINCT FROM :twinClassSchemaSpaceId
         """, nativeQuery = true)
     long countTwinsByQuotaKey(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
+        from TwinEntity child
+        where child.headTwinId in :headTwinIdList and child.twinStatusId in :childrenTwinStatusIdList
+        group by child.headTwinId
+        """)
+    List<TwinFieldCalcProjection> countChildrenTwinsWithStatusIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
+    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
+    long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
+        from TwinEntity child 
+        where child.headTwinId in :headTwinIdList and not child.twinStatusId in :childrenTwinStatusIdList
+        group by child.headTwinId
+        """)
+    List<TwinFieldCalcProjection> countChildrenTwinsWithStatusNotIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 }
