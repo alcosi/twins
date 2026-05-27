@@ -455,7 +455,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
-    public <S, R, K, RI> void loadKit(
+    public static <S, R, K, RI> void loadKit(
             Collection<S> srcCollection,
             Function<S, K> srcGetId,
             Function<S, Kit<R, RI>> srcGetKitField,
@@ -482,7 +482,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
-    public <S, Q, TL, K, RI> void loadKit(
+    public static <S, Q, TL, K, RI> void loadKit(
             Collection<S> srcCollection,
             Function<S, K> srcGetId,
             Function<S, Kit<TL, RI>> srcGetKitField,
