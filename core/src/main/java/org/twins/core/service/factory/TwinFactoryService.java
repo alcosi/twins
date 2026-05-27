@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
@@ -183,11 +184,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         }
         loadOriginalFactory(duplicates);
         var entitiesToSave = new ArrayList<TwinFactoryEntity>();
-        var needLoadBranches = new ArrayList<TwinFactoryEntity>();
-        var needLoadMultipliers = new ArrayList<TwinFactoryEntity>();
-        var needLoadPipelines = new ArrayList<TwinFactoryEntity>();
-        var needLoadErasers = new ArrayList<TwinFactoryEntity>();
-        var needLoadTriggers = new ArrayList<TwinFactoryEntity>();
+
+        // Collect factory IDs for batch loading
+        Set<UUID> needLoadBranches = new HashSet<>();
+        Set<UUID> needLoadMultipliers = new HashSet<>();
+        Set<UUID> needLoadPipelines = new HashSet<>();
+        Set<UUID> needLoadErasers = new HashSet<>();
+        Set<UUID> needLoadTriggers = new HashSet<>();
+
         for (var duplicate : duplicates) {
             var originalFactory = duplicate.getOriginalFactory();
             log.info("{} will be duplicated with new key[{}]", originalFactory.logShort(), duplicate.getNewKey());
@@ -207,40 +211,83 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             duplicate.setNewFactory(duplicateFactoryEntity);
             entitiesToSave.add(duplicateFactoryEntity);
             if (duplicate.isDuplicateBranches()) {
-                needLoadBranches.add(duplicate.getOriginalFactory());
+                needLoadBranches.add(duplicate.getOriginalFactory().getId());
             }
             if (duplicate.isDuplicateMultipliers()) {
-                needLoadMultipliers.add(duplicate.getOriginalFactory());
+                needLoadMultipliers.add(duplicate.getOriginalFactory().getId());
             }
             if (duplicate.isDuplicatePipelines()) {
-                needLoadPipelines.add(duplicate.getOriginalFactory());
+                needLoadPipelines.add(duplicate.getOriginalFactory().getId());
             }
             if (duplicate.isDuplicateErasers()) {
-                needLoadErasers.add(duplicate.getOriginalFactory());
+                needLoadErasers.add(duplicate.getOriginalFactory().getId());
             }
             if (duplicate.isDuplicateTriggers()) {
-                needLoadTriggers.add(duplicate.getOriginalFactory());
+                needLoadTriggers.add(duplicate.getOriginalFactory().getId());
             }
         }
+
+        // Batch load all components
+        var branchesKit = loadBranches(needLoadBranches);
+        var multipliersKit = loadMultipliers(needLoadMultipliers);
+        var pipelinesKit = loadPipelines(needLoadPipelines);
+        var erasersKit = loadErasers(needLoadErasers);
+        var triggersKit = loadTriggers(needLoadTriggers);
+
         var savedFactories = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
         for (var duplicate : duplicates) {
             if (duplicate.isDuplicateBranches()) {
-                factoryBranchService.duplicateBranchesForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+                factoryBranchService.duplicateBranchesForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory(), branchesKit);
             }
             if (duplicate.isDuplicateMultipliers()) {
-                factoryMultiplierService.duplicateMultipliersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+                factoryMultiplierService.duplicateMultipliersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory(), multipliersKit);
             }
             if (duplicate.isDuplicatePipelines()) {
-                factoryPipelineService.duplicatePipelinesForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+                factoryPipelineService.duplicatePipelinesForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory(), pipelinesKit);
             }
             if (duplicate.isDuplicateErasers()) {
-                factoryEraserService.duplicateErasersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+                factoryEraserService.duplicateErasersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory(), erasersKit);
             }
             if (duplicate.isDuplicateTriggers()) {
-                factoryTriggerService.duplicateTriggersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory());
+                factoryTriggerService.duplicateTriggersForFactory(duplicate.getOriginalFactory(), duplicate.getNewFactory(), triggersKit);
             }
         }
         return savedFactories;
+    }
+
+    private KitGrouped<TwinFactoryBranchEntity, UUID, UUID> loadBranches(Set<UUID> factoryIds) {
+        if (factoryIds == null || factoryIds.isEmpty()) {
+            return new KitGrouped<>(TwinFactoryBranchEntity::getId, TwinFactoryBranchEntity::getTwinFactoryId);
+        }
+        return new KitGrouped<>(twinFactoryBranchRepository.findByTwinFactoryIdIn(factoryIds), TwinFactoryBranchEntity::getId, TwinFactoryBranchEntity::getTwinFactoryId);
+    }
+
+    private KitGrouped<TwinFactoryMultiplierEntity, UUID, UUID> loadMultipliers(Set<UUID> factoryIds) {
+        if (factoryIds == null || factoryIds.isEmpty()) {
+            return new KitGrouped<>(TwinFactoryMultiplierEntity::getId, TwinFactoryMultiplierEntity::getTwinFactoryId);
+        }
+        return new KitGrouped<>(twinFactoryMultiplierRepository.findByTwinFactoryIdIn(factoryIds), TwinFactoryMultiplierEntity::getId, TwinFactoryMultiplierEntity::getTwinFactoryId);
+    }
+
+    private KitGrouped<TwinFactoryPipelineEntity, UUID, UUID> loadPipelines(Set<UUID> factoryIds) {
+        if (factoryIds == null || factoryIds.isEmpty()) {
+            return new KitGrouped<>(TwinFactoryPipelineEntity::getId, TwinFactoryPipelineEntity::getTwinFactoryId);
+        }
+        return new KitGrouped<>(twinFactoryPipelineRepository.findByTwinFactoryIdIn(factoryIds), TwinFactoryPipelineEntity::getId, TwinFactoryPipelineEntity::getTwinFactoryId);
+    }
+
+    private KitGrouped<TwinFactoryEraserEntity, UUID, UUID> loadErasers(Set<UUID> factoryIds) {
+        if (factoryIds == null || factoryIds.isEmpty()) {
+            return new KitGrouped<>(TwinFactoryEraserEntity::getId, TwinFactoryEraserEntity::getTwinFactoryId);
+        }
+        return new KitGrouped<>(twinFactoryEraserRepository.findByTwinFactoryIdIn(factoryIds), TwinFactoryEraserEntity::getId, TwinFactoryEraserEntity::getTwinFactoryId);
+    }
+
+    private KitGrouped<TwinFactoryTriggerEntity, UUID, UUID> loadTriggers(Set<UUID> factoryIds) {
+        if (factoryIds == null || factoryIds.isEmpty()) {
+            return new KitGrouped<>(TwinFactoryTriggerEntity::getId, TwinFactoryTriggerEntity::getTwinFactoryId);
+        }
+        return new KitGrouped<>(twinFactoryTriggerRepository.findByTwinFactoryIdIn(factoryIds), TwinFactoryTriggerEntity::getId, TwinFactoryTriggerEntity::getTwinFactoryId);
     }
 
     private void loadOriginalFactory(Collection<FactoryDuplicate> duplicates) throws ServiceException {

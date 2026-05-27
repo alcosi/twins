@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -20,6 +21,8 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 
 import java.util.*;
@@ -112,9 +115,9 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         return true;
     }
 
-    public void duplicateBranchesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryBranchEntity> branches = twinFactoryBranchRepository.findByTwinFactoryId(fromFactory.getId());
-        if (KitUtils.isEmpty(branches)) {
+    public void duplicateBranchesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryBranchEntity, UUID, UUID> branchesKit) throws ServiceException {
+        List<TwinFactoryBranchEntity> branches = branchesKit.getGrouped(fromFactory.getId());
+        if (CollectionUtils.isEmpty(branches)) {
             return;
         }
         var entitiesForSave = new ArrayList<TwinFactoryBranchEntity>();

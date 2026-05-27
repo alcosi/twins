@@ -5,9 +5,11 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -163,9 +165,9 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
     }
 
-    public void duplicateTriggersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryTriggerEntity> triggers = repository.findByTwinFactoryId(fromFactory.getId());
-        if (KitUtils.isEmpty(triggers)) {
+    public void duplicateTriggersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryTriggerEntity, UUID, UUID> triggersKit) throws ServiceException {
+        List<TwinFactoryTriggerEntity> triggers = triggersKit.getGrouped(fromFactory.getId());
+        if (CollectionUtils.isEmpty(triggers)) {
             return;
         }
         var entitiesForSave = new ArrayList<TwinFactoryTriggerEntity>();

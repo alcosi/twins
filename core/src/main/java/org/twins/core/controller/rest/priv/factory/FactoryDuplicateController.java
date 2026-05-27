@@ -53,8 +53,7 @@ public class FactoryDuplicateController extends ApiController {
         var rs = new FactoryListRsDTOv1();
 
         try {
-            var duplicates = factoryDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedFactories = twinFactoryService.duplicate(duplicates);
+            var duplicatedFactories = twinFactoryService.duplicate(factoryDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext));
             rs
                     .setFactoryList(factoryRestDTOMapper.convertCollection(duplicatedFactories, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

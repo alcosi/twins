@@ -1,4 +1,4 @@
-2package org.twins.core.domain.factory;
+package org.twins.core.domain.factory;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

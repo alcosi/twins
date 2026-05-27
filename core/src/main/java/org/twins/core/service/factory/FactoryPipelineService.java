@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
@@ -27,6 +28,8 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 
 @Slf4j
@@ -117,9 +120,9 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         return updateSafe(dbEntity, changesHelper);
     }
 
-    public void duplicatePipelinesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryPipelineEntity> pipelines = repository.findByTwinFactoryId(fromFactory.getId());
-        if (KitUtils.isEmpty(pipelines)) {
+    public void duplicatePipelinesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryPipelineEntity, UUID, UUID> pipelinesKit) throws ServiceException {
+        List<TwinFactoryPipelineEntity> pipelines = pipelinesKit.getGrouped(fromFactory.getId());
+        if (CollectionUtils.isEmpty(pipelines)) {
             return;
         }
         var entitiesForSave = new ArrayList<TwinFactoryPipelineEntity>();

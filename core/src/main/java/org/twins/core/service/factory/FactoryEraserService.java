@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
@@ -25,7 +26,7 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import org.cambium.common.util.KitUtils;
+import org.cambium.common.kit.KitGrouped;
 
 @Slf4j
 @Service
@@ -99,9 +100,9 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         deleteSafe(id);
     }
 
-    public void duplicateErasersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryEraserEntity> erasers = repository.findByTwinFactoryId(fromFactory.getId());
-        if (KitUtils.isEmpty(erasers)) {
+    public void duplicateErasersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryEraserEntity, UUID, UUID> erasersKit) throws ServiceException {
+        List<TwinFactoryEraserEntity> erasers = erasersKit.getGrouped(fromFactory.getId());
+        if (CollectionUtils.isEmpty(erasers)) {
             return;
         }
         var entitiesForSave = new ArrayList<TwinFactoryEraserEntity>();

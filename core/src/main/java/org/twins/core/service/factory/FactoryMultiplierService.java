@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
@@ -25,6 +26,8 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 
 @Slf4j
@@ -103,9 +106,9 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 Multiplier.class, changesHelper);
     }
 
-    public void duplicateMultipliersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryMultiplierEntity> multipliers = repository.findByTwinFactoryId(fromFactory.getId());
-        if (KitUtils.isEmpty(multipliers)) {
+    public void duplicateMultipliersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryMultiplierEntity, UUID, UUID> multipliersKit) throws ServiceException {
+        List<TwinFactoryMultiplierEntity> multipliers = multipliersKit.getGrouped(fromFactory.getId());
+        if (CollectionUtils.isEmpty(multipliers)) {
             return;
         }
         var entitiesForSave = new ArrayList<TwinFactoryMultiplierEntity>();
