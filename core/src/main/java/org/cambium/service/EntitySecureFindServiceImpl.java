@@ -455,6 +455,72 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
+    public static <S, R, K, RI> void loadKit(
+            Collection<S> srcCollection,
+            Function<S, K> srcGetId,
+            Function<S, Kit<R, RI>> srcGetKitField,
+            BiConsumer<S, Kit<R, RI>> srcSetKitField,
+            Function<Set<K>, Collection<R>> queryFunction,
+            Function<R, RI> queryResultGetId,
+            Function<R, K> queryResultGetGroupId) {
+        Kit<S, K> needLoad = null;
+        for (S src : srcCollection) {
+            if (srcGetKitField.apply(src) == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(srcGetId);
+                needLoad.add(src);
+            }
+        }
+        if (needLoad == null)
+            return;
+        KitGrouped<R, RI, K> grouped = new KitGrouped<>(
+            queryFunction.apply(needLoad.getIdSet()),
+            queryResultGetId,
+            queryResultGetGroupId);
+        for (S src : needLoad) {
+            K id = srcGetId.apply(src);
+            if (grouped.containsGroupedKey(id))
+                srcSetKitField.accept(src, new Kit<>(grouped.getGrouped(id), queryResultGetId));
+            else
+                srcSetKitField.accept(src, Kit.emptyKit());
+        }
+    }
+
+    public static <S, Q, TL, K, RI> void loadKit(
+            Collection<S> srcCollection,
+            Function<S, K> srcGetId,
+            Function<S, Kit<TL, RI>> srcGetKitField,
+            BiConsumer<S, Kit<TL, RI>> srcSetKitField,
+            Function<Set<K>, Collection<Q>> queryFunction,
+            Function<Q, TL> transformFunction,
+            Function<TL, RI> resultGetId,
+            Function<Q, RI> queryResultGetId,
+            Function<Q, K> queryResultGetGroupId) {
+        Kit<S, K> needLoad = null;
+        for (S src : srcCollection) {
+            if (srcGetKitField.apply(src) == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(srcGetId);
+                needLoad.add(src);
+            }
+        }
+        if (needLoad == null)
+            return;
+        KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
+            queryFunction.apply(needLoad.getIdSet()),
+            queryResultGetId,
+            queryResultGetGroupId);
+        for (S src : needLoad) {
+            K id = srcGetId.apply(src);
+            if (grouped.containsGroupedKey(id))
+                srcSetKitField.accept(src, new Kit<>(
+                    grouped.getGrouped(id).stream().map(transformFunction).toList(),
+                    resultGetId));
+            else
+                srcSetKitField.accept(src, Kit.emptyKit());
+        }
+    }
+
     public static <T> List<T> loadStart(Collection<T> items, Function<T, LoadState> loadStateGetter, BiConsumer<T, LoadState> loadStateSetter) throws ServiceException {
         if (CollectionUtils.isEmpty(items)) {
             return Collections.emptyList();

@@ -4,8 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-
-import java.util.List;
+import org.cambium.common.kit.Kit;
 
 @Entity
 @Data
@@ -40,5 +39,5 @@ public class FeaturerEntity {
 
     @Transient
     @ToString.Exclude
-    private List<FeaturerParamEntity> params;
+    private Kit<FeaturerParamEntity, String> params;
 }

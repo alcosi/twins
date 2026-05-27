@@ -9,7 +9,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -98,27 +97,18 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return twinTagRepository.findDataListOptionByTwinId(twinId);
     }
 
-    // usage log
-
     public void loadTags(Collection<TwinEntity> twinEntityList) {
-        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
-        for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getTwinTagKit() == null)
-                needLoad.add(twinEntity);
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<TwinTagEntity, UUID, UUID> tagsGrouped = new KitGrouped<>(
-            twinTagRepository.findByTwinIdIn(needLoad.getIdSet()),
-            TwinTagEntity::getId,
-            TwinTagEntity::getTwinId);
-        for (TwinEntity twinEntity : needLoad) {
-            if (tagsGrouped.containsGroupedKey(twinEntity.getId()))
-                twinEntity.setTwinTagKit(new Kit<>(
-                    tagsGrouped.getGrouped(twinEntity.getId()).stream().map(TwinTagEntity::getTagDataListOption).toList(),
-                    DataListOptionEntity::getId));
-            else
-                twinEntity.setTwinTagKit(Kit.emptyKit());
-        }
+        loadKit(
+                twinEntityList,
+                TwinEntity::getId,
+                TwinEntity::getTwinTagKit,
+                TwinEntity::setTwinTagKit,
+                twinTagRepository::findByTwinIdIn,
+                TwinTagEntity::getTagDataListOption,
+                DataListOptionEntity::getId,
+                TwinTagEntity::getId,
+                TwinTagEntity::getTwinId
+        );
     }
 
     public void createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags, TwinChangesCollector twinChangesCollector) throws ServiceException {

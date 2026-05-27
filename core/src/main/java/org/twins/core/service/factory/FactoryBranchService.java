@@ -15,9 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -101,5 +104,20 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     @Override
     public boolean validateEntity(TwinFactoryBranchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public void loadFactoryBranches(TwinFactoryEntity factory) {
+        loadFactoryBranches(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryBranches(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryBranchKit,
+                TwinFactoryEntity::setTwinFactoryBranchKit,
+                twinFactoryBranchRepository::findByTwinFactoryIdIn,
+                TwinFactoryBranchEntity::getId,
+                TwinFactoryBranchEntity::getTwinFactoryId);
     }
 }

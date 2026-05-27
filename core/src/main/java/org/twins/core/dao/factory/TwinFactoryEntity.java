@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -81,6 +82,31 @@ public class TwinFactoryEntity implements EasyLoggable {
 
     @Transient
     public Integer factoryErasersCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryMultiplierEntity, UUID> twinFactoryMultiplierKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryPipelineEntity, UUID> twinFactoryPipelineKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryBranchEntity, UUID> twinFactoryBranchKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryEraserEntity, UUID> twinFactoryEraserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryTriggerEntity, UUID> twinFactoryTriggerKit;
 
     public String easyLog(Level level) {
         return switch (level) {

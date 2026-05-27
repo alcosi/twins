@@ -3,9 +3,6 @@ package org.twins.face.service.twidget;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -57,21 +54,13 @@ public class FaceTW002Service extends FacePointedService<FaceTW002Entity> {
     }
 
     public void loadAccordionItems(Collection<FaceTW002Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FaceTW002Entity, UUID> needLoad = new Kit<>(FaceTW002Entity::getId);
-        for (var faceNB001Entity : srcList)
-            if (faceNB001Entity.getAccordionItems() == null) {
-                faceNB001Entity.setAccordionItems(new Kit<>(FaceTW002AccordionItemEntity::getId));
-                needLoad.add(faceNB001Entity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FaceTW002AccordionItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceTW002AccordionItemRepository.findByFaceTW002IdIn(needLoad.getIdSet()), FaceTW002AccordionItemEntity::getId, FaceTW002AccordionItemEntity::getFaceTW002Id);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getAccordionItems().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FaceTW002Entity::getId,
+                FaceTW002Entity::getAccordionItems,
+                FaceTW002Entity::setAccordionItems,
+                faceTW002AccordionItemRepository::findByFaceTW002IdIn,
+                FaceTW002AccordionItemEntity::getId,
+                FaceTW002AccordionItemEntity::getFaceTW002Id);
     }
 
     @Override

@@ -288,22 +288,15 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     public void loadAttachments(Collection<TwinEntity> twinEntityList) {
-        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
-        for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentKit() == null)
-                needLoad.add(twinEntity);
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<TwinAttachmentEntity, UUID, UUID> attachmentsGrouped = new KitGrouped<>(
-            twinAttachmentRepository.findByTwinIdIn(needLoad.getIdSet()),
-            TwinAttachmentEntity::getId,
-            TwinAttachmentEntity::getTwinId);
-        for (TwinEntity twinEntity : needLoad) {
-            if (attachmentsGrouped.containsGroupedKey(twinEntity.getId()))
-                twinEntity.setAttachmentKit(new Kit<>(attachmentsGrouped.getGrouped(twinEntity.getId()), TwinAttachmentEntity::getId));
-            else
-                twinEntity.setAttachmentKit(Kit.emptyKit());
-        }
+        loadKit(
+                twinEntityList,
+                TwinEntity::getId,
+                TwinEntity::getAttachmentKit,
+                TwinEntity::setAttachmentKit,
+                twinAttachmentRepository::findByTwinIdIn,
+                TwinAttachmentEntity::getId,
+                TwinAttachmentEntity::getTwinId
+        );
     }
 
     public void loadAttachmentsCount(TwinEntity twinEntity) {

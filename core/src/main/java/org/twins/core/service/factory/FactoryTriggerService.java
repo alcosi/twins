@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
 import org.twins.core.service.trigger.TwinTriggerService;
@@ -30,6 +31,7 @@ import java.util.stream.StreamSupport;
 @AllArgsConstructor
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
@@ -159,5 +161,20 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
+    }
+
+    public void loadFactoryTriggers(TwinFactoryEntity factory) {
+        loadFactoryTriggers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryTriggers(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryTriggerKit,
+                TwinFactoryEntity::setTwinFactoryTriggerKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinFactoryId);
     }
 }

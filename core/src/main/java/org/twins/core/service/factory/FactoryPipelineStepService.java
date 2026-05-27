@@ -14,10 +14,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -30,6 +33,7 @@ import java.util.function.Function;
 public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<TwinFactoryPipelineStepEntity> {
     @Getter
     private final TwinFactoryPipelineStepRepository repository;
+    @Lazy
     private final FactoryPipelineService factoryPipelineService;
     private final FactoryConditionSetService factoryConditionSetService;
 
@@ -110,4 +114,18 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         deleteSafe(id);
     }
 
+    public void loadFactoryPipelineSteps(TwinFactoryPipelineEntity pipeline) {
+        loadFactoryPipelineSteps(Collections.singletonList(pipeline));
+    }
+
+    public void loadFactoryPipelineSteps(Collection<TwinFactoryPipelineEntity> pipelines) {
+        loadKit(
+                pipelines,
+                TwinFactoryPipelineEntity::getId,
+                TwinFactoryPipelineEntity::getTwinFactoryPipelineStepKit,
+                TwinFactoryPipelineEntity::setTwinFactoryPipelineStepKit,
+                repository::findByTwinFactoryPipelineIdInOrderByOrderAsc,
+                TwinFactoryPipelineStepEntity::getId,
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId);
+    }
 }

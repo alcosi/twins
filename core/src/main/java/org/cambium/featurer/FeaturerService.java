@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
@@ -21,6 +20,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.dao.*;
 import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -203,7 +203,7 @@ public class FeaturerService {
         FeaturerType featurerTypeAnnotation = type.getAnnotation(FeaturerType.class);
         List<FeaturerEntity> list = featurerRepository.findByFeaturerTypeId(featurerTypeAnnotation.id());
         for (FeaturerEntity featurerEntity : list) {
-            featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+            featurerEntity.setParams(new Kit<>(featurerParamRepository.findByFeaturer(featurerEntity), FeaturerParamEntity::getKey));
         }
         return list;
     }
@@ -218,26 +218,13 @@ public class FeaturerService {
     }
 
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
-        if (CollectionUtils.isEmpty(featurerEntityCollection))
-            return;
-        Kit<FeaturerEntity, Integer> needLoad = new Kit<>(FeaturerEntity::getId);
-        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
-            if (featurerEntity.getParams() == null)
-                needLoad.add(featurerEntity);
-        }
-        if (needLoad.isEmpty())
-            return;
-        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(needLoad.getIdSet());
-        if (CollectionUtils.isEmpty(allParams))
-            return;
-        Map<Integer, List<FeaturerParamEntity>> paramsGroupedByFeaturerId = allParams.stream()
-                .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
-        for (FeaturerEntity featurerEntity : needLoad.getCollection()) {
-            List<FeaturerParamEntity> params = paramsGroupedByFeaturerId.get(featurerEntity.getId());
-            featurerEntity.setParams(params != null ? params.stream()
-                    .sorted(Comparator.comparingInt(FeaturerParamEntity::getOrder))
-                    .collect(Collectors.toList()) : Collections.EMPTY_LIST);
-        }
+        EntitySecureFindServiceImpl.loadKit(featurerEntityCollection,
+                FeaturerEntity::getId,
+                FeaturerEntity::getParams,
+                FeaturerEntity::setParams,
+                featurerParamRepository::findByFeaturerIdInOrderByOrderAsc,
+                FeaturerParamEntity::getKey,
+                FeaturerParamEntity::getFeaturerId);
     }
 
     public void loadAllFeaturerFieldsParams(Object object) {
@@ -247,7 +234,7 @@ public class FeaturerService {
                 try {
                     FeaturerEntity featurerEntity = (FeaturerEntity) method.invoke(object);
                     if (featurerEntity.getParams() == null)
-                        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+                        featurerEntity.setParams(new Kit<>(featurerParamRepository.findByFeaturer(featurerEntity), FeaturerParamEntity::getKey));
                 } catch (Exception e) {
                     log.error("Exception: ", e);
                 }

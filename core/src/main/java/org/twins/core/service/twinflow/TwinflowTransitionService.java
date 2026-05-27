@@ -13,7 +13,6 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
@@ -574,15 +573,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     public void loadValidators(Collection<TwinflowTransitionEntity> transitions) {
-        Map<UUID, TwinflowTransitionEntity> needLoad = new HashMap<>();
-        for (TwinflowTransitionEntity transition : transitions)
-            if (transition.getValidatorRulesKit() == null)
-                needLoad.put(transition.getId(), transition);
-        if (needLoad.isEmpty()) return;
-        KitGrouped<TwinflowTransitionValidatorRuleEntity, UUID, UUID> validatorsKit = new KitGrouped<>(
-                twinflowTransitionValidatorRuleRepository.findAllByTwinflowTransitionIdInOrderByOrder(needLoad.keySet()), TwinflowTransitionValidatorRuleEntity::getId, TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId);
-        for (Map.Entry<UUID, TwinflowTransitionEntity> entry : needLoad.entrySet())
-            entry.getValue().setValidatorRulesKit(new Kit<>(validatorsKit.getGrouped(entry.getKey()), TwinflowTransitionValidatorRuleEntity::getId));
+        loadKit(transitions,
+                TwinflowTransitionEntity::getId,
+                TwinflowTransitionEntity::getValidatorRulesKit,
+                TwinflowTransitionEntity::setValidatorRulesKit,
+                twinflowTransitionValidatorRuleRepository::findAllByTwinflowTransitionIdInOrderByOrder,
+                TwinflowTransitionValidatorRuleEntity::getId,
+                TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId);
     }
 
     public Kit<TwinflowTransitionTriggerEntity, UUID> loadTriggers(TwinflowTransitionEntity transition) {
@@ -594,15 +591,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     public void loadTriggers(Collection<TwinflowTransitionEntity> transitions) {
-        Map<UUID, TwinflowTransitionEntity> needLoad = new HashMap<>();
-        for (TwinflowTransitionEntity transition : transitions)
-            if (transition.getTriggersKit() == null)
-                needLoad.put(transition.getId(), transition);
-        if (needLoad.isEmpty()) return;
-        KitGrouped<TwinflowTransitionTriggerEntity, UUID, UUID> triggersKit = new KitGrouped<>(
-                twinflowTransitionTriggerRepository.findAllByTwinflowTransitionIdInOrderByOrder(needLoad.keySet()), TwinflowTransitionTriggerEntity::getId, TwinflowTransitionTriggerEntity::getTwinflowTransitionId);
-        for (Map.Entry<UUID, TwinflowTransitionEntity> entry : needLoad.entrySet())
-            entry.getValue().setTriggersKit(new Kit<>(triggersKit.getGrouped(entry.getKey()), TwinflowTransitionTriggerEntity::getId));
+        loadKit(transitions,
+                TwinflowTransitionEntity::getId,
+                TwinflowTransitionEntity::getTriggersKit,
+                TwinflowTransitionEntity::setTriggersKit,
+                twinflowTransitionTriggerRepository::findAllByTwinflowTransitionIdInOrderByOrder,
+                TwinflowTransitionTriggerEntity::getId,
+                TwinflowTransitionTriggerEntity::getTwinflowTransitionId);
     }
 
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {

@@ -14,12 +14,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -31,7 +32,7 @@ import java.util.function.Function;
 public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactoryEraserEntity> {
     @Getter
     private final TwinFactoryEraserRepository repository;
-    private final AuthService authService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
 
@@ -95,4 +96,18 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         deleteSafe(id);
     }
 
+    public void loadFactoryErasers(TwinFactoryEntity factory) {
+        loadFactoryErasers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryErasers(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryEraserKit,
+                TwinFactoryEntity::setTwinFactoryEraserKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryEraserEntity::getId,
+                TwinFactoryEraserEntity::getTwinFactoryId);
+    }
 }
