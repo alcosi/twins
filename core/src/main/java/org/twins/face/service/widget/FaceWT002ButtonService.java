@@ -3,9 +3,6 @@ package org.twins.face.service.widget;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -53,23 +50,13 @@ public class FaceWT002ButtonService extends FaceVariantsService<FaceWT002ButtonE
     }
 
     public void loadButtons(Collection<FaceWT002Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FaceWT002Entity, UUID> needLoad = new Kit<>(FaceWT002Entity::getId);
-
-        for (var faceWT002Entity : srcList)
-            if (faceWT002Entity.getButtons() == null) {
-                faceWT002Entity.setButtons(new Kit<>(FaceWT002ButtonEntity::getId));
-                needLoad.add(faceWT002Entity);
-            }
-
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FaceWT002ButtonEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceWT002ButtonRepository.findByFaceWT002IdIn(needLoad.getIdSet()), FaceWT002ButtonEntity::getId, FaceWT002ButtonEntity::getFaceWT002Id);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getButtons().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FaceWT002Entity::getId,
+                FaceWT002Entity::getButtons,
+                FaceWT002Entity::setButtons,
+                faceWT002ButtonRepository::findByFaceWT002IdIn,
+                FaceWT002ButtonEntity::getId,
+                FaceWT002ButtonEntity::getFaceWT002Id);
     }
 
     @Override

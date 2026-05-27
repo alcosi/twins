@@ -4,9 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -80,21 +77,13 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
     }
 
     public void loadChilds(Collection<FaceNB001MenuItemEntity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FaceNB001MenuItemEntity, UUID> needLoad = new Kit<>(FaceNB001MenuItemEntity::getId);
-        for (var faceNB001MenuItemEntity : srcList)
-            if (faceNB001MenuItemEntity.getChilds() == null) {
-                faceNB001MenuItemEntity.setChilds(new Kit<>(FaceNB001MenuItemEntity::getId));
-                needLoad.add(faceNB001MenuItemEntity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FaceNB001MenuItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                repository.findByParentFaceMenuItemIdIn(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getParentFaceMenuItemId);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getChilds().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FaceNB001MenuItemEntity::getId,
+                FaceNB001MenuItemEntity::getChilds,
+                FaceNB001MenuItemEntity::setChilds,
+                repository::findByParentFaceMenuItemIdIn,
+                FaceNB001MenuItemEntity::getId,
+                FaceNB001MenuItemEntity::getParentFaceMenuItemId);
     }
 
 }

@@ -3,9 +3,6 @@ package org.twins.face.service.bc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -63,28 +60,13 @@ public class FaceBC001Service extends FaceVariantsService<FaceBC001Entity> {
     }
 
     public void loadBreadCrumbsItems(Collection<FaceBC001Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList)) {
-            return;
-        }
-
-        Kit<FaceBC001Entity, UUID> needLoad = new Kit<>(FaceBC001Entity::getId);
-        for (var faceBC001Entity : srcList) {
-            if (faceBC001Entity.getItems() == null) {
-                faceBC001Entity.setItems(new Kit<>(FaceBC001ItemEntity::getId));
-                needLoad.add(faceBC001Entity);
-            }
-        }
-
-        if (needLoad.isEmpty()) {
-            return;
-        }
-
-        KitGrouped<FaceBC001ItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceBC001ItemRepository.findAllByFaceBC001IdIn(needLoad.getIdSet()), FaceBC001ItemEntity::getId, FaceBC001ItemEntity::getFaceBC001Id);
-
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getItems().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FaceBC001Entity::getId,
+                FaceBC001Entity::getItems,
+                FaceBC001Entity::setItems,
+                faceBC001ItemRepository::findAllByFaceBC001IdIn,
+                FaceBC001ItemEntity::getId,
+                FaceBC001ItemEntity::getFaceBC001Id);
     }
 
     public List<Pair<FaceBC001ItemEntity, TwinEntity>> getBC001ItemToTwinPairs(FaceBC001Entity entity) throws ServiceException {

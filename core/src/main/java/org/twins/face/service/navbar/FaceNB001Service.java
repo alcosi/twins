@@ -3,9 +3,6 @@ package org.twins.face.service.navbar;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -56,20 +53,12 @@ public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entit
     }
 
     public void loadMenuItems(Collection<FaceNB001Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FaceNB001Entity, UUID> needLoad = new Kit<>(FaceNB001Entity::getFaceId);
-        for (var faceNB001Entity : srcList)
-            if (faceNB001Entity.getMenuItems() == null) {
-                faceNB001Entity.setMenuItems(new Kit<>(FaceNB001MenuItemEntity::getId));
-                needLoad.add(faceNB001Entity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FaceNB001MenuItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceNB001MenuItemRepository.findByFaceIdInAndParentFaceMenuItemIdIsNull(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getFaceId);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getMenuItems().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FaceNB001Entity::getFaceId,
+                FaceNB001Entity::getMenuItems,
+                FaceNB001Entity::setMenuItems,
+                faceNB001MenuItemRepository::findByFaceIdInAndParentFaceMenuItemIdIsNull,
+                FaceNB001MenuItemEntity::getId,
+                FaceNB001MenuItemEntity::getFaceId);
     }
 }
