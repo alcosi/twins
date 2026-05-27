@@ -24,9 +24,14 @@ import org.twins.core.service.i18n.I18nService;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
+import org.twins.core.domain.factory.FactoryBranchDuplicate;
+
+import java.util.Collection;
+import java.util.Collections;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +41,8 @@ import java.util.stream.Collectors;
 public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
+    @Lazy
+    private final TwinFactoryService twinFactoryService;
     @Lazy
     private final I18nService i18nService;
     @Lazy
@@ -132,5 +139,42 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
             entitiesForSave.add(duplicateBranch);
         }
         saveSafe(entitiesForSave);
+    }
+
+    @Transactional
+    public Collection<TwinFactoryBranchEntity> duplicateBranches(Collection<FactoryBranchDuplicate> duplicates) throws ServiceException {
+        if (CollectionUtils.isEmpty(duplicates)) {
+            return Collections.emptyList();
+        }
+        loadOriginalBranches(duplicates);
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewTwinFactoryId() == null) {
+                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryBranch().getTwinFactoryId());
+            }
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryBranchEntity>();
+        for (var duplicate : duplicates) {
+            TwinFactoryBranchEntity duplicateBranch = duplicateBranchEntity(duplicate.getOriginalFactoryBranch(), duplicate.getNewTwinFactoryId());
+            entitiesForSave.add(duplicateBranch);
+        }
+        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
+    }
+
+    private void loadOriginalBranches(Collection<FactoryBranchDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                FactoryBranchDuplicate::getNewFactoryBranchId,
+                FactoryBranchDuplicate::getOriginalFactoryBranchId,
+                FactoryBranchDuplicate::getOriginalFactoryBranch,
+                FactoryBranchDuplicate::setOriginalFactoryBranch);
+    }
+
+    private TwinFactoryBranchEntity duplicateBranchEntity(TwinFactoryBranchEntity srcBranchEntity, UUID newTwinFactoryId) throws ServiceException {
+        return new TwinFactoryBranchEntity()
+                .setTwinFactoryId(newTwinFactoryId)
+                .setTwinFactoryConditionSetId(srcBranchEntity.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionInvert(srcBranchEntity.getTwinFactoryConditionInvert())
+                .setActive(srcBranchEntity.getActive())
+                .setNextTwinFactoryId(srcBranchEntity.getNextTwinFactoryId())
+                .setDescription(srcBranchEntity.getDescription());
     }
 }

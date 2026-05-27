@@ -10,6 +10,10 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.twins.core.domain.factory.FactoryTriggerDuplicate;
+
+import java.util.Collection;
+import java.util.Collections;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -34,6 +38,7 @@ import java.util.stream.StreamSupport;
 @AllArgsConstructor
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
@@ -183,5 +188,43 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
             entitiesForSave.add(duplicateTrigger);
         }
         saveSafe(entitiesForSave);
+    }
+
+    @Transactional
+    public Collection<TwinFactoryTriggerEntity> duplicateTriggers(Collection<FactoryTriggerDuplicate> duplicates) throws ServiceException {
+        if (CollectionUtils.isEmpty(duplicates)) {
+            return Collections.emptyList();
+        }
+        loadOriginalTriggers(duplicates);
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewTwinFactoryId() == null) {
+                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryTrigger().getTwinFactoryId());
+            }
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryTriggerEntity>();
+        for (var duplicate : duplicates) {
+            TwinFactoryTriggerEntity duplicateTrigger = duplicateTriggerEntity(duplicate.getOriginalFactoryTrigger(), duplicate.getNewTwinFactoryId());
+            entitiesForSave.add(duplicateTrigger);
+        }
+        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
+    }
+
+    private void loadOriginalTriggers(Collection<FactoryTriggerDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                FactoryTriggerDuplicate::getNewFactoryTriggerId,
+                FactoryTriggerDuplicate::getOriginalFactoryTriggerId,
+                FactoryTriggerDuplicate::getOriginalFactoryTrigger,
+                FactoryTriggerDuplicate::setOriginalFactoryTrigger);
+    }
+
+    private TwinFactoryTriggerEntity duplicateTriggerEntity(TwinFactoryTriggerEntity srcTriggerEntity, UUID newTwinFactoryId) throws ServiceException {
+        return new TwinFactoryTriggerEntity()
+                .setTwinFactoryId(newTwinFactoryId)
+                .setInputTwinClassId(srcTriggerEntity.getInputTwinClassId())
+                .setTwinFactoryConditionSetId(srcTriggerEntity.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionInvert(srcTriggerEntity.getTwinFactoryConditionInvert())
+                .setTwinTriggerId(srcTriggerEntity.getTwinTriggerId())
+                .setAsync(srcTriggerEntity.getAsync())
+                .setActive(srcTriggerEntity.getActive());
     }
 }

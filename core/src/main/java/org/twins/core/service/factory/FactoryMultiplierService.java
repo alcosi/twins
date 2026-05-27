@@ -21,14 +21,20 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.*;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import org.cambium.common.kit.Kit;
+import java.util.stream.StreamSupport;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
+import org.twins.core.domain.factory.FactoryMultiplierDuplicate;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -39,6 +45,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     @Getter
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
 
     @Override
@@ -121,6 +128,41 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
             entitiesForSave.add(duplicateMultiplier);
         }
         saveSafe(entitiesForSave);
+    }
+
+    @Transactional
+    public Collection<TwinFactoryMultiplierEntity> duplicateMultipliers(Collection<FactoryMultiplierDuplicate> duplicates) throws ServiceException {
+        if (CollectionUtils.isEmpty(duplicates)) {
+            return Collections.emptyList();
+        }
+        loadOriginalMultipliers(duplicates);
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewTwinFactoryId() == null) {
+                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryMultiplier().getTwinFactoryId());
+            }
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryMultiplierEntity>();
+        for (var duplicate : duplicates) {
+            TwinFactoryMultiplierEntity duplicateMultiplier = duplicateMultiplierEntity(duplicate.getOriginalFactoryMultiplier(), duplicate.getNewTwinFactoryId());
+            entitiesForSave.add(duplicateMultiplier);
+        }
+        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
+    }
+
+    private void loadOriginalMultipliers(Collection<FactoryMultiplierDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                FactoryMultiplierDuplicate::getNewFactoryMultiplierId,
+                FactoryMultiplierDuplicate::getOriginalFactoryMultiplierId,
+                FactoryMultiplierDuplicate::getOriginalFactoryMultiplier,
+                FactoryMultiplierDuplicate::setOriginalFactoryMultiplier);
+    }
+
+    private TwinFactoryMultiplierEntity duplicateMultiplierEntity(TwinFactoryMultiplierEntity srcMultiplierEntity, UUID newTwinFactoryId) throws ServiceException {
+        return new TwinFactoryMultiplierEntity()
+                .setTwinFactoryId(newTwinFactoryId)
+                .setInputTwinClassId(srcMultiplierEntity.getInputTwinClassId())
+                .setMultiplierFeaturerId(srcMultiplierEntity.getMultiplierFeaturerId())
+                .setMultiplierParams(srcMultiplierEntity.getMultiplierParams());
     }
 
 }

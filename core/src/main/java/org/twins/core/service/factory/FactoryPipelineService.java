@@ -26,11 +26,16 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import org.cambium.common.kit.Kit;
+import java.util.stream.StreamSupport;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
+import org.twins.core.domain.factory.FactoryPipelineDuplicate;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -42,6 +47,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final TwinFactoryPipelineRepository repository;
     private final AuthService authService;
     private final TwinClassService twinClassService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
@@ -142,5 +148,47 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
             entitiesForSave.add(duplicatePipeline);
         }
         saveSafe(entitiesForSave);
+    }
+
+    @Transactional
+    public Collection<TwinFactoryPipelineEntity> duplicatePipelines(Collection<FactoryPipelineDuplicate> duplicates) throws ServiceException {
+        if (CollectionUtils.isEmpty(duplicates)) {
+            return Collections.emptyList();
+        }
+        loadOriginalPipelines(duplicates);
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewTwinFactoryId() == null) {
+                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryPipeline().getTwinFactoryId());
+            }
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryPipelineEntity>();
+        for (var duplicate : duplicates) {
+            TwinFactoryPipelineEntity duplicatePipeline = duplicatePipelineEntity(duplicate.getOriginalFactoryPipeline(), duplicate.getNewTwinFactoryId());
+            entitiesForSave.add(duplicatePipeline);
+        }
+        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
+    }
+
+    private void loadOriginalPipelines(Collection<FactoryPipelineDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                FactoryPipelineDuplicate::getNewFactoryPipelineId,
+                FactoryPipelineDuplicate::getOriginalFactoryPipelineId,
+                FactoryPipelineDuplicate::getOriginalFactoryPipeline,
+                FactoryPipelineDuplicate::setOriginalFactoryPipeline);
+    }
+
+    private TwinFactoryPipelineEntity duplicatePipelineEntity(TwinFactoryPipelineEntity srcPipelineEntity, UUID newTwinFactoryId) throws ServiceException {
+        return new TwinFactoryPipelineEntity()
+                .setTwinFactoryId(newTwinFactoryId)
+                .setInputTwinClassId(srcPipelineEntity.getInputTwinClassId())
+                .setTwinFactoryConditionSetId(srcPipelineEntity.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionInvert(srcPipelineEntity.getTwinFactoryConditionInvert())
+                .setOutputTwinStatusId(srcPipelineEntity.getOutputTwinStatusId())
+                .setNextTwinFactoryId(srcPipelineEntity.getNextTwinFactoryId())
+                .setNextTwinFactoryLimitScope(srcPipelineEntity.getNextTwinFactoryLimitScope())
+                .setAfterCommitTwinFactoryId(srcPipelineEntity.getAfterCommitTwinFactoryId())
+                .setTemplateTwinId(srcPipelineEntity.getTemplateTwinId())
+                .setDescription(srcPipelineEntity.getDescription())
+                .setActive(srcPipelineEntity.getActive());
     }
 }

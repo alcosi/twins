@@ -24,9 +24,16 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 import org.cambium.common.kit.KitGrouped;
+import org.twins.core.domain.factory.FactoryEraserDuplicate;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -37,6 +44,7 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Getter
     private final TwinFactoryEraserRepository repository;
     private final AuthService authService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
 
@@ -118,6 +126,44 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
             entitiesForSave.add(duplicateEraser);
         }
         saveSafe(entitiesForSave);
+    }
+
+    @Transactional
+    public Collection<TwinFactoryEraserEntity> duplicateErasers(Collection<FactoryEraserDuplicate> duplicates) throws ServiceException {
+        if (CollectionUtils.isEmpty(duplicates)) {
+            return Collections.emptyList();
+        }
+        loadOriginalErasers(duplicates);
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewTwinFactoryId() == null) {
+                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryEraser().getTwinFactoryId());
+            }
+        }
+        var entitiesForSave = new ArrayList<TwinFactoryEraserEntity>();
+        for (var duplicate : duplicates) {
+            TwinFactoryEraserEntity duplicateEraser = duplicateEraserEntity(duplicate.getOriginalFactoryEraser(), duplicate.getNewTwinFactoryId());
+            entitiesForSave.add(duplicateEraser);
+        }
+        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
+    }
+
+    private void loadOriginalErasers(Collection<FactoryEraserDuplicate> duplicates) throws ServiceException {
+        load(duplicates,
+                FactoryEraserDuplicate::getNewFactoryEraserId,
+                FactoryEraserDuplicate::getOriginalFactoryEraserId,
+                FactoryEraserDuplicate::getOriginalFactoryEraser,
+                FactoryEraserDuplicate::setOriginalFactoryEraser);
+    }
+
+    private TwinFactoryEraserEntity duplicateEraserEntity(TwinFactoryEraserEntity srcEraserEntity, UUID newTwinFactoryId) throws ServiceException {
+        return new TwinFactoryEraserEntity()
+                .setTwinFactoryId(newTwinFactoryId)
+                .setInputTwinClassId(srcEraserEntity.getInputTwinClassId())
+                .setTwinFactoryConditionSetId(srcEraserEntity.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionInvert(srcEraserEntity.getTwinFactoryConditionInvert())
+                .setEraserAction(srcEraserEntity.getEraserAction())
+                .setDescription(srcEraserEntity.getDescription())
+                .setActive(srcEraserEntity.getActive());
     }
 
 }
