@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.UUID;
 
@@ -18,6 +20,7 @@ public class TwinClassFreezeDTOv1 {
     public String key;
 
     @Schema(description = "statusId")
+    @RelatedObject(type = TwinStatusDTOv1.class, name = "status")
     public UUID statusId;
 
     @Schema(description = "name")
