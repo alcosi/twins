@@ -3,6 +3,7 @@ package org.twins.core.featurer.scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -69,7 +70,7 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         }
     }
 
-    private List<E> collectTasks(Integer batchSize) {
+    private List<E> collectTasks(Integer batchSize) throws ServiceException {
         log.debug("Loading tasks from database");
 
         if (batchSize == null) {
@@ -81,6 +82,6 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
 
     protected abstract Class<T> getTaskClass();
     protected abstract Collection<E> setStatusAndSave(Collection<E> collectedEntities);
-    protected abstract List<E> collectAll();
+    protected abstract List<E> collectAll() throws ServiceException;
     protected abstract List<E> collectBatch(int batchSize);
 }
