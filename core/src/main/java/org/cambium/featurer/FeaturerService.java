@@ -11,6 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
@@ -20,7 +21,6 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.dao.*;
 import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -218,13 +218,32 @@ public class FeaturerService {
     }
 
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
-        EntitySecureFindServiceImpl.loadKit(featurerEntityCollection,
-                FeaturerEntity::getId,
-                FeaturerEntity::getParams,
-                FeaturerEntity::setParams,
-                featurerParamRepository::findByFeaturerIdInOrderByOrderAsc,
-                FeaturerParamEntity::getKey,
-                FeaturerParamEntity::getFeaturerId);
+        if (CollectionUtils.isEmpty(featurerEntityCollection))
+            return;
+        Kit<FeaturerEntity, Integer> needLoad = null;
+        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
+            if (featurerEntity.getParams() == null) {
+                if (needLoad == null) {
+                    needLoad = new Kit<>(FeaturerEntity::getId);
+                }
+                needLoad.add(featurerEntity);
+            }
+        }
+        if (needLoad == null)
+            return;
+        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdInOrderByOrderAsc(needLoad.getIdSet());
+        if (CollectionUtils.isEmpty(allParams))
+            return;
+        // EntitySecureFindServiceImpl.loadKit cannot be used because there is not uniq id for params and KitGrouped will throw an exception on key duplicates
+        Map<Integer, List<FeaturerParamEntity>> paramsGroupedByFeaturerId = allParams.stream()
+                .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
+        for (FeaturerEntity featurerEntity : needLoad.getCollection()) {
+            List<FeaturerParamEntity> params = paramsGroupedByFeaturerId.get(featurerEntity.getId());
+            if (params != null)
+                featurerEntity.setParams(new Kit<>(params, FeaturerParamEntity::getKey));
+            else
+                featurerEntity.setParams(Kit.emptyKit());
+        }
     }
 
     public void loadAllFeaturerFieldsParams(Object object) {
