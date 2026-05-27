@@ -1,0 +1,48 @@
+package org.twins.core.featurer.fieldtyper.storage;
+
+import org.cambium.common.kit.Kit;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldCalcProjection;
+import org.twins.core.dao.twin.TwinRepository;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
+public class TwinFieldStorageCalcChildrenByLinkCount extends TwinFieldStorageCalc {
+    private final TwinRepository twinRepository;
+    private final Set<UUID> linkIds;
+    private final Set<UUID> linkedTwinStatusIdSet;
+    private final boolean exclude;
+
+    public TwinFieldStorageCalcChildrenByLinkCount(
+            TwinRepository twinRepository,
+            UUID twinClassFieldId,
+            Set<UUID> linkIds,
+            Set<UUID> linkedTwinStatusIdSet,
+            boolean exclude) {
+        super(twinClassFieldId);
+        this.twinRepository = twinRepository;
+        this.linkIds = linkIds;
+        this.linkedTwinStatusIdSet = linkedTwinStatusIdSet;
+        this.exclude = exclude;
+    }
+
+    @Override
+    public void load(Kit<TwinEntity, UUID> twinsKit) {
+        List<TwinFieldCalcProjection> calc = exclude ?
+                twinRepository.countLinkedTwinsByBackwardLinkWithStatusNotIn(twinsKit.getIdSet(), linkIds, linkedTwinStatusIdSet) :
+                twinRepository.countLinkedTwinsByBackwardLinkWithStatusIn(twinsKit.getIdSet(), linkIds, linkedTwinStatusIdSet);
+        packResult(twinsKit, calc);
+    }
+
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o)
+                && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcChildrenByLinkCount) o).twinClassFieldId)
+                && Objects.equals(this.linkIds, ((TwinFieldStorageCalcChildrenByLinkCount) o).linkIds)
+                && Objects.equals(this.linkedTwinStatusIdSet, ((TwinFieldStorageCalcChildrenByLinkCount) o).linkedTwinStatusIdSet)
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcChildrenByLinkCount) o).exclude);
+    }
+}

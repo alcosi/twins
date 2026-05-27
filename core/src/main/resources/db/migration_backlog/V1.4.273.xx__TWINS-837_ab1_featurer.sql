@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1351, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperCountChildrenByLinkV1', 'Count linked twins by link, status and class (on fly)', 'Get count of linked twins by link, status(inc/exc) and class on fly', false) on conflict do nothing;
