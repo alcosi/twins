@@ -77,9 +77,15 @@ public class FactoryExportService {
             sqlParts.add(factoriesSql);
         }
 
+        // Load all factory elements using optimized load methods
+        twinFactoryService.loadFactoryElements(factories);
+
         // Branches
         if (includeBranches) {
-            List<TwinFactoryBranchEntity> branches = factoryBranchService.findByTwinFactoryIdIn(factoryIds);
+            List<TwinFactoryBranchEntity> branches = new ArrayList<>();
+            for (TwinFactoryEntity factory : factories) {
+                branches.addAll(factory.getTwinFactoryBranchKit().getList());
+            }
             if (!branches.isEmpty()) {
                 String branchesSql = branchExportService.exportToSql(branches);
                 if (!branchesSql.isEmpty()) {
@@ -90,7 +96,10 @@ public class FactoryExportService {
 
         // Multipliers
         if (includeMultipliers) {
-            List<TwinFactoryMultiplierEntity> multipliers = factoryMultiplierService.findByTwinFactoryIdIn(factoryIds);
+            List<TwinFactoryMultiplierEntity> multipliers = new ArrayList<>();
+            for (TwinFactoryEntity factory : factories) {
+                multipliers.addAll(factory.getTwinFactoryMultiplierKit().getList());
+            }
             if (!multipliers.isEmpty()) {
                 String multipliersSql = multiplierExportService.exportToSql(multipliers);
                 if (!multipliersSql.isEmpty()) {
@@ -101,7 +110,10 @@ public class FactoryExportService {
 
         // Pipelines
         if (includePipelines) {
-            List<TwinFactoryPipelineEntity> pipelines = factoryPipelineService.findByTwinFactoryIdIn(factoryIds);
+            List<TwinFactoryPipelineEntity> pipelines = new ArrayList<>();
+            for (TwinFactoryEntity factory : factories) {
+                pipelines.addAll(factory.getTwinFactoryPipelineKit().getList());
+            }
             if (!pipelines.isEmpty()) {
                 String pipelinesSql = pipelineExportService.exportToSql(pipelines);
                 if (!pipelinesSql.isEmpty()) {
@@ -112,7 +124,10 @@ public class FactoryExportService {
 
         // Erasers
         if (includeErasers) {
-            List<TwinFactoryEraserEntity> erasers = factoryEraserService.findByTwinFactoryIdIn(factoryIds);
+            List<TwinFactoryEraserEntity> erasers = new ArrayList<>();
+            for (TwinFactoryEntity factory : factories) {
+                erasers.addAll(factory.getTwinFactoryEraserKit().getList());
+            }
             if (!erasers.isEmpty()) {
                 String erasersSql = eraserExportService.exportToSql(erasers);
                 if (!erasersSql.isEmpty()) {
@@ -123,7 +138,10 @@ public class FactoryExportService {
 
         // Triggers
         if (includeTriggers) {
-            List<TwinFactoryTriggerEntity> triggers = factoryTriggerService.findByTwinFactoryIdIn(factoryIds);
+            List<TwinFactoryTriggerEntity> triggers = new ArrayList<>();
+            for (TwinFactoryEntity factory : factories) {
+                triggers.addAll(factory.getTwinFactoryTriggerKit().getList());
+            }
             if (!triggers.isEmpty()) {
                 String triggersSql = triggerExportService.exportToSql(triggers);
                 if (!triggersSql.isEmpty()) {
