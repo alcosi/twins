@@ -15,7 +15,6 @@ public interface TwinFactoryMultiplierRepository extends CrudRepository<TwinFact
 
     List<TwinFactoryMultiplierEntity> findByTwinFactoryId(UUID twinFactoryId);
 
-
     @Query("SELECT t.twinFactoryId, COUNT(t) FROM TwinFactoryMultiplierEntity t WHERE t.twinFactoryId IN :ids GROUP BY t.twinFactoryId")
     List<Object[]> countByTwinFactoryIds(Collection<UUID> ids);
 }

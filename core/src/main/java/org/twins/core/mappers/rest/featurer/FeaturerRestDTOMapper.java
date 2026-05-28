@@ -42,7 +42,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         if (showFeaturerParams(mapperContext)) {
             featurerService.loadFeaturerParams(src);
             dst
-                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
+                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams().getCollection(), mapperContext));
         }
     }
 

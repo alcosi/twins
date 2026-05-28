@@ -203,7 +203,7 @@ public class FeaturerService {
         FeaturerType featurerTypeAnnotation = type.getAnnotation(FeaturerType.class);
         List<FeaturerEntity> list = featurerRepository.findByFeaturerTypeId(featurerTypeAnnotation.id());
         for (FeaturerEntity featurerEntity : list) {
-            featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+            featurerEntity.setParams(new Kit<>(featurerParamRepository.findByFeaturer(featurerEntity), FeaturerParamEntity::getKey));
         }
         return list;
     }
@@ -220,23 +220,29 @@ public class FeaturerService {
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
         if (CollectionUtils.isEmpty(featurerEntityCollection))
             return;
-        Kit<FeaturerEntity, Integer> needLoad = new Kit<>(FeaturerEntity::getId);
+        Kit<FeaturerEntity, Integer> needLoad = null;
         for (FeaturerEntity featurerEntity : featurerEntityCollection) {
-            if (featurerEntity.getParams() == null)
+            if (featurerEntity.getParams() == null) {
+                if (needLoad == null) {
+                    needLoad = new Kit<>(FeaturerEntity::getId);
+                }
                 needLoad.add(featurerEntity);
+            }
         }
-        if (needLoad.isEmpty())
+        if (needLoad == null)
             return;
-        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(needLoad.getIdSet());
+        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdInOrderByOrderAsc(needLoad.getIdSet());
         if (CollectionUtils.isEmpty(allParams))
             return;
+        // EntitySecureFindServiceImpl.loadKit cannot be used because there is not uniq id for params and KitGrouped will throw an exception on key duplicates
         Map<Integer, List<FeaturerParamEntity>> paramsGroupedByFeaturerId = allParams.stream()
                 .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
         for (FeaturerEntity featurerEntity : needLoad.getCollection()) {
             List<FeaturerParamEntity> params = paramsGroupedByFeaturerId.get(featurerEntity.getId());
-            featurerEntity.setParams(params != null ? params.stream()
-                    .sorted(Comparator.comparingInt(FeaturerParamEntity::getOrder))
-                    .collect(Collectors.toList()) : Collections.EMPTY_LIST);
+            if (params != null)
+                featurerEntity.setParams(new Kit<>(params, FeaturerParamEntity::getKey));
+            else
+                featurerEntity.setParams(Kit.emptyKit());
         }
     }
 
@@ -247,7 +253,7 @@ public class FeaturerService {
                 try {
                     FeaturerEntity featurerEntity = (FeaturerEntity) method.invoke(object);
                     if (featurerEntity.getParams() == null)
-                        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+                        featurerEntity.setParams(new Kit<>(featurerParamRepository.findByFeaturer(featurerEntity), FeaturerParamEntity::getKey));
                 } catch (Exception e) {
                     log.error("Exception: ", e);
                 }

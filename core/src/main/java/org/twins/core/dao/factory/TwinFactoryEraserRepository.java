@@ -15,7 +15,6 @@ public interface TwinFactoryEraserRepository extends CrudRepository<TwinFactoryE
 
     List<TwinFactoryEraserEntity> findByTwinFactoryIdAndActiveTrue(UUID twinFactoryId);
 
-
     @Query("SELECT t.twinFactoryId, COUNT(t) FROM TwinFactoryEraserEntity t WHERE t.twinFactoryId IN :ids GROUP BY t.twinFactoryId")
     List<Object[]> countByTwinFactoryIds(Collection<UUID> ids);
 

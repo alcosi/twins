@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.http.HttpHeaders;
@@ -87,8 +88,11 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     @FeaturerParam(name = "Client introspection secret")
     public static final FeaturerParamEncrypted clientIntrospectionSecret = new FeaturerParamEncrypted("clientIntrospectionSecret");
 
-    @FeaturerParam(name = "Client introspection secret")
+    @FeaturerParam(name = "Active BA claim name")
     public static final FeaturerParamString activeBusinessAccountClaimName = new FeaturerParamString("activeBusinessAccountClaimName");
+
+    @FeaturerParam(name = "Active BA claim with multi-domain support", optional = true, defaultValue = "true")
+    public static final FeaturerParamBoolean activeBusinessAccountClaimMultiDomain = new FeaturerParamBoolean("activeBusinessAccountClaimMultiDomain");
 
     @Override
     protected ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException {
@@ -140,9 +144,13 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         UUID businessAccountId = null;
         if (claim != null) {
             String value = claim.asText();
-            Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(value, new TypeReference<>() {});
-            UUID domainId = authService.getApiUser().getDomainId();
-            businessAccountId = domainIdToBusinessAccountIdMap.get(domainId);
+            if (activeBusinessAccountClaimMultiDomain.extract(properties)) {
+                Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(value, new TypeReference<>() {});
+                UUID domainId = authService.getApiUser().getDomainId();
+                businessAccountId = domainIdToBusinessAccountIdMap.get(domainId);
+            } else {
+                businessAccountId = UUID.fromString(value);
+            }
         }
         return new TokenMetaData()
                 .setUserId(userId)
@@ -209,14 +217,22 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
             User user = getUser(userId, token, properties);
             String claimType = activeBusinessAccountClaimName.extract(properties);
             Claim claim = getClaim(claimType, user.claims);
+            boolean multiDomain = activeBusinessAccountClaimMultiDomain.extract(properties);
             if (claim == null) {
-                String value = toString(Map.of(domainId, businessAccountId));
+                String value = multiDomain
+                        ? toString(Map.of(domainId, businessAccountId))
+                        : businessAccountId.toString();
                 Claim newClaim = new Claim(claimType, value);
                 addClaim(newClaim, token, userId, properties);
             } else {
-                Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(claim.value, new TypeReference<>() {});
-                domainIdToBusinessAccountIdMap.put(domainId, businessAccountId);
-                String value = toString(domainIdToBusinessAccountIdMap);
+                String value;
+                if (multiDomain) {
+                    Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(claim.value, new TypeReference<>() {});
+                    domainIdToBusinessAccountIdMap.put(domainId, businessAccountId);
+                    value = toString(domainIdToBusinessAccountIdMap);
+                } else {
+                    value = businessAccountId.toString();
+                }
                 Claim newClaim = new Claim(claimType, value);
                 editClaim(claim, newClaim, token, userId, properties);
             }

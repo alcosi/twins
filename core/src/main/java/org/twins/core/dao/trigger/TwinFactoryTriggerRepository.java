@@ -14,4 +14,6 @@ public interface TwinFactoryTriggerRepository extends CrudRepository<TwinFactory
     List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
 
     List<TwinFactoryTriggerEntity> findByTwinFactoryId(UUID twinFactoryId);
+
+    List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
 }

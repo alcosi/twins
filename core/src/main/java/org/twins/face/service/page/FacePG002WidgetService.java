@@ -3,9 +3,6 @@ package org.twins.face.service.page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -53,21 +50,13 @@ public class FacePG002WidgetService extends FaceVariantsService<FacePG002WidgetE
     }
 
     public void loadWidgets(Collection<FacePG002TabEntity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FacePG002TabEntity, UUID> needLoad = new Kit<>(FacePG002TabEntity::getId);
-        for (var facePG001Entity : srcList)
-            if (facePG001Entity.getWidgets() == null) {
-                facePG001Entity.setWidgets(new Kit<>(FacePG002WidgetEntity::getId));
-                needLoad.add(facePG001Entity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FacePG002WidgetEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                facePG002WidgetRepository.findByFacePagePG002TabIdInAndActiveTrue(needLoad.getIdSet()), FacePG002WidgetEntity::getId, FacePG002WidgetEntity::getFacePagePG002TabId);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getWidgets().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FacePG002TabEntity::getId,
+                FacePG002TabEntity::getWidgets,
+                FacePG002TabEntity::setWidgets,
+                facePG002WidgetRepository::findByFacePagePG002TabIdInAndActiveTrue,
+                FacePG002WidgetEntity::getId,
+                FacePG002WidgetEntity::getFacePagePG002TabId);
     }
 
     @Override
