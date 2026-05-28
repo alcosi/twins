@@ -10,13 +10,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-public class TwinFieldStorageCalcChildrenByLinkCount extends TwinFieldStorageCalc {
+public class TwinFieldStorageCalcBackwardLinkedTwinCount extends TwinFieldStorageCalc {
     private final TwinRepository twinRepository;
     private final Set<UUID> linkIds;
     private final Set<UUID> linkedTwinStatusIdSet;
     private final boolean exclude;
 
-    public TwinFieldStorageCalcChildrenByLinkCount(
+    public TwinFieldStorageCalcBackwardLinkedTwinCount(
             TwinRepository twinRepository,
             UUID twinClassFieldId,
             Set<UUID> linkIds,
@@ -40,9 +40,9 @@ public class TwinFieldStorageCalcChildrenByLinkCount extends TwinFieldStorageCal
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o)
-                && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcChildrenByLinkCount) o).twinClassFieldId)
-                && Objects.equals(this.linkIds, ((TwinFieldStorageCalcChildrenByLinkCount) o).linkIds)
-                && Objects.equals(this.linkedTwinStatusIdSet, ((TwinFieldStorageCalcChildrenByLinkCount) o).linkedTwinStatusIdSet)
-                && Objects.equals(this.exclude, ((TwinFieldStorageCalcChildrenByLinkCount) o).exclude);
+                && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).twinClassFieldId)
+                && Objects.equals(this.linkIds, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).linkIds)
+                && Objects.equals(this.linkedTwinStatusIdSet, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).linkedTwinStatusIdSet)
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).exclude);
     }
 }

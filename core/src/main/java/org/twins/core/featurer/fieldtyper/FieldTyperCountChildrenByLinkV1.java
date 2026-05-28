@@ -11,7 +11,7 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcChildrenByLinkCount;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcBackwardLinkedTwinCount;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
@@ -20,7 +20,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1351,
         name = "Count linked twins by link and status (on fly)",
         description = "Get count of linked twins by link and status(inc/exc) on fly")
-public class FieldTyperCountChildrenByLinkV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenByLinkCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByLink {
+public class FieldTyperCountChildrenByLinkV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcBackwardLinkedTwinCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByLink {
     public static final Integer ID = 1351;
 
     @Autowired
@@ -40,7 +40,7 @@ public class FieldTyperCountChildrenByLinkV1 extends FieldTyperImmutable<FieldDe
 
     @Override
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
-        return new TwinFieldStorageCalcChildrenByLinkCount(
+        return new TwinFieldStorageCalcBackwardLinkedTwinCount(
                 twinRepository,
                 twinClassFieldEntity.getId(),
                 linkIds.extract(properties),
