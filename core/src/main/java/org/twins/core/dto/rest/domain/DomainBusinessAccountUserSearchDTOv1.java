@@ -4,7 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
-import org.twins.core.dto.rest.SortDTOv1;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.DomainBusinessAccountUserSortField;
 
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +39,9 @@ public class DomainBusinessAccountUserSearchDTOv1 {
     @Schema(description = "created at range")
     public DataTimeRangeDTOv1 createdAt;
 
-    @Schema(description = "sort options")
-    public SortDTOv1 sort;
+    @Schema(description = "Sort field. Default: createdAt")
+    public DomainBusinessAccountUserSortField sortField;
+
+    @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
+    public SortDirection sortDirection;
 }

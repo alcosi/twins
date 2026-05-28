@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 import static org.twins.core.dao.specifications.domain.DomainBusinessAccountUserSpecification.checkUserGroupIdIn;
+import static org.twins.core.dao.specifications.domain.DomainBusinessAccountUserSpecification.createSortSpecification;
 
 @Slf4j
 @Service
@@ -49,7 +50,7 @@ public class DomainBusinessAccountUserSearchService {
                 checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true),
                 checkFieldLocalDateTimeBetween(search.getLastActivityAtRange(), DomainBusinessAccountUserEntity.Fields.lastActivityAt),
                 checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), DomainBusinessAccountUserEntity.Fields.createdAt),
-                toSortSpecification(search.getSortOption())
+                createSortSpecification(search)
         );
     }
 }

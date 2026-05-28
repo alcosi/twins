@@ -666,4 +666,18 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         if (sort == null) return (root, query, cb) -> cb.conjunction();
         return sort.toSortSpecification();
     }
+
+    public static <T> Specification<T> toSortSpecification(String[] fieldPath, boolean ascending) {
+        if (fieldPath == null)
+            return (root, query, cb) -> cb.conjunction();
+        return (root, query, cb) -> {
+            if (query.getResultType().equals(Long.class))
+                return cb.conjunction();
+            Path<?> sortPath = getFieldPath(root, JoinType.LEFT, fieldPath);
+            List<Order> orders = new ArrayList<>(query.getOrderList());
+            orders.add(ascending ? cb.asc(sortPath) : cb.desc(sortPath));
+            query.orderBy(orders);
+            return cb.conjunction();
+        };
+    }
 }

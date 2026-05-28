@@ -26,7 +26,7 @@ import org.twins.core.dao.domain.DomainBusinessAccountUserEntity;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountUserSearchRqDTOv1;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountUserSearchRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountUserRestDTOMapper;
-import org.twins.core.mappers.rest.domain.DomainBusinessAccountUserSearchDTOReverseMapper;
+import org.twins.core.mappers.rest.domain.DomainBusinessAccountUserSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -40,7 +40,7 @@ import org.twins.core.service.permission.Permissions;
 @ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
 public class DomainBusinessAccountUserSearchController extends ApiController {
     private final DomainBusinessAccountUserSearchService domainBusinessAccountUserSearchService;
-    private final DomainBusinessAccountUserSearchDTOReverseMapper domainBusinessAccountUserSearchDTOReverseMapper;
+    private final DomainBusinessAccountUserSearchRqDTOReverseMapper domainBusinessAccountUserSearchRqDTOReverseMapper;
     private final DomainBusinessAccountUserRestDTOMapper domainBusinessAccountUserRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -60,7 +60,7 @@ public class DomainBusinessAccountUserSearchController extends ApiController {
         DomainBusinessAccountUserSearchRsDTOv1 rs = new DomainBusinessAccountUserSearchRsDTOv1();
         try {
             PaginationResult<DomainBusinessAccountUserEntity> result = domainBusinessAccountUserSearchService
-                    .findDomainBusinessAccountUsers(domainBusinessAccountUserSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .findDomainBusinessAccountUsers(domainBusinessAccountUserSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setPagination(paginationMapper.convert(result))
                     .setDomainBusinessAccountUsers(domainBusinessAccountUserRestDTOMapper.convertCollection(result.getList(), mapperContext))

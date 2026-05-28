@@ -4,9 +4,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.specifications.SortOption;
-import org.twins.core.dao.specifications.sort.DomainBusinessAccountUserSortField;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.DomainBusinessAccountUserSortField;
 
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +23,8 @@ public class DomainBusinessAccountUserSearch {
     public Set<UUID> userGroupIdExcludeList;
     public DataTimeRange lastActivityAtRange;
     public DataTimeRange createdAtRange;
-    public SortOption<DomainBusinessAccountUserSortField> sortOption = new SortOption<>(DomainBusinessAccountUserSortField.createdAt);
+    public DomainBusinessAccountUserSortField sortField = DomainBusinessAccountUserSortField.createdAt;
+    public SortDirection sortDirection = SortDirection.ASC;
 
     public DomainBusinessAccountUserSearch addUserId(UUID userId, boolean exclude) {
         if (exclude)
