@@ -202,6 +202,12 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
         """, nativeQuery = true)
     long countTwinsByQuotaKey(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
 
+    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
+    long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
+    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
+    long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
     @Query(value = """
         select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
         from TwinEntity child
@@ -211,9 +217,6 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     List<TwinFieldCalcProjection> countChildrenTwinsWithStatusIn(
             @Param("headTwinIdList") Collection<UUID> headTwinIdList,
             @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
-
-    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
-    long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
         select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
@@ -248,7 +251,4 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("dstTwinIdList") Collection<UUID> dstTwinIdList,
             @Param("linkIds") Collection<UUID> linkIds,
             @Param("linkedTwinStatusIdList") Collection<UUID> linkedTwinStatusIdList);
-
-    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
-    long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 }
