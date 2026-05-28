@@ -19,7 +19,19 @@
 ## Реестр API и полей сортировки
 
 Формат: **API endpoint** → **DTO ответа** → **Entity** → поля сортировки.
-Поля сортировки определяются по DTO ответа. Поля с `(join)` — через @RelatedObject к связанной сущности, у которой есть `name`.
+
+Поля сортировки определяются по **колонкам Entity** и разбиты на категории:
+
+1. **Прямые поля** — скалярные колонки Entity (Timestamp, String, Integer/Long, Boolean, Enum).
+   Исключаются: `id`, UUID FK, Integer FK к Featurer, Map/hstore, Set/List, URL, длинный текст.
+
+2. **I18n-поля** `(i18n)` — `name`/`description` для Entity, у которых нет прямой колонки,
+   а есть только `nameI18nId`/`descriptionI18nId` (UUID FK → I18nEntity).
+   Сортировка через JOIN к `I18nTranslationEntity` по локали пользователя → `translation`.
+
+3. **Join-поля** `(join)` — FK (UUID @ManyToOne или Integer FK к Featurer) к сущности с `name`.
+   Если целевая сущность использует I18n — помечаются `(i18n-join)` — трёхуровневый JOIN через I18nTranslation.
+
 Первый элемент в списке полей — default.
 
 ---
@@ -39,10 +51,10 @@
     * `size`
     * `order`
     * `twinName`(join: twin → Twin.name)
-    * `twinClassFieldName`(join: twinClassField → TwinClassField.name)
+    * `twinClassFieldName`(i18n-join: twinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `authorUserName`(join: createdByUser → User.name)
-    * `twinflowTransitionName`(join: twinflowTransition → TwinflowTransition.name)
-    * `viewPermissionName`(join: viewPermission → Permission.name)
+    * `twinflowTransitionName`(i18n-join: twinflowTransition → TwinflowTransition.nameI18n → I18nTranslation.translation)
+    * `viewPermissionName`(i18n-join: viewPermission → Permission.nameI18n → I18nTranslation.translation)
 
 * **Пропущенные поля фильтрации:**
     * `commentIdList` → пропущено: у TwinCommentEntity нет осмысленного поля `name` для сортировки
@@ -87,7 +99,7 @@
     * `key`
     * `name`
     * `description`
-    * `twinClassName`(join: twinClass → TwinClass.name)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/permission/search/v1` ✅ reviewed
 
@@ -98,8 +110,8 @@
 * **SortField values**:
 
     * `key`
-    * `name`
-    * `description`
+    * `name`(i18n)
+    * `description`(i18n)
     * `groupName`(join: permissionGroup → PermissionGroup.name)
 
 ### `POST /private/permission_schema/search/v1` ✅ reviewed
@@ -125,7 +137,7 @@
 * **SortField values**:
 
     * `grantedAt`
-    * `permissionName`(join: permission → Permission.name)
+    * `permissionName`(i18n-join: permission → Permission.nameI18n → I18nTranslation.translation)
     * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
     * `userName`(join: user → User.name)
     * `grantedByUserName`(join: grantedByUser → User.name)
@@ -139,9 +151,9 @@
 * **SortField values**:
 
     * `grantedAt`
-    * `permissionName`(join: permission → Permission.name)
+    * `permissionName`(i18n-join: permission → Permission.nameI18n → I18nTranslation.translation)
     * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
-    * `userGroupName`(join: userGroup → UserGroup.name)
+    * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
     * `grantedByUserName`(join: grantedByUser → User.name)
 
 ### `POST /private/permission_grant/twin_role/search/v1` ✅ reviewed
@@ -153,9 +165,9 @@
 * **SortField values**:
 
     * `grantedAt`
-    * `permissionName`(join: permission → Permission.name)
+    * `permissionName`(i18n-join: permission → Permission.nameI18n → I18nTranslation.translation)
     * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
-    * `twinClassName`(join: twinClass → TwinClass.name)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `grantedToAssignee`
     * `grantedToSpaceAssignee`
     * `grantedToCreator`
@@ -171,10 +183,10 @@
 * **SortField values**:
 
     * `grantedAt`
-    * `permissionName`(join: permission → Permission.name)
+    * `permissionName`(i18n-join: permission → Permission.nameI18n → I18nTranslation.translation)
     * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
     * `grantedByUserName`(join: grantedByUser → User.name)
-    * `spaceRoleName`(join: spaceRole → SpaceRole.name)
+    * `spaceRoleName`(i18n-join: spaceRole → SpaceRole.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/projection/search/v1` ✅ reviewed
 
@@ -185,9 +197,9 @@
 * **SortField values**:
 
     * `active`
-    * `srcTwinClassFieldName`(join: srcTwinClassField → TwinClassField.name)
-    * `dstTwinClassName`(join: dstTwinClass → TwinClass.name)
-    * `dstTwinClassFieldName`(join: dstTwinClassField → TwinClassField.name)
+    * `srcTwinClassFieldName`(i18n-join: srcTwinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
+    * `dstTwinClassName`(i18n-join: dstTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `dstTwinClassFieldName`(i18n-join: dstTwinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `projectionTypeName`(join: projectionType → ProjectionType.name)
     * `fieldProjectorFeaturerName`(join: fieldProjectorFeaturer → Featurer.name)
 
@@ -205,7 +217,7 @@
     * `key`
     * `name`
     * `projectionTypeGroupName`(join: projectionTypeGroup → ProjectionTypeGroup.name)
-    * `membershipTwinClassName`(join: membershipTwinClass → TwinClass.name)
+    * `membershipTwinClassName`(i18n-join: membershipTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/scheduler/search/v1` ✅ reviewed
 
@@ -392,7 +404,7 @@
 
 * **DTO**: `TwinflowFactoryDTOv1`
 * **SearchRqDTO**: `TwinflowFactorySearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `twinflowIdSet`, `factoryIdSet`, `factoryLauncherSet`
 * **Entity**: `TwinflowFactoryEntity`
 * **SortField values**:
 
@@ -404,7 +416,7 @@
 
 * **DTO**: `TwinFactoryTriggerDTOv1`
 * **SearchRqDTO**: `TwinFactoryTriggerSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `twinFactoryIdList`, `inputTwinClassIdList`, `twinTriggerIdList`, `active`, `async`
 * **Entity**: `TwinFactoryTriggerEntity`
 * **SortField values**:
 
@@ -626,11 +638,11 @@
     * `factoryIdList` → пропущено: косвенная связь через pipeline, нет прямой FK в Entity
     * `factoryPipelineIdList` → пропущено: у TwinFactoryPipelineEntity нет поля `name`
 
-### `POST /private/notification_schema/search/v1`
+### `POST /private/notification_schema/search/v1` ✅ reviewed
 
 * **DTO**: `NotificationSchemaDTOv1`
 * **SearchRqDTO**: `NotificationSchemaSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `nameLikeList`, `createdByUserIdList`
 * **Entity**: `NotificationSchemaEntity`
 * **SortField values**:
 
@@ -639,7 +651,7 @@
     * `description`
     * `createdByUserName`(join: createdByUser → User.name)
 
-### `POST /private/history_notification/search/v1`
+### `POST /private/history_notification/search/v1` ✅ reviewed
 
 * **DTO**: `HistoryNotificationDTOv1`
 * **SearchRqDTO**: `HistoryNotificationSearchRqDTOv1`
@@ -651,15 +663,20 @@
     * `twinValidatorSetInvert`
     * `twinClassName`(join: twinClass → TwinClass.name)
     * `twinClassFieldName`(join: twinClassField → TwinClassField.name)
+    * `twinValidatorSetName`(join: twinValidatorSet → TwinValidatorSet.name)
     * `notificationSchemaName`(join: notificationSchema → NotificationSchema.name)
     * `historyNotificationRecipientName`(join: historyNotificationRecipient → HistoryNotificationRecipient.name)
     * `createdByUserName`(join: createdByUser → User.name)
 
-### `POST /private/history_notification_recipient/search/v1`
+* **Пропущенные поля фильтрации:**
+    * `historyTypeIdList` → пропущено: у HistoryTypeEntity нет осмысленного name для сортировки
+    * `notificationChannelEventIdList` → пропущено: у NotificationChannelEventEntity нет поля `name`
+
+### `POST /private/history_notification_recipient/search/v1` ✅ reviewed
 
 * **DTO**: `HistoryNotificationRecipientDTOv1`
 * **SearchRqDTO**: `HistoryNotificationRecipientSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `nameLikeList`, `descriptionLikeList`
 * **Entity**: `HistoryNotificationRecipientEntity`
 * **SortField values**:
 
@@ -668,11 +685,11 @@
     * `description`
     * `createdByUserName`(join: createdByUser → User.name)
 
-### `POST /private/history_notification_recipient_collector/search/v1`
+### `POST /private/history_notification_recipient_collector/search/v1` ✅ reviewed
 
 * **DTO**: `HistoryNotificationRecipientCollectorDTOv1`
 * **SearchRqDTO**: `HistoryNotificationRecipientCollectorSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `recipientIdList`, `recipientResolverFeaturerIdList`, `exclude`
 * **Entity**: `HistoryNotificationRecipientCollectorEntity`
 * **SortField values**:
 
@@ -680,7 +697,7 @@
     * `recipientName`(join: recipient → HistoryNotificationRecipient.name)
     * `recipientResolverFeaturerName`(join: recipientResolverFeaturer → Featurer.name)
 
-### `POST /private/space_role/search/v1`
+### `POST /private/space_role/search/v1` ✅ reviewed
 
 * **DTO**: `SpaceRoleDTOv1`
 * **SearchRqDTO**: `SpaceRoleSearchRqDTOv1`
@@ -694,7 +711,7 @@
     * `twinClassName`(join: twinClass → TwinClass.name)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
-### `POST /private/user_group/search/v1`
+### `POST /private/user_group/search/v1` ✅ reviewed
 
 * **DTO**: `UserGroupDTOv2`
 * **SearchRqDTO**: `UserGroupSearchRqDTOv1`
@@ -706,7 +723,7 @@
     * `description`
     * `type`
 
-### `POST /private/user_group/involve_assignee/search/v1`
+### `POST /private/user_group/involve_assignee/search/v1` ✅ reviewed
 
 * **DTO**: `UserGroupInvolveAssigneeDTOv1`
 * **SearchRqDTO**: `UserGroupInvolveAssigneeSearchRqDTOv1`
@@ -721,11 +738,11 @@
     * `propagationTwinClassName`(join: propagationTwinClass → TwinClass.name)
     * `propagationTwinStatusName`(join: propagationTwinStatus → TwinStatus.name)
 
-### `POST /private/user_group/involve_act_as_user/search/v1`
+### `POST /private/user_group/involve_act_as_user/search/v1` ✅ reviewed
 
 * **DTO**: `UserGroupInvolveActAsUserDTOv1`
 * **SearchRqDTO**: `UserGroupInvolveActAsUserSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `machineUserIdList`, `userGroupIdList`
 * **Entity**: `UserGroupInvolveActAsUserEntity`
 * **SortField values**:
 
@@ -734,19 +751,21 @@
     * `addedByUserName`(join: addedByUser → User.name)
     * `userGroupName`(join: userGroup → UserGroup.name)
 
-### `POST /private/user/search/v1`
+### `POST /private/user/search/v1` ✅ reviewed
 
 * **DTO**: `UserDTOv1`
 * **SearchRqDTO**: `UserSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `userNameLikeList`, `userEmailLikeList`, `userGroupIdList`, `statusIdList`
 * **Entity**: `UserEntity`
 * **SortField values**:
 
     * `fullName`
     * `email`
     * `createdAt` (уже есть sortField в @SimplePaginationParams — мигрировать)
+    * `status`
+    * `userGroupName`(join: userGroup → UserGroup.name)
 
-### `POST /private/domain/user/search/v1`
+### `POST /private/domain/user/search/v1` ✅ reviewed
 
 * **DTO**: `DomainUserDTOv1`
 * **SearchRqDTO**: `DomainUserSearchRqDTOv1`
@@ -757,10 +776,11 @@
     * `createdAt`
     * `lastActivityAt`
     * `userName`(join: user → User.name)
+    * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
 ### `POST /private/domain/business_account_user/search/v1` — УЖЕ РЕАЛИЗОВАНО (пропустить)
 
-### `POST /private/featurer/search/v1`
+### `POST /private/featurer/search/v1` ✅ reviewed
 
 * **DTO**: `FeaturerDTOv1`
 * **SearchRqDTO**: `FeaturerSearchRqDTOv1`
@@ -772,7 +792,7 @@
     * `description`
     * `deprecated` (уже есть sortField в @SimplePaginationParams — мигрировать)
 
-### `POST /private/data_list/search/v1`
+### `POST /private/data_list/search/v1` ✅ reviewed
 
 * **DTO**: `DataListDTOv1`
 * **SearchRqDTO**: `DataListSearchRqDTOv1`
@@ -787,7 +807,7 @@
     * `updatedAt`
     * `externalId`
 
-### `POST /private/data_list_option/search/v1`
+### `POST /private/data_list_option/search/v1` ✅ reviewed
 
 * **DTO**: `DataListOptionDTOv1`
 * **SearchRqDTO**: `DataListOptionSearchRqDTOv1` (наследует `DataListOptionSearchDTOv1`)
@@ -803,13 +823,14 @@
     * `backgroundColor`
     * `fontColor`
     * `custom`
+    * `dataListName`(join: dataList → DataList.name)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name) (уже есть sortField в @SimplePaginationParams — мигрировать)
 
-### `POST /private/data_list_option_projection/search/v1`
+### `POST /private/data_list_option_projection/search/v1` ✅ reviewed
 
 * **DTO**: `DataListOptionProjectionDTOv1`
 * **SearchRqDTO**: `DataListOptionProjectionSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `projectionTypeIdList`, `srcDataListOptionIdList`, `dstDataListOptionIdList`, `savedByUserIdList`, `changedAt`
 * **Entity**: `DataListOptionProjectionEntity`
 * **SortField values**:
 
@@ -819,7 +840,7 @@
     * `srcDataListOptionName`(join: srcDataListOption → DataListOption.name)
     * `dstDataListOptionName`(join: dstDataListOption → DataListOption.name)
 
-### `POST /private/twin_validator_set/search/v1`
+### `POST /private/twin_validator_set/search/v1` ✅ reviewed
 
 * **DTO**: `TwinValidatorSetDTOv1`
 * **SearchRqDTO**: `TwinValidatorSetSearchRqDTOv1`
@@ -831,7 +852,7 @@
     * `description`
     * `invert`
 
-### `POST /private/link/search/v1`
+### `POST /private/link/search/v1` ✅ reviewed
 
 * **DTO**: `LinkDTOv2`
 * **SearchRqDTO**: `LinkSearchRqDTOv1`
@@ -840,15 +861,21 @@
 * **SortField values**:
 
     * `createdAt`
+    * `forwardName`
     * `backwardName`
+    * `srcTwinClassInheritable`
+    * `dstTwinClassInheritable`
+    * `type`
+    * `linkStrength`
     * `srcTwinClassName`(join: srcTwinClass → TwinClass.name)
+    * `dstTwinClassName`(join: dstTwinClass → TwinClass.name)
     * `createdByUserName`(join: createdByUser → User.name)
 
-### `POST /private/action_restriction_reason/search/v1`
+### `POST /private/action_restriction_reason/search/v1` ✅ reviewed
 
 * **DTO**: `ActionRestrictionReasonDTOv1`
 * **SearchRqDTO**: `ActionRestrictionReasonSearchRqDTOv1`
-    * Поля фильтрации: `search`
+    * Поля фильтрации: `typeLikeList`, `descriptionLikeList`
 * **Entity**: `ActionRestrictionReasonEntity`
 * **SortField values**:
 
