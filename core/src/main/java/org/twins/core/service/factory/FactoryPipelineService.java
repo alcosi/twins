@@ -15,19 +15,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.UUID;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
@@ -189,5 +188,20 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 .setTemplateTwinId(srcPipelineEntity.getTemplateTwinId())
                 .setDescription(srcPipelineEntity.getDescription())
                 .setActive(srcPipelineEntity.getActive());
+    }
+
+    public void loadFactoryPipelines(TwinFactoryEntity factory) {
+        loadFactoryPipelines(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryPipelines(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryPipelineKit,
+                TwinFactoryEntity::setTwinFactoryPipelineKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryPipelineEntity::getId,
+                TwinFactoryPipelineEntity::getTwinFactoryId);
     }
 }

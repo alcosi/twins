@@ -10,23 +10,25 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.kit.Kit;
 import org.twins.core.domain.factory.FactoryTriggerDuplicate;
-
-import java.util.Collection;
-import java.util.Collections;
 import org.cambium.common.util.KitUtils;
+
+import java.util.UUID;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -225,5 +227,20 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 .setTwinTriggerId(srcTriggerEntity.getTwinTriggerId())
                 .setAsync(srcTriggerEntity.getAsync())
                 .setActive(srcTriggerEntity.getActive());
+    }
+
+    public void loadFactoryTriggers(TwinFactoryEntity factory) {
+        loadFactoryTriggers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryTriggers(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryTriggerKit,
+                TwinFactoryEntity::setTwinFactoryTriggerKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinFactoryId);
     }
 }

@@ -27,8 +27,9 @@ import org.twins.core.domain.factory.FactoryBranchDuplicate;
 
 import java.util.Collection;
 import java.util.Collections;
-
-import java.util.*;
+import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 import java.util.stream.Collectors;
@@ -175,5 +176,20 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 .setActive(srcBranchEntity.getActive())
                 .setNextTwinFactoryId(srcBranchEntity.getNextTwinFactoryId())
                 .setDescription(srcBranchEntity.getDescription());
+    }
+
+    public void loadFactoryBranches(TwinFactoryEntity factory) {
+        loadFactoryBranches(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryBranches(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryBranchKit,
+                TwinFactoryEntity::setTwinFactoryBranchKit,
+                twinFactoryBranchRepository::findByTwinFactoryIdIn,
+                TwinFactoryBranchEntity::getId,
+                TwinFactoryBranchEntity::getTwinFactoryId);
     }
 }
