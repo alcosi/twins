@@ -216,7 +216,7 @@
 
     * `key`
     * `name`
-    * `projectionTypeGroupName`(join: projectionTypeGroup → ProjectionTypeGroup.name)
+    * `projectionTypeGroupName`(join: projectionTypeGroup → ProjectionTypeGroup.key)
     * `membershipTwinClassName`(i18n-join: membershipTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/scheduler/search/v1` ✅ reviewed
@@ -283,7 +283,7 @@
     * `order`
     * `active`
     * `async`
-    * `twinflowTransitionName`(join: twinflowTransition → TwinflowTransition.name)
+    * `twinflowTransitionName`(i18n-join: twinflowTransition → TwinflowTransition.nameI18n → I18nTranslation.translation)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
 
 ### `POST /private/twin_class_fields/search/v1` ✅ reviewed
@@ -296,8 +296,8 @@
 
     * `order`
     * `key`
-    * `name`
-    * `description`
+    * `name`(i18n)
+    * `description`(i18n)
     * `externalId`
     * `required`
     * `inheritable`
@@ -306,12 +306,12 @@
     * `hasDependentFields`
     * `projectionField`
     * `hasProjectedFields`
-    * `twinClassName`(join: twinClass → TwinClass.name)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `fieldTyperFeaturerName`(join: fieldTyperFeaturer → Featurer.name)
     * `fieldInitializerFeaturerName`(join: fieldInitializerFeaturerId → Featurer.name)
     * `twinSorterFeaturerName`(join: twinSorterFeaturerId → Featurer.name)
-    * `viewPermissionName`(join: viewPermission → Permission.name)
-    * `editPermissionName`(join: editPermission → Permission.name)
+    * `viewPermissionName`(i18n-join: viewPermission → Permission.nameI18n → I18nTranslation.translation)
+    * `editPermissionName`(i18n-join: editPermission → Permission.nameI18n → I18nTranslation.translation)
 
 * **Пропущенные поля фильтрации:**
     * `feValidationErrorI18nLikeList` → пропущено: текст ошибки валидации, не имеет смысла для сортировки
@@ -327,7 +327,7 @@
 
     * `rulePriority`
     * `overwrittenRequired`
-    * `twinClassFieldName`(join: twinClassField → TwinClassField.name)
+    * `twinClassFieldName`(i18n-join: twinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `fieldOverwriterFeaturerName`(join: fieldOverwriterFeaturer → Featurer.name)
 
 ### `POST /private/twin_class_field_condition/search/v1` ✅ reviewed
@@ -339,7 +339,7 @@
 * **SortField values**:
 
     * `conditionOrder`
-    * `baseTwinClassFieldName`(join: baseTwinClassField → TwinClassField.name)
+    * `baseTwinClassFieldName`(i18n-join: baseTwinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `conditionEvaluatorFeaturerName`(join: conditionEvaluatorFeaturer → Featurer.name)
     * `logicOperator`
 
@@ -369,9 +369,9 @@
 * **SortField values**:
 
     * `inheritable`
-    * `twinClassName`(join: twinClass → TwinClass.name)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `twinValidatorSetName`(join: twinValidatorSet → TwinValidatorSet.name)
-    * `markerName`(join: markerDataListOption → DataListOption.name)
+    * `markerName`(join: markerDataListOption → DataListOption.option)
 
 ### `POST /private/twin_class_freeze/search/v1` ✅ reviewed
 
@@ -382,9 +382,9 @@
 * **SortField values**:
 
     * `key`
-    * `name`
-    * `description`
-    * `statusName`(join: twinStatus → TwinStatus.name)
+    * `name`(i18n)
+    * `description`(i18n)
+    * `statusName`(i18n-join: twinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/twinflow_schema/search/v1` ✅ reviewed
 
@@ -408,9 +408,9 @@
 * **Entity**: `TwinflowFactoryEntity`
 * **SortField values**:
 
-    * `twinFactoryLauncherId`
-    * `twinflowName`(join: twinflow → Twinflow.name)
-    * `factoryName`(join: factory → Factory.name)
+    * `twinFactoryLauncherId` (enum)
+    * `twinflowName`(i18n-join: twinflow → Twinflow.nameI18n → I18nTranslation.translation)
+    * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/twin_factory/trigger/search/v1` ✅ reviewed
 
@@ -424,8 +424,8 @@
     * `description`
     * `async`
     * `twinFactoryConditionInvert`
-    * `inputTwinClassName`(join: inputTwinClass → TwinClass.name)
-    * `twinFactoryName`(join: twinFactory → Factory.name)
+    * `inputTwinClassName`(i18n-join: inputTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `twinFactoryName`(i18n-join: twinFactory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `twinFactoryConditionSetName`(join: twinFactoryConditionSet → FactoryConditionSet.name)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
 
@@ -438,13 +438,13 @@
 * **SortField values**:
 
     * `key`
-    * `name`
-    * `description`
+    * `name`(i18n)
+    * `description`(i18n)
     * `inheritable`
     * `backgroundColor`
     * `fontColor`
     * `type`
-    * `twinClassName`(join: twinClass → TwinClass.name)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/twin_status/trigger/search/v1` ✅ reviewed
 
@@ -458,7 +458,7 @@
     * `active`
     * `async`
     * `incomingElseOutgoing`
-    * `twinStatusName`(join: twinStatus → TwinStatus.name)
+    * `twinStatusName`(i18n-join: twinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
 
 ### `POST /private/twin_trigger/search/v1` ✅ reviewed
@@ -472,7 +472,7 @@
     * `name`
     * `description`
     * `active`
-    * `jobTwinClassName`(join: jobTwinClass → TwinClass.name)
+    * `jobTwinClassName`(i18n-join: jobTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `triggerFeaturerName`(join: triggerFeaturer → Featurer.name)
 
 ### `POST /private/twin_trigger_task/search/v1` ✅ reviewed
@@ -490,7 +490,7 @@
     * `twinName`(join: twin → Twin.name)
     * `createdByUserName`(join: createdByUser → User.name)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
-    * `previousTwinStatusName`(join: previousTwinStatus → TwinStatus.name)
+    * `previousTwinStatusName`(i18n-join: previousTwinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
 ### `POST /private/factory/search/v1` ✅ reviewed
@@ -502,9 +502,9 @@
 * **SortField values**:
 
     * `key`
-    * `name`
+    * `name`(i18n)
     * `createdAt`
-    * `description`
+    * `description`(i18n)
     * `createdByUserName`(join: createdByUser → User.name)
 
 ### `POST /private/factory_branch/search/v1` ✅ reviewed
@@ -518,8 +518,8 @@
     * `active`
     * `description`
     * `factoryConditionSetInvert`
-    * `factoryName`(join: factory → Factory.name)
-    * `nextFactoryName`(join: nextFactory → Factory.name)
+    * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
+    * `nextFactoryName`(i18n-join: nextFactory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `factoryConditionName`(join: factoryCondition → FactoryConditionSet.name)
 
 ### `POST /private/factory_condition/search/v1` ✅ reviewed
@@ -550,7 +550,7 @@
     * `updatedAt`
     * `cachable`
     * `createdByUserName`(join: createdByUser → User.name)
-    * `twinFactoryName`(join: twinFactory → Factory.name)
+    * `twinFactoryName`(i18n-join: twinFactory → TwinFactory.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/factory_eraser/search/v1` ✅ reviewed
 
@@ -564,8 +564,8 @@
     * `description`
     * `factoryConditionSetInvert`
     * `action`
-    * `inputTwinClassName`(join: inputTwinClass → TwinClass.name)
-    * `factoryName`(join: factory → Factory.name)
+    * `inputTwinClassName`(i18n-join: inputTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
 
 ### `POST /private/factory_multiplier/search/v1` ✅ reviewed
@@ -578,8 +578,8 @@
 
     * `active`
     * `description`
-    * `inputTwinClassName`(join: inputTwinClass → TwinClass.name)
-    * `factoryName`(join: factory → Factory.name)
+    * `inputTwinClassName`(i18n-join: inputTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `multiplierFeaturerName`(join: multiplierFeaturer → Featurer.name)
 
 ### `POST /private/factory_multiplier_filter/search/v1` ✅ reviewed
@@ -593,7 +593,7 @@
     * `active`
     * `description`
     * `factoryConditionSetInvert`
-    * `inputTwinClassName`(join: inputTwinClass → TwinClass.name)
+    * `inputTwinClassName`(i18n-join: inputTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
 
 * **Пропущенные поля фильтрации:**
@@ -612,10 +612,10 @@
     * `description`
     * `factoryConditionSetInvert`
     * `nextFactoryLimitScope`
-    * `inputTwinClassName`(join: inputTwinClass → TwinClass.name)
-    * `outputTwinStatusName`(join: outputTwinStatus → TwinStatus.name)
-    * `factoryName`(join: factory → Factory.name)
-    * `nextFactoryName`(join: nextFactory → Factory.name)
+    * `inputTwinClassName`(i18n-join: inputTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `outputTwinStatusName`(i18n-join: outputTwinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
+    * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
+    * `nextFactoryName`(i18n-join: nextFactory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
 
 ### `POST /private/factory_pipeline_step/search/v1` ✅ reviewed
@@ -646,9 +646,9 @@
 * **Entity**: `NotificationSchemaEntity`
 * **SortField values**:
 
-    * `name`
+    * `name`(i18n)
     * `createdAt`
-    * `description`
+    * `description`(i18n)
     * `createdByUserName`(join: createdByUser → User.name)
 
 ### `POST /private/history_notification/search/v1` ✅ reviewed
@@ -661,11 +661,11 @@
 
     * `createdAt`
     * `twinValidatorSetInvert`
-    * `twinClassName`(join: twinClass → TwinClass.name)
-    * `twinClassFieldName`(join: twinClassField → TwinClassField.name)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `twinClassFieldName`(i18n-join: twinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `twinValidatorSetName`(join: twinValidatorSet → TwinValidatorSet.name)
-    * `notificationSchemaName`(join: notificationSchema → NotificationSchema.name)
-    * `historyNotificationRecipientName`(join: historyNotificationRecipient → HistoryNotificationRecipient.name)
+    * `notificationSchemaName`(i18n-join: notificationSchema → NotificationSchema.nameI18n → I18nTranslation.translation)
+    * `historyNotificationRecipientName`(i18n-join: historyNotificationRecipient → HistoryNotificationRecipient.nameI18n → I18nTranslation.translation)
     * `createdByUserName`(join: createdByUser → User.name)
 
 * **Пропущенные поля фильтрации:**
@@ -680,9 +680,9 @@
 * **Entity**: `HistoryNotificationRecipientEntity`
 * **SortField values**:
 
-    * `name`
+    * `name`(i18n)
     * `createdAt`
-    * `description`
+    * `description`(i18n)
     * `createdByUserName`(join: createdByUser → User.name)
 
 ### `POST /private/history_notification_recipient_collector/search/v1` ✅ reviewed
@@ -694,7 +694,7 @@
 * **SortField values**:
 
     * `exclude`
-    * `recipientName`(join: recipient → HistoryNotificationRecipient.name)
+    * `recipientName`(i18n-join: recipient → HistoryNotificationRecipient.nameI18n → I18nTranslation.translation)
     * `recipientResolverFeaturerName`(join: recipientResolverFeaturer → Featurer.name)
 
 ### `POST /private/space_role/search/v1` ✅ reviewed
@@ -706,9 +706,9 @@
 * **SortField values**:
 
     * `key`
-    * `name`
-    * `description`
-    * `twinClassName`(join: twinClass → TwinClass.name)
+    * `name`(i18n)
+    * `description`(i18n)
+    * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
 ### `POST /private/user_group/search/v1` ✅ reviewed
@@ -719,8 +719,8 @@
 * **Entity**: `UserGroupEntity`
 * **SortField values**:
 
-    * `name`
-    * `description`
+    * `name`(i18n)
+    * `description`(i18n)
     * `type`
 
 ### `POST /private/user_group/involve_assignee/search/v1` ✅ reviewed
@@ -734,9 +734,9 @@
     * `addedAt`
     * `machineUserName`(join: machineUser → User.name)
     * `addedByUserName`(join: addedByUser → User.name)
-    * `userGroupName`(join: userGroup → UserGroup.name)
-    * `propagationTwinClassName`(join: propagationTwinClass → TwinClass.name)
-    * `propagationTwinStatusName`(join: propagationTwinStatus → TwinStatus.name)
+    * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
+    * `propagationTwinClassName`(i18n-join: propagationTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `propagationTwinStatusName`(i18n-join: propagationTwinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/user_group/involve_act_as_user/search/v1` ✅ reviewed
 
@@ -749,7 +749,7 @@
     * `addedAt`
     * `machineUserName`(join: machineUser → User.name)
     * `addedByUserName`(join: addedByUser → User.name)
-    * `userGroupName`(join: userGroup → UserGroup.name)
+    * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/user/search/v1` ✅ reviewed
 
@@ -763,7 +763,7 @@
     * `email`
     * `createdAt` (уже есть sortField в @SimplePaginationParams — мигрировать)
     * `status`
-    * `userGroupName`(join: userGroup → UserGroup.name)
+    * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
 
 ### `POST /private/domain/user/search/v1` ✅ reviewed
 
@@ -801,8 +801,8 @@
 * **SortField values**:
 
     * `key`
-    * `name`
-    * `description`
+    * `name`(i18n)
+    * `description`(i18n)
     * `createdAt`
     * `updatedAt`
     * `externalId`
@@ -823,7 +823,7 @@
     * `backgroundColor`
     * `fontColor`
     * `custom`
-    * `dataListName`(join: dataList → DataList.name)
+    * `dataListName`(i18n-join: dataList → DataList.nameI18n → I18nTranslation.translation)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name) (уже есть sortField в @SimplePaginationParams — мигрировать)
 
 ### `POST /private/data_list_option_projection/search/v1` ✅ reviewed
@@ -837,8 +837,8 @@
     * `changedAt`
     * `savedByUserName`(join: savedByUser → User.name)
     * `projectionTypeName`(join: projectionType → ProjectionType.name)
-    * `srcDataListOptionName`(join: srcDataListOption → DataListOption.name)
-    * `dstDataListOptionName`(join: dstDataListOption → DataListOption.name)
+    * `srcDataListOptionName`(join: srcDataListOption → DataListOption.option)
+    * `dstDataListOptionName`(join: dstDataListOption → DataListOption.option)
 
 ### `POST /private/twin_validator_set/search/v1` ✅ reviewed
 
@@ -867,8 +867,8 @@
     * `dstTwinClassInheritable`
     * `type`
     * `linkStrength`
-    * `srcTwinClassName`(join: srcTwinClass → TwinClass.name)
-    * `dstTwinClassName`(join: dstTwinClass → TwinClass.name)
+    * `srcTwinClassName`(i18n-join: srcTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+    * `dstTwinClassName`(i18n-join: dstTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `createdByUserName`(join: createdByUser → User.name)
 
 ### `POST /private/action_restriction_reason/search/v1` ✅ reviewed
