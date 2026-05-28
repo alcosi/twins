@@ -21,7 +21,6 @@ import java.util.Properties;
         name = "Count linked twins by link and status (on fly)",
         description = "Get count of linked twins by link and status(inc/exc) on fly")
 public class FieldTyperCountChildrenByLinkV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcBackwardLinkedTwinCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByLink {
-    public static final Integer ID = 1351;
 
     @Autowired
     TwinRepository twinRepository;
