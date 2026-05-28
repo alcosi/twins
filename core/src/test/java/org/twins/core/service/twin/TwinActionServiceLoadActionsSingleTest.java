@@ -22,16 +22,10 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TwinActionServiceLoadActionsSingleTest {
@@ -191,6 +185,7 @@ class TwinActionServiceLoadActionsSingleTest {
         void testLoadActions_ValidatorPasses() throws ServiceException {
             // Given
             TwinActionValidatorRuleEntity validatorRule = new TwinActionValidatorRuleEntity();
+            validatorRule.setId(UUID.randomUUID());
             validatorRule.setTwinAction(TwinAction.DELETE);
             validatorRule.setActionRestrictionReasonId(actionRestrictionReasonId);
             validatorRule.setTwinValidatorKit(new Kit<>(TwinValidatorEntity::getId));
@@ -219,6 +214,7 @@ class TwinActionServiceLoadActionsSingleTest {
         void testLoadActions_ValidatorFails_WithReason() throws ServiceException {
             // Given
             TwinActionValidatorRuleEntity validatorRule = new TwinActionValidatorRuleEntity();
+            validatorRule.setId(UUID.randomUUID());
             validatorRule.setTwinAction(TwinAction.DELETE);
             validatorRule.setActionRestrictionReasonId(actionRestrictionReasonId);
             validatorRule.setTwinValidatorKit(new Kit<>(TwinValidatorEntity::getId));
@@ -248,6 +244,7 @@ class TwinActionServiceLoadActionsSingleTest {
         void testLoadActions_ValidatorFails_NoReason() throws ServiceException {
             // Given
             TwinActionValidatorRuleEntity validatorRule = new TwinActionValidatorRuleEntity();
+            validatorRule.setId(UUID.randomUUID());
             validatorRule.setTwinAction(TwinAction.DELETE);
             validatorRule.setActionRestrictionReasonId(null);
             validatorRule.setTwinValidatorKit(new Kit<>(TwinValidatorEntity::getId));
@@ -313,6 +310,7 @@ class TwinActionServiceLoadActionsSingleTest {
             permissionEntity.setActionRestrictionReasonId(actionRestrictionReasonId);
 
             TwinActionValidatorRuleEntity validatorRule = new TwinActionValidatorRuleEntity();
+            validatorRule.setId(UUID.randomUUID());
             validatorRule.setTwinAction(TwinAction.DELETE);
             validatorRule.setTwinValidatorKit(new Kit<>(TwinValidatorEntity::getId));
 
@@ -341,6 +339,7 @@ class TwinActionServiceLoadActionsSingleTest {
             permissionEntity.setPermissionId(permissionId);
 
             TwinActionValidatorRuleEntity validatorRule = new TwinActionValidatorRuleEntity();
+            validatorRule.setId(UUID.randomUUID());
             validatorRule.setTwinAction(TwinAction.DELETE);
             validatorRule.setActionRestrictionReasonId(validatorReasonId);
             validatorRule.setTwinValidatorKit(new Kit<>(TwinValidatorEntity::getId));

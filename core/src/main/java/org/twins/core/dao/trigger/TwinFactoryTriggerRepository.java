@@ -13,5 +13,5 @@ import java.util.UUID;
 public interface TwinFactoryTriggerRepository extends CrudRepository<TwinFactoryTriggerEntity, UUID>, JpaSpecificationExecutor<TwinFactoryTriggerEntity> {
     List<TwinFactoryTriggerEntity> findByTwinFactoryId(UUID twinFactoryId);
 
-    List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds);
+    List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
 }

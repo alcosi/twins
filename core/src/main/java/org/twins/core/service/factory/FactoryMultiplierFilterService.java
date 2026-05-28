@@ -13,11 +13,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -59,5 +61,20 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
 
     public List<TwinFactoryMultiplierFilterEntity> findByTwinFactoryMultiplierIdIn(Collection<UUID> multiplierIds) {
         return repository.findByTwinFactoryMultiplierIdIn(multiplierIds);
+    }
+
+    public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
+    }
+
+    public void loadFactoryMultiplierFilters(Collection<TwinFactoryMultiplierEntity> multipliers) {
+        loadKit(
+                multipliers,
+                TwinFactoryMultiplierEntity::getId,
+                TwinFactoryMultiplierEntity::getTwinFactoryMultiplierFilterKit,
+                TwinFactoryMultiplierEntity::setTwinFactoryMultiplierFilterKit,
+                repository::findByTwinFactoryMultiplierIdIn,
+                TwinFactoryMultiplierFilterEntity::getId,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
     }
 }

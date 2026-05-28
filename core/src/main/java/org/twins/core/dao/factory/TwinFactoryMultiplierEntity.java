@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -62,6 +63,11 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
 
     @Transient
     private Integer factoryMultiplierFiltersCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryMultiplierFilterEntity, UUID> twinFactoryMultiplierFilterKit;
 
     public String easyLog(Level level) {
         return switch (level) {

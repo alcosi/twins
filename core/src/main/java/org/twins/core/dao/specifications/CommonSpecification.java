@@ -661,4 +661,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
+
+    public static <T, S extends SortField<?>> Specification<T> toSortSpecification(final SortOption<S> sort) {
+        if (sort == null) return (root, query, cb) -> cb.conjunction();
+        return sort.toSortSpecification();
+    }
 }

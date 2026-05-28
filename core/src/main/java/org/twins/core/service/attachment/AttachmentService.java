@@ -288,27 +288,15 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     public void loadAttachments(Collection<TwinEntity> twinEntityList) {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
-        for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentKit() == null) {
-                twinEntity.setAttachmentKit(new Kit<>(new ArrayList<>(), TwinAttachmentEntity::getId));
-                needLoad.put(twinEntity.getId(), twinEntity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinIdIn(needLoad.keySet());
-        if (CollectionUtils.isEmpty(attachmentEntityList))
-            return;
-        Map<UUID, List<TwinAttachmentEntity>> attachmentMap = new HashMap<>(); // key - twinId
-        for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) { //grouping by twin
-            attachmentMap.computeIfAbsent(attachmentEntity.getTwinId(), k -> new ArrayList<>());
-            attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
-        }
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
-            List<TwinAttachmentEntity> twinAttachmentsList = attachmentMap.get(entry.getKey());
-            if (!CollectionUtils.isEmpty(twinAttachmentsList))
-                entry.getValue().getAttachmentKit().addAll(twinAttachmentsList);
-        }
+        loadKit(
+                twinEntityList,
+                TwinEntity::getId,
+                TwinEntity::getAttachmentKit,
+                TwinEntity::setAttachmentKit,
+                twinAttachmentRepository::findByTwinIdIn,
+                TwinAttachmentEntity::getId,
+                TwinAttachmentEntity::getTwinId
+        );
     }
 
     public void loadAttachmentsCount(TwinEntity twinEntity) {

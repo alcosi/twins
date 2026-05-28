@@ -97,30 +97,18 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return twinTagRepository.findDataListOptionByTwinId(twinId);
     }
 
-    // usage log
-
     public void loadTags(Collection<TwinEntity> twinEntityList) {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
-        for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getTwinTagKit() == null)
-                needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.isEmpty())
-            return;
-        List<TwinTagEntity> twinTagEntityList = twinTagRepository.findByTwinIdIn(needLoad.keySet());
-        if (CollectionUtils.isEmpty(twinTagEntityList))
-            return;
-        Map<UUID, List<DataListOptionEntity>> tagsMap = new HashMap<>(); // key - twinId
-        for (TwinTagEntity twinTagEntity : twinTagEntityList) { //grouping by twin
-            tagsMap.computeIfAbsent(twinTagEntity.getTwinId(), k -> new ArrayList<>());
-            tagsMap.get(twinTagEntity.getTwinId()).add(twinTagEntity.getTagDataListOption());
-        }
-        TwinEntity twinEntity;
-        List<DataListOptionEntity> twinTags;
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
-            twinEntity = entry.getValue();
-            twinTags = tagsMap.get(entry.getKey());
-            twinEntity.setTwinTagKit(new Kit<>(twinTags, DataListOptionEntity::getId));
-        }
+        loadKit(
+                twinEntityList,
+                TwinEntity::getId,
+                TwinEntity::getTwinTagKit,
+                TwinEntity::setTwinTagKit,
+                twinTagRepository::findByTwinIdIn,
+                TwinTagEntity::getTagDataListOption,
+                DataListOptionEntity::getId,
+                TwinTagEntity::getId,
+                TwinTagEntity::getTwinId
+        );
     }
 
     public void createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags, TwinChangesCollector twinChangesCollector) throws ServiceException {

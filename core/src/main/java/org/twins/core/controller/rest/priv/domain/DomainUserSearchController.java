@@ -70,8 +70,8 @@ public class DomainUserSearchController extends ApiController {
             PaginationResult<DomainUserEntity> domainUserList = domainUserSearchService
                     .findDomainUser(domainUserSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setUsers(domainUserRestDTOMapper.convertCollection(domainUserList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainUserList))
+                    .setUsers(domainUserRestDTOMapper.convertCollection(domainUserList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

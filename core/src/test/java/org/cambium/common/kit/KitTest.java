@@ -173,6 +173,46 @@ public class KitTest {
         }
     }
 
+    // ===== null key =====
+
+    @Nested
+    class NullKeyTests {
+        @Test
+        public void testAddNullKeyThrowsNPE() {
+            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId);
+            var entityWithNullId = new EntityStub(null, "null-key");
+            NullPointerException ex = assertThrows(NullPointerException.class, () -> kit.add(entityWithNullId));
+            assertTrue(ex.getMessage().contains("Kit does not supports null keys"));
+        }
+
+        @Test
+        public void testAddNullKeyThrowsNPEViaAddAll() {
+            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId);
+            var entityWithNullId = new EntityStub(null, "null-key");
+            assertThrows(NullPointerException.class, () -> kit.addAll(Collections.singletonList(entityWithNullId)));
+        }
+
+        @Test
+        public void testAddNullKeyThrowsNPEViaConstructor() {
+            var entityWithNullId = new EntityStub(null, "null-key");
+            assertThrows(NullPointerException.class,
+                    () -> new Kit<>(Collections.singletonList(entityWithNullId), EntityStub::getId));
+        }
+
+        @Test
+        public void testKitStillUsableAfterNullKeyRejection() {
+            Kit<EntityStub, UUID> kit = new Kit<>(EntityStub::getId);
+            var entityWithNullId = new EntityStub(null, "null-key");
+            assertThrows(NullPointerException.class, () -> kit.add(entityWithNullId));
+            assertEquals(0, kit.size());
+            UUID uuid = id();
+            var valid = new EntityStub(uuid, "valid");
+            kit.add(valid);
+            assertEquals(1, kit.size());
+            assertEquals(valid, kit.get(uuid));
+        }
+    }
+
     // ===== addAll =====
 
     @Nested

@@ -42,7 +42,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         if (showFeaturerParams(mapperContext)) {
             featurerService.loadFeaturerParams(src);
             dst
-                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
+                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams().getCollection(), mapperContext));
         }
     }
 
@@ -63,6 +63,8 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     }
 
     public void postpone(Integer featurerId, MapperContext mapperContext) {
-        postpone(featurerService.getFeaturerEntity(featurerId), mapperContext);
+        if (featurerId != null) {
+            postpone(featurerService.getFeaturerEntity(featurerId), mapperContext);
+        }
     }
 }

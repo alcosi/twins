@@ -4,6 +4,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.enums.twinclass.LogicOperator;
 
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class TwinClassFieldConditionDTOv1 {
     public UUID ruleId;
 
     @Schema(description = "base (source) twin class field id")
+    @RelatedObject(type = TwinClassFieldDTOv1.class, name = "baseTwinClassField")
     public UUID baseTwinClassFieldId;
 
     @Schema(description = "order of the condition inside the rule")

@@ -14,12 +14,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +36,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     @Getter
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
 
     @Override
@@ -105,4 +108,18 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         return repository.findByTwinFactoryIdIn(factoryIds);
     }
 
+    public void loadFactoryMultipliers(TwinFactoryEntity factory) {
+        loadFactoryMultipliers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryMultipliers(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryMultiplierKit,
+                TwinFactoryEntity::setTwinFactoryMultiplierKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryMultiplierEntity::getId,
+                TwinFactoryMultiplierEntity::getTwinFactoryId);
+    }
 }

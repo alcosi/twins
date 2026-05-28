@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.domain.DomainBusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
@@ -25,6 +26,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.usergroup.UserGroupCreate;
 import org.twins.core.domain.usergroup.UserGroupUpdate;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
@@ -106,6 +108,35 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
             needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
         userGroupsForActAsUserInvolve();
+    }
+
+    public void loadGroupsForDomainBusinessAccountUsers(Collection<DomainBusinessAccountUserEntity> entityList) throws ServiceException {
+        Map<UUID, Map<UUID, DomainBusinessAccountUserEntity>> needLoad = new HashMap<>();
+        ApiUser apiUser = authService.getApiUser();
+        for (DomainBusinessAccountUserEntity entity : entityList) {
+            if (!entity.getDomainId().equals(apiUser.getDomainId())) {
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "Unknown domain[{}]", entity.getDomainId());
+            }
+            if (entity.getUserGroupKit() == null) {
+                entity.setUserGroupKit(new Kit<>(UserGroupEntity::getId));
+                needLoad.computeIfAbsent(entity.getBusinessAccountId(), b -> new HashMap<>())
+                        .put(entity.getUserId(), entity);
+            }
+        }
+        if (needLoad.isEmpty())
+            return;
+        for (var entry : needLoad.entrySet()) {
+            var businessAccountId = entry.getKey();
+            var usersByUserId = entry.getValue();
+            List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroupsStrict(apiUser.getDomainId(), businessAccountId, usersByUserId.keySet());
+            if (CollectionUtils.isEmpty(userGroups))
+                continue;
+            for (UserGroupMapEntity userGroupMap : userGroups) {
+                DomainBusinessAccountUserEntity entity = usersByUserId.get(userGroupMap.getUserId());
+                if (entity != null)
+                    entity.getUserGroupKit().add(userGroupMap.getUserGroup());
+            }
+        }
     }
 
     private void userGroupsForActAsUserInvolve() throws ServiceException {

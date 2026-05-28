@@ -105,7 +105,6 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "where u.id in :userIds and (bau.userId is null or du.userId is null)")
     List<UUID> getUsersOutOfDomainAndBusinessAccount(@Param("userIds") Set<UUID> userIds, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
-    @Query(value = "SELECT dbu.business_account_id AS id, COUNT(dbu) AS count FROM business_account_user dbu JOIN domain_business_account dba ON dba.business_account_id in :businessAccountIds INNER JOIN \"user\" u " +
-            "ON u.id = dbu.user_id WHERE dbu.business_account_id IN :businessAccountIds AND u.user_status_id = 'ACTIVE' and dba.domain_id = :domainId GROUP BY dbu.business_account_id", nativeQuery = true)
+    @Query(value = "SELECT dbau.business_account_id AS id, COUNT(dbau) AS count FROM domain_business_account_user dbau INNER JOIN \"user\" u ON u.id = dbau.user_id WHERE dbau.business_account_id IN :businessAccountIds AND u.user_status_id = 'ACTIVE' AND dbau.domain_id = :domainId GROUP BY dbau.business_account_id", nativeQuery = true)
     List<EntryCount> countUsersInBusinessAccounts(@Param("businessAccountIds") Collection<UUID> businessAccountIds, @Param("domainId") UUID domainId);
 }

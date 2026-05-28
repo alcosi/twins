@@ -3,9 +3,6 @@ package org.twins.face.service.page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -60,20 +57,12 @@ public class FacePG002TabService extends FaceVariantsService<FacePG002TabEntity>
     }
 
     public void loadTabs(Collection<FacePG002Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FacePG002Entity, UUID> needLoad = new Kit<>(FacePG002Entity::getId);
-        for (var facePG002Entity : srcList)
-            if (facePG002Entity.getTabs() == null) {
-                facePG002Entity.setTabs(new Kit<>(FacePG002TabEntity::getId));
-                needLoad.add(facePG002Entity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FacePG002TabEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                facePG002TabRepository.findByFacePG002IdIn(needLoad.getIdSet()), FacePG002TabEntity::getId, FacePG002TabEntity::getFacePG002Id);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getTabs().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FacePG002Entity::getId,
+                FacePG002Entity::getTabs,
+                FacePG002Entity::setTabs,
+                facePG002TabRepository::findByFacePG002IdIn,
+                FacePG002TabEntity::getId,
+                FacePG002TabEntity::getFacePG002Id);
     }
 }
