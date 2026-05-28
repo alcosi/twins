@@ -25,8 +25,6 @@ public class DomainBusinessAccountUserSearchDTOReverseMapper extends RestSimpleD
                 .setUserGroupIdList(convertToSetSafe(src.getUserGroupIdList()))
                 .setUserGroupIdExcludeList(convertToSetSafe(src.getUserGroupIdExcludeList()))
                 .setLastActivityAtRange(dataTimeRangeDTOReverseMapper.convert(src.getLastActivityAt()))
-                .setCreatedAtRange(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
-                .setSortField(src.getSortField())
-                .setSortDirection(src.getSortDirection());
+                .setCreatedAtRange(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
     }
 }
