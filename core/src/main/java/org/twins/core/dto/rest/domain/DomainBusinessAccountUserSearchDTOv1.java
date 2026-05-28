@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
-import org.twins.core.dto.rest.SortDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -37,7 +36,4 @@ public class DomainBusinessAccountUserSearchDTOv1 {
 
     @Schema(description = "created at range")
     public DataTimeRangeDTOv1 createdAt;
-
-    @Schema(description = "sort options")
-    public SortDTOv1 sort;
 }

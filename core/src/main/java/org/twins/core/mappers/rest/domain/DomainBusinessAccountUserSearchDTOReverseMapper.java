@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest.domain;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.specifications.sort.DomainBusinessAccountUserSortField;
 import org.twins.core.domain.search.DomainBusinessAccountUserSearch;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountUserSearchDTOv1;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
@@ -29,6 +28,5 @@ public class DomainBusinessAccountUserSearchDTOReverseMapper extends RestSimpleD
                 .setUserGroupIdExcludeList(convertToSetSafe(src.getUserGroupIdExcludeList()))
                 .setLastActivityAtRange(dataTimeRangeDTOReverseMapper.convert(src.getLastActivityAt()))
                 .setCreatedAtRange(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
-        dst.getSortOption().setIfNotNull(sortDTOReverseMapper.convert(src.getSort(), DomainBusinessAccountUserSortField.class));
     }
 }
