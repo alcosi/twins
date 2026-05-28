@@ -22,18 +22,14 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.user.UserService;
+import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -183,7 +179,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadHistoryNotificationRecipient(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         historyNotificationRecipientService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getHistoryNotificationRecipientId,
                 HistoryNotificationEntity::getHistoryNotificationRecipient,
                 HistoryNotificationEntity::setHistoryNotificationRecipient);
@@ -195,7 +190,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadNotificationSchema(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         notificationSchemaService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getNotificationSchemaId,
                 HistoryNotificationEntity::getNotificationSchema,
                 HistoryNotificationEntity::setNotificationSchema);
@@ -207,7 +201,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadTwinClass(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         twinClassService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getTwinClassId,
                 HistoryNotificationEntity::getTwinClass,
                 HistoryNotificationEntity::setTwinClass);
@@ -219,7 +212,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadTwinClassField(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         twinClassFieldService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getTwinClassFieldId,
                 HistoryNotificationEntity::getTwinClassField,
                 HistoryNotificationEntity::setTwinClassField);
@@ -231,7 +223,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadNotificationChannelEvent(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         notificationEventServiceService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getNotificationChannelEventId,
                 HistoryNotificationEntity::getNotificationChannelEvent,
                 HistoryNotificationEntity::setNotificationChannelEvent);
@@ -243,7 +234,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadTwinValidatorSet(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         twinValidatorSetService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getTwinValidatorSetId,
                 HistoryNotificationEntity::getTwinValidatorSet,
                 HistoryNotificationEntity::setTwinValidatorSet);
@@ -255,7 +245,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
     public void loadCreatedByUser(Collection<HistoryNotificationEntity> entities) throws ServiceException {
         userService.load(entities,
-                HistoryNotificationEntity::getId,
                 HistoryNotificationEntity::getCreatedByUserId,
                 HistoryNotificationEntity::getCreatedByUser,
                 HistoryNotificationEntity::setCreatedByUser);

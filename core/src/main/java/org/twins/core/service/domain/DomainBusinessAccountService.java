@@ -209,7 +209,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadTwinflowSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         twinflowSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getTwinflowSchemaId,
                 DomainBusinessAccountEntity::getTwinflowSchema,
                 DomainBusinessAccountEntity::setTwinflowSchema);
@@ -221,7 +220,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadTwinClassSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         twinClassSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getTwinClassSchemaId,
                 DomainBusinessAccountEntity::getTwinClassSchema,
                 DomainBusinessAccountEntity::setTwinClassSchema);
@@ -233,7 +231,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadNotificationSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         notificationSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getNotificationSchemaId,
                 DomainBusinessAccountEntity::getNotificationSchema,
                 DomainBusinessAccountEntity::setNotificationSchema);

@@ -2059,7 +2059,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void loadClass(Collection<TwinEntity> collection) throws ServiceException {
         twinClassService.load(collection,
-                TwinEntity::getId,
                 TwinEntity::getTwinClassId,
                 TwinEntity::getTwinClass,
                 TwinEntity::setTwinClass);

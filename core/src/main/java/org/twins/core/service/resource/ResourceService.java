@@ -15,10 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.ResourceRepository;
 import org.twins.core.dao.resource.StorageEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
 
@@ -216,13 +216,11 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
 
     public void loadIconResources(Collection<TwinClassEntity> twinClasses) throws ServiceException {
         load(twinClasses,
-                TwinClassEntity::getId,
                 TwinClassEntity::getIconLightResourceId,
                 TwinClassEntity::getIconLightResource,
                 TwinClassEntity::setIconLightResource);
 
         load(twinClasses,
-                TwinClassEntity::getId,
                 TwinClassEntity::getIconDarkResourceId,
                 TwinClassEntity::getIconDarkResource,
                 TwinClassEntity::setIconDarkResource);

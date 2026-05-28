@@ -114,7 +114,6 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
 
     public void loadTwinValidatorSet(Collection<TwinClassDynamicMarkerEntity> entities) throws ServiceException {
         twinValidatorSetService.load(entities,
-                TwinClassDynamicMarkerEntity::getId,
                 TwinClassDynamicMarkerEntity::getTwinValidatorSetId,
                 TwinClassDynamicMarkerEntity::getTwinValidatorSet,
                 TwinClassDynamicMarkerEntity::setTwinValidatorSet);

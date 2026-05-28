@@ -381,7 +381,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     private void loadOriginalFields(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                TwinClassFieldDuplicate::getNewTwinClassFieldId,
                 TwinClassFieldDuplicate::getOriginalTwinClassFieldId,
                 TwinClassFieldDuplicate::getOriginalTwinClassField,
                 TwinClassFieldDuplicate::setOriginalTwinClassField);
@@ -389,7 +388,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     private void loadNewClasses(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
         twinClassService.load(duplicates,
-                TwinClassFieldDuplicate::getNewTwinClassFieldId,
                 TwinClassFieldDuplicate::getNewTwinClassId,
                 TwinClassFieldDuplicate::getNewTwinClass,
                 TwinClassFieldDuplicate::setNewTwinClass);

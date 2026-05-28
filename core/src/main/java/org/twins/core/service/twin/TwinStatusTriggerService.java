@@ -165,7 +165,6 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
 
     public void loadTriggers(Collection<TwinStatusTriggerEntity> srcCollection) throws ServiceException {
         twinTriggerService.load(srcCollection,
-                TwinStatusTriggerEntity::getId,
                 TwinStatusTriggerEntity::getTwinTriggerId,
                 TwinStatusTriggerEntity::getTwinTrigger,
                 TwinStatusTriggerEntity::setTwinTrigger);
@@ -177,7 +176,6 @@ public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinSt
 
     public void loadStatuses(Collection<TwinStatusTriggerEntity> srcCollection) throws ServiceException {
         twinStatusService.load(srcCollection,
-                TwinStatusTriggerEntity::getId,
                 TwinStatusTriggerEntity::getTwinStatusId,
                 TwinStatusTriggerEntity::getTwinStatus,
                 TwinStatusTriggerEntity::setTwinStatus);
