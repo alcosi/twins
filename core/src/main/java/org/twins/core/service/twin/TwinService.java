@@ -395,7 +395,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     protected void createTwins(TwinCreateStage twinCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        var twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
+        var twinEntities = initIds(twinCreateList);
         loadClass(twinEntities);
         var twinsGroupedByClass = new KitGroupedObj<>(
                 twinEntities,
@@ -440,6 +440,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
             runFactoryAfterCreate(twinCreate, twinChangesCollector);
         }
+    }
+
+    private static ArrayList<TwinEntity> initIds(TwinCreateStage twinCreateList) {
+        var twinEntities = new ArrayList<TwinEntity>();
+        for (var twinCreate : twinCreateList) {
+            var entity = twinCreate.getTwinEntity();
+            if (entity.getId() == null) {
+                entity.setId(UUID.randomUUID());
+            }
+            twinEntities.add(entity);
+        }
+        return twinEntities;
     }
 
     public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException {
