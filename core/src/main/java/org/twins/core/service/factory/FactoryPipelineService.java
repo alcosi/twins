@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
-import org.cambium.common.kit.KitGrouped;
 import org.twins.core.domain.factory.FactoryPipelineDuplicate;
 
 import java.util.Collection;
@@ -126,8 +125,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         return updateSafe(dbEntity, changesHelper);
     }
 
-    public void duplicatePipelinesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryPipelineEntity, UUID, UUID> pipelinesKit) throws ServiceException {
-        List<TwinFactoryPipelineEntity> pipelines = pipelinesKit.getGrouped(fromFactory.getId());
+    public void duplicatePipelinesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryPipelineEntity> pipelines = fromFactory.getTwinFactoryPipelineKit().getList();
         if (CollectionUtils.isEmpty(pipelines)) {
             return;
         }

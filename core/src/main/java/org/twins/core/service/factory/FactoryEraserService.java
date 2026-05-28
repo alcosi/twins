@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
-import org.cambium.common.kit.KitGrouped;
 import org.twins.core.domain.factory.FactoryEraserDuplicate;
 
 import java.util.Collection;
@@ -108,8 +107,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         deleteSafe(id);
     }
 
-    public void duplicateErasersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryEraserEntity, UUID, UUID> erasersKit) throws ServiceException {
-        List<TwinFactoryEraserEntity> erasers = erasersKit.getGrouped(fromFactory.getId());
+    public void duplicateErasersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryEraserEntity> erasers = fromFactory.getTwinFactoryEraserKit().getList();
         if (CollectionUtils.isEmpty(erasers)) {
             return;
         }

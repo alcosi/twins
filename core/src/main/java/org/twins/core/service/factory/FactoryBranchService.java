@@ -22,7 +22,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.twins.core.domain.factory.FactoryBranchDuplicate;
 
@@ -122,8 +121,8 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         return true;
     }
 
-    public void duplicateBranchesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryBranchEntity, UUID, UUID> branchesKit) throws ServiceException {
-        List<TwinFactoryBranchEntity> branches = branchesKit.getGrouped(fromFactory.getId());
+    public void duplicateBranchesForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryBranchEntity> branches = fromFactory.getTwinFactoryBranchKit().getList();
         if (CollectionUtils.isEmpty(branches)) {
             return;
         }

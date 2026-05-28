@@ -9,7 +9,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.twins.core.domain.factory.FactoryTriggerDuplicate;
 
 import java.util.Collection;
@@ -170,8 +169,8 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
     }
 
-    public void duplicateTriggersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryTriggerEntity, UUID, UUID> triggersKit) throws ServiceException {
-        List<TwinFactoryTriggerEntity> triggers = triggersKit.getGrouped(fromFactory.getId());
+    public void duplicateTriggersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryTriggerEntity> triggers = fromFactory.getTwinFactoryTriggerKit().getList();
         if (CollectionUtils.isEmpty(triggers)) {
             return;
         }

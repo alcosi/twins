@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
-import org.cambium.common.kit.KitGrouped;
 import org.twins.core.domain.factory.FactoryMultiplierDuplicate;
 
 import java.util.Collection;
@@ -113,8 +112,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 Multiplier.class, changesHelper);
     }
 
-    public void duplicateMultipliersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory, KitGrouped<TwinFactoryMultiplierEntity, UUID, UUID> multipliersKit) throws ServiceException {
-        List<TwinFactoryMultiplierEntity> multipliers = multipliersKit.getGrouped(fromFactory.getId());
+    public void duplicateMultipliersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
+        List<TwinFactoryMultiplierEntity> multipliers = fromFactory.getTwinFactoryMultiplierKit().getList();
         if (CollectionUtils.isEmpty(multipliers)) {
             return;
         }
