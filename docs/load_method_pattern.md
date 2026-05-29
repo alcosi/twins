@@ -2,6 +2,9 @@
 
 A pattern for batch loading `@Transient` fields in JPA entities. It solves the N+1 query problem when working with related data that is not loaded through standard JPA mechanisms (lazy relations, JOIN FETCH, etc.).
 
+## Related documents
+* transient_vs_many_to_one.md
+
 ## Problem Overview
 
 An entity has an `@Transient` field that is populated manually from a separate query. If a separate query is executed for each entity in a collection, this results in N+1. Load methods solve this with a single batch query for the entire collection.

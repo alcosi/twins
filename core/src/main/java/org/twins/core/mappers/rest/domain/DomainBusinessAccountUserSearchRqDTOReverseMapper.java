@@ -14,6 +14,10 @@ public class DomainBusinessAccountUserSearchRqDTOReverseMapper extends RestSimpl
 
     @Override
     public DomainBusinessAccountUserSearch convert(DomainBusinessAccountUserSearchRqDTOv1 src, MapperContext mapperContext) throws Exception {
-        return domainBusinessAccountUserSearchDTOReverseMapper.convert(src.getSearch(), mapperContext);
+        var dst = domainBusinessAccountUserSearchDTOReverseMapper.convert(src.getSearch(), mapperContext);
+        dst
+                .setSortField(src.getSortField())
+                .setSortDirection(src.getSortDirection());
+        return dst;
     }
 }

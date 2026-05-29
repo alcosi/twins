@@ -107,7 +107,6 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
     public void loadTwinClassFieldAttributes(Collection<TwinFieldAttributeEntity> twinFieldAttributes) throws ServiceException {
         twinClassFieldAttributeService.load(
                 twinFieldAttributes,
-                TwinFieldAttributeEntity::getId,
                 TwinFieldAttributeEntity::getTwinClassFieldAttributeId,
                 TwinFieldAttributeEntity::getTwinClassFieldAttribute,
                 TwinFieldAttributeEntity::setTwinClassFieldAttribute

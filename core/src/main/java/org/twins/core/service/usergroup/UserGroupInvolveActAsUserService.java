@@ -111,7 +111,6 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
 
     public void loadMachineUser(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
         userService.load(srcCollection,
-                UserGroupInvolveActAsUserEntity::getId,
                 UserGroupInvolveActAsUserEntity::getMachineUserId,
                 UserGroupInvolveActAsUserEntity::getMachineUser,
                 UserGroupInvolveActAsUserEntity::setMachineUser);
@@ -123,7 +122,6 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
 
     public void loadAddedByUser(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
         userService.load(srcCollection,
-                UserGroupInvolveActAsUserEntity::getId,
                 UserGroupInvolveActAsUserEntity::getAddedByUserId,
                 UserGroupInvolveActAsUserEntity::getAddedByUser,
                 UserGroupInvolveActAsUserEntity::setAddedByUser);
@@ -135,7 +133,6 @@ public class UserGroupInvolveActAsUserService extends EntitySecureFindServiceImp
 
     public void loadUserGroup(Collection<UserGroupInvolveActAsUserEntity> srcCollection) throws ServiceException {
         userGroupService.load(srcCollection,
-                UserGroupInvolveActAsUserEntity::getId,
                 UserGroupInvolveActAsUserEntity::getUserGroupId,
                 UserGroupInvolveActAsUserEntity::getUserGroup,
                 UserGroupInvolveActAsUserEntity::setUserGroup);

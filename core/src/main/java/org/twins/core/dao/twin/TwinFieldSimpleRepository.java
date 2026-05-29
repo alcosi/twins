@@ -22,30 +22,6 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
-    @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
-        from TwinEntity child
-        where child.headTwinId in :headTwinIdList and child.twinStatusId in :childrenTwinStatusIdList
-        group by child.headTwinId
-        """)
-    List<TwinFieldCalcProjection> countChildrenTwinsWithStatusIn(
-            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
-            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
-
-    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
-    long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
-
-    @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
-        from TwinEntity child 
-        where child.headTwinId in :headTwinIdList and not child.twinStatusId in :childrenTwinStatusIdList
-        group by child.headTwinId
-        """)
-    List<TwinFieldCalcProjection> countChildrenTwinsWithStatusNotIn(
-            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
-            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
-
-
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinClassId in :twinClassIdList")
     long countChildrenTwinsOfTwinClassIdIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassIdList") Collection<UUID> twinClassIds);
 

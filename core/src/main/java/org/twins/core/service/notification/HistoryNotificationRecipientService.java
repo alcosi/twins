@@ -25,11 +25,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -123,7 +119,6 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
 
     public void loadCreatedByUser(Collection<HistoryNotificationRecipientEntity> entities) throws ServiceException {
         userService.load(entities,
-                HistoryNotificationRecipientEntity::getId,
                 HistoryNotificationRecipientEntity::getCreatedByUserId,
                 HistoryNotificationRecipientEntity::getCreatedByUser,
                 HistoryNotificationRecipientEntity::setCreatedByUser);

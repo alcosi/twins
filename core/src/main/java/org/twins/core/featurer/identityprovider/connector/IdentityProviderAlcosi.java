@@ -18,6 +18,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -94,6 +95,9 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     @FeaturerParam(name = "Active BA claim with multi-domain support", optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean activeBusinessAccountClaimMultiDomain = new FeaturerParamBoolean("activeBusinessAccountClaimMultiDomain");
 
+    @FeaturerParam(name = "Active BA ignore id", optional = true)
+    public static final FeaturerParamUUIDSet activeBusinessAccountIgnoreIds = new FeaturerParamUUIDSet("activeBusinessAccountIgnoreIds");
+
     @Override
     protected ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException {
 
@@ -152,6 +156,8 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
                 businessAccountId = UUID.fromString(value);
             }
         }
+        if (activeBusinessAccountIgnoreIds.extract(properties).contains(businessAccountId))
+            businessAccountId = null;
         return new TokenMetaData()
                 .setUserId(userId)
                 .setBusinessAccountId(businessAccountId)

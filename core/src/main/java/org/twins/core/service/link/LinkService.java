@@ -395,7 +395,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
 
     public void loadCreatedBy(Collection<LinkEntity> linkEntities) throws ServiceException {
         userService.load(linkEntities,
-                LinkEntity::getId,
                 LinkEntity::getCreatedByUserId,
                 LinkEntity::getCreatedByUser,
                 LinkEntity::setCreatedByUser);
