@@ -9,6 +9,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +33,8 @@ import java.util.function.Function;
 public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
@@ -124,5 +127,16 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 twinFactoryBranchRepository::findByTwinFactoryIdIn,
                 TwinFactoryBranchEntity::getId,
                 TwinFactoryBranchEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSets(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadConditionSets(Collections.singleton(branch));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryConditionSetService.load(branches,
+                TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
+                TwinFactoryBranchEntity::getConditionSet,
+                TwinFactoryBranchEntity::setConditionSet);
     }
 }

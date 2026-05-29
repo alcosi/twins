@@ -36,6 +36,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public CrudRepository<TwinFactoryEraserEntity, UUID> entityRepository() {
@@ -114,5 +116,16 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryEraserEntity::getId,
                 TwinFactoryEraserEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSets(TwinFactoryEraserEntity eraser) throws ServiceException {
+        loadConditionSets(Collections.singleton(eraser));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+        factoryConditionSetService.load(erasers,
+                TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
+                TwinFactoryEraserEntity::getConditionSet,
+                TwinFactoryEraserEntity::setConditionSet);
     }
 }

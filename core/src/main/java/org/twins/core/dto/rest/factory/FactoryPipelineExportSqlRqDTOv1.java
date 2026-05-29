@@ -16,4 +16,7 @@ import java.util.UUID;
 public class FactoryPipelineExportSqlRqDTOv1 extends Request {
     @Schema(description = "twin factory pipeline ids to export SQL for")
     public Set<UUID> twinFactoryPipelineIds;
+
+    @Schema(description = "include pipeline steps with condition sets and conditions")
+    public boolean includePipelineSteps = false;
 }

@@ -41,7 +41,7 @@ public class FactoryPipelineExportSqlController extends ApiController {
     @PostMapping(value = "/private/factory_pipeline/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> factoryPipelineExportSqlV1(
             @RequestBody FactoryPipelineExportSqlRqDTOv1 request) throws ServiceException {
-        String sql = pipelineExportService.exportToSql(request.getTwinFactoryPipelineIds());
+        String sql = pipelineExportService.exportToSql(request.getTwinFactoryPipelineIds(), request.isIncludePipelineSteps());
 
         String filename = "factory_pipelines_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();

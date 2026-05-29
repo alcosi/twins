@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 
@@ -14,7 +15,6 @@ import java.util.*;
 public class FactoryMultiplierExportService {
     private final FactoryMultiplierService factoryMultiplierService;
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
-    private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final SqlBuilder sqlBuilder;
 
@@ -37,22 +37,20 @@ public class FactoryMultiplierExportService {
 
         List<TwinFactoryMultiplierFilterEntity> filters = factoryMultiplierFilterService.findByTwinFactoryMultiplierIdIn(multiplierIds);
 
-        // Collect ConditionSet IDs from filters
-        Set<UUID> conditionSetIds = new HashSet<>();
+        // Load conditionSets for filters
+        factoryMultiplierFilterService.loadConditionSets(filters);
+        Set<TwinFactoryConditionSetEntity> conditionSets = new HashSet<>();
         for (TwinFactoryMultiplierFilterEntity filter : filters) {
-            if (filter.getTwinFactoryConditionSetId() != null) {
-                conditionSetIds.add(filter.getTwinFactoryConditionSetId());
+            if (filter.getConditionSet() != null) {
+                conditionSets.add(filter.getConditionSet());
             }
         }
 
         // Export ConditionSets and Conditions
-        if (!conditionSetIds.isEmpty()) {
-            var conditionSetKit = factoryConditionSetService.findEntitiesSafe(conditionSetIds);
-            if (!conditionSetKit.getList().isEmpty()) {
-                String conditionSetSql = conditionSetExportService.exportToSql(conditionSetKit.getList());
-                if (!conditionSetSql.isEmpty()) {
-                    sqlParts.add(conditionSetSql);
-                }
+        if (!conditionSets.isEmpty()) {
+            String conditionSetSql = conditionSetExportService.exportToSql(conditionSets);
+            if (!conditionSetSql.isEmpty()) {
+                sqlParts.add(conditionSetSql);
             }
         }
 

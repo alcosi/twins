@@ -38,11 +38,11 @@ public class FactoryExportService {
     private final FactoryEraserService factoryEraserService;
     private final FactoryTriggerService factoryTriggerService;
 
-    public String exportToSql(UUID factoryId, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includeErasers, boolean includeTriggers) throws ServiceException {
-        return exportToSql(Collections.singleton(factoryId), includeBranches, includeMultipliers, includePipelines, includeErasers, includeTriggers);
+    public String exportToSql(UUID factoryId, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
+        return exportToSql(Collections.singleton(factoryId), includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
     }
 
-    public String exportToSql(Set<UUID> factoryIds, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includeErasers, boolean includeTriggers) throws ServiceException {
+    public String exportToSql(Set<UUID> factoryIds, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
         var factoriesKit = twinFactoryService.findEntitiesSafe(factoryIds);
 
         if (factoriesKit.isEmpty()) {
@@ -115,7 +115,7 @@ public class FactoryExportService {
                 pipelines.addAll(factory.getTwinFactoryPipelineKit().getList());
             }
             if (!pipelines.isEmpty()) {
-                String pipelinesSql = pipelineExportService.exportToSql(pipelines);
+                String pipelinesSql = pipelineExportService.exportToSql(pipelines, includePipelineSteps);
                 if (!pipelinesSql.isEmpty()) {
                     sqlParts.add(pipelinesSql);
                 }

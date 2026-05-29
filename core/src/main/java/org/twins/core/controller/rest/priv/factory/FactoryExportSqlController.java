@@ -46,6 +46,7 @@ public class FactoryExportSqlController extends ApiController {
                 request.isIncludeBranches(),
                 request.isIncludeMultipliers(),
                 request.isIncludePipelines(),
+                request.isIncludePipelineSteps(),
                 request.isIncludeErasers(),
                 request.isIncludeTriggers()
         );

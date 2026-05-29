@@ -135,4 +135,15 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::getId,
                 TwinFactoryPipelineEntity::getTwinFactoryId);
     }
+
+    public void loadConditionSets(TwinFactoryPipelineEntity pipeline) throws ServiceException {
+        loadConditionSets(Collections.singleton(pipeline));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryPipelineEntity> pipelines) throws ServiceException {
+        factoryConditionSetService.load(pipelines,
+                TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineEntity::getConditionSet,
+                TwinFactoryPipelineEntity::setConditionSet);
+    }
 }

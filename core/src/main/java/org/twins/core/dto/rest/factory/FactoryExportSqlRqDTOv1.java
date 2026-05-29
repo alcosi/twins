@@ -23,8 +23,11 @@ public class FactoryExportSqlRqDTOv1 extends Request {
     @Schema(description = "include multipliers with filters, condition sets and conditions")
     public boolean includeMultipliers = false;
 
-    @Schema(description = "include pipelines with steps, condition sets and conditions")
+    @Schema(description = "include pipelines with condition sets and conditions")
     public boolean includePipelines = false;
+
+    @Schema(description = "include pipeline steps with condition sets and conditions (only works if includePipelines is true)")
+    public boolean includePipelineSteps = false;
 
     @Schema(description = "include erasers with condition sets and conditions")
     public boolean includeErasers = false;
