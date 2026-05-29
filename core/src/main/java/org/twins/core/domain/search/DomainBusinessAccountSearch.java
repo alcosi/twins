@@ -5,9 +5,9 @@ import lombok.experimental.Accessors;
 import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.DomainBusinessAccountSortField;
 
-import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -15,26 +15,29 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class DomainBusinessAccountSearch {
+    private Set<UUID> idList;
+    private Set<UUID> idExcludeList;
+    private Set<UUID> businessAccountIdList;
+    private Set<UUID> businessAccountIdExcludeList;
+    private Set<String> businessAccountNameLikeList;
+    private Set<String> businessAccountNameNotLikeList;
+    private Set<UUID> permissionSchemaIdList;
+    private Set<UUID> permissionSchemaIdExcludeList;
+    private Set<UUID> twinflowSchemaIdList;
+    private Set<UUID> twinflowSchemaIdExcludeList;
+    private Set<UUID> twinClassSchemaIdList;
+    private Set<UUID> twinClassSchemaIdExcludeList;
+    private Set<UUID> tierIdList;
+    private Set<UUID> tierIdExcludeList;
+    private Set<UUID> notificationSchemaIdList;
+    private Set<UUID> notificationSchemaIdExcludeList;
+    private IntegerRange storageUsedSizeRange;
+    private IntegerRange storageUsedCountRange;
+    private DataTimeRange createAtRange;
 
-    Set<UUID> idList;
-    Set<UUID> idExcludeList;
-    Set<UUID> businessAccountIdList;
-    Set<UUID> businessAccountIdExcludeList;
-    Set<String> businessAccountNameLikeList;
-    Set<String> businessAccountNameNotLikeList;
-    Set<UUID> permissionSchemaIdList;
-    Set<UUID> permissionSchemaIdExcludeList;
-    Set<UUID> twinflowSchemaIdList;
-    Set<UUID> twinflowSchemaIdExcludeList;
-    Set<UUID> twinClassSchemaIdList;
-    Set<UUID> twinClassSchemaIdExcludeList;
-    Set<UUID> tierIdList;
-    Set<UUID> tierIdExcludeList;
-    Set<UUID> notificationSchemaIdList;
-    Set<UUID> notificationSchemaIdExcludeList;
-    IntegerRange storageUsedSizeRange;
-    IntegerRange storageUsedCountRange;
-    DataTimeRange createAtRange;
+    private DomainBusinessAccountSortField sortField = DomainBusinessAccountSortField.createdAt;
+    private SortDirection sortDirection = SortDirection.ASC;
+
 
     public DomainBusinessAccountSearch addBusinessAccountId(Collection<UUID> ids, boolean exclude) {
         if (!exclude) businessAccountIdList = CollectionUtils.safeAdd(businessAccountIdList, ids);

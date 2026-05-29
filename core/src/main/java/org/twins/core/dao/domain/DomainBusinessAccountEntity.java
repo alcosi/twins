@@ -1,9 +1,7 @@
 package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -73,7 +71,7 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @ToString.Exclude
     private BusinessAccountEntity businessAccount;
 
-    @ManyToOne
+    @ManyToOne // EAGER
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -85,15 +83,39 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @ToString.Exclude
     private TierEntity tier;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private NotificationSchemaEntity notificationSchemaSpecOnly;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private NotificationSchemaEntity notificationSchema;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinflowSchemaEntity twinflowSchemaSpecOnly;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinflowSchemaEntity twinflowSchema;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassSchemaEntity twinClassSchemaSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
