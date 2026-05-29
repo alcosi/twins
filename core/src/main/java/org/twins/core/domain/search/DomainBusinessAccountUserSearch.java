@@ -15,16 +15,16 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 public class DomainBusinessAccountUserSearch {
-    public Set<UUID> userIdList;
-    public Set<UUID> userIdExcludeList;
-    public Set<UUID> businessAccountIdList;
-    public Set<UUID> businessAccountIdExcludeList;
-    public Set<UUID> userGroupIdList;
-    public Set<UUID> userGroupIdExcludeList;
-    public DataTimeRange lastActivityAtRange;
-    public DataTimeRange createdAtRange;
-    public DomainBusinessAccountUserSortField sortField = DomainBusinessAccountUserSortField.createdAt;
-    public SortDirection sortDirection = SortDirection.ASC;
+    private Set<UUID> userIdList;
+    private Set<UUID> userIdExcludeList;
+    private Set<UUID> businessAccountIdList;
+    private Set<UUID> businessAccountIdExcludeList;
+    private Set<UUID> userGroupIdList;
+    private Set<UUID> userGroupIdExcludeList;
+    private DataTimeRange lastActivityAtRange;
+    private DataTimeRange createdAtRange;
+    private DomainBusinessAccountUserSortField sortField = DomainBusinessAccountUserSortField.createdAt;
+    private SortDirection sortDirection = SortDirection.ASC;
 
     public DomainBusinessAccountUserSearch addUserId(UUID userId, boolean exclude) {
         if (exclude)

@@ -667,7 +667,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return sort.toSortSpecification();
     }
 
-    public static <T> Specification<T> toSortSpecification(String[] fieldPath, boolean ascending) {
+    public static <T> Specification<T> toSortSpecification(boolean ascending, String... fieldPath) {
         if (fieldPath == null)
             return (root, query, cb) -> cb.conjunction();
         return (root, query, cb) -> {

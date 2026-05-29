@@ -53,7 +53,8 @@ public class DomainBusinessAccountSearchService {
                 .and(checkUuidIn(domainBusinessAccountSearch.getNotificationSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.notificationSchemaId))
                 .and(CommonSpecification.checkFieldIntegerRange(domainBusinessAccountSearch.getStorageUsedSizeRange(), DomainBusinessAccountEntity.Fields.attachmentsStorageUsedSize))
                 .and(CommonSpecification.checkFieldIntegerRange(domainBusinessAccountSearch.getStorageUsedCountRange(), DomainBusinessAccountEntity.Fields.attachmentsStorageUsedCount))
-                .and(CommonSpecification.checkFieldLocalDateTimeBetween(domainBusinessAccountSearch.getCreateAtRange(), DomainBusinessAccountEntity.Fields.createdAt));
+                .and(CommonSpecification.checkFieldLocalDateTimeBetween(domainBusinessAccountSearch.getCreateAtRange(), DomainBusinessAccountEntity.Fields.createdAt))
+                .and(createSortSpecification(domainBusinessAccountSearch, authService.getApiUser().getLocale()));
     }
 
     public PaginationResult<DomainBusinessAccountEntity> findDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch, SimplePagination pagination) throws ServiceException {
@@ -61,7 +62,7 @@ public class DomainBusinessAccountSearchService {
             domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
         Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository
                 .findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch),
-                        PaginationUtils.pageableOffset(pagination));
+                        PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(domainBusinessAccountsList, pagination);
     }
 }

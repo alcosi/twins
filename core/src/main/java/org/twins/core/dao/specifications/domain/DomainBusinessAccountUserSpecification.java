@@ -51,12 +51,11 @@ public class DomainBusinessAccountUserSpecification extends CommonSpecification<
         if (sortField == null)
             sortField = DomainBusinessAccountUserSortField.createdAt;
         boolean ascending = search.getSortDirection() != SortDirection.DESC;
-        String[] fieldPath = switch (sortField) {
-            case createdAt -> new String[]{DomainBusinessAccountUserEntity.Fields.createdAt};
-            case lastActivityAt -> new String[]{DomainBusinessAccountUserEntity.Fields.lastActivityAt};
-            case userName -> new String[]{DomainBusinessAccountUserEntity.Fields.user, UserEntity.Fields.name};
-            case businessAccountName -> new String[]{DomainBusinessAccountUserEntity.Fields.businessAccount, BusinessAccountEntity.Fields.name};
+        return switch (sortField) {
+            case createdAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.createdAt);
+            case lastActivityAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.lastActivityAt);
+            case userName -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.user, UserEntity.Fields.name);
+            case businessAccountName -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.businessAccount, BusinessAccountEntity.Fields.name);
         };
-        return toSortSpecification(fieldPath, ascending);
     }
 }
