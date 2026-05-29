@@ -54,7 +54,7 @@ public class DomainBusinessAccountSearchService {
                 .and(CommonSpecification.checkFieldIntegerRange(domainBusinessAccountSearch.getStorageUsedSizeRange(), DomainBusinessAccountEntity.Fields.attachmentsStorageUsedSize))
                 .and(CommonSpecification.checkFieldIntegerRange(domainBusinessAccountSearch.getStorageUsedCountRange(), DomainBusinessAccountEntity.Fields.attachmentsStorageUsedCount))
                 .and(CommonSpecification.checkFieldLocalDateTimeBetween(domainBusinessAccountSearch.getCreateAtRange(), DomainBusinessAccountEntity.Fields.createdAt))
-                .and(createSortSpecification(domainBusinessAccountSearch));
+                .and(createSortSpecification(domainBusinessAccountSearch, authService.getApiUser().getLocale()));
     }
 
     public PaginationResult<DomainBusinessAccountEntity> findDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch, SimplePagination pagination) throws ServiceException {

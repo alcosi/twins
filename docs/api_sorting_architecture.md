@@ -1,18 +1,14 @@
 # Архитектура: Динамическая сортировка для Search API
 
 **Дата:** 2026-05-28 (обновлено)
-**Статус:** Реализовано (пилот на DomainBusinessAccountUserSearch)
+**Статус:** Частично Реализовано (пилот на DomainBusinessAccountUserSearch)
 **Контекст:** TWINS-831 — отсутствует сортировка на 74+ search API
 
 ---
 
 ## Контекст
 
-В проекте 74 контроллера поиска с пагинацией (`@SimplePaginationParams`), но без динамической сортировки. `sortField` захардкожен в аннотации на compile-time. Клиент не может изменить поле сортировки. Особенно критично: сортировка по полям RelatedObjects (например, `user.name` вместо `userId`) требует JOIN к связанным таблицам.
-
-## Экспертная панель
-
-**Состав:** Алексей «Навигатор» (модератор), Марина «Скальпель» (критик), Игорь «Телескоп» (аналитик), Дмитрий «Бин» (Java/Spring), Тимур «Индекс» (PostgreSQL), Виктор «Секундомер» (performance).
+В проекте много контроллеров поиска с пагинацией (`@SimplePaginationParams`), но без динамической сортировки. `sortField` захардкожен в аннотации на compile-time. Клиент не может изменить поле сортировки. Особенно критично: сортировка по полям RelatedObjects (например, `user.name` вместо `userId`) требует JOIN к связанным таблицам.
 
 ---
 
@@ -20,7 +16,7 @@
 
 ### Принцип
 
-Сортировка реализуется через **простой enum per entity** в пакете `enums.sort`. Enum содержит только имена полей — без JPA-логики и без fieldPath. JPA Specification собирается в **SearchService** через switch по enum, который вызывает статический helper `CommonSpecification.toSortSpecification(fieldPath, ascending)`. Sort-поля инлайнятся прямо в **SearchDTO** — Swagger автоматически показывает dropdown со значениями.
+Сортировка реализуется через **простой enum per entity** в пакете `enums.sort`. Enum содержит только имена полей — без JPA-логики и без fieldPath. JPA Specification собирается в **SearchService** через switch по enum, который вызывает статический helper `CommonSpecification.toSortSpecification(ascending, fieldPath...)`. Sort-поля инлайнятся прямо в **SearchRqDTO** (не **SearchDTO**) — Swagger автоматически показывает dropdown со значениями.
 
 ### Почему Specification-only, а не Pageable.getSort()
 
@@ -40,12 +36,11 @@ Spring Data JPA баг [#2253](https://github.com/spring-projects/spring-data-jp
 - Switch даёт полную свободу: для конкретного поля можно добавить кастомную логику (подзапрос, другой JOIN-тип, etc.)
 - При добавлении нового sort-поля: добавляем значение в enum + case в switch
 
-### Почему sort inline в SearchDTO, а не отдельный SortDTO
+### Почему sort inline в SearchRqDTO, а не отдельный SortDTO
 
 - `SortDTOv1` с `String field` — Swagger показывает текстовое поле, клиент не видит допустимые значения
 - Enum-тип прямо в SearchRqDTO — Swagger автоматически генерирует dropdown
 - Jackson автоматически десериализует JSON-строку в enum, невалидное значение → 400 Bad Request
-- Убирается промежуточный `SortDTOReverseMapper` — маппинг тривиальный
 - Sort-поля лежат в `SearchRqDTO` рядом с `search`, а не внутри `SearchDTO` — это позволяет переиспользовать `SearchDTO` в других API (например, группировка) где сортировка не нужна
 
 ---
@@ -67,11 +62,11 @@ public enum DomainBusinessAccountUserSortField {
 
 Без конструктора, без fieldPath, без SortField<T>. Чистый data carrier.
 
-### 2. Статический helper в `CommonSpecification`
+### 2. Статические helpers в `CommonSpecification` и `I18nSpecification`
 
 ```java
-// CommonSpecification.java
-public static <T> Specification<T> toSortSpecification(String[] fieldPath, boolean ascending) {
+// CommonSpecification.java — для обычных полей
+public static <T> Specification<T> toSortSpecification(boolean ascending, String... fieldPath) {
     if (fieldPath == null)
         return (root, query, cb) -> cb.conjunction();
     return (root, query, cb) -> {
@@ -84,7 +79,14 @@ public static <T> Specification<T> toSortSpecification(String[] fieldPath, boole
         return cb.conjunction();
     };
 }
+
+// I18nSpecification.java — для i18n-полей (сортировка по переводу)
+public static <T> Specification<T> toSortSpecification(boolean ascending, Locale locale, String... fieldPath) {
+    // Навигация по fieldPath → LEFT JOIN I18nTranslationEntity с locale в ON → ORDER BY translation
+}
 ```
+
+Сигнатура `(boolean ascending, String... fieldPath)` — varargs вместо `String[]`, вызовы лаконичнее: `toSortSpecification(ascending, "businessAccount", "name")`.
 
 Логика: count-query guard → `AbstractSpecification.getFieldPath(root, LEFT, fieldPath)` → `orderBy`.
 
@@ -126,8 +128,6 @@ public DomainBusinessAccountUserSortField sortField = DomainBusinessAccountUserS
 public SortDirection sortDirection = SortDirection.ASC;
 ```
 
-Без `SortOption<S>` — прямые поля enum + SortDirection.
-
 ### 6. SearchRqDTOReverseMapper — маппинг search + sort
 
 ```java
@@ -151,19 +151,18 @@ private Specification<DomainBusinessAccountUserEntity> createSortSpecification(D
     if (sortField == null)
         sortField = DomainBusinessAccountUserSortField.createdAt;
     boolean ascending = search.getSortDirection() != SortDirection.DESC;
-    String[] fieldPath = switch (sortField) {
-        case createdAt -> new String[]{DomainBusinessAccountUserEntity.Fields.createdAt};
-        case lastActivityAt -> new String[]{DomainBusinessAccountUserEntity.Fields.lastActivityAt};
-        case userName -> new String[]{DomainBusinessAccountUserEntity.Fields.user, UserEntity.Fields.name};
-        case businessAccountName -> new String[]{DomainBusinessAccountUserEntity.Fields.businessAccount, BusinessAccountEntity.Fields.name};
+    return switch (sortField) {
+        case createdAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.createdAt);
+        case lastActivityAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.lastActivityAt);
+        case userName -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.user, UserEntity.Fields.name);
+        case businessAccountName -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.businessAccount, BusinessAccountEntity.Fields.name);
     };
-    return toSortSpecification(fieldPath, ascending);
 }
 ```
 
 **Как это работает:**
-- `createdAt` → `fieldPath = ["createdAt"]` → `getFieldPath` берёт `root.get("createdAt")` — без JOIN
-- `userName` → `fieldPath = ["user", "name"]` → `getFieldPath` делает `root.join("user", LEFT)` + `.get("name")`
+- `createdAt` → `toSortSpecification(ascending, "createdAt")` → `getFieldPath` берёт `root.get("createdAt")` — без JOIN
+- `userName` → `toSortSpecification(ascending, "user", "name")` → `getFieldPath` делает `root.join("user", LEFT)` + `.get("name")`
 - `AbstractSpecification.getFieldPath` + `getOrCreateJoin` гарантируют, что если JOIN уже существует (от фильтрации), он будет переиспользован, а не дублирован
 
 ### 8. Контроллер — без изменений
@@ -205,6 +204,88 @@ CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_ba_domain
 | 1,000,000 | ~10ms | **~4000ms** | ~8ms |
 
 **Вывод:** без индексов сортировка по JOIN-полям деградирует как O(N log N). С правильными индексами — практически константное время благодаря early termination при LIMIT.
+
+### 9. I18n-поля — сортировка через перевод
+
+Сущности, у которых name/description хранятся через I18n (например `NotificationSchemaEntity.nameI18n`), требуют особой обработки: вместо прямого поля сортировка идёт через LEFT JOIN к `I18nEntity` → `I18nTranslationEntity` с фильтром по locale.
+
+#### Проблема
+
+```java
+// НЕПРАВИЛЬНО — fieldPath заканчивается на I18nEntity, а не на строку
+case notificationSchemaName -> new String[]{"notificationSchemaSpecOnly", "nameI18n"};
+// CommonSpecification.toSortSpecification попытается сортировать по I18nEntity — не имеет смысла
+```
+
+I18n-поле хранит не строку, а `UUID` → `I18nEntity` → `List<I18nTranslationEntity>` (по одной записи на locale). Нужен дополнительный JOIN к `I18nTranslationEntity` с фильтром по locale текущего пользователя.
+
+#### Решение: `I18nSpecification.toSortSpecification`
+
+```java
+// I18nSpecification.java
+public static <T> Specification<T> toSortSpecification(
+    boolean ascending,
+    Locale locale,
+    String... fieldPath   // путь ДО I18nEntity (напр. "notificationSchemaSpecOnly", "nameI18n")
+)
+```
+
+**Как это работает:**
+
+1. Навигирует по `fieldPath` до I18nEntity (используя `findOrCreateJoin` для переиспользования существующих JOIN'ов от фильтрации)
+2. LEFT JOIN к `I18nTranslationEntity` с locale в **ON-условии** (не WHERE — чтобы не отсечь записи без перевода)
+3. Сортирует по `I18nTranslationEntity.translation`
+4. Содержит `getResultType()` guard для count-запросов
+
+**Результирующий SQL:**
+```sql
+LEFT JOIN i18n_translation translation_join
+    ON translation_join.i18n_id = i18n.id
+    AND translation_join.locale = 'en'
+ORDER BY translation_join.translation ASC
+```
+
+#### Интеграция в switch SearchService
+
+```java
+// DomainBusinessAccountSpecification.createSortSpecification(search, locale)
+return switch (sortField) {
+    case createdAt -> toSortSpecification(ascending, "createdAt");
+    // ... обычные поля через CommonSpecification.toSortSpecification
+
+    case notificationSchemaName -> I18nSpecification.toSortSpecification(
+        ascending, locale, "notificationSchemaSpecOnly", "nameI18n");
+};
+```
+
+Сигнатура `createSortSpecification` принимает `Locale locale` — передаётся из сервиса через `authService.getApiUser().getLocale()`.
+
+#### Какие сущности используют i18n-поля
+
+По данным из SORTING-ALL-SEARCH-API.md, i18n-сортировка потребуется для:
+
+| Сущность | I18n-поля |
+|---|---|
+| `NotificationSchemaEntity` | `nameI18n`, `descriptionI18n` |
+| `TwinClassFieldEntity` | `nameI18n`, `descriptionI18n` |
+| `TwinStatusEntity` | `nameI18n`, `descriptionI18n` |
+| `SpaceRoleEntity` | `nameI18n`, `descriptionI18n` |
+| `UserGroupEntity` | `nameI18n`, `descriptionI18n` |
+| `DataListOptionEntity` | `nameI18n`, `descriptionI18n` |
+
+Для каждого такого поля в switch вызывается `I18nSpecification.toSortSpecification` вместо `CommonSpecification.toSortSpecification`.
+
+#### Индексы для i18n-сортировки
+
+```sql
+-- Индекс на i18n_translation для быстрого поиска по locale
+CREATE INDEX IF NOT EXISTS idx_i18n_translation_i18n_locale
+    ON i18n_translation(i18n_id, locale);
+
+-- Покрывающий индекс для сортировки (включает translation)
+CREATE INDEX IF NOT EXISTS idx_i18n_translation_locale_translation
+    ON i18n_translation(locale, translation);
+```
 
 ---
 

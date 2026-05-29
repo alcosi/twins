@@ -1,10 +1,11 @@
 package org.twins.core.dao.i18n.specifications;
 
 import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.Attribute;
 import org.cambium.common.util.CollectionUtils;
+import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -51,6 +52,41 @@ public class I18nSpecification<T> {
             // Return main condition, checking the existence of translations
             return cb.and(localePredicate, searchPredicate);
         };
+    }
+
+    public static <T> Specification<T> toSortSpecification(boolean ascending, Locale locale, String... fieldPath) {
+        if (fieldPath == null || fieldPath.length == 0 || locale == null)
+            return (root, query, cb) -> cb.conjunction();
+        return (root, query, cb) -> {
+            if (query.getResultType().equals(Long.class))
+                return cb.conjunction();
+            // Навигация по fieldPath до I18nEntity
+            From<?, ?> current = root;
+            for (int i = 0; i < fieldPath.length - 1; i++) {
+                current = findOrCreateJoin(current, fieldPath[i], JoinType.LEFT);
+            }
+            // JOIN к I18nEntity
+            Join<?, ?> i18nJoin = findOrCreateJoin(current, fieldPath[fieldPath.length - 1], JoinType.LEFT);
+            // LEFT JOIN к I18nTranslationEntity с фильтром locale в ON
+            Join<?, ?> translationJoin = i18nJoin.join(I18nEntity.Fields.translations, JoinType.LEFT);
+            translationJoin.on(cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale));
+            // Сортировка по translation
+            Path<String> translationPath = translationJoin.get(I18nTranslationEntity.Fields.translation);
+            List<Order> orders = new ArrayList<>(query.getOrderList());
+            orders.add(ascending ? cb.asc(translationPath) : cb.desc(translationPath));
+            query.orderBy(orders);
+            return cb.conjunction();
+        };
+    }
+
+    private static Join<?, ?> findOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
+        for (Join<?, ?> join : from.getJoins()) {
+            Attribute<?, ?> attr = (Attribute<?, ?>) join.getAttribute();
+            if (attr != null && attr.getName().equals(attribute)) {
+                return join;
+            }
+        }
+        return from.join(attribute, joinType);
     }
 
     private static List<Predicate> buildLikePredicates(CriteriaBuilder cb, Path<String> path, Collection<String> search, boolean not) {
