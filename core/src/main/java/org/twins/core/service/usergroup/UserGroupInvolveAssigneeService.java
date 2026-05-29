@@ -11,31 +11,25 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
+import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
+import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
-import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
-import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -94,7 +88,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     public void loadUserGroup(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
         userGroupService.load(entities,
-                UserGroupInvolveAssigneeEntity::getId,
                 UserGroupInvolveAssigneeEntity::getUserGroupId,
                 UserGroupInvolveAssigneeEntity::getUserGroup,
                 UserGroupInvolveAssigneeEntity::setUserGroup);
@@ -102,7 +95,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     public void loadTwinClass(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
         twinClassService.load(entities,
-                UserGroupInvolveAssigneeEntity::getId,
                 UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,
                 UserGroupInvolveAssigneeEntity::getTwinClass,
                 UserGroupInvolveAssigneeEntity::setTwinClass);
@@ -110,7 +102,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     public void loadTwinStatus(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
         twinStatusService.load(entities,
-                UserGroupInvolveAssigneeEntity::getId,
                 UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId,
                 UserGroupInvolveAssigneeEntity::getTwinStatus,
                 UserGroupInvolveAssigneeEntity::setTwinStatus);
@@ -118,7 +109,6 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     public void loadCreatedByUser(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
         userService.load(entities,
-                UserGroupInvolveAssigneeEntity::getId,
                 UserGroupInvolveAssigneeEntity::getCreatedByUserId,
                 UserGroupInvolveAssigneeEntity::getCreatedByUser,
                 UserGroupInvolveAssigneeEntity::setCreatedByUser);

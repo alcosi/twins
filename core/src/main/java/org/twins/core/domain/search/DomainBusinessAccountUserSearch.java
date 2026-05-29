@@ -4,9 +4,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.specifications.SortOption;
-import org.twins.core.dao.specifications.sort.DomainBusinessAccountUserSortField;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.DomainBusinessAccountUserSortField;
 
 import java.util.Set;
 import java.util.UUID;
@@ -15,15 +15,16 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 public class DomainBusinessAccountUserSearch {
-    public Set<UUID> userIdList;
-    public Set<UUID> userIdExcludeList;
-    public Set<UUID> businessAccountIdList;
-    public Set<UUID> businessAccountIdExcludeList;
-    public Set<UUID> userGroupIdList;
-    public Set<UUID> userGroupIdExcludeList;
-    public DataTimeRange lastActivityAtRange;
-    public DataTimeRange createdAtRange;
-    public SortOption<DomainBusinessAccountUserSortField> sortOption = new SortOption<>(DomainBusinessAccountUserSortField.createdAt);
+    private Set<UUID> userIdList;
+    private Set<UUID> userIdExcludeList;
+    private Set<UUID> businessAccountIdList;
+    private Set<UUID> businessAccountIdExcludeList;
+    private Set<UUID> userGroupIdList;
+    private Set<UUID> userGroupIdExcludeList;
+    private DataTimeRange lastActivityAtRange;
+    private DataTimeRange createdAtRange;
+    private DomainBusinessAccountUserSortField sortField = DomainBusinessAccountUserSortField.createdAt;
+    private SortDirection sortDirection = SortDirection.ASC;
 
     public DomainBusinessAccountUserSearch addUserId(UUID userId, boolean exclude) {
         if (exclude)

@@ -436,22 +436,30 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     public <E, K> void load(Collection<E> srcCollection,
-                                     Function<? super E, ? extends K> functionGetId,
-                                     Function<? super E, UUID> functionGetGroupingId,
+                            Function<? super E, UUID> functionGetGroupingId,
                                      Function<? super E, T> functionGetGroupingEntity,
                                      BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
         if (srcCollection.isEmpty()) {
             return;
         }
-        KitGrouped<E, K, UUID> needLoad = KitUtils.createNeedLoadGrouped(srcCollection, functionGetId, functionGetGroupingId, functionGetGroupingEntity);
-        if (KitUtils.isEmpty(needLoad)) {
+        List<E> needLoad = null;
+        Set<UUID> groupingIds = null;
+        for (var item : srcCollection) {
+            if (functionGetGroupingEntity.apply(item) == null && functionGetGroupingId.apply(item) != null) {
+                if (needLoad == null) {
+                    needLoad = new ArrayList<>();
+                    groupingIds = new LinkedHashSet<>();
+                }
+                needLoad.add(item);
+                groupingIds.add(functionGetGroupingId.apply(item));
+            }
+        }
+        if (needLoad == null) {
             return;
         }
-        Kit<T, UUID> loaded = findEntitiesSafe(needLoad.getGroupedKeySet());
-        UUID key;
+        Kit<T, UUID> loaded = findEntitiesSafe(groupingIds);
         for (var item : needLoad) {
-            key = functionGetGroupingId.apply(item);
-            functionSetGroupingEntity.accept(item, loaded.get(key));
+            functionSetGroupingEntity.accept(item, loaded.get(functionGetGroupingId.apply(item)));
         }
     }
 

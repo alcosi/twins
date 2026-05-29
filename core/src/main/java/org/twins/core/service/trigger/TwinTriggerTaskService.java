@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
-import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twin.TwinService;
@@ -87,7 +87,6 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
 
     public void loadBusinessAccounts(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
         businessAccountService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
                 TwinTriggerTaskEntity::getBusinessAccountId,
                 TwinTriggerTaskEntity::getBusinessAccount,
                 TwinTriggerTaskEntity::setBusinessAccount);
@@ -99,7 +98,6 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
 
     public void loadTwinTriggers(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
         twinTriggerService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
                 TwinTriggerTaskEntity::getTwinTriggerId,
                 TwinTriggerTaskEntity::getTwinTrigger,
                 TwinTriggerTaskEntity::setTwinTrigger);
@@ -111,7 +109,6 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
 
     public void loadCreatedByUser(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
         userService.load(srcCollection,
-                TwinTriggerTaskEntity::getId,
                 TwinTriggerTaskEntity::getCreatedByUserId,
                 TwinTriggerTaskEntity::getCreatedByUser,
                 TwinTriggerTaskEntity::setCreatedByUser);

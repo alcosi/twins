@@ -27,6 +27,7 @@ import org.twins.core.dto.rest.domain.DomainBusinessAccountSearchRsDTOv1;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountViewRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountSearchRestDTOReverseMapper;
+import org.twins.core.mappers.rest.domain.DomainBusinessAccountSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -49,6 +50,7 @@ public class DomainBusinessAccountListController extends ApiController {
     private final DomainBusinessAccountDTOMapper domainBusinessAccountDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final DomainBusinessAccountSearchRestDTOReverseMapper domainBusinessAccountSearchRestDTOReverseMapper;
+    private final DomainBusinessAccountSearchRqDTOReverseMapper domainBusinessAccountSearchRqDTOReverseMapper;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
@@ -65,7 +67,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @RequestBody DomainBusinessAccountSearchRqDTOv1 request) {
         DomainBusinessAccountSearchRsDTOv1 rs = new DomainBusinessAccountSearchRsDTOv1();
         try {
-            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountSearchService.findDomainBusinessAccounts(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
+            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountSearchService.findDomainBusinessAccounts(domainBusinessAccountSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setPagination(paginationMapper.convert(domainBusinessAccounts))
                     .setBusinessAccounts(domainBusinessAccountDTOMapper.convertCollection(domainBusinessAccounts.getList(), mapperContext))

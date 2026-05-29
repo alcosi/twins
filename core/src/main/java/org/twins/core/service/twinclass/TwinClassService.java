@@ -291,7 +291,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     private void loadOriginalTwinClass(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                TwinClassDuplicate::getNewTwinClassId,
                 TwinClassDuplicate::getOriginalTwinClassId,
                 TwinClassDuplicate::getOriginalTwinClass,
                 TwinClassDuplicate::setOriginalTwinClass);
@@ -916,7 +915,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
         twinClassFreezeService.load(twinClassCollection,
-                TwinClassEntity::getId,
                 TwinClassEntity::getTwinClassFreezeId,
                 TwinClassEntity::getTwinClassFreeze,
                 TwinClassEntity::setTwinClassFreeze);

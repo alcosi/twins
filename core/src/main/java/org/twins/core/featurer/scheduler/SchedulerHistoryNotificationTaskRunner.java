@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.stream.StreamSupport;
 
 @Service
 @Featurer(
@@ -46,8 +45,22 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     @Override
     protected Collection<HistoryNotificationTaskEntity> setStatusAndSave(Collection<HistoryNotificationTaskEntity> collectedEntities) {
+        try {
+            loadHistoryActors(collectedEntities);
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
         collectedEntities.forEach(task -> task.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS));
-        return StreamSupport.stream(historyNotificationTaskRepository.saveAll(collectedEntities).spliterator(), false).toList();
+        historyNotificationTaskRepository.saveAll(collectedEntities);
+        return collectedEntities;
+    }
+
+    private void loadHistoryActors(Collection<HistoryNotificationTaskEntity> tasks) throws ServiceException {
+        if (CollectionUtils.isEmpty(tasks)) {
+            return;
+        }
+        var historyEntities = tasks.stream().map(HistoryNotificationTaskEntity::getHistory).toList();
+        historyService.loadUser(historyEntities);
     }
 
     @Override
@@ -56,8 +69,6 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
         if (CollectionUtils.isEmpty(historyTasks)) {
             return Collections.emptyList();
         }
-        var historyEntities = historyTasks.stream().map(HistoryNotificationTaskEntity::getHistory).toList();
-        historyService.loadUser(historyEntities);
         return historyTasks;
     }
 
