@@ -203,19 +203,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
 
     public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
-        KitGrouped<TwinAttachmentEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinAttachmentEntity::getId, TwinAttachmentEntity::getTwinClassFieldId);
-        for (TwinAttachmentEntity attachmentEntity : attachments) {
-            if (attachmentEntity.getTwinClassFieldId() != null && attachmentEntity.getTwinClassField() == null)
-                needLoad.add(attachmentEntity);
-        }
-        if (needLoad.isEmpty())
-            return;
-        var twinClassFieldKit = findEntitiesSafe(needLoad.getGroupedMap().keySet());
-        for (var entry : needLoad.getGroupedMap().entrySet()) {
-            for (var attachmentEntity : entry.getValue()) {
-                attachmentEntity.setTwinClassField(twinClassFieldKit.get(attachmentEntity.getTwinClassFieldId()));
-            }
-        }
+        load(attachments, TwinAttachmentEntity::getTwinClassFieldId, TwinAttachmentEntity::getTwinClassField, TwinAttachmentEntity::setTwinClassField);
     }
 
     public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {

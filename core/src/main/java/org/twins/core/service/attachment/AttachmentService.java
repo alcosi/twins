@@ -185,7 +185,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 });
             }
         } catch (Throwable t) {
-            log.error("Unexpected error: {}", t.getMessage(), t);
+            log.error("Exception: ", t);
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
     }
