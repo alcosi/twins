@@ -53,15 +53,21 @@ public class RecipientResolverTwinBase extends RecipientResolver {
         if (history.getHistoryType().equals(HistoryType.assigneeChanged)) {
             HistoryContextUserChange historyContext = (HistoryContextUserChange) history.getContext();
             if (resolveOldAssignee.extract(properties)) {
-                String userId = historyContext.getFromUser().getUserId();
-                if (userId != null) {
-                    userIds.add(UUID.fromString(userId));
+                var fromUser = historyContext.getFromUser();
+                if (fromUser != null) {
+                    String userId = fromUser.getUserId();
+                    if (userId != null) {
+                        userIds.add(UUID.fromString(userId));
+                    }
                 }
             }
             if (resolveNewAssignee.extract(properties)) {
-                String userId = historyContext.getToUser().getUserId();
-                if (userId != null) {
-                    userIds.add(UUID.fromString(userId));
+                var toUser = historyContext.getToUser();
+                if (toUser != null) {
+                    String userId = toUser.getUserId();
+                    if (userId != null) {
+                        userIds.add(UUID.fromString(userId));
+                    }
                 }
             }
         }
