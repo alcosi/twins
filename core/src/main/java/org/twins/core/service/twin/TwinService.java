@@ -1037,7 +1037,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
             if (changesRecorder.isHistoryCollectorEnabled()) {
                 if (newAssignee != null) {
-                    changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+                    if (changesRecorder.getDbEntity().getAssignerUserId() == null) {
+                        changesRecorder.getHistoryCollector().add(historyService.assigneeAssigned(newAssignee));
+                    } else {
+                        changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+                    }
                 } else {
                     changesRecorder.getHistoryCollector().add(historyService.assigneeUnassigned(changesRecorder.getDbEntity().getAssignerUser()));
                 }

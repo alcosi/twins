@@ -50,7 +50,10 @@ public class RecipientResolverTwinBase extends RecipientResolver {
             SetUtils.safeAdd(userIds, history.getTwin().getAssignerUserId());
         }
 
-        if (history.getHistoryType().equals(HistoryType.assigneeChanged)) {
+        HistoryType historyType = history.getHistoryType();
+        if (historyType.equals(HistoryType.assigneeChanged)
+                || historyType.equals(HistoryType.assigneeAssigned)
+                || historyType.equals(HistoryType.assigneeUnassigned)) {
             HistoryContextUserChange historyContext = (HistoryContextUserChange) history.getContext();
             if (resolveOldAssignee.extract(properties)) {
                 var fromUser = historyContext.getFromUser();
