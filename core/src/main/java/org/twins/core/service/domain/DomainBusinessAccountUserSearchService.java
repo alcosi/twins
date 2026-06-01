@@ -17,9 +17,6 @@ import org.twins.core.enums.sort.DomainBusinessAccountUserGroupField;
 import org.twins.core.enums.sort.DomainBusinessAccountUserSortField;
 import org.twins.core.service.EntitySearchService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -46,6 +43,11 @@ public class DomainBusinessAccountUserSearchService extends EntitySearchService
     @Override
     protected DomainBusinessAccountUserEntity newEntity() {
         return new DomainBusinessAccountUserEntity();
+    }
+
+    @Override
+    protected Class<DomainBusinessAccountUserEntity> entityClass() {
+        return DomainBusinessAccountUserEntity.class;
     }
 
     public Specification<DomainBusinessAccountUserEntity> createFilterSpecification(DomainBusinessAccountUserSearch search, UUID domainId) {
@@ -79,19 +81,11 @@ public class DomainBusinessAccountUserSearchService extends EntitySearchService
     }
 
     @Override
-    public Specification<DomainBusinessAccountUserEntity> createCountSpecification(
-            Set<DomainBusinessAccountUserGroupField> groupFields) {
-        List<String> fields = new ArrayList<>(groupFields.size());
-
-        for (var field : groupFields) {
-            switch (field) {
-                case userId ->
-                        fields.add(DomainBusinessAccountUserEntity.Fields.userId);
-                case businessAccountId ->
-                        fields.add(DomainBusinessAccountUserEntity.Fields.businessAccountId);
-            }
-        }
-        return toCountSpecification(fields);
+    public String convertToEntityField(DomainBusinessAccountUserGroupField groupField) {
+        return switch (groupField) {
+            case userId -> DomainBusinessAccountUserEntity.Fields.userId;
+            case businessAccountId -> DomainBusinessAccountUserEntity.Fields.businessAccountId;
+        };
     }
 
     @Override

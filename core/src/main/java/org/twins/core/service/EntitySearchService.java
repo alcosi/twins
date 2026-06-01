@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.twins.core.dao.specifications.CountQueryExecutor;
 import org.twins.core.domain.CountResult;
 import org.twins.core.domain.search.EntitySearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -22,16 +24,20 @@ import java.util.UUID;
 public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> {
     @Autowired
     protected AuthService authService;
+    @Autowired
+    protected CountQueryExecutor countQueryExecutor;
 
     public abstract JpaSpecificationExecutor<E> jpaSpecificationExecutor();
 
     public abstract S emptySearch();
 
+    protected abstract Class<E> entityClass();
+
     public abstract Specification<E> createFilterSpecification(S search, UUID domainId);
 
     public abstract Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection);
 
-    public abstract Specification<E> createCountSpecification(Set<GF> groupFields);
+    public abstract String convertToEntityField(GF groupFields);
 
     public PaginationResult<E> search(S search, SimplePagination pagination) throws ServiceException {
         return search(search, pagination, null, null);
@@ -64,9 +70,11 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
             return List.of(new CountResult<E>().setCount(total));
         }
 
-        Specification<E> countSpec = createCountSpecification(groupFields);
-        List<Object[]> rows = (List<Object[]>) jpaSpecificationExecutor()
-                .findAll(Specification.allOf(filterSpec, countSpec));
+        List<String> entityGroupFields = new ArrayList<>(groupFields.size());
+        for (var field : groupFields) {
+            entityGroupFields.add(convertToEntityField(field));
+        }
+        List<Object[]> rows = countQueryExecutor.executeGroupedCount(entityClass(), filterSpec, entityGroupFields);
         return mapCountResults(rows, groupFields);
     }
 
@@ -89,7 +97,5 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     public abstract void mapGroupedField(E entity, GF field, Object o);
 
     protected abstract E newEntity();
-
-//    public abstract List<CountResult<E>> countByGroupFields(S search, Set<GF> groupFields) throws ServiceException;
 
 }
