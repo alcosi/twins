@@ -435,7 +435,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         featurerService.prepareForStore(featurerId, featurerParams);
     }
 
-    public <E, K> void load(Collection<E> srcCollection,
+    public <E, Е> void load(Collection<E> srcCollection,
                             Function<? super E, UUID> functionGetGroupingId,
                                      Function<? super E, T> functionGetGroupingEntity,
                                      BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {

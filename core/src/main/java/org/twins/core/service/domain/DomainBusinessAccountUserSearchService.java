@@ -17,6 +17,7 @@ import org.twins.core.enums.sort.DomainBusinessAccountUserGroupField;
 import org.twins.core.enums.sort.DomainBusinessAccountUserSortField;
 import org.twins.core.service.EntitySearchService;
 
+import java.util.Locale;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -65,12 +66,13 @@ public class DomainBusinessAccountUserSearchService extends EntitySearchService
     }
 
     @Override
-    public Specification<DomainBusinessAccountUserEntity> createSortSpecification(DomainBusinessAccountUserSortField sortField, SortDirection sortDirection) {
+    public Specification<DomainBusinessAccountUserEntity> createSortSpecification(DomainBusinessAccountUserSortField sortField, SortDirection sortDirection, Locale locale) {
         if (sortField == null)
             sortField = DomainBusinessAccountUserSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
-            case createdAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.createdAt);
+            case createdAt ->
+                    toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.createdAt);
             case lastActivityAt ->
                     toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.lastActivityAt);
             case userName ->

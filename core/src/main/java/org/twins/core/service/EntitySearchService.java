@@ -15,10 +15,7 @@ import org.twins.core.domain.search.EntitySearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> {
@@ -35,7 +32,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     public abstract Specification<E> createFilterSpecification(S search, UUID domainId);
 
-    public abstract Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection);
+    public abstract Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection, Locale locale) throws ServiceException;
 
     public abstract String convertToEntityField(GF groupFields);
 
@@ -51,7 +48,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         if (sortField != null) {
             spec = Specification.allOf(
                     createFilterSpecification(search, domainId),
-                    createSortSpecification(sortField, sortDirection));
+                    createSortSpecification(sortField, sortDirection, authService.getApiUser().getLocale()));
         } else {
             spec = createFilterSpecification(search, domainId);
         }
