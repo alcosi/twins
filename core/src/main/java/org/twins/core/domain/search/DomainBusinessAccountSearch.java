@@ -1,12 +1,12 @@
 package org.twins.core.domain.search;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.enums.SortDirection;
-import org.twins.core.enums.sort.DomainBusinessAccountSortField;
 
 import java.util.Collection;
 import java.util.Set;
@@ -14,7 +14,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class DomainBusinessAccountSearch {
+@EqualsAndHashCode(callSuper = false)
+public class DomainBusinessAccountSearch extends EntitySearch<DomainBusinessAccountEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> businessAccountIdList;
@@ -34,9 +35,6 @@ public class DomainBusinessAccountSearch {
     private IntegerRange storageUsedSizeRange;
     private IntegerRange storageUsedCountRange;
     private DataTimeRange createAtRange;
-
-    private DomainBusinessAccountSortField sortField = DomainBusinessAccountSortField.createdAt;
-    private SortDirection sortDirection = SortDirection.ASC;
 
 
     public DomainBusinessAccountSearch addBusinessAccountId(Collection<UUID> ids, boolean exclude) {

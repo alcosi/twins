@@ -225,6 +225,17 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
                 DomainBusinessAccountEntity::setTwinClassSchema);
     }
 
+    public void loadPermissionSchema(DomainBusinessAccountEntity src) throws ServiceException {
+        loadPermissionSchema(Collections.singletonList(src));
+    }
+
+    public void loadPermissionSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        permissionSchemaService.load(srcCollection,
+                DomainBusinessAccountEntity::getPermissionSchemaId,
+                DomainBusinessAccountEntity::getPermissionSchema,
+                DomainBusinessAccountEntity::setPermissionSchema);
+    }
+
     public void loadNotificationSchema(DomainBusinessAccountEntity src) throws ServiceException {
         loadNotificationSchema(Collections.singletonList(src));
     }
@@ -234,5 +245,17 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
                 DomainBusinessAccountEntity::getNotificationSchemaId,
                 DomainBusinessAccountEntity::getNotificationSchema,
                 DomainBusinessAccountEntity::setNotificationSchema);
+    }
+
+
+    public void loadTier(DomainBusinessAccountEntity entity) throws ServiceException {
+        loadTier(Collections.singletonList(entity));
+    }
+
+    public void loadTier(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        tierService.load(srcCollection,
+                DomainBusinessAccountEntity::getTierId,
+                DomainBusinessAccountEntity::getTier,
+                DomainBusinessAccountEntity::setTier);
     }
 }

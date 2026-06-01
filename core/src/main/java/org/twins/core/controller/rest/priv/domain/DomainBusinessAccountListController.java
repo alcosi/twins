@@ -21,13 +21,12 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.domain.DomainBusinessAccountSearchRqDTOv1;
-import org.twins.core.dto.rest.domain.DomainBusinessAccountSearchRsDTOv1;
-import org.twins.core.dto.rest.domain.DomainBusinessAccountViewRsDTOv1;
+import org.twins.core.dto.rest.domain.*;
+import org.twins.core.mappers.rest.domain.DomainBusinessAccountCountRestDTOMapper;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountSearchRestDTOReverseMapper;
-import org.twins.core.mappers.rest.domain.DomainBusinessAccountSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -36,6 +35,7 @@ import org.twins.core.service.domain.DomainBusinessAccountSearchService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.permission.Permissions;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.DOMAIN)
@@ -48,9 +48,9 @@ public class DomainBusinessAccountListController extends ApiController {
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final DomainBusinessAccountSearchService domainBusinessAccountSearchService;
     private final DomainBusinessAccountDTOMapper domainBusinessAccountDTOMapper;
+    private final DomainBusinessAccountCountRestDTOMapper domainBusinessAccountCountRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final DomainBusinessAccountSearchRestDTOReverseMapper domainBusinessAccountSearchRestDTOReverseMapper;
-    private final DomainBusinessAccountSearchRqDTOReverseMapper domainBusinessAccountSearchRqDTOReverseMapper;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
@@ -67,10 +67,38 @@ public class DomainBusinessAccountListController extends ApiController {
             @RequestBody DomainBusinessAccountSearchRqDTOv1 request) {
         DomainBusinessAccountSearchRsDTOv1 rs = new DomainBusinessAccountSearchRsDTOv1();
         try {
-            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountSearchService.findDomainBusinessAccounts(domainBusinessAccountSearchRqDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountSearchService
+                    .search(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(domainBusinessAccounts))
                     .setBusinessAccounts(domainBusinessAccountDTOMapper.convertCollection(domainBusinessAccounts.getList(), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainBusinessAccountCountV1", summary = "Return count of domain business account grouped by specified fields")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Domain business account list prepared", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = DomainBusinessAccountSearchRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/domain/business_account/count/v1")
+    public ResponseEntity<?> domainBusinessAccountCountV1(
+            @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody DomainBusinessAccountCountRqDTOv1 request) {
+        var rs = new DomainBusinessAccountCountRsDTOv1();
+        try {
+            List<CountResult<DomainBusinessAccountEntity>> results = domainBusinessAccountSearchService
+                    .countByGroupFields(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch(), mapperContext), request.getGroupFields());
+            rs
+                    .setCounts(domainBusinessAccountCountRestDTOMapper.convertCollection(results, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
