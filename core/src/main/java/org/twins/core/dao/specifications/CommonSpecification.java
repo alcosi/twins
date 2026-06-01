@@ -680,4 +680,17 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             return cb.conjunction();
         };
     }
+
+    public static <T> Specification<T> toCountSpecification(List<String> fields) {
+        return (root, query, cb) -> {
+            List<Expression<?>> groupPaths = fields.stream()
+                .map(root::get)
+                .collect(Collectors.toList());
+            query.groupBy(groupPaths.toArray(new Expression[0]));
+            List<Selection<?>> selections = new ArrayList<>(groupPaths);
+            selections.add(cb.count(root));
+            query.multiselect(selections);
+            return cb.conjunction();
+        };
+    }
 }
