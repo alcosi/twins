@@ -226,6 +226,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotFromUser(fromUser));
     }
 
+    public HistoryItem<HistoryContextUserChange> assigneeAssigned(UserEntity toUser) {
+        return new HistoryItem<>(HistoryType.assigneeAssigned, new HistoryContextUserChange()
+                .shotToUser(toUser));
+    }
+
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
         if (attachmentEntity.getTwin().isCreateElseUpdate()) {
             return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
