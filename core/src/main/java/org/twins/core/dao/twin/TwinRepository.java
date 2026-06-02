@@ -154,6 +154,24 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("headTwinClassId") UUID headTwinClassId,
             @Param("headStatusId") UUID headStatusId);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity dst SET dst.twinStatusId = :dstStatusId " +
+           "WHERE dst.id = :dstTwinId " +
+           "AND NOT EXISTS (" +
+           "SELECT tl.id FROM TwinLinkEntity tl " +
+           "JOIN TwinEntity src ON src.id = tl.srcTwinId " +
+           "WHERE tl.dstTwinId = :dstTwinId " +
+           "AND tl.linkId = :linkId " +
+           "AND tl.srcTwinId <> :currentTwinId " +
+           "AND src.twinStatusId IN :srcTwinsStatuses)")
+    int updateDstTwinStatusByLinkIfNoSrcTwinsInStatuses(
+            @Param("dstTwinId") UUID dstTwinId,
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("linkId") UUID linkId,
+            @Param("srcTwinsStatuses") Collection<UUID> srcTwinsStatuses,
+            @Param("dstStatusId") UUID dstStatusId);
+
     @Query("select case when count(child) > 0 then true else false end " +
            "from TwinEntity child " +
            "where child.headTwinId in (" +
