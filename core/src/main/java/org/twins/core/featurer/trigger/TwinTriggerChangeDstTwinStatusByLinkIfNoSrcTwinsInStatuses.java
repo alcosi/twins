@@ -12,8 +12,8 @@ import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 
 import java.util.List;
@@ -29,13 +29,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinTriggerChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses extends TwinTrigger {
 
-    @FeaturerParam(name = "Link Ids", description = "Link ids to check for src twins")
-    public static final FeaturerParamUUIDSetTwinsLinkId linkIds = new FeaturerParamUUIDSetTwinsLinkId("linkIds");
+    @FeaturerParam(name = "Link Id", description = "Link id to check for linked twins")
+    public static final FeaturerParamUUIDTwinsLinkId linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "Src Twins Statuses", description = "Src twins statuses to check for remaining twins")
-    public static final FeaturerParamUUIDSetTwinsStatusId srcTwinsStatuses = new FeaturerParamUUIDSetTwinsStatusId("srcTwinsStatuses");
+    @FeaturerParam(name = "Linked Twins Statuses", description = "Linked twins statuses to check for remaining twins")
+    public static final FeaturerParamUUIDSetTwinsStatusId linkedTwinInStatuses = new FeaturerParamUUIDSetTwinsStatusId("linkedTwinInStatuses");
 
-    @FeaturerParam(name = "Dst Twin Dst Status Id", description = "Status ID to set for dst twin when no matching src twins remain")
+    @FeaturerParam(name = "Dst Twin Status Id", description = "Status ID to set for dst twin when no matching src twins remain")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstTwinDstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstTwinDstStatusId");
 
     @Lazy
@@ -46,11 +46,11 @@ public class TwinTriggerChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses extends 
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus, UUID jobTwinId) throws ServiceException {
-        Set<UUID> linkIdsValue = linkIds.extract(properties);
-        Set<UUID> srcTwinsStatusesValue = srcTwinsStatuses.extract(properties);
-        UUID dstTwinDstStatusIdValue = dstTwinDstStatusId.extract(properties);
+        UUID linkIdExtracted = linkId.extract(properties);
+        Set<UUID> srcTwinsStatusesValue = linkedTwinInStatuses.extract(properties);
+        UUID dstTwinDstStatusIdExtracted = dstTwinDstStatusId.extract(properties);
 
-        if (linkIdsValue == null || linkIdsValue.isEmpty()) {
+        if (linkIdExtracted == null) {
             log.warn("ChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses: skip for {}, linkIds is empty", twinEntity.logNormal());
             return;
         }
@@ -61,19 +61,16 @@ public class TwinTriggerChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses extends 
         }
 
         log.info("ChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses: executing for {} with params: linkIds={}, srcTwinsStatuses={}, dstTwinDstStatusId={}",
-                twinEntity.logNormal(), linkIdsValue, srcTwinsStatusesValue, dstTwinDstStatusIdValue);
+                twinEntity.logNormal(), linkIdExtracted, srcTwinsStatusesValue, dstTwinDstStatusIdExtracted);
 
         int totalUpdated = 0;
-        for (UUID linkId : linkIdsValue) {
-            // Find all dst twins where current twin is src
-            List<UUID> dstTwinIds = twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
-            for (UUID dstTwinId : dstTwinIds) {
-                int updated = twinRepository.updateDstTwinStatusByLinkIfNoSrcTwinsInStatuses(
-                        dstTwinId, twinEntity.getId(), linkId, srcTwinsStatusesValue, dstTwinDstStatusIdValue);
-                totalUpdated += updated;
-                if (updated > 0) {
-                    log.info("ChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses: updated dst twin {} for link {}", dstTwinId, linkId);
-                }
+
+        List<UUID> dstTwinIds = twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(twinEntity.getId(), linkIdExtracted);
+        for (UUID dstTwinId : dstTwinIds) {
+            int updated = twinRepository.updateDstTwinStatusByLinkIfNoLinkedTwinsInStatuses(dstTwinId, twinEntity.getId(), linkIdExtracted, srcTwinsStatusesValue, dstTwinDstStatusIdExtracted);
+            totalUpdated += updated;
+            if (updated > 0) {
+                log.info("ChangeDstTwinStatusByLinkIfNoSrcTwinsInStatuses: updated dst twin {} for link {}", dstTwinId, linkId);
             }
         }
 

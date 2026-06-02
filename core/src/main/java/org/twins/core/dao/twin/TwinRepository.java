@@ -165,7 +165,7 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
            "AND tl.linkId = :linkId " +
            "AND tl.srcTwinId <> :currentTwinId " +
            "AND src.twinStatusId IN :srcTwinsStatuses)")
-    int updateDstTwinStatusByLinkIfNoSrcTwinsInStatuses(
+    int updateDstTwinStatusByLinkIfNoLinkedTwinsInStatuses(
             @Param("dstTwinId") UUID dstTwinId,
             @Param("currentTwinId") UUID currentTwinId,
             @Param("linkId") UUID linkId,

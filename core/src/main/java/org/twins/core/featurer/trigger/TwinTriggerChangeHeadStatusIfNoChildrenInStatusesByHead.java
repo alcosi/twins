@@ -28,13 +28,13 @@ import java.util.UUID;
 public class TwinTriggerChangeHeadStatusIfNoChildrenInStatusesByHead extends TwinTrigger {
 
     @FeaturerParam(name = "Children Statuses", description = "Children statuses to check for remaining twins")
-    public static final FeaturerParamUUIDSetTwinsStatusId childrenStatuses = new FeaturerParamUUIDSetTwinsStatusId("childrenStatuses");
+    public static final FeaturerParamUUIDSetTwinsStatusId childrenTwinInStatuses = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinInStatuses");
 
     @FeaturerParam(name = "Head Class Id", description = "Optional head class ID filter")
     public static final FeaturerParamUUIDTwinsTwinClassId headClassId = new FeaturerParamUUIDTwinsTwinClassId("headClassId");
 
     @FeaturerParam(name = "Head Dst Status Id", description = "Status ID to set for head twin when no matching children remain")
-    public static final FeaturerParamUUIDTwinsTwinStatusId headDstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("headDstStatusId");
+    public static final FeaturerParamUUIDTwinsTwinStatusId headTwinDstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("headTwinDstStatusId");
 
     @Lazy
     final TwinRepository twinRepository;
@@ -47,9 +47,9 @@ public class TwinTriggerChangeHeadStatusIfNoChildrenInStatusesByHead extends Twi
             return;
         }
 
-        Set<UUID> childrenStatusesValue = childrenStatuses.extract(properties);
+        Set<UUID> childrenStatusesValue = childrenTwinInStatuses.extract(properties);
         UUID headClassIdValue = headClassId.extract(properties);
-        UUID headDstStatusIdValue = headDstStatusId.extract(properties);
+        UUID headDstStatusIdValue = headTwinDstStatusId.extract(properties);
         if (childrenStatusesValue == null || childrenStatusesValue.isEmpty()) {
             log.warn("ChangeHeadStatusIfNoChildrenInStatusesByHead: skip for {}, childrenStatuses is empty", twinEntity.logNormal());
             return;
