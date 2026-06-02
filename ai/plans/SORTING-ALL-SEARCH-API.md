@@ -6,15 +6,94 @@
 
 ## Паттерн (на примере DomainBusinessAccountUser)
 
-Для каждой сущности нужно выполнить 5 изменений:
+Для каждой сущности нужно выполнить **7 изменений**:
 
 1. **SortField enum** (новый файл) → `enums.sort/{Entity}SortField.java` — простой enum без fieldPath, чистый список имён. Swagger автоматически показывает dropdown.
-2. **SearchRqDTO** (изменить) → добавить `sortField` + `sortDirection` inline на уровне RqDTO (НЕ внутри SearchDTO). Jackson десериализует enum из JSON, невалидное значение → 400.
-3. **Domain Search Object** (изменить) → добавить прямые поля `sortField` (enum) + `sortDirection` с default. БЕЗ `SortOption<S>`.
-4. **SearchRqDTOReverseMapper** (изменить) → тривиальный маппинг sort-полей. `SortDTOReverseMapper` НЕ нужен.
-5. **SearchService** (изменить) → добавить `createSortSpecification()` со switch по enum → `CommonSpecification.toSortSpecification(fieldPath, ascending)` + `pagination.setSort(null)`
+2. **GroupField enum** (новый файл) → `enums.sort/{Entity}GroupField.java` — enum с прямыми полями Entity (без JOIN). Только низкокардинальные поля (UUID FK, enum, boolean). **НЕ добавлять** Timestamp/Date поля — высокая кардинальность, GROUP BY бессмысленен.
+3. **SearchRqDTO** (изменить) → добавить `sortField` + `sortDirection` inline на уровне RqDTO (НЕ внутри SearchDTO). Jackson десериализует enum из JSON, невалидное значение → 400.
+4. **SearchService** (изменить) → **ОБЯЗАТЕЛЬНО** extends `EntitySearchService<S, E, SF, GF>`. Реализовать ВСЕ абстрактные методы: `createFilterSpecification()`, `createSortSpecification()`, `convertToEntityField()`, `mapGroupedField()`, `jpaSpecificationExecutor()`, `emptySearch()`, `entityClass()`, `newEntity()`. Sort-поля передаются как параметры в `search()`, а не хранятся в search object. Service **НЕ** может наследовать другой класс (Java не поддерживает множественное наследование) — если текущий сервис наследует EntitySecureFindServiceImpl, CRUD нужно вынести в отдельный ConfigService.
+5. **Domain Search Object** (изменить) → extends `EntitySearch<E>` (маркерный базовый класс).
+6. **Count DTOs** (новые файлы) → `{Entity}CountRqDTOv1` (search + groupFields), `{Entity}CountDTOv1 extends CountDTOv1` (поля группировки + count), `{Entity}CountRsDTOv1 extends ResponseRelatedObjectsDTOv1` (список counts).
+7. **Count Mapper** (новый файл) → `{Entity}CountRestDTOMapper extends RestSimpleDTOMapper<CountResult<E>, CountDTO>` — маппит CountResult → CountDTO. При наличии related objects — batch-load в `beforeCollectionConversion()`.
+8. **Контроллер** (изменить) → search endpoint вызывает `service.search(search, pagination, sortField, sortDirection)`. Добавить count endpoint: `service.countByGroupFields(search, groupFields)` → mapper → response.
 
-Контроллер **не меняется** — `@SimplePaginationParams` остаётся как есть, sort приходит из request body.
+**КРИТИЧЕСКИ ВАЖНО:**
+- **SearchService ОБЯЗАТЕЛЬНО наследует EntitySearchService** — это обеспечивает единый `search()` и `countByGroupFields()`. Никаких самодельных методов `findXxx()`.
+- **Domain Search Object ОБЯЗАТЕЛЬНО наследует EntitySearch<EntityType>** — требование generic-параметра `S extends EntitySearch<E>` в EntitySearchService.
+- **Если текущий сервис наследует EntitySecureFindServiceImpl** — вынести его CRUD в отдельный ConfigService, а search-сервис переписать на EntitySearchService.
+
+**Что НЕ нужно делать:**
+- Sort-поля **НЕ добавляются** в Domain Search Object — они передаются напрямую из `SearchRqDTO` как параметры `sortField`/`sortDirection` в `EntitySearchService.search()`
+- `SortDTOReverseMapper` **НЕ нужен** — Jackson уже десериализует enum из JSON
+
+### `POST /private/twin_class/search/v2` — DONE (search + sort + count)
+
+* **DTO**: `TwinClassDTOv1`
+* **SearchRqDTO**: `TwinClassSearchRqDTOv2`
+    * Поля фильтрации: `twinClassIdList`, `twinClassKeyLikeList`, `nameI18nLikeList`, `descriptionI18nLikeList`, `externalIdLikeList`, `ownerTypeList`, `markerDatalistIdList`, `tagDatalistIdList`, `freezeIdList`, `abstractt`, `segment`, `hasSegments`, `uniqueName`, `twinflowSchemaSpace`, `twinClassSchemaSpace`, `permissionSchemaSpace`, `aliasSpace`, `assigneeRequired`, `viewPermissionIdList`, `createPermissionIdList`, `editPermissionIdList`, `deletePermissionIdList`, `twinCounterRange`
+* **Entity**: `TwinClassEntity`
+* **Service**: `TwinClassSearchService extends EntitySearchService`
+* **SortField values**:
+
+    * `key`
+    * `name`(i18n)
+    * `description`(i18n)
+    * `createdAt`
+    * `externalId`
+    * `ownerType`
+    * `twinCounter`
+    * `abstractt`
+    * `segment`
+    * `uniqueName`
+    * `headTwinClassId`
+    * `extendsTwinClassId`
+    * `markerDataListId`
+    * `tagDataListId`
+    * `twinflowSchemaSpace`
+    * `twinClassSchemaSpace`
+    * `aliasSpace`
+    * `viewPermissionId`
+    * `headHunterFeaturerId`
+    * `editPermissionId`
+    * `deletePermissionId`
+    * `assigneeRequired`
+    * `hasDynamicMarkers`
+    * `breadCrumbsFaceId`
+    * `pageFaceId`
+
+* **GroupField values** (count API):
+    * `ownerType`
+    * `abstractt`
+    * `segment`
+    * `twinClassFreezeId`
+    * `headTwinClassId`
+    * `extendsTwinClassId`
+    * `markerDataListId`
+    * `tagDataListId`
+    * `twinflowSchemaSpace`
+    * `twinClassSchemaSpace`
+    * `aliasSpace`
+    * `viewPermissionId`
+    * `headHunterFeaturerId`
+    * `editPermissionId`
+    * `deletePermissionId`
+    * `assigneeRequired`
+    * `uniqueName`
+    * `hasDynamicMarkers`
+    * `breadCrumbsFaceId`
+    * `pageFaceId`
+
+* **New filter fields** (added to TwinClassSearchDTOv1 + TwinClassSearch):
+    * `headTwinClassIdList` / `headTwinClassIdExcludeList`
+    * `extendsTwinClassIdList` / `extendsTwinClassIdExcludeList`
+    * `headHunterFeaturerIdList`
+    * `hasDynamicMarkers`
+    * `breadCrumbsFaceIdList` / `breadCrumbsFaceIdExcludeList`
+    * `pageFaceIdList` / `pageFaceIdExcludeList`
+
+* **Примечание:** `twinClassFreezeName` (i18n-join) не реализован — в TwinClassFreezeEntity отсутствует @ManyToOne связь nameI18n к I18nEntity.
+
+---
 
 ## Реестр API и полей сортировки
 
@@ -902,11 +981,12 @@
 
 * **Контроллеры с существующим sortField** (FeaturerSearchController, DataListOptionSearchController, UserSearchController) — нужно мигрировать inline `sortField`/`sortDirection` на новый enum-паттерн
 * **Сущности без createdAt** — используют первое поле из списка как default
-* **SearchDTOReverseMapper** — маппит только критерии поиска. Sort-поля маппятся тривиально на уровне RqDTO mapper. `SortDTOReverseMapper` НЕ нужен.
+* **SearchDTOReverseMapper** — маппит только критерии поиска (SearchDTO). Sort-поля (`sortField`/`sortDirection`) передаются напрямую из `SearchRqDTO` в `EntitySearchService.search()` — отдельный mapper не нужен
 * **Entity.Fields** — используем константы из Lombok `@FieldNameConstants` для имён полей в switch
 * **LEFT JOIN** — `CommonSpecification.toSortSpecification()` использует LEFT, не INNER — чтобы не отсекать записи с NULL-связями
 * **getResultType() guard** — обязателен в `toSortSpecification()`, count-запрос не должен содержать ORDER BY
 * **Не трогать TwinSorter** — featurer-based механизм сортировки Twin решает другую задачу
+* **EntitySearchService** — все новые search services должны extends `EntitySearchService<S, E, SF, GF>` и реализовать абстрактные методы, включая `createSortSpecification()`
 
 ## Индексы БД
 
@@ -923,7 +1003,7 @@
 
 1. `./gradlew build` — сборка без ошибок
 2. Проверить что все SearchRqDTO содержат inline `sortField` (enum) + `sortDirection`
-3. Проверить что все Search domain objects содержат прямые поля `sortField` + `sortDirection` с default
-4. Проверить что все search services используют `createSortSpecification()` со switch + `pagination.setSort(null)`
+3. Проверить что все search services extends `EntitySearchService` и реализуют `createSortSpecification()` со switch по enum
+4. Проверить что sort-поля НЕ хранятся в Domain Search Object, а передаются как параметры в `EntitySearchService.search()`
 5. Проверить что для каждого SortField есть соответствующий индекс в БД
 6. Проверить что Swagger показывает dropdown для sortField (enum-тип)

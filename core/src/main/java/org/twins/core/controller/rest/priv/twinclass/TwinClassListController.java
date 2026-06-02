@@ -21,20 +21,20 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassSearchConfiguredRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
+import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twinclass.TwinClassCountRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRqRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassSearchService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = ApiTag.TWIN_CLASS)
@@ -45,6 +45,7 @@ import java.util.UUID;
 public class TwinClassListController extends ApiController {
     private final TwinClassSearchService twinClassSearchService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final TwinClassCountRestDTOMapper twinClassCountRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final TwinClassSearchRqRestDTOReverseMapper twinClassSearchRqRestDTOReverseMapper;
     private final TwinClassSearchRestDTOReverseMapper twinClassSearchRestDTOReverseMapper;
@@ -66,7 +67,7 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
-                    .findTwinClasses(twinClassSearchRqRestDTOReverseMapper.convert(request), pagination);
+                    .search(twinClassSearchRqRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
@@ -94,7 +95,8 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
-                    .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), pagination,
+                            request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
@@ -108,7 +110,33 @@ public class TwinClassListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassSearchV2", summary = "Returns twin class search result")
+    @Operation(operationId = "twinClassCountV1", summary = "Returns twin class count grouped by specified fields")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin class count prepared", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = TwinClassCountRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin_class/count/v1")
+    public ResponseEntity<?> twinClassCountV1(
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody TwinClassCountRqDTOv1 request) {
+        TwinClassCountRsDTOv1 rs = new TwinClassCountRsDTOv1();
+        try {
+            List<CountResult<TwinClassEntity>> results = twinClassSearchService
+                    .countByGroupFields(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields());
+            rs
+                    .setCounts(twinClassCountRestDTOMapper.convertCollection(results, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinClassSearchConfiguredV1", summary = "Returns twin class search result by configured search")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class list prepared", content = {
                     @Content(mediaType = "application/json", schema =
@@ -136,6 +164,7 @@ public class TwinClassListController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassListV1", summary = "Returns twin class list")
     @ApiResponses(value = {
@@ -149,7 +178,7 @@ public class TwinClassListController extends ApiController {
             @SimplePaginationParams SimplePagination pagination) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService.findTwinClasses(null, pagination);
+            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService.search(null, pagination);
             rs
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
