@@ -19,15 +19,19 @@ public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCa
     public TwinFieldStorageCalcChildrenOfClassCount(
             TwinFieldSimpleRepository twinFieldSimpleRepository,
             UUID twinClassFieldId,
-            String lquery) {
-        this(twinFieldSimpleRepository, twinClassFieldId, lquery, null, true);
+            String lquery,
+            UUID calcUserId,
+            UUID calcUserGroupFootprintId) {
+        this(twinFieldSimpleRepository, twinClassFieldId, lquery, null, true, calcUserId, calcUserGroupFootprintId);
     }
 
     public TwinFieldStorageCalcChildrenOfClassCount(
             TwinFieldSimpleRepository twinFieldSimpleRepository,
             UUID twinClassFieldId,
-            Set<UUID> classIds) {
-        this(twinFieldSimpleRepository, twinClassFieldId, null, classIds, false);
+            Set<UUID> classIds,
+            UUID calcUserId,
+            UUID calcUserGroupFootprintId) {
+        this(twinFieldSimpleRepository, twinClassFieldId, null, classIds, false, calcUserId, calcUserGroupFootprintId);
     }
 
     private TwinFieldStorageCalcChildrenOfClassCount(
@@ -35,8 +39,10 @@ public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCa
             UUID twinClassFieldId,
             String lquery,
             Set<UUID> classIds,
-            boolean useExtendsHierarchy) {
-        super(twinClassFieldId);
+            boolean useExtendsHierarchy,
+            UUID calcUserId,
+            UUID calcUserGroupFootprintId) {
+        super(twinClassFieldId, calcUserId, calcUserGroupFootprintId);
         this.twinFieldSimpleRepository = twinFieldSimpleRepository;
         this.lquery = lquery;
         this.classIds = classIds;
@@ -47,9 +53,9 @@ public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCa
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         List<TwinFieldCalcProjection> calc;
         if (useExtendsHierarchy) {
-            calc = twinFieldSimpleRepository.countChildrenTwinsByExtendsHierarchy(twinsKit.getIdSet(), lquery);
+            calc = twinFieldSimpleRepository.countChildrenTwinsByExtendsHierarchy(twinsKit.getIdSet(), lquery, calcUserId, calcUserGroupFootprintId);
         } else {
-            calc = twinFieldSimpleRepository.countChildrenTwinsOfTwinClassIdIn(twinsKit.getIdSet(), classIds);
+            calc = twinFieldSimpleRepository.countChildrenTwinsOfTwinClassIdIn(twinsKit.getIdSet(), classIds, calcUserId, calcUserGroupFootprintId);
         }
         packResult(twinsKit, calc);
     }
@@ -57,6 +63,9 @@ public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCa
     @Override
     boolean canBeMerged(Object o) {
         if (!isSameClass(o) || !Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcChildrenOfClassCount) o).twinClassFieldId)) {
+            return false;
+        }
+        if (!hasSameCalcPermissionContext((TwinFieldStorageCalcChildrenOfClassCount) o)) {
             return false;
         }
         TwinFieldStorageCalcChildrenOfClassCount other = (TwinFieldStorageCalcChildrenOfClassCount) o;

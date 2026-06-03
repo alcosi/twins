@@ -21,7 +21,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1333,
         name = "Count children twins by twin class id (on fly)",
         description = "Get count of child-twins by twin class id on fly")
-public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenOfClassCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenOfTwinClass {
+public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenOfClassCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenOfTwinClass {
     @Autowired
     TwinFieldSimpleRepository twinFieldSimpleRepository;
 
@@ -42,17 +42,22 @@ public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperImmutable<Fi
         var classIds = twinClassIds.extract(properties);
         boolean useHierarchy = useExtendsHierarchy.extract(properties);
 
+        var permissionContext = calcPermissionContext();
         if (useHierarchy) {
             String lquery = LTreeUtils.buildLQueryFromUuids(classIds);
             return new TwinFieldStorageCalcChildrenOfClassCount(
                     twinFieldSimpleRepository,
                     twinClassFieldEntity.getId(),
-                    lquery);
+                    lquery,
+                    permissionContext.userId(),
+                    permissionContext.userGroupFootprintId());
         } else {
             return new TwinFieldStorageCalcChildrenOfClassCount(
                     twinFieldSimpleRepository,
                     twinClassFieldEntity.getId(),
-                    classIds);
+                    classIds,
+                    permissionContext.userId(),
+                    permissionContext.userGroupFootprintId());
         }
     }
 }

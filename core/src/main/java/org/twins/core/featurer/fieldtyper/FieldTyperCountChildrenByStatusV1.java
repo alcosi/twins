@@ -21,7 +21,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1314,
         name = "Count children twins by child-status (on fly)",
         description = "Get count of child-twins by child-status(inc/exc) on fly")
-public class FieldTyperCountChildrenByStatusV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenInStatusCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
+public class FieldTyperCountChildrenByStatusV1 extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenInStatusCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
     public static final Integer ID = 1314;
 
     @Autowired
@@ -40,11 +40,14 @@ public class FieldTyperCountChildrenByStatusV1 extends FieldTyperImmutable<Field
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcChildrenInStatusCount(
                 twinRepository,
                 twinClassFieldEntity.getId(),
                 childrenTwinStatusIdList.extract(properties),
-                exclude.extract(properties));
+                exclude.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId());
     }
 }

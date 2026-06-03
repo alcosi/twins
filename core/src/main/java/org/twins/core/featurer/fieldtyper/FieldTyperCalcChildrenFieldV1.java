@@ -24,7 +24,7 @@ import java.util.Set;
         name = "Sum children field values (on fly)",
         description = "Get sum of child.fields.values on fly"
 )
-public class FieldTyperCalcChildrenFieldV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
+public class FieldTyperCalcChildrenFieldV1 extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @Deprecated
@@ -40,14 +40,17 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyperImmutable<FieldDesc
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcSumByHead(
                 twinFieldDecimalRepository,
                 twinClassFieldEntity.getId(),
                 Set.of(childrenTwinClassFieldId.extract(properties)),
                 childrenTwinStatusIdList.extract(properties),
                 null,
-                exclude.extract(properties)
+                exclude.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId()
         );
     }
 }
