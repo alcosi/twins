@@ -75,13 +75,7 @@ public class TwinClassSearchService extends EntitySearchService
     }
 
     @Override
-    public Specification<TwinClassEntity> createFilterSpecification(TwinClassSearch twinClassSearch, UUID domainId) {
-        Locale locale;
-        try {
-            locale = authService.getApiUser().getLocale();
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
-        }
+    public Specification<TwinClassEntity> createFilterSpecification(TwinClassSearch twinClassSearch, UUID domainId, Locale locale) {
         HierarchySearch headHierarchyChildrenForTwinClassSearch =
                 java.util.Objects.requireNonNullElse(twinClassSearch.getHeadHierarchyChildsForTwinClassSearch(), HierarchySearch.EMPTY);
         HierarchySearch headHierarchyParentsForTwinClassSearch =
@@ -171,9 +165,9 @@ public class TwinClassSearchService extends EntitySearchService
             case twinflowSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinflowSchemaSpace);
             case twinClassSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinClassSchemaSpace);
             case aliasSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.aliasSpace);
-            case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18n);
-            case editPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18n);
-            case deletePermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.deletePermissionSpecOnly, PermissionEntity.Fields.nameI18n);
+            case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
+            case editPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
+            case deletePermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.deletePermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
             case assigneeRequired -> toSortSpecification(ascending, TwinClassEntity.Fields.assigneeRequired);
             case hasDynamicMarkers -> toSortSpecification(ascending, TwinClassEntity.Fields.hasDynamicMarkers);
             case breadCrumbsFaceName -> toSortSpecification(ascending, TwinClassEntity.Fields.breadCrumbsFaceSpecOnly, FaceEntity.Fields.name);
@@ -251,7 +245,8 @@ public class TwinClassSearchService extends EntitySearchService
     public List<TwinClassEntity> searchTwinClasses(TwinClassSearch twinClassSearch) throws ServiceException {
         if (twinClassSearch == null)
             twinClassSearch = new TwinClassSearch();
-        return twinClassRepository.findAll(createFilterSpecification(twinClassSearch, authService.getApiUser().getDomainId()));
+        var filter = createFilterSpecification(twinClassSearch, authService.getApiUser().getDomainId(),authService.getApiUser().getLocale());
+        return twinClassRepository.findAll(filter);
     }
 
     protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {

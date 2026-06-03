@@ -30,7 +30,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     protected abstract Class<E> entityClass();
 
-    public abstract Specification<E> createFilterSpecification(S search, UUID domainId);
+    public abstract Specification<E> createFilterSpecification(S search, UUID domainId, Locale locale);
 
     public abstract Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection, Locale locale) throws ServiceException;
 
@@ -44,13 +44,14 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         if (search == null)
             search = emptySearch();
         UUID domainId = authService.getApiUser().getDomainId();
+        Locale locale = authService.getApiUser().getLocale();
         Specification<E> spec;
         if (sortField != null) {
             spec = Specification.allOf(
-                    createFilterSpecification(search, domainId),
-                    createSortSpecification(sortField, sortDirection, authService.getApiUser().getLocale()));
+                    createFilterSpecification(search, domainId, locale),
+                    createSortSpecification(sortField, sortDirection, locale));
         } else {
-            spec = createFilterSpecification(search, domainId);
+            spec = createFilterSpecification(search, domainId, locale);
         }
         Page<E> page = jpaSpecificationExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(page, pagination);
@@ -60,7 +61,8 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         if (search == null)
             search = emptySearch();
         UUID domainId = authService.getApiUser().getDomainId();
-        Specification<E> filterSpec = createFilterSpecification(search, domainId);
+        Locale locale = authService.getApiUser().getLocale();
+        Specification<E> filterSpec = createFilterSpecification(search, domainId, locale);
 
         if (groupFields == null || groupFields.isEmpty()) {
             long total = jpaSpecificationExecutor().count(filterSpec);

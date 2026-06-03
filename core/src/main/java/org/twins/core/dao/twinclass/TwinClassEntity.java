@@ -334,7 +334,7 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
-    private DataListEntity viewPermissionSpecOnly;
+    private PermissionEntity viewPermissionSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -342,7 +342,7 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
-    private DataListEntity editPermissionSpecOnly;
+    private PermissionEntity editPermissionSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -350,7 +350,7 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delete_permission_id", insertable = false, updatable = false)
-    private DataListEntity deletePermissionSpecOnly;
+    private PermissionEntity deletePermissionSpecOnly;
 
 
 //    @ManyToOne

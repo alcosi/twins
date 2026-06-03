@@ -2,13 +2,14 @@ package org.twins.core.mappers.rest;
 
 
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.util.*;
 
 public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     public List<S> convertCollection(Collection<T> srcCollection, MapperContext mapperContext) throws Exception {
-        if (srcCollection == null)
+        if (CollectionUtils.isEmpty(srcCollection))
             return null;
         beforeCollectionConversion(srcCollection, mapperContext);
         List<S> ret = new ArrayList<>();

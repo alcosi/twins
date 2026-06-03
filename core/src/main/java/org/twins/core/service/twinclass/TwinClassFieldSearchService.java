@@ -76,13 +76,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
     }
 
     @Override
-    public Specification<TwinClassFieldEntity> createFilterSpecification(TwinClassFieldSearch search, UUID domainId) {
-        Locale locale;
-        try {
-            locale = authService.getApiUser().getLocale();
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
-        }
+    public Specification<TwinClassFieldEntity> createFilterSpecification(TwinClassFieldSearch search, UUID domainId, Locale locale) {
         Collection<TwinClassService.ClassWithExtends> twinClassIdMapResolved;
         Collection<TwinClassService.ClassWithExtends> twinClassIdExcludeMapResolved;
         try {
@@ -149,8 +143,8 @@ public class TwinClassFieldSearchService extends EntitySearchService
             case fieldTyperFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.fieldTyperFeaturerSpecOnly, FeaturerEntity.Fields.name);
             case fieldInitializerFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.fieldInitializerFeaturerSpecOnly, FeaturerEntity.Fields.name);
             case twinSorterFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.twinSorterFeaturerSpecOnly, FeaturerEntity.Fields.name);
-            case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassFieldEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18n);
-            case editPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassFieldEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18n);
+            case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassFieldEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
+            case editPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassFieldEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
         };
     }
 
@@ -217,7 +211,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
             FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
             var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
             if (sortFunction != null) {
-                Specification<TwinClassFieldEntity> spec = createFilterSpecification(mainSearch, authService.getApiUser().getDomainId());
+                Specification<TwinClassFieldEntity> spec = createFilterSpecification(mainSearch, authService.getApiUser().getDomainId(), authService.getApiUser().getLocale());
                 spec = sortFunction.apply(spec);
                 pagination.setSort(null);
                 Page<TwinClassFieldEntity> page = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

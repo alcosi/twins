@@ -124,13 +124,14 @@ Extends `ResponseRelatedObjectsDTOv1` — enables related-object enrichment for 
 // org.twins.core.domain.CountResult
 @Data
 @Accessors(chain = true)
-public class CountResult<E> {
-    private E entity;  // partially populated — only group fields filled
+public class CountResult<E, GF> {
+    private E entity;           // partially populated — only group fields filled
     private Long count;
+    private Set<GF> groupFields; // which group fields were requested — used by mapper for conditional loading
 }
 ```
 
-Typed alternative to raw `Object[]`. The `EntitySearchService` populates only group fields on the entity via `mapGroupedField()`. The dedicated count mapper then converts `CountResult` → `CountDTOv1`.
+Typed alternative to raw `Object[]`. The `EntitySearchService` populates only group fields on the entity via `mapGroupedField()` and stores the requested `groupFields` set. The dedicated count mapper uses `groupFields` in `needLoad()` to conditionally load related objects only when the corresponding group field was actually requested.
 
 ### 7. Base Search Class — `EntitySearch<E>`
 
@@ -170,7 +171,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     // Shared logic — provided by the base class:
 
     PaginationResult<E> search(S search, SimplePagination pagination, SF sortField, SortDirection sortDirection);
-    List<CountResult<E>> countByGroupFields(S search, Set<GF> groupFields);
+    List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields);
 }
 ```
 
@@ -271,7 +272,7 @@ All shared logic (`search`, `countByGroupFields`, `mapCountResults`) is inherite
 @Component
 @MapperModeBinding(modes = DomainBusinessAccountUserMode.class)
 public class DomainBusinessAccountUserCountRestDTOMapper
-        extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountUserEntity>,
+        extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>,
                                     DomainBusinessAccountUserCountDTOv1> {
 
     @MapperModePointerBinding(modes = UserMode.DomainBusinessAccountUser2UserMode.class)
@@ -283,7 +284,7 @@ public class DomainBusinessAccountUserCountRestDTOMapper
     private final DomainBusinessAccountUserService domainBusinessAccountUserService;
 
     @Override
-    public void map(CountResult<DomainBusinessAccountUserEntity> src,
+    public void map(CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField> src,
                     DomainBusinessAccountUserCountDTOv1 dst, MapperContext mapperContext) {
         var entity = src.getEntity();
         if (entity == null) {
@@ -293,32 +294,36 @@ public class DomainBusinessAccountUserCountRestDTOMapper
         dst.setUserId(entity.getUserId())
            .setBusinessAccountId(entity.getBusinessAccountId())
            .setCount(src.getCount());
-        // Related-object enrichment via @MapperModePointerBinding
-        if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE)) {
+        // Conditional related-object loading — only if group field was actually requested
+        if (needLoad(mapperContext, UserMode.DomainBusinessAccountUser2UserMode.HIDE,
+                     src, DomainBusinessAccountUserGroupField.userId)) {
             domainBusinessAccountUserService.loadUser(entity);
-            userRestDTOMapper.convertOrPostpone(entity.getUser(), mapperContext.forkOnPoint(...));
+            userRestDTOMapper.postpone(entity.getUser(), mapperContext.forkOnPoint(...));
         }
-        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE)) {
+        if (needLoad(mapperContext, BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE,
+                     src, DomainBusinessAccountUserGroupField.businessAccountId)) {
             domainBusinessAccountUserService.loadBusinessAccount(entity);
-            businessAccountDTOMapper.convertOrPostpone(entity.getBusinessAccount(), mapperContext.forkOnPoint(...));
+            businessAccountDTOMapper.postpone(entity.getBusinessAccount(), mapperContext.forkOnPoint(...));
         }
     }
 
     @Override
     public void beforeCollectionConversion(
-            Collection<CountResult<DomainBusinessAccountUserEntity>> srcCollection,
+            Collection<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>> srcCollection,
             MapperContext mapperContext) {
         var entityCollection = srcCollection.stream().map(CountResult::getEntity).toList();
-        // Batch-load related objects before individual mapping
-        if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE))
+        // Batch-load related objects — only for group fields that appear in at least one result
+        if (srcCollection.stream().anyMatch(r -> r.getGroupFields().contains(DomainBusinessAccountUserGroupField.userId))
+                && mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE))
             domainBusinessAccountUserService.loadUser(entityCollection);
-        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE))
+        if (srcCollection.stream().anyMatch(r -> r.getGroupFields().contains(DomainBusinessAccountUserGroupField.businessAccountId))
+                && mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE))
             domainBusinessAccountUserService.loadBusinessAccount(entityCollection);
     }
 }
 ```
 
-Dedicated mapper for `CountResult<E>` → `CountDTOv1`. Maps group fields from the partially populated entity and the `count` value. Supports related-object enrichment via `@MapperModePointerBinding` — the client can request user/businessAccount details via mapper context modes. `beforeCollectionConversion` batch-loads related objects to avoid N+1.
+Dedicated mapper for `CountResult<E, GF>` → `CountDTOv1`. Maps group fields from the partially populated entity and the `count` value. Key difference from regular mappers: **conditional loading via `needLoad()`** — related objects are only loaded when the corresponding group field is present in `src.getGroupFields()`. This avoids unnecessary DB queries when the client didn't request a particular grouping dimension. `beforeCollectionConversion` batch-loads only related objects for group fields that actually appear in the result set.
 
 ### 12. Controller
 
@@ -330,7 +335,7 @@ public ResponseEntity<?> domainBusinessAccountUserCountV1(
 
     DomainBusinessAccountUserCountRsDTOv1 rs = new DomainBusinessAccountUserCountRsDTOv1();
     try {
-        List<CountResult<DomainBusinessAccountUserEntity>> results =
+        List<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>> results =
                 domainBusinessAccountUserSearchService.countByGroupFields(
                         domainBusinessAccountUserSearchDTOReverseMapper
                                 .convert(request.getSearch(), mapperContext),

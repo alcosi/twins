@@ -269,6 +269,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             featurerRestDTOMapper.postpone(src.getHeadHunterFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(FaceMode.TwinClassPage2FaceMode.HIDE)) {
+            twinClassService.loadFaces(src);
             faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
             dst.setPageFaceId(src.getPageFaceId());
         }
@@ -307,7 +308,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
             twinClassService.loadPermissions(srcCollection);
         }
-        // FeaturerMode.TwinClass2FeaturerMode — загрузка FeaturerEntity больше не нужна, postpone работает по ID
         if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
             twinClassService.loadSegments(srcCollection);
         }

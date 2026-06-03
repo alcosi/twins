@@ -127,7 +127,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
             return false;
         }
         for (GF field : groupField) {
-            if (countResult.getGroupFields().contains(field)) {
+            if (countResult.getGroupFields() != null && countResult.getGroupFields().contains(field)) {
                 return true;
             }
         }

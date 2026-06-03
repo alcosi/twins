@@ -958,20 +958,23 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadFaces(List<TwinClassEntity> entities) throws ServiceException {
-        //todo repace with single load
         faceService.load(
                 entities,
-                TwinClassEntity::getPageFaceId,
-                TwinClassEntity::getPageFace,
-                TwinClassEntity::setPageFace);
-        faceService.load(
-                entities,
-                TwinClassEntity::getBreadCrumbsFaceId,
-                TwinClassEntity::getBreadCrumbsFace,
-                TwinClassEntity::setBreadCrumbsFace);
+                new LoadedField<>(
+                        TwinClassEntity::getPageFaceId,
+                        TwinClassEntity::getPageFace,
+                        TwinClassEntity::setPageFace),
+                new LoadedField<>(
+                        TwinClassEntity::getBreadCrumbsFaceId,
+                        TwinClassEntity::getBreadCrumbsFace,
+                        TwinClassEntity::setBreadCrumbsFace)
+        );
     }
 
-    public record ClassWithExtends(UUID twinClassId, Set<UUID> extendsTwinClassIds) {};
+    public record ClassWithExtends(UUID twinClassId, Set<UUID> extendsTwinClassIds) {
+    }
+
+    ;
 
     public boolean allExist(Set<UUID> twinClassIds) {
         return twinClassRepository.existsAll(twinClassIds);

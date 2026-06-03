@@ -23,6 +23,8 @@ import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.*;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.TwinClassSortField;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -65,7 +67,7 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
-                    .search(twinClassSearchRqRestDTOReverseMapper.convert(request), pagination);
+                    .search(twinClassSearchRqRestDTOReverseMapper.convert(request), pagination, TwinClassSortField.key, SortDirection.ASC);
             rs
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
