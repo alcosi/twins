@@ -157,16 +157,19 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Modifying
     @Transactional
     @Query("UPDATE TwinEntity dst SET dst.twinStatusId = :dstStatusId " +
-           "WHERE dst.id = :dstTwinId " +
+           "WHERE dst.id IN (" +
+           "  SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+           "  WHERE tl.srcTwinId = :currentTwinId " +
+           "  AND tl.linkId = :linkId" +
+           ") " +
            "AND NOT EXISTS (" +
-           "SELECT tl.id FROM TwinLinkEntity tl " +
-           "JOIN TwinEntity src ON src.id = tl.srcTwinId " +
-           "WHERE tl.dstTwinId = :dstTwinId " +
-           "AND tl.linkId = :linkId " +
-           "AND tl.srcTwinId <> :currentTwinId " +
-           "AND src.twinStatusId IN :srcTwinsStatuses)")
+           "  SELECT tl2.id FROM TwinLinkEntity tl2 " +
+           "  JOIN TwinEntity src ON src.id = tl2.srcTwinId " +
+           "  WHERE tl2.dstTwinId = dst.id " +
+           "  AND tl2.linkId = :linkId " +
+           "  AND tl2.srcTwinId <> :currentTwinId " +
+           "  AND src.twinStatusId IN :srcTwinsStatuses)")
     int updateDstTwinStatusByLinkIfNoLinkedTwinsInStatuses(
-            @Param("dstTwinId") UUID dstTwinId,
             @Param("currentTwinId") UUID currentTwinId,
             @Param("linkId") UUID linkId,
             @Param("srcTwinsStatuses") Collection<UUID> srcTwinsStatuses,
