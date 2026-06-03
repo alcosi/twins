@@ -21,7 +21,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.domain.*;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountCountRestDTOMapper;
@@ -35,7 +34,6 @@ import org.twins.core.service.domain.DomainBusinessAccountSearchService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.permission.Permissions;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.DOMAIN)
@@ -95,7 +93,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @RequestBody DomainBusinessAccountCountRqDTOv1 request) {
         var rs = new DomainBusinessAccountCountRsDTOv1();
         try {
-            List<CountResult<DomainBusinessAccountEntity>> results = domainBusinessAccountSearchService
+            var results = domainBusinessAccountSearchService
                     .countByGroupFields(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch(), mapperContext), request.getGroupFields());
             rs
                     .setCounts(domainBusinessAccountCountRestDTOMapper.convertCollection(results, mapperContext))

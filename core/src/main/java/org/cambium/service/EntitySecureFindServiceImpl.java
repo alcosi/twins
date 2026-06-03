@@ -435,11 +435,11 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         featurerService.prepareForStore(featurerId, featurerParams);
     }
 
-    public <E, Е> void load(Collection<E> srcCollection,
-                            Function<? super E, UUID> functionGetGroupingId,
-                                     Function<? super E, T> functionGetGroupingEntity,
-                                     BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
-        if (srcCollection.isEmpty()) {
+    public <E> void load(Collection<E> srcCollection,
+                         Function<? super E, UUID> functionGetGroupingId,
+                         Function<? super E, T> functionGetGroupingEntity,
+                         BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        if (CollectionUtils.isEmpty(srcCollection)) {
             return;
         }
         List<E> needLoad = null;
@@ -463,6 +463,51 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
+    @SafeVarargs
+    public final <E> void load(Collection<E> srcCollection, LoadedField<E, T>... loadedFields) throws ServiceException {
+        if (CollectionUtils.isEmpty(srcCollection)) {
+            return;
+        }
+        Set<UUID> groupingIds = null;
+        for (E item : srcCollection) {
+            for (LoadedField<E, T> field : loadedFields) {
+                if (field.functionGetGroupingEntity().apply(item) == null) {
+                    UUID id = field.functionGetGroupingId().apply(item);
+                    if (id != null) {
+                        if (groupingIds == null) {
+                            groupingIds = new LinkedHashSet<>();
+                        }
+                        groupingIds.add(id);
+                    }
+                }
+            }
+        }
+        if (groupingIds == null) {
+            return;
+        }
+
+        Kit<T, UUID> loaded = findEntitiesSafe(groupingIds);
+
+        for (E item : srcCollection) {
+            for (LoadedField<E, T> field : loadedFields) {
+                if (field.functionGetGroupingEntity().apply(item) == null) {
+                    UUID id = field.functionGetGroupingId().apply(item);
+                    if (id != null) {
+                        field.functionSetGroupingEntity()
+                                .accept(item, loaded.get(id));
+                    }
+                }
+            }
+        }
+    }
+
+    public record LoadedField<E, T>(
+            Function<? super E, UUID> functionGetGroupingId,
+            Function<? super E, T> functionGetGroupingEntity,
+            BiConsumer<E, T> functionSetGroupingEntity
+    ) {
+    }
+
     public static <S, R, K, RI> void loadKit(
             Collection<S> srcCollection,
             Function<S, K> srcGetId,
@@ -482,9 +527,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (needLoad == null)
             return;
         KitGrouped<R, RI, K> grouped = new KitGrouped<>(
-            queryFunction.apply(needLoad.getIdSet()),
-            queryResultGetId,
-            queryResultGetGroupId);
+                queryFunction.apply(needLoad.getIdSet()),
+                queryResultGetId,
+                queryResultGetGroupId);
         for (S src : needLoad) {
             K id = srcGetId.apply(src);
             if (grouped.containsGroupedKey(id))
@@ -515,15 +560,15 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (needLoad == null)
             return;
         KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
-            queryFunction.apply(needLoad.getIdSet()),
-            queryResultGetId,
-            queryResultGetGroupId);
+                queryFunction.apply(needLoad.getIdSet()),
+                queryResultGetId,
+                queryResultGetGroupId);
         for (S src : needLoad) {
             K id = srcGetId.apply(src);
             if (grouped.containsGroupedKey(id))
                 srcSetKitField.accept(src, new Kit<>(
-                    grouped.getGrouped(id).stream().map(transformFunction).toList(),
-                    resultGetId));
+                        grouped.getGrouped(id).stream().map(transformFunction).toList(),
+                        resultGetId));
             else
                 srcSetKitField.accept(src, Kit.emptyKit());
         }

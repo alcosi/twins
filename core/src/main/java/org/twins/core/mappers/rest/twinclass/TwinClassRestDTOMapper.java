@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -214,7 +213,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         //todo delete me
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE) && src.getMarkerDataListId() != null) {
             twinClassService.loadMarkerDataList(src);
-            DataListEntity markerDataListEntity = src.getMarkerDataList();
+            var markerDataListEntity = src.getMarkerDataList();
             dataListService.loadDataListOptions(markerDataListEntity);
             if (markerDataListEntity.getOptions() != null) {
                 MapperContext dataListMapperContext = mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassMarker2DataListOptionMode.SHORT));
@@ -228,7 +227,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         //todo delete me
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE) && src.getTagDataListId() != null) {
-            DataListEntity tagDataListEntity = dataListService.findEntitySafe(src.getTagDataListId());
+            twinClassService.loadTagDataList(src);
+            var tagDataListEntity = src.getTagDataList();
             dataListService.loadDataListOptions(tagDataListEntity);
             if (tagDataListEntity.getOptions() != null) {
                 MapperContext dataListMapperContext = mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassTag2DataListOptionMode.SHORT));
@@ -269,6 +269,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             featurerRestDTOMapper.postpone(src.getHeadHunterFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(FaceMode.TwinClassPage2FaceMode.HIDE)) {
+            twinClassService.loadFaces(src);
             faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
             dst.setPageFaceId(src.getPageFaceId());
         }
@@ -301,10 +302,12 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE)) {
             twinClassService.loadMarkerDataList(srcCollection, true);
         }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE)) {
+            twinClassService.loadTagDataList(srcCollection);
+        }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
             twinClassService.loadPermissions(srcCollection);
         }
-        // FeaturerMode.TwinClass2FeaturerMode — загрузка FeaturerEntity больше не нужна, postpone работает по ID
         if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
             twinClassService.loadSegments(srcCollection);
         }

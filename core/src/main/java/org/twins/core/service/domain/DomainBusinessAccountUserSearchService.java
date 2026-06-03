@@ -51,7 +51,7 @@ public class DomainBusinessAccountUserSearchService extends EntitySearchService
         return DomainBusinessAccountUserEntity.class;
     }
 
-    public Specification<DomainBusinessAccountUserEntity> createFilterSpecification(DomainBusinessAccountUserSearch search, UUID domainId) {
+    public Specification<DomainBusinessAccountUserEntity> createFilterSpecification(DomainBusinessAccountUserSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
                 checkFieldUuid(domainId, DomainBusinessAccountUserEntity.Fields.domainId),
                 checkUuidIn(search.getUserIdList(), false, false, DomainBusinessAccountUserEntity.Fields.userId),

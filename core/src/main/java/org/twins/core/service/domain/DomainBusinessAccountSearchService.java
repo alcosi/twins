@@ -59,7 +59,7 @@ public class DomainBusinessAccountSearchService extends EntitySearchService
     }
 
     @Override
-    public Specification<DomainBusinessAccountEntity> createFilterSpecification(DomainBusinessAccountSearch search, UUID domainId) {
+    public Specification<DomainBusinessAccountEntity> createFilterSpecification(DomainBusinessAccountSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
                 checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId),
                 checkUuidIn(search.getIdList(), false, false, DomainBusinessAccountEntity.Fields.id),

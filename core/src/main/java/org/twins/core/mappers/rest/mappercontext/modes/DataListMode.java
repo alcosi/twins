@@ -38,4 +38,48 @@ public enum DataListMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinClass2MarkerDataListMode implements MapperModePointer<DataListMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
+        final int priority;
+
+        @Override
+        public DataListMode point() {
+            return switch (this) {
+                case HIDE -> DataListMode.HIDE;
+                case SHORT -> DataListMode.SHORT;
+                case DETAILED -> DataListMode.DETAILED;
+                case MANAGED -> DataListMode.MANAGED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinClass2TagDataListMode implements MapperModePointer<DataListMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
+        final int priority;
+
+        @Override
+        public DataListMode point() {
+            return switch (this) {
+                case HIDE -> DataListMode.HIDE;
+                case SHORT -> DataListMode.SHORT;
+                case DETAILED -> DataListMode.DETAILED;
+                case MANAGED -> DataListMode.MANAGED;
+            };
+        }
+    }
 }
