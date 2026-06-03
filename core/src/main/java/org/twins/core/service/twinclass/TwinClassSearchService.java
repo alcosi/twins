@@ -172,7 +172,6 @@ public class TwinClassSearchService extends EntitySearchService
             case twinClassSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinClassSchemaSpace);
             case aliasSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.aliasSpace);
             case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18n);
-            case headHunterFeaturerId -> toSortSpecification(ascending, TwinClassEntity.Fields.headHunterFeaturerId);
             case editPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18n);
             case deletePermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.deletePermissionSpecOnly, PermissionEntity.Fields.nameI18n);
             case assigneeRequired -> toSortSpecification(ascending, TwinClassEntity.Fields.assigneeRequired);

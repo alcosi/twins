@@ -350,64 +350,33 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    public void loadPermissions(TwinClassEntity twinClassEntity) {
+    public void loadPermissions(TwinClassEntity twinClassEntity) throws ServiceException {
         loadPermissions(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadPermissions(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadView = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getViewPermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getViewPermission() == null && twinClass.getViewPermissionId() != null)
-                needLoadView.add(twinClass);
-        }
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadCreate = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getCreatePermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getCreatePermission() == null && twinClass.getCreatePermissionId() != null)
-                needLoadCreate.add(twinClass);
-        }
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadEdit = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getEditPermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getEditPermission() == null && twinClass.getEditPermissionId() != null)
-                needLoadEdit.add(twinClass);
-        }
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadDelete = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getDeletePermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getDeletePermission() == null && twinClass.getDeletePermissionId() != null)
-                needLoadDelete.add(twinClass);
-        }
-        if (!KitUtils.isEmpty(needLoadView)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadView.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadView.getGrouped(permission.getId())) {
-                    twinClass.setViewPermission(permission);
-                }
-            }
-        }
-        if (!KitUtils.isEmpty(needLoadCreate)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadCreate.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadCreate.getGrouped(permission.getId())) {
-                    twinClass.setCreatePermission(permission);
-                }
-            }
-        }
-        if (!KitUtils.isEmpty(needLoadEdit)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadEdit.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadEdit.getGrouped(permission.getId())) {
-                    twinClass.setEditPermission(permission);
-                }
-            }
-        }
-        if (!KitUtils.isEmpty(needLoadDelete)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadDelete.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadDelete.getGrouped(permission.getId())) {
-                    twinClass.setDeletePermission(permission);
-                }
-            }
-        }
-
+    public void loadPermissions(Collection<TwinClassEntity> srcCollection) throws ServiceException {
+        permissionService.load(
+                srcCollection,
+                new LoadedField<>(
+                        TwinClassEntity::getViewPermissionId,
+                        TwinClassEntity::getViewPermission,
+                        TwinClassEntity::setViewPermission
+                ),
+                new LoadedField<>(
+                        TwinClassEntity::getEditPermissionId,
+                        TwinClassEntity::getEditPermission,
+                        TwinClassEntity::setEditPermission
+                ),
+                new LoadedField<>(
+                        TwinClassEntity::getCreatePermissionId,
+                        TwinClassEntity::getCreatePermission,
+                        TwinClassEntity::setCreatePermission
+                ),
+                new LoadedField<>(
+                        TwinClassEntity::getDeletePermissionId,
+                        TwinClassEntity::getDeletePermission,
+                        TwinClassEntity::setDeletePermission
+                ));
     }
 
     public boolean isInstanceOf(TwinEntity twin, UUID ofClass) throws ServiceException {

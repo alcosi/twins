@@ -124,30 +124,36 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private TwinClassEntity twinClass;
 
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18n;
+    private I18nEntity nameI18nSpecOnly;
 
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18n;
+    private I18nEntity descriptionI18nSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
-    private PermissionEntity viewPermission;
+    private PermissionEntity viewPermissionSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
-    private PermissionEntity editPermission;
+    private PermissionEntity editPermissionSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -193,6 +199,16 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private TwinFieldStorage fieldStorage;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity viewPermission;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity editPermission;
 
     @Transient
     @ToString.Exclude

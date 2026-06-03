@@ -20,7 +20,6 @@ public enum TwinClassSortField {
     twinClassSchemaSpace,
     aliasSpace,
     viewPermissionName,
-    headHunterFeaturerId,
     editPermissionName,
     deletePermissionName,
     assigneeRequired,
