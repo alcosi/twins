@@ -56,7 +56,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
-    public List<CountResult<E>> countByGroupFields(S search, Set<GF> groupFields) throws ServiceException {
+    public List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields) throws ServiceException {
         if (search == null)
             search = emptySearch();
         UUID domainId = authService.getApiUser().getDomainId();
@@ -64,7 +64,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
         if (groupFields == null || groupFields.isEmpty()) {
             long total = jpaSpecificationExecutor().count(filterSpec);
-            return List.of(new CountResult<E>().setCount(total));
+            return List.of(new CountResult<E, GF>().setCount(total));
         }
 
         List<String> entityGroupFields = new ArrayList<>(groupFields.size());
@@ -75,7 +75,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         return mapCountResults(rows, groupFields);
     }
 
-    private List<CountResult<E>> mapCountResults(
+    private List<CountResult<E, GF>> mapCountResults(
             List<Object[]> rows,
             Set<GF> groupFields) {
         return rows.stream().map(row -> {
@@ -85,9 +85,10 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
                 mapGroupedField(entity, field, row[i]);
                 i++;
             }
-            return new CountResult<E>()
+            return new CountResult<E, GF>()
                     .setEntity(entity)
-                    .setCount((Long) row[i]);
+                    .setCount((Long) row[i])
+                    .setGroupFields(groupFields);
         }).toList();
     }
 

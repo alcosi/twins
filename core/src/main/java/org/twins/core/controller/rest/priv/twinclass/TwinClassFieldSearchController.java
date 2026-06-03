@@ -22,13 +22,11 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchConfiguredRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRqDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRsDTOv1;
+import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldCountRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchRqDTOReverseMapper;
@@ -47,6 +45,7 @@ public class TwinClassFieldSearchController extends ApiController {
     private final TwinClassFieldSearchRqDTOReverseMapper twinClassFieldSearchRqDTOReverseMapper;
     private final TwinClassFieldSearchDTOReverseMapper twinClassFieldSearchDTOReverseMapper;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final TwinClassFieldCountRestDTOMapper twinClassFieldCountRestDTOMapper;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
@@ -94,10 +93,37 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), pagination,
+                            request.getSortField(), request.getSortDirection());
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinClassFieldCountV1", summary = "Returns twin class field count grouped by specified fields")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = TwinClassFieldCountRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin_class_fields/count/v1")
+    public ResponseEntity<?> twinClassFieldCountV1(
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody TwinClassFieldCountRqDTOv1 request) {
+        TwinClassFieldCountRsDTOv1 rs = new TwinClassFieldCountRsDTOv1();
+        try {
+            var results = twinClassFieldSearchService
+                    .countByGroupFields(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), request.getGroupFields());
+            rs
+                    .setCounts(twinClassFieldCountRestDTOMapper.convertCollection(results, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

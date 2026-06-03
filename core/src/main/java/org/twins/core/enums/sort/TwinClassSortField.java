@@ -12,6 +12,7 @@ public enum TwinClassSortField {
     segment,
     uniqueName,
     headTwinClassName,
+    headhunterFeaturerName,
     extendsTwinClassName,
     markerDataListName,
     tagDataListName,

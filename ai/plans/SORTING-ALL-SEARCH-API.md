@@ -365,7 +365,7 @@
     * `twinflowTransitionName`(i18n-join: twinflowTransition → TwinflowTransition.nameI18n → I18nTranslation.translation)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
 
-### `POST /private/twin_class_fields/search/v1` ✅ reviewed
+### `POST /private/twin_class_fields/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `TwinClassFieldDTOv1`
 * **SearchRqDTO**: `TwinClassFieldSearchRqDTOv1`

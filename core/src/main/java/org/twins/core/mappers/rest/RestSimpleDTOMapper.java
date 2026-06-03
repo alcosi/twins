@@ -4,7 +4,9 @@ package org.twins.core.mappers.rest;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
+import org.twins.core.domain.CountResult;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperMode;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -117,5 +119,18 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
                 mapperContext.addRelatedObjectCollection(kit.getCollection());
             }
         }
+    }
+
+    @SafeVarargs
+    public static <E, GF> boolean needLoad(MapperContext mapperContext, MapperMode hasModeButNot, CountResult<E, GF> countResult, GF... groupField) {
+        if (!mapperContext.hasModeButNot(hasModeButNot)) {
+            return false;
+        }
+        for (GF field : groupField) {
+            if (countResult.getGroupFields().contains(field)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.LTreeUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
@@ -217,55 +218,77 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private ResourceEntity iconDarkResource;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    private I18nEntity nameI18nSpecOnly;
+
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity nameI18n;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    private I18nEntity descriptionI18nSpecOnly;
+
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity descriptionI18n;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity headHunterFeaturerSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "page_face_id", insertable = false, updatable = false)
+    private FaceEntity pageFaceSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity pageFace;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bread_crumbs_face_id", insertable = false, updatable = false)
+    private FaceEntity breadCrumbsFaceSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity breadCrumbsFace;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inherited_page_face_id", insertable = false, updatable = false)
+    private FaceEntity inheritedPageFaceSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity inheritedPageFace;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
+    private FaceEntity inheritedBreadCrumbsFaceSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity inheritedBreadCrumbsFace;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inherited_marker_data_list_id", insertable = false, updatable = false)
+    private DataListEntity inheritedMarkerDataListSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DataListEntity inheritedMarkerDataList;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private DataListEntity inheritedTagDataList;
+    private DataListEntity inheritedTagDataListSpecOnly;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_freeze_id", insertable = false, updatable = false)
@@ -485,6 +508,17 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DataListEntity tagDataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity pageFace;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity breadCrumbsFace;
+
 
     @Transient
     @EqualsAndHashCode.Exclude

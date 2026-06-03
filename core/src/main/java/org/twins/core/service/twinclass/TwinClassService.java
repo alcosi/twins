@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -48,6 +47,7 @@ import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.resource.ResourceService;
@@ -106,6 +106,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinService twinService;
     @Autowired
     private CacheManager cacheManager;
+    @Lazy
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -575,47 +577,27 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadHeadTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getHeadTwinClassId() == null || twinClassEntity.getHeadTwinClass() != null)
-            return;
-        twinClassEntity.setHeadTwinClass(findEntitySafe(twinClassEntity.getHeadTwinClassId()));
+        loadHeadTwinClasses(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadHeadTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getHeadTwinClass() != null)
-                continue;
-            needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
-        for (TwinClassEntity headTwinClass : heads) {
-            for (TwinClassEntity twinClass : needLoad.getGrouped(headTwinClass.getId()))
-                twinClass.setHeadTwinClass(headTwinClass);
-        }
+    public void loadHeadTwinClasses(Collection<TwinClassEntity> collection) throws ServiceException {
+        load(
+                collection,
+                TwinClassEntity::getHeadTwinClassId,
+                TwinClassEntity::getHeadTwinClass,
+                TwinClassEntity::setHeadTwinClass);
     }
 
     public void loadExtendsTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getExtendsTwinClassId() == null || twinClassEntity.getExtendsTwinClass() != null)
-            return;
-        twinClassEntity.setExtendsTwinClass(findEntitySafe(twinClassEntity.getExtendsTwinClassId()));
+        loadExtendsTwinClasses(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadExtendsTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getExtendsTwinClassId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getExtendsTwinClass() != null)
-                continue;
-            needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
-        for (TwinClassEntity extendsTwinClass : heads) {
-            for (TwinClassEntity twinClass : needLoad.getGrouped(extendsTwinClass.getId()))
-                twinClass.setExtendsTwinClass(extendsTwinClass);
-        }
+    public void loadExtendsTwinClasses(Collection<TwinClassEntity> collection) throws ServiceException {
+        load(
+                collection,
+                TwinClassEntity::getExtendsTwinClassId,
+                TwinClassEntity::getExtendsTwinClass,
+                TwinClassEntity::setExtendsTwinClass);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -863,27 +845,35 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadMarkerDataList(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getMarkerDataList() != null || twinClassEntity.getMarkerDataListId() == null)
-            return;
-        twinClassEntity.setMarkerDataList(dataListService.findEntitySafe(twinClassEntity.getMarkerDataListId()));
+        loadMarkerDataList(Collections.singleton(twinClassEntity));
     }
 
-    public void loadMarkerDataList(Collection<TwinClassEntity> twinClassCollection, boolean loadOptions) throws ServiceException {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getMarkerDataListId);
-        for (TwinClassEntity twinClassEntity : twinClassCollection) {
-            if (twinClassEntity.getMarkerDataListId() != null && twinClassEntity.getMarkerDataList() == null)
-                needLoad.add(twinClassEntity);
+    public void loadMarkerDataList(Collection<TwinClassEntity> entityCollection) throws ServiceException {
+        dataListService.load(
+                entityCollection,
+                TwinClassEntity::getMarkerDataListId,
+                TwinClassEntity::getMarkerDataList,
+                TwinClassEntity::setMarkerDataList);
+    }
+
+    public void loadMarkerDataList(Collection<TwinClassEntity> entityCollection, boolean loadOptions) throws ServiceException {
+        loadMarkerDataList(entityCollection);
+        if (loadOptions) {
+            var dataLists = entityCollection.stream().map(TwinClassEntity::getMarkerDataList).filter(Objects::nonNull).collect(Collectors.toSet());
+            dataListService.loadDataListOptions(dataLists);
         }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<DataListEntity> markers = dataListRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad.getGroupedMap().keySet());
-        for (DataListEntity dataListEntity : markers) {
-            for (TwinClassEntity twinClassEntity : needLoad.getGrouped(dataListEntity.getId())) {
-                twinClassEntity.setMarkerDataList(dataListEntity);
-            }
-        }
-        if (loadOptions)
-            dataListService.loadDataListOptions(markers);
+    }
+
+    public void loadTagDataList(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadTagDataList(Collections.singleton(twinClassEntity));
+    }
+
+    public void loadTagDataList(Collection<TwinClassEntity> entityCollection) throws ServiceException {
+        dataListService.load(
+                entityCollection,
+                TwinClassEntity::getTagDataListId,
+                TwinClassEntity::getTagDataList,
+                TwinClassEntity::setTagDataList);
     }
 
     private Set<UUID> findExistedTwinHeadIdsOfClass(UUID twinClassId) {
@@ -992,6 +982,24 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             result.add(new ClassWithExtends(classWithExtends.getId(), LTreeUtils.toUuidsSortedSet(classWithExtends.getExtendsHierarchyTree(), true)));
         }
         return result;
+    }
+
+    public void loadFaces(TwinClassEntity entity) throws ServiceException {
+        loadFaces(Collections.singletonList(entity));
+    }
+
+    public void loadFaces(List<TwinClassEntity> entities) throws ServiceException {
+        //todo repace with single load
+        faceService.load(
+                entities,
+                TwinClassEntity::getPageFaceId,
+                TwinClassEntity::getPageFace,
+                TwinClassEntity::setPageFace);
+        faceService.load(
+                entities,
+                TwinClassEntity::getBreadCrumbsFaceId,
+                TwinClassEntity::getBreadCrumbsFace,
+                TwinClassEntity::setBreadCrumbsFace);
     }
 
     public record ClassWithExtends(UUID twinClassId, Set<UUID> extendsTwinClassIds) {};

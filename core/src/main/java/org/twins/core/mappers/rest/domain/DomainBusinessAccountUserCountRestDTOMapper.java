@@ -7,6 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.domain.DomainBusinessAccountUserEntity;
 import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountUserCountDTOv1;
+import org.twins.core.enums.sort.DomainBusinessAccountUserGroupField;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -21,7 +22,7 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DomainBusinessAccountUserMode.class)
-public class DomainBusinessAccountUserCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountUserEntity>, DomainBusinessAccountUserCountDTOv1> {
+public class DomainBusinessAccountUserCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>, DomainBusinessAccountUserCountDTOv1> {
 
     @MapperModePointerBinding(modes = UserMode.DomainBusinessAccountUser2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -32,7 +33,7 @@ public class DomainBusinessAccountUserCountRestDTOMapper extends RestSimpleDTOMa
     private final DomainBusinessAccountUserService domainBusinessAccountUserService;
 
     @Override
-    public void map(CountResult<DomainBusinessAccountUserEntity> src, DomainBusinessAccountUserCountDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField> src, DomainBusinessAccountUserCountDTOv1 dst, MapperContext mapperContext) throws Exception {
         var entity = src.getEntity();
         if (entity == null) {
             dst.setCount(src.getCount());
@@ -42,23 +43,24 @@ public class DomainBusinessAccountUserCountRestDTOMapper extends RestSimpleDTOMa
                 .setUserId(entity.getUserId())
                 .setBusinessAccountId(entity.getBusinessAccountId())
                 .setCount(src.getCount());
-        if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE)) {
+        if (needLoad(mapperContext, UserMode.DomainBusinessAccountUser2UserMode.HIDE, src, DomainBusinessAccountUserGroupField.userId)) {
             domainBusinessAccountUserService.loadUser(entity);
             userRestDTOMapper.convertOrPostpone(entity.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainBusinessAccountUser2UserMode.SHORT)));
         }
-        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE)) {
+        if (needLoad(mapperContext, BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE, src, DomainBusinessAccountUserGroupField.businessAccountId)) {
             domainBusinessAccountUserService.loadBusinessAccount(entity);
             businessAccountDTOMapper.convertOrPostpone(entity.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.SHORT)));
         }
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<CountResult<DomainBusinessAccountUserEntity>> srcCollection, MapperContext mapperContext) throws Exception {
+    public void beforeCollectionConversion(Collection<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>> srcCollection, MapperContext mapperContext) throws Exception {
         var entityCollection = srcCollection.stream().map(CountResult::getEntity).toList();
-        if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE)) {
+        var someCount = srcCollection.iterator().next();
+        if (needLoad(mapperContext, UserMode.DomainBusinessAccountUser2UserMode.HIDE, someCount, DomainBusinessAccountUserGroupField.userId)) {
             domainBusinessAccountUserService.loadUser(entityCollection);
         }
-        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE)) {
+        if (needLoad(mapperContext, BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE, someCount, DomainBusinessAccountUserGroupField.businessAccountId)) {
             domainBusinessAccountUserService.loadBusinessAccount(entityCollection);
         }
     }

@@ -7,6 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountCountDTOv1;
+import org.twins.core.enums.sort.DomainBusinessAccountGroupField;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -23,7 +24,7 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DomainBusinessAccountMode.class)
-public class DomainBusinessAccountCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountEntity>, DomainBusinessAccountCountDTOv1> {
+public class DomainBusinessAccountCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountEntity, DomainBusinessAccountGroupField>, DomainBusinessAccountCountDTOv1> {
     @MapperModePointerBinding(modes = {TierMode.DomainBusinessAccount2TierMode.class})
     private final TierRestDTOMapper tierRestDTOMapper;
 
@@ -44,7 +45,7 @@ public class DomainBusinessAccountCountRestDTOMapper extends RestSimpleDTOMapper
     private final DomainBusinessAccountService domainBusinessAccountService;
 
     @Override
-    public void map(CountResult<DomainBusinessAccountEntity> src, DomainBusinessAccountCountDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(CountResult<DomainBusinessAccountEntity, DomainBusinessAccountGroupField> src, DomainBusinessAccountCountDTOv1 dst, MapperContext mapperContext) throws Exception {
         var entity = src.getEntity();
         if (entity == null) {
             dst.setCount(src.getCount());
@@ -57,43 +58,44 @@ public class DomainBusinessAccountCountRestDTOMapper extends RestSimpleDTOMapper
                 .setTierId(entity.getTierId())
                 .setNotificationSchemaId(entity.getNotificationSchemaId())
                 .setCount(src.getCount());
-        if (mapperContext.hasModeButNot(TierMode.DomainBusinessAccount2TierMode.HIDE)) {
+        if (needLoad(mapperContext, TierMode.DomainBusinessAccount2TierMode.HIDE, src, DomainBusinessAccountGroupField.tierId)) {
             domainBusinessAccountService.loadTier(entity);
             tierRestDTOMapper.postpone(entity.getTier(), mapperContext.forkOnPoint(TierMode.DomainBusinessAccount2TierMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.HIDE, src, DomainBusinessAccountGroupField.permissionSchemaId)) {
             domainBusinessAccountService.loadPermissionSchema(entity);
             permissionSchemaRestDTOMapper.postpone(entity.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(TwinflowSchemaMode.DomainBusinessAccount2TwinflowSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, TwinflowSchemaMode.DomainBusinessAccount2TwinflowSchemaMode.HIDE, src, DomainBusinessAccountGroupField.twinflowSchemaId)) {
             domainBusinessAccountService.loadTwinflowSchema(entity);
             twinflowSchemaRestDTOMapper.postpone(entity.getTwinflowSchema(), mapperContext.forkOnPoint(TwinflowSchemaMode.DomainBusinessAccount2TwinflowSchemaMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(TwinClassSchemaMode.DomainBusinessAccount2TwinClassSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, TwinClassSchemaMode.DomainBusinessAccount2TwinClassSchemaMode.HIDE, src, DomainBusinessAccountGroupField.twinClassSchemaId)) {
             domainBusinessAccountService.loadTwinClassSchema(entity);
             twinclassSchemaDTOMapper.postpone(entity.getTwinClassSchema(), mapperContext.forkOnPoint(TwinClassSchemaMode.DomainBusinessAccount2TwinClassSchemaMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(NotificationSchemaMode.DomainBusinessAccount2NotificationSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, NotificationSchemaMode.DomainBusinessAccount2NotificationSchemaMode.HIDE, src, DomainBusinessAccountGroupField.notificationSchemaId)) {
             domainBusinessAccountService.loadNotificationSchema(entity);
             notificationSchemaRestDTOMapper.postpone(entity.getNotificationSchema(), mapperContext.forkOnPoint(NotificationSchemaMode.DomainBusinessAccount2NotificationSchemaMode.SHORT));
         }
     }
 
-    public void beforeCollectionConversion(Collection<CountResult<DomainBusinessAccountEntity>> srcCollection, MapperContext mapperContext) throws Exception {
+    public void beforeCollectionConversion(Collection<CountResult<DomainBusinessAccountEntity, DomainBusinessAccountGroupField>> srcCollection, MapperContext mapperContext) throws Exception {
         var entityCollection = srcCollection.stream().map(CountResult::getEntity).toList();
-        if (mapperContext.hasModeButNot(TwinflowSchemaMode.DomainBusinessAccount2TwinflowSchemaMode.HIDE)) {
+        var someCount = srcCollection.iterator().next();
+        if (needLoad(mapperContext, TwinflowSchemaMode.DomainBusinessAccount2TwinflowSchemaMode.HIDE, someCount, DomainBusinessAccountGroupField.twinflowSchemaId)) {
             domainBusinessAccountService.loadTwinflowSchema(entityCollection);
         }
-        if (mapperContext.hasModeButNot(TwinClassSchemaMode.DomainBusinessAccount2TwinClassSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, TwinClassSchemaMode.DomainBusinessAccount2TwinClassSchemaMode.HIDE, someCount, DomainBusinessAccountGroupField.twinClassSchemaId)) {
             domainBusinessAccountService.loadTwinClassSchema(entityCollection);
         }
-        if (mapperContext.hasModeButNot(NotificationSchemaMode.DomainBusinessAccount2NotificationSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, NotificationSchemaMode.DomainBusinessAccount2NotificationSchemaMode.HIDE, someCount, DomainBusinessAccountGroupField.notificationSchemaId)) {
             domainBusinessAccountService.loadNotificationSchema(entityCollection);
         }
-        if (mapperContext.hasModeButNot(TierMode.DomainBusinessAccount2TierMode.HIDE)) {
+        if (needLoad(mapperContext, TierMode.DomainBusinessAccount2TierMode.HIDE, someCount, DomainBusinessAccountGroupField.tierId)) {
             domainBusinessAccountService.loadTier(entityCollection);
         }
-        if (mapperContext.hasModeButNot(PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.HIDE)) {
+        if (needLoad(mapperContext, PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.HIDE, someCount, DomainBusinessAccountGroupField.permissionSchemaId)) {
             domainBusinessAccountService.loadPermissionSchema(entityCollection);
         }
     }

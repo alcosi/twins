@@ -21,7 +21,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -34,7 +33,6 @@ import org.twins.core.mappers.rest.twinclass.TwinClassSearchRqRestDTOReverseMapp
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassSearchService;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = ApiTag.TWIN_CLASS)
@@ -122,7 +120,7 @@ public class TwinClassListController extends ApiController {
             @RequestBody TwinClassCountRqDTOv1 request) {
         TwinClassCountRsDTOv1 rs = new TwinClassCountRsDTOv1();
         try {
-            List<CountResult<TwinClassEntity>> results = twinClassSearchService
+            var results = twinClassSearchService
                     .countByGroupFields(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields());
             rs
                     .setCounts(twinClassCountRestDTOMapper.convertCollection(results, mapperContext))
