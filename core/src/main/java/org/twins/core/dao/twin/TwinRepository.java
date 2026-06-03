@@ -289,4 +289,143 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("dstTwinIdList") Collection<UUID> dstTwinIdList,
             @Param("linkIds") Collection<UUID> linkIds,
             @Param("linkedTwinStatusIdList") Collection<UUID> linkedTwinStatusIdList);
+
+    // Grandparent status change when all grandchildren have the same status - 4 cases
+    // Two-hop navigation: t1 (current) -> t2 (intermediate) -> t3 (grandparent)
+
+    // Case 1: head-head
+    // t1 -> t2 by head (t1.headTwinId = t2.id)
+    // t2 -> t3 by head (t2.headTwinId = t3.id)
+    // Check all children of t3 by head (only children with same twinClassId as t2)
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :parentTargetStatusId " +
+            "WHERE t3.id IN (" +
+            "  SELECT t2.headTwinId FROM TwinEntity t2 " +
+            "  WHERE t2.id = (" +
+            "    SELECT t1.headTwinId FROM TwinEntity t1 " +
+            "    WHERE t1.id = :currentTwinId" +
+            "  ) " +
+            "  AND t2.headTwinId IS NOT NULL" +
+            ") " +
+            "AND NOT EXISTS (" +
+            "  SELECT child.id FROM TwinEntity child " +
+            "  WHERE child.headTwinId = t3.id " +
+            "  AND child.twinClassId = (" +
+            "    SELECT t2.twinClassId FROM TwinEntity t2 " +
+            "    WHERE t2.id = (" +
+            "      SELECT t1.headTwinId FROM TwinEntity t1 " +
+            "      WHERE t1.id = :currentTwinId" +
+            "    )" +
+            "  ) " +
+            "  AND child.twinStatusId <> :checkChildrenStatusId)")
+    int updateGrandparentStatusIfAllGrandchildrenInStatusHeadHead(
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("parentTargetStatusId") UUID parentTargetStatusId,
+            @Param("checkChildrenStatusId") UUID checkChildrenStatusId);
+
+    // Case 2: head-link
+    // t1 -> t2 by head (t1.headTwinId = t2.id)
+    // t2 -> t3 by link (t2 link -> t3)
+    // Check all children of t3 by link (only children with same twinClassId as t2)
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :parentTargetStatusId " +
+            "WHERE t3.id IN (" +
+            "  SELECT tl2.dstTwinId FROM TwinLinkEntity tl2 " +
+            "  WHERE tl2.srcTwinId = (" +
+            "    SELECT t1.headTwinId FROM TwinEntity t1 " +
+            "    WHERE t1.id = :currentTwinId" +
+            "  ) " +
+            "  AND tl2.linkId = :linkId" +
+            ") " +
+            "AND NOT EXISTS (" +
+            "  SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+            "  JOIN TwinEntity child ON child.id = tl.dstTwinId " +
+            "  WHERE tl.srcTwinId = t3.id " +
+            "  AND tl.linkId = :linkId " +
+            "  AND child.twinClassId = (" +
+            "    SELECT t2.twinClassId FROM TwinEntity t2 " +
+            "    WHERE t2.id = (" +
+            "      SELECT t1.headTwinId FROM TwinEntity t1 " +
+            "      WHERE t1.id = :currentTwinId" +
+            "    )" +
+            "  ) " +
+            "  AND child.twinStatusId <> :checkChildrenStatusId)")
+    int updateGrandparentStatusIfAllGrandchildrenInStatusHeadLink(
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("linkId") UUID linkId,
+            @Param("parentTargetStatusId") UUID parentTargetStatusId,
+            @Param("checkChildrenStatusId") UUID checkChildrenStatusId);
+
+    // Case 3: link-link
+    // t1 -> t2 by link (t1 link -> t2)
+    // t2 -> t3 by link (t2 link -> t3)
+    // Check all children of t3 by link (only children with same twinClassId as t2)
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :parentTargetStatusId " +
+            "WHERE t3.id IN (" +
+            "  SELECT tl2.dstTwinId FROM TwinLinkEntity tl2 " +
+            "  WHERE tl2.srcTwinId IN (" +
+            "    SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+            "    WHERE tl.srcTwinId = :currentTwinId " +
+            "    AND tl.linkId = :firstLinkId" +
+            "  ) " +
+            "  AND tl2.linkId = :secondLinkId" +
+            ") " +
+            "AND NOT EXISTS (" +
+            "  SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+            "  JOIN TwinEntity child ON child.id = tl.dstTwinId " +
+            "  WHERE tl.srcTwinId = t3.id " +
+            "  AND tl.linkId = :secondLinkId " +
+            "  AND child.twinClassId IN (" +
+            "    SELECT tl2Src.twinClassId FROM TwinEntity tl2Src " +
+            "    WHERE tl2Src.id IN (" +
+            "      SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+            "      WHERE tl.srcTwinId = :currentTwinId " +
+            "      AND tl.linkId = :firstLinkId" +
+            "    )" +
+            "  ) " +
+            "  AND child.twinStatusId <> :checkChildrenStatusId)")
+    int updateGrandparentStatusIfAllGrandchildrenInStatusLinkLink(
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("firstLinkId") UUID firstLinkId,
+            @Param("secondLinkId") UUID secondLinkId,
+            @Param("parentTargetStatusId") UUID parentTargetStatusId,
+            @Param("checkChildrenStatusId") UUID checkChildrenStatusId);
+
+    // Case 4: link-head
+    // t1 -> t2 by link (t1 link -> t2)
+    // t2 -> t3 by head (t2.headTwinId = т3.id)
+    // Check all children of т3 by head (only children with same twinClassId as t2)
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :parentTargetStatusId " +
+            "WHERE t3.id IN (" +
+            "  SELECT t2.headTwinId FROM TwinEntity t2 " +
+            "  WHERE t2.id IN (" +
+            "    SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+            "    WHERE tl.srcTwinId = :currentTwinId " +
+            "    AND tl.linkId = :linkId" +
+            "  ) " +
+            "  AND t2.headTwinId IS NOT NULL" +
+            ") " +
+            "AND NOT EXISTS (" +
+            "  SELECT child.id FROM TwinEntity child " +
+            "  WHERE child.headTwinId = t3.id " +
+            "  AND child.twinClassId IN (" +
+            "    SELECT t2.twinClassId FROM TwinEntity t2 " +
+            "    WHERE t2.id IN (" +
+            "      SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+            "      WHERE tl.srcTwinId = :currentTwinId " +
+            "      AND tl.linkId = :linkId" +
+            "    )" +
+            "  ) " +
+            "  AND child.twinStatusId <> :checkChildrenStatusId)")
+    int updateGrandparentStatusIfAllGrandchildrenInStatusLinkHead(
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("linkId") UUID linkId,
+            @Param("parentTargetStatusId") UUID parentTargetStatusId,
+            @Param("checkChildrenStatusId") UUID checkChildrenStatusId);
 }
