@@ -30,11 +30,11 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     protected abstract Class<E> entityClass();
 
-    public abstract Specification<E> createFilterSpecification(S search, UUID domainId, Locale locale);
+    public abstract Specification<E> createFilterSpecification(S search, UUID domainId, Locale locale) throws ServiceException;
 
     public abstract Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection, Locale locale) throws ServiceException;
 
-    public abstract String convertToEntityField(GF groupFields);
+    public abstract String convertToEntityField(GF groupFields) throws ServiceException;
 
     public PaginationResult<E> search(S search, SimplePagination pagination) throws ServiceException {
         return search(search, pagination, null, null);
