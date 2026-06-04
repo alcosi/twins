@@ -1,8 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twin.TwinRepository;
@@ -21,11 +21,11 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1314,
         name = "Count children twins by child-status (on fly)",
         description = "Get count of child-twins by child-status(inc/exc) on fly")
+@RequiredArgsConstructor
 public class FieldTyperCountChildrenByStatusV1 extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenInStatusCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
     public static final Integer ID = 1314;
 
-    @Autowired
-    TwinRepository twinRepository;
+    private final TwinRepository twinRepository;
 
     @Deprecated
     @Override
