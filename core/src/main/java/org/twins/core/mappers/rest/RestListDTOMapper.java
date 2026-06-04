@@ -9,8 +9,10 @@ import java.util.*;
 
 public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     public List<S> convertCollection(Collection<T> srcCollection, MapperContext mapperContext) throws Exception {
-        if (CollectionUtils.isEmpty(srcCollection))
+        if (srcCollection == null)
             return null;
+        if (srcCollection.isEmpty())
+            return Collections.emptyList();
         beforeCollectionConversion(srcCollection, mapperContext);
         List<S> ret = new ArrayList<>();
         for (T src : srcCollection) {
