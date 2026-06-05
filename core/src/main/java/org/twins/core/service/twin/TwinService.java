@@ -40,6 +40,7 @@ import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.*;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.enums.history.HistoryType;
@@ -147,6 +148,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private DomainBusinessAccountService domainBusinessAccountService;
     @Autowired
     private TwinFieldRuleExecutionService twinFieldRuleExecutionService;
+    @Autowired
+    private TwinActionService twinActionService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -618,20 +621,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinStatusId(sketchStatus.getId());
     }
 
-    public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if (null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        return twinEntity.getTwinClass().getDeletePermissionId();
+    public void checkDeletePermission(TwinEntity twinEntity) throws ServiceException {
+        checkCrossBusinessAccountAccess(twinEntity);
+        twinActionService.checkAllowed(twinEntity, TwinAction.DELETE);
     }
 
-    public void checkDeletePermission(TwinEntity twinEntity) throws ServiceException {
+    private void checkCrossBusinessAccountAccess(TwinEntity twinEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UUID deletePermissionId = detectDeletePermissionId(twinEntity);
-        if (null == deletePermissionId)
-            return;
-        boolean hasPermission = permissionService.hasPermission(twinEntity, deletePermissionId);
-        if (!hasPermission)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DELETE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to delete " + twinEntity.logNormal());
+        if (twinEntity.getTwinClass().getOwnerType().isBusinessAccountLevel() && twinEntity.getOwnerBusinessAccountId() != null) {
+            if (!apiUser.isBusinessAccountSpecified() || !apiUser.getBusinessAccountId().equals(twinEntity.getOwnerBusinessAccountId()))
+                throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_INVALID, "incorrect business account");
+        }
     }
 
     public void checkCreatePermission(List<TwinEntity> twinEntities) throws ServiceException {
@@ -703,21 +703,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if (null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        return twinEntity.getTwinClass().getEditPermissionId();
-    }
-
     public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
             return;
-        UUID updatePermissionId = detectUpdatePermissionId(twinEntity);
-        if (null == updatePermissionId)
-            return;
-        boolean hasPermission = permissionService.hasPermission(twinEntity, updatePermissionId);
-        if (!hasPermission)
-            throw new ServiceException(ErrorCodeTwins.TWIN_UPDATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to edit " + twinEntity.logNormal());
+        checkCrossBusinessAccountAccess(twinEntity);
+        twinActionService.checkAllowed(twinEntity, TwinAction.EDIT);
     }
 
     public TwinEntity fillOwner(TwinEntity twinEntity) throws ServiceException {
