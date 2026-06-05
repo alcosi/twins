@@ -17,7 +17,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.Properties;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
 
     @Lazy
     @Autowired
-    TwinSearchService twinSearchService;
+    TwinSearchServiceV2 twinSearchService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {

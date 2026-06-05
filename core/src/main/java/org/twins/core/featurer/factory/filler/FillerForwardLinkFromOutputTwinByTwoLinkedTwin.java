@@ -81,7 +81,7 @@ public class FillerForwardLinkFromOutputTwinByTwoLinkedTwin extends FillerLinks 
     }
 
     private TwinEntity getHeadTwin(TwinEntity twin) throws ServiceException {
-        TwinEntity headTwin = twinService.loadHeadForTwin(twin);
+        TwinEntity headTwin = twinService.loadHead(twin);
         if (headTwin == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin configured for " + twin.logShort());
         }

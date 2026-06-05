@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -87,7 +88,7 @@ public class DomainBusinessAccountUserSearchController extends ApiController {
     @PostMapping(value = "/private/domain/business_account_user/count/v1")
     public ResponseEntity<?> domainBusinessAccountUserCountV1(
             @MapperContextBinding(roots = DomainBusinessAccountUserRestDTOMapper.class, response = DomainBusinessAccountUserCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DomainBusinessAccountUserCountRqDTOv1 request) {
+            @RequestBody @Valid DomainBusinessAccountUserCountRqDTOv1 request) {
         DomainBusinessAccountUserCountRsDTOv1 rs = new DomainBusinessAccountUserCountRsDTOv1();
         try {
             var results =

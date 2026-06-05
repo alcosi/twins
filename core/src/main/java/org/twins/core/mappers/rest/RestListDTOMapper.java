@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest;
 
 
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.CollectionUtils;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.util.*;
@@ -45,6 +44,8 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     public Map<UUID, S> convertMap(Map<UUID, T> srcMap, MapperContext mapperContext) throws Exception {
         if (srcMap == null)
             return null;
+        if (srcMap.isEmpty())
+            return Collections.emptyMap();
         beforeCollectionConversion(srcMap.values(), mapperContext);
         Map<UUID, S> ret = new LinkedHashMap<>();
         for (Map.Entry<UUID, T> src : srcMap.entrySet()) {

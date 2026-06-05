@@ -29,7 +29,7 @@ public class FieldInitializerHead extends FieldInitializer<FieldDescriptor, Fiel
         if (twin.getHeadTwinId() == null) {
             throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, twin.logNormal() + " has no head twin");
         }
-        twinService.loadHeadForTwin(twin);
+        twinService.loadHead(twin);
         twinService.loadFieldsValues(twin.getHeadTwin());
         var headTwinValue = twin.getHeadTwin().getFieldValuesKit().get(fromTwinClassFieldId.extract(properties));
         if (headTwinValue != null && headTwinValue.isNotEmpty()) {

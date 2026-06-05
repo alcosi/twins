@@ -13,7 +13,7 @@ public class FieldLookuperFromContextTwinHeadTwinDbFields extends FieldLookuperN
 
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException {
-        twinService.loadHeadForTwin(factoryItem.getTwin());
+        twinService.loadHead(factoryItem.getTwin());
         FieldValue fieldValue = twinService.getTwinFieldValue(factoryItem.getTwin().getHeadTwin(), lookupTwinClassFieldId);
         if (fieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in head twin fields");

@@ -5,10 +5,11 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.math.IntegerRange;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.RangeUtils;
 import org.twins.core.dao.search.TwinSearchEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinSearch {
+public class TwinSearch extends EntitySearch<TwinEntity> {
     private Set<UUID> twinIdList;
     private Set<String> twinNameLikeList;
     private Set<String> twinNameNotLikeList;

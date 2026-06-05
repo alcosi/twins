@@ -96,7 +96,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         }
 
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
-            twinService.loadHeadForTwin(src);
+            twinService.loadHead(src);
             dst.headTwinId(src.getHeadTwinId());
             this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByHeadMode.GREEN));  //head twin will be much less detail
         }
@@ -138,7 +138,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         if (mapperContext.hasModeButNot(TwinAliasMode.HIDE))
             twinAliasService.loadAliases(srcCollection);
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
-            twinService.loadHeadForTwin(srcCollection);
+            twinService.loadHead(srcCollection);
         }
     }
 

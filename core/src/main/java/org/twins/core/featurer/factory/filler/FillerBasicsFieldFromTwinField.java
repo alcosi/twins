@@ -70,12 +70,12 @@ public class FillerBasicsFieldFromTwinField extends Filler {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
         } else {
             UserEntity user = fieldValueUser.getItems().getFirst();
-            if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER)) {
+            if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID)) {
                 outputTwinEntity
                         .setAssignerUser(user)
                         .setAssignerUserId(user.getId());
                 return TwinEntity.Fields.assignerUserId;
-            } else if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER)) {
+            } else if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID)) {
                 outputTwinEntity
                         .setCreatedByUser(user)
                         .setCreatedByUserId(user.getId());

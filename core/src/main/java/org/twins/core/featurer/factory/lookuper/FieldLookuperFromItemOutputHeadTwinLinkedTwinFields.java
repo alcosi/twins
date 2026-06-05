@@ -14,7 +14,7 @@ import java.util.UUID;
 public class FieldLookuperFromItemOutputHeadTwinLinkedTwinFields extends FieldLookuperLinkedTwinByField {
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
-        TwinEntity headTwin = twinService.loadHeadForTwin(factoryItem.getTwin());
+        TwinEntity headTwin = twinService.loadHead(factoryItem.getTwin());
         if (headTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] can not be loaded from head twin, because head is null");
         FieldValue itemOutputHeadTwinField = getFreshestValue(headTwin, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item head fields");
