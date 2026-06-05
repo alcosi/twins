@@ -66,10 +66,10 @@ public class TwinStatusSearchService extends EntitySearchService
                 checkTernary(search.getInheritable(), TwinStatusEntity.Fields.inheritable),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, true, true)
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18nSpecOnly, search.getNameI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18nSpecOnly, search.getNameI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18nSpecOnly, search.getDescriptionI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18nSpecOnly, search.getDescriptionI18nNotLikeList(), locale, true, true)
         );
     }
 
@@ -80,8 +80,8 @@ public class TwinStatusSearchService extends EntitySearchService
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, TwinStatusEntity.Fields.key);
-            case name -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.nameI18n);
-            case description -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.descriptionI18n);
+            case name -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.nameI18nSpecOnly);
+            case description -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.descriptionI18nSpecOnly);
             case inheritable -> toSortSpecification(ascending, TwinStatusEntity.Fields.inheritable);
             case backgroundColor -> toSortSpecification(ascending, TwinStatusEntity.Fields.backgroundColor);
             case fontColor -> toSortSpecification(ascending, TwinStatusEntity.Fields.fontColor);

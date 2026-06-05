@@ -24,7 +24,7 @@ public class PointerOnHead extends Pointer {
 
     @Override
     protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        twinService.loadHeadForTwin(srcTwinEntity);
+        twinService.loadHead(srcTwinEntity);
         return srcTwinEntity.getHeadTwin();
     }
 }

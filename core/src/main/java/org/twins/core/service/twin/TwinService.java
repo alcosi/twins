@@ -138,6 +138,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private CommentService commentService;
     @Autowired
     private TwinSearchService twinSearchService;
+    @Autowired
+    private TwinSearchServiceV2 twinSearchServiceV2;
     @Lazy
     @Autowired
     private ErrorRepository errorRepository;
@@ -761,7 +763,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (!twinEntity.isCreateElseUpdate()) {
                 basicSearch.setTwinIdExcludeList(Set.of(twinEntity.getId()));
             }
-            if (twinSearchService.exists(basicSearch)) {
+            if (twinSearchServiceV2.exists(basicSearch)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_NAME_IS_NOT_UNIQUE);
             }
         }
@@ -1162,31 +1164,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinEntity loadSpaceForTwin(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getSpaceTwin() != null)
             return twinEntity.getSpaceTwin();
-        loadHeadForTwin(twinEntity);
+        loadHead(twinEntity);
         if (twinEntity.getHeadTwin() == null)
             return null;
         twinEntity.setSpaceTwin(findSpaceForTwin(twinEntity, twinEntity.getHeadTwin(), 10));
         return twinEntity.getSpaceTwin();
     }
 
-    public TwinEntity loadHeadForTwin(TwinEntity twinEntity) throws ServiceException {
-        loadHeadForTwin(Collections.singletonList(twinEntity));
+    public TwinEntity loadHead(TwinEntity twinEntity) throws ServiceException {
+        loadHead(Collections.singletonList(twinEntity));
         return twinEntity.getHeadTwin();
     }
 
-    public void loadHeadForTwin(Collection<TwinEntity> srcCollection) throws ServiceException {
-        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getHeadTwinId);
-        for (var twin : srcCollection) {
-            if (twin.getHeadTwin() != null || twin.getHeadTwinId() == null)
-                continue;
-            needLoad.add(twin);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        Kit<TwinEntity, UUID> heads = findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twin : needLoad) {
-            twin.setHeadTwin(heads.get(twin.getHeadTwinId()));
-        }
+    public void loadHead(Collection<TwinEntity> srcCollection) throws ServiceException {
+        load(srcCollection,
+                TwinEntity::getHeadTwinId,
+                TwinEntity::getHeadTwin,
+                TwinEntity::setHeadTwin);
     }
 
     public void loadSegments(TwinEntity twinEntity) {
@@ -1225,7 +1219,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             log.warn("Can not detect space for " + twinEntity.logShort());
             return null;
         } else {
-            loadHeadForTwin(headTwin);
+            loadHead(headTwin);
             return findSpaceForTwin(twinEntity, headTwin.getHeadTwin(), recursionDepth - 1);
         }
     }
@@ -1916,6 +1910,38 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public boolean isRequired(TwinEntity twin, TwinClassFieldEntity twinClassField) {
         return twinFieldRuleExecutionService.isRequired(twin, twinClassField);
+    }
+
+    public void loadStatus(TwinEntity entity) throws ServiceException {
+        loadStatus(Collections.singletonList(entity));
+    }
+
+    public void loadStatus(Collection<TwinEntity> entities) throws ServiceException {
+        twinStatusService.load(entities,
+                TwinEntity::getTwinStatusId,
+                TwinEntity::getTwinStatus,
+                TwinEntity::setTwinStatus);
+    }
+
+    public void loadUser(TwinEntity entity) throws ServiceException {
+        loadUser(Collections.singletonList(entity));
+    }
+
+    public void loadUser(Collection<TwinEntity> entities) throws ServiceException {
+        userService.load(entities,
+                new LoadedField<>(
+                        TwinEntity::getOwnerUserId,
+                        TwinEntity::getOwnerUser,
+                        TwinEntity::setOwnerUser),
+                new LoadedField<>(
+                        TwinEntity::getAssignerUserId,
+                        TwinEntity::getAssignerUser,
+                        TwinEntity::setAssignerUser),
+                new LoadedField<>(
+                        TwinEntity::getCreatedByUserId,
+                        TwinEntity::getCreatedByUser,
+                        TwinEntity::setCreatedByUser
+                ));
     }
 
     @Data

@@ -56,7 +56,7 @@ public class FillerForwardLinkFromOutputTwinByLinkDstTwinAndHead extends FillerL
 
         TwinEntity dstTwin = getDstTwinByLink(properties, twinCreate, outputTwin);
 
-        TwinEntity detectedHead = twinService.loadHeadForTwin(dstTwin);
+        TwinEntity detectedHead = twinService.loadHead(dstTwin);
 
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
         TwinLinkEntity newLink = new TwinLinkEntity()
