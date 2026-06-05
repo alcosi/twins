@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -17,6 +18,7 @@ public class TwinClassCountRqDTOv1 extends Request {
     @Schema(description = "search params")
     public TwinClassSearchDTOv1 search;
 
+    @Size(max = 2)
     @Schema(description = "Group by fields")
     public Set<TwinClassGroupField> groupFields;
 }

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -90,7 +91,7 @@ public class DomainBusinessAccountListController extends ApiController {
     public ResponseEntity<?> domainBusinessAccountCountV1(
             @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody DomainBusinessAccountCountRqDTOv1 request) {
+            @RequestBody @Valid DomainBusinessAccountCountRqDTOv1 request) {
         var rs = new DomainBusinessAccountCountRsDTOv1();
         try {
             var results = domainBusinessAccountSearchService

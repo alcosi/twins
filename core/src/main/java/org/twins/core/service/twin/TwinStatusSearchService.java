@@ -104,7 +104,7 @@ public class TwinStatusSearchService extends EntitySearchService
         switch (field) {
             case twinClassId -> entity.setTwinClassId((UUID) o);
             case inheritable -> entity.setInheritable((Boolean) o);
-            case type -> entity.setType((StatusType) o);
+            case type -> entity.setType(o instanceof StatusType ? (StatusType) o : StatusType.valueOf((String) o));
         }
     }
 }

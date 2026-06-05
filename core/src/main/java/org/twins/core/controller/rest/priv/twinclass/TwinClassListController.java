@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -119,7 +120,7 @@ public class TwinClassListController extends ApiController {
     @PostMapping(value = "/private/twin_class/count/v1")
     public ResponseEntity<?> twinClassCountV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassCountRqDTOv1 request) {
+            @RequestBody @Valid TwinClassCountRqDTOv1 request) {
         TwinClassCountRsDTOv1 rs = new TwinClassCountRsDTOv1();
         try {
             var results = twinClassSearchService
