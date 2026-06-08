@@ -656,7 +656,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (needCheckTwins == null) {
                 needCheckTwins = new ArrayList<>();
             }
-            needCheckTwins.add(twinUpdate.getTwinEntity());
+            needCheckTwins.add(twinUpdate.getDbTwinEntity());
             twinUpdate.setCheckEditPermission(false); //this is safe here, because checkUpdatePermission does not need this flag any more
         }
         checkUpdatePermission(needCheckTwins);
