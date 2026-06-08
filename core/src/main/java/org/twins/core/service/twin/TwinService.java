@@ -621,16 +621,52 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinStatusId(sketchStatus.getId());
     }
 
+    public void checkDeletePermission(Collection<TwinEntity> twinCollection) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinCollection))
+            return;
+        for (var twinEntity : twinCollection) {
+            checkCrossBusinessAccountAccess(twinEntity);
+        }
+        twinActionService.checkAllowed(twinCollection, TwinAction.DELETE);
+    }
+
     public void checkDeletePermission(TwinEntity twinEntity) throws ServiceException {
         checkCrossBusinessAccountAccess(twinEntity);
         twinActionService.checkAllowed(twinEntity, TwinAction.DELETE);
+    }
+
+    public void checkUpdatePermission(TwinEntity twinEntity) throws ServiceException {
+        checkUpdatePermission(Collections.singletonList(twinEntity));
+    }
+
+    public void checkUpdatePermission(Collection<TwinEntity> twinCollection) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinCollection) || permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
+        for (var twinEntity : twinCollection) {
+            checkCrossBusinessAccountAccess(twinEntity);
+        }
+        twinActionService.checkAllowed(twinCollection, TwinAction.EDIT);
+    }
+
+    public void checkUpdatePermissionBatch(Collection<TwinUpdate> twinCollection) throws ServiceException {
+        List<TwinEntity> needCheckTwins = null;
+        for (var twinUpdate : twinCollection) {
+            if (!twinUpdate.isChanged() || !twinUpdate.isCheckEditPermission())
+                continue;
+            if (needCheckTwins == null) {
+                needCheckTwins = new ArrayList<>();
+            }
+            needCheckTwins.add(twinUpdate.getTwinEntity());
+            twinUpdate.setCheckEditPermission(false); //this is safe here, because checkUpdatePermission does not need this flag any more
+        }
+        checkUpdatePermission(needCheckTwins);
     }
 
     private void checkCrossBusinessAccountAccess(TwinEntity twinEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (twinEntity.getTwinClass().getOwnerType().isBusinessAccountLevel() && twinEntity.getOwnerBusinessAccountId() != null) {
             if (!apiUser.isBusinessAccountSpecified() || !apiUser.getBusinessAccountId().equals(twinEntity.getOwnerBusinessAccountId()))
-                throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_INVALID, "incorrect business account");
+                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_ACCESS_DENIED, "incorrect business account");
         }
     }
 
@@ -701,13 +737,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (!errors.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_QUOTA_EXCEEDED, "Twin class quota exceeded for business account [" + businessAccountId + "]: " + String.join("; ", errors));
         }
-    }
-
-    public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
-        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
-            return;
-        checkCrossBusinessAccountAccess(twinEntity);
-        twinActionService.checkAllowed(twinEntity, TwinAction.EDIT);
     }
 
     public TwinEntity fillOwner(TwinEntity twinEntity) throws ServiceException {
@@ -852,9 +881,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinBatchFieldValidationException batchFieldValidationException = null;
         var twinUpdatesWithFields = twinUpdates.stream().filter(twinUpdate -> MapUtils.isNotEmpty(twinUpdate.getFields())).map(TwinUpdate::getDbTwinEntity).toList();
         loadFieldEditability(twinUpdatesWithFields);
+        checkUpdatePermissionBatch(twinUpdates);
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
-
             ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
                     twinUpdate.getDbTwinEntity(),
                     twinUpdate.getTwinEntity(),
@@ -883,9 +912,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
         if (!twinUpdate.isChanged())
             return;
-        ApiUser apiUser = authService.getApiUser();
         if (twinUpdate.isCheckEditPermission())
-            checkUpdatePermission(twinUpdate.getDbTwinEntity(), apiUser);
+            checkUpdatePermission(twinUpdate.getDbTwinEntity());
         if (twinUpdate.getTwinEntity().getTwinClassId() == null && twinUpdate.getDbTwinEntity() != null) {
             twinUpdate.getTwinEntity()
                     .setTwinClassId(twinUpdate.getDbTwinEntity().getTwinClassId())

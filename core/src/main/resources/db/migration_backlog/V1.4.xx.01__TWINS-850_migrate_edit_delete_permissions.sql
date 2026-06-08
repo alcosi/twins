@@ -19,3 +19,8 @@ SELECT uuid_generate_v5('00000000-0000-0000-0000-000000000001'::uuid, tc.id::tex
 FROM twin_class tc
 WHERE tc.delete_permission_id IS NOT NULL
 ON CONFLICT (id) DO NOTHING;
+
+drop index if exists twin_action_permission_twin_class_id_index;
+
+create unique index if not exists twin_action_permission_twin_class_id_twin_action_id_index
+    on twin_action_permission (twin_class_id, twin_action_id);
