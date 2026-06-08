@@ -530,6 +530,11 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinClassUniquenessEntity, UUID> uniquenessKit;
+
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
