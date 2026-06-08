@@ -27,6 +27,7 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
@@ -83,14 +84,6 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "create_permission_id")
     private UUID createPermissionId;
-
-    @Deprecated
-    @Column(name = "edit_permission_id")
-    private UUID editPermissionId;
-
-    @Deprecated
-    @Column(name = "delete_permission_id")
-    private UUID deletePermissionId;
 
     @Column(name = "abstract")
     private Boolean abstractt;
@@ -343,21 +336,8 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
-    private PermissionEntity editPermissionSpecOnly;
-
-    @Deprecated //for specification only
-    @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "delete_permission_id", insertable = false, updatable = false)
-    private PermissionEntity deletePermissionSpecOnly;
-
-
-//    @ManyToOne
-//    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-//    private UserEntity createdByUser;
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -480,16 +460,6 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private PermissionEntity createPermission;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private PermissionEntity editPermission;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private PermissionEntity deletePermission;
 
     @Transient
     @EqualsAndHashCode.Exclude

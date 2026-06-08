@@ -125,8 +125,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setHeadHunterParams(src.getHeadHunterParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setCreatePermissionId(src.getCreatePermissionId())
-                        .setEditPermissionId(src.getEditPermissionId())
-                        .setDeletePermissionId(src.getDeletePermissionId())
                         .setNameI18nId(src.getNameI18NId())
                         .setDescriptionI18nId(src.getDescriptionI18NId())
                         .setExtendsClassId(src.getExtendsTwinClassId())
@@ -252,17 +250,13 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE) &&
-                (src.getViewPermissionId() != null || src.getCreatePermissionId() != null || src.getEditPermissionId() != null || src.getDeletePermissionId() != null)) {
+                (src.getViewPermissionId() != null || src.getCreatePermissionId() != null)) {
             twinClassService.loadPermissions(src);
             dst
                     .setViewPermissionId(src.getViewPermissionId())
-                    .setCreatePermissionId(src.getCreatePermissionId())
-                    .setEditPermissionId(src.getEditPermissionId())
-                    .setDeletePermissionId(src.getDeletePermissionId());
+                    .setCreatePermissionId(src.getCreatePermissionId());
             permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
             permissionRestDTOMapper.postpone(src.getCreatePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
-            permissionRestDTOMapper.postpone(src.getEditPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
-            permissionRestDTOMapper.postpone(src.getDeletePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             dst.setHeadHunterFeaturerId(src.getHeadHunterFeaturerId());

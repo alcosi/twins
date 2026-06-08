@@ -32,8 +32,6 @@ public class TwinClassSaveRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Twi
                         .setHeadHunterParams(src.getHeadHunterParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setCreatePermissionId(src.getCreatePermissionId())
-                        .setEditPermissionId(src.getEditPermissionId())
-                        .setDeletePermissionId(src.getDeletePermissionId())
                         .setOwnerType(src.getOwnerType())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setSegment(src.getSegment())

@@ -12,13 +12,13 @@ public enum TwinClassGroupField {
     twinflowSchemaSpace,
     twinClassSchemaSpace,
     aliasSpace,
+    createPermissionId,
     viewPermissionId,
     headHunterFeaturerId,
-    editPermissionId,
-    deletePermissionId,
     assigneeRequired,
     uniqueName,
     hasDynamicMarkers,
     breadCrumbsFaceId,
-    pageFaceId
+    pageFaceId,
+    createdByUserId
 }

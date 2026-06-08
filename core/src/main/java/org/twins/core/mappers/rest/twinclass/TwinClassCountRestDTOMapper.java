@@ -61,8 +61,6 @@ public class TwinClassCountRestDTOMapper extends RestSimpleDTOMapper<CountResult
                 .setAliasSpace(entity.getAliasSpace())
                 .setViewPermissionId(entity.getViewPermissionId())
                 .setHeadHunterFeaturerId(entity.getHeadHunterFeaturerId())
-                .setEditPermissionId(entity.getEditPermissionId())
-                .setDeletePermissionId(entity.getDeletePermissionId())
                 .setAssigneeRequired(entity.getAssigneeRequired())
                 .setUniqueName(entity.getUniqueName())
                 .setHasDynamicMarkers(entity.getHasDynamicMarkers())
@@ -78,11 +76,10 @@ public class TwinClassCountRestDTOMapper extends RestSimpleDTOMapper<CountResult
             twinClassService.loadExtendsTwinClass(entity);
             twinClassRestDTOMapper.convertOrPostpone(entity.getExtendsTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT));
         }
-        if (needLoad(mapperContext, PermissionMode.TwinClass2PermissionMode.HIDE, src, TwinClassGroupField.viewPermissionId, TwinClassGroupField.editPermissionId, TwinClassGroupField.deletePermissionId)) {
+        if (needLoad(mapperContext, PermissionMode.TwinClass2PermissionMode.HIDE, src, TwinClassGroupField.viewPermissionId, TwinClassGroupField.createPermissionId)) {
             twinClassService.loadPermissions(entity);
+            permissionRestDTOMapper.postpone(entity.getCreatePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
             permissionRestDTOMapper.postpone(entity.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
-            permissionRestDTOMapper.postpone(entity.getEditPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
-            permissionRestDTOMapper.postpone(entity.getDeletePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
         }
         if (needLoad(mapperContext, TwinClassFreezeMode.TwinClass2TwinClassFreezeMode.HIDE, src, TwinClassGroupField.twinClassFreezeId)) {
             twinClassService.loadFreeze(entity);
@@ -117,7 +114,7 @@ public class TwinClassCountRestDTOMapper extends RestSimpleDTOMapper<CountResult
         if (needLoad(mapperContext, TwinClassFreezeMode.TwinClass2TwinClassFreezeMode.HIDE, someCount, TwinClassGroupField.twinClassFreezeId)) {
             twinClassService.loadFreeze(entities);
         }
-        if (needLoad(mapperContext, PermissionMode.TwinClass2PermissionMode.HIDE, someCount, TwinClassGroupField.viewPermissionId, TwinClassGroupField.deletePermissionId, TwinClassGroupField.editPermissionId)) {
+        if (needLoad(mapperContext, PermissionMode.TwinClass2PermissionMode.HIDE, someCount, TwinClassGroupField.viewPermissionId, TwinClassGroupField.createPermissionId)) {
             twinClassService.loadPermissions(entities);
         }
         if (needLoad(mapperContext, FaceMode.TwinClassPage2FaceMode.HIDE, someCount, TwinClassGroupField.pageFaceId, TwinClassGroupField.breadCrumbsFaceId)) {
