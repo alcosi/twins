@@ -387,19 +387,19 @@ public class TwinActionService {
 
     public void checkAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
         if (!isAllowed(twinEntity, action))
-            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logShort());
     }
 
     public void checkAllowed(Collection<TwinEntity> twinEntities, TwinAction action) throws ServiceException {
         loadActions(twinEntities);
         for (TwinEntity twinEntity : twinEntities) {
-            if (!twinEntity.getActions().contains(action))
-                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
+            if (!twinEntity.getActions().contains(action)) //todo refactor on smart load. no sense to load all actions
+                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logShort());
         }
     }
 
     public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
-        loadActions(twinEntity);
+        loadActions(twinEntity); //todo refactor on smart load. no sense to load all actions
         return twinEntity.getActions().contains(action);
     }
 }

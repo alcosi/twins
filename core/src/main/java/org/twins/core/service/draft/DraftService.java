@@ -137,7 +137,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         );
     }
 
-    public DraftEntity draftErase(TwinEntity... twinEntityList) throws ServiceException {
+    public DraftEntity draftErase(TwinEntity twinEntityList) throws ServiceException {
+        return draftErase(Collections.singletonList(twinEntityList));
+    }
+
+    public DraftEntity draftErase(Collection<TwinEntity> twinEntityList) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
         try {
             for (TwinEntity twinEntity : twinEntityList) {
