@@ -120,13 +120,15 @@ public class TwinClassListController extends ApiController {
     @PostMapping(value = "/private/twin_class/count/v1")
     public ResponseEntity<?> twinClassCountV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody @Valid TwinClassCountRqDTOv1 request) {
         TwinClassCountRsDTOv1 rs = new TwinClassCountRsDTOv1();
         try {
             var results = twinClassSearchService
-                    .countByGroupFields(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields());
+                    .countByGroupFields(twinClassSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields(), pagination);
             rs
-                    .setCounts(twinClassCountRestDTOMapper.convertCollection(results, mapperContext))
+                    .setCounts(twinClassCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

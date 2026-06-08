@@ -110,13 +110,13 @@ Extends `CountDTOv1` (not `DomainBusinessAccountUserDTOv1`). Each groupable fiel
 ```java id="priq62"
 // DomainBusinessAccountUserCountRsDTOv1.java
 @Schema(name = "DomainBusinessAccountUserCountRsV1")
-public class DomainBusinessAccountUserCountRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class DomainBusinessAccountUserCountRsDTOv1 extends ResponseCountDTOv1 {
     @Schema(description = "count results grouped by requested fields")
     public List<DomainBusinessAccountUserCountDTOv1> counts;
 }
 ```
 
-Extends `ResponseRelatedObjectsDTOv1` — enables related-object enrichment for group field values (e.g., user details for `userId`).
+Extends `ResponseCountDTOv1` (which extends `ResponseRelatedObjectsDTOv1` and adds `PaginationDTOv1 pagination`) — enables related-object enrichment and pagination metadata.
 
 ### 6. Generic Result Wrapper
 
@@ -172,6 +172,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     PaginationResult<E> search(S search, SimplePagination pagination, SF sortField, SortDirection sortDirection);
     List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields);
+    PaginationResult<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields, SimplePagination pagination);
 }
 ```
 
@@ -181,7 +182,7 @@ Generic parameters:
 - `SF` — sort field enum type
 - `GF` — group field enum type
 
-The base class implements `search()` and `countByGroupFields()` with all shared logic. Concrete services only provide domain-specific mappings via abstract methods. This eliminates duplication across all search/count APIs.
+The base class implements `search()`, `countByGroupFields()`, and `countByGroupFields(paginated)` with all shared logic. The paginated overload follows the same pattern as `JpaSpecificationExecutor.findAll(Specification, Pageable)`: executes a count query for total groups + a paginated GROUP BY query for the page data. Returns `PaginationResult` with `total`, `offset`, `limit`, and `list`. Concrete services only provide domain-specific mappings via abstract methods. This eliminates duplication across all search/count APIs.
 
 ### 9. `CountQueryExecutor` — Grouped Count via Criteria API
 
@@ -192,17 +193,29 @@ public class CountQueryExecutor {
     @Autowired
     private EntityManager entityManager;
 
+    // Returns all groups (for internal use by validators, etc.)
     public <E> List<Object[]> executeGroupedCount(
             Class<E> entityClass,
             Specification<E> filterSpec,
             List<String> groupFieldNames) {
-        // Builds: SELECT field1, field2, ..., COUNT(*) FROM Entity GROUP BY field1, field2, ...
-        // Returns List<Object[]> — each row: [field1Val, field2Val, ..., count]
+        // SELECT field1, field2, ..., COUNT(*) FROM Entity GROUP BY field1, field2, ...
+    }
+
+    // Returns paginated groups with total count (same pattern as JpaSpecificationExecutor.findAll)
+    public <E> Page<Object[]> executeGroupedCountPaginated(
+            Class<E> entityClass,
+            Specification<E> filterSpec,
+            List<String> groupFieldNames,
+            SimplePagination pagination) {
+        // 1. Count query: COUNT(DISTINCT field) for single field,
+        //    GROUP BY + .size() for multiple fields
+        // 2. Data query: GROUP BY + COUNT(*) with setFirstResult/setMaxResults
+        // Returns Page<Object[]> with content + totalElements
     }
 }
 ```
 
-Uses `EntityManager` + Criteria API directly (instead of Spring Data `findAll` with `Specification`) to avoid `Specification` limitations with `GROUP BY` + `multiselect`. Accepts entity class, filter specification, and field names. Returns raw `Object[]` rows — the base `EntitySearchService` maps them via `mapGroupedField()`.
+Uses `EntityManager` + Criteria API directly (instead of Spring Data `findAll` with `Specification`) to avoid `Specification` limitations with `GROUP BY` + `multiselect`. The paginated method follows the same two-query pattern as `JpaSpecificationExecutor.findAll(Specification, Pageable)`: one count query for total groups, one data query with `LIMIT/OFFSET` for the page. Returns `Page<Object[]>` so the caller gets both content and total count in a single call.
 
 ### 10. Concrete Service — `DomainBusinessAccountUserSearchService`
 
@@ -331,19 +344,18 @@ Dedicated mapper for `CountResult<E, GF>` → `CountDTOv1`. Maps group fields fr
 @PostMapping(value = "/private/domain/business_account_user/count/v1")
 public ResponseEntity<?> domainBusinessAccountUserCountV1(
         @MapperContextBinding(...) MapperContext mapperContext,
+        @SimplePaginationParams SimplePagination pagination,
         @RequestBody DomainBusinessAccountUserCountRqDTOv1 request) {
 
     DomainBusinessAccountUserCountRsDTOv1 rs = new DomainBusinessAccountUserCountRsDTOv1();
     try {
-        List<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>> results =
-                domainBusinessAccountUserSearchService.countByGroupFields(
-                        domainBusinessAccountUserSearchDTOReverseMapper
-                                .convert(request.getSearch(), mapperContext),
-                        request.getGroupFields());
-
-        rs.setCounts(domainBusinessAccountUserCountRestDTOMapper
-                .convertCollection(results, mapperContext));
-        rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        var results =
+                domainBusinessAccountUserSearchService.countByGroupFields(domainBusinessAccountUserSearchDTOReverseMapper
+                        .convert(request.getSearch(), mapperContext), request.getGroupFields(), pagination);
+        rs
+                .setCounts(domainBusinessAccountUserCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                .setPagination(paginationMapper.convert(results))
+                .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
     } catch (ServiceException se) {
         return createErrorRs(se, rs);
     } catch (Exception e) {
@@ -353,13 +365,13 @@ public ResponseEntity<?> domainBusinessAccountUserCountV1(
 }
 ```
 
-The controller delegates all mapping to `DomainBusinessAccountUserCountRestDTOMapper`. Related objects are populated by the mapper and collected via `relatedObjectsRestDTOMapper.convert(mapperContext)`.
+The controller accepts `@SimplePaginationParams` (offset/limit via query params, same as search endpoints) and passes it to the paginated `countByGroupFields` overload. Pagination metadata is set via `paginationMapper.convert(results)`. Related objects are populated by the mapper and collected via `relatedObjectsRestDTOMapper.convert(mapperContext)`.
 
 ---
 
 ## API Contract
 
-**Request:**
+**Request (body):**
 
 ```json
 {
@@ -369,6 +381,8 @@ The controller delegates all mapping to `DomainBusinessAccountUserCountRestDTOMa
   "groupFields": ["userId", "businessAccountId"]
 }
 ```
+
+**Pagination (query params):** `offset=0&limit=50` — same `@SimplePaginationParams` mechanism as search endpoints.
 
 **Response:**
 
@@ -385,11 +399,16 @@ The controller delegates all mapping to `DomainBusinessAccountUserCountRestDTOMa
       "businessAccountId": "ba-uuid-1",
       "count": 7
     }
-  ]
+  ],
+  "pagination": {
+    "offset": 0,
+    "limit": 50,
+    "total": 150
+  }
 }
 ```
 
-Fields not included in `groupFields` are `null`. `count` is the number of records in the group.
+Fields not included in `groupFields` are `null`. `count` is the number of records in the group. `pagination.total` is the total number of distinct groups (not the total number of records).
 
 ---
 

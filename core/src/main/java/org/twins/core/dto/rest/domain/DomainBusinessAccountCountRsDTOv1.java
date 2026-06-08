@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
+import org.twins.core.dto.rest.ResponseCountDTOv1;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DomainBusinessAccountCountRsV1")
-public class DomainBusinessAccountCountRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class DomainBusinessAccountCountRsDTOv1 extends ResponseCountDTOv1 {
     @Schema(description = "count results grouped by requested fields")
     public List<DomainBusinessAccountCountDTOv1> counts;
 }

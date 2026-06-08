@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -116,13 +117,15 @@ public class TwinStatusSearchController extends ApiController {
     @PostMapping(value = "/private/twin_status/count/v1")
     public ResponseEntity<?> twinStatusCountV1(
             @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinStatusCountRqDTOv1 request) {
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody @Valid TwinStatusCountRqDTOv1 request) {
         TwinStatusCountRsDTOv1 rs = new TwinStatusCountRsDTOv1();
         try {
             var results = twinStatusSearchService
-                    .countByGroupFields(twinStatusSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields());
+                    .countByGroupFields(twinStatusSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields(), pagination);
             rs
-                    .setCounts(twinStatusCountRestDTOMapper.convertCollection(results, mapperContext))
+                    .setCounts(twinStatusCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
