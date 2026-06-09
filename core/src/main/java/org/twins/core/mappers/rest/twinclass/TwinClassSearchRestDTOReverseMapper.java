@@ -63,6 +63,12 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
                 .setTwinCounterRange(integerRangeDTOReverseMapper.convert(src.getTwinCounterRange()))
+                .setHeadHunterFeaturerIdList(src.getHeadHunterFeaturerIdList())
+                .setHasDynamicMarkers(src.getHasDynamicMarkers())
+                .setBreadCrumbsFaceIdList(convertToSetSafe(src.getBreadCrumbsFaceIdList()))
+                .setBreadCrumbsFaceIdExcludeList(convertToSetSafe(src.getBreadCrumbsFaceIdExcludeList()))
+                .setPageFaceIdList(convertToSetSafe(src.getPageFaceIdList()))
+                .setPageFaceIdExcludeList(convertToSetSafe(src.getPageFaceIdExcludeList()))
         ;
     }
 }

@@ -22,6 +22,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
 
@@ -51,7 +52,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final FeaturerService featurerService;
     private final PermissionService permissionService;
     private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
-
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -104,6 +105,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                     featurerRestDTOMapper.postpone(src.getTwinSorterFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
                 }
                 if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
+                    twinClassFieldService.loadPermissions(src);
                     dst
                             .setViewPermissionId(src.getViewPermissionId())
                             .setEditPermissionId(src.getEditPermissionId());
@@ -154,6 +156,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
             twinClassFieldRuleMapService.loadRules(srcCollection, false);
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
+            twinClassFieldService.loadPermissions(srcCollection);
         }
     }
 

@@ -133,4 +133,22 @@ public class TwinClassSearchDTOv1 {
 
     @Schema(description = "Filter by twin class twin counter (range: from, to)")
     public IntegerRangeDTOv1 twinCounterRange;
+
+    @Schema(description = "head hunter featurer id list")
+    public Set<Integer> headHunterFeaturerIdList;
+
+    @Schema(description = "has dynamic markers", example = DTOExamples.TERNARY)
+    public Ternary hasDynamicMarkers;
+
+    @Schema(description = "bread crumbs face id list")
+    public Set<UUID> breadCrumbsFaceIdList;
+
+    @Schema(description = "bread crumbs face id exclude list")
+    public Set<UUID> breadCrumbsFaceIdExcludeList;
+
+    @Schema(description = "page face id list")
+    public Set<UUID> pageFaceIdList;
+
+    @Schema(description = "page face id exclude list")
+    public Set<UUID> pageFaceIdExcludeList;
 }

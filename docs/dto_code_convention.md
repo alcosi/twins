@@ -36,6 +36,7 @@ The DTO hierarchy is built around an abstract business entity (for example, `Res
 | `ResourceCreateDTO` | Creating a new resource                         |
 | `ResourceUpdateDTO` | Updating an existing resource                   |
 | `ResourceSearchDTO` | Search parameters                               |
+| `ResourceCountDTO`  | Count result with groupable fields              |
 
 ---
 
@@ -151,7 +152,77 @@ public class ResourceSearchRsDTO extends ResourceListRsDTO {
 
 ---
 
-## 5. Additional Conventions
+## 5. Count API DTOs
+
+Count APIs return the number of records grouped by one or more fields. The DTO pattern is separate from entity DTOs — count DTOs extend `CountDTOv1` and explicitly declare only groupable fields.
+
+### 5.1 `CountDTOv1` — Base Class
+
+```java
+// org.twins.core.dto.rest.CountDTOv1
+@Data
+@Accessors(chain = true)
+@Schema(name = "CountDTOv1")
+public class CountDTOv1 {
+    @Schema(description = "count of records in this group")
+    public Long count;
+}
+```
+
+Minimal base class with only `count`. Every domain count DTO inherits from it.
+
+### 5.2 Domain Count DTO — Explicit Groupable Fields
+
+```java
+@Schema(name = "ResourceCountV1")
+public class ResourceCountDTOv1 extends CountDTOv1 {
+    @Schema(description = "user id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "user")
+    public UUID userId;
+
+    @Schema(description = "business account id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
+    public UUID businessAccountId;
+}
+```
+
+Rules:
+* Extends `CountDTOv1` — **not** the entity DTO (e.g., not `ResourceDTOv1`)
+* Each groupable field is declared explicitly as a simple type (`UUID`, enum, etc.)
+* `@RelatedObject` annotations enable related-object enrichment (resolve `userId` → user details)
+* Only the fields requested in `groupFields` are populated; absent fields remain `null`
+
+### 5.3 Count Request DTO
+
+```java
+@Schema(name = "ResourceCountRqV1")
+public class ResourceCountRqDTOv1 extends Request {
+    @Schema(description = "search params")
+    public ResourceSearchDTO search;
+
+    @Schema(description = "Group by fields")
+    public Set<ResourceGroupField> groupFields;
+}
+```
+
+* Reuses the same `ResourceSearchDTO` from the search API (search criteria without sort)
+* `groupFields` — `Set<enum>`, Swagger renders a dropdown. Enum is in `enums.sort` package
+
+### 5.4 Count Response DTO
+
+```java
+@Schema(name = "ResourceCountRsV1")
+public class ResourceCountRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+    @Schema(description = "count results grouped by requested fields")
+    public List<ResourceCountDTOv1> counts;
+}
+```
+
+Extends `ResponseRelatedObjectsDTOv1` — enables related-object enrichment for group field values.
+
+---
+
+## 6. Additional Conventions
 
 * DTOs should be as flat as possible
 * Nested DTOs are allowed only when there is a clear business necessity

@@ -1,7 +1,7 @@
 # Architecture: Count API with Grouping for Search
 
-**Date:** 2026-05-28
-**Status:** Proposed
+**Date:** 2026-06-01
+**Status:** In Progress
 **Context:** TWINS-831 — count API alongside every search API
 
 ---
@@ -16,7 +16,7 @@ Each search API must have a paired count API that calculates the number of recor
 
 ### Principle
 
-The count API accepts the **same SearchDTO** (search criteria) + **Set<enum> groupFields** (grouping fields). The result is an array of `CountDTOv1[]`, where each element inherits from `DTOv1` (only group fields are populated) + the `count` field.
+The count API accepts the **same SearchDTO** (search criteria) + **Set<enum> groupFields** (grouping fields). The result is an array of `CountDTOv1[]`, where each element extends the base `CountDTOv1` (provides `count`) and explicitly declares only the groupable fields for the domain.
 
 ### Why enum for groupFields
 
@@ -24,11 +24,13 @@ The count API accepts the **same SearchDTO** (search criteria) + **Set<enum> gro
 * Enum in `enums.sort` — reuse the same package
 * Only direct entity fields (without JOIN) — simplifies `GROUP BY`
 
-### Why inheritance from DTOv1 with partial population
+### Why dedicated CountDTO with explicit fields (not inheritance from DTOv1)
 
-* `CountDTOv1` inherits from `DTOv1` — the client sees a familiar schema
-* Mapper populates only group fields, the rest = `null`
-* No need to create a separate DTO for every grouping combination
+* Base `CountDTOv1` provides only the `count` field — clean and minimal
+* Each domain count DTO extends `CountDTOv1` and **explicitly declares** groupable fields as `UUID` / enum / etc.
+* No partial population: only the requested group fields are present in the response, everything else simply doesn't exist in the DTO
+* Schema is explicit and stable — client sees exactly what fields are possible, no surprise `null`s from unrelated entity fields
+* `@RelatedObject` annotations on fields enable related-object enrichment (e.g., resolve `userId` → user details)
 
 ### Why SearchDTO is reused
 
@@ -70,20 +72,40 @@ public class DomainBusinessAccountUserCountRqDTOv1 extends Request {
 * Reuses `DomainBusinessAccountUserSearchDTOv1` (search criteria without sort)
 * `groupFields` — Set enum, Swagger displays a dropdown
 
-### 3. Count Item DTO — Inherits from DTOv1
+### 3. Base Count DTO
 
-```java id="9lyx2t"
-// DomainBusinessAccountUserCountDTOv1.java
-@Schema(name = "DomainBusinessAccountUserCountV1")
-public class DomainBusinessAccountUserCountDTOv1 extends DomainBusinessAccountUserDTOv1 {
+```java id="cdt1"
+// org.twins.core.dto.rest.CountDTOv1
+@Data
+@Accessors(chain = true)
+@Schema(name = "CountDTOv1")
+public class CountDTOv1 {
     @Schema(description = "count of records in this group")
     public Long count;
 }
 ```
 
-Inherits from `DomainBusinessAccountUserDTOv1`. Mapper populates only the fields used for grouping. All other fields = `null`. Additionally contains `count`.
+Minimal base class with only the `count` field. Each domain count DTO extends it and declares its own groupable fields.
 
-### 4. Count Response DTO
+### 4. Domain Count DTO — Explicit Groupable Fields
+
+```java id="9lyx2t"
+// DomainBusinessAccountUserCountDTOv1.java
+@Schema(name = "DomainBusinessAccountUserCountV1")
+public class DomainBusinessAccountUserCountDTOv1 extends CountDTOv1 {
+    @Schema(description = "user id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "user")
+    public UUID userId;
+
+    @Schema(description = "business account id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
+    public UUID businessAccountId;
+}
+```
+
+Extends `CountDTOv1` (not `DomainBusinessAccountUserDTOv1`). Each groupable field is declared explicitly — no inheritance from entity DTO. Only the fields requested in `groupFields` are populated; absent group fields remain `null`. `@RelatedObject` annotations allow the controller to enrich group values with related-object details.
+
+### 5. Count Response DTO
 
 ```java id="priq62"
 // DomainBusinessAccountUserCountRsDTOv1.java
@@ -94,94 +116,216 @@ public class DomainBusinessAccountUserCountRsDTOv1 extends ResponseRelatedObject
 }
 ```
 
-### 5. Base Helper in `CommonSpecification`
+Extends `ResponseRelatedObjectsDTOv1` — enables related-object enrichment for group field values (e.g., user details for `userId`).
 
-```java id="s9ls0m"
-// CommonSpecification.java
-public static <T> Specification<T> toCountSpecification(List<String> fields) {
-    return (root, query, cb) -> {
-        List<Path<?>> groupPaths = fields.stream()
-            .map(root::get)
-            .toList();
+### 6. Generic Result Wrapper
 
-        query.groupBy(groupPaths);
-
-        List<Selection<?>> selections = new ArrayList<>(groupPaths);
-        selections.add(cb.count(root));
-        query.multiselect(selections);
-
-        return cb.conjunction();
-    };
+```java id="q7k2n9"
+// org.twins.core.domain.CountResult
+@Data
+@Accessors(chain = true)
+public class CountResult<E, GF> {
+    private E entity;           // partially populated — only group fields filled
+    private Long count;
+    private Set<GF> groupFields; // which group fields were requested — used by mapper for conditional loading
 }
 ```
 
-Accepts `List<String>` of direct entity field names (no JOINs — grouping is only over direct fields). Single specification with `GROUP BY` over all fields at once + `COUNT`. Reused by all count APIs.
+Typed alternative to raw `Object[]`. The `EntitySearchService` populates only group fields on the entity via `mapGroupedField()` and stores the requested `groupFields` set. The dedicated count mapper uses `groupFields` in `needLoad()` to conditionally load related objects only when the corresponding group field was actually requested.
 
-### 6. Service — `createCountSpecification` with switch
+### 7. Base Search Class — `EntitySearch<E>`
+
+```java id="es1"
+// org.twins.core.domain.search.EntitySearch
+public abstract class EntitySearch<E> {
+}
+```
+
+Marker base class for all search objects. Each domain search object extends it, binding the entity type. Example:
+
+```java
+public class DomainBusinessAccountUserSearch extends EntitySearch<DomainBusinessAccountUserEntity> {
+    private List<UUID> userIdList;
+    private List<UUID> businessAccountIdList;
+    // ... other filter fields
+}
+```
+
+### 8. Abstract Service — `EntitySearchService<S, E, SF, GF>`
+
+```java id="es2"
+// org.twins.core.service.EntitySearchService
+public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> {
+
+    // Abstract methods — each domain implements these:
+
+    JpaSpecificationExecutor<E> jpaSpecificationExecutor();   // repository
+    S emptySearch();                                          // empty search instance
+    Class<E> entityClass();                                   // entity class for CriteriaQuery
+    Specification<E> createFilterSpecification(S search, UUID domainId);
+    Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection);
+    String convertToEntityField(GF groupField);               // enum → entity field name
+    void mapGroupedField(E entity, GF field, Object value);   // populate entity from row
+    E newEntity();                                            // entity factory
+
+    // Shared logic — provided by the base class:
+
+    PaginationResult<E> search(S search, SimplePagination pagination, SF sortField, SortDirection sortDirection);
+    List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields);
+}
+```
+
+Generic parameters:
+- `S` — search type (extends `EntitySearch<E>`)
+- `E` — JPA entity type
+- `SF` — sort field enum type
+- `GF` — group field enum type
+
+The base class implements `search()` and `countByGroupFields()` with all shared logic. Concrete services only provide domain-specific mappings via abstract methods. This eliminates duplication across all search/count APIs.
+
+### 9. `CountQueryExecutor` — Grouped Count via Criteria API
+
+```java id="ce1"
+// org.twins.core.dao.specifications.CountQueryExecutor
+@Component
+public class CountQueryExecutor {
+    @Autowired
+    private EntityManager entityManager;
+
+    public <E> List<Object[]> executeGroupedCount(
+            Class<E> entityClass,
+            Specification<E> filterSpec,
+            List<String> groupFieldNames) {
+        // Builds: SELECT field1, field2, ..., COUNT(*) FROM Entity GROUP BY field1, field2, ...
+        // Returns List<Object[]> — each row: [field1Val, field2Val, ..., count]
+    }
+}
+```
+
+Uses `EntityManager` + Criteria API directly (instead of Spring Data `findAll` with `Specification`) to avoid `Specification` limitations with `GROUP BY` + `multiselect`. Accepts entity class, filter specification, and field names. Returns raw `Object[]` rows — the base `EntitySearchService` maps them via `mapGroupedField()`.
+
+### 10. Concrete Service — `DomainBusinessAccountUserSearchService`
 
 ```java id="p69h3u"
 // DomainBusinessAccountUserSearchService.java
-public List<Object[]> countByGroupFields(DomainBusinessAccountUserSearch search,
-                                          Set<DomainBusinessAccountUserGroupField> groupFields) {
-    UUID domainId = authService.getApiUser().getDomainId();
-    Specification<DomainBusinessAccountUserEntity> filterSpec = createSearchSpecification(search, domainId);
+@Service
+public class DomainBusinessAccountUserSearchService extends EntitySearchService
+        <DomainBusinessAccountUserSearch, DomainBusinessAccountUserEntity,
+         DomainBusinessAccountUserSortField, DomainBusinessAccountUserGroupField> {
 
-    // If groupFields is empty — return total count
-    if (CollectionUtils.isEmpty(groupFields)) {
-        long total = domainBusinessAccountUserRepository.count(filterSpec);
-        return List.of(new Object[]{total});
+    private final DomainBusinessAccountUserRepository domainBusinessAccountUserRepository;
+
+    @Override public JpaSpecificationExecutor<DomainBusinessAccountUserEntity> jpaSpecificationExecutor() {
+        return domainBusinessAccountUserRepository;
+    }
+    @Override public DomainBusinessAccountUserSearch emptySearch() {
+        return new DomainBusinessAccountUserSearch();
+    }
+    @Override protected DomainBusinessAccountUserEntity newEntity() {
+        return new DomainBusinessAccountUserEntity();
+    }
+    @Override protected Class<DomainBusinessAccountUserEntity> entityClass() {
+        return DomainBusinessAccountUserEntity.class;
     }
 
-    Specification<DomainBusinessAccountUserEntity> countSpec = createCountSpecification(groupFields);
-    return domainBusinessAccountUserRepository.findAll(Specification.allOf(filterSpec, countSpec));
-}
+    @Override public Specification<DomainBusinessAccountUserEntity> createFilterSpecification(...) {
+        return Specification.allOf(
+            checkFieldUuid(domainId, Fields.domainId),
+            checkUuidIn(search.getUserIdList(), false, false, Fields.userId),
+            checkUuidIn(search.getBusinessAccountIdList(), false, false, Fields.businessAccountId),
+            // ... other filters
+        );
+    }
 
-private Specification<DomainBusinessAccountUserEntity> createCountSpecification(
-        Set<DomainBusinessAccountUserGroupField> groupFields) {
-    List<String> fields = groupFields.stream()
-        .map(field -> switch (field) {
-            case userId -> DomainBusinessAccountUserEntity.Fields.userId;
-            case businessAccountId -> DomainBusinessAccountUserEntity.Fields.businessAccountId;
-        })
-        .toList();
-    return toCountSpecification(fields);
-}
-```
+    @Override public Specification<DomainBusinessAccountUserEntity> createSortSpecification(...) {
+        return switch (sortField) {
+            case createdAt          -> toSortSpecification(ascending, Fields.createdAt);
+            case lastActivityAt     -> toSortSpecification(ascending, Fields.lastActivityAt);
+            case userName           -> toSortSpecification(ascending, Fields.user, UserEntity.Fields.name);
+            case businessAccountName -> toSortSpecification(ascending, Fields.businessAccount, BusinessAccountEntity.Fields.name);
+        };
+    }
 
-The pattern is analogous to `createSortSpecification`: switch by enum → field name → call base helper in `CommonSpecification`. The switch produces a `List<String>` of field names, passed as a single `toCountSpecification(fields)` call.
+    @Override public String convertToEntityField(DomainBusinessAccountUserGroupField groupField) {
+        return switch (groupField) {
+            case userId            -> Fields.userId;
+            case businessAccountId -> Fields.businessAccountId;
+        };
+    }
 
-### 7. Result Mapping → CountDTOv1
-
-The enum switch determines which `Object[]` array element should be written into which DTO field.
-
-```java id="vjlwmz"
-// DomainBusinessAccountUserCountMapper.java (or inside service)
-public DomainBusinessAccountUserCountDTOv1 mapCountResult(
-        Object[] row,
-        Set<DomainBusinessAccountUserGroupField> groupFields,
-        MapperContext mapperContext) {
-
-    DomainBusinessAccountUserCountDTOv1 dto = new DomainBusinessAccountUserCountDTOv1();
-
-    int i = 0;
-    for (DomainBusinessAccountUserGroupField field : groupFields) {
+    @Override public void mapGroupedField(DomainBusinessAccountUserEntity entity,
+                                           DomainBusinessAccountUserGroupField field, Object o) {
         switch (field) {
-            case userId -> dto.setUserId((UUID) row[i]);
-            case businessAccountId -> dto.setBusinessAccountId((UUID) row[i]);
+            case userId            -> entity.setUserId((UUID) o);
+            case businessAccountId -> entity.setBusinessAccountId((UUID) o);
         }
-        i++;
     }
-
-    // Last element — COUNT(*)
-    dto.setCount((Long) row[i]);
-
-    return dto;
 }
 ```
 
-The enum switch determines which `Object[]` array element should be written into which DTO field.
+All shared logic (`search`, `countByGroupFields`, `mapCountResults`) is inherited from `EntitySearchService`. The concrete service only implements domain-specific mappings: filter specification, sort specification, group field → entity field conversion, and row → entity population.
 
-### 8. Controller
+### 11. Dedicated Count Mapper
+
+```java id="cm1"
+// DomainBusinessAccountUserCountRestDTOMapper.java
+@Component
+@MapperModeBinding(modes = DomainBusinessAccountUserMode.class)
+public class DomainBusinessAccountUserCountRestDTOMapper
+        extends RestSimpleDTOMapper<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>,
+                                    DomainBusinessAccountUserCountDTOv1> {
+
+    @MapperModePointerBinding(modes = UserMode.DomainBusinessAccountUser2UserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.class)
+    private final BusinessAccountDTOMapper businessAccountDTOMapper;
+
+    private final DomainBusinessAccountUserService domainBusinessAccountUserService;
+
+    @Override
+    public void map(CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField> src,
+                    DomainBusinessAccountUserCountDTOv1 dst, MapperContext mapperContext) {
+        var entity = src.getEntity();
+        if (entity == null) {
+            dst.setCount(src.getCount());
+            return;
+        }
+        dst.setUserId(entity.getUserId())
+           .setBusinessAccountId(entity.getBusinessAccountId())
+           .setCount(src.getCount());
+        // Conditional related-object loading — only if group field was actually requested
+        if (needLoad(mapperContext, UserMode.DomainBusinessAccountUser2UserMode.HIDE,
+                     src, DomainBusinessAccountUserGroupField.userId)) {
+            domainBusinessAccountUserService.loadUser(entity);
+            userRestDTOMapper.postpone(entity.getUser(), mapperContext.forkOnPoint(...));
+        }
+        if (needLoad(mapperContext, BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE,
+                     src, DomainBusinessAccountUserGroupField.businessAccountId)) {
+            domainBusinessAccountUserService.loadBusinessAccount(entity);
+            businessAccountDTOMapper.postpone(entity.getBusinessAccount(), mapperContext.forkOnPoint(...));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(
+            Collection<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>> srcCollection,
+            MapperContext mapperContext) {
+        var entityCollection = srcCollection.stream().map(CountResult::getEntity).toList();
+        // Batch-load related objects — only for group fields that appear in at least one result
+        if (srcCollection.stream().anyMatch(r -> r.getGroupFields().contains(DomainBusinessAccountUserGroupField.userId))
+                && mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE))
+            domainBusinessAccountUserService.loadUser(entityCollection);
+        if (srcCollection.stream().anyMatch(r -> r.getGroupFields().contains(DomainBusinessAccountUserGroupField.businessAccountId))
+                && mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE))
+            domainBusinessAccountUserService.loadBusinessAccount(entityCollection);
+    }
+}
+```
+
+Dedicated mapper for `CountResult<E, GF>` → `CountDTOv1`. Maps group fields from the partially populated entity and the `count` value. Key difference from regular mappers: **conditional loading via `needLoad()`** — related objects are only loaded when the corresponding group field is present in `src.getGroupFields()`. This avoids unnecessary DB queries when the client didn't request a particular grouping dimension. `beforeCollectionConversion` batch-loads only related objects for group fields that actually appear in the result set.
+
+### 12. Controller
 
 ```java id="3w9tgv"
 @PostMapping(value = "/private/domain/business_account_user/count/v1")
@@ -191,17 +335,15 @@ public ResponseEntity<?> domainBusinessAccountUserCountV1(
 
     DomainBusinessAccountUserCountRsDTOv1 rs = new DomainBusinessAccountUserCountRsDTOv1();
     try {
-        DomainBusinessAccountUserSearch search = searchRqDTOReverseMapper
-            .convert(new DomainBusinessAccountUserSearchRqDTOv1().setSearch(request.getSearch()), mapperContext);
-        Set<DomainBusinessAccountUserGroupField> groupFields = request.getGroupFields();
+        List<CountResult<DomainBusinessAccountUserEntity, DomainBusinessAccountUserGroupField>> results =
+                domainBusinessAccountUserSearchService.countByGroupFields(
+                        domainBusinessAccountUserSearchDTOReverseMapper
+                                .convert(request.getSearch(), mapperContext),
+                        request.getGroupFields());
 
-        List<Object[]> results = countService.countByGroupFields(search, groupFields);
-
-        List<DomainBusinessAccountUserCountDTOv1> counts = results.stream()
-            .map(row -> countMapper.mapCountResult(row, groupFields, mapperContext))
-            .toList();
-
-        rs.setCounts(counts);
+        rs.setCounts(domainBusinessAccountUserCountRestDTOMapper
+                .convertCollection(results, mapperContext));
+        rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
     } catch (ServiceException se) {
         return createErrorRs(se, rs);
     } catch (Exception e) {
@@ -210,6 +352,8 @@ public ResponseEntity<?> domainBusinessAccountUserCountV1(
     return new ResponseEntity<>(rs, HttpStatus.OK);
 }
 ```
+
+The controller delegates all mapping to `DomainBusinessAccountUserCountRestDTOMapper`. Related objects are populated by the mapper and collected via `relatedObjectsRestDTOMapper.convert(mapperContext)`.
 
 ---
 
@@ -296,11 +440,12 @@ Fields not included in `groupFields` are `null`. `count` is the number of record
 
 ## Phased Rollout
 
-| Phase | What                                                                          | Status           |
-| ----- | ----------------------------------------------------------------------------- | ---------------- |
-| 1     | GroupField enum + CountRq/Rs DTO + CountService for DomainBusinessAccountUser | Proposed         |
-| 2     | Generalization to 3-5 priority APIs                                           | After validation |
-| 3     | Template for new count APIs (enum mandatory)                                  | Ongoing          |
+| Phase | What                                                                                                              | Status   |
+| ----- | ----------------------------------------------------------------------------------------------------------------- | -------- |
+| 1     | GroupField enum + CountRq/Rs DTO + CountService for DomainBusinessAccountUser                                     | Done     |
+| 2     | Abstract `EntitySearchService` + `EntitySearch` + `CountQueryExecutor` — eliminated code duplication              | Done     |
+| 3     | Generalization to 3-5 priority APIs using EntitySearchService template                                            | Next     |
+| 4     | Template for new count/search APIs (enum mandatory, extend EntitySearchService)                                   | Ongoing  |
 
 ---
 

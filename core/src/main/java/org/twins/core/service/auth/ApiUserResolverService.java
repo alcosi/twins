@@ -22,6 +22,7 @@ import org.twins.core.domain.apiuser.LocaleResolverDomainUser;
 import org.twins.core.domain.apiuser.LocaleResolverHeader;
 import org.twins.core.domain.apiuser.MainResolverAuthToken;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.SystemEntityService;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -73,6 +74,9 @@ public class ApiUserResolverService {
 
     @Transactional(rollbackFor = Throwable.class)
     public void loadDBU(UUID domainId, UUID businessAccountId, UUID userId, DBU dbu, boolean checkMembershipMode) throws ServiceException {
+        if (isSystemUser(userId)) {
+            checkMembershipMode = false;
+        }
         if (checkMembershipMode) {
             if (isUserSpecified(userId) && isDomainSpecified(domainId) && isBusinessAccountSpecified(businessAccountId) && (dbu.getDomain() == null || dbu.getBusinessAccount() == null || dbu.getUser() == null)) {
                 DomainBusinessAccountUserEntity dbuEntity = domainBusinessAccountUserRepository.findByDomainIdAndBusinessAccountIdAndUserId(domainId, businessAccountId, userId);
@@ -143,6 +147,10 @@ public class ApiUserResolverService {
         if (lastActivityAt == null || Duration.between(lastActivityAt.toInstant(), Instant.now()).toMinutes() >= activityThrottleMinutes) {
             updateAction.run();
         }
+    }
+
+    public boolean isSystemUser(UUID userId) {
+        return SystemEntityService.USER_SYSTEM.equals(userId);
     }
 
     @Data

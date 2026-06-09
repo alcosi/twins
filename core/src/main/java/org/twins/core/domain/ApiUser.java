@@ -356,6 +356,10 @@ public class ApiUser {
         // log or throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION);
     }
 
+    public boolean isSystemUser() throws ServiceException {
+        return apiUserResolverService.isSystemUser(getUserId());
+    }
+
     @RequiredArgsConstructor
     public enum ActAsUserStep {
         OMITTED(0),
