@@ -182,6 +182,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                     .setTwinFactoryConditionInvert(originalTrigger.getTwinFactoryConditionInvert())
                     .setTwinTriggerId(originalTrigger.getTwinTriggerId())
                     .setAsync(originalTrigger.getAsync())
+                    .setDescription(originalTrigger.getDescription())
                     .setActive(originalTrigger.getActive());
             entitiesForSave.add(duplicateTrigger);
         }
@@ -209,7 +210,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     private void loadOriginalTriggers(Collection<FactoryTriggerDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                FactoryTriggerDuplicate::getNewFactoryTriggerId,
                 FactoryTriggerDuplicate::getOriginalFactoryTriggerId,
                 FactoryTriggerDuplicate::getOriginalFactoryTrigger,
                 FactoryTriggerDuplicate::setOriginalFactoryTrigger);
@@ -223,6 +223,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 .setTwinFactoryConditionInvert(srcTriggerEntity.getTwinFactoryConditionInvert())
                 .setTwinTriggerId(srcTriggerEntity.getTwinTriggerId())
                 .setAsync(srcTriggerEntity.getAsync())
+                .setDescription(srcTriggerEntity.getDescription())
                 .setActive(srcTriggerEntity.getActive());
     }
 

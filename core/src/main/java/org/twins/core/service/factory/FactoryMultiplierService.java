@@ -123,7 +123,9 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                     .setTwinFactoryId(toFactory.getId())
                     .setInputTwinClassId(originalMultiplier.getInputTwinClassId())
                     .setMultiplierFeaturerId(originalMultiplier.getMultiplierFeaturerId())
-                    .setMultiplierParams(originalMultiplier.getMultiplierParams());
+                    .setMultiplierParams(originalMultiplier.getMultiplierParams())
+                    .setDescription(originalMultiplier.getDescription())
+                    .setActive(originalMultiplier.getActive());
             entitiesForSave.add(duplicateMultiplier);
         }
         saveSafe(entitiesForSave);
@@ -150,7 +152,6 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
     private void loadOriginalMultipliers(Collection<FactoryMultiplierDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                FactoryMultiplierDuplicate::getNewFactoryMultiplierId,
                 FactoryMultiplierDuplicate::getOriginalFactoryMultiplierId,
                 FactoryMultiplierDuplicate::getOriginalFactoryMultiplier,
                 FactoryMultiplierDuplicate::setOriginalFactoryMultiplier);
@@ -161,7 +162,9 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 .setTwinFactoryId(newTwinFactoryId)
                 .setInputTwinClassId(srcMultiplierEntity.getInputTwinClassId())
                 .setMultiplierFeaturerId(srcMultiplierEntity.getMultiplierFeaturerId())
-                .setMultiplierParams(srcMultiplierEntity.getMultiplierParams());
+                .setMultiplierParams(srcMultiplierEntity.getMultiplierParams())
+                .setDescription(srcMultiplierEntity.getDescription())
+                .setActive(srcMultiplierEntity.getActive());
     }
 
     public void loadFactoryMultipliers(TwinFactoryEntity factory) {

@@ -18,21 +18,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
+import org.twins.core.domain.factory.FactoryEraserDuplicate;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
-import org.twins.core.domain.factory.FactoryEraserDuplicate;
-
-import java.util.Collection;
-import java.util.Collections;
 
 @Slf4j
 @Service
@@ -148,7 +144,6 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
 
     private void loadOriginalErasers(Collection<FactoryEraserDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                FactoryEraserDuplicate::getNewFactoryEraserId,
                 FactoryEraserDuplicate::getOriginalFactoryEraserId,
                 FactoryEraserDuplicate::getOriginalFactoryEraser,
                 FactoryEraserDuplicate::setOriginalFactoryEraser);

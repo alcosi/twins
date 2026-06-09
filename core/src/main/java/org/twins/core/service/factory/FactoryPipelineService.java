@@ -169,7 +169,6 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     private void loadOriginalPipelines(Collection<FactoryPipelineDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                FactoryPipelineDuplicate::getNewFactoryPipelineId,
                 FactoryPipelineDuplicate::getOriginalFactoryPipelineId,
                 FactoryPipelineDuplicate::getOriginalFactoryPipeline,
                 FactoryPipelineDuplicate::setOriginalFactoryPipeline);

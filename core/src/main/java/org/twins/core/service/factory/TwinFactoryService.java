@@ -231,7 +231,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     private void loadOriginalFactory(Collection<FactoryDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                FactoryDuplicate::getNewFactoryId,
                 FactoryDuplicate::getOriginalFactoryId,
                 FactoryDuplicate::getOriginalFactory,
                 FactoryDuplicate::setOriginalFactory);

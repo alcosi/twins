@@ -162,7 +162,6 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
 
     private void loadOriginalBranches(Collection<FactoryBranchDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                FactoryBranchDuplicate::getNewFactoryBranchId,
                 FactoryBranchDuplicate::getOriginalFactoryBranchId,
                 FactoryBranchDuplicate::getOriginalFactoryBranch,
                 FactoryBranchDuplicate::setOriginalFactoryBranch);
