@@ -45,6 +45,7 @@ import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.validator.TwinClassFieldActionValidatorRuleService;
@@ -80,6 +81,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final TwinClassFieldActionValidatorRuleService twinClassFieldActionValidatorRuleService;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final PermissionService permissionService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -203,19 +206,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
 
     public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
-        KitGrouped<TwinAttachmentEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinAttachmentEntity::getId, TwinAttachmentEntity::getTwinClassFieldId);
-        for (TwinAttachmentEntity attachmentEntity : attachments) {
-            if (attachmentEntity.getTwinClassFieldId() != null && attachmentEntity.getTwinClassField() == null)
-                needLoad.add(attachmentEntity);
-        }
-        if (needLoad.isEmpty())
-            return;
-        var twinClassFieldKit = findEntitiesSafe(needLoad.getGroupedMap().keySet());
-        for (var entry : needLoad.getGroupedMap().entrySet()) {
-            for (var attachmentEntity : entry.getValue()) {
-                attachmentEntity.setTwinClassField(twinClassFieldKit.get(attachmentEntity.getTwinClassFieldId()));
-            }
-        }
+        load(attachments, TwinAttachmentEntity::getTwinClassFieldId, TwinAttachmentEntity::getTwinClassField, TwinAttachmentEntity::setTwinClassField);
     }
 
     public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
@@ -381,7 +372,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     private void loadOriginalFields(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
         load(duplicates,
-                TwinClassFieldDuplicate::getNewTwinClassFieldId,
                 TwinClassFieldDuplicate::getOriginalTwinClassFieldId,
                 TwinClassFieldDuplicate::getOriginalTwinClassField,
                 TwinClassFieldDuplicate::setOriginalTwinClassField);
@@ -389,7 +379,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     private void loadNewClasses(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
         twinClassService.load(duplicates,
-                TwinClassFieldDuplicate::getNewTwinClassFieldId,
                 TwinClassFieldDuplicate::getNewTwinClassId,
                 TwinClassFieldDuplicate::getNewTwinClass,
                 TwinClassFieldDuplicate::setNewTwinClass);
@@ -795,5 +784,37 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             ));
         }
         twinValidatorSetService.loadTwinValidatorSet(rules);
+    }
+
+    public void loadTwinClass(TwinClassFieldEntity entity) throws ServiceException {
+        loadTwinClass(Collections.singletonList(entity));
+    }
+
+    public void loadTwinClass(List<TwinClassFieldEntity> entities) throws ServiceException {
+        twinClassService.load(
+                entities,
+                TwinClassFieldEntity::getTwinClassId,
+                TwinClassFieldEntity::getTwinClass,
+                TwinClassFieldEntity::setTwinClass
+        );
+    }
+
+    public void loadPermissions(TwinClassFieldEntity src) throws ServiceException {
+        loadPermissions(Collections.singletonList(src));
+    }
+
+    public void loadPermissions(Collection<TwinClassFieldEntity> srcCollection) throws ServiceException {
+        permissionService.load(
+                srcCollection,
+                new LoadedField<>(
+                        TwinClassFieldEntity::getViewPermissionId,
+                        TwinClassFieldEntity::getViewPermission,
+                        TwinClassFieldEntity::setViewPermission
+                ),
+                new LoadedField<>(
+                        TwinClassFieldEntity::getEditPermissionId,
+                        TwinClassFieldEntity::getEditPermission,
+                        TwinClassFieldEntity::setEditPermission
+                ));
     }
 }

@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import static org.cambium.common.util.CacheUtils.evictCache;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.CacheManager;
@@ -34,6 +33,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Slf4j
 @Service
@@ -156,7 +157,6 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
 
     public void loadFactory(Collection<TwinFactoryConditionSetEntity> collection) throws ServiceException {
         factoryService.load(collection,
-                TwinFactoryConditionSetEntity::getId,
                 TwinFactoryConditionSetEntity::getTwinFactoryId,
                 TwinFactoryConditionSetEntity::getTwinFactory,
                 TwinFactoryConditionSetEntity::setTwinFactory);

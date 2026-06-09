@@ -6,24 +6,19 @@ import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.trigger.TwinTriggerService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -126,7 +121,6 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
 
     public void loadTriggers(Collection<TwinflowTransitionTriggerEntity> srcCollection) throws ServiceException {
         twinTriggerService.load(srcCollection,
-                TwinflowTransitionTriggerEntity::getId,
                 TwinflowTransitionTriggerEntity::getTwinTriggerId,
                 TwinflowTransitionTriggerEntity::getTwinTrigger,
                 TwinflowTransitionTriggerEntity::setTwinTrigger);

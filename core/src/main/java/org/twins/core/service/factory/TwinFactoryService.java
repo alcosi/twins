@@ -421,10 +421,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private void runPipelineSteps(FactoryContext factoryContext, TwinFactoryPipelineEntity factoryPipelineEntity, Set<FactoryItem> pipelineInputList) throws ServiceException {
         log.info("Running {} **{}** ", factoryPipelineEntity.logNormal(), factoryPipelineEntity.getDescription());
         Kit<TwinFactoryPipelineStepEntity, UUID> pipelineStepEntityKit = factoryPipelineEntity.getTwinFactoryPipelineStepKit();
-        if (KitUtils.isEmpty(pipelineStepEntityKit)) {
-            return;
-        }
         LoggerUtils.traceTreeLevelDown();
+        List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = pipelineStepEntityKit.getList();
         for (FactoryItem pipelineInput : pipelineInputList) {
             log.info("Processing {}", pipelineInput.logDetailed());
             pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
@@ -432,7 +430,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 pipelineInput.getOutput().getTwinEntity().setId(UuidUtils.generate()); //generating id for using in fillers (if some field must be created)
             String logMsg, stepOrder;
             LoggerUtils.traceTreeLevelDown();
-            List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = pipelineStepEntityKit.getList();
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {
                 stepOrder = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " ";
                 TwinFactoryPipelineStepEntity pipelineStepEntity = pipelineStepEntityList.get(step);

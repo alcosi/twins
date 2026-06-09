@@ -141,7 +141,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     public void loadFactories(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
         twinFactoryService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
                 TwinFactoryTriggerEntity::getTwinFactoryId,
                 TwinFactoryTriggerEntity::getTwinFactory,
                 TwinFactoryTriggerEntity::setTwinFactory);
@@ -153,7 +152,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     public void loadClasses(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
         twinClassService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
                 TwinFactoryTriggerEntity::getInputTwinClassId,
                 TwinFactoryTriggerEntity::getTwinClass,
                 TwinFactoryTriggerEntity::setTwinClass);
@@ -165,7 +163,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     public void loadConditionSets(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
         factoryConditionSetService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);

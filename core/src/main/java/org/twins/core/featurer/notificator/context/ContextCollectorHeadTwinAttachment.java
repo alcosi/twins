@@ -41,7 +41,7 @@ public class ContextCollectorHeadTwinAttachment extends ContextCollector {
         String key = collectKey.extract(properties);
         UUID fieldId = headTwinClassFieldId.extract(properties);
 
-        twinService.loadHeadForTwin(history.getTwin());
+        twinService.loadHead(history.getTwin());
         var headTwin = history.getTwin().getHeadTwin();
 
         if (headTwin != null) {

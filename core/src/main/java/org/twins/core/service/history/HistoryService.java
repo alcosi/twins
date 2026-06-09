@@ -8,7 +8,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -22,7 +21,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
@@ -226,6 +224,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     public HistoryItem<HistoryContextUserChange> assigneeUnassigned(UserEntity fromUser) {
         return new HistoryItem<>(HistoryType.assigneeUnassigned, new HistoryContextUserChange()
                 .shotFromUser(fromUser));
+    }
+
+    public HistoryItem<HistoryContextUserChange> assigneeAssigned(UserEntity toUser) {
+        return new HistoryItem<>(HistoryType.assigneeAssigned, new HistoryContextUserChange()
+                .shotToUser(toUser));
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
@@ -506,22 +509,15 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public void loadUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
         userService.load(srcCollection,
-                HistoryEntity::getId,
-                HistoryEntity::getActorUserId,
-                HistoryEntity::getActorUser,
-                HistoryEntity::setActorUser);
-    }
-
-    public void loadMachineUser(HistoryEntity src) throws ServiceException {
-        loadMachineUser(Collections.singletonList(src));
-    }
-
-    public void loadMachineUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
-        userService.load(srcCollection,
-                HistoryEntity::getId,
-                HistoryEntity::getMachineUserId,
-                HistoryEntity::getMachineUser,
-                HistoryEntity::setMachineUser);
+                new LoadedField<>(
+                        HistoryEntity::getActorUserId,
+                        HistoryEntity::getActorUser,
+                        HistoryEntity::setActorUser),
+                new LoadedField<>(
+                        HistoryEntity::getMachineUserId,
+                        HistoryEntity::getMachineUser,
+                        HistoryEntity::setMachineUser)
+        );
     }
 
     public void loadTwinClassField(HistoryEntity src) throws ServiceException {
@@ -530,7 +526,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public void loadTwinClassField(Collection<HistoryEntity> srcCollection) throws ServiceException {
         twinClassFieldService.load(srcCollection,
-                HistoryEntity::getId,
                 HistoryEntity::getTwinClassFieldId,
                 HistoryEntity::getTwinClassField,
                 HistoryEntity::setTwinClassField);

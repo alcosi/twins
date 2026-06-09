@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.notification.NotificationSchemaDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.tier.TierDTOv1;
@@ -45,6 +46,7 @@ public class DomainBusinessAccountDTOv1 {
     public UUID tierId;
 
     @Schema(description = "")
+    @RelatedObject(type = NotificationSchemaDTOv1.class, name = "notificationSchema")
     public UUID notificationSchemaId;
 
     @Schema(description = "")

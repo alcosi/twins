@@ -118,7 +118,6 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
     public void loadJobTwinClass(Collection<TwinTriggerEntity> entities) throws ServiceException {
         twinClassService.load(entities,
-                TwinTriggerEntity::getId,
                 TwinTriggerEntity::getJobTwinClassId,
                 TwinTriggerEntity::getJobTwinClass,
                 TwinTriggerEntity::setJobTwinClass);

@@ -50,63 +50,6 @@ public class TwinActionService {
     @Lazy
     final PermissionService permissionService;
 
-    //TODO update the method implementation similar to other load methods for singleton classes
-    public void loadActions(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getActions() != null)
-            return;
-        loadClassProtectedActions(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getActionsProtectedByValidatorRules().isEmpty()) {
-            twinEntity.setActions(EnumSet.allOf(TwinAction.class));
-            return;
-        }
-        twinEntity.setActions(new HashSet<>());
-        Map<TwinAction, UUID> actionsRestricted = new HashMap<>();
-
-        for (TwinAction twinAction : TwinAction.values()) {
-            TwinActionPermissionEntity twinActionProtectedByPermission = twinEntity.getTwinClass().getActionsProtectedByPermission().get(twinAction);
-
-            if (twinActionProtectedByPermission != null) {
-                if (!permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId())) {
-                    if (twinActionProtectedByPermission.getActionRestrictionReasonId() != null) {
-                        actionsRestricted.put(twinAction, twinActionProtectedByPermission.getActionRestrictionReasonId());
-                    }
-                    continue; // forbidden by permission, skip validators
-                }
-            }
-
-            if (CollectionUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction))) {
-                twinEntity.getActions().add(twinAction);
-                continue;
-            }
-
-            // Check validators - action is allowed if ANY validator passes
-            boolean allowedByValidator = false;
-            UUID validatorRestrictionReasonId = null;
-            for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
-                boolean isValid = twinValidatorSetService.isValid(twinEntity, twinActionValidatorRuleEntity);
-                if (isValid) {
-                    allowedByValidator = true;
-                    break; // at least one validator passed
-                } else {
-                    if (validatorRestrictionReasonId == null && twinActionValidatorRuleEntity.getActionRestrictionReasonId() != null) {
-                        validatorRestrictionReasonId = twinActionValidatorRuleEntity.getActionRestrictionReasonId();
-                    }
-                }
-            }
-
-            if (allowedByValidator) {
-                twinEntity.getActions().add(twinAction);
-            } else if (validatorRestrictionReasonId != null) {
-                actionsRestricted.put(twinAction, validatorRestrictionReasonId);
-            }
-        }
-
-        // Set actionsRestricted if not empty
-        if (!actionsRestricted.isEmpty()) {
-            twinEntity.setActionsRestricted(actionsRestricted);
-        }
-    }
-
     public void loadActionRestrictionReasons(TwinEntity twinEntity) throws ServiceException {
         loadActionRestrictionReasons(Collections.singletonList(twinEntity));
     }
@@ -212,6 +155,10 @@ public class TwinActionService {
                 }
             }
         }
+    }
+
+    public void loadActions(TwinEntity twinEntity) throws ServiceException {
+        loadActions(Collections.singletonList(twinEntity));
     }
 
     /**
@@ -387,19 +334,19 @@ public class TwinActionService {
 
     public void checkAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
         if (!isAllowed(twinEntity, action))
-            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logShort());
     }
 
     public void checkAllowed(Collection<TwinEntity> twinEntities, TwinAction action) throws ServiceException {
         loadActions(twinEntities);
         for (TwinEntity twinEntity : twinEntities) {
-            if (!twinEntity.getActions().contains(action))
-                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
+            if (!twinEntity.getActions().contains(action)) //todo refactor on smart load. no sense to load all actions
+                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logShort());
         }
     }
 
     public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
-        loadActions(twinEntity);
+        loadActions(twinEntity); //todo refactor on smart load. no sense to load all actions
         return twinEntity.getActions().contains(action);
     }
 }

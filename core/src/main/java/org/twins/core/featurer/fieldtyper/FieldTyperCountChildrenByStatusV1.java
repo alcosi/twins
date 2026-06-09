@@ -5,6 +5,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
@@ -24,7 +25,7 @@ public class FieldTyperCountChildrenByStatusV1 extends FieldTyperImmutable<Field
     public static final Integer ID = 1314;
 
     @Autowired
-    TwinFieldSimpleRepository twinFieldSimpleRepository;
+    TwinRepository twinRepository;
 
     @Deprecated
     @Override
@@ -41,7 +42,7 @@ public class FieldTyperCountChildrenByStatusV1 extends FieldTyperImmutable<Field
     @Override
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcChildrenInStatusCount(
-                twinFieldSimpleRepository,
+                twinRepository,
                 twinClassFieldEntity.getId(),
                 childrenTwinStatusIdList.extract(properties),
                 exclude.extract(properties));

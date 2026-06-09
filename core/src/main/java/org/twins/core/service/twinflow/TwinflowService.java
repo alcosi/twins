@@ -137,7 +137,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (twinEntity.getTwinflowSchemaSpaceId() != null)
             return twinEntity.getTwinflowSchemaSpaceId();
         //looks like new twin creation
-        twinService.loadHeadForTwin(twinEntity);
+        twinService.loadHead(twinEntity);
         if (twinEntity.getHeadTwin() != null)
             return twinEntity.getHeadTwin().getTwinflowSchemaSpaceId();
         return null;

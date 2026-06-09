@@ -23,7 +23,7 @@ public class FieldLookuperFromItemOutputLinkedTwinHeadTwinFields extends FieldLo
         if (itemOutputFieldLink.size() > 1)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputFieldLink.size() +  " linked twins in  " + twinEntity);
         TwinEntity itemOutputLinkedTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getItems().getFirst());
-        TwinEntity headTwin = twinService.loadHeadForTwin(itemOutputLinkedTwin);
+        TwinEntity headTwin = twinService.loadHead(itemOutputLinkedTwin);
         if (headTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] can not be loaded from item output linked twin head twin, because head is null");
         return getFreshestValue(headTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item head fields");

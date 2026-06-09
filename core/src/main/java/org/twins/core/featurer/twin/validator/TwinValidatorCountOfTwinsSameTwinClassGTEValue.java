@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.Collection;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidato
 
     @Lazy
     @Autowired
-    TwinSearchService twinSearchService;
+    TwinSearchServiceV2 twinSearchService;
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
@@ -40,7 +40,7 @@ public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidato
         var search = new BasicSearch();
         search
                 .setTwinClassIdList(twinsGroupedByClass.getGroupedKeySet());
-        Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.twinClassId);
+        Map<UUID, Long> counts = twinSearchService.countByGroupFields(search, TwinEntity.BasicField.TWIN_CLASS_ID);
         var collectionValidationResult = new CollectionValidationResult();
         for (var twinEntity : twinEntityCollection) {
             long count = counts.getOrDefault(twinEntity.getTwinClassId(), 0L);

@@ -209,7 +209,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadTwinflowSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         twinflowSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getTwinflowSchemaId,
                 DomainBusinessAccountEntity::getTwinflowSchema,
                 DomainBusinessAccountEntity::setTwinflowSchema);
@@ -221,10 +220,20 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadTwinClassSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         twinClassSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getTwinClassSchemaId,
                 DomainBusinessAccountEntity::getTwinClassSchema,
                 DomainBusinessAccountEntity::setTwinClassSchema);
+    }
+
+    public void loadPermissionSchema(DomainBusinessAccountEntity src) throws ServiceException {
+        loadPermissionSchema(Collections.singletonList(src));
+    }
+
+    public void loadPermissionSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        permissionSchemaService.load(srcCollection,
+                DomainBusinessAccountEntity::getPermissionSchemaId,
+                DomainBusinessAccountEntity::getPermissionSchema,
+                DomainBusinessAccountEntity::setPermissionSchema);
     }
 
     public void loadNotificationSchema(DomainBusinessAccountEntity src) throws ServiceException {
@@ -233,9 +242,20 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadNotificationSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         notificationSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getNotificationSchemaId,
                 DomainBusinessAccountEntity::getNotificationSchema,
                 DomainBusinessAccountEntity::setNotificationSchema);
+    }
+
+
+    public void loadTier(DomainBusinessAccountEntity entity) throws ServiceException {
+        loadTier(Collections.singletonList(entity));
+    }
+
+    public void loadTier(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        tierService.load(srcCollection,
+                DomainBusinessAccountEntity::getTierId,
+                DomainBusinessAccountEntity::getTier,
+                DomainBusinessAccountEntity::setTier);
     }
 }
