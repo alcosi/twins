@@ -211,13 +211,16 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinCountV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody @Valid TwinCountRqDTOv1 request) {
         TwinCountRsDTOv1 rs = new TwinCountRsDTOv1();
         try {
             BasicSearch search = twinSearchExtendedDTOv2ReverseMapper.convert(request.getSearch());
-            var results = twinSearchServiceV2.countByGroupFields(search, request.getGroupFields());
-            rs.setCounts(twinCountRestDTOMapper.convertCollection(results, mapperContext));
-            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+            var results = twinSearchServiceV2.countByGroupFields(search, request.getGroupFields(), pagination);
+            rs
+                    .setCounts(twinCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

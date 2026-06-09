@@ -95,9 +95,10 @@ public class DomainBusinessAccountListController extends ApiController {
         var rs = new DomainBusinessAccountCountRsDTOv1();
         try {
             var results = domainBusinessAccountSearchService
-                    .countByGroupFields(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch(), mapperContext), request.getGroupFields());
+                    .countByGroupFields(domainBusinessAccountSearchRestDTOReverseMapper.convert(request.getSearch(), mapperContext), request.getGroupFields(), pagination);
             rs
-                    .setCounts(domainBusinessAccountCountRestDTOMapper.convertCollection(results, mapperContext))
+                    .setCounts(domainBusinessAccountCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

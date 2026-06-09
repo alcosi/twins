@@ -88,14 +88,17 @@ public class DomainBusinessAccountUserSearchController extends ApiController {
     @PostMapping(value = "/private/domain/business_account_user/count/v1")
     public ResponseEntity<?> domainBusinessAccountUserCountV1(
             @MapperContextBinding(roots = DomainBusinessAccountUserRestDTOMapper.class, response = DomainBusinessAccountUserCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody @Valid DomainBusinessAccountUserCountRqDTOv1 request) {
         DomainBusinessAccountUserCountRsDTOv1 rs = new DomainBusinessAccountUserCountRsDTOv1();
         try {
             var results =
                     domainBusinessAccountUserSearchService.countByGroupFields(domainBusinessAccountUserSearchDTOReverseMapper
-                            .convert(request.getSearch(), mapperContext), request.getGroupFields());
-            rs.setCounts(domainBusinessAccountUserCountRestDTOMapper.convertCollection(results, mapperContext));
-            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+                            .convert(request.getSearch(), mapperContext), request.getGroupFields(), pagination);
+            rs
+                    .setCounts(domainBusinessAccountUserCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

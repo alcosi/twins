@@ -52,7 +52,7 @@ class TwinClassServiceDuplicateTest {
                         null, twinClassRepository, null, null,
                         twinClassFieldService, null, entitySmartService, i18nService,
                         null, null, null, null, null, null, null, null,
-                        authService, null, null, null, null
+                        authService, null, null, null, null, null
                 )
         );
 

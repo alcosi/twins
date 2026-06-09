@@ -53,11 +53,10 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     public PaginationResult<E> search(S search, SimplePagination pagination, Map<SF, SortDirection> sortFields) throws ServiceException {
         if (search == null)
             search = emptySearch();
-        UUID domainId = authService.getApiUser().getDomainId();
         Locale locale = authService.getApiUser().getLocale();
         Specification<E> spec;
         if (MapUtils.isNotEmpty(sortFields)) {
-            spec = createFilterSpecification(search, domainId, locale);
+            spec = createFilterSpecification(search);
             for (var entry : sortFields.entrySet()) {
                 var sortField = entry.getKey();
                 var sortDirection = entry.getValue();
@@ -67,7 +66,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
                 }
             }
         } else {
-            spec = createFilterSpecification(search, domainId, locale);
+            spec = createFilterSpecification(search);
         }
         Page<E> page = jpaSpecificationExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(page, pagination);
@@ -76,9 +75,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     public final Map<GF, Long> countByGroupFields(S search, GF groupField) throws ServiceException {
         if (search == null)
             search = emptySearch();
-        UUID domainId = authService.getApiUser().getDomainId();
-        Locale locale = authService.getApiUser().getLocale();
-        Specification<E> filterSpec = createFilterSpecification(search, domainId, locale);
+        Specification<E> filterSpec = createFilterSpecification(search);
         var entityGroupFields = List.of(convertToEntityField(groupField));
         List<Object[]> rows = countQueryExecutor.executeGroupedCount(entityClass(), filterSpec, entityGroupFields);
         Map<GF, Long> resultMap = new HashMap<>();
@@ -89,9 +86,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     public List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields) throws ServiceException {
         if (search == null)
             search = emptySearch();
-        UUID domainId = authService.getApiUser().getDomainId();
-        Locale locale = authService.getApiUser().getLocale();
-        Specification<E> filterSpec = createFilterSpecification(search, domainId, locale);
+        Specification<E> filterSpec = createFilterSpecification(search);
 
         if (groupFields == null || groupFields.isEmpty()) {
             long total = jpaSpecificationExecutor().count(filterSpec);
@@ -127,22 +122,54 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     protected abstract E newEntity();
 
+    public PaginationResult<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields, SimplePagination pagination) throws ServiceException {
+        if (search == null)
+            search = emptySearch();
+        Specification<E> filterSpec = createFilterSpecification(search);
+
+        if (groupFields == null || groupFields.isEmpty()) {
+            long total = jpaSpecificationExecutor().count(filterSpec);
+            PaginationResult<CountResult<E, GF>> result = new PaginationResult<>();
+            result
+                    .setList(List.of(new CountResult<E, GF>().setCount(total)))
+                    .setTotal(1)
+                    .setOffset(pagination.getOffset())
+                    .setLimit(pagination.getLimit());
+            return result;
+        }
+
+        List<String> entityGroupFields = new ArrayList<>(groupFields.size());
+        for (var field : groupFields) {
+            entityGroupFields.add(convertToEntityField(field));
+        }
+
+        Page<Object[]> page = countQueryExecutor.executeGroupedCountPaginated(entityClass(), filterSpec, entityGroupFields, pagination);
+        List<CountResult<E, GF>> results = mapCountResults(page.getContent(), groupFields);
+        PaginationResult<CountResult<E, GF>> pr = new PaginationResult<>();
+        pr.setList(results);
+        pr.setTotal(page.getTotalElements());
+        pr.setOffset(pagination.getOffset());
+        pr.setLimit(pagination.getLimit());
+        return pr;
+    }
+
+    protected Specification<E> createFilterSpecification(S search) throws ServiceException {
+        var apiUser = authService.getApiUser();
+        return createFilterSpecification(search, apiUser.getDomainId(), apiUser.getLocale());
+    }
+
     public Long count(Specification<E> spec) throws ServiceException {
         return jpaSpecificationExecutor().count(spec);
     }
 
     public Long count(S search) throws ServiceException {
-        var domainId = authService.getApiUser().getDomainId();
-        var locale = authService.getApiUser().getLocale();
-        return count(createFilterSpecification(search, domainId, locale));
+        return count(createFilterSpecification(search));
     }
 
     public Long count(List<S> searchList) throws ServiceException {
         Specification<E> spec = (root, query, builder) -> builder.disjunction();
-        var domainId = authService.getApiUser().getDomainId();
-        var locale = authService.getApiUser().getLocale();
         for (var search : searchList)
-            spec = spec.or(createFilterSpecification(search, domainId, locale));
+            spec = spec.or(createFilterSpecification(search));
         return count(spec);
     }
 
@@ -158,9 +185,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     }
 
     public boolean exists(S search) throws ServiceException {
-        var domainId = authService.getApiUser().getDomainId();
-        var locale = authService.getApiUser().getLocale();
-        return exists(createFilterSpecification(search, domainId, locale));
+        return exists(createFilterSpecification(search));
     }
 
 }
