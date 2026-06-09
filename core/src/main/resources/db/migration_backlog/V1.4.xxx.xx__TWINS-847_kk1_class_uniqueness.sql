@@ -23,3 +23,22 @@ CREATE INDEX IF NOT EXISTS idx_twin_class_uniqueness_field_uniqueness_id
 
 CREATE INDEX IF NOT EXISTS idx_twin_class_uniqueness_field_field_id
     ON twin_class_uniqueness_field (twin_class_field_id);
+
+CREATE INDEX IF NOT EXISTS idx_twin_field_simple_composite_lookup
+    ON twin_field_simple (twin_id, twin_class_field_id, value);
+
+CREATE INDEX IF NOT EXISTS idx_twin_field_decimal_composite_lookup
+    ON twin_field_decimal (twin_id, twin_class_field_id, value);
+
+CREATE INDEX IF NOT EXISTS idx_twin_field_timestamp_composite_lookup
+    ON twin_field_timestamp (twin_id, twin_class_field_id, value);
+
+CREATE INDEX IF NOT EXISTS idx_twin_field_datalist_composite_lookup
+    ON twin_field_datalist (twin_id, twin_class_field_id, datalist_option_id);
+
+CREATE INDEX IF NOT EXISTS idx_twin_field_user_composite_lookup
+    ON twin_field_user (twin_id, twin_class_field_id, user_id);
+
+CREATE INDEX IF NOT EXISTS idx_twin_owner_scope
+    ON twin (owner_user_id, owner_business_account_id)
+    WHERE owner_user_id IS NOT NULL OR owner_business_account_id IS NOT NULL;

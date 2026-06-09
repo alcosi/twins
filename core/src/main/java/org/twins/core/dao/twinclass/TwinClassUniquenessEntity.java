@@ -2,9 +2,12 @@ package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 
 import java.sql.Timestamp;
@@ -39,6 +42,11 @@ public class TwinClassUniquenessEntity implements EasyLoggable {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinClassUniquenessFieldEntity, UUID> fieldKit;
 
     @Override
     public String easyLog(Level level) {

@@ -137,6 +137,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private I18nService i18nService;
     @Autowired
     private CommentService commentService;
+    @Lazy
+    @Autowired
+    private TwinUniquenessService twinUniquenessService;
     @Autowired
     private TwinSearchService twinSearchService;
     @Autowired
@@ -421,6 +424,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             detectStatus(twinCreate);
             runFactoryOnCreate(twinCreate);
             validateFieldsOnCreate(twinCreate);
+            twinUniquenessService.checkOnCreate(twinCreate);
             reDetectStatus(twinCreate); // we have to re detect status one more time, after final field validation
             validateAndCollect(twinEntity, twinChangesCollector);
             saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
@@ -928,6 +932,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
             loadFieldEditability(twinUpdate.getDbTwinEntity());
             validateFieldsOnUpdate(twinUpdate);
+            twinUniquenessService.checkOnUpdate(twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
             updateTwinFields(twinChangesRecorder.getDbEntity(), twinUpdate.getFields().values().stream().toList(), twinChangesCollector);
         }
         attachmentService.cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD(), twinChangesCollector);

@@ -68,6 +68,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_IS_ABSTRACT(10423, "Cant create twin of abstract twin class"),
     TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE(10424, "twin class field value is not unique"),
     FIELD_TYPER_STORAGE_NOT_INIT(10425, "Field typer getStorage should be implemented"),
+    TWIN_COMPOSITE_NOT_UNIQUE(10426, "Composite fields values are not unique", HttpStatus.CONFLICT),
     TWIN_CLASS_LIST_CYCLE(10426, "Twin class list id can't be equals id of class."),
     TWIN_CLASS_FIELD_SORTER_IS_INCOMPATIBLE(10427, "twin class field sorter is incompatible with field typer"),
     TWIN_CLASS_FREEZE_UNKNOWN(10428, "twin class freeze not found"),
