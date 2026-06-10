@@ -290,17 +290,17 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("linkIds") Collection<UUID> linkIds,
             @Param("linkedTwinStatusIdList") Collection<UUID> linkedTwinStatusIdList);
 
-    // Grandparent status change when all grandchildren have the same status - 4 cases
-    // Two-hop navigation: t1 (current) -> t2 (intermediate) -> t3 (grandparent)
+    // Target twin status change when all linked twins have the same status - 4 cases
+    // Two-hop navigation: t1 (current) -> t2 (intermediate) -> targetTwin
 
     // Case 1: head-head
     // t1 -> t2 by head (t1.headTwinId = t2.id)
-    // t2 -> t3 by head (t2.headTwinId = t3.id)
-    // Check all children of t3 by head (only children with same twinClassId as t2)
+    // t2 -> targetTwin by head (t2.headTwinId = targetTwin.id)
+    // Check all linked twins of targetTwin by head (only linked twins with same twinClassId as t2)
     @Modifying
     @Transactional
-    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :dstStatusId " +
-            "WHERE t3.id IN (" +
+    @Query("UPDATE TwinEntity targetTwin SET targetTwin.twinStatusId = :dstStatusId " +
+            "WHERE targetTwin.id IN (" +
             "  SELECT t2.headTwinId FROM TwinEntity t2 " +
             "  WHERE t2.id = (" +
             "    SELECT t1.headTwinId FROM TwinEntity t1 " +
@@ -309,29 +309,29 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             "  AND t2.headTwinId IS NOT NULL" +
             ") " +
             "AND NOT EXISTS (" +
-            "  SELECT child.id FROM TwinEntity child " +
-            "  WHERE child.headTwinId = t3.id " +
-            "  AND child.twinClassId = (" +
+            "  SELECT linkedTwin.id FROM TwinEntity linkedTwin " +
+            "  WHERE linkedTwin.headTwinId = targetTwin.id " +
+            "  AND linkedTwin.twinClassId = (" +
             "    SELECT t2.twinClassId FROM TwinEntity t2 " +
             "    WHERE t2.id = (" +
             "      SELECT t1.headTwinId FROM TwinEntity t1 " +
             "      WHERE t1.id = :currentTwinId" +
             "    )" +
             "  ) " +
-            "  AND child.twinStatusId <> :linkedTwinStatusId)")
-    int updateGrandparentStatusIfAllGrandchildrenInStatusHeadHead(
+            "  AND linkedTwin.twinStatusId <> :linkedTwinStatusId)")
+    int updateTargetTwinStatusIfAllLinkedTwinsInStatusHeadHead(
             @Param("currentTwinId") UUID currentTwinId,
             @Param("dstStatusId") UUID dstStatusId,
             @Param("linkedTwinStatusId") UUID linkedTwinStatusId);
 
     // Case 2: head-link
     // t1 -> t2 by head (t1.headTwinId = t2.id)
-    // t2 -> t3 by link (t2 link -> t3)
-    // Check all children of t3 by link (only children with same twinClassId as t2)
+    // t2 -> targetTwin by link (t2 link -> targetTwin)
+    // Check all linked twins of targetTwin by link (only linked twins with same twinClassId as t2)
     @Modifying
     @Transactional
-    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :dstStatusId " +
-            "WHERE t3.id IN (" +
+    @Query("UPDATE TwinEntity targetTwin SET targetTwin.twinStatusId = :dstStatusId " +
+            "WHERE targetTwin.id IN (" +
             "  SELECT tl2.dstTwinId FROM TwinLinkEntity tl2 " +
             "  WHERE tl2.srcTwinId = (" +
             "    SELECT t1.headTwinId FROM TwinEntity t1 " +
@@ -341,18 +341,18 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             ") " +
             "AND NOT EXISTS (" +
             "  SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
-            "  JOIN TwinEntity child ON child.id = tl.dstTwinId " +
-            "  WHERE tl.srcTwinId = t3.id " +
+            "  JOIN TwinEntity linkedTwin ON linkedTwin.id = tl.dstTwinId " +
+            "  WHERE tl.srcTwinId = targetTwin.id " +
             "  AND tl.linkId = :linkId " +
-            "  AND child.twinClassId = (" +
+            "  AND linkedTwin.twinClassId = (" +
             "    SELECT t2.twinClassId FROM TwinEntity t2 " +
             "    WHERE t2.id = (" +
             "      SELECT t1.headTwinId FROM TwinEntity t1 " +
             "      WHERE t1.id = :currentTwinId" +
             "    )" +
             "  ) " +
-            "  AND child.twinStatusId <> :linkedTwinStatusId)")
-    int updateGrandparentStatusIfAllGrandchildrenInStatusHeadLink(
+            "  AND linkedTwin.twinStatusId <> :linkedTwinStatusId)")
+    int updateTargetTwinStatusIfAllLinkedTwinsInStatusHeadLink(
             @Param("currentTwinId") UUID currentTwinId,
             @Param("linkId") UUID linkId,
             @Param("dstStatusId") UUID dstStatusId,
@@ -360,12 +360,12 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     // Case 3: link-link
     // t1 -> t2 by link (t1 link -> t2)
-    // t2 -> t3 by link (t2 link -> t3)
-    // Check all children of t3 by link (only children with same twinClassId as t2)
+    // t2 -> targetTwin by link (t2 link -> targetTwin)
+    // Check all linked twins of targetTwin by link (only linked twins with same twinClassId as t2)
     @Modifying
     @Transactional
-    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :dstStatusId " +
-            "WHERE t3.id IN (" +
+    @Query("UPDATE TwinEntity targetTwin SET targetTwin.twinStatusId = :dstStatusId " +
+            "WHERE targetTwin.id IN (" +
             "  SELECT tl2.dstTwinId FROM TwinLinkEntity tl2 " +
             "  WHERE tl2.srcTwinId IN (" +
             "    SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
@@ -376,10 +376,10 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             ") " +
             "AND NOT EXISTS (" +
             "  SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
-            "  JOIN TwinEntity child ON child.id = tl.dstTwinId " +
-            "  WHERE tl.srcTwinId = t3.id " +
+            "  JOIN TwinEntity linkedTwin ON linkedTwin.id = tl.dstTwinId " +
+            "  WHERE tl.srcTwinId = targetTwin.id " +
             "  AND tl.linkId = :secondLinkId " +
-            "  AND child.twinClassId IN (" +
+            "  AND linkedTwin.twinClassId IN (" +
             "    SELECT tl2Src.twinClassId FROM TwinEntity tl2Src " +
             "    WHERE tl2Src.id IN (" +
             "      SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
@@ -387,8 +387,8 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             "      AND tl.linkId = :firstLinkId" +
             "    )" +
             "  ) " +
-            "  AND child.twinStatusId <> :linkedTwinStatusId)")
-    int updateGrandparentStatusIfAllGrandchildrenInStatusLinkLink(
+            "  AND linkedTwin.twinStatusId <> :linkedTwinStatusId)")
+    int updateTargetTwinStatusIfAllLinkedTwinsInStatusLinkLink(
             @Param("currentTwinId") UUID currentTwinId,
             @Param("firstLinkId") UUID firstLinkId,
             @Param("secondLinkId") UUID secondLinkId,
@@ -397,12 +397,12 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     // Case 4: link-head
     // t1 -> t2 by link (t1 link -> t2)
-    // t2 -> t3 by head (t2.headTwinId = т3.id)
-    // Check all children of т3 by head (only children with same twinClassId as t2)
+    // t2 -> targetTwin by head (t2.headTwinId = targetTwin.id)
+    // Check all linked twins of targetTwin by head (only linked twins with same twinClassId as t2)
     @Modifying
     @Transactional
-    @Query("UPDATE TwinEntity t3 SET t3.twinStatusId = :dstStatusId " +
-            "WHERE t3.id IN (" +
+    @Query("UPDATE TwinEntity targetTwin SET targetTwin.twinStatusId = :dstStatusId " +
+            "WHERE targetTwin.id IN (" +
             "  SELECT t2.headTwinId FROM TwinEntity t2 " +
             "  WHERE t2.id IN (" +
             "    SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
@@ -412,9 +412,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             "  AND t2.headTwinId IS NOT NULL" +
             ") " +
             "AND NOT EXISTS (" +
-            "  SELECT child.id FROM TwinEntity child " +
-            "  WHERE child.headTwinId = t3.id " +
-            "  AND child.twinClassId IN (" +
+            "  SELECT linkedTwin.id FROM TwinEntity linkedTwin " +
+            "  WHERE linkedTwin.headTwinId = targetTwin.id " +
+            "  AND linkedTwin.twinClassId IN (" +
             "    SELECT t2.twinClassId FROM TwinEntity t2 " +
             "    WHERE t2.id IN (" +
             "      SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
@@ -422,8 +422,8 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             "      AND tl.linkId = :linkId" +
             "    )" +
             "  ) " +
-            "  AND child.twinStatusId <> :linkedTwinStatusId)")
-    int updateGrandparentStatusIfAllGrandchildrenInStatusLinkHead(
+            "  AND linkedTwin.twinStatusId <> :linkedTwinStatusId)")
+    int updateTargetTwinStatusIfAllLinkedTwinsInStatusLinkHead(
             @Param("currentTwinId") UUID currentTwinId,
             @Param("linkId") UUID linkId,
             @Param("dstStatusId") UUID dstStatusId,

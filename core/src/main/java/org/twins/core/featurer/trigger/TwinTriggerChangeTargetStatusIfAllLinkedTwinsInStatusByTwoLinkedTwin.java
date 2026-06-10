@@ -23,7 +23,7 @@ import java.util.UUID;
         name = "ChangeTwinStatusIfAllLinkedTwinsInStatus",
         description = "Change twin status if all linked twin have the target status")
 @RequiredArgsConstructor
-public class TwinTriggerChangeParentStatusIfAllChildrenInStatusByTwoLinkedTwin extends TwinTrigger {
+public class TwinTriggerChangeTargetStatusIfAllLinkedTwinsInStatusByTwoLinkedTwin extends TwinTrigger {
 
     @FeaturerParam(name = "First hop link id", description = "Link ID for first hop (t1 -> t2). If omitted, t1.headTwinId = t2.id (head)", optional = true)
     public static final FeaturerParamUUIDTwinsLinkId firstHopLinkId = new FeaturerParamUUIDTwinsLinkId("firstHopLinkId");
@@ -31,10 +31,10 @@ public class TwinTriggerChangeParentStatusIfAllChildrenInStatusByTwoLinkedTwin e
     @FeaturerParam(name = "Second hop link id", description = "Link ID for second hop (t2 -> t3). If omitted, t2.headTwinId = t3.id (head)", optional = true)
     public static final FeaturerParamUUIDTwinsLinkId secondHopLinkId = new FeaturerParamUUIDTwinsLinkId("secondHopLinkId");
 
-    @FeaturerParam(name = "Parent dst status id", description = "Status ID to set for parent when condition is met. If omitted, uses destination status from transition")
+    @FeaturerParam(name = "Target dst status id", description = "Status ID to set for target twin when condition is met. If omitted, uses destination status from transition")
     public static final FeaturerParamUUIDTwinsTwinStatusId dstStatusId = new FeaturerParamUUIDTwinsTwinStatusId("dstStatusId");
 
-    @FeaturerParam(name = "Children status id", description = "Status ID to check against for children. If omitted, uses destination status from transition (i.e., checks if all children are in the same status as t1 is transitioning to)")
+    @FeaturerParam(name = "Linked twin status id", description = "Status ID to check against for linked twins. If omitted, uses destination status from transition (i.e., checks if all linked twins are in the same status as t1 is transitioning to)")
     public static final FeaturerParamUUIDTwinsTwinStatusId linkedTwinStatusId = new FeaturerParamUUIDTwinsTwinStatusId("linkedTwinStatusId");
 
     @Lazy
@@ -50,49 +50,49 @@ public class TwinTriggerChangeParentStatusIfAllChildrenInStatusByTwoLinkedTwin e
         boolean firstByHead = firstHopLinkIdValue == null;
         boolean secondByHead = secondHopLinkIdValue == null;
 
-        int updated = updateParentStatus(twinEntity, firstByHead, firstHopLinkIdValue, secondByHead, secondHopLinkIdValue, dstStatusIdValue, linkedTwinStatusIdValue);
+        int updated = updateTargetTwinStatus(twinEntity, firstByHead, firstHopLinkIdValue, secondByHead, secondHopLinkIdValue, dstStatusIdValue, linkedTwinStatusIdValue);
 
         if (updated > 0) {
-            log.info("ChangeTwinStatusIfAllLinkedTwinsInStatus: updated {} parent twins", updated);
+            log.info("ChangeTargetStatusIfAllLinkedTwinsInStatus: updated {} target twins", updated);
         }
     }
 
-    private int updateParentStatus(TwinEntity twinEntity, boolean firstByHead, UUID firstHopLinkIdValue,
-                                   boolean secondByHead, UUID secondHopLinkIdValue,
-                                   UUID parentTargetStatusId, UUID checkChildrenStatusId) {
+    private int updateTargetTwinStatus(TwinEntity twinEntity, boolean firstByHead, UUID firstHopLinkIdValue,
+                                       boolean secondByHead, UUID secondHopLinkIdValue,
+                                       UUID dstStatusIdValue, UUID linkedTwinStatusIdValue) {
         // Case 1: head-head
         // t1 -> t2 by head (t1.headTwinId = t2.id)
-        // t2 -> t3 by head (t2.headTwinId = t3.id)
-        // Check all children of t3 by head
+        // t2 -> targetTwin by head (t2.headTwinId = targetTwin.id)
+        // Check all linked twins of targetTwin by head
         if (firstByHead && secondByHead) {
-            return twinRepository.updateGrandparentStatusIfAllGrandchildrenInStatusHeadHead(
-                    twinEntity.getId(), parentTargetStatusId, checkChildrenStatusId);
+            return twinRepository.updateTargetTwinStatusIfAllLinkedTwinsInStatusHeadHead(
+                    twinEntity.getId(), dstStatusIdValue, linkedTwinStatusIdValue);
         }
 
         // Case 2: head-link
         // t1 -> t2 by head (t1.headTwinId = t2.id)
-        // t2 -> t3 by link (t2 link -> t3)
-        // Check all children of t3 by link
+        // t2 -> targetTwin by link (t2 link -> targetTwin)
+        // Check all linked twins of targetTwin by link
         if (firstByHead) {
-            return twinRepository.updateGrandparentStatusIfAllGrandchildrenInStatusHeadLink(
-                    twinEntity.getId(), secondHopLinkIdValue, parentTargetStatusId, checkChildrenStatusId);
+            return twinRepository.updateTargetTwinStatusIfAllLinkedTwinsInStatusHeadLink(
+                    twinEntity.getId(), secondHopLinkIdValue, dstStatusIdValue, linkedTwinStatusIdValue);
         }
 
         // Case 3: link-link
         // t1 -> t2 by link (t1 link -> t2)
-        // t2 -> t3 by link (t2 link -> t3)
-        // Check all children of t3 by link
+        // t2 -> targetTwin by link (t2 link -> targetTwin)
+        // Check all linked twins of targetTwin by link
         if (!secondByHead) {
-            return twinRepository.updateGrandparentStatusIfAllGrandchildrenInStatusLinkLink(
-                    twinEntity.getId(), firstHopLinkIdValue, secondHopLinkIdValue, parentTargetStatusId, checkChildrenStatusId);
+            return twinRepository.updateTargetTwinStatusIfAllLinkedTwinsInStatusLinkLink(
+                    twinEntity.getId(), firstHopLinkIdValue, secondHopLinkIdValue, dstStatusIdValue, linkedTwinStatusIdValue);
         }
 
         // Case 4: link-head
         // t1 -> t2 by link (t1 link -> t2)
-        // t2 -> t3 by head (t2.headTwinId = t3.id)
-        // Check all children of t3 by head
-        return twinRepository.updateGrandparentStatusIfAllGrandchildrenInStatusLinkHead(
-                twinEntity.getId(), firstHopLinkIdValue, parentTargetStatusId, checkChildrenStatusId);
+        // t2 -> targetTwin by head (t2.headTwinId = targetTwin.id)
+        // Check all linked twins of targetTwin by head
+        return twinRepository.updateTargetTwinStatusIfAllLinkedTwinsInStatusLinkHead(
+                twinEntity.getId(), firstHopLinkIdValue, dstStatusIdValue, linkedTwinStatusIdValue);
 
     }
 }
