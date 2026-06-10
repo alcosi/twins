@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Set;
 import java.util.UUID;
@@ -98,18 +98,6 @@ public class TwinClassSearchRqDTOv1 extends Request {
 
     @Schema(description = "create permission id exclude list")
     public Set<UUID> createPermissionIdExcludeList;
-
-    @Schema(description = "edit permission id list")
-    public Set<UUID> editPermissionIdList;
-
-    @Schema(description = "edit permission id exclude list")
-    public Set<UUID> editPermissionIdExcludeList;
-
-    @Schema(description = "delete permission id list")
-    public Set<UUID> deletePermissionIdList;
-
-    @Schema(description = "delete permission id exclude list")
-    public Set<UUID> deletePermissionIdExcludeList;
 
     @Schema(description = "external id like list")
     public Set<String> externalIdLikeList;

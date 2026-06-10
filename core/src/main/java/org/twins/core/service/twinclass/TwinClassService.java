@@ -156,15 +156,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getViewPermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
-                if (entity.getEditPermissionId() != null
-                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getEditPermissionId(), apiUser.getDomainId()))
-                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id[" + entity.getEditPermissionId() + "]");
                 if (entity.getCreatePermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getCreatePermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown create permission id[" + entity.getCreatePermissionId() + "]");
-                if (entity.getDeletePermissionId() != null
-                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getDeletePermissionId(), apiUser.getDomainId()))
-                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown delete permission id[" + entity.getDeletePermissionId() + "]");
                 break;
             default:
         }
@@ -229,8 +223,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     .setOwnerType(originalTwinClass.getOwnerType())
                     .setViewPermissionId(originalTwinClass.getViewPermissionId())
                     .setCreatePermissionId(originalTwinClass.getCreatePermissionId())
-                    .setEditPermissionId(originalTwinClass.getEditPermissionId())
-                    .setDeletePermissionId(originalTwinClass.getDeletePermissionId())
                     .setSegment(originalTwinClass.getSegment())
                     .setHasSegment(false) //change this if we will copy segments also
                     .setMarkerDataListId(originalTwinClass.getMarkerDataListId())
@@ -363,19 +355,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                         TwinClassEntity::setViewPermission
                 ),
                 new LoadedField<>(
-                        TwinClassEntity::getEditPermissionId,
-                        TwinClassEntity::getEditPermission,
-                        TwinClassEntity::setEditPermission
-                ),
-                new LoadedField<>(
                         TwinClassEntity::getCreatePermissionId,
                         TwinClassEntity::getCreatePermission,
                         TwinClassEntity::setCreatePermission
-                ),
-                new LoadedField<>(
-                        TwinClassEntity::getDeletePermissionId,
-                        TwinClassEntity::getDeletePermission,
-                        TwinClassEntity::setDeletePermission
                 ));
     }
 
@@ -509,22 +491,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     savedClass.setViewPermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW));
                     updated = true;
                 }
-                if (savedClass.getEditPermissionId() == null) {
-                    savedClass.setEditPermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT).getId());
-                    savedClass.setEditPermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT));
-                    updated = true;
-                }
                 if (savedClass.getCreatePermissionId() == null) {
                     savedClass.setCreatePermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE).getId());
                     savedClass.setCreatePermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE));
                     updated = true;
                 }
-                if (savedClass.getDeletePermissionId() == null) {
-                    savedClass.setDeletePermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE).getId());
-                    savedClass.setDeletePermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE));
-                    updated = true;
-                }
-
                 if (updated) {
                     classesWithPermissions.add(savedClass);
                 }
@@ -605,9 +576,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAssigneeRequired, TwinClassEntity::setAssigneeRequired, TwinClassEntity.Fields.assigneeRequired, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getPermissionSchemaSpace, TwinClassEntity::setPermissionSchemaSpace, TwinClassEntity.Fields.permissionSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getViewPermissionId, TwinClassEntity::setViewPermissionId, TwinClassEntity.Fields.viewPermissionId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getEditPermissionId, TwinClassEntity::setEditPermissionId, TwinClassEntity.Fields.editPermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getCreatePermissionId, TwinClassEntity::setCreatePermissionId, TwinClassEntity.Fields.createPermissionId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getDeletePermissionId, TwinClassEntity::setDeletePermissionId, TwinClassEntity.Fields.deletePermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getKey, TwinClassEntity::setKey, TwinClassEntity.Fields.key, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalProperties, TwinClassEntity::setExternalProperties, TwinClassEntity.Fields.externalProperties, changesHelper);
