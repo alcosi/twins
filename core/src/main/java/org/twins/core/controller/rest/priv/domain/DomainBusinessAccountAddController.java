@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
@@ -27,8 +28,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.domain.DomainBusinessAccountService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -65,8 +66,38 @@ public class DomainBusinessAccountAddController extends ApiController {
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.getBusinessAccountId()))
                     .setUserResolver(userResolverSystem)
-                    .setLocaleResolver(new LocaleResolverEnglish())
+                    .setLocaleResolver(LocaleResolverEnglish.instance)
                     .setCheckMembershipMode(false);
+            domainBusinessAccountService.addBusinessAccountSmart(
+                    request.getBusinessAccountId(),
+                    request.getTierId(),
+                    request.getName(),
+                    EntitySmartService.SaveMode.ifNotPresentCreate,
+                    false);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ProtectedBy(Permissions.DOMAIN_BUSINESS_ACCOUNT_CREATE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainBusinessAccountAddV2", summary = "Add businessAccount to domain. " +
+            "If business account is not exist it will be created.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/domain_business_account/v1")
+    public ResponseEntity<?> domainBusinessAccountAddV2(
+            @RequestBody DomainBusinessAccountAddRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            var apiUser = authService.getApiUser();
+            apiUser.setLocaleResolver(LocaleResolverEnglish.instance);
             domainBusinessAccountService.addBusinessAccountSmart(
                     request.getBusinessAccountId(),
                     request.getTierId(),
