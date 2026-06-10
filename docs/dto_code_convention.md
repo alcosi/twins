@@ -222,7 +222,38 @@ Extends `ResponseRelatedObjectsDTOv1` — enables related-object enrichment for 
 
 ---
 
-## 6. Additional Conventions
+## 6. Export API DTOs
+
+Export APIs produce a downloadable SQL file (`text/sql`), not a JSON response. They use only a **request DTO** — no response DTO is needed.
+
+### 6.1 Export Request DTO
+
+```java
+@Schema(name = "ResourceExportSqlRqV1")
+public class ResourceExportSqlRqDTOv1 extends Request {
+    @Schema(description = "resource ids to export SQL for")
+    public Set<UUID> resourceIds;
+
+    // Optional flags for child entities
+    @Schema(description = "include sub-resources in export")
+    public boolean includeSubResources = false;
+}
+```
+
+Rules:
+* Extends `Request` — standard request DTO base class
+* Contains `Set<UUID>` of entity IDs to export
+* Optional boolean flags control which child entities to include (default `false` — opt-in)
+* No response DTO — the controller returns `ResponseEntity<byte[]>` with `Content-Disposition: attachment`
+
+### 6.2 No Export Response DTO
+
+Export endpoints return raw bytes, not JSON:
+Do not create `ResourceExportSqlRsDTOv1`. The response is a file download.
+
+---
+
+## 7. Additional Conventions
 
 * DTOs should be as flat as possible
 * Nested DTOs are allowed only when there is a clear business necessity
