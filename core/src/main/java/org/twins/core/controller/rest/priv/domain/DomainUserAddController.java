@@ -17,10 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
-import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
-import org.twins.core.domain.apiuser.DomainResolverGivenId;
-import org.twins.core.domain.apiuser.LocaleResolverGivenOrSystemDefault;
-import org.twins.core.domain.apiuser.UserResolverGivenId;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
@@ -30,8 +27,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainUserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -66,9 +63,33 @@ public class DomainUserAddController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setUserResolver(new UserResolverGivenId(request.userId))
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
+                    .setBusinessAccountResolver(BusinessAccountResolverNotSpecified.instance)
                     .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getLocale()))
                     .setCheckMembershipMode(false);
+            domainUserService.addUserSmart(request.userId, true);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ProtectedBy(Permissions.DOMAIN_USER_CREATE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainUserAddV2", summary = "Add user to domain" +
+            "If user is not exist it will be created.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/domain_user/v1")
+    public ResponseEntity<?> domainUserAddV2(
+            @RequestBody DomainUserAddRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            authService.getApiUser().setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getLocale()));
             domainUserService.addUserSmart(request.userId, true);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

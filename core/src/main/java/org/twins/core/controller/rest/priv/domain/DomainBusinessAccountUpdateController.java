@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
@@ -81,4 +82,34 @@ public class DomainBusinessAccountUpdateController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @ProtectedBy(Permissions.DOMAIN_BUSINESS_ACCOUNT_UPDATE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainBusinessAccountUpdateV2", summary = "Update settings for businessAccount in domain")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/domain_business_account/{businessAccountId}/v1")
+    public ResponseEntity<?> domainBusinessAccountUpdateV2(
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
+            @RequestBody DomainBusinessAccountUpdateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            domainBusinessAccountService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
+                            .setDomainId(authService.getApiUser().getDomainId())
+                            .setBusinessAccountId(businessAccountId)
+                            .setTierId(request.getTierId())
+                            .setPermissionSchemaId(request.getPermissionSchemaId())
+                            .setTwinClassSchemaId(request.getTwinClassSchemaId())
+                            .setTwinflowSchemaId(request.getTwinFlowSchemaId()),
+                    request.getName()
+            );
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
 }

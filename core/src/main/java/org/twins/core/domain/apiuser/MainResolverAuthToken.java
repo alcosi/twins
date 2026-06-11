@@ -6,6 +6,7 @@ import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.service.HttpRequestService;
 import org.twins.core.service.auth.IdentityProviderService;
@@ -63,6 +64,8 @@ public class MainResolverAuthToken implements BusinessAccountResolver, UserResol
         if (resolved)
             return;
         String authToken = httpRequestService.getAuthTokenFromRequest();
+        if (StringUtils.isEmpty(authToken))
+            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_AUTH_TOKEN);
         TokenMetaData result = identityProviderService.resolveAuthTokenMetaData(authToken);
         String actAsUserHeader = httpRequestService.getActAsUserFromRequest();
         if (StringUtils.isEmpty(actAsUserHeader)) {

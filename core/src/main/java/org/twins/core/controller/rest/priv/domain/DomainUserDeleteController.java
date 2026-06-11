@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
@@ -37,6 +40,10 @@ public class DomainUserDeleteController extends ApiController {
     private final DomainUserService domainUserService;
     private final AuthService authService;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "domainUserDeleteV1", summary = "Delete user from domain")
     @ApiResponses(value = {
@@ -50,9 +57,34 @@ public class DomainUserDeleteController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setUserResolver(new UserResolverGivenId(userId));
+            domainUserService.deleteUser(userId);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ProtectedBy(Permissions.DOMAIN_USER_DELETE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainUserDeleteV2", summary = "Delete user from domain")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @DeleteMapping(value = "/private/domain_user/{userId}/v1")
+    public ResponseEntity<?> domainUserDeleteV2(
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
+        Response rs = new Response();
+        try {
             domainUserService.deleteUser(userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

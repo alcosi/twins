@@ -65,13 +65,16 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
                 .setId(businessAccountId)
                 .setName(name)
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        if (EntitySmartService.SaveMode.none.equals(entityCreateMode))
+            return businessAccountEntity;
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
         if (saveResult.isWasCreated()) {
-            if (!authService.getApiUser().isBusinessAccountSpecified()) {
-                authService.getApiUser()
-                        .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId)) // welcome to new BA
-                        .setCheckMembershipMode(false); // BA is just created, so no sense to check BA - User membership
+            if (authService.getApiUser().isBusinessAccountSpecified()) {
+                log.info("switching from ba[{}] to ba[{}] ", authService.getApiUser().getBusinessAccountId(), businessAccountId);
             }
+            authService.getApiUser()
+                    .switchBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId)) // welcome to new BA
+                    .setCheckMembershipMode(false); // BA is just created, so no sense to check BA - User membership
             TwinDuplicate twinDuplicate = twinService.createDuplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
             twinService.saveDuplicateTwin(twinDuplicate);
         }
