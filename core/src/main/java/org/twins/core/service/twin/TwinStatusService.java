@@ -338,4 +338,15 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 TwinStatusDuplicate::getNewTwinClass,
                 TwinStatusDuplicate::setNewTwinClass);
     }
+
+    public void loadClass(TwinStatusEntity entity) throws ServiceException {
+        loadClass(Collections.singletonList(entity));
+    }
+
+    public void loadClass(List<TwinStatusEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                TwinStatusEntity::getTwinClassId,
+                TwinStatusEntity::getTwinClass,
+                TwinStatusEntity::setTwinClass);
+    }
 }

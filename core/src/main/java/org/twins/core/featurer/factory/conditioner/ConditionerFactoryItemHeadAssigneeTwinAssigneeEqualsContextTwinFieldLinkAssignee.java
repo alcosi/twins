@@ -52,7 +52,7 @@ public class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFiel
             dstTwin = twinService.findEntitySafe(twinLinkEntity.getDstTwinId());
             twinLinkEntity.setDstTwin(dstTwin);
         }
-        TwinEntity headTwin = twinService.loadHeadForTwin(factoryItem.getTwin());
+        TwinEntity headTwin = twinService.loadHead(factoryItem.getTwin());
         if(null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItem.getTwin().logDetailed());
         return dstTwin.getAssignerUserId().equals(headTwin.getAssignerUserId());

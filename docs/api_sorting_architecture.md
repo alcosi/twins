@@ -1,53 +1,53 @@
-# Архитектура: Динамическая сортировка для Search API
+# Architecture: Dynamic Sorting for Search API
 
-**Дата:** 2026-05-28 (обновлено)
-**Статус:** Частично Реализовано (пилот на DomainBusinessAccountUserSearch)
-**Контекст:** TWINS-831 — отсутствует сортировка на 74+ search API
-
----
-
-## Контекст
-
-В проекте много контроллеров поиска с пагинацией (`@SimplePaginationParams`), но без динамической сортировки. `sortField` захардкожен в аннотации на compile-time. Клиент не может изменить поле сортировки. Особенно критично: сортировка по полям RelatedObjects (например, `user.name` вместо `userId`) требует JOIN к связанным таблицам.
+**Date:** 2026-06-01 (updated)
+**Status:** Partially Implemented (pilot on DomainBusinessAccountUserSearch)
+**Context:** TWINS-831 — sorting is missing on 74+ search APIs
 
 ---
 
-## Решение
+## Context
 
-### Принцип
-
-Сортировка реализуется через **простой enum per entity** в пакете `enums.sort`. Enum содержит только имена полей — без JPA-логики и без fieldPath. JPA Specification собирается в **SearchService** через switch по enum, который вызывает статический helper `CommonSpecification.toSortSpecification(ascending, fieldPath...)`. Sort-поля инлайнятся прямо в **SearchRqDTO** (не **SearchDTO**) — Swagger автоматически показывает dropdown со значениями.
-
-### Почему Specification-only, а не Pageable.getSort()
-
-Spring Data JPA баг [#2253](https://github.com/spring-projects/spring-data-jpa/issues/2253): при комбинации Specification + `Pageable.getSort()` по nested path (`user.name`) Spring Data создаёт **дублирующий JOIN** поверх того, что Specification уже присоединила. Это приводит к некорректным result sets и ломает count-запросы.
-
-### Почему enum, а не annotation
-
-- Enum = compile-time type safety + естественный whitelist
-- Enum = Swagger автоматически показывает dropdown (Jackson десериализует из JSON)
-- Enum = легко тестировать
-- Annotation `@SortableFields` на контроллере = смешивание ответственности (controller знает про entity graph)
-
-### Почему enum без fieldPath, а switch в SearchService
-
-- Enum в `enums.sort` не зависит от DAO-слоя — чистый список имён
-- SearchService владеет знанием о JPA entity graph — fieldPath логично жить рядом
-- Switch даёт полную свободу: для конкретного поля можно добавить кастомную логику (подзапрос, другой JOIN-тип, etc.)
-- При добавлении нового sort-поля: добавляем значение в enum + case в switch
-
-### Почему sort inline в SearchRqDTO, а не отдельный SortDTO
-
-- `SortDTOv1` с `String field` — Swagger показывает текстовое поле, клиент не видит допустимые значения
-- Enum-тип прямо в SearchRqDTO — Swagger автоматически генерирует dropdown
-- Jackson автоматически десериализует JSON-строку в enum, невалидное значение → 400 Bad Request
-- Sort-поля лежат в `SearchRqDTO` рядом с `search`, а не внутри `SearchDTO` — это позволяет переиспользовать `SearchDTO` в других API (например, группировка) где сортировка не нужна
+The project contains many search controllers with pagination (`@SimplePaginationParams`) but without dynamic sorting. `sortField` is hardcoded in the annotation at compile time. The client cannot change the sorting field. This is especially critical because sorting by RelatedObject fields (for example, `user.name` instead of `userId`) requires JOINs to related tables.
 
 ---
 
-## Компоненты
+## Solution
 
-### 1. Enum в `enums.sort` — простой список имён
+### Principle
+
+Sorting is implemented through a **simple enum per entity** in the `enums.sort` package. The enum contains only field names — no JPA logic and no fieldPath. The JPA Specification is built in **SearchService** through a switch on the enum, which calls the static helper `CommonSpecification.toSortSpecification(ascending, fieldPath...)`. Sort fields are inlined directly into **SearchRqDTO** (not **SearchDTO**) — Swagger automatically displays a dropdown with available values.
+
+### Why Specification-only instead of Pageable.getSort()
+
+Spring Data JPA bug [#2253](https://github.com/spring-projects/spring-data-jpa/issues/2253): when combining Specification + `Pageable.getSort()` on a nested path (`user.name`), Spring Data creates a **duplicate JOIN** on top of the one already added by the Specification. This results in incorrect result sets and breaks count queries.
+
+### Why enum instead of annotation
+
+* Enum = compile-time type safety + natural whitelist
+* Enum = Swagger automatically displays a dropdown (Jackson deserializes from JSON)
+* Enum = easy to test
+* Annotation `@SortableFields` on the controller = responsibility mixing (controller knows about the entity graph)
+
+### Why enum without fieldPath, and switch in SearchService
+
+* Enum in `enums.sort` does not depend on the DAO layer — it is a pure list of names
+* SearchService owns knowledge about the JPA entity graph — fieldPath logically belongs there
+* Switch provides full flexibility: custom logic can be added for a specific field (subquery, different JOIN type, etc.)
+* When adding a new sort field: add a value to the enum + add a case in the switch
+
+### Why sort is inline in SearchRqDTO instead of a separate SortDTO
+
+* `SortDTOv1` with `String field` — Swagger displays a text field, the client does not see allowed values
+* Enum type directly in SearchRqDTO — Swagger automatically generates a dropdown
+* Jackson automatically deserializes a JSON string into an enum; invalid value → 400 Bad Request
+* Sort fields are located in `SearchRqDTO` next to `search`, not inside `SearchDTO` — this allows reusing `SearchDTO` in other APIs (for example, grouping) where sorting is not needed
+
+---
+
+## Components
+
+### 1. Enum in `enums.sort` — simple list of names
 
 ```java
 package org.twins.core.enums.sort;
@@ -60,12 +60,12 @@ public enum DomainBusinessAccountUserSortField {
 }
 ```
 
-Без конструктора, без fieldPath, без SortField<T>. Чистый data carrier.
+No constructor, no fieldPath, no SortField<T>. Pure data carrier.
 
-### 2. Статические helpers в `CommonSpecification` и `I18nSpecification`
+### 2. Static helpers in `CommonSpecification` and `I18nSpecification`
 
 ```java
-// CommonSpecification.java — для обычных полей
+// CommonSpecification.java — for regular fields
 public static <T> Specification<T> toSortSpecification(boolean ascending, String... fieldPath) {
     if (fieldPath == null)
         return (root, query, cb) -> cb.conjunction();
@@ -80,17 +80,17 @@ public static <T> Specification<T> toSortSpecification(boolean ascending, String
     };
 }
 
-// I18nSpecification.java — для i18n-полей (сортировка по переводу)
+// I18nSpecification.java — for i18n fields (sorting by translation)
 public static <T> Specification<T> toSortSpecification(boolean ascending, Locale locale, String... fieldPath) {
-    // Навигация по fieldPath → LEFT JOIN I18nTranslationEntity с locale в ON → ORDER BY translation
+    // Navigate through fieldPath → LEFT JOIN I18nTranslationEntity with locale in ON → ORDER BY translation
 }
 ```
 
-Сигнатура `(boolean ascending, String... fieldPath)` — varargs вместо `String[]`, вызовы лаконичнее: `toSortSpecification(ascending, "businessAccount", "name")`.
+Signature `(boolean ascending, String... fieldPath)` — varargs instead of `String[]`, making calls shorter: `toSortSpecification(ascending, "businessAccount", "name")`.
 
-Логика: count-query guard → `AbstractSpecification.getFieldPath(root, LEFT, fieldPath)` → `orderBy`.
+Logic: count-query guard → `AbstractSpecification.getFieldPath(root, LEFT, fieldPath)` → `orderBy`.
 
-### 3. SearchRqDTO — sort-поля рядом с search
+### 3. SearchRqDTO — sort fields next to search
 
 ```java
 // DomainBusinessAccountUserSearchRqDTOv1.java
@@ -105,52 +105,99 @@ public class DomainBusinessAccountUserSearchRqDTOv1 extends Request {
 }
 ```
 
-Sort-поля лежат на уровне `SearchRqDTO`, а не внутри `SearchDTO`. Это позволяет переиспользовать `SearchDTO` в API группировки и других endpoint'ах, где сортировка не нужна.
-Swagger автоматически показывает dropdown для `sortField`: `createdAt`, `lastActivityAt`, `userName`, `businessAccountName`.
+Sort fields are located at the `SearchRqDTO` level, not inside `SearchDTO`. This allows reusing `SearchDTO` in grouping APIs and other endpoints where sorting is not needed.
 
-### 4. SearchDTO — чистые параметры поиска
+Swagger automatically displays a dropdown for `sortField`: `createdAt`, `lastActivityAt`, `userName`, `businessAccountName`.
+
+### 4. SearchDTO — pure search parameters
 
 ```java
-// DomainBusinessAccountUserSearchDTOv1.java — только параметры поиска, без sort
+// DomainBusinessAccountUserSearchDTOv1.java — search parameters only, without sort
 public class DomainBusinessAccountUserSearchDTOv1 {
     public Set<UUID> userIdList;
     public Set<UUID> businessAccountIdList;
     public DataTimeRangeDTOv1 lastActivityAt;
-    // ... только критерии поиска
+    // ... search criteria only
 }
 ```
 
-### 5. Domain Search Object — прямые поля
+### 5. EntitySearch — base class for search objects
+
+```java
+// domain/search/EntitySearch.java
+public abstract class EntitySearch<E> {
+}
+```
+
+All search objects extend `EntitySearch<EntityType>`. Sort fields are **not stored** in the search object — they are passed as parameters into `EntitySearchService.search()`.
+
+### 6. Domain Search Object — pure search criteria
 
 ```java
 // DomainBusinessAccountUserSearch.java
-public DomainBusinessAccountUserSortField sortField = DomainBusinessAccountUserSortField.createdAt;
-public SortDirection sortDirection = SortDirection.ASC;
+public class DomainBusinessAccountUserSearch extends EntitySearch<DomainBusinessAccountUserEntity> {
+    private Set<UUID> userIdList;
+    private Set<UUID> userIdExcludeList;
+    private Set<UUID> businessAccountIdList;
+    private Set<UUID> businessAccountIdExcludeList;
+    private Set<UUID> userGroupIdList;
+    private Set<UUID> userGroupIdExcludeList;
+    private DataTimeRange lastActivityAtRange;
+    private DataTimeRange createdAtRange;
+}
 ```
 
-### 6. SearchRqDTOReverseMapper — маппинг search + sort
+### 7. EntitySearchService — base search service
 
 ```java
-// DomainBusinessAccountUserSearchRqDTOReverseMapper.convert():
-var dst = domainBusinessAccountUserSearchDTOReverseMapper.convert(src.getSearch(), mapperContext);
-dst
-    .setSortField(src.getSortField())
-    .setSortDirection(src.getSortDirection());
-return dst;
+// EntitySearchService.java
+public abstract class EntitySearchService<
+        S extends EntitySearch<E>,  // search object
+        E,                          // JPA entity
+        SF,                         // sort field enum
+        GF> {                       // group field enum
+
+    // Common methods (implemented in the base class):
+    public PaginationResult<E> search(S search, SimplePagination pagination,
+                                       SF sortField, SortDirection sortDirection);
+    public List<CountResult<E>> countByGroupFields(S search, Set<GF> groupFields);
+
+    // Abstract methods (implemented by a concrete service):
+    abstract JpaSpecificationExecutor<E> jpaSpecificationExecutor();
+    abstract S emptySearch();
+    abstract Class<E> entityClass();
+    abstract Specification<E> createFilterSpecification(S search, UUID domainId);
+    abstract Specification<E> createSortSpecification(SF sortField, SortDirection sortDirection);
+    abstract String convertToEntityField(GF groupField);
+    abstract void mapGroupedField(E entity, GF field, Object value);
+    abstract E newEntity();
+}
 ```
 
-SearchDTOReverseMapper маппит только критерии поиска. Sort-поля маппятся на уровне RqDTO mapper.
-Jackson уже десериализовал enum из JSON, маппинг тривиальный. `SortDTOReverseMapper` не нужен.
+The base class encapsulates common logic: obtaining `domainId` from `AuthService`, combining filter + sort specifications, executing paginated queries through `JpaSpecificationExecutor`, and grouped counting through `CountQueryExecutor`.
 
-### 7. SearchService — switch по enum
+The concrete service implements only entity-specific methods: filters, switch by sort enum, and group field mapping.
+
+### 8. SearchRqDTOReverseMapper — mapping search + sort
 
 ```java
-// DomainBusinessAccountUserSearchService.java
-private Specification<DomainBusinessAccountUserEntity> createSortSpecification(DomainBusinessAccountUserSearch search) {
-    DomainBusinessAccountUserSortField sortField = search.getSortField();
+// Controller calls:
+PaginationResult<DomainBusinessAccountUserEntity> result =
+    searchService.search(search, pagination, src.getSortField(), src.getSortDirection());
+```
+
+Sort fields (`sortField`, `sortDirection`) are passed directly from `SearchRqDTO` into `EntitySearchService.search()` — they do not become part of the search object. Jackson has already deserialized the enum from JSON. `SortDTOReverseMapper` is not needed.
+
+### 9. SearchService — switch by enum
+
+```java
+// DomainBusinessAccountUserSearchService.java — extends EntitySearchService
+@Override
+public Specification<DomainBusinessAccountUserEntity> createSortSpecification(
+        DomainBusinessAccountUserSortField sortField, SortDirection sortDirection) {
     if (sortField == null)
         sortField = DomainBusinessAccountUserSortField.createdAt;
-    boolean ascending = search.getSortDirection() != SortDirection.DESC;
+    boolean ascending = sortDirection != SortDirection.DESC;
     return switch (sortField) {
         case createdAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.createdAt);
         case lastActivityAt -> toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.lastActivityAt);
@@ -160,32 +207,33 @@ private Specification<DomainBusinessAccountUserEntity> createSortSpecification(D
 }
 ```
 
-**Как это работает:**
-- `createdAt` → `toSortSpecification(ascending, "createdAt")` → `getFieldPath` берёт `root.get("createdAt")` — без JOIN
-- `userName` → `toSortSpecification(ascending, "user", "name")` → `getFieldPath` делает `root.join("user", LEFT)` + `.get("name")`
-- `AbstractSpecification.getFieldPath` + `getOrCreateJoin` гарантируют, что если JOIN уже существует (от фильтрации), он будет переиспользован, а не дублирован
+**How it works:**
 
-### 8. Контроллер — без изменений
+* `createdAt` → `toSortSpecification(ascending, "createdAt")` → `getFieldPath` uses `root.get("createdAt")` — no JOIN
+* `userName` → `toSortSpecification(ascending, "user", "name")` → `getFieldPath` performs `root.join("user", LEFT)` + `.get("name")`
+* `AbstractSpecification.getFieldPath` + `getOrCreateJoin` guarantee that if a JOIN already exists (from filtering), it will be reused instead of duplicated
+
+### 10. Controller — unchanged
 
 ```java
 @SimplePaginationParams SimplePagination pagination,
 @RequestBody DomainBusinessAccountUserSearchRqDTOv1 request
 ```
 
-`pagination.setSort(null)` в сервисе убирает Sort из Pageable. Sort field приходит из request body через search DTO.
+`pagination.setSort(null)` in the service removes Sort from Pageable. The sort field comes from the request body through the search DTO.
 
 ---
 
-## Индексы (обязательно)
+## Indexes (mandatory)
 
 ```sql
--- Для сортировки по user.name
+-- For sorting by user.name
 CREATE INDEX IF NOT EXISTS idx_user_name ON "user"(name);
 
--- Для сортировки по business_account.name
+-- For sorting by business_account.name
 CREATE INDEX IF NOT EXISTS idx_business_account_name ON business_account(name);
 
--- Для JOIN lookup (опционально, ускоряет Nested Loop)
+-- For JOIN lookup (optional, speeds up Nested Loop)
 CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_user_domain
     ON domain_business_account_user(user_id, domain_id);
 CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_ba_domain
@@ -194,50 +242,51 @@ CREATE INDEX IF NOT EXISTS idx_domain_business_account_user_ba_domain
 
 ---
 
-## Performance оценка
+## Performance estimation
 
-| Записей в домене | Sort по created_at (с инд.) | Sort по user.name (БЕЗ инд.) | Sort по user.name (С инд.) |
-|---|---|---|---|
-| 1,000 | ~2ms | ~5ms | ~2ms |
-| 10,000 | ~3ms | ~30ms | ~3ms |
-| 100,000 | ~5ms | **~350ms** | ~5ms |
-| 1,000,000 | ~10ms | **~4000ms** | ~8ms |
+| Records in domain | Sort by created_at (indexed) | Sort by user.name (WITHOUT index) | Sort by user.name (With index) |
+| ----------------- | ---------------------------- | --------------------------------- | ------------------------------ |
+| 1,000             | ~2ms                         | ~5ms                              | ~2ms                           |
+| 10,000            | ~3ms                         | ~30ms                             | ~3ms                           |
+| 100,000           | ~5ms                         | **~350ms**                        | ~5ms                           |
+| 1,000,000         | ~10ms                        | **~4000ms**                       | ~8ms                           |
 
-**Вывод:** без индексов сортировка по JOIN-полям деградирует как O(N log N). С правильными индексами — практически константное время благодаря early termination при LIMIT.
+**Conclusion:** without indexes, sorting by JOIN fields degrades as O(N log N). With proper indexes, execution time is almost constant due to early termination with LIMIT.
 
-### 9. I18n-поля — сортировка через перевод
+### 11. I18n fields — sorting through translation
 
-Сущности, у которых name/description хранятся через I18n (например `NotificationSchemaEntity.nameI18n`), требуют особой обработки: вместо прямого поля сортировка идёт через LEFT JOIN к `I18nEntity` → `I18nTranslationEntity` с фильтром по locale.
+Entities whose name/description are stored through I18n (for example `NotificationSchemaEntity.nameI18n`) require special handling: instead of sorting by a direct field, sorting is performed through a LEFT JOIN to `I18nEntity` → `I18nTranslationEntity` filtered by locale.
 
-#### Проблема
+#### Problem
 
 ```java
-// НЕПРАВИЛЬНО — fieldPath заканчивается на I18nEntity, а не на строку
+// INCORRECT — fieldPath ends at I18nEntity instead of a string
 case notificationSchemaName -> new String[]{"notificationSchemaSpecOnly", "nameI18n"};
-// CommonSpecification.toSortSpecification попытается сортировать по I18nEntity — не имеет смысла
+// CommonSpecification.toSortSpecification will try to sort by I18nEntity — makes no sense
 ```
 
-I18n-поле хранит не строку, а `UUID` → `I18nEntity` → `List<I18nTranslationEntity>` (по одной записи на locale). Нужен дополнительный JOIN к `I18nTranslationEntity` с фильтром по locale текущего пользователя.
+An I18n field stores not a string but a `UUID` → `I18nEntity` → `List<I18nTranslationEntity>` (one record per locale). An additional JOIN to `I18nTranslationEntity` is required with filtering by the current user's locale.
 
-#### Решение: `I18nSpecification.toSortSpecification`
+#### Solution: `I18nSpecification.toSortSpecification`
 
 ```java
 // I18nSpecification.java
 public static <T> Specification<T> toSortSpecification(
     boolean ascending,
     Locale locale,
-    String... fieldPath   // путь ДО I18nEntity (напр. "notificationSchemaSpecOnly", "nameI18n")
+    String... fieldPath   // path TO I18nEntity (e.g. "notificationSchemaSpecOnly", "nameI18n")
 )
 ```
 
-**Как это работает:**
+**How it works:**
 
-1. Навигирует по `fieldPath` до I18nEntity (используя `findOrCreateJoin` для переиспользования существующих JOIN'ов от фильтрации)
-2. LEFT JOIN к `I18nTranslationEntity` с locale в **ON-условии** (не WHERE — чтобы не отсечь записи без перевода)
-3. Сортирует по `I18nTranslationEntity.translation`
-4. Содержит `getResultType()` guard для count-запросов
+1. Navigates through `fieldPath` to I18nEntity (using `findOrCreateJoin` to reuse existing JOINs from filtering)
+2. LEFT JOINs `I18nTranslationEntity` with locale in the **ON clause** (not WHERE — to avoid filtering out records without translation)
+3. Sorts by `I18nTranslationEntity.translation`
+4. Contains a `getResultType()` guard for count queries
 
-**Результирующий SQL:**
+**Resulting SQL:**
+
 ```sql
 LEFT JOIN i18n_translation translation_join
     ON translation_join.i18n_id = i18n.id
@@ -245,63 +294,65 @@ LEFT JOIN i18n_translation translation_join
 ORDER BY translation_join.translation ASC
 ```
 
-#### Интеграция в switch SearchService
+#### Integration into SearchService switch
 
 ```java
-// DomainBusinessAccountSpecification.createSortSpecification(search, locale)
+// SomeSearchService.createSortSpecification(sortField, sortDirection)
 return switch (sortField) {
     case createdAt -> toSortSpecification(ascending, "createdAt");
-    // ... обычные поля через CommonSpecification.toSortSpecification
+    // ... regular fields via CommonSpecification.toSortSpecification
 
     case notificationSchemaName -> I18nSpecification.toSortSpecification(
         ascending, locale, "notificationSchemaSpecOnly", "nameI18n");
 };
 ```
 
-Сигнатура `createSortSpecification` принимает `Locale locale` — передаётся из сервиса через `authService.getApiUser().getLocale()`.
+When i18n sorting is required, `createSortSpecification` may accept `Locale locale` (via `authService.getApiUser().getLocale()`), or locale may be obtained directly inside the method from `authService`.
 
-#### Какие сущности используют i18n-поля
+#### Which entities use i18n fields
 
-По данным из SORTING-ALL-SEARCH-API.md, i18n-сортировка потребуется для:
+According to SORTING-ALL-SEARCH-API.md, i18n sorting will be required for:
 
-| Сущность | I18n-поля |
-|---|---|
+| Entity                     | I18n fields                   |
+| -------------------------- | ----------------------------- |
 | `NotificationSchemaEntity` | `nameI18n`, `descriptionI18n` |
-| `TwinClassFieldEntity` | `nameI18n`, `descriptionI18n` |
-| `TwinStatusEntity` | `nameI18n`, `descriptionI18n` |
-| `SpaceRoleEntity` | `nameI18n`, `descriptionI18n` |
-| `UserGroupEntity` | `nameI18n`, `descriptionI18n` |
-| `DataListOptionEntity` | `nameI18n`, `descriptionI18n` |
+| `TwinClassFieldEntity`     | `nameI18n`, `descriptionI18n` |
+| `TwinStatusEntity`         | `nameI18n`, `descriptionI18n` |
+| `SpaceRoleEntity`          | `nameI18n`, `descriptionI18n` |
+| `UserGroupEntity`          | `nameI18n`, `descriptionI18n` |
+| `DataListOptionEntity`     | `nameI18n`, `descriptionI18n` |
 
-Для каждого такого поля в switch вызывается `I18nSpecification.toSortSpecification` вместо `CommonSpecification.toSortSpecification`.
+For each such field, the switch calls `I18nSpecification.toSortSpecification` instead of `CommonSpecification.toSortSpecification`.
 
-#### Индексы для i18n-сортировки
+#### Indexes for i18n sorting
 
 ```sql
--- Индекс на i18n_translation для быстрого поиска по locale
+-- Index on i18n_translation for fast locale lookup
 CREATE INDEX IF NOT EXISTS idx_i18n_translation_i18n_locale
     ON i18n_translation(i18n_id, locale);
 
--- Покрывающий индекс для сортировки (включает translation)
+-- Covering index for sorting (includes translation)
 CREATE INDEX IF NOT EXISTS idx_i18n_translation_locale_translation
     ON i18n_translation(locale, translation);
 ```
 
 ---
 
-## Критические правила
+## Critical rules
 
-1. **`getResultType()` guard** — ОБЯЗАТЕЛЬНО в `CommonSpecification.toSortSpecification()`. Count-запрос не должен содержать ORDER BY.
-2. **LEFT JOIN, не INNER JOIN** — чтобы не отсекать записи с NULL-связями.
-3. **Whitelist** — enum values = единственные допустимые sort fields. Невалидное значение → 400 от Jackson.
-4. **Pageable без Sort** — при Specification-based сортировке Sort в Pageable должен быть `unsorted` (`pagination.setSort(null)`).
-5. **Не трогать TwinSorter** — существующий featurer-based механизм сортировки Twin решает другую задачу (динамические поля).
+1. **`getResultType()` guard** — MANDATORY in `CommonSpecification.toSortSpecification()`. Count queries must not contain ORDER BY.
+2. **LEFT JOIN, not INNER JOIN** — to avoid filtering out records with NULL relationships.
+3. **Whitelist** — enum values are the only allowed sort fields. Invalid value → 400 from Jackson.
+4. **Pageable without Sort** — when using Specification-based sorting, Sort in Pageable must be unsorted (`pagination.setSort(null)`).
+5. **Do not touch TwinSorter** — the existing feature-based Twin sorting mechanism solves a different problem (dynamic fields).
+6. **New `@ManyToOne` for sort JOINs** — if an entity lacks a `@ManyToOne` relationship needed for sort-field JOIN, add it following `entity_many_to_one_relations.md`: `<field>SpecOnly` with `@Getter(AccessLevel.NONE)`, `@Deprecated //for specification only`, `fetch = FetchType.LAZY`, plus a `@Transient` runtime field. Sort specifications reference the `SpecOnly` field name.
 
 ---
 
 ## API contract
 
 **Request:**
+
 ```json
 {
   "search": {
@@ -312,42 +363,42 @@ CREATE INDEX IF NOT EXISTS idx_i18n_translation_locale_translation
 }
 ```
 
-Sort-поля на верхнем уровне `SearchRqDTO`, а не внутри `search`.
+Sort fields are located at the top level of `SearchRqDTO`, not inside `search`.
 
-Jackson автоматически десериализует `sortField` из JSON-строки в enum. Невалидное значение → 400 Bad Request с понятной ошибкой.
-
----
-
-## Поэтапный rollout
-
-| Фаза | Что | Статус |
-|---|---|---|
-| 1 | Enum в `enums.sort` + inline sort в SearchDTO + switch в SearchService для DomainBusinessAccountUserSearch | **Готово** |
-| 2 | Обобщение на 3-5 приоритетных API | После валидации на пилоте |
-| 3 | Шаблон для новых search API (enum обязателен) | Постоянно |
-| 4 | Cursor-based pagination для таблиц > 500K (если потребуется) | По мере роста данных |
+Jackson automatically deserializes `sortField` from a JSON string into an enum. Invalid value → 400 Bad Request with a clear error message.
 
 ---
 
-## Устаревшие компоненты (оставлены для backward compat)
+## Phased rollout
 
-Следующие компоненты больше не используются новым паттерном, но оставлены в коде:
-
-- `SortDTOv1` — заменён на inline sort-поля в SearchDTO (enum-тип)
-- `SortDTOReverseMapper` — заменён на прямой маппинг в SearchDTOReverseMapper
-- `SortField<T>` интерфейс — заменён на статический helper в `CommonSpecification`
-- `SortOption<S>` — заменён на прямые поля `sortField` + `sortDirection`
-
-При масштабировании на все API эти компоненты будут удалены.
+| Phase | What                                                                                                                                             | Status                 |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
+| 1     | Enum in `enums.sort` + inline sort in SearchDTO + `EntitySearchService` / `EntitySearch` base classes + pilot on DomainBusinessAccountUserSearch | **Done**               |
+| 2     | Generalization to 3–5 priority APIs (children of `EntitySearchService`)                                                                          | After pilot validation |
+| 3     | Template for new search APIs (enum mandatory)                                                                                                    | Ongoing                |
+| 4     | Cursor-based pagination for tables > 500K (if needed)                                                                                            | As data volume grows   |
 
 ---
 
-## Источники
+## Deprecated components (kept for backward compatibility)
 
-- [Spring Data JPA #2253: Specifications with Sort create additional join](https://github.com/spring-projects/spring-data-jpa/issues/2253)
-- [Spring Data JPA #4178: Sort field whitelist validation](https://github.com/spring-projects/spring-data-jpa/issues/4178)
-- [CVE-2016-6652: Blind SQL/JPQL Injection via Sort Parameters](https://spring.io/security/cve-2016-6652)
-- [PGAnalyze: Postgres Planner Quirks with ORDER BY + LIMIT](https://pganalyze.com/blog/5mins-postgres-planner-order-by-limit)
-- [Milan Jovanovic: Cursor Pagination Deep Dive](https://www.milanjovanovic.tech/blog/understanding-cursor-pagination-and-why-its-so-fast-deep-dive)
-- [Baeldung: Joining Tables With Specifications](https://www.baeldung.com/spring-jpa-joining-tables)
-- [Vlad Mihalcea: JOIN FETCH and Pagination](https://vladmihalcea.com/join-fetch-pagination-spring/)
+The following components are no longer used by the new pattern but remain in the codebase:
+
+* `SortDTOv1` — replaced by inline sort fields in SearchDTO (enum type)
+* `SortDTOReverseMapper` — replaced by direct mapping in SearchDTOReverseMapper
+* `SortField<T>` interface — replaced by a static helper in `CommonSpecification`
+* `SortOption<S>` — replaced by direct `sortField` + `sortDirection` fields
+
+These components will be removed when the solution is rolled out to all APIs.
+
+---
+
+## Sources
+
+* Spring Data JPA #2253: Specifications with Sort create additional join
+* Spring Data JPA #4178: Sort field whitelist validation
+* CVE-2016-6652: Blind SQL/JPQL Injection via Sort Parameters
+* PGAnalyze: Postgres Planner Quirks with ORDER BY + LIMIT
+* Milan Jovanovic: Cursor Pagination Deep Dive
+* Baeldung: Joining Tables With Specifications
+* Vlad Mihalcea: JOIN FETCH and Pagination

@@ -52,7 +52,7 @@ class TwinClassServiceDuplicateTest {
                         null, twinClassRepository, null, null,
                         twinClassFieldService, null, entitySmartService, i18nService,
                         null, null, null, null, null, null, null, null,
-                        authService, null, null, null, null
+                        authService, null, null, null, null, null
                 )
         );
 
@@ -131,8 +131,6 @@ class TwinClassServiceDuplicateTest {
                     .setOwnerType(OwnerType.USER)
                     .setViewPermissionId(viewPermissionId)
                     .setCreatePermissionId(createPermissionId)
-                    .setEditPermissionId(editPermissionId)
-                    .setDeletePermissionId(deletePermissionId)
                     .setSegment(true)
                     .setMarkerDataListId(markerDataListId)
                     .setTagDataListId(tagDataListId)
@@ -171,8 +169,6 @@ class TwinClassServiceDuplicateTest {
             assertEquals(OwnerType.USER, saved.getOwnerType());
             assertEquals(viewPermissionId, saved.getViewPermissionId());
             assertEquals(createPermissionId, saved.getCreatePermissionId());
-            assertEquals(editPermissionId, saved.getEditPermissionId());
-            assertEquals(deletePermissionId, saved.getDeletePermissionId());
             assertEquals(Boolean.TRUE, saved.getSegment());
             assertEquals(markerDataListId, saved.getMarkerDataListId());
             assertEquals(tagDataListId, saved.getTagDataListId());

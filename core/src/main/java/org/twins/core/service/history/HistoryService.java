@@ -226,6 +226,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotFromUser(fromUser));
     }
 
+    public HistoryItem<HistoryContextUserChange> assigneeAssigned(UserEntity toUser) {
+        return new HistoryItem<>(HistoryType.assigneeAssigned, new HistoryContextUserChange()
+                .shotToUser(toUser));
+    }
+
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
         if (attachmentEntity.getTwin().isCreateElseUpdate()) {
             return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
@@ -504,20 +509,15 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public void loadUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
         userService.load(srcCollection,
-                HistoryEntity::getActorUserId,
-                HistoryEntity::getActorUser,
-                HistoryEntity::setActorUser);
-    }
-
-    public void loadMachineUser(HistoryEntity src) throws ServiceException {
-        loadMachineUser(Collections.singletonList(src));
-    }
-
-    public void loadMachineUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
-        userService.load(srcCollection,
-                HistoryEntity::getMachineUserId,
-                HistoryEntity::getMachineUser,
-                HistoryEntity::setMachineUser);
+                new LoadedField<>(
+                        HistoryEntity::getActorUserId,
+                        HistoryEntity::getActorUser,
+                        HistoryEntity::setActorUser),
+                new LoadedField<>(
+                        HistoryEntity::getMachineUserId,
+                        HistoryEntity::getMachineUser,
+                        HistoryEntity::setMachineUser)
+        );
     }
 
     public void loadTwinClassField(HistoryEntity src) throws ServiceException {

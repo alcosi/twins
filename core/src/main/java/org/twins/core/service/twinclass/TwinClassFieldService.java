@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
@@ -45,6 +44,7 @@ import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.validator.TwinClassFieldActionValidatorRuleService;
@@ -80,6 +80,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final TwinClassFieldActionValidatorRuleService twinClassFieldActionValidatorRuleService;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final PermissionService permissionService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -199,11 +201,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         for (TwinSort twinSort : twinSorts)
             if (twinSort.getTwinClassField() == null)
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
-    }
-
-
-    public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
-        load(attachments, TwinAttachmentEntity::getTwinClassFieldId, TwinAttachmentEntity::getTwinClassField, TwinAttachmentEntity::setTwinClassField);
     }
 
     public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
@@ -781,5 +778,37 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             ));
         }
         twinValidatorSetService.loadTwinValidatorSet(rules);
+    }
+
+    public void loadTwinClass(TwinClassFieldEntity entity) throws ServiceException {
+        loadTwinClass(Collections.singletonList(entity));
+    }
+
+    public void loadTwinClass(List<TwinClassFieldEntity> entities) throws ServiceException {
+        twinClassService.load(
+                entities,
+                TwinClassFieldEntity::getTwinClassId,
+                TwinClassFieldEntity::getTwinClass,
+                TwinClassFieldEntity::setTwinClass
+        );
+    }
+
+    public void loadPermissions(TwinClassFieldEntity src) throws ServiceException {
+        loadPermissions(Collections.singletonList(src));
+    }
+
+    public void loadPermissions(Collection<TwinClassFieldEntity> srcCollection) throws ServiceException {
+        permissionService.load(
+                srcCollection,
+                new LoadedField<>(
+                        TwinClassFieldEntity::getViewPermissionId,
+                        TwinClassFieldEntity::getViewPermission,
+                        TwinClassFieldEntity::setViewPermission
+                ),
+                new LoadedField<>(
+                        TwinClassFieldEntity::getEditPermissionId,
+                        TwinClassFieldEntity::getEditPermission,
+                        TwinClassFieldEntity::setEditPermission
+                ));
     }
 }

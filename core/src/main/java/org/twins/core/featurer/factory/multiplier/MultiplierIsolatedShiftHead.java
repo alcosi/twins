@@ -32,7 +32,7 @@ public class MultiplierIsolatedShiftHead extends Multiplier {
         List<FactoryItem> ret = new ArrayList<>();
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity inputTwin = inputItem.getTwin();
-            twinService.loadHeadForTwin(inputTwin);
+            twinService.loadHead(inputTwin);
             if (inputTwin.getHeadTwin() == null) {
                 log.error(inputTwin.logShort() + " no head twin. Skipped by multiplier");
                 continue;

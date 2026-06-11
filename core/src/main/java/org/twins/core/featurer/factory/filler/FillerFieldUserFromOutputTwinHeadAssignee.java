@@ -41,7 +41,7 @@ public class FillerFieldUserFromOutputTwinHeadAssignee extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.getTwin();
-        TwinEntity headTwin = twinService.loadHeadForTwin(factoryItemTwin);
+        TwinEntity headTwin = twinService.loadHead(factoryItemTwin);
         if(null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
         if(null == headTwin.getAssignerUserId())

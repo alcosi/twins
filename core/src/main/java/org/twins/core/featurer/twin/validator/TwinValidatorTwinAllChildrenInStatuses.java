@@ -13,7 +13,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
     @Lazy
     @Autowired
-    TwinSearchService twinSearchService;
+    TwinSearchServiceV2 twinSearchService;
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
@@ -46,7 +46,7 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
         search
                 .addTwinClassId(classId, false)
                 .addStatusId(statusId, true);
-        Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
+        Map<UUID, Long> counts = twinSearchService.countByGroupFields(search, TwinEntity.BasicField.HEAD_TWIN_ID);
         CollectionValidationResult result = new CollectionValidationResult();
         for (var twinEntity : twinEntityCollection) {
             long count = counts.getOrDefault(twinEntity.getId(), 0L);

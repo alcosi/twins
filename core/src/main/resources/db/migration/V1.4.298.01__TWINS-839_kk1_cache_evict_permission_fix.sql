@@ -1,0 +1,1 @@
+UPDATE public.permission SET key = 'SYSTEM_CACHE_EVICT'::varchar(100) WHERE id = '00000000-0000-0004-0001-000000000501'::uuid;

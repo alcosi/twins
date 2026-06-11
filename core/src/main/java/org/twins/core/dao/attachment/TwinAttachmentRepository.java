@@ -65,7 +65,7 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
 
     @Transactional
     @Modifying
-    @Query(value = "update TwinAttachmentEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
+    @Query(value = "update TwinAttachmentEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twinSpecOnly.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
 }

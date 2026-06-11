@@ -137,6 +137,44 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
            "WHERE tl.dstTwinId = :twinId AND tl.linkId = :linkId)")
     int updateTwinStatusByDstTwinIdAndLinkId(@Param("twinId") UUID twinId, @Param("linkId") UUID linkId, @Param("statusId") UUID statusId);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity head SET head.twinStatusId = :headStatusId " +
+           "WHERE head.id = :headTwinId " +
+           "AND (:headTwinClassId IS NULL OR head.twinClassId = :headTwinClassId) " +
+           "AND NOT EXISTS (" +
+           "SELECT child.id FROM TwinEntity child " +
+           "WHERE child.headTwinId = :headTwinId " +
+           "AND child.id <> :currentTwinId " +
+           "AND child.twinStatusId IN :childrenStatuses)")
+    int updateHeadStatusIfNoChildrenInStatuses(
+            @Param("headTwinId") UUID headTwinId,
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("childrenStatuses") Collection<UUID> childrenStatuses,
+            @Param("headTwinClassId") UUID headTwinClassId,
+            @Param("headStatusId") UUID headStatusId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE TwinEntity dst SET dst.twinStatusId = :dstStatusId " +
+           "WHERE dst.id IN (" +
+           "  SELECT tl.dstTwinId FROM TwinLinkEntity tl " +
+           "  WHERE tl.srcTwinId = :currentTwinId " +
+           "  AND tl.linkId = :linkId" +
+           ") " +
+           "AND NOT EXISTS (" +
+           "  SELECT tl2.id FROM TwinLinkEntity tl2 " +
+           "  JOIN TwinEntity src ON src.id = tl2.srcTwinId " +
+           "  WHERE tl2.dstTwinId = dst.id " +
+           "  AND tl2.linkId = :linkId " +
+           "  AND tl2.srcTwinId <> :currentTwinId " +
+           "  AND src.twinStatusId IN :srcTwinsStatuses)")
+    int updateDstTwinStatusByLinkIfNoLinkedTwinsInStatuses(
+            @Param("currentTwinId") UUID currentTwinId,
+            @Param("linkId") UUID linkId,
+            @Param("srcTwinsStatuses") Collection<UUID> srcTwinsStatuses,
+            @Param("dstStatusId") UUID dstStatusId);
+
     @Query("select case when count(child) > 0 then true else false end " +
            "from TwinEntity child " +
            "where child.headTwinId in (" +

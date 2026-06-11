@@ -22,7 +22,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
@@ -46,7 +46,7 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
     @FeaturerParam(name = "Children twin class id", order = 3, optional = true)
     public static final FeaturerParamUUIDSet childrenTwinClassId = new FeaturerParamUUIDSetTwinsClassId("childrenTwinClassIds");
 
-    private final TwinSearchService twinSearchService;
+    private final TwinSearchServiceV2 twinSearchService;
     private final TwinClassFieldService twinClassFieldService;
 
     @Override
@@ -67,10 +67,7 @@ public class TwinValidatorTwinChildrenBooleanFieldHasValue extends TwinValidator
                 .setTwinClassExtendsHierarchyContainsIdList(childrenTwinClassId.extract(properties))
                 .setFieldsFilter(new TwinFieldFilter().addClause(new TwinFieldClause().addCondition(fieldSearch)));
 
-        Map<UUID, Long> headTwinIdToChildrenCount = twinSearchService.countGroupBy(
-                basicSearch,
-                TwinEntity.Fields.headTwinId
-        );
+        Map<UUID, Long> headTwinIdToChildrenCount = twinSearchService.countByGroupFields(basicSearch, TwinEntity.BasicField.HEAD_TWIN_ID);
 
         CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
         for (var twinEntity : twinEntityCollection) {

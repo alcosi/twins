@@ -15,6 +15,7 @@ public enum HistoryType {
     descriptionChanged("descriptionChanged"),
     createdByChanged("createdByChanged"),
     assigneeChanged("assigneeChanged"),
+    assigneeAssigned("assigneeAssigned"),
     assigneeUnassigned("assigneeUnassigned"),
     ownerChanged("ownerChanged"),
     externalIdChanged("externalIdChanged"),
