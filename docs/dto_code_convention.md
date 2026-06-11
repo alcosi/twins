@@ -253,7 +253,75 @@ Do not create `ResourceExportSqlRsDTOv1`. The response is a file download.
 
 ---
 
-## 7. Additional Conventions
+## 7. Duplicate API DTOs
+
+Duplicate APIs create deep copies of entities with a new key, optionally cascading to child entities. They use a **request DTO with a list of duplicate operations** and **reuse the existing entity list response DTO** — no dedicated duplicate response DTO is needed.
+
+### 7.1 Duplicate Item DTO
+
+```java
+@Schema(name = "ResourceDuplicateV1")
+public class ResourceDuplicateDTOv1 {
+    @Schema(description = "original resource id")
+    public UUID originalResourceId;
+
+    @Schema(description = "new resource key", example = "RESOURCE_COPY")
+    public String newKey;
+
+    @Schema(description = "[optional] duplicate child entities")
+    public boolean duplicateChildren = false;
+}
+```
+
+Rules:
+* Does **not** extend any base DTO — plain POJO with `@Data`, `@Accessors(chain = true)`
+* Contains: original entity ID (`UUID`), new key (`String`), optional boolean flags for child duplication
+* Boolean flags default to `false` (child duplication is opt-in)
+* For entities that can be copied to a different parent (e.g., status to another class), include an optional `newParentId` (`UUID`) field
+
+### 7.2 Duplicate Request DTO
+
+```java
+@Schema(name = "ResourceDuplicateRqV1")
+public class ResourceDuplicateRqDTOv1 extends Request {
+    @Schema(description = "duplicates list")
+    public List<ResourceDuplicateDTOv1> duplicates;
+}
+```
+
+* Extends `Request`
+* Contains `List<ResourceDuplicateDTOv1>` — supports batch duplication
+
+### 7.3 Domain Duplicate Object
+
+```java
+// domain/resource/ResourceDuplicate.java
+@Data
+@Accessors(chain = true)
+public class ResourceDuplicate {
+    // From DTO (set by reverse mapper)
+    private UUID originalResourceId;
+    private String newKey;
+    private boolean duplicateChildren = false;
+
+    // Resolved by service
+    private UUID newResourceId;
+    private ResourceEntity originalResource;
+    private ResourceEntity newResource;
+}
+```
+
+* Located in `domain/{domain}/` package
+* Two groups of fields: **from DTO** (raw input) and **resolved by service** (entity references)
+* The reverse mapper sets only DTO fields; the service fills in entity references via `load()`
+
+### 7.4 No Duplicate Response DTO
+
+Duplicate endpoints reuse the existing `{Entity}ListRsDTOv1`. Do not create `ResourceDuplicateRsDTOv1`.
+
+---
+
+## 8. Additional Conventions
 
 * DTOs should be as flat as possible
 * Nested DTOs are allowed only when there is a clear business necessity
