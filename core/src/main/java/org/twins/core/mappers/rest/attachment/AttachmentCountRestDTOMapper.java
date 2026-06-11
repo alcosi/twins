@@ -56,18 +56,23 @@ public class AttachmentCountRestDTOMapper extends RestSimpleDTOMapper<CountResul
                 .setStorageId(entity.getStorageId())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, TwinMode.Attachment2TwinMode.HIDE, src, AttachmentGroupField.twinId)) {
+            attachmentService.loadTwin(entity);
             twinRestDTOMapper.postpone(entity.getTwin(), mapperContext.forkOnPoint(TwinMode.Attachment2TwinMode.SHORT));
         }
         if (needLoad(mapperContext, UserMode.Attachment2UserMode.HIDE, src, AttachmentGroupField.createdByUserId)) {
+            attachmentService.loadCreatedByUser(entity);
             userRestDTOMapper.postpone(entity.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Attachment2UserMode.SHORT)));
         }
         if (needLoad(mapperContext, TransitionMode.Attachment2TransitionMode.HIDE, src, AttachmentGroupField.twinflowTransitionId)) {
+            attachmentService.loadTwinflowTransition(entity);
             transitionRestDTOMapper.postpone(entity.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.Attachment2TransitionMode.SHORT)));
         }
         if (needLoad(mapperContext, PermissionMode.Attachment2PermissionMode.HIDE, src, AttachmentGroupField.viewPermissionId)) {
+            attachmentService.loadViewPermission(entity);
             permissionRestDTOMapper.postpone(entity.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.Attachment2PermissionMode.SHORT)));
         }
         if (needLoad(mapperContext, TwinClassFieldMode.Attachment2TwinClassFieldMode.HIDE, src, AttachmentGroupField.twinClassFieldId)) {
+            attachmentService.loadTwinClassField(entity);
             twinClassFieldRestDTOMapper.postpone(entity.getTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.Attachment2TwinClassFieldMode.SHORT)));
         }
     }
@@ -77,7 +82,19 @@ public class AttachmentCountRestDTOMapper extends RestSimpleDTOMapper<CountResul
         var entities = srcCollection.stream().map(CountResult::getEntity).toList();
         var someCount = srcCollection.iterator().next();
         if (needLoad(mapperContext, TwinMode.Attachment2TwinMode.HIDE, someCount, AttachmentGroupField.twinId)) {
-            attachmentService.loadTwins(entities);
+            attachmentService.loadTwin(entities);
+        }
+        if (needLoad(mapperContext, UserMode.Attachment2UserMode.HIDE, someCount, AttachmentGroupField.createdByUserId)) {
+            attachmentService.loadCreatedByUser(entities);
+        }
+        if (needLoad(mapperContext, TransitionMode.Attachment2TransitionMode.HIDE, someCount, AttachmentGroupField.twinflowTransitionId)) {
+            attachmentService.loadTwinflowTransition(entities);
+        }
+        if (needLoad(mapperContext, PermissionMode.Attachment2PermissionMode.HIDE, someCount, AttachmentGroupField.viewPermissionId)) {
+            attachmentService.loadViewPermission(entities);
+        }
+        if (needLoad(mapperContext, TwinClassFieldMode.Attachment2TwinClassFieldMode.HIDE, someCount, AttachmentGroupField.twinClassFieldId)) {
+            attachmentService.loadTwinClassField(entities);
         }
     }
 }

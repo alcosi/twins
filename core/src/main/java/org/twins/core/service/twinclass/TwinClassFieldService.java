@@ -24,7 +24,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
@@ -202,11 +201,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         for (TwinSort twinSort : twinSorts)
             if (twinSort.getTwinClassField() == null)
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
-    }
-
-
-    public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
-        load(attachments, TwinAttachmentEntity::getTwinClassFieldId, TwinAttachmentEntity::getTwinClassField, TwinAttachmentEntity::setTwinClassField);
     }
 
     public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
