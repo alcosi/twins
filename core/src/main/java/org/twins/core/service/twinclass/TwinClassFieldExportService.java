@@ -2,21 +2,15 @@ package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.service.i18n.I18nExportService;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.EntityExportService;
 
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldExportService {
-    private final SqlBuilder sqlBuilder;
-    private final I18nService i18nService;
-    private final I18nExportService i18nExportService;
-
+public class TwinClassFieldExportService extends EntityExportService {
     public String exportToSql(Collection<TwinClassFieldEntity> fields) throws ServiceException {
         if (fields.isEmpty()) {
             return "";

@@ -172,11 +172,7 @@ For each i18n ID: loads the `I18nEntity` + its translations, then generates INSE
 ```java
 // Simple entity export (single entity type + i18n)
 @Service
-public class TwinStatusExportService {
-    private final SqlBuilder sqlBuilder;
-    private final I18nService i18nService;
-    private final I18nExportService i18nExportService;
-
+public class TwinStatusExportService extends EntityExportService {
     public String exportToSql(Collection<TwinStatusEntity> statuses) throws ServiceException {
         if (statuses.isEmpty()) return "";
 
@@ -202,13 +198,11 @@ public class TwinStatusExportService {
 ```java
 // Composite entity export (entity + optional children)
 @Service
-public class TwinClassExportService {
+public class TwinClassExportService extends EntityExportService{
     private final TwinClassService twinClassService;
     private final TwinClassFieldExportService twinClassFieldExportService;
     private final TwinStatusExportService twinStatusExportService;
     private final TwinflowExportService twinflowExportService;
-    private final I18nExportService i18nExportService;
-    private final SqlBuilder sqlBuilder;
 
     public String exportToSql(Set<UUID> twinClassIds,
                               boolean includeFields, boolean includeStatuses, boolean includeTwinflow)

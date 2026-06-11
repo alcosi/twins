@@ -4,6 +4,9 @@
 
 Пилот реализован на `DomainBusinessAccountUserSearchController` (TWINS-831). Паттерн основан на JPA Specification вместо Pageable-сортировки (причина: [Spring Data JPA #2253](https://github.com/spring-projects/spring-data-jpa/issues/2253) — дублирующий JOIN при Specification + Pageable.getSort()). Подробная архитектура: `docs/api_sorting_architecture.md`.
 
+## Связанные документы
+docs/api_counting_architecture.md
+docs/api_sorting_architecture.md
 ## Паттерн (на примере DomainBusinessAccountUser)
 
 Для каждой сущности нужно выполнить **7 изменений**:
@@ -13,7 +16,7 @@
 3. **SearchRqDTO** (изменить) → добавить `sortField` + `sortDirection` inline на уровне RqDTO (НЕ внутри SearchDTO). Jackson десериализует enum из JSON, невалидное значение → 400.
 4. **SearchService** (изменить) → **ОБЯЗАТЕЛЬНО** extends `EntitySearchService<S, E, SF, GF>`. Реализовать ВСЕ абстрактные методы: `createFilterSpecification()`, `createSortSpecification()`, `convertToEntityField()`, `mapGroupedField()`, `jpaSpecificationExecutor()`, `emptySearch()`, `entityClass()`, `newEntity()`. Sort-поля передаются как параметры в `search()`, а не хранятся в search object. Service **НЕ** может наследовать другой класс (Java не поддерживает множественное наследование) — если текущий сервис наследует EntitySecureFindServiceImpl, CRUD нужно вынести в отдельный ConfigService.
 5. **Domain Search Object** (изменить) → extends `EntitySearch<E>` (маркерный базовый класс).
-6. **Count DTOs** (новые файлы) → `{Entity}CountRqDTOv1` (search + groupFields), `{Entity}CountDTOv1 extends CountDTOv1` (поля группировки + count), `{Entity}CountRsDTOv1 extends ResponseRelatedObjectsDTOv1` (список counts).
+6. **Count DTOs** (новые файлы) → `{Entity}CountRqDTOv1` (search + groupFields), `{Entity}CountDTOv1 extends CountDTOv1` (поля группировки + count), `{Entity}CountRsDTOv1 extends ResponseCountDTOv1` (список counts).
 7. **Count Mapper** (новый файл) → `{Entity}CountRestDTOMapper extends RestSimpleDTOMapper<CountResult<E>, CountDTO>` — маппит CountResult → CountDTO. При наличии related objects — batch-load в `beforeCollectionConversion()`.
 8. **Контроллер** (изменить) → search endpoint вызывает `service.search(search, pagination, sortField, sortDirection)`. Добавить count endpoint: `service.countByGroupFields(search, groupFields)` → mapper → response.
 
