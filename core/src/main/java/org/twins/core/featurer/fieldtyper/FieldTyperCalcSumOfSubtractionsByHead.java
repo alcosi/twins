@@ -47,7 +47,8 @@ public class FieldTyperCalcSumOfSubtractionsByHead extends FieldTyperCalcBinaryB
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcSumOfSubtractionsByHead(
                 twinClassFieldEntity.getId(),
                 twinFieldDecimalRepository,
@@ -55,7 +56,9 @@ public class FieldTyperCalcSumOfSubtractionsByHead extends FieldTyperCalcBinaryB
                 secondFieldId.extract(properties),
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
-                statusExclude.extract(properties)
+                statusExclude.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId()
         );
     }
 }

@@ -26,7 +26,7 @@ import java.util.Properties;
         description = "Sum of fields by head twin"
 )
 @RequiredArgsConstructor
-public class FieldTyperCalcSumByHead extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcByHead {
+public class FieldTyperCalcSumByHead extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcByHead {
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
@@ -45,14 +45,17 @@ public class FieldTyperCalcSumByHead extends FieldTyperImmutable<FieldDescriptor
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcSumByHead(
                 twinFieldDecimalRepository,
                 twinClassFieldEntity.getId(),
                 fieldIds.extract(properties),
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
-                statusExclude.extract(properties)
+                statusExclude.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId()
         );
     }
 }

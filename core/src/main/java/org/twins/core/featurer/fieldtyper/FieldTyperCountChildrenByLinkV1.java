@@ -1,8 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -13,17 +13,20 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcBackwardLinkedTwinCount;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1351,
         name = "Count linked twins by link and status (on fly)",
         description = "Get count of linked twins by link and status(inc/exc) on fly")
+@RequiredArgsConstructor
 public class FieldTyperCountChildrenByLinkV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcBackwardLinkedTwinCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByLink {
 
-    @Autowired
-    TwinRepository twinRepository;
+    private final TwinRepository twinRepository;
+    private final AuthService authService;
 
     @Deprecated
     @Override
@@ -38,12 +41,16 @@ public class FieldTyperCountChildrenByLinkV1 extends FieldTyperImmutable<FieldDe
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        UUID userId = authService.getApiUser().getUserId();
+        UUID userGroupFootprintId = authService.getApiUser().getUser().getUserGroupsFootprint();
         return new TwinFieldStorageCalcBackwardLinkedTwinCount(
                 twinRepository,
                 twinClassFieldEntity.getId(),
                 linkIds.extract(properties),
                 linkedTwinStatusIdList.extract(properties),
-                exclude.extract(properties));
+                exclude.extract(properties),
+                userId,
+                userGroupFootprintId);
     }
 }

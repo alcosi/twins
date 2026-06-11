@@ -1,9 +1,9 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -21,9 +21,9 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1333,
         name = "Count children twins by twin class id (on fly)",
         description = "Get count of child-twins by twin class id on fly")
-public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenOfClassCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenOfTwinClass {
-    @Autowired
-    TwinFieldSimpleRepository twinFieldSimpleRepository;
+@RequiredArgsConstructor
+public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenOfClassCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenOfTwinClass {
+    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
 
     @Deprecated
     @Override
@@ -42,17 +42,22 @@ public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyperImmutable<Fi
         var classIds = twinClassIds.extract(properties);
         boolean useHierarchy = useExtendsHierarchy.extract(properties);
 
+        var permissionContext = calcPermissionContext();
         if (useHierarchy) {
             String lquery = LTreeUtils.buildLQueryFromUuids(classIds);
             return new TwinFieldStorageCalcChildrenOfClassCount(
                     twinFieldSimpleRepository,
                     twinClassFieldEntity.getId(),
-                    lquery);
+                    lquery,
+                    permissionContext.userId(),
+                    permissionContext.userGroupFootprintId());
         } else {
             return new TwinFieldStorageCalcChildrenOfClassCount(
                     twinFieldSimpleRepository,
                     twinClassFieldEntity.getId(),
-                    classIds);
+                    classIds,
+                    permissionContext.userId(),
+                    permissionContext.userGroupFootprintId());
         }
     }
 }
