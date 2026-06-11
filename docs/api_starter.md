@@ -103,7 +103,7 @@ For an entity named `{Entity}`, the following files are required:
 |---|-----------------------------------------------------------------------|--------------------------------------------------------------------|
 | `{Entity}Service` | `EntitySecureFindServiceImpl<E>` (via `TwinsEntitySecureFindService`) | CRUD operations, load methods, validation                          |
 | `{Entity}SearchService` | `EntitySearchService<S, E, SF, GF>`                                   | Search + count with sorting and grouping                           |
-| `{Entity}ExportService` |                                                                       |  Composes SQL export (i18n → entity → children), uses `SqlBuilder` |
+| `{Entity}ExportService` |  `EntityExportService`    |  Composes SQL export (i18n → entity → children), uses `SqlBuilder` |
 
 ### 2.8 Controllers (`controller/rest/priv/{domain}/`)
 

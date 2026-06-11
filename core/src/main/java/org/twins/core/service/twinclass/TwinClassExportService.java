@@ -3,25 +3,22 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.sql.SqlBuilder;
-import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.service.i18n.I18nExportService;
+import org.twins.core.service.EntityExportService;
 import org.twins.core.service.twin.TwinStatusExportService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinflow.TwinflowExportService;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TwinClassExportService {
+public class TwinClassExportService extends EntityExportService {
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldExportService twinClassFieldExportService;
@@ -29,8 +26,6 @@ public class TwinClassExportService {
     private final TwinflowExportService twinflowExportService;
     private final TwinStatusService twinStatusService;
     private final TwinflowService twinflowService;
-    private final I18nExportService i18nExportService;
-    private final SqlBuilder sqlBuilder;
 
     public String exportToSql(UUID twinClassId, boolean includeFields, boolean includeStatuses, boolean includeTwinflow) throws ServiceException {
         return exportToSql(Collections.singleton(twinClassId), includeFields, includeStatuses, includeTwinflow);

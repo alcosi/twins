@@ -38,11 +38,16 @@ import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.storage.StorageService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinflow.TwinflowTransitionService;
+import org.twins.core.service.user.UserService;
 
 import java.io.InputStream;
 import java.util.*;
@@ -66,6 +71,16 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private final AttachmentActionService attachmentActionService;
     private final FeaturerService featurerService;
     private final StorageService storageService;
+    @Lazy
+    private final UserService userService;
+    @Lazy
+    private final TwinflowTransitionService twinflowTransitionService;
+    @Lazy
+    private final PermissionService permissionService;
+    @Lazy
+    private final TwinClassFieldService twinClassFieldService;
+    @Lazy
+    private final CommentService commentService;
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
         return twinAttachmentEntity.getTwinflowTransitionId() == null
@@ -114,8 +129,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             UUID userId = apiUser.getUserId();
             UserEntity user = apiUser.getUser();
 
-            loadTwins(attachments);
-            storageService.loadStorages(attachments);
+            loadTwin(attachments);
+            loadTwinClassField(attachments);
+            storageService.detectStorage(attachments);
 
             List<TwinEntity> twins = attachments.stream()
                     .map(TwinAttachmentEntity::getTwin)
@@ -192,6 +208,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     protected void saveFile(TwinAttachmentEntity attachmentEntity, UUID uuid) throws ServiceException {
         //Not just link, have to add file to storage
+        loadStorage(attachmentEntity);
         StorageEntity storage = attachmentEntity.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey;
@@ -239,23 +256,95 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
-    public void loadTwins(List<TwinAttachmentEntity> attachments) throws ServiceException {
-        //be careful, TwinAttachmentEntity can be without id, because it's not saved yet, do not use kit.getMap function
-        KitGrouped<TwinAttachmentEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinAttachmentEntity::getId, TwinAttachmentEntity::getTwinId);
-        for (TwinAttachmentEntity attachmentEntity : attachments) {
-            if (attachmentEntity.getTwinId() == null)
-                throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_EMPTY_TWIN_ID);
-            if (attachmentEntity.getTwin() == null)
-                needLoad.add(attachmentEntity);
-        }
-        if (needLoad.isEmpty())
-            return;
-        Kit<TwinEntity, UUID> twinsKit = twinService.findEntitiesSafe(needLoad.getGroupedMap().keySet());
-        for (var entry : needLoad.getGroupedMap().entrySet()) {
-            for (TwinAttachmentEntity attachmentEntity : entry.getValue()) {
-                attachmentEntity.setTwin(twinsKit.get(attachmentEntity.getTwinId()));
-            }
-        }
+
+    public void loadTwin(TwinAttachmentEntity entity) throws ServiceException {
+        loadTwin(Collections.singletonList(entity));
+    }
+
+    public void loadTwin(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        twinService.load(
+                attachments,
+                TwinAttachmentEntity::getTwinId,
+                TwinAttachmentEntity::getTwin,
+                TwinAttachmentEntity::setTwin);
+    }
+
+    public void loadCreatedByUser(TwinAttachmentEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        userService.load(
+                attachments,
+                TwinAttachmentEntity::getCreatedByUserId,
+                TwinAttachmentEntity::getCreatedByUser,
+                TwinAttachmentEntity::setCreatedByUser
+        );
+    }
+
+    public void loadTwinflowTransition(TwinAttachmentEntity entity) throws ServiceException {
+        loadTwinflowTransition(Collections.singletonList(entity));
+    }
+
+    public void loadTwinflowTransition(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        twinflowTransitionService.load(
+                attachments,
+                TwinAttachmentEntity::getTwinflowTransitionId,
+                TwinAttachmentEntity::getTwinflowTransition,
+                TwinAttachmentEntity::setTwinflowTransition
+        );
+    }
+
+    public void loadViewPermission(TwinAttachmentEntity entity) throws ServiceException {
+        loadViewPermission(Collections.singletonList(entity));
+    }
+
+    public void loadViewPermission(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        permissionService.load(
+                attachments,
+                TwinAttachmentEntity::getViewPermissionId,
+                TwinAttachmentEntity::getViewPermission,
+                TwinAttachmentEntity::setViewPermission
+        );
+    }
+
+    public void loadTwinClassField(TwinAttachmentEntity entity) throws ServiceException {
+        loadTwinClassField(Collections.singletonList(entity));
+    }
+
+    public void loadTwinClassField(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        twinClassFieldService.load(
+                attachments,
+                TwinAttachmentEntity::getTwinClassFieldId,
+                TwinAttachmentEntity::getTwinClassField,
+                TwinAttachmentEntity::setTwinClassField
+        );
+    }
+
+    public void loadComment(TwinAttachmentEntity entity) throws ServiceException {
+        loadComment(Collections.singletonList(entity));
+    }
+
+    public void loadComment(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        commentService.load(
+                attachments,
+                TwinAttachmentEntity::getTwinCommentId,
+                TwinAttachmentEntity::getComment,
+                TwinAttachmentEntity::setComment
+        );
+    }
+
+    public void loadStorage(TwinAttachmentEntity entity) throws ServiceException {
+        loadStorage(Collections.singletonList(entity));
+    }
+
+    public void loadStorage(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        storageService.load(
+                attachments,
+                TwinAttachmentEntity::getStorageId,
+                TwinAttachmentEntity::getStorage,
+                TwinAttachmentEntity::setStorage
+        );
     }
 
     public List<TwinAttachmentEntity> findAttachmentByTwinId(UUID twinId) {
@@ -369,6 +458,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         if (attachement == null)
             return;
 
+        loadTwin(attachement);
+
         EntityCUD<TwinAttachmentEntity> attachmentCUD = new EntityCUD<>();
         attachmentCUD.setDeleteList(List.of(attachement));
 
@@ -407,7 +498,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
-        storageService.loadStorages(attachmentEntityList);
+        storageService.detectStorage(attachmentEntityList);
         Kit<TwinAttachmentEntity, UUID> newAttachmentKit = new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId);
         Kit<TwinAttachmentEntity, UUID> dbAttachmentKit = new Kit<>(twinAttachmentRepository.findByIdIn(newAttachmentKit.getIdSet()), TwinAttachmentEntity::getId);
         TwinAttachmentEntity dbAttachmentEntity;
@@ -505,7 +596,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void deleteAttachments(List<TwinAttachmentEntity> attachmentDeleteList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
-        loadTwins(attachmentDeleteList);
+        loadTwin(attachmentDeleteList);
         loadAttachmentModifications(attachmentDeleteList);
         for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
             if (!attachmentActionService.isAllowed(attachmentEntity, TwinAttachmentAction.DELETE)) {// N+1
@@ -577,6 +668,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Transactional(readOnly = true)
     public InputStreamResponse getAttachmentFile(UUID attachmentId) throws ServiceException {
         var attachment = findEntitySafe(attachmentId);
+        loadStorage(attachment);
         StorageEntity storage = attachment.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         var stream = fileService.getFileAsStream(attachment.getStorageFileKey(), storage.getStoragerParams());
@@ -591,6 +683,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         var attachement = findEntitySafe(attachmentId);
         if (attachement.getStorageId().equals(newStorageId))
             return attachement;
+        loadStorage(Collections.singletonList(attachement));
         StorageEntity oldStorage = attachement.getStorage();
         StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
 
@@ -612,6 +705,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     public String getAttachmentUri(TwinAttachmentEntity attachment) throws ServiceException {
         if (attachment != null) {
+            loadStorage(attachment);
             var featurer = featurerService.getFeaturer(attachment.getStorage().getStorageFeaturerId(), Storager.class);
             return featurer.getFileUri(attachment.getId(), attachment.getStorageFileKey(), attachment.getStorage().getStoragerParams()).toString();
         }
@@ -619,6 +713,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     protected void deleteFile(TwinAttachmentEntity attachment) throws ServiceException {
+        loadStorage(Collections.singletonList(attachment));
         StorageEntity storage = attachment.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         fileService.tryDeleteFile(attachment.getStorageFileKey(), storage.getStoragerParams());
