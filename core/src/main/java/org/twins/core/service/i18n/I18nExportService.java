@@ -1,6 +1,7 @@
 package org.twins.core.service.i18n;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -31,5 +32,11 @@ public class I18nExportService {
             }
         }
         return result.toString();
+    }
+
+    public void addExportSafe(Set<UUID> i18nIds, StringList sqlParts) throws ServiceException {
+        if (!i18nIds.isEmpty()) {
+            sqlParts.addNotBlank(exportToSql(i18nIds));
+        }
     }
 }

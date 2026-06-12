@@ -1,32 +1,29 @@
 package org.twins.core.service.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.service.EntityExportService;
 
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryConditionSetExportService {
+public class FactoryConditionSetExportService extends EntityExportService {
     private final FactoryConditionService factoryConditionService;
-    private final SqlBuilder sqlBuilder;
 
     public String exportToSql(Collection<TwinFactoryConditionSetEntity> conditionSets) throws ServiceException {
         if (conditionSets.isEmpty()) {
             return "";
         }
 
-        List<String> sqlParts = new ArrayList<>();
+        var sqlParts = new StringList();
 
         // ConditionSets
-        String conditionSetsSql = sqlBuilder.buildInserts(conditionSets);
-        if (!conditionSetsSql.isEmpty()) {
-            sqlParts.add(conditionSetsSql);
-        }
+        sqlParts.addNotBlank(sqlBuilder.buildInserts(conditionSets));
 
         // Collect ConditionSet IDs and load Conditions
         Set<UUID> conditionSetIds = new HashSet<>();
@@ -36,10 +33,7 @@ public class FactoryConditionSetExportService {
 
         List<TwinFactoryConditionEntity> conditions = factoryConditionService.findByTwinFactoryConditionSetIdIn(conditionSetIds);
         if (!conditions.isEmpty()) {
-            String conditionsSql = sqlBuilder.buildInserts(conditions);
-            if (!conditionsSql.isEmpty()) {
-                sqlParts.add(conditionsSql);
-            }
+            sqlParts.addNotBlank(sqlBuilder.buildInserts(conditions));
         }
 
         return String.join("\n", sqlParts);

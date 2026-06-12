@@ -1,6 +1,7 @@
 package org.twins.core.service.twinflow;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.sql.SqlBuilder;
@@ -11,7 +12,10 @@ import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.service.i18n.I18nExportService;
 import org.twins.core.service.i18n.I18nService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,13 +40,10 @@ public class TwinflowExportService {
                 TwinflowEntity::getNameI18NId,
                 TwinflowEntity::getDescriptionI18NId);
 
-        List<String> sqlParts = new ArrayList<>();
+        var sqlParts = new StringList();
 
         if (!i18nIds.isEmpty()) {
-            String i18nSql = i18nExportService.exportToSql(i18nIds);
-            if (!i18nSql.isEmpty()) {
-                sqlParts.add(i18nSql);
-            }
+            sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
         }
 
         StringBuilder result = new StringBuilder();
@@ -65,9 +66,7 @@ public class TwinflowExportService {
             }
         }
 
-        if (!result.isEmpty()) {
-            sqlParts.add(result.toString());
-        }
+        sqlParts.addNotBlank(result.toString());
 
         return String.join("\n", sqlParts);
     }

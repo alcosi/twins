@@ -4,38 +4,33 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.service.EntityExportService;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryBranchExportService extends EntityExportService {
-    private final FactoryBranchService factoryBranchService;
+public class FactoryMultiplierFilterExportService extends EntityExportService {
+    private final FactoryMultiplierFilterService factoryMultiplierFilterService;
     private final FactoryConditionSetExportService conditionSetExportService;
 
-    public String exportToSql(Set<UUID> branchIds) throws ServiceException {
-        return exportToSql(factoryBranchService.findEntitiesSafe(branchIds).getList());
-    }
-
-    public String exportToSql(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
-        if (branches.isEmpty()) {
+    public String exportToSql(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+        if (filters.isEmpty()) {
             return "";
         }
 
         var sqlParts = new StringList();
 
-        // Load conditionSets for branches
-        factoryBranchService.loadConditionSets(branches);
+        // Load conditionSets for filters
+        factoryMultiplierFilterService.loadConditionSets(filters);
         Set<TwinFactoryConditionSetEntity> conditionSets = new HashSet<>();
-        for (TwinFactoryBranchEntity branch : branches) {
-            if (branch.getConditionSet() != null) {
-                conditionSets.add(branch.getConditionSet());
+        for (TwinFactoryMultiplierFilterEntity filter : filters) {
+            if (filter.getConditionSet() != null) {
+                conditionSets.add(filter.getConditionSet());
             }
         }
 
@@ -44,8 +39,8 @@ public class FactoryBranchExportService extends EntityExportService {
             sqlParts.addNotBlank(conditionSetExportService.exportToSql(conditionSets));
         }
 
-        // Export Branches
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(branches));
+        // Export MultiplierFilters
+        sqlParts.addNotBlank(sqlBuilder.buildInserts(filters));
 
         return String.join("\n", sqlParts);
     }

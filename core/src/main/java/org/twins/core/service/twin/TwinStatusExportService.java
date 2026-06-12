@@ -1,6 +1,7 @@
 package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
@@ -8,7 +9,9 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.service.i18n.I18nExportService;
 import org.twins.core.service.i18n.I18nService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,19 +29,13 @@ public class TwinStatusExportService {
                 TwinStatusEntity::getNameI18nId,
                 TwinStatusEntity::getDescriptionI18nId);
 
-        List<String> sqlParts = new ArrayList<>();
+        var sqlParts = new StringList();
 
         if (!i18nIds.isEmpty()) {
-            String i18nSql = i18nExportService.exportToSql(i18nIds);
-            if (!i18nSql.isEmpty()) {
-                sqlParts.add(i18nSql);
-            }
+            sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
         }
 
-        String statusesSql = sqlBuilder.buildInserts(statuses);
-        if (!statusesSql.isEmpty()) {
-            sqlParts.add(statusesSql);
-        }
+        sqlParts.addNotBlank(sqlBuilder.buildInserts(statuses));
 
         return String.join("\n", sqlParts);
     }

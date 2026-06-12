@@ -1,23 +1,26 @@
 package org.twins.core.service.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
+import org.twins.core.service.EntityExportService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryTriggerExportService {
+public class FactoryTriggerExportService extends EntityExportService {
     private final FactoryTriggerService factoryTriggerService;
     private final FactoryConditionSetExportService conditionSetExportService;
-    private final SqlBuilder sqlBuilder;
 
     public String exportToSql(Set<UUID> triggerIds) throws ServiceException {
-        return exportToSql(factoryTriggerService.findEntitiesSafe(triggerIds).getList());
+        return exportToSql(factoryTriggerService.findEntitiesSafe(triggerIds).getCollection());
     }
 
     public String exportToSql(Collection<TwinFactoryTriggerEntity> triggers) throws ServiceException {
@@ -25,7 +28,7 @@ public class FactoryTriggerExportService {
             return "";
         }
 
-        List<String> sqlParts = new ArrayList<>();
+        var sqlParts = new StringList();
 
         // Load conditionSets for triggers
         factoryTriggerService.loadConditionSets(triggers);
@@ -38,17 +41,11 @@ public class FactoryTriggerExportService {
 
         // Export ConditionSets and Conditions
         if (!conditionSets.isEmpty()) {
-            String conditionSetSql = conditionSetExportService.exportToSql(conditionSets);
-            if (!conditionSetSql.isEmpty()) {
-                sqlParts.add(conditionSetSql);
-            }
+            sqlParts.addNotBlank(conditionSetExportService.exportToSql(conditionSets));
         }
 
         // Export Triggers
-        String triggersSql = sqlBuilder.buildInserts(triggers);
-        if (!triggersSql.isEmpty()) {
-            sqlParts.add(triggersSql);
-        }
+        sqlParts.addNotBlank(sqlBuilder.buildInserts(triggers));
 
         return String.join("\n", sqlParts);
     }

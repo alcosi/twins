@@ -1,23 +1,26 @@
 package org.twins.core.service.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
+import org.twins.core.service.EntityExportService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryPipelineStepExportService {
+public class FactoryPipelineStepExportService extends EntityExportService {
     private final FactoryPipelineStepService factoryPipelineStepService;
     private final FactoryConditionSetExportService conditionSetExportService;
-    private final SqlBuilder sqlBuilder;
 
     public String exportToSql(Set<UUID> stepIds) throws ServiceException {
-        return exportToSql(factoryPipelineStepService.findEntitiesSafe(stepIds).getList());
+        return exportToSql(factoryPipelineStepService.findEntitiesSafe(stepIds).getCollection());
     }
 
     public String exportToSql(Collection<TwinFactoryPipelineStepEntity> steps) throws ServiceException {
@@ -25,7 +28,7 @@ public class FactoryPipelineStepExportService {
             return "";
         }
 
-        List<String> sqlParts = new ArrayList<>();
+        var sqlParts = new StringList();
 
         // Load conditionSets for steps
         factoryPipelineStepService.loadConditionSets(steps);
@@ -38,17 +41,11 @@ public class FactoryPipelineStepExportService {
 
         // Export ConditionSets and Conditions
         if (!conditionSets.isEmpty()) {
-            String conditionSetSql = conditionSetExportService.exportToSql(conditionSets);
-            if (!conditionSetSql.isEmpty()) {
-                sqlParts.add(conditionSetSql);
-            }
+            sqlParts.addNotBlank(conditionSetExportService.exportToSql(conditionSets));
         }
 
         // Export Pipeline Steps
-        String stepsSql = sqlBuilder.buildInserts(steps);
-        if (!stepsSql.isEmpty()) {
-            sqlParts.add(stepsSql);
-        }
+        sqlParts.addNotBlank(sqlBuilder.buildInserts(steps));
 
         return String.join("\n", sqlParts);
     }
