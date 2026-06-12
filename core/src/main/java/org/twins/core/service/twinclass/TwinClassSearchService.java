@@ -128,10 +128,6 @@ public class TwinClassSearchService extends EntitySearchService
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.viewPermissionId))
                         .and(checkUuidIn(twinClassSearch.getCreatePermissionIdList(), false, false, TwinClassEntity.Fields.createPermissionId))
                         .and(checkUuidIn(twinClassSearch.getCreatePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.createPermissionId))
-                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
-                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
-                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
-                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
                         .and(checkFieldIntegerRange(twinClassSearch.getTwinCounterRange(), TwinClassEntity.Fields.twinCounter))
                         .and(checkIntegerIn(twinClassSearch.getHeadHunterFeaturerIdList(), false, TwinClassEntity.Fields.headHunterFeaturerId))
                         .and(checkTernary(twinClassSearch.getHasDynamicMarkers(), TwinClassEntity.Fields.hasDynamicMarkers))
@@ -166,12 +162,11 @@ public class TwinClassSearchService extends EntitySearchService
             case twinClassSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinClassSchemaSpace);
             case aliasSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.aliasSpace);
             case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
-            case editPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
-            case deletePermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.deletePermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
             case assigneeRequired -> toSortSpecification(ascending, TwinClassEntity.Fields.assigneeRequired);
             case hasDynamicMarkers -> toSortSpecification(ascending, TwinClassEntity.Fields.hasDynamicMarkers);
             case breadCrumbsFaceName -> toSortSpecification(ascending, TwinClassEntity.Fields.breadCrumbsFaceSpecOnly, FaceEntity.Fields.name);
             case pageFaceName -> toSortSpecification(ascending, TwinClassEntity.Fields.pageFaceSpecOnly, FaceEntity.Fields.name);
+            case createdByUserName -> toSortSpecification(ascending, TwinClassEntity.Fields.createdByUserSpecOnly, FaceEntity.Fields.name);
         };
     }
 
@@ -190,14 +185,14 @@ public class TwinClassSearchService extends EntitySearchService
             case twinClassSchemaSpace -> TwinClassEntity.Fields.twinClassSchemaSpace;
             case aliasSpace -> TwinClassEntity.Fields.aliasSpace;
             case viewPermissionId -> TwinClassEntity.Fields.viewPermissionId;
+            case createPermissionId -> TwinClassEntity.Fields.createPermissionId;
             case headHunterFeaturerId -> TwinClassEntity.Fields.headHunterFeaturerId;
-            case editPermissionId -> TwinClassEntity.Fields.editPermissionId;
-            case deletePermissionId -> TwinClassEntity.Fields.deletePermissionId;
             case assigneeRequired -> TwinClassEntity.Fields.assigneeRequired;
             case uniqueName -> TwinClassEntity.Fields.uniqueName;
             case hasDynamicMarkers -> TwinClassEntity.Fields.hasDynamicMarkers;
             case breadCrumbsFaceId -> TwinClassEntity.Fields.breadCrumbsFaceId;
             case pageFaceId -> TwinClassEntity.Fields.pageFaceId;
+            case createdByUserId -> TwinClassEntity.Fields.createdByUserId;
         };
     }
 
@@ -216,14 +211,14 @@ public class TwinClassSearchService extends EntitySearchService
             case twinClassSchemaSpace -> entity.setTwinClassSchemaSpace((Boolean) o);
             case aliasSpace -> entity.setAliasSpace((Boolean) o);
             case viewPermissionId -> entity.setViewPermissionId((UUID) o);
+            case createPermissionId -> entity.setCreatePermissionId((UUID) o);
             case headHunterFeaturerId -> entity.setHeadHunterFeaturerId((Integer) o);
-            case editPermissionId -> entity.setEditPermissionId((UUID) o);
-            case deletePermissionId -> entity.setDeletePermissionId((UUID) o);
             case assigneeRequired -> entity.setAssigneeRequired((Boolean) o);
             case uniqueName -> entity.setUniqueName((Boolean) o);
             case hasDynamicMarkers -> entity.setHasDynamicMarkers((Boolean) o);
             case breadCrumbsFaceId -> entity.setBreadCrumbsFaceId((UUID) o);
             case pageFaceId -> entity.setPageFaceId((UUID) o);
+            case createdByUserId -> entity.setCreatedByUserId((UUID) o);
         }
     }
 

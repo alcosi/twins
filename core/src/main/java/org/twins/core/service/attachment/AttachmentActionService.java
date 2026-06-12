@@ -37,6 +37,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AttachmentActionService {
     private final AuthService authService;
+    @Lazy
+    private final AttachmentService attachmentService;
     private final TwinAttachmentActionAlienPermissionRepository twinAttachmentActionAlienPermissionRepository;
     private final TwinAttachmentActionAlienValidatorRuleRepository twinAttachmentActionAlienValidatorRuleRepository;
     private final TwinAttachmentActionSelfValidatorRuleRepository twinAttachmentActionSelfValidatorRuleRepository;
@@ -50,6 +52,7 @@ public class AttachmentActionService {
     public void loadAttachmentActions(TwinAttachmentEntity twinAttachment) throws ServiceException {
         if (twinAttachment.getAttachmentActions() != null)
             return;
+        attachmentService.loadTwin(twinAttachment);
         if (twinAttachment.getCreatedByUserId().equals(authService.getApiUser().getUserId()))
             loadAttachmentSelfActions(twinAttachment);
         else
@@ -142,17 +145,8 @@ public class AttachmentActionService {
         }
     }
 
-    private void loadClassAttachmentActionsAlienProtected(TwinClassEntity twinClass) {
-        if (twinClass.getAttachmentAlienActionsProtectedByPermission() == null)
-            twinClass.setAttachmentAlienActionsProtectedByPermission(new Kit<>(
-                    twinAttachmentActionAlienPermissionRepository.findByTwinClassId(twinClass.getId()),
-                    TwinAttachmentActionAlienPermissionEntity::getTwinAttachmentAction));
-        if (twinClass.getAttachmentAlienActionsProtectedByValidatorRules() == null)
-            twinClass.setAttachmentAlienActionsProtectedByValidatorRules(new KitGrouped<>(
-                    twinAttachmentActionAlienValidatorRuleRepository.findByTwinClassIdOrderByOrder(twinClass.getId()),
-                    TwinAttachmentActionAlienValidatorRuleEntity::getId,
-                    TwinAttachmentActionAlienValidatorRuleEntity::getTwinAttachmentAction
-            ));
+    private void loadClassAttachmentActionsAlienProtected(TwinClassEntity twinClass) throws ServiceException {
+        loadClassAttachmentActionsAlienProtected(Collections.singletonList(twinClass));
     }
 
     public void loadClassAttachmentActionsAlienProtected(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
@@ -225,6 +219,7 @@ public class AttachmentActionService {
         Set<TwinClassEntity> needLoadAttachmentActionsAlienProtected = new HashSet<>();
         Set<TwinClassEntity> needLoadAttachmentActionsSelfRestrict = new HashSet<>();
         UUID currentUserId = authService.getApiUser().getUserId();
+        attachmentService.loadTwin(twinAttachments);
         for (TwinAttachmentEntity twinAttachment : twinAttachments) {
             if (twinAttachment.getAttachmentActions() != null)
                 continue;
@@ -250,7 +245,7 @@ public class AttachmentActionService {
     public void checkAllowed(TwinAttachmentEntity twinAttachmentEntity, TwinAttachmentAction action) throws ServiceException {
         if (!isAllowed(twinAttachmentEntity, action))
             throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE,
-                    "The action[" + action.name() + "] not available for attachment[" + twinAttachmentEntity.getId() + "] on " + twinAttachmentEntity.getTwin().logNormal());
+                    "The action[" + action.name() + "] not available for attachment[" + twinAttachmentEntity.getId() + "] on " + twinAttachmentEntity.getTwinId());
     }
 
     public boolean isAllowed(TwinAttachmentEntity twinAttachmentEntity, TwinAttachmentAction action) throws ServiceException {

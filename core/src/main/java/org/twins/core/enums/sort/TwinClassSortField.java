@@ -20,10 +20,9 @@ public enum TwinClassSortField {
     twinClassSchemaSpace,
     aliasSpace,
     viewPermissionName,
-    editPermissionName,
-    deletePermissionName,
     assigneeRequired,
     hasDynamicMarkers,
     breadCrumbsFaceName,
-    pageFaceName
+    pageFaceName,
+    createdByUserName
 }

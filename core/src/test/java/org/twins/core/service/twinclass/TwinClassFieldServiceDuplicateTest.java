@@ -7,12 +7,10 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.i18n.I18nService;
@@ -26,11 +24,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TwinClassFieldServiceDuplicateTest {
 
-    @Mock private I18nService i18nService;
-    @Mock private TwinClassFieldRepository twinClassFieldRepository;
+    @Mock private TwinClassFieldService twinClassFieldService;
     @Mock private TwinClassService twinClassService;
+    @Mock private I18nService i18nService;
 
-    private TwinClassFieldService twinClassFieldService;
+    private TwinClassFieldDuplicateService twinClassFieldDuplicateService;
 
     private TwinClassFieldEntity srcField;
     private TwinClassEntity srcClass;
@@ -47,11 +45,8 @@ class TwinClassFieldServiceDuplicateTest {
 
     @BeforeEach
     void setUp() {
-        twinClassFieldService = Mockito.spy(
-                new TwinClassFieldService(
-                        twinClassFieldRepository, i18nService, null, null,
-                        null, null, twinClassService, null, null, null, null, null
-                )
+        twinClassFieldDuplicateService = new TwinClassFieldDuplicateService(
+                twinClassFieldService, twinClassService, i18nService
         );
 
         srcFieldId = UUID.randomUUID();
@@ -95,15 +90,16 @@ class TwinClassFieldServiceDuplicateTest {
 
     /** Builds a TwinClassFieldDuplicate with originalTwinClassField pre-set to bypass DB load. */
     private TwinClassFieldDuplicate duplicateOf(TwinClassFieldEntity original, UUID newTwinClassId, String key) {
-        return new TwinClassFieldDuplicate()
-                .setOriginalTwinClassFieldId(original.getId())
-                .setOriginalTwinClassField(original)
-                .setNewTwinClassId(newTwinClassId)
-                .setNewTwinClass(dstClass)
-                .setNewKey(key);
+        TwinClassFieldDuplicate d = new TwinClassFieldDuplicate();
+        d.setOriginalEntityId(original.getId());
+        d.setOriginalEntity(original);
+        d.setNewKey(key);
+        d.setNewTwinClassId(newTwinClassId);
+        d.setNewTwinClass(dstClass);
+        return d;
     }
 
-    /** Stubs saveSafe(Collection) to echo and capture saved entities. */
+    /** Stubs saveSafe(Collection) on the entity service to echo and capture saved entities. */
     private List<TwinClassFieldEntity> stubSaveSafeAndCapture() throws ServiceException {
         List<TwinClassFieldEntity> captured = new ArrayList<>();
         doAnswer(inv -> {
@@ -121,7 +117,7 @@ class TwinClassFieldServiceDuplicateTest {
         void copiesEveryPersistentFieldAndSetsTargetClass() throws ServiceException {
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "new_key")));
+            twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             TwinClassFieldEntity saved = captured.get(0);
             assertNotSame(srcField, saved);
@@ -149,7 +145,7 @@ class TwinClassFieldServiceDuplicateTest {
         void hardcodesRelationFlagsToFalse() throws ServiceException {
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "new_key")));
+            twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             TwinClassFieldEntity saved = captured.get(0);
             assertEquals(Boolean.FALSE, saved.getDependentField());
@@ -164,7 +160,7 @@ class TwinClassFieldServiceDuplicateTest {
 
             TwinClassFieldDuplicate dup = duplicateOf(srcField, null, "new_key"); // newTwinClassId = null
 
-            twinClassFieldService.duplicateFields(List.of(dup));
+            twinClassFieldDuplicateService.duplicate(List.of(dup));
 
             assertEquals(srcClassId, captured.get(0).getTwinClassId());
         }
@@ -173,7 +169,7 @@ class TwinClassFieldServiceDuplicateTest {
         void lowercasesNewKey() throws ServiceException {
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "MixedCaseKey")));
+            twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "MixedCaseKey")));
 
             assertEquals("mixedcasekey", captured.get(0).getKey());
         }
@@ -206,7 +202,7 @@ class TwinClassFieldServiceDuplicateTest {
 
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "new_key")));
+            twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             TwinClassFieldEntity saved = captured.get(0);
             assertEquals(dupNameI18nId, saved.getNameI18nId());
@@ -234,7 +230,7 @@ class TwinClassFieldServiceDuplicateTest {
 
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "new_key")));
+            twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             TwinClassFieldEntity saved = captured.get(0);
             assertNull(saved.getNameI18nId());
@@ -248,7 +244,7 @@ class TwinClassFieldServiceDuplicateTest {
         void skipsAllI18nWhenSrcHasNone() throws ServiceException {
             stubSaveSafeAndCapture();
 
-            twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "new_key")));
+            twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             verifyNoInteractions(i18nService);
         }
@@ -269,7 +265,7 @@ class TwinClassFieldServiceDuplicateTest {
             );
 
             ServiceException ex = assertThrows(ServiceException.class,
-                    () -> twinClassFieldService.duplicateFields(batch));
+                    () -> twinClassFieldDuplicateService.duplicate(batch));
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT.getCode(), ex.getErrorCode());
         }
@@ -284,7 +280,7 @@ class TwinClassFieldServiceDuplicateTest {
 
             stubSaveSafeAndCapture();
 
-            Collection<TwinClassFieldEntity> result = twinClassFieldService.duplicateFields(List.of(
+            Collection<TwinClassFieldEntity> result = twinClassFieldDuplicateService.duplicate(List.of(
                     duplicateOf(srcField, dstClassId, "key_one"),
                     duplicateOf(src2, dstClassId, "key_two")
             ));
@@ -294,7 +290,7 @@ class TwinClassFieldServiceDuplicateTest {
 
         @Test
         void returnsEmptyOnEmptyInput() throws ServiceException {
-            Collection<TwinClassFieldEntity> result = twinClassFieldService.duplicateFields(Collections.emptyList());
+            Collection<TwinClassFieldEntity> result = twinClassFieldDuplicateService.duplicate(Collections.emptyList());
 
             assertTrue(result.isEmpty());
             verify(twinClassFieldService, never()).saveSafe(any(Collection.class));
@@ -308,10 +304,8 @@ class TwinClassFieldServiceDuplicateTest {
         @Test
         @Disabled("TODO: implement existsByKeyAndTwinClassId check before saveSafe")
         void throwsWhenFieldWithSameKeyAlreadyExistsInTargetClass() throws ServiceException {
-            when(twinClassFieldRepository.existsByKeyAndTwinClassId("new_key", dstClassId)).thenReturn(true);
-
             assertThrows(ServiceException.class,
-                    () -> twinClassFieldService.duplicateFields(List.of(duplicateOf(srcField, dstClassId, "new_key"))));
+                    () -> twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key"))));
 
             verify(twinClassFieldService, never()).saveSafe(any(Collection.class));
         }
@@ -325,10 +319,10 @@ class TwinClassFieldServiceDuplicateTest {
                     .setTwinClassId(srcClassId)
                     .setTwinClass(srcClass);
 
-            when(twinClassFieldRepository.existsByKeyAndTwinClassId("conflict_key", dstClassId)).thenReturn(true);
+            stubSaveSafeAndCapture();
 
             assertThrows(ServiceException.class,
-                    () -> twinClassFieldService.duplicateFields(List.of(
+                    () -> twinClassFieldDuplicateService.duplicate(List.of(
                             duplicateOf(srcField, dstClassId, "ok_key"),
                             duplicateOf(src2, dstClassId, "conflict_key")
                     )));

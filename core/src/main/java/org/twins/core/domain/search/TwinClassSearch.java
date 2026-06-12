@@ -56,10 +56,6 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> createPermissionIdList;
     private Set<UUID> createPermissionIdExcludeList;
-    private Set<UUID> editPermissionIdList;
-    private Set<UUID> editPermissionIdExcludeList;
-    private Set<UUID> deletePermissionIdList;
-    private Set<UUID> deletePermissionIdExcludeList;
     private IntegerRange twinCounterRange;
     private Set<Integer> headHunterFeaturerIdList;
     private Ternary hasDynamicMarkers;
@@ -108,11 +104,7 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
             Pair.of(TwinClassSearch::getViewPermissionIdList, TwinClassSearch::setViewPermissionIdList),
             Pair.of(TwinClassSearch::getViewPermissionIdExcludeList, TwinClassSearch::setViewPermissionIdExcludeList),
             Pair.of(TwinClassSearch::getCreatePermissionIdList, TwinClassSearch::setCreatePermissionIdList),
-            Pair.of(TwinClassSearch::getCreatePermissionIdExcludeList, TwinClassSearch::setCreatePermissionIdExcludeList),
-            Pair.of(TwinClassSearch::getEditPermissionIdList, TwinClassSearch::setEditPermissionIdList),
-            Pair.of(TwinClassSearch::getEditPermissionIdExcludeList, TwinClassSearch::setEditPermissionIdExcludeList),
-            Pair.of(TwinClassSearch::getDeletePermissionIdList, TwinClassSearch::setDeletePermissionIdList),
-            Pair.of(TwinClassSearch::getDeletePermissionIdExcludeList, TwinClassSearch::setDeletePermissionIdExcludeList)
+            Pair.of(TwinClassSearch::getCreatePermissionIdExcludeList, TwinClassSearch::setCreatePermissionIdExcludeList)
     );
 
     public static final ImmutableList<Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(

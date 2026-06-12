@@ -113,18 +113,6 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "create permission id exclude list")
     public Set<UUID> createPermissionIdExcludeList;
 
-    @Schema(description = "edit permission id list")
-    public Set<UUID> editPermissionIdList;
-
-    @Schema(description = "edit permission id exclude list")
-    public Set<UUID> editPermissionIdExcludeList;
-
-    @Schema(description = "delete permission id list")
-    public Set<UUID> deletePermissionIdList;
-
-    @Schema(description = "delete permission id exclude list")
-    public Set<UUID> deletePermissionIdExcludeList;
-
     @Schema(description = "external id like list")
     public Set<String> externalIdLikeList;
 

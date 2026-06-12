@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -33,7 +32,6 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
-import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.domain.DomainType;
@@ -156,15 +154,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getViewPermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
-                if (entity.getEditPermissionId() != null
-                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getEditPermissionId(), apiUser.getDomainId()))
-                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id[" + entity.getEditPermissionId() + "]");
                 if (entity.getCreatePermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getCreatePermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown create permission id[" + entity.getCreatePermissionId() + "]");
-                if (entity.getDeletePermissionId() != null
-                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getDeletePermissionId(), apiUser.getDomainId()))
-                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown delete permission id[" + entity.getDeletePermissionId() + "]");
                 break;
             default:
         }
@@ -188,114 +180,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     public TwinClassSchemaMapEntity findTwinClassSchemaMap(UUID twinClassSchemaId, UUID twinClassId) {
         Optional<TwinClassSchemaMapEntity> twinClassSchemaMapEntity = twinClassSchemaMapRepository.findByTwinClassSchemaIdAndTwinClassId(twinClassSchemaId, twinClassId);
         return twinClassSchemaMapEntity.orElse(null);
-    }
-
-    @Transactional
-    public Collection<TwinClassEntity> duplicate(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
-        var newKeys = new HashSet<String>();
-        var apiUser = authService.getApiUser();
-        for (var duplicate : duplicates) {
-            if (newKeys.contains(duplicate.getNewKey()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE, "twinClass key[" + duplicate.getNewKey() + "] is duplicated in request");
-            else
-                newKeys.add(duplicate.getNewKey());
-            duplicate.setNewTwinClassId(UUID.nameUUIDFromBytes((duplicate.getNewKey() + apiUser.getDomainId()).getBytes()));
-        }
-        loadOriginalTwinClass(duplicates);
-        var entitiesToSave = new ArrayList<TwinClassEntity>();
-        var needLoadFields = new ArrayList<TwinClassEntity>();
-        var needLoadStatuses = new ArrayList<TwinClassEntity>();
-        for (var duplicate : duplicates) {
-            var originalTwinClass = duplicate.getOriginalTwinClass();
-            log.info("{} will be duplicated with new key[{}]", originalTwinClass.logShort(), duplicate.getNewKey());
-            TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
-                    .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
-                    .setCreatedByUserId(apiUser.getUser().getId())
-                    .setPermissionSchemaSpace(originalTwinClass.getPermissionSchemaSpace())
-                    .setTwinflowSchemaSpace(originalTwinClass.getTwinflowSchemaSpace())
-                    .setTwinClassSchemaSpace(originalTwinClass.getTwinClassSchemaSpace())
-                    .setAliasSpace(originalTwinClass.getAliasSpace())
-                    .setAssigneeRequired(originalTwinClass.getAssigneeRequired())
-                    .setAbstractt(originalTwinClass.getAbstractt())
-                    .setUniqueName(originalTwinClass.getUniqueName())
-                    .setExtendsTwinClassId(originalTwinClass.getExtendsTwinClassId())
-                    .setHeadTwinClassId(originalTwinClass.getHeadTwinClassId())
-                    .setIconDarkResourceId(originalTwinClass.getIconDarkResourceId())
-                    .setIconDarkResource(originalTwinClass.getIconDarkResource())
-                    .setIconLightResourceId(originalTwinClass.getIconLightResourceId())
-                    .setIconLightResource(originalTwinClass.getIconLightResource())
-                    .setCreatedAt(Timestamp.from(Instant.now()))
-                    .setDomainId(originalTwinClass.getDomainId())
-                    .setOwnerType(originalTwinClass.getOwnerType())
-                    .setViewPermissionId(originalTwinClass.getViewPermissionId())
-                    .setCreatePermissionId(originalTwinClass.getCreatePermissionId())
-                    .setEditPermissionId(originalTwinClass.getEditPermissionId())
-                    .setDeletePermissionId(originalTwinClass.getDeletePermissionId())
-                    .setSegment(originalTwinClass.getSegment())
-                    .setHasSegment(false) //change this if we will copy segments also
-                    .setMarkerDataListId(originalTwinClass.getMarkerDataListId())
-                    .setTagDataListId(originalTwinClass.getTagDataListId())
-                    .setHeadHunterFeaturerId(originalTwinClass.getHeadHunterFeaturerId())
-                    .setHeadHunterParams(originalTwinClass.getHeadHunterParams())
-                    .setHasDynamicMarkers(false) //change this if we will copy markers also / or check inherited markers
-                    .setPageFaceId(originalTwinClass.getPageFaceId())
-                    .setBreadCrumbsFaceId(originalTwinClass.getBreadCrumbsFaceId())
-                    .setGeneralAttachmentRestrictionId(originalTwinClass.getGeneralAttachmentRestrictionId())
-                    .setCommentAttachmentRestrictionId(originalTwinClass.getCommentAttachmentRestrictionId())
-                    .setExternalId(originalTwinClass.getExternalId())
-                    .setExternalProperties(originalTwinClass.getExternalProperties())
-                    .setExternalJson(originalTwinClass.getExternalJson())
-                    .setHeadHierarchyCounterDirectChildren(0)
-                    .setExtendsHierarchyCounterDirectChildren(0)
-                    .setTwinCounter(0);
-            I18nEntity i18nDuplicate;
-            if (originalTwinClass.getNameI18NId() != null) {
-                i18nDuplicate = i18nService.duplicateI18n(originalTwinClass.getNameI18NId());
-                duplicateTwinClassEntity
-                        .setNameI18NId(i18nDuplicate.getId());
-            }
-            if (originalTwinClass.getDescriptionI18NId() != null) {
-                i18nDuplicate = i18nService.duplicateI18n(originalTwinClass.getDescriptionI18NId());
-                duplicateTwinClassEntity
-                        .setDescriptionI18NId(i18nDuplicate.getId());
-            }
-            duplicate.setNewTwinClass(duplicateTwinClassEntity);
-            entitiesToSave.add(duplicateTwinClassEntity);
-            if (duplicate.isDuplicateFields()) {
-                needLoadFields.add(duplicate.getOriginalTwinClass());
-            }
-            if (duplicate.isDuplicateStatuses()) {
-                needLoadStatuses.add(duplicate.getOriginalTwinClass());
-            }
-        }
-        //todo check uniq key-s or ids
-        var savedClasses = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
-        for (var savedClass : savedClasses) {
-            refreshExtendsHierarchyTree(savedClass);
-            refreshHeadHierarchyTree(savedClass);
-        }
-        if (CollectionUtils.isNotEmpty(needLoadFields)) {
-            twinClassFieldService.loadTwinClassFields(needLoadFields);
-        }
-        if (CollectionUtils.isNotEmpty(needLoadStatuses)) {
-            twinStatusService.loadStatusesForTwinClasses(needLoadStatuses);
-        }
-        for (var duplicate : duplicates) {
-            if (duplicate.isDuplicateFields()) {
-                twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
-            }
-            if (duplicate.isDuplicateStatuses()) {
-                twinStatusService.duplicateStatusesForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
-            }
-        }
-        return savedClasses;
-    }
-
-    private void loadOriginalTwinClass(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
-        load(duplicates,
-                TwinClassDuplicate::getOriginalTwinClassId,
-                TwinClassDuplicate::getOriginalTwinClass,
-                TwinClassDuplicate::setOriginalTwinClass);
     }
 
     public void loadExtendsHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
@@ -363,19 +247,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                         TwinClassEntity::setViewPermission
                 ),
                 new LoadedField<>(
-                        TwinClassEntity::getEditPermissionId,
-                        TwinClassEntity::getEditPermission,
-                        TwinClassEntity::setEditPermission
-                ),
-                new LoadedField<>(
                         TwinClassEntity::getCreatePermissionId,
                         TwinClassEntity::getCreatePermission,
                         TwinClassEntity::setCreatePermission
-                ),
-                new LoadedField<>(
-                        TwinClassEntity::getDeletePermissionId,
-                        TwinClassEntity::getDeletePermission,
-                        TwinClassEntity::setDeletePermission
                 ));
     }
 
@@ -509,22 +383,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     savedClass.setViewPermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW));
                     updated = true;
                 }
-                if (savedClass.getEditPermissionId() == null) {
-                    savedClass.setEditPermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT).getId());
-                    savedClass.setEditPermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT));
-                    updated = true;
-                }
                 if (savedClass.getCreatePermissionId() == null) {
                     savedClass.setCreatePermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE).getId());
                     savedClass.setCreatePermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE));
                     updated = true;
                 }
-                if (savedClass.getDeletePermissionId() == null) {
-                    savedClass.setDeletePermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE).getId());
-                    savedClass.setDeletePermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE));
-                    updated = true;
-                }
-
                 if (updated) {
                     classesWithPermissions.add(savedClass);
                 }
@@ -605,9 +468,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAssigneeRequired, TwinClassEntity::setAssigneeRequired, TwinClassEntity.Fields.assigneeRequired, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getPermissionSchemaSpace, TwinClassEntity::setPermissionSchemaSpace, TwinClassEntity.Fields.permissionSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getViewPermissionId, TwinClassEntity::setViewPermissionId, TwinClassEntity.Fields.viewPermissionId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getEditPermissionId, TwinClassEntity::setEditPermissionId, TwinClassEntity.Fields.editPermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getCreatePermissionId, TwinClassEntity::setCreatePermissionId, TwinClassEntity.Fields.createPermissionId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getDeletePermissionId, TwinClassEntity::setDeletePermissionId, TwinClassEntity.Fields.deletePermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getKey, TwinClassEntity::setKey, TwinClassEntity.Fields.key, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalProperties, TwinClassEntity::setExternalProperties, TwinClassEntity.Fields.externalProperties, changesHelper);
