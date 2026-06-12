@@ -14,9 +14,9 @@ public class TwinStatusDuplicateRestDTOReverseMapper extends RestSimpleDTOMapper
     @Override
     public void map(TwinStatusDuplicateDTOv1 src, TwinStatusDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
-                .setOriginalTwinStatusId(src.getOriginalTwinStatusId())
-                .setNewKey(src.getNewKey())
-                .setDuplicateTriggers(src.isDuplicateTriggers())
-        ;
+                .setOriginalEntityId(src.getOriginalTwinStatusId())
+                .setNewKey(src.getNewKey());
+        dst
+                .setDuplicateTriggers(src.isDuplicateTriggers());
     }
 }

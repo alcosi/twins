@@ -30,7 +30,6 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
-import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -53,7 +52,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+
 
 
 @Slf4j
@@ -304,124 +303,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             twinClassFieldList = twinClassFieldRepository.findByIdInAndTwinClassIdIn(setIds, extendedClassIds);
         }
         return twinClassFieldList;
-    }
-
-    public TwinClassFieldEntity findByTwinClassFieldId(UUID twinClassFieldId) {
-        return twinClassFieldRepository.findById(twinClassFieldId).orElse(null);
-    }
-
-    @Transactional
-    public void duplicateFieldsForClass(TwinClassEntity fromTwinClass, TwinClassEntity toTwinClass) throws ServiceException {
-        loadTwinClassFields(fromTwinClass);
-        if (KitUtils.isEmpty(fromTwinClass.getTwinClassFieldKit())) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinClassFieldEntity>();
-        TwinClassFieldEntity duplicateFieldEntity;
-        for (TwinClassFieldEntity originalField : fromTwinClass.getTwinClassFieldKit().getCollection()) {
-            if (!originalField.getTwinClassId().equals(fromTwinClass.getId()))
-                continue; //skipping inherited fields
-            duplicateFieldEntity = duplicateFieldEntity(originalField, toTwinClass, originalField.getKey()); // we can copy the field with the same key
-            setI18nForDuplicate(originalField, duplicateFieldEntity);
-            entitiesForSave.add(duplicateFieldEntity);
-        }
-        //todo check uniq id and key before safe
-        saveSafe(entitiesForSave);
-    }
-
-    @Transactional
-    public Collection<TwinClassFieldEntity> duplicateFields(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
-        if (CollectionUtils.isEmpty(duplicates)) {
-            return Collections.emptyList();
-        }
-        var newKeys = new HashSet<String>();
-        for (var duplicate : duplicates) {
-            if (newKeys.contains(duplicate.getNewKey()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "twinClassField key[" + duplicate.getNewKey() + "] is duplicated in request");
-            else
-                newKeys.add(duplicate.getNewKey());
-        }
-        loadOriginalFields(duplicates);
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinClassId() == null) {
-                duplicate
-                        .setNewTwinClassId(duplicate.getOriginalTwinClassField().getTwinClassId())
-                        .setNewTwinClass(duplicate.getOriginalTwinClassField().getTwinClass()); // same class
-            }
-        }
-        loadNewClasses(duplicates);
-        var entitiesForSave = new ArrayList<TwinClassFieldEntity>();
-        TwinClassFieldEntity duplicateFieldEntity;
-        for (var duplicate : duplicates) {
-            duplicateFieldEntity = duplicateFieldEntity(duplicate.getOriginalTwinClassField(), duplicate.getNewTwinClass(), duplicate.getNewKey());
-            setI18nForDuplicate(duplicate.getOriginalTwinClassField(), duplicateFieldEntity);
-            entitiesForSave.add(duplicateFieldEntity);
-            if (duplicate.isDuplicateRules()) {
-                //todo implement in future
-            }
-        }
-        //todo check uniq id and key before safe
-        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
-    }
-
-    private void loadOriginalFields(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
-        load(duplicates,
-                TwinClassFieldDuplicate::getOriginalTwinClassFieldId,
-                TwinClassFieldDuplicate::getOriginalTwinClassField,
-                TwinClassFieldDuplicate::setOriginalTwinClassField);
-    }
-
-    private void loadNewClasses(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
-        twinClassService.load(duplicates,
-                TwinClassFieldDuplicate::getNewTwinClassId,
-                TwinClassFieldDuplicate::getNewTwinClass,
-                TwinClassFieldDuplicate::setNewTwinClass);
-    }
-
-    private TwinClassFieldEntity duplicateFieldEntity(TwinClassFieldEntity srcFieldEntity, TwinClassEntity duplicateTwinClass, String newKey) throws ServiceException {
-        log.info("{} will be duplicated for {}", srcFieldEntity.logShort(), duplicateTwinClass.logNormal());
-
-        return new TwinClassFieldEntity()
-                .setKey(KeyUtils.lowerCaseNullSafe(newKey, ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
-                .setTwinClassId(duplicateTwinClass.getId())
-                .setTwinClass(duplicateTwinClass)
-                .setFieldTyperFeaturerId(srcFieldEntity.getFieldTyperFeaturerId())
-                .setFieldTyperParams(srcFieldEntity.getFieldTyperParams())
-                .setTwinSorterFeaturerId(srcFieldEntity.getTwinSorterFeaturerId())
-                .setTwinSorterParams(srcFieldEntity.getTwinSorterParams())
-                .setFieldInitializerFeaturerId(srcFieldEntity.getFieldInitializerFeaturerId())
-                .setFieldInitializerParams(srcFieldEntity.getFieldInitializerParams())
-                .setViewPermissionId(srcFieldEntity.getViewPermissionId())
-                .setEditPermissionId(srcFieldEntity.getEditPermissionId())
-                .setRequired(srcFieldEntity.getRequired())
-                .setExternalId(srcFieldEntity.getExternalId())
-                .setExternalProperties(srcFieldEntity.getExternalProperties())
-                .setSystem(srcFieldEntity.getSystem())
-                .setInheritable(srcFieldEntity.getInheritable())
-                .setDependentField(false)
-                .setHasDependentFields(false)
-                .setOrder(srcFieldEntity.getOrder())
-                .setProjectionField(false)
-                .setHasProjectedFields(false);
-    }
-
-    private void setI18nForDuplicate(TwinClassFieldEntity srcFieldEntity, TwinClassFieldEntity duplicateFieldEntity) {
-        //todo change to bulk
-        if (srcFieldEntity.getNameI18nId() != null) {
-            duplicateFieldEntity.setNameI18nId(i18nService.duplicateI18n(srcFieldEntity.getNameI18nId()).getId());
-        }
-
-        if (srcFieldEntity.getDescriptionI18nId() != null) {
-            duplicateFieldEntity.setDescriptionI18nId(i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18nId()).getId());
-        }
-
-        if (srcFieldEntity.getFeValidationErrorI18nId() != null) {
-            duplicateFieldEntity.setFeValidationErrorI18nId(i18nService.duplicateI18n(srcFieldEntity.getFeValidationErrorI18nId()).getId());
-        }
-
-        if (srcFieldEntity.getBeValidationErrorI18nId() != null) {
-            duplicateFieldEntity.setBeValidationErrorI18nId(i18nService.duplicateI18n(srcFieldEntity.getBeValidationErrorI18nId()).getId());
-        }
     }
 
     public static final String CACHE_TWIN_CLASS_FIELD_FOR_LINK = "TwinClassFieldService.getFieldIdConfiguredForLink";
