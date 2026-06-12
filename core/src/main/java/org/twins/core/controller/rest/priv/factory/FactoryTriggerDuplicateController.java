@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,11 +22,11 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.factory.FactoryTriggerDuplicateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryTriggerListRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryTriggerDuplicateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryTriggerService;
+import org.twins.core.service.factory.FactoryTriggerDuplicateService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
@@ -34,7 +35,7 @@ import org.twins.core.service.permission.Permissions;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_TRIGGER_CREATE})
 public class FactoryTriggerDuplicateController extends ApiController {
-    private final FactoryTriggerService factoryTriggerService;
+    private final FactoryTriggerDuplicateService factoryTriggerDuplicateService;
     private final FactoryTriggerRestDTOMapper factoryTriggerRestDTOMapper;
     private final FactoryTriggerDuplicateRestDTOReverseMapper factoryTriggerDuplicateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -49,12 +50,12 @@ public class FactoryTriggerDuplicateController extends ApiController {
     @PostMapping(value = "/private/factory_trigger/duplicate/v1")
     public ResponseEntity<?> factoryTriggerDuplicateV1(
             @MapperContextBinding(roots = FactoryTriggerRestDTOMapper.class, response = FactoryTriggerListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryTriggerDuplicateRqDTOv1 request) {
+            @Valid @RequestBody FactoryTriggerDuplicateRqDTOv1 request) {
         var rs = new FactoryTriggerListRsDTOv1();
 
         try {
             var duplicates = factoryTriggerDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedTriggers = factoryTriggerService.duplicateTriggers(duplicates);
+            var duplicatedTriggers = factoryTriggerDuplicateService.duplicate(duplicates);
             rs
                     .setFactoryTriggerList(factoryTriggerRestDTOMapper.convertCollection(duplicatedTriggers, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

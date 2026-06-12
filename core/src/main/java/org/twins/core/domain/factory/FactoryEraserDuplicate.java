@@ -1,19 +1,16 @@
 package org.twins.core.domain.factory;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
+import org.twins.core.domain.EntityDuplicate;
 
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FactoryEraserDuplicate {
-    private UUID originalFactoryEraserId;
+public class FactoryEraserDuplicate extends EntityDuplicate<TwinFactoryEraserEntity> {
     private UUID newTwinFactoryId;
-    private UUID newFactoryEraserId;
-
-    private TwinFactoryEraserEntity originalFactoryEraser;
-    private TwinFactoryEntity newTwinFactory;
 }

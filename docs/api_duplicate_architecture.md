@@ -546,3 +546,9 @@ public class FooDuplicateController extends ApiController {
 | TwinClass | `TwinClassDuplicateController` | `TwinClassDuplicateService` | `duplicateFields`, `duplicateStatuses` |
 | TwinStatus | `TwinStatusDuplicateController` | `TwinStatusDuplicateService` | `duplicateTriggers` (todo) |
 | TwinClassField | `TwinClassFieldDuplicateController` | `TwinClassFieldDuplicateService` | `duplicateRules` (todo) |
+| Factory | `FactoryDuplicateController` | `FactoryDuplicateService` | `duplicateBranches`, `duplicateMultipliers`, `duplicatePipelines`, `duplicateErasers`, `duplicateTriggers` |
+| FactoryPipeline | `FactoryPipelineDuplicateController` | `FactoryPipelineDuplicateService` | — |
+| FactoryBranch | `FactoryBranchDuplicateController` | `FactoryBranchDuplicateService` | — |
+| FactoryEraser | `FactoryEraserDuplicateController` | `FactoryEraserDuplicateService` | — |
+| FactoryMultiplier | `FactoryMultiplierDuplicateController` | `FactoryMultiplierDuplicateService` | — |
+| FactoryTrigger | `FactoryTriggerDuplicateController` | `FactoryTriggerDuplicateService` | — |

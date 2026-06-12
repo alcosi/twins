@@ -14,8 +14,9 @@ public class FactoryDuplicateRestDTOReverseMapper extends RestSimpleDTOMapper<Fa
     @Override
     public void map(FactoryDuplicateDTOv1 src, FactoryDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
-                .setOriginalFactoryId(src.getOriginalFactoryId())
-                .setNewKey(src.getNewKey())
+                .setOriginalEntityId(src.getOriginalFactoryId())
+                .setNewKey(src.getNewKey());
+        dst
                 .setDuplicateBranches(src.isDuplicateBranches())
                 .setDuplicateMultipliers(src.isDuplicateMultipliers())
                 .setDuplicatePipelines(src.isDuplicatePipelines())

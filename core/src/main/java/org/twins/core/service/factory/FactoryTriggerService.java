@@ -4,15 +4,10 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ServiceException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.kit.Kit;
-import org.twins.core.domain.factory.FactoryTriggerDuplicate;
-import org.cambium.common.util.KitUtils;
-
-import java.util.UUID;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -25,10 +20,7 @@ import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
 import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -166,65 +158,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
-    }
-
-    public void duplicateTriggersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryTriggerEntity> triggers = fromFactory.getTwinFactoryTriggerKit().getList();
-        if (CollectionUtils.isEmpty(triggers)) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryTriggerEntity>();
-        for (TwinFactoryTriggerEntity originalTrigger : triggers) {
-            TwinFactoryTriggerEntity duplicateTrigger = new TwinFactoryTriggerEntity()
-                    .setTwinFactoryId(toFactory.getId())
-                    .setInputTwinClassId(originalTrigger.getInputTwinClassId())
-                    .setTwinFactoryConditionSetId(originalTrigger.getTwinFactoryConditionSetId())
-                    .setTwinFactoryConditionInvert(originalTrigger.getTwinFactoryConditionInvert())
-                    .setTwinTriggerId(originalTrigger.getTwinTriggerId())
-                    .setAsync(originalTrigger.getAsync())
-                    .setDescription(originalTrigger.getDescription())
-                    .setActive(originalTrigger.getActive());
-            entitiesForSave.add(duplicateTrigger);
-        }
-        saveSafe(entitiesForSave);
-    }
-
-    @Transactional
-    public Collection<TwinFactoryTriggerEntity> duplicateTriggers(Collection<FactoryTriggerDuplicate> duplicates) throws ServiceException {
-        if (CollectionUtils.isEmpty(duplicates)) {
-            return Collections.emptyList();
-        }
-        loadOriginalTriggers(duplicates);
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinFactoryId() == null) {
-                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryTrigger().getTwinFactoryId());
-            }
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryTriggerEntity>();
-        for (var duplicate : duplicates) {
-            TwinFactoryTriggerEntity duplicateTrigger = duplicateTriggerEntity(duplicate.getOriginalFactoryTrigger(), duplicate.getNewTwinFactoryId());
-            entitiesForSave.add(duplicateTrigger);
-        }
-        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
-    }
-
-    private void loadOriginalTriggers(Collection<FactoryTriggerDuplicate> duplicates) throws ServiceException {
-        load(duplicates,
-                FactoryTriggerDuplicate::getOriginalFactoryTriggerId,
-                FactoryTriggerDuplicate::getOriginalFactoryTrigger,
-                FactoryTriggerDuplicate::setOriginalFactoryTrigger);
-    }
-
-    private TwinFactoryTriggerEntity duplicateTriggerEntity(TwinFactoryTriggerEntity srcTriggerEntity, UUID newTwinFactoryId) throws ServiceException {
-        return new TwinFactoryTriggerEntity()
-                .setTwinFactoryId(newTwinFactoryId)
-                .setInputTwinClassId(srcTriggerEntity.getInputTwinClassId())
-                .setTwinFactoryConditionSetId(srcTriggerEntity.getTwinFactoryConditionSetId())
-                .setTwinFactoryConditionInvert(srcTriggerEntity.getTwinFactoryConditionInvert())
-                .setTwinTriggerId(srcTriggerEntity.getTwinTriggerId())
-                .setAsync(srcTriggerEntity.getAsync())
-                .setDescription(srcTriggerEntity.getDescription())
-                .setActive(srcTriggerEntity.getActive());
     }
 
     public void loadFactoryTriggers(TwinFactoryEntity factory) {

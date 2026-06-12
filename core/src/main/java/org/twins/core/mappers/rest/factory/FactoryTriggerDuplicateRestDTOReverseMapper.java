@@ -13,8 +13,7 @@ public class FactoryTriggerDuplicateRestDTOReverseMapper extends RestSimpleDTOMa
 
     @Override
     public void map(FactoryTriggerDuplicateDTOv1 src, FactoryTriggerDuplicate dst, MapperContext mapperContext) throws Exception {
-        dst
-                .setOriginalFactoryTriggerId(src.getOriginalFactoryTriggerId())
-                .setNewTwinFactoryId(src.getNewTwinFactoryId());
+        dst.setOriginalEntityId(src.getOriginalFactoryTriggerId());
+        dst.setNewTwinFactoryId(src.getNewTwinFactoryId());
     }
 }

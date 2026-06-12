@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,11 +22,11 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.factory.FactoryMultiplierDuplicateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierListRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryMultiplierDuplicateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryMultiplierService;
+import org.twins.core.service.factory.FactoryMultiplierDuplicateService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
@@ -34,7 +35,7 @@ import org.twins.core.service.permission.Permissions;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.FACTORY_MULTIPLIER_CREATE})
 public class FactoryMultiplierDuplicateController extends ApiController {
-    private final FactoryMultiplierService factoryMultiplierService;
+    private final FactoryMultiplierDuplicateService factoryMultiplierDuplicateService;
     private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
     private final FactoryMultiplierDuplicateRestDTOReverseMapper factoryMultiplierDuplicateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -49,12 +50,12 @@ public class FactoryMultiplierDuplicateController extends ApiController {
     @PostMapping(value = "/private/factory_multiplier/duplicate/v1")
     public ResponseEntity<?> factoryMultiplierDuplicateV1(
             @MapperContextBinding(roots = FactoryMultiplierRestDTOMapper.class, response = FactoryMultiplierListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryMultiplierDuplicateRqDTOv1 request) {
+            @Valid @RequestBody FactoryMultiplierDuplicateRqDTOv1 request) {
         var rs = new FactoryMultiplierListRsDTOv1();
 
         try {
             var duplicates = factoryMultiplierDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedMultipliers = factoryMultiplierService.duplicateMultipliers(duplicates);
+            var duplicatedMultipliers = factoryMultiplierDuplicateService.duplicate(duplicates);
             rs
                     .setFactoryMultiplierList(factoryMultiplierRestDTOMapper.convertCollection(duplicatedMultipliers, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

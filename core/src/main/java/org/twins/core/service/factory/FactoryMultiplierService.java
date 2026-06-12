@@ -5,7 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -26,14 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
-import org.twins.core.domain.factory.FactoryMultiplierDuplicate;
-
-import java.util.Collection;
-import java.util.Collections;
 
 @Slf4j
 @Service
@@ -110,61 +101,6 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 TwinFactoryMultiplierEntity::getMultiplierParams, TwinFactoryMultiplierEntity::setMultiplierParams,
                 TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, TwinFactoryMultiplierEntity.Fields.multiplierParams,
                 Multiplier.class, changesHelper);
-    }
-
-    public void duplicateMultipliersForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryMultiplierEntity> multipliers = fromFactory.getTwinFactoryMultiplierKit().getList();
-        if (CollectionUtils.isEmpty(multipliers)) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryMultiplierEntity>();
-        for (TwinFactoryMultiplierEntity originalMultiplier : multipliers) {
-            TwinFactoryMultiplierEntity duplicateMultiplier = new TwinFactoryMultiplierEntity()
-                    .setTwinFactoryId(toFactory.getId())
-                    .setInputTwinClassId(originalMultiplier.getInputTwinClassId())
-                    .setMultiplierFeaturerId(originalMultiplier.getMultiplierFeaturerId())
-                    .setMultiplierParams(originalMultiplier.getMultiplierParams())
-                    .setDescription(originalMultiplier.getDescription())
-                    .setActive(originalMultiplier.getActive());
-            entitiesForSave.add(duplicateMultiplier);
-        }
-        saveSafe(entitiesForSave);
-    }
-
-    @Transactional
-    public Collection<TwinFactoryMultiplierEntity> duplicateMultipliers(Collection<FactoryMultiplierDuplicate> duplicates) throws ServiceException {
-        if (CollectionUtils.isEmpty(duplicates)) {
-            return Collections.emptyList();
-        }
-        loadOriginalMultipliers(duplicates);
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinFactoryId() == null) {
-                duplicate.setNewTwinFactoryId(duplicate.getOriginalFactoryMultiplier().getTwinFactoryId());
-            }
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryMultiplierEntity>();
-        for (var duplicate : duplicates) {
-            TwinFactoryMultiplierEntity duplicateMultiplier = duplicateMultiplierEntity(duplicate.getOriginalFactoryMultiplier(), duplicate.getNewTwinFactoryId());
-            entitiesForSave.add(duplicateMultiplier);
-        }
-        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
-    }
-
-    private void loadOriginalMultipliers(Collection<FactoryMultiplierDuplicate> duplicates) throws ServiceException {
-        load(duplicates,
-                FactoryMultiplierDuplicate::getOriginalFactoryMultiplierId,
-                FactoryMultiplierDuplicate::getOriginalFactoryMultiplier,
-                FactoryMultiplierDuplicate::setOriginalFactoryMultiplier);
-    }
-
-    private TwinFactoryMultiplierEntity duplicateMultiplierEntity(TwinFactoryMultiplierEntity srcMultiplierEntity, UUID newTwinFactoryId) throws ServiceException {
-        return new TwinFactoryMultiplierEntity()
-                .setTwinFactoryId(newTwinFactoryId)
-                .setInputTwinClassId(srcMultiplierEntity.getInputTwinClassId())
-                .setMultiplierFeaturerId(srcMultiplierEntity.getMultiplierFeaturerId())
-                .setMultiplierParams(srcMultiplierEntity.getMultiplierParams())
-                .setDescription(srcMultiplierEntity.getDescription())
-                .setActive(srcMultiplierEntity.getActive());
     }
 
     public void loadFactoryMultipliers(TwinFactoryEntity factory) {

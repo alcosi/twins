@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,11 +22,11 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.factory.FactoryEraserDuplicateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryEraserListRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryEraserDuplicateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryEraserService;
+import org.twins.core.service.factory.FactoryEraserDuplicateService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
@@ -34,7 +35,7 @@ import org.twins.core.service.permission.Permissions;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.FACTORY_ERASER_CREATE})
 public class FactoryEraserDuplicateController extends ApiController {
-    private final FactoryEraserService factoryEraserService;
+    private final FactoryEraserDuplicateService factoryEraserDuplicateService;
     private final FactoryEraserRestDTOMapper factoryEraserRestDTOMapper;
     private final FactoryEraserDuplicateRestDTOReverseMapper factoryEraserDuplicateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -49,12 +50,12 @@ public class FactoryEraserDuplicateController extends ApiController {
     @PostMapping(value = "/private/factory_eraser/duplicate/v1")
     public ResponseEntity<?> factoryEraserDuplicateV1(
             @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryEraserDuplicateRqDTOv1 request) {
+            @Valid @RequestBody FactoryEraserDuplicateRqDTOv1 request) {
         var rs = new FactoryEraserListRsDTOv1();
 
         try {
             var duplicates = factoryEraserDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedErasers = factoryEraserService.duplicateErasers(duplicates);
+            var duplicatedErasers = factoryEraserDuplicateService.duplicate(duplicates);
             rs
                     .setFactoryEraserList(factoryEraserRestDTOMapper.convertCollection(duplicatedErasers, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

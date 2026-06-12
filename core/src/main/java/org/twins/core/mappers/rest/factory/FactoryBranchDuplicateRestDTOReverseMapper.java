@@ -13,8 +13,7 @@ public class FactoryBranchDuplicateRestDTOReverseMapper extends RestSimpleDTOMap
 
     @Override
     public void map(FactoryBranchDuplicateDTOv1 src, FactoryBranchDuplicate dst, MapperContext mapperContext) throws Exception {
-        dst
-                .setOriginalFactoryBranchId(src.getOriginalFactoryBranchId())
-                .setNewTwinFactoryId(src.getNewTwinFactoryId());
+        dst.setOriginalEntityId(src.getOriginalFactoryBranchId());
+        dst.setNewTwinFactoryId(src.getNewTwinFactoryId());
     }
 }
