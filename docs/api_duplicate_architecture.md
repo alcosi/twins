@@ -1,8 +1,8 @@
 # Architecture: Duplicate API
 
-**Date:** 2026-06-10
+**Date:** 2026-06-11
 **Status:** Implemented
-**Context:** TWINS-840 — duplicate domain entities (twin classes, statuses, fields) with optional child entities
+**Context:** TWINS-798 — extract duplicate logic into dedicated `<Entity>DuplicateService` classes extending common `EntityDuplicateService`
 
 ---
 
@@ -16,13 +16,20 @@ The system needs to duplicate domain entities — create a deep copy of an entit
 
 ### Principle
 
-Duplicate is implemented through the **existing entity `Service`** with a `duplicate(Collection<EntityDuplicate>)` method. The controller uses a **dedicated reverse mapper** (`DuplicateRestDTOReverseMapper`) to convert DTOs into domain `Duplicate` objects, and the standard forward mapper (`RestDTOMapper`) to convert the saved entities back to response DTOs.
+Duplicate logic lives in a **dedicated `{Entity}DuplicateService extends EntityDuplicateService<D, E>`** — one per entity type. The base `EntityDuplicateService<D, E>` provides the common skeleton (key validation, loading originals, saving, template method hooks). Each subclass implements entity-specific logic (field copying, i18n, post-save cascade).
+
+### Why dedicated DuplicateService instead of adding duplicate() to existing Service
+
+* Separation of concerns: the entity service already handles CRUD, hierarchy, and queries. Duplicate is a distinct operation with its own dependencies.
+* The base class eliminates boilerplate across duplicate implementations (key uniqueness, load originals, save, hooks).
+* Controllers inject only the duplicate service — cleaner dependency graph.
+* Adding new duplicate APIs requires only a new `{Entity}DuplicateService` subclass, no modification to existing entity services.
 
 ### Why domain Duplicate object instead of passing DTOs to service
 
 * The service layer must not depend on DTOs — domain objects (`TwinClassDuplicate`, `TwinStatusDuplicate`) carry both the request data and service-resolved entity references (`originalTwinClass`, `newTwinClass`).
 * Domain objects are enriched during service execution: original entities are loaded, new IDs generated, defaults applied.
-* The reverse mapper only converts DTO → domain; the service fills in entity references.
+* The reverse mapper only converts DTO -> domain; the service fills in entity references.
 
 ### Why batch `Collection<EntityDuplicate>` instead of single entity
 
@@ -30,17 +37,80 @@ Duplicate is implemented through the **existing entity `Service`** with a `dupli
 * Key uniqueness is validated across the batch (no duplicate keys in one request).
 * Entities are saved in bulk via `saveSafe()`.
 
-### Why existing Service instead of dedicated DuplicateService
-
-* Duplicate is tightly coupled to the entity's creation logic (same validation, hierarchy refresh, counters reset).
-* The service already has access to all required dependencies (`i18nService`, `twinClassService`, etc.).
-* Child-entity duplication (`duplicateFieldsForClass`, `duplicateStatusesForClass`) is called from the parent service.
-
 ---
 
 ## Components
 
-### 1. Request DTO — list of duplicate operations
+### 1. EntityDuplicate<E> — base domain object
+
+```java
+// org.twins.core.domain.EntityDuplicate
+@Data
+@Accessors(chain = true)
+public class EntityDuplicate<E> {
+    private UUID originalEntityId;
+    private String newKey;
+    private E originalEntity;
+    private E newEntity;
+}
+```
+
+All domain duplicate objects extend `EntityDuplicate<E>`. Subclasses add entity-specific fields (e.g., `duplicateFields`, `newTwinClassId`).
+
+### 2. EntityDuplicateService<D extends EntityDuplicate<E>, E> — abstract base service
+
+```java
+// org.twins.core.service.EntityDuplicateService
+public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
+
+    // Must implement
+    protected abstract EntitySecureFindServiceImpl<E> entityService();
+    protected abstract E createNewEntity(D duplicate, E original) throws ServiceException;
+    protected abstract ErrorCode getKeyDuplicatedErrorCode();
+    protected abstract void duplicateI18nFields(E src, E dst) throws ServiceException;
+
+    // Hooks — optional overrides
+    protected void prepareDuplicates(Collection<D> duplicates) throws ServiceException {}
+    protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {}
+
+    // Template method — uses EntityDuplicate base fields directly
+    @Transactional
+    public Collection<E> duplicate(Collection<D> duplicates) throws ServiceException {
+        if (CollectionUtils.isEmpty(duplicates)) return Collections.emptyList();
+        validateKeyUniqueness(duplicates);     // 1 — uses duplicate.getNewKey()
+        loadOriginalEntities(duplicates);      // 2 — uses EntityDuplicate getters/setters
+        prepareDuplicates(duplicates);         // 3 — hook
+        // 4 — create new entities + i18n
+        var entitiesToSave = new ArrayList<E>();
+        for (var duplicate : duplicates) {
+            var original = duplicate.getOriginalEntity();
+            var newEntity = createNewEntity(duplicate, original);
+            duplicateI18nFields(original, newEntity);
+            duplicate.setNewEntity(newEntity);
+            entitiesToSave.add(newEntity);
+        }
+        var saved = StreamSupport.stream(entityService().saveSafe(entitiesToSave).spliterator(), false).toList(); // 5
+        afterSave(duplicates, saved);          // 6 — hook
+        return saved;
+    }
+
+    // Built-in: key uniqueness check
+    protected void validateKeyUniqueness(Collection<D> duplicates) throws ServiceException { ... }
+
+    // Built-in: load originals using entity service's load()
+    protected void loadOriginalEntities(Collection<D> duplicates) throws ServiceException { ... }
+}
+```
+
+**Type parameters:**
+* `D` — domain duplicate object (e.g., `TwinClassDuplicate`)
+* `E` — JPA entity type (e.g., `TwinClassEntity`)
+
+**Delegates to entity service for:**
+* `entityService().load()` — resolving IDs to entities
+* `entityService().saveSafe()` — persisting with validation
+
+### 2. Request DTO — list of duplicate operations
 
 ```java
 // TwinClassDuplicateRqDTOv1.java
@@ -71,50 +141,42 @@ public class TwinClassDuplicateDTOv1 {
 
 Extends `Request`. Contains a `List<EntityDuplicateDTO>` of individual duplicate operations. Each item specifies the original entity ID, a new key, and boolean flags for optional child duplication. Reuses the standard entity response DTO (`EntityListRsDTOv1`) for the response.
 
-### 2. Domain Duplicate Object — enriched by service
+### 3. Domain Duplicate Object — enriched by service
+
+Each duplicate object extends `EntityDuplicate<E>` which provides `originalEntityId`, `newKey`, `originalEntity`, `newEntity`. Subclasses add entity-specific fields.
 
 ```java
 // domain/twinclass/TwinClassDuplicate.java
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinClassDuplicate {
-    // From DTO (set by reverse mapper)
-    private UUID originalTwinClassId;
-    private String newKey;
+public class TwinClassDuplicate extends EntityDuplicate<TwinClassEntity> {
+    // Entity-specific fields
+    private UUID newTwinClassId;
     private boolean duplicateFields = false;
     private boolean duplicateStatuses = false;
-
-    // Resolved by service
-    private UUID newTwinClassId;
-    private TwinClassEntity originalTwinClass;
-    private TwinClassEntity newTwinClass;
 }
 ```
 
 ```java
 // domain/twinstatus/TwinStatusDuplicate.java
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinStatusDuplicate {
-    // From DTO
-    private UUID originalTwinStatusId;
-    private UUID newTwinClassId;      // optional — defaults to same class
-    private String newKey;
-    private boolean duplicateTriggers = false;
-
-    // Resolved by service
+public class TwinStatusDuplicate extends EntityDuplicate<TwinStatusEntity> {
+    // Entity-specific fields
+    private UUID newTwinClassId;
     private UUID newTwinStatusId;
-    private TwinStatusEntity originalTwinStatus;
+    private boolean duplicateTriggers = false;
     private TwinClassEntity newTwinClass;
-    private TwinStatusEntity newTwinStatus;
 }
 ```
 
-Two groups of fields:
-* **From DTO** — set by the reverse mapper. Raw input data.
-* **Resolved by service** — populated during service execution via `load()` helpers and entity creation.
+Field groups:
+* **From EntityDuplicate base** — `originalEntityId`, `newKey` (set by reverse mapper), `originalEntity`, `newEntity` (resolved by service).
+* **Subclass-specific** — additional request fields and resolved references.
 
-### 3. Reverse Mapper — DTO → Domain object
+### 4. Reverse Mapper — DTO -> Domain object
 
 ```java
 // TwinClassDuplicateRestDTOReverseMapper.java
@@ -136,7 +198,7 @@ public class TwinClassDuplicateRestDTOReverseMapper
 
 Extends `RestSimpleDTOMapper<DTO, DomainObject>`. Maps only the DTO fields — entity references are left for the service. Named `{Entity}DuplicateRestDTOReverseMapper`.
 
-### 4. Controller
+### 5. Controller
 
 ```java
 @Tag(name = ApiTag.TWIN_CLASS)
@@ -145,7 +207,7 @@ Extends `RestSimpleDTOMapper<DTO, DomainObject>`. Maps only the DTO fields — e
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_CLASS_CREATE})
 public class TwinClassDuplicateController extends ApiController {
-    private final TwinClassService twinClassService;
+    private final TwinClassDuplicateService twinClassDuplicateService;
     private final TwinClassDuplicateRestDTOReverseMapper twinClassDuplicateRestDTOReverseMapper;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -165,7 +227,7 @@ public class TwinClassDuplicateController extends ApiController {
         var rs = new TwinClassListRsDTOv1();
         try {
             var duplicates = twinClassDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedClasses = twinClassService.duplicate(duplicates);
+            var duplicatedClasses = twinClassDuplicateService.duplicate(duplicates);
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(duplicatedClasses, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -180,83 +242,26 @@ public class TwinClassDuplicateController extends ApiController {
 ```
 
 Key points:
-* Four injected dependencies: `{Entity}Service`, `{Entity}DuplicateRestDTOReverseMapper`, `{Entity}RestDTOMapper`, `RelatedObjectsRestDTOConverter`
+* Injects `{Entity}DuplicateService` (not the entity service) plus mapper dependencies
 * `@MapperContextBinding` with `roots = EntityRestDTOMapper.class` and `response = EntityListRsDTOv1.class`
 * `@ProtectedBy` with `_CREATE` permission (creating new entities)
 * Endpoint: `POST /private/{entity_snake_case}/duplicate/v1`
 * Reuses existing `{Entity}ListRsDTOv1` for response — no dedicated duplicate response DTO
 
-### 5. Service — duplicate method
+### 6. Duplicate Service — concrete implementation
 
-```java
-// In existing {Entity}Service.java
-@Transactional
-public Collection<Entity> duplicate(Collection<EntityDuplicate> duplicates) throws ServiceException {
-    // 1. Validate key uniqueness in batch
-    var newKeys = new HashSet<String>();
-    for (var duplicate : duplicates) {
-        if (newKeys.contains(duplicate.getNewKey()))
-            throw new ServiceException(ErrorCode.KEY_ALREADY_IN_USE, "...");
-        newKeys.add(duplicate.getNewKey());
-    }
+Each `{Entity}DuplicateService` extends `EntityDuplicateService<D extends EntityDuplicate<E>, E>` and implements:
 
-    // 2. Load original entities
-    loadOriginalEntities(duplicates);
+| Method | Purpose |
+|---|---|
+| `entityService()` | Returns the entity's service for `load()` and `saveSafe()` |
+| `createNewEntity()` | Entity-specific field copying from original to new entity |
+| `duplicateI18nFields()` | Entity-specific i18n duplication |
+| `getKeyDuplicatedErrorCode()` | ErrorCode for duplicate key in batch |
+| `prepareDuplicates()` (optional) | Batch preparation: resolve defaults, load target parents |
+| `afterSave()` (optional) | Post-save: refresh hierarchies, cascade child duplication |
 
-    // 3. Resolve defaults (e.g., newTwinClassId = original.twinClassId)
-    // 4. Load target parent entities (if applicable)
-
-    // 5. Create new entities by copying properties from originals
-    var entitiesToSave = new ArrayList<Entity>();
-    for (var duplicate : duplicates) {
-        var original = duplicate.getOriginalEntity();
-        var newEntity = new Entity()
-                .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCode.KEY_INCORRECT))
-                // ... copy all business fields from original
-                // ... reset counters, set createdBy, set domainId
-                ;
-        // 6. Duplicate i18n
-        setI18nForDuplicate(original, newEntity);
-
-        duplicate.setNewEntity(newEntity);
-        entitiesToSave.add(newEntity);
-    }
-
-    // 7. Save in bulk
-    var saved = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
-
-    // 8. Post-save operations (hierarchy refresh, child duplication)
-    for (var duplicate : duplicates) {
-        if (duplicate.isDuplicateChildren()) {
-            childService.duplicateChildrenForParent(duplicate.getOriginalEntity(), duplicate.getNewEntity());
-        }
-    }
-
-    return saved;
-}
-```
-
-### 6. Service helpers
-
-```java
-// Load original entities from DB
-private void loadOriginalEntities(Collection<EntityDuplicate> duplicates) throws ServiceException {
-    load(duplicates,
-            EntityDuplicate::getOriginalEntityId,
-            EntityDuplicate::getOriginalEntity,
-            EntityDuplicate::setOriginalEntity);
-}
-
-// Copy i18n strings (creates new I18nEntity for each non-null i18n field)
-private void setI18nForDuplicate(Entity src, Entity dst) {
-    if (src.getNameI18nId() != null) {
-        dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-    }
-    if (src.getDescriptionI18nId() != null) {
-        dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-    }
-}
-```
+Common logic (key validation, loading originals, saving) is handled by the base class using `EntityDuplicate` fields directly — no accessor boilerplate needed.
 
 ---
 
@@ -271,16 +276,15 @@ Controller
   |     |
   |     +-- Sets: originalEntityId, newKey, duplicateFields/duplicateStatuses flags
   |
-  +-- Service.duplicate(Collection<EntityDuplicate>)
+  +-- EntityDuplicateService.duplicate(Collection<EntityDuplicate>)
   |     |
-  |     +-- Validate: key uniqueness in batch
-  |     +-- load(): resolve originalEntityId -> originalEntity (from DB)
-  |     +-- (optional) load(): resolve newTwinClassId -> newTwinClass
-  |     +-- Generate new entity ID (UUID.nameUUIDFromBytes or let DB generate)
-  |     +-- Create new entity: copy fields from original, reset counters
-  |     +-- i18nService.duplicateI18n(): copy i18n + translations
-  |     +-- saveSafe(): persist all new entities
-  |     +-- Post-save: refresh hierarchies, cascade to child entities
+  |     +-- validateKeyUniqueness(): check for duplicate keys in batch
+  |     +-- loadOriginalEntities(): resolve originalEntityId -> originalEntity (via entityService.load)
+  |     +-- prepareDuplicates(): hook — resolve defaults, load target parents
+  |     +-- createNewEntity(): copy fields from original, reset counters
+  |     +-- duplicateI18nFields(): copy i18n + translations
+  |     +-- entityService.saveSafe(): persist all new entities
+  |     +-- afterSave(): hook — refresh hierarchies, cascade to child entities
   |
   +-- Forward Mapper: saved entities -> response DTOs
   +-- RelatedObjectsRestDTOConverter: enrich related objects
@@ -324,15 +328,20 @@ Controller
 
 ### Pattern A: Self-contained entity with child cascade (TwinClass)
 
-The entity is a top-level domain object. Child duplication (fields, statuses) is controlled by boolean flags and delegated to child services.
+The entity is a top-level domain object. Child duplication (fields, statuses) is controlled by boolean flags and handled in `afterSave()`.
 
 ```
 TwinClassDuplicateController
-  -> TwinClassService.duplicate()
-       -> i18nService.duplicateI18n()
-       -> saveSafe(twinClasses)
-       -> twinClassFieldService.duplicateFieldsForClass()   (if duplicateFields)
-       -> twinStatusService.duplicateStatusesForClass()     (if duplicateStatuses)
+  -> TwinClassDuplicateService.duplicate()
+       [base] validateKeyUniqueness()
+       [base] loadOriginalEntities()
+       [subclass] prepareDuplicates() — generate newTwinClassId
+       [subclass] createNewEntity() — copy fields, reset counters
+       [subclass] duplicateI18nFields() — name, description
+       [base] save via entityService.saveSafe()
+       [subclass] afterSave() — refresh hierarchies, cascade:
+           -> twinClassFieldService.duplicateFieldsForClass()   (if duplicateFields)
+           -> twinStatusService.duplicateStatusesForClass()     (if duplicateStatuses)
 ```
 
 ### Pattern B: Entity with optional target parent (TwinStatus, TwinClassField)
@@ -341,13 +350,13 @@ The duplicated entity can optionally be moved to a different parent. `newTwinCla
 
 ```
 TwinStatusDuplicateController
-  -> TwinStatusService.duplicate()
-       -> load original status
-       -> default newTwinClassId = original.twinClassId  (if not provided)
-       -> load target twinClass
-       -> create new status, copy fields
-       -> i18nService.duplicateI18n()
-       -> saveSafe(statuses)
+  -> TwinStatusDuplicateService.duplicate()
+       [base] validateKeyUniqueness()
+       [base] loadOriginalEntities()
+       [subclass] prepareDuplicates() — default newTwinClassId, load target class
+       [subclass] createNewEntity() — copy fields
+       [subclass] duplicateI18nFields() — name, description
+       [base] save via entityService.saveSafe()
 ```
 
 ---
@@ -359,17 +368,11 @@ TwinStatusDuplicateController
 ```java
 // domain/foo/FooDuplicate.java
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FooDuplicate {
-    // From DTO
-    private UUID originalFooId;
-    private String newKey;
+public class FooDuplicate extends EntityDuplicate<FooEntity> {
+    // Entity-specific fields
     private boolean duplicateChildren = false;
-
-    // Resolved by service
-    private UUID newFooId;
-    private FooEntity originalFoo;
-    private FooEntity newFoo;
 }
 ```
 
@@ -411,38 +414,46 @@ public class FooDuplicateRestDTOReverseMapper
     @Override
     public void map(FooDuplicateDTOv1 src, FooDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
-                .setOriginalFooId(src.getOriginalFooId())
-                .setNewKey(src.getNewKey())
-                .setDuplicateChildren(src.isDuplicateChildren());
+                .setOriginalEntityId(src.getOriginalFooId())
+                .setNewKey(src.getNewKey());
+        dst.setDuplicateChildren(src.isDuplicateChildren());
     }
 }
 ```
 
-### Step 4: Add `duplicate()` Method to Existing Service
+### Step 4: Create Duplicate Service
 
 ```java
-// In FooService.java
-@Transactional
-public Collection<FooEntity> duplicate(Collection<FooDuplicate> duplicates) throws ServiceException {
-    var newKeys = new HashSet<String>();
-    for (var duplicate : duplicates) {
-        if (newKeys.contains(duplicate.getNewKey()))
-            throw new ServiceException(ErrorCodeTwins.FOO_KEY_ALREADY_IN_USE, "...");
-        newKeys.add(duplicate.getNewKey());
-    }
-    loadOriginalFoos(duplicates);
-    var entitiesToSave = new ArrayList<FooEntity>();
-    for (var duplicate : duplicates) {
-        var original = duplicate.getOriginalFoo();
-        var newEntity = new FooEntity()
+// service/foo/FooDuplicateService.java
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class FooDuplicateService extends EntityDuplicateService<FooDuplicate, FooEntity> {
+
+    private final FooService fooService;
+    private final I18nService i18nService;
+
+    @Override protected EntitySecureFindServiceImpl<FooEntity> entityService() { return fooService; }
+    @Override protected ErrorCode getKeyDuplicatedErrorCode() { return ErrorCodeTwins.FOO_KEY_ALREADY_IN_USE; }
+
+    @Override
+    protected FooEntity createNewEntity(FooDuplicate duplicate, FooEntity original) throws ServiceException {
+        return new FooEntity()
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.FOO_KEY_INCORRECT))
-                // copy fields from original
+                // ... copy fields from original
                 ;
-        setI18nForDuplicate(original, newEntity);
-        duplicate.setNewFoo(newEntity);
-        entitiesToSave.add(newEntity);
     }
-    return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+
+    @Override
+    protected void duplicateI18nFields(FooEntity src, FooEntity dst) {
+        if (src.getNameI18nId() != null)
+            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
+    }
+
+    @Override
+    protected void afterSave(Collection<FooDuplicate> duplicates, Collection<FooEntity> saved) throws ServiceException {
+        // Optional: cascade to child entities
+    }
 }
 ```
 
@@ -456,7 +467,7 @@ public Collection<FooEntity> duplicate(Collection<FooDuplicate> duplicates) thro
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.FOO_CREATE})
 public class FooDuplicateController extends ApiController {
-    private final FooService fooService;
+    private final FooDuplicateService fooDuplicateService;
     private final FooDuplicateRestDTOReverseMapper fooDuplicateRestDTOReverseMapper;
     private final FooRestDTOMapper fooRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -476,7 +487,7 @@ public class FooDuplicateController extends ApiController {
         var rs = new FooListRsDTOv1();
         try {
             var duplicates = fooDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicated = fooService.duplicate(duplicates);
+            var duplicated = fooDuplicateService.duplicate(duplicates);
             rs
                     .setFooList(fooRestDTOMapper.convertCollection(duplicated, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -494,16 +505,18 @@ public class FooDuplicateController extends ApiController {
 
 ## Critical Rules
 
-1. **Domain Duplicate object** — always create a domain object (e.g., `TwinClassDuplicate`) in `domain/{domain}/`, never pass DTOs to the service.
-2. **Key uniqueness validation** — check for duplicate `newKey` values within the same request batch. Throw `ServiceException` with specific `ErrorCode`.
-3. **`load()` helper** — use the generic `load()` method from `EntitySecureFindServiceImpl` to resolve IDs to entities.
-4. **i18n duplication** — use `i18nService.duplicateI18n()` for each non-null i18n field. Never share i18n entities between original and duplicate.
-5. **Reset counters** — duplicate entities must reset counters (e.g., `twinCounter = 0`, `directChildren = 0`) and flags (`hasSegment = false`).
-6. **`@Transactional`** — the service `duplicate()` method must be annotated with `@Transactional`.
-7. **`@ProtectedBy({Permissions.ENTITY_CREATE})`** — duplicate requires CREATE permission (it creates new entities).
-8. **Reuse response DTO** — use the existing `{Entity}ListRsDTOv1` for the response. Do not create a dedicated duplicate response DTO.
-9. **Boolean defaults are `false`** — child-entity duplication flags are opt-in.
-10. **`KeyUtils`** — use `KeyUtils.upperCaseNullFriendly()` or `KeyUtils.lowerCaseNullSafe()` to normalize and validate the new key.
+1. **Dedicated DuplicateService** — each entity gets its own `{Entity}DuplicateService extends EntityDuplicateService<D, E>`. Never add `duplicate()` to the entity service.
+2. **Domain Duplicate object** — always create a domain object extending `EntityDuplicate<E>` (e.g., `TwinClassDuplicate extends EntityDuplicate<TwinClassEntity>`) in `domain/{domain}/`. Never pass DTOs to the service.
+3. **Key uniqueness validation** — handled by base class `validateKeyUniqueness()`. Uses `duplicate.getNewKey()` from `EntityDuplicate` base. Throws `ServiceException` with entity-specific `ErrorCode`.
+4. **`loadOriginalEntities()`** — uses `entityService().load()` with `EntityDuplicate` getters/setters. No manual load helpers or accessor methods needed.
+5. **i18n duplication** — implemented in `duplicateI18nFields()`. Use `i18nService.duplicateI18n()` for each non-null i18n field. Never share i18n entities between original and duplicate.
+6. **Reset counters** — duplicate entities must reset counters (e.g., `twinCounter = 0`, `directChildren = 0`) and flags (`hasSegment = false`).
+7. **`@Transactional`** — the base class `duplicate()` method is `@Transactional`.
+8. **`@ProtectedBy({Permissions.ENTITY_CREATE})`** — duplicate requires CREATE permission (it creates new entities).
+9. **Reuse response DTO** — use the existing `{Entity}ListRsDTOv1` for the response. Do not create a dedicated duplicate response DTO.
+10. **Boolean defaults are `false`** — child-entity duplication flags are opt-in.
+11. **`KeyUtils`** — use `KeyUtils.upperCaseNullFriendly()` or `KeyUtils.lowerCaseNullSafe()` to normalize and validate the new key.
+12. **`entityService()`** — returns the existing entity service for `load()` and `saveSafe()`. Never call `entityRepository()` directly from the duplicate service.
 
 ---
 
@@ -511,19 +524,22 @@ public class FooDuplicateController extends ApiController {
 
 | Layer | File | Package |
 |---|---|---|
+| Base Domain Object | `EntityDuplicate` | `org.twins.core.domain` |
+| Base Service | `EntityDuplicateService` | `org.twins.core.service` |
+| Domain Object | `FooDuplicate extends EntityDuplicate` | `domain.foo` |
+| Duplicate Service | `FooDuplicateService extends EntityDuplicateService` | `service.foo` |
 | Domain Object | `FooDuplicate` | `domain.foo` |
 | Request DTO | `FooDuplicateRqDTOv1` | `dto.rest.foo` |
 | Item DTO | `FooDuplicateDTOv1` | `dto.rest.foo` |
 | Reverse Mapper | `FooDuplicateRestDTOReverseMapper` | `mappers.rest.foo` |
 | Controller | `FooDuplicateController` | `controller.rest.priv.foo` |
-| Service method | `FooService.duplicate()` | `service.foo` |
 
 ---
 
 ## Existing Implementations
 
-| Entity | Controller | Service method | Child options |
+| Entity | Controller | Duplicate Service | Child options |
 |---|---|---|---|
-| TwinClass | `TwinClassDuplicateController` | `TwinClassService.duplicate()` | `duplicateFields`, `duplicateStatuses` |
-| TwinStatus | `TwinStatusDuplicateController` | `TwinStatusService.duplicate()` | `duplicateTriggers` (todo) |
-| TwinClassField | `TwinClassFieldDuplicateController` | `TwinClassFieldService.duplicateFields()` | `duplicateRules` (todo) |
+| TwinClass | `TwinClassDuplicateController` | `TwinClassDuplicateService` | `duplicateFields`, `duplicateStatuses` |
+| TwinStatus | `TwinStatusDuplicateController` | `TwinStatusDuplicateService` | `duplicateTriggers` (todo) |
+| TwinClassField | `TwinClassFieldDuplicateController` | `TwinClassFieldDuplicateService` | `duplicateRules` (todo) |

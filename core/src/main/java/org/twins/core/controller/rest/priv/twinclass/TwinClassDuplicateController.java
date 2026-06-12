@@ -26,7 +26,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassDuplicateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassDuplicateService;
 
 @Tag(name = ApiTag.TWIN_CLASS)
 @RestController
@@ -34,7 +34,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_CLASS_CREATE})
 public class TwinClassDuplicateController extends ApiController {
-    private final TwinClassService twinClassService;
+    private final TwinClassDuplicateService twinClassDuplicateService;
     private final TwinClassDuplicateRestDTOReverseMapper twinClassDuplicateRestDTOReverseMapper;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -54,7 +54,7 @@ public class TwinClassDuplicateController extends ApiController {
 
         try {
             var duplicates = twinClassDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedClasses = twinClassService.duplicate(duplicates);
+            var duplicatedClasses = twinClassDuplicateService.duplicate(duplicates);
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(duplicatedClasses, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

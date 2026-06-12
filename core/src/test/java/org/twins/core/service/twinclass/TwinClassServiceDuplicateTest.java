@@ -1,18 +1,15 @@
 package org.twins.core.service.twinclass;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
@@ -20,6 +17,7 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twin.TwinStatusService;
 
 import java.util.*;
 
@@ -30,14 +28,14 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class TwinClassServiceDuplicateTest {
 
-    @Mock private TwinClassRepository twinClassRepository;
+    @Mock private TwinClassService twinClassService;
     @Mock private TwinClassFieldService twinClassFieldService;
-    @Mock private EntitySmartService entitySmartService;
+    @Mock private TwinStatusService twinStatusService;
     @Mock private I18nService i18nService;
     @Mock private AuthService authService;
     @Mock private ApiUser apiUser;
 
-    private TwinClassService twinClassService;
+    private TwinClassDuplicateService twinClassDuplicateService;
 
     private TwinClassEntity srcClass;
     private UUID srcClassId;
@@ -47,13 +45,9 @@ class TwinClassServiceDuplicateTest {
 
     @BeforeEach
     void setUp() throws ServiceException {
-        twinClassService = Mockito.spy(
-                new TwinClassService(
-                        null, twinClassRepository, null, null,
-                        twinClassFieldService, null, entitySmartService, i18nService,
-                        null, null, null, null, null, null, null, null,
-                        authService, null, null, null, null, null
-                )
+        twinClassDuplicateService = new TwinClassDuplicateService(
+                twinClassService, twinClassFieldService, twinStatusService,
+                i18nService, authService
         );
 
         srcClassId = UUID.randomUUID();
@@ -66,23 +60,22 @@ class TwinClassServiceDuplicateTest {
         srcClass.setKey("original_key");
         srcClass.setDomainId(domainId);
 
-        when(authService.getApiUser()).thenReturn(apiUser);
-        when(apiUser.getDomainId()).thenReturn(domainId);
+        lenient().when(authService.getApiUser()).thenReturn(apiUser);
+        lenient().when(apiUser.getDomainId()).thenReturn(domainId);
         lenient().when(apiUser.getUser()).thenReturn(new UserEntity().setId(userId));
-        lenient().doNothing().when(twinClassService).refreshExtendsHierarchyTree(any(TwinClassEntity.class));
-        lenient().doNothing().when(twinClassService).refreshHeadHierarchyTree(any(TwinClassEntity.class));
     }
 
     /** Builds a TwinClassDuplicate with originalTwinClass pre-set to bypass DB load. */
     private TwinClassDuplicate duplicateOf(TwinClassEntity original, String key, boolean duplicateFields) {
-        return new TwinClassDuplicate()
-                .setOriginalTwinClassId(original.getId())
-                .setOriginalTwinClass(original)
-                .setNewKey(key)
-                .setDuplicateFields(duplicateFields);
+        TwinClassDuplicate d = new TwinClassDuplicate();
+        d.setOriginalEntityId(original.getId());
+        d.setOriginalEntity(original);
+        d.setNewKey(key);
+        d.setDuplicateFields(duplicateFields);
+        return d;
     }
 
-    /** Stubs saveSafe(Collection) to echo back the input and capture saved entities. */
+    /** Stubs saveSafe(Collection) on the entity service to echo back the input and capture saved entities. */
     private List<TwinClassEntity> stubSaveSafeAndCapture() throws ServiceException {
         List<TwinClassEntity> captured = new ArrayList<>();
         doAnswer(inv -> {
@@ -146,7 +139,7 @@ class TwinClassServiceDuplicateTest {
 
             List<TwinClassEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             TwinClassEntity saved = captured.get(0);
             assertNotSame(srcClass, saved);
@@ -189,7 +182,7 @@ class TwinClassServiceDuplicateTest {
 
             List<TwinClassEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             assertNull(captured.get(0).getTwinClassFreezeId());
         }
@@ -203,7 +196,7 @@ class TwinClassServiceDuplicateTest {
 
             List<TwinClassEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             TwinClassEntity saved = captured.get(0);
             assertEquals(Integer.valueOf(0), saved.getTwinCounter());
@@ -217,7 +210,7 @@ class TwinClassServiceDuplicateTest {
 
             List<TwinClassEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             TwinClassEntity saved = captured.get(0);
             assertEquals(Boolean.FALSE, saved.getHasSegment());
@@ -242,7 +235,7 @@ class TwinClassServiceDuplicateTest {
 
             List<TwinClassEntity> captured = stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             TwinClassEntity saved = captured.get(0);
             assertEquals(dupNameI18nId, saved.getNameI18NId());
@@ -257,7 +250,7 @@ class TwinClassServiceDuplicateTest {
 
             stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             verifyNoInteractions(i18nService);
         }
@@ -270,7 +263,7 @@ class TwinClassServiceDuplicateTest {
         void delegatesFieldDuplicationWhenFlagIsTrue() throws ServiceException {
             stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, true)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, true)));
 
             verify(twinClassFieldService, times(1))
                     .duplicateFieldsForClass(eq(srcClass), any(TwinClassEntity.class));
@@ -280,7 +273,7 @@ class TwinClassServiceDuplicateTest {
         void doesNotDelegateFieldsWhenFlagIsFalse() throws ServiceException {
             stubSaveSafeAndCapture();
 
-            twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
+            twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             verify(twinClassFieldService, never())
                     .duplicateFieldsForClass(any(), any());
@@ -300,7 +293,7 @@ class TwinClassServiceDuplicateTest {
             );
 
             ServiceException ex = assertThrows(ServiceException.class,
-                    () -> twinClassService.duplicate(batch));
+                    () -> twinClassDuplicateService.duplicate(batch));
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE.getCode(), ex.getErrorCode());
         }
@@ -311,7 +304,7 @@ class TwinClassServiceDuplicateTest {
 
             stubSaveSafeAndCapture();
 
-            List<TwinClassEntity> result = new ArrayList<>(twinClassService.duplicate(List.of(
+            List<TwinClassEntity> result = new ArrayList<>(twinClassDuplicateService.duplicate(List.of(
                     duplicateOf(srcClass, "KEY_ONE", false),
                     duplicateOf(src2, "KEY_TWO", false)
             )));
@@ -326,10 +319,8 @@ class TwinClassServiceDuplicateTest {
         @Test
         @Disabled("TODO: implement existsById/existsByDomainIdAndKey check before saveSafe")
         void throwsWhenClassWithSameKeyAlreadyExistsInDomain() throws ServiceException {
-            when(twinClassRepository.existsByDomainIdAndKey(domainId, newKey)).thenReturn(true);
-
             assertThrows(ServiceException.class,
-                    () -> twinClassService.duplicate(List.of(duplicateOf(srcClass, newKey, false))));
+                    () -> twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false))));
 
             verify(twinClassService, never()).saveSafe(any(Collection.class));
         }
@@ -340,12 +331,10 @@ class TwinClassServiceDuplicateTest {
             TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID()).setDomainId(domainId);
             String conflictKey = "conflict_key";
 
-            when(twinClassRepository.existsByDomainIdAndKey(domainId, conflictKey)).thenReturn(true);
             stubSaveSafeAndCapture();
 
-            // "key_ok" should pass, "conflict_key" should throw
             assertThrows(ServiceException.class,
-                    () -> twinClassService.duplicate(List.of(
+                    () -> twinClassDuplicateService.duplicate(List.of(
                             duplicateOf(srcClass, "key_ok", false),
                             duplicateOf(src2, conflictKey, false)
                     )));
