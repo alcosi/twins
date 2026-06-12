@@ -9,7 +9,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class EntityDuplicate<E> {
     private UUID originalEntityId;
-    private String newKey;
+    private String newKey; //optional
     private E originalEntity;
     private E newEntity;
 }

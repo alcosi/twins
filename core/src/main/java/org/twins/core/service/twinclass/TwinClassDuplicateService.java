@@ -119,9 +119,11 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
         }
         for (var duplicate : duplicates) {
             if (duplicate.isDuplicateFields()) {
+                //todo change to batch operation
                 twinClassFieldDuplicateService.duplicateFieldsForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
             if (duplicate.isDuplicateStatuses()) {
+                //todo change to batch operation
                 twinStatusDuplicateService.duplicateStatusesForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
