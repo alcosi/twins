@@ -1,21 +1,21 @@
 package org.twins.core.service.factory;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.EntityExportService;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryExportService extends EntityExportService {
+public class FactoryExportService extends EntityExportService<TwinFactoryEntity> {
     private final TwinFactoryService twinFactoryService;
 
     private final FactoryBranchExportService branchExportService;
@@ -24,19 +24,23 @@ public class FactoryExportService extends EntityExportService {
     private final FactoryEraserExportService eraserExportService;
     private final FactoryTriggerExportService triggerExportService;
 
+    @Override
+    public String exportCollectionToSql(Collection<TwinFactoryEntity> factories) throws ServiceException {
+        return exportToSql(factories, true, true, true, true, true, true);
+    }
+
     public String exportToSql(UUID factoryId, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
         return exportToSql(Collections.singleton(factoryId), includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
     }
 
-    @SneakyThrows
-    public String exportToSql(Set<UUID> factoryIds, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
-        var factoriesKit = twinFactoryService.findEntitiesSafe(factoryIds);
+    public String exportToSql(Set<UUID> twinFactoryIds, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
+        var factories = twinFactoryService.findEntitiesSafe(twinFactoryIds);
+        return exportToSql(factories.getCollection(), includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
+    }
 
-        if (factoriesKit.isEmpty()) {
-            return "";
-        }
+    public String exportToSql(Collection<TwinFactoryEntity> factories, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
+        if (CollectionUtils.isEmpty(factories)) return "";
 
-        List<TwinFactoryEntity> factories = factoriesKit.getList();
         var sqlParts = new StringList();
 
         // Collect I18n IDs from factories
@@ -49,44 +53,45 @@ public class FactoryExportService extends EntityExportService {
 
         sqlParts.addNotBlank(sqlBuilder.buildInserts(factories));
 
-        // Load all factory elements using optimized load methods
         twinFactoryService.loadFactoryElements(factories);
 
         exportChildrenKit(
                 includeBranches,
                 factories,
                 TwinFactoryEntity::getTwinFactoryBranchKit,
-                branchExportService::exportToSql,
+                branchExportService::exportCollectionToSql,
                 sqlParts);
 
         exportChildrenKit(
                 includeMultipliers,
                 factories,
                 TwinFactoryEntity::getTwinFactoryMultiplierKit,
-                multiplierExportService::exportToSql,
+                multiplierExportService::exportCollectionToSql,
                 sqlParts);
 
         exportChildrenKit(
                 includeErasers,
                 factories,
                 TwinFactoryEntity::getTwinFactoryEraserKit,
-                eraserExportService::exportToSql,
+                eraserExportService::exportCollectionToSql,
                 sqlParts);
 
         exportChildrenKit(
                 includeTriggers,
                 factories,
-                TwinFactoryEntity::getTwinFactoryTriggerKit ,
-                triggerExportService::exportToSql,
+                TwinFactoryEntity::getTwinFactoryTriggerKit,
+                triggerExportService::exportCollectionToSql,
                 sqlParts);
 
         exportChildrenKit(
                 includePipelines,
                 factories,
                 TwinFactoryEntity::getTwinFactoryPipelineKit,
-                list -> pipelineExportService.exportToSql(list, includePipelineSteps),
+                list -> pipelineExportService.exportCollectionToSql(list, includePipelineSteps),
                 sqlParts);
 
         return String.join("\n", sqlParts);
     }
+
+
 }

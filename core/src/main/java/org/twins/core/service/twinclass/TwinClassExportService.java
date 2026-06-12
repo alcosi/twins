@@ -13,10 +13,11 @@ import org.twins.core.service.twinflow.TwinflowExportService;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TwinClassExportService extends EntityExportService {
+public class TwinClassExportService extends EntityExportService<TwinClassEntity> {
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldExportService twinClassFieldExportService;
@@ -24,6 +25,13 @@ public class TwinClassExportService extends EntityExportService {
     private final TwinflowExportService twinflowExportService;
     private final TwinStatusService twinStatusService;
     private final TwinflowService twinflowService;
+
+    @Override
+    public String exportCollectionToSql(Collection<TwinClassEntity> twinClasses) throws ServiceException {
+        return exportToSql(
+                twinClasses.stream().map(TwinClassEntity::getId).collect(Collectors.toSet()),
+                true, true, true);
+    }
 
     public String exportToSql(UUID twinClassId, boolean includeFields, boolean includeStatuses, boolean includeTwinflow) throws ServiceException {
         return exportToSql(Collections.singleton(twinClassId), includeFields, includeStatuses, includeTwinflow);
@@ -59,7 +67,7 @@ public class TwinClassExportService extends EntityExportService {
         // fields
         if (includeFields) {
             var allFields = twinClassFieldService.findByTwinClassIdIn(twinClassIds);
-            sqlParts.addNotBlank(twinClassFieldExportService.exportToSql(allFields));
+            sqlParts.addNotBlank(twinClassFieldExportService.exportCollectionToSql(allFields));
         }
 
         // statuses

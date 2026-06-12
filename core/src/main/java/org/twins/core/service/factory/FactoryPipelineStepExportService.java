@@ -14,21 +14,21 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryPipelineStepExportService extends EntityExportService {
+public class FactoryPipelineStepExportService extends EntityExportService<TwinFactoryPipelineStepEntity> {
     private final FactoryPipelineStepService factoryPipelineStepService;
     private final FactoryConditionSetExportService conditionSetExportService;
 
     public String exportToSql(Set<UUID> stepIds) throws ServiceException {
-        return exportToSql(factoryPipelineStepService.findEntitiesSafe(stepIds).getCollection());
+        return exportCollectionToSql(factoryPipelineStepService.findEntitiesSafe(stepIds).getCollection());
     }
 
-    public String exportToSql(Collection<TwinFactoryPipelineStepEntity> steps) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryPipelineStepEntity> steps) throws ServiceException {
         if (CollectionUtils.isEmpty(steps)) return "";
         var sqlParts = new StringList();
 
         // Load and export ConditionSets
         factoryPipelineStepService.loadConditionSets(steps);
-        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+        sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(steps, TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet)));
 
         // Export Pipeline Steps

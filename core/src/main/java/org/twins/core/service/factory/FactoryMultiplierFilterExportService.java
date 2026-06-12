@@ -12,16 +12,16 @@ import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryMultiplierFilterExportService extends EntityExportService {
+public class FactoryMultiplierFilterExportService extends EntityExportService<TwinFactoryMultiplierFilterEntity> {
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
     private final FactoryConditionSetExportService conditionSetExportService;
 
-    public String exportToSql(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
         if (CollectionUtils.isEmpty(filters)) return "";
         var sqlParts = new StringList();
         // Load and export ConditionSets
         factoryMultiplierFilterService.loadConditionSets(filters);
-        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+        sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(filters, TwinFactoryMultiplierFilterEntity::getConditionSet)));
         // Export MultiplierFilters
         sqlParts.addNotBlank(sqlBuilder.buildInserts(filters));

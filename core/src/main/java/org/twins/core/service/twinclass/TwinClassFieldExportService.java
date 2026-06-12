@@ -14,8 +14,8 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldExportService extends EntityExportService {
-    public String exportToSql(Collection<TwinClassFieldEntity> fields) throws ServiceException {
+public class TwinClassFieldExportService extends EntityExportService<TwinClassFieldEntity> {
+    public String exportCollectionToSql(Collection<TwinClassFieldEntity> fields) throws ServiceException {
         if (CollectionUtils.isEmpty(fields)) {
             return "";
         }

@@ -14,27 +14,27 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryPipelineExportService extends EntityExportService {
+public class FactoryPipelineExportService extends EntityExportService<TwinFactoryPipelineEntity> {
     private final FactoryPipelineService factoryPipelineService;
     private final FactoryPipelineStepService factoryPipelineStepService;
     private final FactoryConditionSetExportService conditionSetExportService;
     private final FactoryPipelineStepExportService pipelineStepExportService;
 
-    public String exportToSql(Set<UUID> pipelineIds, boolean includePipelineSteps) throws ServiceException {
-        return exportToSql(factoryPipelineService.findEntitiesSafe(pipelineIds).getCollection(), includePipelineSteps);
+    public String exportCollectionToSql(Set<UUID> pipelineIds, boolean includePipelineSteps) throws ServiceException {
+        return exportCollectionToSql(factoryPipelineService.findEntitiesSafe(pipelineIds).getCollection(), includePipelineSteps);
     }
 
-    public String exportToSql(Collection<TwinFactoryPipelineEntity> pipelines) throws ServiceException {
-        return exportToSql(pipelines, true);
+    public String exportCollectionToSql(Collection<TwinFactoryPipelineEntity> pipelines) throws ServiceException {
+        return exportCollectionToSql(pipelines, true);
     }
 
-    public String exportToSql(Collection<TwinFactoryPipelineEntity> pipelines, boolean includePipelineSteps) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryPipelineEntity> pipelines, boolean includePipelineSteps) throws ServiceException {
         if (CollectionUtils.isEmpty(pipelines)) return "";
         var sqlParts = new StringList();
 
         // Load and export ConditionSets
         factoryPipelineService.loadConditionSets(pipelines);
-        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+        sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(pipelines, TwinFactoryPipelineEntity::getConditionSet)));
 
         // Export Pipelines
@@ -45,7 +45,7 @@ public class FactoryPipelineExportService extends EntityExportService {
                     true,
                     pipelines,
                     TwinFactoryPipelineEntity::getTwinFactoryPipelineStepKit,
-                    pipelineStepExportService::exportToSql,
+                    pipelineStepExportService::exportCollectionToSql,
                     sqlParts);
         }
 

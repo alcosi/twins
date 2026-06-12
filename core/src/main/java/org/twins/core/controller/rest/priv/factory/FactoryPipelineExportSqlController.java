@@ -19,8 +19,8 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.factory.FactoryPipelineExportSqlRqDTOv1;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.factory.FactoryPipelineExportService;
+import org.twins.core.service.permission.Permissions;
 
 import java.nio.charset.StandardCharsets;
 
@@ -41,7 +41,7 @@ public class FactoryPipelineExportSqlController extends ApiController {
     @PostMapping(value = "/private/factory_pipeline/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> factoryPipelineExportSqlV1(
             @RequestBody FactoryPipelineExportSqlRqDTOv1 request) throws ServiceException {
-        String sql = pipelineExportService.exportToSql(request.getTwinFactoryPipelineIds(), request.isIncludePipelineSteps());
+        String sql = pipelineExportService.exportCollectionToSql(request.getTwinFactoryPipelineIds(), request.isIncludePipelineSteps());
 
         String filename = "factory_pipelines_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();

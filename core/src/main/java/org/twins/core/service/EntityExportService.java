@@ -8,13 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.service.i18n.I18nExportService;
 import org.twins.core.service.i18n.I18nService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
-public abstract class EntityExportService {
+public abstract class EntityExportService<E> {
     @Autowired
     protected I18nExportService i18nExportService;
 
@@ -24,22 +21,28 @@ public abstract class EntityExportService {
     @Autowired
     protected SqlBuilder sqlBuilder;
 
+    public abstract String exportCollectionToSql(Collection<E> entitiesCollection) throws ServiceException;
+
+    public String exportToSql(E entity) throws ServiceException {
+        return exportCollectionToSql(Collections.singletonList(entity));
+    }
+
     @FunctionalInterface
     protected interface Exporter<E> {
         String apply(List<E> entities) throws ServiceException;
     }
 
-    protected  <F, E> void exportChildren(
+    protected <F, CHE> void exportChildren(
             boolean enabled,
             Collection<F> parents,
-            Function<F, Collection<E>> childExtractor,
-            Exporter<E> exporter,
+            Function<F, Collection<CHE>> childExtractor,
+            Exporter<CHE> exporter,
             StringList sqlParts) throws ServiceException {
 
         if (!enabled) {
             return;
         }
-        List<E> entities = new ArrayList<>();
+        List<CHE> entities = new ArrayList<>();
         for (F parent : parents) {
             entities.addAll(childExtractor.apply(parent));
         }
@@ -49,19 +52,19 @@ public abstract class EntityExportService {
         sqlParts.addNotBlank(exporter.apply(entities));
     }
 
-    protected  <F, E> void exportChildrenKit(
+    protected <F, CHE> void exportChildrenKit(
             boolean enabled,
             Collection<F> parents,
-            Function<F, Kit<E, UUID>> childExtractor,
-            Exporter<E> exporter,
+            Function<F, Kit<CHE, UUID>> childExtractor,
+            Exporter<CHE> exporter,
             StringList sqlParts) throws ServiceException {
 
         if (!enabled) {
             return;
         }
-        List<E> entities = new ArrayList<>();
+        List<CHE> entities = new ArrayList<>();
         for (F parent : parents) {
-            entities.addAll(childExtractor.apply(parent));
+            entities.addAll(childExtractor.apply(parent).getCollection());
         }
         if (entities.isEmpty()) {
             return;

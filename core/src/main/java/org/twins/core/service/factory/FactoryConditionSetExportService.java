@@ -3,38 +3,34 @@ package org.twins.core.service.factory;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.service.EntityExportService;
 
-import java.util.*;
+import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryConditionSetExportService extends EntityExportService {
+public class FactoryConditionSetExportService extends EntityExportService<TwinFactoryConditionSetEntity> {
     private final FactoryConditionService factoryConditionService;
+    private final FactoryConditionExportService factoryConditionExportService;
 
-    public String exportToSql(Collection<TwinFactoryConditionSetEntity> conditionSets) throws ServiceException {
-        if (conditionSets.isEmpty()) {
-            return "";
-        }
-
+    public String exportCollectionToSql(Collection<TwinFactoryConditionSetEntity> conditionSets) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditionSets)) return "";
         var sqlParts = new StringList();
 
         // ConditionSets
         sqlParts.addNotBlank(sqlBuilder.buildInserts(conditionSets));
 
-        // Collect ConditionSet IDs and load Conditions
-        Set<UUID> conditionSetIds = new HashSet<>();
-        for (TwinFactoryConditionSetEntity conditionSet : conditionSets) {
-            conditionSetIds.add(conditionSet.getId());
-        }
-
-        List<TwinFactoryConditionEntity> conditions = factoryConditionService.findByTwinFactoryConditionSetIdIn(conditionSetIds);
-        if (!conditions.isEmpty()) {
-            sqlParts.addNotBlank(sqlBuilder.buildInserts(conditions));
-        }
+        // Conditions
+        factoryConditionService.loadConditions(conditionSets);
+        exportChildrenKit(
+                true,
+                conditionSets,
+                TwinFactoryConditionSetEntity::getTwinFactoryConditionKit,
+                factoryConditionExportService::exportCollectionToSql,
+                sqlParts);
 
         return String.join("\n", sqlParts);
     }

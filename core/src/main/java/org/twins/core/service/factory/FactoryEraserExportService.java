@@ -14,15 +14,15 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryEraserExportService extends EntityExportService {
+public class FactoryEraserExportService extends EntityExportService<TwinFactoryEraserEntity> {
     private final FactoryEraserService factoryEraserService;
     private final FactoryConditionSetExportService conditionSetExportService;
 
     public String exportToSql(Set<UUID> eraserIds) throws ServiceException {
-        return exportToSql(factoryEraserService.findEntitiesSafe(eraserIds).getList());
+        return exportCollectionToSql(factoryEraserService.findEntitiesSafe(eraserIds).getList());
     }
 
-    public String exportToSql(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
         if (CollectionUtils.isEmpty(erasers)) return "";
 
         var sqlParts = new StringList();
@@ -30,7 +30,7 @@ public class FactoryEraserExportService extends EntityExportService {
         // Load and export ConditionSets
         factoryEraserService.loadConditionSets(erasers);
         sqlParts.addNotBlank(conditionSetExportService
-                .exportToSql(CollectionUtils.collect(erasers, TwinFactoryEraserEntity::getConditionSet)));
+                .exportCollectionToSql(CollectionUtils.collect(erasers, TwinFactoryEraserEntity::getConditionSet)));
 
         // Export Erasers
         sqlParts.addNotBlank(sqlBuilder.buildInserts(erasers));

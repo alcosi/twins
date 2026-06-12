@@ -14,20 +14,20 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryBranchExportService extends EntityExportService {
+public class FactoryBranchExportService extends EntityExportService<TwinFactoryBranchEntity> {
     private final FactoryBranchService factoryBranchService;
     private final FactoryConditionSetExportService conditionSetExportService;
 
     public String exportToSql(Set<UUID> branchIds) throws ServiceException {
-        return exportToSql(factoryBranchService.findEntitiesSafe(branchIds).getList());
+        return exportCollectionToSql(factoryBranchService.findEntitiesSafe(branchIds).getList());
     }
 
-    public String exportToSql(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
         if (CollectionUtils.isEmpty(branches)) return "";
         var sqlParts = new StringList();
         // Load and export ConditionSets
         factoryBranchService.loadConditionSets(branches);
-        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+        sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(branches, TwinFactoryBranchEntity::getConditionSet)));
         // Export Branches
         sqlParts.addNotBlank(sqlBuilder.buildInserts(branches));

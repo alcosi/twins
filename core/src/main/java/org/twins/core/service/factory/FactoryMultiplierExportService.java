@@ -13,16 +13,16 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryMultiplierExportService extends EntityExportService {
+public class FactoryMultiplierExportService extends EntityExportService<TwinFactoryMultiplierEntity> {
     private final FactoryMultiplierService factoryMultiplierService;
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
     private final FactoryMultiplierFilterExportService multiplierFilterExportService;
 
     public String exportToSql(Set<UUID> multiplierIds) throws ServiceException {
-        return exportToSql(factoryMultiplierService.findEntitiesSafe(multiplierIds).getList());
+        return exportCollectionToSql(factoryMultiplierService.findEntitiesSafe(multiplierIds).getList());
     }
 
-    public String exportToSql(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
         if (multipliers.isEmpty()) {
             return "";
         }
@@ -38,7 +38,7 @@ public class FactoryMultiplierExportService extends EntityExportService {
                 true,
                 multipliers,
                 TwinFactoryMultiplierEntity::getTwinFactoryMultiplierFilterKit,
-                multiplierFilterExportService::exportToSql,
+                multiplierFilterExportService::exportCollectionToSql,
                 sqlParts);
 
         return String.join("\n", sqlParts);

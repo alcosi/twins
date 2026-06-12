@@ -14,22 +14,22 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FactoryTriggerExportService extends EntityExportService {
+public class FactoryTriggerExportService extends EntityExportService<TwinFactoryTriggerEntity> {
     private final FactoryTriggerService factoryTriggerService;
     private final FactoryConditionSetExportService conditionSetExportService;
 
     public String exportToSql(Set<UUID> triggerIds) throws ServiceException {
-        return exportToSql(factoryTriggerService.findEntitiesSafe(triggerIds).getCollection());
+        return exportCollectionToSql(factoryTriggerService.findEntitiesSafe(triggerIds).getCollection());
     }
 
-    public String exportToSql(Collection<TwinFactoryTriggerEntity> triggers) throws ServiceException {
+    public String exportCollectionToSql(Collection<TwinFactoryTriggerEntity> triggers) throws ServiceException {
         if (CollectionUtils.isEmpty(triggers)) return "";
 
         var sqlParts = new StringList();
 
         // Load and export ConditionSets
         factoryTriggerService.loadConditionSets(triggers);
-        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+        sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(triggers, TwinFactoryTriggerEntity::getTwinFactoryConditionSet)));
 
         // Export Triggers

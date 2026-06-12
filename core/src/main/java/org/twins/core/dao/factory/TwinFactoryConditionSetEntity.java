@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.user.UserEntity;
 
@@ -74,6 +75,11 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
 
     @Transient
     private Integer inFactoryEraserUsagesCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryConditionEntity, UUID> twinFactoryConditionKit;
 
     @Override
     public String easyLog(Level level) {
