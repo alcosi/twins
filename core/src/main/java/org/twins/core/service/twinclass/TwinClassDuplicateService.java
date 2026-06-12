@@ -2,7 +2,6 @@ package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -15,11 +14,10 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twin.TwinStatusDuplicateService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -31,9 +29,9 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     @Lazy
     private final TwinClassService twinClassService;
     @Lazy
-    private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldDuplicateService twinClassFieldDuplicateService;
     @Lazy
-    private final TwinStatusService twinStatusService;
+    private final TwinStatusDuplicateService twinStatusDuplicateService;
     private final I18nService i18nService;
     @Lazy
     private final AuthService authService;
@@ -57,7 +55,8 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate, TwinClassEntity original) throws ServiceException {
+    protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate) throws ServiceException {
+        TwinClassEntity original = duplicate.getOriginalEntity();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
         return new TwinClassEntity()
                 .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
@@ -118,28 +117,12 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
             twinClassService.refreshExtendsHierarchyTree(savedClass);
             twinClassService.refreshHeadHierarchyTree(savedClass);
         }
-        var needLoadFields = new ArrayList<TwinClassEntity>();
-        var needLoadStatuses = new ArrayList<TwinClassEntity>();
         for (var duplicate : duplicates) {
             if (duplicate.isDuplicateFields()) {
-                needLoadFields.add(duplicate.getOriginalEntity());
+                twinClassFieldDuplicateService.duplicateFieldsForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
             if (duplicate.isDuplicateStatuses()) {
-                needLoadStatuses.add(duplicate.getOriginalEntity());
-            }
-        }
-        if (CollectionUtils.isNotEmpty(needLoadFields)) {
-            twinClassFieldService.loadTwinClassFields(needLoadFields);
-        }
-        if (CollectionUtils.isNotEmpty(needLoadStatuses)) {
-            twinStatusService.loadStatusesForTwinClasses(needLoadStatuses);
-        }
-        for (var duplicate : duplicates) {
-            if (duplicate.isDuplicateFields()) {
-                twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
-            }
-            if (duplicate.isDuplicateStatuses()) {
-                twinStatusService.duplicateStatusesForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
+                twinStatusDuplicateService.duplicateStatusesForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
     }

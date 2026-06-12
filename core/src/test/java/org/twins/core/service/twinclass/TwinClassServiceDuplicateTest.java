@@ -17,7 +17,7 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twin.TwinStatusDuplicateService;
 
 import java.util.*;
 
@@ -29,8 +29,8 @@ import static org.mockito.Mockito.*;
 class TwinClassServiceDuplicateTest {
 
     @Mock private TwinClassService twinClassService;
-    @Mock private TwinClassFieldService twinClassFieldService;
-    @Mock private TwinStatusService twinStatusService;
+    @Mock private TwinClassFieldDuplicateService twinClassFieldDuplicateService;
+    @Mock private TwinStatusDuplicateService twinStatusDuplicateService;
     @Mock private I18nService i18nService;
     @Mock private AuthService authService;
     @Mock private ApiUser apiUser;
@@ -46,7 +46,7 @@ class TwinClassServiceDuplicateTest {
     @BeforeEach
     void setUp() throws ServiceException {
         twinClassDuplicateService = new TwinClassDuplicateService(
-                twinClassService, twinClassFieldService, twinStatusService,
+                twinClassService, twinClassFieldDuplicateService, twinStatusDuplicateService,
                 i18nService, authService
         );
 
@@ -265,7 +265,7 @@ class TwinClassServiceDuplicateTest {
 
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, true)));
 
-            verify(twinClassFieldService, times(1))
+            verify(twinClassFieldDuplicateService, times(1))
                     .duplicateFieldsForClass(eq(srcClass), any(TwinClassEntity.class));
         }
 
@@ -275,7 +275,7 @@ class TwinClassServiceDuplicateTest {
 
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
-            verify(twinClassFieldService, never())
+            verify(twinClassFieldDuplicateService, never())
                     .duplicateFieldsForClass(any(), any());
         }
     }

@@ -248,47 +248,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatusRepository.existsByIdAndType(twinStatusId, StatusType.SKETCH);
     }
 
-    public void duplicateStatusesForClass(TwinClassEntity fromTwinClass, TwinClassEntity toTwinClass) throws ServiceException {
-        loadStatusesForTwinClasses(fromTwinClass);
-        if (KitUtils.isEmpty(fromTwinClass.getTwinStatusKit())) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinStatusEntity>();
-        TwinStatusEntity duplicateStatusEntity;
-        for (var originalStatus : fromTwinClass.getTwinStatusKit().getCollection()) {
-            if (!originalStatus.getTwinClassId().equals(fromTwinClass.getId()))
-                continue; //skipping inherited statuses
-            duplicateStatusEntity = duplicateStatusEntity(originalStatus, toTwinClass, originalStatus.getKey()); // we can copy the status with the same key
-            setI18nForDuplicate(originalStatus, duplicateStatusEntity);
-            entitiesForSave.add(duplicateStatusEntity);
-        }
-        //todo check uniq id and key before safe
-        saveSafe(entitiesForSave);
-    }
-
-    TwinStatusEntity duplicateStatusEntity(TwinStatusEntity srcFieldEntity, TwinClassEntity duplicateTwinClass, String newKey) throws ServiceException {
-        log.info("{} will be duplicated for {}", srcFieldEntity.logNormal(), duplicateTwinClass.logNormal());
-
-        return new TwinStatusEntity()
-                .setKey(KeyUtils.lowerCaseNullSafe(newKey, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
-                .setTwinClassId(duplicateTwinClass.getId())
-                .setTwinClass(duplicateTwinClass)
-                .setInheritable(srcFieldEntity.getInheritable())
-                .setBackgroundColor(srcFieldEntity.getBackgroundColor())
-                .setFontColor(srcFieldEntity.getFontColor())
-                .setType(srcFieldEntity.getType());
-    }
-
-    void setI18nForDuplicate(TwinStatusEntity src, TwinStatusEntity dst) {
-        //todo change to bulk
-        if (src.getNameI18nId() != null) {
-            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-        }
-        if (src.getDescriptionI18nId() != null) {
-            dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-        }
-    }
-
     public void loadClass(TwinStatusEntity entity) throws ServiceException {
         loadClass(Collections.singletonList(entity));
     }

@@ -17,7 +17,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
 
     protected abstract EntitySecureFindServiceImpl<E> entityService();
 
-    protected abstract E createNewEntity(D duplicate, E original) throws ServiceException;
+    protected abstract E createNewEntity(D duplicate) throws ServiceException;
 
     protected abstract ErrorCode getKeyDuplicatedErrorCode();
 
@@ -27,6 +27,12 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
     }
 
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
+    }
+
+    @Transactional
+    public E duplicate(D duplicate) throws ServiceException {
+        var ret = duplicate(Collections.singletonList(duplicate));
+        return ret.isEmpty() ? null : ret.iterator().next();
     }
 
     @Transactional
@@ -40,7 +46,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
         var entitiesToSave = new ArrayList<E>();
         for (var duplicate : duplicates) {
             var original = duplicate.getOriginalEntity();
-            var newEntity = createNewEntity(duplicate, original);
+            var newEntity = createNewEntity(duplicate);
             duplicateI18nFields(original, newEntity);
             duplicate.setNewEntity(newEntity);
             entitiesToSave.add(newEntity);
