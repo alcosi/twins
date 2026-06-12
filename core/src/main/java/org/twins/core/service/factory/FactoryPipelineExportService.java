@@ -3,13 +3,12 @@ package org.twins.core.service.factory;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.service.EntityExportService;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,41 +24,29 @@ public class FactoryPipelineExportService extends EntityExportService {
         return exportToSql(factoryPipelineService.findEntitiesSafe(pipelineIds).getCollection(), includePipelineSteps);
     }
 
-    public String exportToSql(Collection<TwinFactoryPipelineEntity> pipelines, boolean includePipelineSteps) throws ServiceException {
-        if (pipelines.isEmpty()) {
-            return "";
-        }
+    public String exportToSql(Collection<TwinFactoryPipelineEntity> pipelines) throws ServiceException {
+        return exportToSql(pipelines, true);
+    }
 
+    public String exportToSql(Collection<TwinFactoryPipelineEntity> pipelines, boolean includePipelineSteps) throws ServiceException {
+        if (CollectionUtils.isEmpty(pipelines)) return "";
         var sqlParts = new StringList();
 
-        // Load conditionSets for pipelines
+        // Load and export ConditionSets
         factoryPipelineService.loadConditionSets(pipelines);
-        Set<TwinFactoryConditionSetEntity> conditionSets = new HashSet<>();
-        for (TwinFactoryPipelineEntity pipeline : pipelines) {
-            if (pipeline.getConditionSet() != null) {
-                conditionSets.add(pipeline.getConditionSet());
-            }
-        }
-
-        // Export ConditionSets and Conditions (for pipelines only)
-        if (!conditionSets.isEmpty()) {
-            sqlParts.addNotBlank(conditionSetExportService.exportToSql(conditionSets));
-        }
+        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+                CollectionUtils.collect(pipelines, TwinFactoryPipelineEntity::getConditionSet)));
 
         // Export Pipelines
         sqlParts.addNotBlank(sqlBuilder.buildInserts(pipelines));
-
-        // Export PipelineSteps (if enabled) - step service will handle its own conditionSets
         if (includePipelineSteps) {
-            Set<UUID> pipelineIds = new HashSet<>();
-            for (TwinFactoryPipelineEntity pipeline : pipelines) {
-                pipelineIds.add(pipeline.getId());
-            }
-
-            var steps = factoryPipelineStepService.findByTwinFactoryPipelineIdIn(pipelineIds);
-            if (!steps.isEmpty()) {
-                sqlParts.addNotBlank(pipelineStepExportService.exportToSql(steps));
-            }
+            factoryPipelineStepService.loadFactoryPipelineSteps(pipelines);
+            exportChildrenKit(
+                    true,
+                    pipelines,
+                    TwinFactoryPipelineEntity::getTwinFactoryPipelineStepKit,
+                    pipelineStepExportService::exportToSql,
+                    sqlParts);
         }
 
         return String.join("\n", sqlParts);

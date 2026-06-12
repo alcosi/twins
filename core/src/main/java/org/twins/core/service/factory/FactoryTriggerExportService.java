@@ -3,13 +3,12 @@ package org.twins.core.service.factory;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.service.EntityExportService;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,25 +23,14 @@ public class FactoryTriggerExportService extends EntityExportService {
     }
 
     public String exportToSql(Collection<TwinFactoryTriggerEntity> triggers) throws ServiceException {
-        if (triggers.isEmpty()) {
-            return "";
-        }
+        if (CollectionUtils.isEmpty(triggers)) return "";
 
         var sqlParts = new StringList();
 
-        // Load conditionSets for triggers
+        // Load and export ConditionSets
         factoryTriggerService.loadConditionSets(triggers);
-        Set<TwinFactoryConditionSetEntity> conditionSets = new HashSet<>();
-        for (TwinFactoryTriggerEntity trigger : triggers) {
-            if (trigger.getTwinFactoryConditionSet() != null) {
-                conditionSets.add(trigger.getTwinFactoryConditionSet());
-            }
-        }
-
-        // Export ConditionSets and Conditions
-        if (!conditionSets.isEmpty()) {
-            sqlParts.addNotBlank(conditionSetExportService.exportToSql(conditionSets));
-        }
+        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+                CollectionUtils.collect(triggers, TwinFactoryTriggerEntity::getTwinFactoryConditionSet)));
 
         // Export Triggers
         sqlParts.addNotBlank(sqlBuilder.buildInserts(triggers));

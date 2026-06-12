@@ -6,10 +6,12 @@ import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.service.EntityExportService;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -50,44 +52,40 @@ public class FactoryExportService extends EntityExportService {
         // Load all factory elements using optimized load methods
         twinFactoryService.loadFactoryElements(factories);
 
-        exportChildren(
+        exportChildrenKit(
                 includeBranches,
                 factories,
-                factory -> factory.getTwinFactoryBranchKit().getCollection(),
+                TwinFactoryEntity::getTwinFactoryBranchKit,
                 branchExportService::exportToSql,
                 sqlParts);
 
-        exportChildren(
+        exportChildrenKit(
                 includeMultipliers,
                 factories,
-                factory -> factory.getTwinFactoryMultiplierKit().getCollection(),
+                TwinFactoryEntity::getTwinFactoryMultiplierKit,
                 multiplierExportService::exportToSql,
                 sqlParts);
 
-        exportChildren(
+        exportChildrenKit(
                 includeErasers,
                 factories,
-                factory -> factory.getTwinFactoryEraserKit().getCollection(),
+                TwinFactoryEntity::getTwinFactoryEraserKit,
                 eraserExportService::exportToSql,
                 sqlParts);
 
-        exportChildren(
+        exportChildrenKit(
                 includeTriggers,
                 factories,
-                factory -> factory.getTwinFactoryTriggerKit().getCollection(),
+                TwinFactoryEntity::getTwinFactoryTriggerKit ,
                 triggerExportService::exportToSql,
                 sqlParts);
 
-        // Pipelines
-        if (includePipelines) {
-            List<TwinFactoryPipelineEntity> pipelines = new ArrayList<>();
-            for (TwinFactoryEntity factory : factories) {
-                pipelines.addAll(factory.getTwinFactoryPipelineKit().getList());
-            }
-            if (!pipelines.isEmpty()) {
-                sqlParts.addNotBlank(pipelineExportService.exportToSql(pipelines, includePipelineSteps));
-            }
-        }
+        exportChildrenKit(
+                includePipelines,
+                factories,
+                TwinFactoryEntity::getTwinFactoryPipelineKit,
+                list -> pipelineExportService.exportToSql(list, includePipelineSteps),
+                sqlParts);
 
         return String.join("\n", sqlParts);
     }

@@ -3,13 +3,12 @@ package org.twins.core.service.factory;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.service.EntityExportService;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,25 +23,13 @@ public class FactoryPipelineStepExportService extends EntityExportService {
     }
 
     public String exportToSql(Collection<TwinFactoryPipelineStepEntity> steps) throws ServiceException {
-        if (steps.isEmpty()) {
-            return "";
-        }
-
+        if (CollectionUtils.isEmpty(steps)) return "";
         var sqlParts = new StringList();
 
-        // Load conditionSets for steps
+        // Load and export ConditionSets
         factoryPipelineStepService.loadConditionSets(steps);
-        Set<TwinFactoryConditionSetEntity> conditionSets = new HashSet<>();
-        for (TwinFactoryPipelineStepEntity step : steps) {
-            if (step.getTwinFactoryConditionSet() != null) {
-                conditionSets.add(step.getTwinFactoryConditionSet());
-            }
-        }
-
-        // Export ConditionSets and Conditions
-        if (!conditionSets.isEmpty()) {
-            sqlParts.addNotBlank(conditionSetExportService.exportToSql(conditionSets));
-        }
+        sqlParts.addNotBlank(conditionSetExportService.exportToSql(
+                CollectionUtils.collect(steps, TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet)));
 
         // Export Pipeline Steps
         sqlParts.addNotBlank(sqlBuilder.buildInserts(steps));

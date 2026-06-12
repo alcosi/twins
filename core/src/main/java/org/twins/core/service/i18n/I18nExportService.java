@@ -3,6 +3,7 @@ package org.twins.core.service.i18n;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.service.sql.I18nSqlBuilder;
@@ -19,6 +20,7 @@ public class I18nExportService {
     private final I18nSqlBuilder i18nSqlBuilder;
 
     public String exportToSql(Set<UUID> i18nIds) throws ServiceException {
+        if (CollectionUtils.isEmpty(i18nIds)) return "";
         List<I18nEntity> i18nEntities = i18nService.findEntitiesSafe(i18nIds).getList();
         i18nService.loadTranslations(i18nEntities);
 

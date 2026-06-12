@@ -24,19 +24,12 @@ public class TwinStatusExportService {
         if (statuses.isEmpty()) {
             return "";
         }
-
         Set<UUID> i18nIds = i18nService.collectI18nIds(statuses,
                 TwinStatusEntity::getNameI18nId,
                 TwinStatusEntity::getDescriptionI18nId);
-
         var sqlParts = new StringList();
-
-        if (!i18nIds.isEmpty()) {
-            sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
-        }
-
+        sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
         sqlParts.addNotBlank(sqlBuilder.buildInserts(statuses));
-
         return String.join("\n", sqlParts);
     }
 }

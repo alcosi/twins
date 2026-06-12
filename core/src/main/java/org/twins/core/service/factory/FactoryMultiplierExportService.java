@@ -5,10 +5,11 @@ import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.service.EntityExportService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,14 +34,14 @@ public class FactoryMultiplierExportService extends EntityExportService {
 
         // Load and export MultiplierFilters
         factoryMultiplierFilterService.loadFactoryMultiplierFilters(multipliers);
-        List<TwinFactoryMultiplierFilterEntity> filters = new ArrayList<>();
-        for (TwinFactoryMultiplierEntity multiplier : multipliers) {
-            filters.addAll(multiplier.getTwinFactoryMultiplierFilterKit().getCollection());
-        }
-        if (!filters.isEmpty()) {
-            sqlParts.addNotBlank(multiplierFilterExportService.exportToSql(filters));
-        }
+        exportChildrenKit(
+                true,
+                multipliers,
+                TwinFactoryMultiplierEntity::getTwinFactoryMultiplierFilterKit,
+                multiplierFilterExportService::exportToSql,
+                sqlParts);
 
         return String.join("\n", sqlParts);
     }
+
 }
