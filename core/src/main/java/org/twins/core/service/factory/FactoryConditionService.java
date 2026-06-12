@@ -20,11 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionRepository;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -133,6 +131,21 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
             dbEntity
                     .setConditionerParams(newConditionerParams);
         }
+    }
+
+    public List<TwinFactoryConditionEntity> findByTwinFactoryConditionSetIdIn(Collection<UUID> conditionSetIds) {
+        return repository.findByTwinFactoryConditionSetIdIn(conditionSetIds);
+    }
+
+    public void loadConditions(Collection<TwinFactoryConditionSetEntity> conditionSets) {
+        loadKit(
+                conditionSets,
+                TwinFactoryConditionSetEntity::getId,
+                TwinFactoryConditionSetEntity::getTwinFactoryConditionKit,
+                TwinFactoryConditionSetEntity::setTwinFactoryConditionKit,
+                repository::findByTwinFactoryConditionSetIdIn,
+                TwinFactoryConditionEntity::getId,
+                TwinFactoryConditionEntity::getTwinFactoryConditionSetId);
     }
 
 }

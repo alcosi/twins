@@ -160,6 +160,10 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
     }
 
+    public List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
+
     public void loadFactoryTriggers(TwinFactoryEntity factory) {
         loadFactoryTriggers(Collections.singletonList(factory));
     }

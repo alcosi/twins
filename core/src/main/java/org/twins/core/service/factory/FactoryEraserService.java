@@ -21,6 +21,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -35,6 +36,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public CrudRepository<TwinFactoryEraserEntity, UUID> entityRepository() {
@@ -96,6 +99,10 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         deleteSafe(id);
     }
 
+    public List<TwinFactoryEraserEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
+
     public void loadFactoryErasers(TwinFactoryEntity factory) {
         loadFactoryErasers(Collections.singletonList(factory));
     }
@@ -109,5 +116,16 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryEraserEntity::getId,
                 TwinFactoryEraserEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSets(TwinFactoryEraserEntity eraser) throws ServiceException {
+        loadConditionSets(Collections.singleton(eraser));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+        factoryConditionSetService.load(erasers,
+                TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
+                TwinFactoryEraserEntity::getConditionSet,
+                TwinFactoryEraserEntity::setConditionSet);
     }
 }

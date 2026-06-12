@@ -22,6 +22,7 @@ import org.twins.core.featurer.factory.filler.Filler;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -114,6 +115,10 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         deleteSafe(id);
     }
 
+    public List<TwinFactoryPipelineStepEntity> findByTwinFactoryPipelineIdIn(Collection<UUID> pipelineIds) {
+        return repository.findByTwinFactoryPipelineIdInOrderByOrderAsc(pipelineIds);
+    }
+
     public void loadFactoryPipelineSteps(TwinFactoryPipelineEntity pipeline) {
         loadFactoryPipelineSteps(Collections.singletonList(pipeline));
     }
@@ -127,5 +132,16 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
                 repository::findByTwinFactoryPipelineIdInOrderByOrderAsc,
                 TwinFactoryPipelineStepEntity::getId,
                 TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId);
+    }
+
+    public void loadConditionSets(TwinFactoryPipelineStepEntity step) throws ServiceException {
+        loadConditionSets(Collections.singleton(step));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryPipelineStepEntity> steps) throws ServiceException {
+        factoryConditionSetService.load(steps,
+                TwinFactoryPipelineStepEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet,
+                TwinFactoryPipelineStepEntity::setTwinFactoryConditionSet);
     }
 }
