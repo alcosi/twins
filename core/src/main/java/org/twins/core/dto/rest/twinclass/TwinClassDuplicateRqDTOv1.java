@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -14,5 +15,6 @@ import java.util.List;
 @Schema(name =  "TwinClassDuplicateRqV1")
 public class TwinClassDuplicateRqDTOv1 extends Request {
     @Schema(description = "duplicates list")
+    @Size(min = 1, max = 50)
     public List<TwinClassDuplicateDTOv1> duplicates;
 }

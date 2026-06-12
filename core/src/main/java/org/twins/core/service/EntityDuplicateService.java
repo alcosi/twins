@@ -29,13 +29,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public E duplicate(D duplicate) throws ServiceException {
         var ret = duplicate(Collections.singletonList(duplicate));
         return ret.isEmpty() ? null : ret.iterator().next();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public Collection<E> duplicate(Collection<D> duplicates) throws ServiceException {
         if (CollectionUtils.isEmpty(duplicates)) {
             return Collections.emptyList();

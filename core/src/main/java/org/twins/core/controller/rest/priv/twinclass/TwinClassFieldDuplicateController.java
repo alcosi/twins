@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -50,7 +51,7 @@ public class TwinClassFieldDuplicateController extends ApiController {
     @PostMapping(value = "/private/twin_class_field/duplicate/v1")
     public ResponseEntity<?> twinClassFieldDuplicateV1(
             @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassFieldDuplicateRqDTOv1 rq) {
+            @Valid @RequestBody TwinClassFieldDuplicateRqDTOv1 rq) {
         var rs = new TwinClassFieldListRsDTOv1();
 
         try {

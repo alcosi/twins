@@ -74,7 +74,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {}
 
     // Template method — uses EntityDuplicate base fields directly
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public Collection<E> duplicate(Collection<D> duplicates) throws ServiceException {
         if (CollectionUtils.isEmpty(duplicates)) return Collections.emptyList();
         validateKeyUniqueness(duplicates);     // 1 — uses duplicate.getNewKey()
@@ -117,6 +117,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
 @Schema(name = "TwinClassDuplicateRqV1")
 public class TwinClassDuplicateRqDTOv1 extends Request {
     @Schema(description = "duplicates list")
+    @Size(min = 1, max = 50)
     public List<TwinClassDuplicateDTOv1> duplicates;
 }
 ```
@@ -223,7 +224,7 @@ public class TwinClassDuplicateController extends ApiController {
     public ResponseEntity<?> twinClassDuplicateV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassDuplicateRqDTOv1 request) {
+            @Valid @RequestBody TwinClassDuplicateRqDTOv1 request) {
         var rs = new TwinClassListRsDTOv1();
         try {
             var duplicates = twinClassDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
@@ -398,6 +399,7 @@ public class FooDuplicateDTOv1 {
 @Schema(name = "FooDuplicateRqV1")
 public class FooDuplicateRqDTOv1 extends Request {
     @Schema(description = "duplicates list")
+    @Size(min = 1, max = 50)
     public List<FooDuplicateDTOv1> duplicates;
 }
 ```
@@ -483,7 +485,7 @@ public class FooDuplicateController extends ApiController {
     public ResponseEntity<?> fooDuplicateV1(
             @MapperContextBinding(roots = FooRestDTOMapper.class, response = FooListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FooDuplicateRqDTOv1 request) {
+            @Valid @RequestBody FooDuplicateRqDTOv1 request) {
         var rs = new FooListRsDTOv1();
         try {
             var duplicates = fooDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
@@ -511,12 +513,13 @@ public class FooDuplicateController extends ApiController {
 4. **`loadOriginalEntities()`** — uses `entityService().load()` with `EntityDuplicate` getters/setters. No manual load helpers or accessor methods needed.
 5. **i18n duplication** — implemented in `duplicateI18nFields()`. Use `i18nService.duplicateI18n()` for each non-null i18n field. Never share i18n entities between original and duplicate.
 6. **Reset counters** — duplicate entities must reset counters (e.g., `twinCounter = 0`, `directChildren = 0`) and flags (`hasSegment = false`).
-7. **`@Transactional`** — the base class `duplicate()` method is `@Transactional`.
-8. **`@ProtectedBy({Permissions.ENTITY_CREATE})`** — duplicate requires CREATE permission (it creates new entities).
-9. **Reuse response DTO** — use the existing `{Entity}ListRsDTOv1` for the response. Do not create a dedicated duplicate response DTO.
-10. **Boolean defaults are `false`** — child-entity duplication flags are opt-in.
-11. **`KeyUtils`** — use `KeyUtils.upperCaseNullFriendly()` or `KeyUtils.lowerCaseNullSafe()` to normalize and validate the new key.
-12. **`entityService()`** — returns the existing entity service for `load()` and `saveSafe()`. Never call `entityRepository()` directly from the duplicate service.
+7. **`@Transactional(rollbackFor = Throwable.class)`** — the base class `duplicate()` method is `@Transactional(rollbackFor = Throwable.class)`. The `rollbackFor` is required because `ServiceException` is a checked exception and Spring only rolls back on unchecked exceptions by default.
+8. **`@Valid` + `@Size(min = 1, max = 50)`** — the controller must use `@Valid` on `@RequestBody` and the request DTO's `duplicates` list must have `@Size(min = 1, max = 50)` to enforce batch size limits and prevent unrestricted resource consumption (OWASP API4:2023).
+9. **`@ProtectedBy({Permissions.ENTITY_CREATE})`** — duplicate requires CREATE permission (it creates new entities).
+10. **Reuse response DTO** — use the existing `{Entity}ListRsDTOv1` for the response. Do not create a dedicated duplicate response DTO.
+11. **Boolean defaults are `false`** — child-entity duplication flags are opt-in.
+12. **`KeyUtils`** — use `KeyUtils.upperCaseNullFriendly()` or `KeyUtils.lowerCaseNullSafe()` to normalize and validate the new key.
+13. **`entityService()`** — returns the existing entity service for `load()` and `saveSafe()`. Never call `entityRepository()` directly from the duplicate service.
 
 ---
 
