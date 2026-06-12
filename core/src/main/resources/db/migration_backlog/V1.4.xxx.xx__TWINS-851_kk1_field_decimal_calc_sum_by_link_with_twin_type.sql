@@ -11,122 +11,91 @@ CREATE OR REPLACE FUNCTION twin_field_decimal_calc_sum_by_link_with_twin_type(
     p_link_ids uuid[],
     field_id_by_twin_type jsonb,
     p_src_else_dst boolean,
-    p_linked_twin_in_status_ids uuid[] DEFAULT null,
-    p_linked_twin_of_class_ids uuid[] DEFAULT null,
+Я    p_linked_twin_in_status_ids uuid[] DEFAULT NULL,
+    p_linked_twin_of_class_ids uuid[] DEFAULT NULL,
     p_status_exclude boolean DEFAULT false,
     p_skip_if_not_found boolean DEFAULT true
 )
-RETURNS TABLE (
-    twin_id uuid,
-    calc numeric
-)
+RETURNS TABLE (twin_id uuid, calc numeric)
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_twin_id uuid;
-    v_linked_twin_id uuid;
-    v_type_option_id uuid;
-    v_field_id uuid;
-    v_field_value numeric;
-    v_total numeric;
+    v_missing_types TEXT[];
 BEGIN
-    -- For each twin
-    FOREACH v_twin_id IN ARRAY p_twin_ids
-    LOOP
-        v_total := 0;
+    -- Validation for strict mode: check if all types exist in mapping
+    IF NOT p_skip_if_not_found THEN
+        SELECT INTO v_missing_types
+        ARRAY_AGG(DISTINCT t.type_option_id::text)
+        FROM twin_link tl
+        INNER JOIN twin t ON (
+            CASE WHEN p_src_else_dst THEN tl.dst_twin_id ELSE tl.src_twin_id END = t.id
+        )
+        WHERE (p_link_ids IS NULL OR array_length(p_link_ids, 1) IS NULL OR tl.link_id = ANY(p_link_ids))
+          AND (tl.src_twin_id = ANY(p_twin_ids) OR tl.dst_twin_id = ANY(p_twin_ids))
+          AND CASE
+                  WHEN p_src_else_dst THEN tl.src_twin_id = ANY(p_twin_ids)
+                  ELSE tl.dst_twin_id = ANY(p_twin_ids)
+              END = true
+        AND t.type_option_id IS NOT NULL
+        AND check_twin_status_filter(t.twin_status_id, p_linked_twin_in_status_ids, p_status_exclude)
+        AND check_twin_class_filter(t.twin_class_id, p_linked_twin_of_class_ids)
+        AND (
+            field_id_by_twin_type ->> t.type_option_id::text IS NULL
+            OR (field_id_by_twin_type ->> t.type_option_id::text) ~
+                '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' IS FALSE
+        );
 
-        -- Find linked twins by link
-FOR v_linked_twin_id IN
-SELECT CASE
-           WHEN p_src_else_dst THEN tl.dst_twin_id
-           ELSE tl.src_twin_id
-           END
-FROM twin_link tl
-WHERE tl.link_id = ANY(p_link_ids)
-  AND (tl.src_twin_id = v_twin_id OR tl.dst_twin_id = v_twin_id)
-  AND CASE
-          WHEN p_src_else_dst THEN tl.src_twin_id = v_twin_id
-          ELSE tl.dst_twin_id = v_twin_id
-          END = true
-    LOOP
--- Get type_option_id from linked twin
-SELECT t.type_option_id
-INTO v_type_option_id
-FROM twin t
-WHERE t.id = v_linked_twin_id;
+        IF v_missing_types IS NOT NULL AND array_length(v_missing_types, 1) > 0 THEN
+            RAISE EXCEPTION 'Type options not found in fieldIdByTwinTypeId map or invalid UUID: %',
+                array_to_string(v_missing_types, ', ');
+        END IF;
+    END IF;
 
-IF v_type_option_id IS NULL THEN
-                CONTINUE;
-END IF;
-
-            -- Filter by status if specified
-            IF p_linked_twin_in_status_ids IS NOT NULL AND array_length(p_linked_twin_in_status_ids, 1) > 0 THEN
-                IF (SELECT t.twin_status_id FROM twin t WHERE t.id = v_linked_twin_id) IS NULL THEN
-                    CONTINUE;
-END IF;
-
-                IF p_status_exclude THEN
-                    IF (SELECT t.twin_status_id FROM twin t WHERE t.id = v_linked_twin_id) = ANY(p_linked_twin_in_status_ids) THEN
-                        CONTINUE;
-END IF;
-ELSE
-                    IF (SELECT t.twin_status_id FROM twin t WHERE t.id = v_linked_twin_id) <> ALL(p_linked_twin_in_status_ids) THEN
-                        CONTINUE;
-END IF;
-END IF;
-END IF;
-
-            -- Filter by class if specified
-            IF p_linked_twin_of_class_ids IS NOT NULL AND array_length(p_linked_twin_of_class_ids, 1) > 0 THEN
-                IF (SELECT t.twin_class_id FROM twin t WHERE t.id = v_linked_twin_id) IS NULL THEN
-                    CONTINUE;
-END IF;
-                IF (SELECT t.twin_class_id FROM twin t WHERE t.id = v_linked_twin_id) <> ALL(p_linked_twin_of_class_ids) THEN
-                    CONTINUE;
-END IF;
-END IF;
-
-            -- Find fieldId by type_option_id from JSON map
-BEGIN
-SELECT (field_id_by_twin_type ->> v_type_option_id::text)::uuid
-INTO v_field_id;
-EXCEPTION WHEN OTHERS THEN
-                IF p_skip_if_not_found THEN
-                    CONTINUE;
-ELSE
-                    RAISE EXCEPTION 'Type option ID % not found in fieldIdBySelectorValue map', v_type_option_id;
-END IF;
-END;
-
-            IF v_field_id IS NULL THEN
-                IF p_skip_if_not_found THEN
-                    CONTINUE;
-ELSE
-                    RAISE EXCEPTION 'Type option ID % not found in fieldIdBySelectorValue map', v_type_option_id;
-END IF;
-END IF;
-
-            -- Get field value
-BEGIN
-SELECT tfd.value
-INTO v_field_value
-FROM twin_field_decimal tfd
-WHERE tfd.twin_id = v_linked_twin_id
-  AND tfd.twin_class_field_id = v_field_id
-    LIMIT 1;
-
-IF v_field_value IS NOT NULL THEN
-                    v_total := v_total + COALESCE(v_field_value, 0);
-END IF;
-EXCEPTION WHEN OTHERS THEN
-                NULL; -- Skip if error reading field value
-END;
-END LOOP;
-
-        -- Return result for this twin
-RETURN QUERY SELECT v_twin_id::uuid, v_total::numeric;
-END LOOP;
-
-    RETURN;
+    RETURN QUERY
+    WITH linked_twins AS (
+        -- Find all linked twins
+        SELECT
+            CASE WHEN p_src_else_dst THEN tl.dst_twin_id ELSE tl.src_twin_id END AS linked_to_id,
+            CASE WHEN p_src_else_dst THEN tl.src_twin_id ELSE tl.dst_twin_id END AS linked_from_id
+        FROM twin_link tl
+        WHERE (p_link_ids IS NULL OR array_length(p_link_ids, 1) IS NULL OR tl.link_id = ANY(p_link_ids))
+          AND (tl.src_twin_id = ANY(p_twin_ids) OR tl.dst_twin_id = ANY(p_twin_ids))
+          AND CASE
+                  WHEN p_src_else_dst THEN tl.src_twin_id = ANY(p_twin_ids)
+                  ELSE tl.dst_twin_id = ANY(p_twin_ids)
+              END = true
+    ),
+    filtered_twins AS (
+        -- Filter by status, class and extract field_id from mapping
+        SELECT
+            lt.linked_to_id,
+            lt.linked_from_id,
+            t.type_option_id,
+            (field_id_by_twin_type ->> t.type_option_id::text)::uuid AS field_id
+        FROM linked_twins lt
+        INNER JOIN twin t ON t.id = lt.linked_to_id
+        WHERE t.type_option_id IS NOT NULL
+          AND check_twin_status_filter(t.twin_status_id, p_linked_twin_in_status_ids, p_status_exclude)
+          AND check_twin_class_filter(t.twin_class_id, p_linked_twin_of_class_ids)
+          AND (p_skip_if_not_found OR field_id_by_twin_type ? t.type_option_id::text)
+    ),
+    field_values AS (
+        -- Get field values for summation
+        SELECT
+            ft.linked_from_id,
+            COALESCE(tfd.value, 0) AS field_val
+        FROM filtered_twins ft
+        LEFT JOIN twin_field_decimal tfd
+            ON tfd.twin_id = ft.linked_to_id
+           AND tfd.twin_class_field_id = ft.field_id
+        WHERE ft.field_id IS NOT NULL
+    )
+    -- Final aggregation with guaranteed result for all input twin_ids
+    SELECT
+        req.twin_id,
+        COALESCE(SUM(fv.field_val), 0)::numeric
+    FROM unnest(p_twin_ids) AS req(twin_id)
+    LEFT JOIN field_values fv ON fv.linked_from_id = req.twin_id
+    GROUP BY req.twin_id;
 END;
 $$;
