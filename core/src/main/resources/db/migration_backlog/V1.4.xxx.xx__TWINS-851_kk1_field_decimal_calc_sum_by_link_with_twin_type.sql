@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION twin_field_decimal_calc_sum_by_link_with_twin_type(
     p_link_ids uuid[],
     field_id_by_twin_type jsonb,
     p_src_else_dst boolean,
-Я    p_linked_twin_in_status_ids uuid[] DEFAULT NULL,
+    p_linked_twin_in_status_ids uuid[] DEFAULT NULL,
     p_linked_twin_of_class_ids uuid[] DEFAULT NULL,
     p_status_exclude boolean DEFAULT false,
     p_skip_if_not_found boolean DEFAULT true
