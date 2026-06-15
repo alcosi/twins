@@ -14,7 +14,7 @@ import java.util.Properties;
         name = "Subtraction (saved)",
         description = "Save first minus second field on serializeValue, and return saved total from database"
 )
-public class FieldTyperCalcSubtractionV2 extends FieldTyperCalcBinaryMaster {
+public class FieldTyperCalcSubtractionMater extends FieldTyperCalcBinaryMater {
 
     @Override
     protected BigDecimal calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
