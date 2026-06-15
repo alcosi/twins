@@ -37,8 +37,15 @@ BEGIN
                   ELSE tl.dst_twin_id = ANY(p_twin_ids)
               END = true
           AND t.type_option_id IS NOT NULL
-          AND check_twin_status_filter(t.twin_status_id, p_linked_twin_in_status_ids, p_status_exclude)
-          AND check_twin_class_filter(t.twin_class_id, p_linked_twin_of_class_ids)
+          AND (p_linked_twin_in_status_ids IS NULL
+              OR array_length(p_linked_twin_in_status_ids, 1) = 0
+              OR p_linked_twin_in_status_ids = '{}'
+              OR (NOT p_status_exclude AND t.twin_status_id = ANY(p_linked_twin_in_status_ids))
+              OR (p_status_exclude AND t.twin_status_id != ALL(p_linked_twin_in_status_ids)))
+          AND (p_linked_twin_of_class_ids IS NULL
+              OR array_length(p_linked_twin_of_class_ids, 1) = 0
+              OR p_linked_twin_of_class_ids = '{}'
+              OR t.twin_class_id = ANY(p_linked_twin_of_class_ids))
           AND (field_id_by_twin_type ->> t.type_option_id::text IS NULL
               OR (field_id_by_twin_type ->> t.type_option_id::text) ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' IS FALSE);
 
@@ -79,8 +86,15 @@ BEGIN
         -- JOIN instead of repeated JSON lookups
         LEFT JOIN field_map fm ON fm.type_option_id = t.type_option_id
         WHERE t.type_option_id IS NOT NULL
-          AND check_twin_status_filter(t.twin_status_id, p_linked_twin_in_status_ids, p_status_exclude)
-          AND check_twin_class_filter(t.twin_class_id, p_linked_twin_of_class_ids)
+          AND (p_linked_twin_in_status_ids IS NULL
+              OR array_length(p_linked_twin_in_status_ids, 1) = 0
+              OR p_linked_twin_in_status_ids = '{}'
+              OR (NOT p_status_exclude AND t.twin_status_id = ANY(p_linked_twin_in_status_ids))
+              OR (p_status_exclude AND t.twin_status_id != ALL(p_linked_twin_in_status_ids)))
+          AND (p_linked_twin_of_class_ids IS NULL
+              OR array_length(p_linked_twin_of_class_ids, 1) = 0
+              OR p_linked_twin_of_class_ids = '{}'
+              OR t.twin_class_id = ANY(p_linked_twin_of_class_ids))
           AND (p_skip_if_not_found OR fm.field_id IS NOT NULL)
     ),
     field_values AS (
