@@ -124,6 +124,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     private UUID flavorDataListOptionId;
 
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
