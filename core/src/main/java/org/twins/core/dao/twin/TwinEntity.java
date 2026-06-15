@@ -570,6 +570,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         DESCRIPTION(Fields.description, SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TwinEntity::getDescription),
         EXTERNAL_ID(Fields.externalId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TwinEntity::getExternalId),
         OWNER_USER_ID(Fields.ownerUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID, TwinEntity::getOwnerUserId),
+        FLAVOR_DATA_LIST_OPTION_ID(Fields.flavorDataListOptionId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_FLAVOR_DATA_LIST_OPTION_ID, TwinEntity::getFlavorDataListOptionId),
         TWIN_CLASS_ID(Fields.twinClassId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID, TwinEntity::getTwinClassId),
         ASSIGNEE_USER_ID(Fields.assignerUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
         HEAD_TWIN_ID(Fields.headTwinId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID, TwinEntity::getHeadTwinId),
