@@ -32,6 +32,11 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     }
 
     @Override
+    protected FactoryPipelineDuplicate createNewDuplicate() {
+        return new FactoryPipelineDuplicate();
+    }
+
+    @Override
     protected ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
@@ -44,19 +49,19 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
 
     @Override
     protected TwinFactoryPipelineEntity createNewEntity(FactoryPipelineDuplicate duplicate) throws ServiceException {
-        var src = duplicate.getOriginalEntity();
+        var originalEntity = duplicate.getOriginalEntity();
         return new TwinFactoryPipelineEntity()
-                .setTwinFactoryId(duplicate.get())
-                .setInputTwinClassId(src.getInputTwinClassId())
-                .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
-                .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
-                .setOutputTwinStatusId(src.getOutputTwinStatusId())
-                .setNextTwinFactoryId(src.getNextTwinFactoryId())
-                .setNextTwinFactoryLimitScope(src.getNextTwinFactoryLimitScope())
-                .setAfterCommitTwinFactoryId(src.getAfterCommitTwinFactoryId())
-                .setTemplateTwinId(src.getTemplateTwinId())
-                .setDescription(src.getDescription())
-                .setActive(src.getActive());
+                .setTwinFactoryId(originalEntity.getTwinFactoryId())
+                .setInputTwinClassId(originalEntity.getInputTwinClassId())
+                .setTwinFactoryConditionSetId(originalEntity.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionInvert(originalEntity.getTwinFactoryConditionInvert())
+                .setOutputTwinStatusId(originalEntity.getOutputTwinStatusId())
+                .setNextTwinFactoryId(originalEntity.getNextTwinFactoryId())
+                .setNextTwinFactoryLimitScope(originalEntity.getNextTwinFactoryLimitScope())
+                .setAfterCommitTwinFactoryId(originalEntity.getAfterCommitTwinFactoryId())
+                .setTemplateTwinId(originalEntity.getTemplateTwinId())
+                .setDescription(originalEntity.getDescription())
+                .setActive(originalEntity.getActive());
     }
 
     @Override

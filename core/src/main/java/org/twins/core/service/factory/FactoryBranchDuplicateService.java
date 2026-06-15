@@ -32,6 +32,11 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
+    protected FactoryBranchDuplicate createNewDuplicate() {
+        return new FactoryBranchDuplicate();
+    }
+
+    @Override
     protected ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
@@ -45,7 +50,7 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     protected TwinFactoryBranchEntity createNewEntity(FactoryBranchDuplicate duplicate) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryBranchEntity()
-                .setTwinFactoryId(duplicate.getDuplicateParentEntityId())
+                .setTwinFactoryId(src.getTwinFactoryId())
                 .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setActive(src.getActive())

@@ -32,6 +32,11 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     }
 
     @Override
+    protected FactoryMultiplierDuplicate createNewDuplicate() {
+        return new FactoryMultiplierDuplicate();
+    }
+
+    @Override
     protected ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
@@ -45,7 +50,7 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     protected TwinFactoryMultiplierEntity createNewEntity(FactoryMultiplierDuplicate duplicate) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryMultiplierEntity()
-                .setTwinFactoryId(duplicate.getNewTwinFactoryId())
+                .setTwinFactoryId(src.getTwinFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setMultiplierFeaturerId(src.getMultiplierFeaturerId())
                 .setMultiplierParams(src.getMultiplierParams())

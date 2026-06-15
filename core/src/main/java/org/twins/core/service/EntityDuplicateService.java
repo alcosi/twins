@@ -3,11 +3,15 @@ package org.twins.core.service;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.EntityDuplicate;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
@@ -19,6 +23,11 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
     protected abstract ErrorCode getKeyDuplicatedErrorCode();
 
     protected abstract void duplicateI18nFields(E src, E dst) throws ServiceException;
+
+    /**
+     * Factory for fresh {@link D} instances — used by {@link #duplicateFor} to build one duplicate per child entity.
+     */
+    protected abstract D createNewDuplicate();
 
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
     }
@@ -52,15 +61,60 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
         return saved;
     }
 
+    /**
+     * Bulk duplicate child entities of one or more source parents into matching destination parents.
+     * <p>
+     * For each entry {@code (sourceParent -> destinationParent)}:
+     * <ol>
+     *     <li>loads children into all source parents (once, via {@code childLoader});</li>
+     *     <li>extracts children from the source parent;</li>
+     *     <li>builds a {@link D} per child pointing at the destination parent via {@link #createNewDuplicate()};</li>
+     * </ol>
+     * then delegates to {@link #duplicate(Collection)} for the actual save.
+     */
+    @Transactional(rollbackFor = Throwable.class)
+    public <P> Collection<E> duplicateFor(
+            Map<P, P> parentMap,
+            Consumer<Collection<P>> childLoader,
+            Function<P, Kit<E, UUID>> childExtractor,
+            Function<P, UUID> destinationParentIdExtractor) throws ServiceException {
+        if (parentMap == null || parentMap.isEmpty()) {
+            return Collections.emptyList();
+        }
+        childLoader.accept(parentMap.keySet());
+        Function<E, UUID> childIdExtractor = entityService().entityGetIdFunction();
+        List<D> duplicates = new ArrayList<>();
+        for (var entry : parentMap.entrySet()) {
+            P destinationParent = entry.getValue();
+            UUID destinationParentId = destinationParentIdExtractor.apply(destinationParent);
+            Kit<E, UUID> children = childExtractor.apply(entry.getKey());
+            if (KitUtils.isEmpty(children)) {
+                continue;
+            }
+            for (E child : children) {
+                // setters come from EntityDuplicate<E> and return EntityDuplicate<E>, not D — assign field-by-field
+                D newDuplicate = createNewDuplicate();
+                newDuplicate.setOriginalEntity(child);
+                newDuplicate.setOriginalEntityId(childIdExtractor.apply(child));
+                newDuplicate.setDuplicateParentEntityId(destinationParentId);
+                duplicates.add(newDuplicate);
+            }
+        }
+        return duplicate(duplicates);
+    }
+
     protected abstract void setNewParentEntityId(E newEntity, UUID duplicateParentEntityId);
 
     protected void validateKeyUniqueness(Collection<D> duplicates) throws ServiceException {
         var newKeys = new HashSet<String>();
         for (var duplicate : duplicates) {
             String key = duplicate.getNewKey();
-            if (newKeys.contains(key))
+            if (key == null) {
+                continue;
+            }
+            if (!newKeys.add(key)) {
                 throw new ServiceException(getKeyDuplicatedErrorCode(), "key[" + key + "] is duplicated in request");
-            newKeys.add(key);
+            }
         }
     }
 

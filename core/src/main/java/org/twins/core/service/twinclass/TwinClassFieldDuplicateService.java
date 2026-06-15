@@ -32,6 +32,11 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
+    protected TwinClassFieldDuplicate createNewDuplicate() {
+        return new TwinClassFieldDuplicate();
+    }
+
+    @Override
     protected org.cambium.common.exception.ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT;
     }

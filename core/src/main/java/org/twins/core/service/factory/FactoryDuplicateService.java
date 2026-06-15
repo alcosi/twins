@@ -46,6 +46,11 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     @Override
+    protected FactoryDuplicate createNewDuplicate() {
+        return new FactoryDuplicate();
+    }
+
+    @Override
     protected ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }

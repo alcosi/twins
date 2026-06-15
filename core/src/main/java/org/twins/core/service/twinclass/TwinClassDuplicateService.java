@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
-import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
-import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
@@ -21,7 +19,10 @@ import org.twins.core.service.twin.TwinStatusService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -43,6 +44,11 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     @Override
     protected EntitySecureFindServiceImpl<TwinClassEntity> entityService() {
         return twinClassService;
+    }
+
+    @Override
+    protected TwinClassDuplicate createNewDuplicate() {
+        return new TwinClassDuplicate();
     }
 
     @Override
@@ -130,32 +136,18 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
             }
         }
         if (copyFieldsFor != null) {
-            twinClassFieldService.loadTwinClassFields(copyFieldsFor.keySet());
-            List<TwinClassFieldDuplicate> fieldDuplicates = new ArrayList<>();
-            for (var entry : copyFieldsFor.entrySet()) {
-                var newClass = entry.getValue();
-                for (var field : entry.getKey().getTwinClassFieldKit().getCollection()) {
-                    fieldDuplicates.add((TwinClassFieldDuplicate) new TwinClassFieldDuplicate()
-                            .setOriginalEntity(field)
-                            .setOriginalEntityId(field.getId())
-                            .setDuplicateParentEntityId(newClass.getId()));
-                }
-            }
-            twinClassFieldDuplicateService.duplicate(fieldDuplicates);
+            twinClassFieldDuplicateService.duplicateFor(
+                    copyFieldsFor,
+                    twinClassFieldService::loadTwinClassFields,
+                    TwinClassEntity::getTwinClassFieldKit,
+                    TwinClassEntity::getId);
         }
         if (copyStatusesFor != null) {
-            twinStatusService.loadStatusesForTwinClasses(copyStatusesFor.keySet());
-            List<TwinStatusDuplicate> statusDuplicates = new ArrayList<>();
-            for (var entry : copyStatusesFor.entrySet()) {
-                var newClass = entry.getValue();
-                for (var field : entry.getKey().getTwinStatusKit().getCollection()) {
-                    statusDuplicates.add((TwinStatusDuplicate) new TwinStatusDuplicate()
-                            .setOriginalEntity(field)
-                            .setOriginalEntityId(field.getId())
-                            .setDuplicateParentEntityId(newClass.getId()));
-                }
-            }
-            twinStatusDuplicateService.duplicate(statusDuplicates);
+            twinStatusDuplicateService.duplicateFor(
+                    copyStatusesFor,
+                    twinStatusService::loadStatusesForTwinClasses,
+                    TwinClassEntity::getTwinStatusKit,
+                    TwinClassEntity::getId);
         }
     }
 

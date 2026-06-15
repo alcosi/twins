@@ -32,6 +32,11 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
+    protected FactoryEraserDuplicate createNewDuplicate() {
+        return new FactoryEraserDuplicate();
+    }
+
+    @Override
     protected ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
@@ -45,7 +50,7 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     protected TwinFactoryEraserEntity createNewEntity(FactoryEraserDuplicate duplicate) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryEraserEntity()
-                .setTwinFactoryId(duplicate.getNewTwinFactoryId())
+                .setTwinFactoryId(src.getTwinFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())

@@ -33,6 +33,11 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
+    protected TwinStatusDuplicate createNewDuplicate() {
+        return new TwinStatusDuplicate();
+    }
+
+    @Override
     protected org.cambium.common.exception.ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT;
     }
