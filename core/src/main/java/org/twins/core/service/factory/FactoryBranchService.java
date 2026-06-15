@@ -9,6 +9,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -31,6 +33,8 @@ import java.util.function.Function;
 public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
@@ -106,6 +110,10 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         return true;
     }
 
+    public List<TwinFactoryBranchEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return twinFactoryBranchRepository.findByTwinFactoryIdIn(factoryIds);
+    }
+
     public void loadFactoryBranches(TwinFactoryEntity factory) {
         loadFactoryBranches(Collections.singletonList(factory));
     }
@@ -119,5 +127,16 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 twinFactoryBranchRepository::findByTwinFactoryIdIn,
                 TwinFactoryBranchEntity::getId,
                 TwinFactoryBranchEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSets(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadConditionSets(Collections.singleton(branch));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryConditionSetService.load(branches,
+                TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
+                TwinFactoryBranchEntity::getConditionSet,
+                TwinFactoryBranchEntity::setConditionSet);
     }
 }

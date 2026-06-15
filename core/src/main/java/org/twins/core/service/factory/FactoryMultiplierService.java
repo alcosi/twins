@@ -23,6 +23,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -101,6 +102,10 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 TwinFactoryMultiplierEntity::getMultiplierParams, TwinFactoryMultiplierEntity::setMultiplierParams,
                 TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, TwinFactoryMultiplierEntity.Fields.multiplierParams,
                 Multiplier.class, changesHelper);
+    }
+
+    public List<TwinFactoryMultiplierEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
     }
 
     public void loadFactoryMultipliers(TwinFactoryEntity factory) {

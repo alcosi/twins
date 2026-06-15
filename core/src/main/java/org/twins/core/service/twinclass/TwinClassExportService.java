@@ -1,16 +1,12 @@
 package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.sql.SqlBuilder;
-import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.service.i18n.I18nExportService;
+import org.twins.core.service.EntityExportService;
 import org.twins.core.service.twin.TwinStatusExportService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinflow.TwinflowExportService;
@@ -21,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TwinClassExportService {
+public class TwinClassExportService extends EntityExportService<TwinClassEntity> {
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldExportService twinClassFieldExportService;
@@ -29,8 +25,13 @@ public class TwinClassExportService {
     private final TwinflowExportService twinflowExportService;
     private final TwinStatusService twinStatusService;
     private final TwinflowService twinflowService;
-    private final I18nExportService i18nExportService;
-    private final SqlBuilder sqlBuilder;
+
+    @Override
+    public String exportCollectionToSql(Collection<TwinClassEntity> twinClasses) throws ServiceException {
+        return exportToSql(
+                twinClasses.stream().map(TwinClassEntity::getId).collect(Collectors.toSet()),
+                true, true, true);
+    }
 
     public String exportToSql(UUID twinClassId, boolean includeFields, boolean includeStatuses, boolean includeTwinflow) throws ServiceException {
         return exportToSql(Collections.singleton(twinClassId), includeFields, includeStatuses, includeTwinflow);
@@ -56,53 +57,29 @@ public class TwinClassExportService {
             }
         }
 
-        List<String> sqlParts = new ArrayList<>();
+        var sqlParts = new StringList();
 
         // i18n for twin classes
-        if (!i18nIds.isEmpty()) {
-            String i18nSql = i18nExportService.exportToSql(i18nIds);
-            if (!i18nSql.isEmpty()) {
-                sqlParts.add(i18nSql);
-            }
-        }
-
+        sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
         // twin classes
-        String twinClassesSql = sqlBuilder.buildInserts(twinClasses);
-        if (!twinClassesSql.isEmpty()) {
-            sqlParts.add(twinClassesSql);
-        }
+        sqlParts.addNotBlank(sqlBuilder.buildInserts(twinClasses));
 
         // fields
         if (includeFields) {
-            List<TwinClassFieldEntity> allFields = twinClassFieldService.findByTwinClassIdIn(twinClassIds);
-            if (!allFields.isEmpty()) {
-                String fieldsSql = twinClassFieldExportService.exportToSql(allFields);
-                if (!fieldsSql.isEmpty()) {
-                    sqlParts.add(fieldsSql);
-                }
-            }
+            var allFields = twinClassFieldService.findByTwinClassIdIn(twinClassIds);
+            sqlParts.addNotBlank(twinClassFieldExportService.exportCollectionToSql(allFields));
         }
 
         // statuses
         if (includeStatuses) {
-            List<TwinStatusEntity> allStatuses = twinStatusService.findByTwinClassIdIn(twinClassIds);
-            if (!allStatuses.isEmpty()) {
-                String statusesSql = twinStatusExportService.exportToSql(allStatuses);
-                if (!statusesSql.isEmpty()) {
-                    sqlParts.add(statusesSql);
-                }
-            }
+            var allStatuses = twinStatusService.findByTwinClassIdIn(twinClassIds);
+            sqlParts.addNotBlank(twinStatusExportService.exportToSql(allStatuses));
         }
 
         // twinflow
         if (includeTwinflow) {
-            List<TwinflowEntity> twinflows = twinflowService.findByTwinClassIdIn(twinClassIds);
-            if (!twinflows.isEmpty()) {
-                String twinflowSql = twinflowExportService.exportToSql(twinflows);
-                if (!twinflowSql.isEmpty()) {
-                    sqlParts.add(twinflowSql);
-                }
-            }
+            var twinflows = twinflowService.findByTwinClassIdIn(twinClassIds);
+            sqlParts.addNotBlank(twinflowExportService.exportToSql(twinflows));
         }
 
         return String.join("\n", sqlParts);

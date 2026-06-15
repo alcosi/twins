@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinflow;
+package org.twins.core.controller.rest.priv.transition;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

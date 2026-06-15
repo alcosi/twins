@@ -20,6 +20,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -32,6 +33,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     @Getter
     private final TwinFactoryMultiplierFilterRepository repository;
     private final AuthService authService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierFilterEntity, UUID> entityRepository() {
@@ -58,6 +61,10 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
     }
 
+    public List<TwinFactoryMultiplierFilterEntity> findByTwinFactoryMultiplierIdIn(Collection<UUID> multiplierIds) {
+        return repository.findByTwinFactoryMultiplierIdIn(multiplierIds);
+    }
+
     public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
         loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
     }
@@ -71,5 +78,16 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 repository::findByTwinFactoryMultiplierIdIn,
                 TwinFactoryMultiplierFilterEntity::getId,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
+    }
+
+    public void loadConditionSets(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
+        loadConditionSets(Collections.singleton(filter));
+    }
+
+    public void loadConditionSets(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+        factoryConditionSetService.load(filters,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
+                TwinFactoryMultiplierFilterEntity::getConditionSet,
+                TwinFactoryMultiplierFilterEntity::setConditionSet);
     }
 }

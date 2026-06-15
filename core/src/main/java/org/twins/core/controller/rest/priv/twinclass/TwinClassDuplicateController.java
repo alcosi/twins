@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassDuplicateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassDuplicateService;
 
 @Tag(name = ApiTag.TWIN_CLASS)
 @RestController
@@ -34,7 +35,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_CLASS_CREATE})
 public class TwinClassDuplicateController extends ApiController {
-    private final TwinClassService twinClassService;
+    private final TwinClassDuplicateService twinClassDuplicateService;
     private final TwinClassDuplicateRestDTOReverseMapper twinClassDuplicateRestDTOReverseMapper;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -49,12 +50,12 @@ public class TwinClassDuplicateController extends ApiController {
     @PostMapping(value = "/private/twin_class/duplicate/v1")
     public ResponseEntity<?> twinClassDuplicateV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassDuplicateRqDTOv1 request) {
+            @Valid @RequestBody TwinClassDuplicateRqDTOv1 request) {
         var rs = new TwinClassListRsDTOv1();
 
         try {
             var duplicates = twinClassDuplicateRestDTOReverseMapper.convertCollection(request.duplicates, mapperContext);
-            var duplicatedClasses = twinClassService.duplicate(duplicates);
+            var duplicatedClasses = twinClassDuplicateService.duplicate(duplicates);
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(duplicatedClasses, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
