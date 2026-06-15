@@ -613,6 +613,16 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return ret != null ? ret : defaultValue;
     }
 
+    public boolean isDecimalFieldEmpty(TwinEntity twin, UUID fieldId) {
+        if (twin.getTwinFieldDecimalKit() != null && twin.getTwinFieldDecimalKit().containsKey(fieldId)) {
+            return twin.getTwinFieldDecimalKit().get(fieldId).getValue() == null;
+        }
+        if (twin.getTwinFieldCalculated() != null && twin.getTwinFieldCalculated().containsKey(fieldId)) {
+            return twin.getTwinFieldCalculated().get(fieldId) == null;
+        }
+        return true;
+    }
+
     public boolean notSerializable(TwinClassFieldEntity twinClassField) throws ServiceException {
         var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
         return !fieldTyper.canSerialize(twinClassField);
