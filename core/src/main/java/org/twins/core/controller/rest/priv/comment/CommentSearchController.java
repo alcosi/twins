@@ -31,6 +31,7 @@ import org.twins.core.mappers.rest.comment.CommentSearchDTORestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentSearchRqRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.comment.CommentSearchService;
 import org.twins.core.service.permission.Permissions;
 
@@ -43,6 +44,7 @@ public class CommentSearchController extends ApiController {
     private final CommentSearchService commentSearchService;
     private final CommentSearchRqRestDTOMapper searchRestDTOMapper;
     private final CommentRestDTOMapper viewRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final CommentSearchDTORestDTOMapper commentSearchDTORestDTOMapper;
 
     private final PaginationMapper paginationMapper;
@@ -66,7 +68,8 @@ public class CommentSearchController extends ApiController {
                     .search(searchRestDTOMapper.convert(request), pagination);
             rs
                     .setPagination(paginationMapper.convert(twinStatusList))
-                    .setComments(viewRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext));
+                    .setComments(viewRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -94,7 +97,8 @@ public class CommentSearchController extends ApiController {
                             request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(result))
-                    .setComments(viewRestDTOMapper.convertCollection(result.getList(), mapperContext));
+                    .setComments(viewRestDTOMapper.convertCollection(result.getList(), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

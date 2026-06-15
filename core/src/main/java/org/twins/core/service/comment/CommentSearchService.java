@@ -77,11 +77,11 @@ public class CommentSearchService extends EntitySearchService<        CommentSea
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             userGroupService.loadGroupsForCurrentUser();
             specification = specification
-                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroupsFootprint(), TwinCommentEntity.Fields.twin))
-                    .and(checkClass(java.util.List.of(), apiUser, DBUMembershipCheck.BLOCKED, TwinCommentEntity.Fields.twin));
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroupsFootprint(), TwinCommentEntity.Fields.twinSpecOnly))
+                    .and(checkClass(java.util.List.of(), apiUser, DBUMembershipCheck.BLOCKED, TwinCommentEntity.Fields.twinSpecOnly));
         } else {
             specification = specification
-                    .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
+                    .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twinSpecOnly, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
         }
         return specification;
     }
@@ -95,8 +95,8 @@ public class CommentSearchService extends EntitySearchService<        CommentSea
         return switch (sortField) {
             case createdAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdAt);
             case changedAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.changedAt);
-            case authorUserName -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdByUser, UserEntity.Fields.name);
-            case twinName -> toSortSpecification(ascending, TwinCommentEntity.Fields.twin, TwinEntity.Fields.name);
+            case authorUserName -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
+            case twinName -> toSortSpecification(ascending, TwinCommentEntity.Fields.twinSpecOnly, TwinEntity.Fields.name);
         };
     }
 
