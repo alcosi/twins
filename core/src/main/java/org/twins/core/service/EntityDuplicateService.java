@@ -7,10 +7,7 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.EntityDuplicate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.stream.StreamSupport;
 
 public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
@@ -22,9 +19,6 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
     protected abstract ErrorCode getKeyDuplicatedErrorCode();
 
     protected abstract void duplicateI18nFields(E src, E dst) throws ServiceException;
-
-    protected void prepareDuplicates(Collection<D> duplicates) throws ServiceException {
-    }
 
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
     }
@@ -42,11 +36,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
         }
         validateKeyUniqueness(duplicates);
         loadOriginalEntities(duplicates);
-        prepareDuplicates(duplicates);
         var entitiesToSave = new ArrayList<E>();
         for (var duplicate : duplicates) {
             var original = duplicate.getOriginalEntity();
             var newEntity = createNewEntity(duplicate);
+            if (duplicate.getDuplicateParentEntityId() != null) {
+                setNewParentEntityId(newEntity, duplicate.getDuplicateParentEntityId());
+            }
             duplicateI18nFields(original, newEntity);
             duplicate.setNewEntity(newEntity);
             entitiesToSave.add(newEntity);
@@ -55,6 +51,8 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
         afterSave(duplicates, saved);
         return saved;
     }
+
+    protected abstract void setNewParentEntityId(E newEntity, UUID duplicateParentEntityId);
 
     protected void validateKeyUniqueness(Collection<D> duplicates) throws ServiceException {
         var newKeys = new HashSet<String>();
@@ -67,6 +65,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
     }
 
     protected void loadOriginalEntities(Collection<D> duplicates) throws ServiceException {
+        entityService().load(duplicates,
+                EntityDuplicate::getOriginalEntityId,
+                EntityDuplicate::getOriginalEntity,
+                EntityDuplicate::setOriginalEntity);
+    }
+
+    protected void loadDuplicateParent(Collection<D> duplicates) throws ServiceException {
         entityService().load(duplicates,
                 EntityDuplicate::getOriginalEntityId,
                 EntityDuplicate::getOriginalEntity,

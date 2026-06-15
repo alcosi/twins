@@ -13,7 +13,8 @@ public class FactoryEraserDuplicateRestDTOReverseMapper extends RestSimpleDTOMap
 
     @Override
     public void map(FactoryEraserDuplicateDTOv1 src, FactoryEraserDuplicate dst, MapperContext mapperContext) throws Exception {
-        dst.setOriginalEntityId(src.getOriginalFactoryEraserId());
-        dst.setNewTwinFactoryId(src.getNewTwinFactoryId());
+        dst
+                .setOriginalEntityId(src.getOriginalFactoryEraserId())
+                .setDuplicateParentEntityId(src.getNewTwinFactoryId());
     }
 }

@@ -94,8 +94,7 @@ class TwinClassFieldServiceDuplicateTest {
         d.setOriginalEntityId(original.getId());
         d.setOriginalEntity(original);
         d.setNewKey(key);
-        d.setNewTwinClassId(newTwinClassId);
-        d.setNewTwinClass(dstClass);
+        d.setDuplicateParentEntityId(newTwinClassId);
         return d;
     }
 

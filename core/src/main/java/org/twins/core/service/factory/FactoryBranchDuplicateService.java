@@ -16,6 +16,7 @@ import org.twins.core.service.EntityDuplicateService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -41,19 +42,10 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void prepareDuplicates(Collection<FactoryBranchDuplicate> duplicates) throws ServiceException {
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinFactoryId() == null) {
-                duplicate.setNewTwinFactoryId(duplicate.getOriginalEntity().getTwinFactoryId());
-            }
-        }
-    }
-
-    @Override
     protected TwinFactoryBranchEntity createNewEntity(FactoryBranchDuplicate duplicate) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryBranchEntity()
-                .setTwinFactoryId(duplicate.getNewTwinFactoryId())
+                .setTwinFactoryId(duplicate.getDuplicateParentEntityId())
                 .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setActive(src.getActive())
@@ -64,6 +56,11 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected void duplicateI18nFields(TwinFactoryBranchEntity src, TwinFactoryBranchEntity dst) throws ServiceException {
         // no i18n fields
+    }
+
+    @Override
+    protected void setNewParentEntityId(TwinFactoryBranchEntity newEntity, UUID duplicateParentEntityId) {
+        newEntity.setTwinFactoryId(duplicateParentEntityId);
     }
 
     public void duplicateForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {

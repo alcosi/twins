@@ -6,11 +6,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.domain.EntityDuplicate;
 
-import java.util.UUID;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FactoryPipelineDuplicate extends EntityDuplicate<TwinFactoryPipelineEntity> {
-    private UUID newTwinFactoryId;
 }

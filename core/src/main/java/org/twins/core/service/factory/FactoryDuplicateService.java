@@ -24,7 +24,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FactoryDuplicateService extends EntityDuplicateService<FactoryDuplicate, TwinFactoryEntity> {
-
     @Lazy
     private final TwinFactoryService twinFactoryService;
     @Lazy
@@ -51,13 +50,6 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
 
-    @Override
-    protected void prepareDuplicates(Collection<FactoryDuplicate> duplicates) throws ServiceException {
-        var apiUser = authService.getApiUser();
-        for (var duplicate : duplicates) {
-            duplicate.setNewFactoryId(UUID.nameUUIDFromBytes((duplicate.getNewKey() + apiUser.getDomainId()).getBytes()));
-        }
-    }
 
     @Override
     protected TwinFactoryEntity createNewEntity(FactoryDuplicate duplicate) throws ServiceException {
@@ -103,5 +95,10 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
                 factoryTriggerDuplicateService.duplicateForFactory(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
+    }
+
+    @Override
+    protected void setNewParentEntityId(TwinFactoryEntity newEntity, UUID duplicateParentEntityId) {
+        //no parent
     }
 }

@@ -10,16 +10,18 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
+import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
+import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinStatusDuplicateService;
+import org.twins.core.service.twin.TwinStatusService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -35,6 +37,8 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     private final I18nService i18nService;
     @Lazy
     private final AuthService authService;
+    private final TwinStatusService twinStatusService;
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinClassEntity> entityService() {
@@ -44,14 +48,6 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     @Override
     protected org.cambium.common.exception.ErrorCode getKeyDuplicatedErrorCode() {
         return ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE;
-    }
-
-    @Override
-    protected void prepareDuplicates(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
-        var apiUser = authService.getApiUser();
-        for (var duplicate : duplicates) {
-            duplicate.setNewTwinClassId(UUID.nameUUIDFromBytes((duplicate.getNewKey() + apiUser.getDomainId()).getBytes()));
-        }
     }
 
     @Override
@@ -117,15 +113,54 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
             twinClassService.refreshExtendsHierarchyTree(savedClass);
             twinClassService.refreshHeadHierarchyTree(savedClass);
         }
+        Map<TwinClassEntity, TwinClassEntity> copyStatusesFor = null;
+        Map<TwinClassEntity, TwinClassEntity> copyFieldsFor = null;
         for (var duplicate : duplicates) {
             if (duplicate.isDuplicateFields()) {
-                //todo change to batch operation
-                twinClassFieldDuplicateService.duplicateFieldsForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
+                if (copyFieldsFor == null) {
+                    copyFieldsFor = new HashMap<>();
+                }
+                copyFieldsFor.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
             if (duplicate.isDuplicateStatuses()) {
-                //todo change to batch operation
-                twinStatusDuplicateService.duplicateStatusesForClass(duplicate.getOriginalEntity(), duplicate.getNewEntity());
+                if (copyStatusesFor == null) {
+                    copyStatusesFor = new HashMap<>();
+                }
+                copyStatusesFor.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
+        if (copyFieldsFor != null) {
+            twinClassFieldService.loadTwinClassFields(copyFieldsFor.keySet());
+            List<TwinClassFieldDuplicate> fieldDuplicates = new ArrayList<>();
+            for (var entry : copyFieldsFor.entrySet()) {
+                var newClass = entry.getValue();
+                for (var field : entry.getKey().getTwinClassFieldKit().getCollection()) {
+                    fieldDuplicates.add((TwinClassFieldDuplicate) new TwinClassFieldDuplicate()
+                            .setOriginalEntity(field)
+                            .setOriginalEntityId(field.getId())
+                            .setDuplicateParentEntityId(newClass.getId()));
+                }
+            }
+            twinClassFieldDuplicateService.duplicate(fieldDuplicates);
+        }
+        if (copyStatusesFor != null) {
+            twinStatusService.loadStatusesForTwinClasses(copyStatusesFor.keySet());
+            List<TwinStatusDuplicate> statusDuplicates = new ArrayList<>();
+            for (var entry : copyStatusesFor.entrySet()) {
+                var newClass = entry.getValue();
+                for (var field : entry.getKey().getTwinStatusKit().getCollection()) {
+                    statusDuplicates.add((TwinStatusDuplicate) new TwinStatusDuplicate()
+                            .setOriginalEntity(field)
+                            .setOriginalEntityId(field.getId())
+                            .setDuplicateParentEntityId(newClass.getId()));
+                }
+            }
+            twinStatusDuplicateService.duplicate(statusDuplicates);
+        }
+    }
+
+    @Override
+    protected void setNewParentEntityId(TwinClassEntity newEntity, UUID duplicateParentEntityId) {
+        //no parent
     }
 }

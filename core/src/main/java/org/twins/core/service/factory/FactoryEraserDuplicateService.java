@@ -16,6 +16,7 @@ import org.twins.core.service.EntityDuplicateService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -41,15 +42,6 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void prepareDuplicates(Collection<FactoryEraserDuplicate> duplicates) throws ServiceException {
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinFactoryId() == null) {
-                duplicate.setNewTwinFactoryId(duplicate.getOriginalEntity().getTwinFactoryId());
-            }
-        }
-    }
-
-    @Override
     protected TwinFactoryEraserEntity createNewEntity(FactoryEraserDuplicate duplicate) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryEraserEntity()
@@ -65,6 +57,11 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected void duplicateI18nFields(TwinFactoryEraserEntity src, TwinFactoryEraserEntity dst) throws ServiceException {
         // no i18n fields
+    }
+
+    @Override
+    protected void setNewParentEntityId(TwinFactoryEraserEntity newEntity, UUID duplicateParentEntityId) {
+        newEntity.setTwinFactoryId(duplicateParentEntityId);
     }
 
     public void duplicateForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
