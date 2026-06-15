@@ -7,15 +7,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.domain.factory.FactoryMultiplierDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -66,24 +63,5 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     @Override
     protected void setNewParentEntityId(TwinFactoryMultiplierEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
-    }
-
-    public void duplicateForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryMultiplierEntity> multipliers = fromFactory.getTwinFactoryMultiplierKit().getList();
-        if (multipliers == null || multipliers.isEmpty()) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryMultiplierEntity>();
-        for (TwinFactoryMultiplierEntity originalMultiplier : multipliers) {
-            TwinFactoryMultiplierEntity duplicateMultiplier = new TwinFactoryMultiplierEntity()
-                    .setTwinFactoryId(toFactory.getId())
-                    .setInputTwinClassId(originalMultiplier.getInputTwinClassId())
-                    .setMultiplierFeaturerId(originalMultiplier.getMultiplierFeaturerId())
-                    .setMultiplierParams(originalMultiplier.getMultiplierParams())
-                    .setDescription(originalMultiplier.getDescription())
-                    .setActive(originalMultiplier.getActive());
-            entitiesForSave.add(duplicateMultiplier);
-        }
-        factoryMultiplierService.saveSafe(entitiesForSave);
     }
 }

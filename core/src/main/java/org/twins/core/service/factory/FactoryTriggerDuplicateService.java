@@ -7,15 +7,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.domain.factory.FactoryTriggerDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -68,26 +65,5 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     @Override
     protected void setNewParentEntityId(TwinFactoryTriggerEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
-    }
-
-    public void duplicateForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryTriggerEntity> triggers = fromFactory.getTwinFactoryTriggerKit().getList();
-        if (triggers == null || triggers.isEmpty()) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryTriggerEntity>();
-        for (TwinFactoryTriggerEntity originalTrigger : triggers) {
-            TwinFactoryTriggerEntity duplicateTrigger = new TwinFactoryTriggerEntity()
-                    .setTwinFactoryId(toFactory.getId())
-                    .setInputTwinClassId(originalTrigger.getInputTwinClassId())
-                    .setTwinFactoryConditionSetId(originalTrigger.getTwinFactoryConditionSetId())
-                    .setTwinFactoryConditionInvert(originalTrigger.getTwinFactoryConditionInvert())
-                    .setTwinTriggerId(originalTrigger.getTwinTriggerId())
-                    .setAsync(originalTrigger.getAsync())
-                    .setDescription(originalTrigger.getDescription())
-                    .setActive(originalTrigger.getActive());
-            entitiesForSave.add(duplicateTrigger);
-        }
-        factoryTriggerService.saveSafe(entitiesForSave);
     }
 }

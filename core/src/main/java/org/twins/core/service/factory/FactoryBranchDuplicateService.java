@@ -8,14 +8,11 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.domain.factory.FactoryBranchDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -66,24 +63,5 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected void setNewParentEntityId(TwinFactoryBranchEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
-    }
-
-    public void duplicateForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryBranchEntity> branches = fromFactory.getTwinFactoryBranchKit().getList();
-        if (branches == null || branches.isEmpty()) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryBranchEntity>();
-        for (TwinFactoryBranchEntity originalBranch : branches) {
-            TwinFactoryBranchEntity duplicateBranch = new TwinFactoryBranchEntity()
-                    .setTwinFactoryId(toFactory.getId())
-                    .setTwinFactoryConditionSetId(originalBranch.getTwinFactoryConditionSetId())
-                    .setTwinFactoryConditionInvert(originalBranch.getTwinFactoryConditionInvert())
-                    .setActive(originalBranch.getActive())
-                    .setNextTwinFactoryId(originalBranch.getNextTwinFactoryId())
-                    .setDescription(originalBranch.getDescription());
-            entitiesForSave.add(duplicateBranch);
-        }
-        factoryBranchService.saveSafe(entitiesForSave);
     }
 }

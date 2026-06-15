@@ -7,15 +7,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.domain.factory.FactoryEraserDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -67,25 +64,5 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected void setNewParentEntityId(TwinFactoryEraserEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
-    }
-
-    public void duplicateForFactory(TwinFactoryEntity fromFactory, TwinFactoryEntity toFactory) throws ServiceException {
-        List<TwinFactoryEraserEntity> erasers = fromFactory.getTwinFactoryEraserKit().getList();
-        if (erasers == null || erasers.isEmpty()) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinFactoryEraserEntity>();
-        for (TwinFactoryEraserEntity originalEraser : erasers) {
-            TwinFactoryEraserEntity duplicateEraser = new TwinFactoryEraserEntity()
-                    .setTwinFactoryId(toFactory.getId())
-                    .setInputTwinClassId(originalEraser.getInputTwinClassId())
-                    .setTwinFactoryConditionSetId(originalEraser.getTwinFactoryConditionSetId())
-                    .setTwinFactoryConditionInvert(originalEraser.getTwinFactoryConditionInvert())
-                    .setEraserAction(originalEraser.getEraserAction())
-                    .setDescription(originalEraser.getDescription())
-                    .setActive(originalEraser.getActive());
-            entitiesForSave.add(duplicateEraser);
-        }
-        factoryEraserService.saveSafe(entitiesForSave);
     }
 }
