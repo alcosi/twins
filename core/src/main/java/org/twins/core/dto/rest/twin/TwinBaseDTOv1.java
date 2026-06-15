@@ -65,6 +65,9 @@ public class TwinBaseDTOv1 {
     @Schema(description = "owner user id", example = DTOExamples.USER_ID)
     public UUID ownerUserId;
 
+    @Schema(description = "flavor data list option id")
+    public UUID flavorDataListOptionId;
+
     @Schema(description = "page id")
     public UUID pageFaceId;
 

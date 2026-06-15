@@ -56,6 +56,8 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTagDataListOptionIdExcludeList(convertToSetSafe(src.getTagDataListOptionIdExcludeList()))
                 .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
                 .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
+                .setFlavorDataListOptionIdList(convertToSetSafe(src.getFlavorDataListOptionIdList()))
+                .setFlavorDataListOptionIdExcludeList(convertToSetSafe(src.getFlavorDataListOptionIdExcludeList()))
                 .setTouchList(convertToSetSafe(src.getTouchList()))
                 .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()))
                 .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
