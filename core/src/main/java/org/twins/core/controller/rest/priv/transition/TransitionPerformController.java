@@ -50,7 +50,7 @@ import java.util.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_PERFORM})
-public class TwinTransitionPerformController extends ApiController {
+public class TransitionPerformController extends ApiController {
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     private final TwinflowTransitionService twinflowTransitionService;

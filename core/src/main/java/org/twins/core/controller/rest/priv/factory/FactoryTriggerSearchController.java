@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinflow;
+package org.twins.core.controller.rest.priv.factory;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,7 +12,10 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -35,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_TRIGGER_MANAGE, Permissions.TWIN_TRIGGER_VIEW})
-public class TwinFactoryTriggerSearchController extends ApiController {
+public class FactoryTriggerSearchController extends ApiController {
     private final TwinFactoryTriggerSearchService twinFactoryTriggerSearchService;
     private final TwinFactoryTriggerRestDTOMapper twinFactoryTriggerRestDTOMapper;
     private final TwinFactoryTriggerSearchDTOReverseMapper twinFactoryTriggerSearchDTOReverseMapper;
