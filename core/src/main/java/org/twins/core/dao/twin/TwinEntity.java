@@ -123,6 +123,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "flavor_data_list_option_id")
     private UUID flavorDataListOptionId;
 
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "flavor_data_list_option_id", insertable = false, updatable = false)
+    private DataListOptionEntity flavorDataListOptionSpecOnly;
+
     @Column(name = "name")
     private String name;
 
