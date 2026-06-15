@@ -20,7 +20,7 @@ public class TwinFieldStorageCalcSumByLinkWithTwinType extends TwinFieldStorageC
     private final Set<UUID> linkedTwinInStatusIdSet;
     private final Set<UUID> linkedTwinOfClassIds;
     private final boolean statusExclude;
-    private final String fieldIdByTwinTypeId;
+    private final String fieldIdByTwinFlavorId;
     private final boolean skipIfNotFound;
 
     public TwinFieldStorageCalcSumByLinkWithTwinType(
@@ -31,7 +31,7 @@ public class TwinFieldStorageCalcSumByLinkWithTwinType extends TwinFieldStorageC
             Set<UUID> linkedTwinInStatusIdSet,
             Set<UUID> linkedTwinOfClassIds,
             boolean statusExclude,
-            String fieldIdByTwinTypeId,
+            String fieldIdByTwinFlavorId,
             boolean skipIfNotFound
     ) {
         super(twinClassFieldId);
@@ -42,16 +42,16 @@ public class TwinFieldStorageCalcSumByLinkWithTwinType extends TwinFieldStorageC
         this.linkedTwinInStatusIdSet = linkedTwinInStatusIdSet;
         this.linkedTwinOfClassIds = linkedTwinOfClassIds;
         this.statusExclude = statusExclude;
-        this.fieldIdByTwinTypeId = fieldIdByTwinTypeId;
+        this.fieldIdByTwinFlavorId = fieldIdByTwinFlavorId;
         this.skipIfNotFound = skipIfNotFound;
     }
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-        List<TwinFieldCalcProjection> calc = twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLinkWithTwinType(
+        List<TwinFieldCalcProjection> calc = twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLinkWithTwinFlavor(
                 twinsKit.getIdSet(),
                 linkIds,
-                fieldIdByTwinTypeId,
+                fieldIdByTwinFlavorId,
                 srcElseDst,
                 linkedTwinInStatusIdSet,
                 linkedTwinOfClassIds,
@@ -74,7 +74,7 @@ public class TwinFieldStorageCalcSumByLinkWithTwinType extends TwinFieldStorageC
                 && Objects.equals(linkedTwinInStatusIdSet, other.linkedTwinInStatusIdSet)
                 && Objects.equals(linkedTwinOfClassIds, other.linkedTwinOfClassIds)
                 && Objects.equals(statusExclude, other.statusExclude)
-                && Objects.equals(fieldIdByTwinTypeId, other.fieldIdByTwinTypeId)
+                && Objects.equals(fieldIdByTwinFlavorId, other.fieldIdByTwinFlavorId)
                 && Objects.equals(skipIfNotFound, other.skipIfNotFound);
     }
 }

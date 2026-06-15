@@ -120,6 +120,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
 
+    @Column(name = "flavor_data_list_option_id")
+    private UUID flavorDataListOptionId;
+
     @Column(name = "name")
     private String name;
 

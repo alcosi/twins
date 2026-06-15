@@ -23,8 +23,8 @@ import java.util.Properties;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_1352,
-        name = "Sum fields by link with twin type",
-        description = "Sum of different fields from related twins based on twin type. The twin type (type_option_id) determines which field to sum for each twin."
+        name = "Sum fields by link with twin flavor",
+        description = "Sum of different fields from related twins based on twin flavor. The twin flavor (flavor_data_list_option_id) determines which field to sum for each twin."
 )
 @RequiredArgsConstructor
 public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByLinkWithTwinType, TwinFieldSearchNotImplemented> implements FieldTyperCalcByLink {
@@ -33,8 +33,8 @@ public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<Fie
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
-    @FeaturerParam(name = "fieldIdByTwinTypeId", description = "JSON map: twin type (type_option_id) -> fieldId to sum. Example: {\"twin-type-uuid-1\": \"field-uuid-1\", \"twin-type-uuid-2\": \"field-uuid-2\"}", order = 10)
-    public static final FeaturerParamMap fieldIdByTwinTypeId = new FeaturerParamMap("fieldIdByTwinTypeId");
+    @FeaturerParam(name = "fieldIdByTwinFlavorId", description = "JSON map: twin flavor (flavor_data_list_option_id) -> fieldId to sum. Example: {\"twin-flavor-uuid-1\": \"field-uuid-1\", \"twin-flavor-uuid-2\": \"field-uuid-2\"}", order = 10)
+    public static final FeaturerParamMap fieldIdByTwinFlavorId = new FeaturerParamMap("fieldIdByTwinFlavorId");
 
     @FeaturerParam(name = "skipIfNotFound", description = "Skip twin if type option not found in map (true) or throw error (false)",optional = true, defaultValue = "true", order = 11)
     public static final FeaturerParamBoolean skipIfNotFound = new FeaturerParamBoolean("skipIfNotFound");
@@ -53,7 +53,7 @@ public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<Fie
     @Override
     public TwinFieldStorageCalcSumByLinkWithTwinType getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         try {
-            String fieldIdByTwinTypeIdJson = OBJECT_MAPPER.writeValueAsString(fieldIdByTwinTypeId.extract(properties));
+            String fieldIdByTwinFlavorIdJson = OBJECT_MAPPER.writeValueAsString(fieldIdByTwinFlavorId.extract(properties));
             return new TwinFieldStorageCalcSumByLinkWithTwinType(
                     twinClassFieldEntity.getId(),
                     twinFieldDecimalRepository,
@@ -62,11 +62,11 @@ public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<Fie
                     linkedTwinInStatusIdSet.extract(properties),
                     linkedTwinOfClassIds.extract(properties),
                     statusExclude.extract(properties),
-                    fieldIdByTwinTypeIdJson,
+                    fieldIdByTwinFlavorIdJson,
                     skipIfNotFound.extract(properties)
             );
         } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Error serializing fieldIdByTwinTypeId map: " + e.getMessage(), e);
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Error serializing fieldIdByTwinFlavorId map: " + e.getMessage(), e);
         }
     }
 }
