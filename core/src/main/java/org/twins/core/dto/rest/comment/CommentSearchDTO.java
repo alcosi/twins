@@ -3,7 +3,6 @@ package org.twins.core.dto.rest.comment;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
@@ -11,15 +10,10 @@ import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * @deprecated Use {@link CommentSearchRqDTOv2} with separated search DTO and sort fields.
- */
-@Deprecated
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode
-@Schema(name = "CommentSearchRqDTOv1", deprecated = true)
-public class CommentSearchRqDTOv1 {
+@Schema(name = "CommentSearchV1")
+public class CommentSearchDTO {
     @Schema(description = "List of ids to select")
     private Set<UUID> idList;
 
