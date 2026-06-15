@@ -22,7 +22,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(
-        id = FeaturerTwins.ID_1352,
+        id = FeaturerTwins.ID_1353,
         name = "Sum fields by link with twin flavor",
         description = "Sum of different fields from related twins based on twin flavor. The twin flavor (flavor_data_list_option_id) determines which field to sum for each twin."
 )
