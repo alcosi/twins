@@ -258,6 +258,28 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             @Param("linkIdsStr") String linkIdsStr,
             @Param("statusExclude") boolean statusExclude);
 
+    @Query(value = """
+            SELECT * FROM twin_field_decimal_calc_sum_by_link_with_twin_type(
+                string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+                string_to_array(:linkIdsStr, ',')::uuid[],
+                CAST(:fieldIdByTwinType AS jsonb),
+                :srcElseDst,
+                string_to_array(:linkedTwinInStatusIdsStr, ',')::uuid[],
+                string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+                :statusExclude,
+                :skipIfNotFound
+            )
+            """, nativeQuery = true)
+    List<Object[]> _sumLinkedTwinFieldValuesByLinkWithTwinType(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("linkIdsStr") String linkIdsStr,
+            @Param("fieldIdByTwinType") String fieldIdByTwinType,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedTwinInStatusIdsStr") String linkedTwinInStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("statusExclude") boolean statusExclude,
+            @Param("skipIfNotFound") boolean skipIfNotFound);
+
     default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesByHead(
             Collection<UUID> headTwinIdList,
             Collection<UUID> twinClassFieldIds,
@@ -439,28 +461,6 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                 })
                 .collect(Collectors.toList());
     }
-
-    @Query(value = """
-            SELECT * FROM twin_field_decimal_calc_sum_by_link_with_twin_type(
-                string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
-                string_to_array(:linkIdsStr, ',')::uuid[],
-                CAST(:fieldIdByTwinType AS jsonb),
-                :srcElseDst,
-                string_to_array(:linkedTwinInStatusIdsStr, ',')::uuid[],
-                string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
-                :statusExclude,
-                :skipIfNotFound
-            )
-            """, nativeQuery = true)
-    List<Object[]> _sumLinkedTwinFieldValuesByLinkWithTwinType(
-            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
-            @Param("linkIdsStr") String linkIdsStr,
-            @Param("fieldIdByTwinType") String fieldIdByTwinType,
-            @Param("srcElseDst") boolean srcElseDst,
-            @Param("linkedTwinInStatusIdsStr") String linkedTwinInStatusIdsStr,
-            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
-            @Param("statusExclude") boolean statusExclude,
-            @Param("skipIfNotFound") boolean skipIfNotFound);
 
     default List<TwinFieldCalcProjection> sumLinkedTwinFieldValuesByLinkWithTwinType(
             Collection<UUID> linkedToTwinIds,
