@@ -400,4 +400,26 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 LinkEntity::setCreatedByUser);
     }
 
+    public void loadSrcTwinClass(LinkEntity linkEntity) throws ServiceException {
+        loadSrcTwinClass(Collections.singletonList(linkEntity));
+    }
+
+    public void loadSrcTwinClass(Collection<LinkEntity> linkEntities) throws ServiceException {
+        twinClassService.load(linkEntities,
+                LinkEntity::getSrcTwinClassId,
+                LinkEntity::getSrcTwinClass,
+                LinkEntity::setSrcTwinClass);
+    }
+
+    public void loadDstTwinClass(LinkEntity linkEntity) throws ServiceException {
+        loadDstTwinClass(Collections.singletonList(linkEntity));
+    }
+
+    public void loadDstTwinClass(Collection<LinkEntity> linkEntities) throws ServiceException {
+        twinClassService.load(linkEntities,
+                LinkEntity::getDstTwinClassId,
+                LinkEntity::getDstTwinClass,
+                LinkEntity::setDstTwinClass);
+    }
+
 }

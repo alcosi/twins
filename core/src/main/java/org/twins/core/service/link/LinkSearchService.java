@@ -7,25 +7,26 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.i18n.specifications.I18nSpecification;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
-import org.twins.core.domain.ApiUser;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.LinkSearch;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.enums.sort.LinkGroupField;
+import org.twins.core.enums.sort.LinkSortField;
+import org.twins.core.service.EntitySearchService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.link.LinkSpecification.*;
 
 
@@ -33,21 +34,42 @@ import static org.twins.core.dao.specifications.link.LinkSpecification.*;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class LinkSearchService {
+public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntity, LinkSortField, LinkGroupField> {
     private final LinkRepository linkRepository;
-    private final AuthService authService;
 
-
+    /**
+     * Backward-compatible entry point for the deprecated v1 search endpoint.
+     * Use {@link #search(LinkSearch, SimplePagination, LinkSortField, SortDirection)} via v2 endpoint instead.
+     */
+    @Deprecated
     public PaginationResult<LinkEntity> findLinks(LinkSearch search, SimplePagination pagination) throws ServiceException {
-        Specification<LinkEntity> spec = createLinkSearchSpecification(search);
-        Page<LinkEntity> ret = linkRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(ret, pagination);
+        return search(search, pagination);
     }
 
-    private Specification<LinkEntity> createLinkSearchSpecification(LinkSearch search) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
+    @Override
+    public JpaSpecificationExecutor<LinkEntity> jpaSpecificationExecutor() {
+        return linkRepository;
+    }
+
+    @Override
+    public LinkSearch emptySearch() {
+        return new LinkSearch();
+    }
+
+    @Override
+    protected LinkEntity newEntity() {
+        return new LinkEntity();
+    }
+
+    @Override
+    protected Class<LinkEntity> entityClass() {
+        return LinkEntity.class;
+    }
+
+    @Override
+    public Specification<LinkEntity> createFilterSpecification(LinkSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkFieldUuid(apiUser.getDomainId(), LinkEntity.Fields.domainId),
+                checkFieldUuid(domainId, LinkEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, LinkEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, LinkEntity.Fields.id),
                 checkUuidIn(search.getSrcTwinClassIdList(), false, false, LinkEntity.Fields.srcTwinClassId),
@@ -58,15 +80,62 @@ public class LinkSearchService {
                 checkTernary(search.getDstTwinClassInheritable(), LinkEntity.Fields.dstTwinClassInheritable),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true),
-                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), locale, true, false),
+                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), locale, true, false),
+                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), locale, true, true),
                 checkFieldLikeIn(safeConvertTypeLink(search.getTypeLikeList()), false, true, LinkEntity.Fields.type),
                 checkFieldLikeIn(safeConvertTypeLink(search.getTypeNotLikeList()), true, true, LinkEntity.Fields.type),
                 checkFieldLikeIn(safeConvertStrengthLink(search.getStrengthLikeList()), false, true, LinkEntity.Fields.linkStrengthId),
                 checkFieldLikeIn(safeConvertStrengthLink(search.getStrengthNotLikeList()), true, true, LinkEntity.Fields.linkStrengthId)
         );
+    }
+
+    @Override
+    public Specification<LinkEntity> createSortSpecification(LinkSortField sortField, SortDirection sortDirection, Locale locale) {
+        if (sortField == null)
+            sortField = LinkSortField.createdAt;
+        boolean ascending = sortDirection != SortDirection.DESC;
+        return switch (sortField) {
+            case createdAt ->
+                    toSortSpecification(ascending, LinkEntity.Fields.createdAt);
+            case type ->
+                    toSortSpecification(ascending, LinkEntity.Fields.type);
+            case linkStrength ->
+                    toSortSpecification(ascending, LinkEntity.Fields.linkStrengthId);
+            case srcTwinClassName ->
+                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.srcTwinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
+            case dstTwinClassName ->
+                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.dstTwinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
+            case forwardName ->
+                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.forwardNameI18n);
+            case backwardName ->
+                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.backwardNameI18n);
+        };
+    }
+
+    @Override
+    public String convertToEntityField(LinkGroupField groupField) {
+        return switch (groupField) {
+            case srcTwinClassId -> LinkEntity.Fields.srcTwinClassId;
+            case dstTwinClassId -> LinkEntity.Fields.dstTwinClassId;
+            case type -> LinkEntity.Fields.type;
+            case linkStrength -> LinkEntity.Fields.linkStrengthId;
+            case srcTwinClassInheritable -> LinkEntity.Fields.srcTwinClassInheritable;
+            case dstTwinClassInheritable -> LinkEntity.Fields.dstTwinClassInheritable;
+        };
+    }
+
+    @Override
+    public void mapGroupedField(LinkEntity entity, LinkGroupField field, Object o) {
+        switch (field) {
+            case srcTwinClassId -> entity.setSrcTwinClassId((UUID) o);
+            case dstTwinClassId -> entity.setDstTwinClassId((UUID) o);
+            case type -> entity.setType((LinkType) o);
+            case linkStrength -> entity.setLinkStrengthId((LinkStrength) o);
+            case srcTwinClassInheritable -> entity.setSrcTwinClassInheritable((Boolean) o);
+            case dstTwinClassInheritable -> entity.setDstTwinClassInheritable((Boolean) o);
+        }
     }
 
     private Set<String> safeConvertTypeLink(Collection<LinkType> list) {

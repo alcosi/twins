@@ -2,24 +2,19 @@ package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
 import java.util.Set;
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@Schema(name = "LinkSearchRqV1",
-        description = "Deprecated. Use LinkSearchRqDTOv2 — search params are inline here and sort is not supported.")
-public class LinkSearchRqDTOv1 extends Request {
+@Schema(name = "LinkSearchDTOv1")
+public class LinkSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
 

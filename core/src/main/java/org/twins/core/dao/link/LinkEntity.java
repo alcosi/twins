@@ -72,10 +72,6 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-//    @ManyToOne
-//    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-//    private DomainEntity domain;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
