@@ -14,7 +14,6 @@ import org.twins.core.service.i18n.I18nExportService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +43,7 @@ public class TwinflowExportService {
             return "";
         }
 
-        Set<UUID> twinflowIds = twinflows.stream().map(TwinflowEntity::getId).collect(Collectors.toSet());
+        Set<UUID> twinflowIds = CollectionUtils.collect(twinflows, TwinflowEntity::getId);
 
         Kit<TwinflowSchemaMapEntity, UUID> allSchemaMaps = new Kit<>(
                 twinflowService.findTwinflowSchemaMapByTwinflowIdIn(twinflowIds),
@@ -89,13 +88,10 @@ public class TwinflowExportService {
                     .flatMap(kit -> kit.getCollection().stream())
                     .toList();
             if (!factoryLinks.isEmpty()) {
-                Set<UUID> factoryIds = factoryLinks.stream()
-                        .map(TwinflowFactoryEntity::getTwinFactoryId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
+                Set<UUID> factoryIds = CollectionUtils.collect(factoryLinks, TwinflowFactoryEntity::getTwinFactoryId);
                 if (!factoryIds.isEmpty()) {
                     sqlParts.addNotBlank(factoryExportService.exportToSql(
-                            factoryIds, false, false, false, false, false, false));
+                            factoryIds, true, true, true, true, true, true));
                 }
                 sqlParts.addNotBlank(sqlBuilder.buildInserts(factoryLinks));
             }
@@ -105,9 +101,7 @@ public class TwinflowExportService {
         if (includeTransitions) {
             List<TwinflowTransitionEntity> transitions = twinflowTransitionRepository.findByTwinflowIdIn(twinflowIds);
             if (CollectionUtils.isNotEmpty(transitions)) {
-                Set<UUID> transitionIds = transitions.stream()
-                        .map(TwinflowTransitionEntity::getId)
-                        .collect(Collectors.toSet());
+                Set<UUID> transitionIds = CollectionUtils.collect(transitions, TwinflowTransitionEntity::getId);
                 sqlParts.addNotBlank(transitionExportService.exportToSql(
                         transitionIds, true, true, true, true, true));
             }

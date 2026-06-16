@@ -12,8 +12,10 @@ import org.twins.core.service.factory.FactoryExportService;
 import org.twins.core.service.permission.PermissionExportService;
 import org.twins.core.service.twin.TwinStatusExportService;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -61,33 +63,21 @@ public class TransitionExportService extends EntityExportService<TwinflowTransit
                 if (transition.getSrcTwinStatus() != null) statuses.add(transition.getSrcTwinStatus());
                 if (transition.getDstTwinStatus() != null) statuses.add(transition.getDstTwinStatus());
             }
-            if (!statuses.isEmpty()) {
-                sqlParts.addNotBlank(twinStatusExportService.exportToSql(statuses));
-            }
+            sqlParts.addNotBlank(twinStatusExportService.exportToSql(statuses));
         }
 
         // Permission — exported before the transition due to FK order
         if (includePermission) {
-            Set<UUID> permissionIds = transitions.stream()
-                    .map(TwinflowTransitionEntity::getPermissionId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
-            if (!permissionIds.isEmpty()) {
-                sqlParts.addNotBlank(permissionExportService.exportToSql(permissionIds));
-            }
+            Set<UUID> permissionIds = CollectionUtils.collect(transitions, TwinflowTransitionEntity::getPermissionId);
+            sqlParts.addNotBlank(permissionExportService.exportToSql(permissionIds));
         }
 
         // Factories (inbuilt + drafting) — exported before the transition due to FK order
         if (includeFactory) {
             Set<UUID> factoryIds = new LinkedHashSet<>();
-            for (TwinflowTransitionEntity transition : transitions) {
-                if (transition.getInbuiltTwinFactoryId() != null) factoryIds.add(transition.getInbuiltTwinFactoryId());
-                if (transition.getDraftingTwinFactoryId() != null) factoryIds.add(transition.getDraftingTwinFactoryId());
-            }
-            if (!factoryIds.isEmpty()) {
-                sqlParts.addNotBlank(factoryExportService.exportToSql(
-                        factoryIds, true, true, true, true, true, true));
-            }
+            factoryIds.addAll(CollectionUtils.collect(transitions, TwinflowTransitionEntity::getInbuiltTwinFactoryId));
+            factoryIds.addAll(CollectionUtils.collect(transitions, TwinflowTransitionEntity::getDraftingTwinFactoryId));
+            sqlParts.addNotBlank(factoryExportService.exportToSql(factoryIds, true, true, true, true, true, true));
         }
 
         // Transitions themselves
@@ -96,7 +86,7 @@ public class TransitionExportService extends EntityExportService<TwinflowTransit
         // Triggers — children of transition
         if (includeTriggers) {
             twinflowTransitionService.loadTriggers(transitions);
-            exportChildrenKit(true, transitions,
+            exportChildrenKit(includeTriggers, transitions,
                     TwinflowTransitionEntity::getTriggersKit,
                     list -> sqlBuilder.buildInserts(list),
                     sqlParts);
@@ -105,7 +95,7 @@ public class TransitionExportService extends EntityExportService<TwinflowTransit
         // Validator rules — children of transition
         if (includeValidatorRules) {
             twinflowTransitionService.loadValidators(transitions);
-            exportChildrenKit(true, transitions,
+            exportChildrenKit(includeValidatorRules, transitions,
                     TwinflowTransitionEntity::getValidatorRulesKit,
                     list -> sqlBuilder.buildInserts(list),
                     sqlParts);
