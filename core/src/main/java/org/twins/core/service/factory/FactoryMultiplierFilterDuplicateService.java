@@ -8,8 +8,10 @@ import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
+import org.twins.core.domain.EntityDuplicateContext;
 import org.twins.core.domain.factory.FactoryMultiplierFilterDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -80,5 +82,11 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
     @Override
     protected void setNewParentEntityId(TwinFactoryMultiplierFilterEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryMultiplierId(duplicateParentEntityId);
+    }
+
+    @Override
+    protected void remapReferences(TwinFactoryMultiplierFilterEntity newEntity, EntityDuplicateContext ctx) {
+        newEntity.setTwinFactoryConditionSetId(
+                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
     }
 }

@@ -8,8 +8,10 @@ import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.domain.EntityDuplicateContext;
 import org.twins.core.domain.factory.FactoryPipelineDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -95,7 +97,13 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     }
 
     @Override
-    protected void afterSave(Collection<FactoryPipelineDuplicate> duplicates, Collection<TwinFactoryPipelineEntity> saved) throws ServiceException {
+    protected void remapReferences(TwinFactoryPipelineEntity newEntity, EntityDuplicateContext ctx) {
+        newEntity.setTwinFactoryConditionSetId(
+                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
+    }
+
+    @Override
+    protected void afterSave(Collection<FactoryPipelineDuplicate> duplicates, Collection<TwinFactoryPipelineEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
         Map<TwinFactoryPipelineEntity, TwinFactoryPipelineEntity> stepsMap = null;
         for (var duplicate : duplicates) {
             TwinFactoryPipelineEntity src = duplicate.getOriginalEntity();
@@ -106,7 +114,7 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
             }
         }
         if (stepsMap != null) {
-            factoryStepDuplicateService.duplicateFor(stepsMap);
+            factoryStepDuplicateService.duplicateFor(stepsMap, ctx);
         }
     }
 }

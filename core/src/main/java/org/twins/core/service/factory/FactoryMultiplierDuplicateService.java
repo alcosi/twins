@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
+import org.twins.core.domain.EntityDuplicateContext;
 import org.twins.core.domain.factory.FactoryMultiplierDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -88,7 +89,7 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     }
 
     @Override
-    protected void afterSave(Collection<FactoryMultiplierDuplicate> duplicates, Collection<TwinFactoryMultiplierEntity> saved) throws ServiceException {
+    protected void afterSave(Collection<FactoryMultiplierDuplicate> duplicates, Collection<TwinFactoryMultiplierEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
         Map<TwinFactoryMultiplierEntity, TwinFactoryMultiplierEntity> filtersMap = null;
         for (var duplicate : duplicates) {
             TwinFactoryMultiplierEntity src = duplicate.getOriginalEntity();
@@ -99,7 +100,7 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
             }
         }
         if (filtersMap != null) {
-            factoryMultiplierFilterDuplicateService.duplicateFor(filtersMap);
+            factoryMultiplierFilterDuplicateService.duplicateFor(filtersMap, ctx);
         }
     }
 }

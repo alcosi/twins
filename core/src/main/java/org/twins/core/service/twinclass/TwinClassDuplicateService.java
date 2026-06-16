@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.EntityDuplicateContext;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -126,7 +127,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected void afterSave(Collection<TwinClassDuplicate> duplicates, Collection<TwinClassEntity> saved) throws ServiceException {
+    protected void afterSave(Collection<TwinClassDuplicate> duplicates, Collection<TwinClassEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
         for (var savedClass : saved) {
             twinClassService.refreshExtendsHierarchyTree(savedClass);
             twinClassService.refreshHeadHierarchyTree(savedClass);
@@ -148,10 +149,10 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
             }
         }
         if (copyFieldsFor != null) {
-            twinClassFieldDuplicateService.duplicateFor(copyFieldsFor);
+            twinClassFieldDuplicateService.duplicateFor(copyFieldsFor, ctx);
         }
         if (copyStatusesFor != null) {
-            twinStatusDuplicateService.duplicateFor(copyStatusesFor);
+            twinStatusDuplicateService.duplicateFor(copyStatusesFor, ctx);
         }
     }
 

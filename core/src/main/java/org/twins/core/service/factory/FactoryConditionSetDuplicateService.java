@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.domain.EntityDuplicateContext;
 import org.twins.core.domain.factory.FactoryConditionSetDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -36,6 +37,11 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryConditionSetEntity> entityService() {
         return factoryConditionSetService;
+    }
+
+    @Override
+    protected Class<TwinFactoryConditionSetEntity> getEntityClass() {
+        return TwinFactoryConditionSetEntity.class;
     }
 
     @Override
@@ -93,7 +99,7 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected void afterSave(Collection<FactoryConditionSetDuplicate> duplicates, Collection<TwinFactoryConditionSetEntity> saved) throws ServiceException {
+    protected void afterSave(Collection<FactoryConditionSetDuplicate> duplicates, Collection<TwinFactoryConditionSetEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
         Map<TwinFactoryConditionSetEntity, TwinFactoryConditionSetEntity> conditionsMap = null;
         for (var duplicate : duplicates) {
             TwinFactoryConditionSetEntity src = duplicate.getOriginalEntity();
@@ -104,7 +110,7 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
             }
         }
         if (conditionsMap != null) {
-            factoryConditionDuplicateService.duplicateFor(conditionsMap);
+            factoryConditionDuplicateService.duplicateFor(conditionsMap, ctx);
         }
     }
 }

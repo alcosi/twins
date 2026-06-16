@@ -8,8 +8,10 @@ import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
+import org.twins.core.domain.EntityDuplicateContext;
 import org.twins.core.domain.factory.FactoryTriggerDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -82,5 +84,11 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     @Override
     protected void setNewParentEntityId(TwinFactoryTriggerEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
+    }
+
+    @Override
+    protected void remapReferences(TwinFactoryTriggerEntity newEntity, EntityDuplicateContext ctx) {
+        newEntity.setTwinFactoryConditionSetId(
+                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
     }
 }

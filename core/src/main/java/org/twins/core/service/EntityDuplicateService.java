@@ -8,6 +8,7 @@ import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.EntityDuplicate;
+import org.twins.core.domain.EntityDuplicateContext;
 
 import java.util.*;
 import java.util.function.Function;
@@ -52,17 +53,61 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
      */
     protected abstract UUID extractParentId(P parent);
 
-    protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
+    protected abstract void setNewParentEntityId(E newEntity, UUID duplicateParentEntityId);
+
+    /**
+     * Entity class used to register old→new id mappings in {@link EntityDuplicateContext}.
+     * Override when this service should participate in cross-entity reference remapping
+     * (i.e. when other duplicated entities may hold FKs pointing at this one).
+     * Default {@code null} — no registration, no remapping from this entity.
+     */
+    protected Class<E> getEntityClass() {
+        return null;
     }
+
+    /**
+     * Hook to remap foreign keys on the newly-built entity so they point at the duplicated
+     * copies of referenced entities instead of the originals. Invoked after
+     * {@link #createNewEntity}, {@link #setNewParentEntityId} and {@link #duplicateI18nFields},
+     * before {@code saveSafe()}.
+     * <p>
+     * Default: no-op. Override to translate FKs that are "internal" to the duplication graph
+     * (e.g. {@code twinFactoryConditionSetId}). Use {@link EntityDuplicateContext#resolveOrDefault(Class, UUID)}
+     * to fall back to the original id when no mapping exists (e.g. the referenced entity
+     * was not part of this operation — cross-domain references stay intact).
+     */
+    protected void remapReferences(E newEntity, EntityDuplicateContext ctx) throws ServiceException {
+    }
+
+    /**
+     * Post-save hook: refresh hierarchies, build per-flag maps, delegate to child services
+     * via {@code duplicateFor(parentMap, ctx)}. The same {@link EntityDuplicateContext} that flowed
+     * into the outer {@link #duplicate(Collection, EntityDuplicateContext)} is propagated so child
+     * cascades can remap their FKs against anything saved so far.
+     */
+    protected void afterSave(Collection<D> duplicates, Collection<E> saved, EntityDuplicateContext ctx) throws ServiceException {
+    }
+
+    // === Backward-compatible overloads — create a fresh context internally ===
 
     @Transactional(rollbackFor = Throwable.class)
     public E duplicate(D duplicate) throws ServiceException {
-        var ret = duplicate(Collections.singletonList(duplicate));
+        var ret = duplicate(Collections.singletonList(duplicate), new EntityDuplicateContext());
         return ret.isEmpty() ? null : ret.iterator().next();
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public Collection<E> duplicate(Collection<D> duplicates) throws ServiceException {
+        return duplicate(duplicates, new EntityDuplicateContext());
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public Collection<E> duplicateFor(Map<P, P> parentMap) throws ServiceException {
+        return duplicateFor(parentMap, new EntityDuplicateContext());
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public Collection<E> duplicate(Collection<D> duplicates, EntityDuplicateContext ctx) throws ServiceException {
         if (CollectionUtils.isEmpty(duplicates)) {
             return Collections.emptyList();
         }
@@ -76,11 +121,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
                 setNewParentEntityId(newEntity, duplicate.getDuplicateParentEntityId());
             }
             duplicateI18nFields(original, newEntity);
+            remapReferences(newEntity, ctx);
             duplicate.setNewEntity(newEntity);
             entitiesToSave.add(newEntity);
         }
         var saved = StreamSupport.stream(entityService().saveSafe(entitiesToSave).spliterator(), false).toList();
-        afterSave(duplicates, saved);
+        registerIds(duplicates, saved, ctx);
+        afterSave(duplicates, saved, ctx);
         return saved;
     }
 
@@ -93,10 +140,10 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
      *     <li>extracts children from the source parent via {@link #extractorChildren(Object)};</li>
      *     <li>builds a {@link D} per child pointing at the destination parent via {@link #createNewDuplicate()};</li>
      * </ol>
-     * then delegates to {@link #duplicate(Collection)} for the actual save.
+     * then delegates to {@link #duplicate(Collection, EntityDuplicateContext)} for the actual save.
      */
     @Transactional(rollbackFor = Throwable.class)
-    public Collection<E> duplicateFor(Map<P, P> parentMap) throws ServiceException {
+    public Collection<E> duplicateFor(Map<P, P> parentMap, EntityDuplicateContext ctx) throws ServiceException {
         if (parentMap == null || parentMap.isEmpty()) {
             return Collections.emptyList();
         }
@@ -119,10 +166,8 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
                 duplicates.add(newDuplicate);
             }
         }
-        return duplicate(duplicates);
+        return duplicate(duplicates, ctx);
     }
-
-    protected abstract void setNewParentEntityId(E newEntity, UUID duplicateParentEntityId);
 
     protected void validateKeyUniqueness(Collection<D> duplicates) throws ServiceException {
         var newKeys = new HashSet<String>();
@@ -144,10 +189,23 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
                 EntityDuplicate::setOriginalEntity);
     }
 
-    protected void loadDuplicateParent(Collection<D> duplicates) throws ServiceException {
-        entityService().load(duplicates,
-                EntityDuplicate::getOriginalEntityId,
-                EntityDuplicate::getOriginalEntity,
-                EntityDuplicate::setOriginalEntity);
+    /**
+     * Registers {@code originalEntityId → saved.id} into the context for every saved entity.
+     * Relies on positional correspondence between {@code duplicates} and {@code saved}.
+     */
+    protected void registerIds(Collection<D> duplicates, Collection<E> saved, EntityDuplicateContext ctx) {
+        Class<E> clazz = getEntityClass();
+        if (clazz == null) {
+            return;
+        }
+        Function<E, UUID> idFn = entityService().entityGetIdFunction();
+        var it = saved.iterator();
+        for (var duplicate : duplicates) {
+            if (!it.hasNext()) {
+                break;
+            }
+            E savedEntity = it.next();
+            ctx.register(clazz, duplicate.getOriginalEntityId(), idFn.apply(savedEntity));
+        }
     }
 }
