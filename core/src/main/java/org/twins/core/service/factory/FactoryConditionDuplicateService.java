@@ -1,0 +1,84 @@
+package org.twins.core.service.factory;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCode;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryConditionEntity;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.domain.factory.FactoryConditionDuplicate;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntityDuplicateService;
+
+import java.util.Collection;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class FactoryConditionDuplicateService extends EntityDuplicateService<FactoryConditionDuplicate, TwinFactoryConditionEntity, TwinFactoryConditionSetEntity> {
+
+    @Lazy
+    private final FactoryConditionService factoryConditionService;
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryConditionEntity> entityService() {
+        return factoryConditionService;
+    }
+
+    @Override
+    protected FactoryConditionDuplicate createNewDuplicate() {
+        return new FactoryConditionDuplicate();
+    }
+
+    @Override
+    protected void loadFor(Collection<TwinFactoryConditionSetEntity> parents) {
+        factoryConditionService.loadFactoryConditions(parents);
+    }
+
+    @Override
+    protected Kit<TwinFactoryConditionEntity, UUID> extractorChildren(TwinFactoryConditionSetEntity parent) {
+        return parent.getTwinFactoryConditionKit();
+    }
+
+    @Override
+    protected UUID extractParentId(TwinFactoryConditionSetEntity parent) {
+        return parent.getId();
+    }
+
+    @Override
+    protected ErrorCode getKeyDuplicatedErrorCode() {
+        return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
+    }
+
+    @Override
+    protected void validateKeyUniqueness(Collection<FactoryConditionDuplicate> duplicates) throws ServiceException {
+        // conditions have no key concept
+    }
+
+    @Override
+    protected TwinFactoryConditionEntity createNewEntity(FactoryConditionDuplicate duplicate) throws ServiceException {
+        var src = duplicate.getOriginalEntity();
+        return new TwinFactoryConditionEntity()
+                .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                .setConditionerFeaturerId(src.getConditionerFeaturerId())
+                .setConditionerParams(src.getConditionerParams())
+                .setDescription(src.getDescription())
+                .setActive(src.getActive())
+                .setInvert(src.getInvert());
+    }
+
+    @Override
+    protected void duplicateI18nFields(TwinFactoryConditionEntity src, TwinFactoryConditionEntity dst) throws ServiceException {
+        // no i18n fields
+    }
+
+    @Override
+    protected void setNewParentEntityId(TwinFactoryConditionEntity newEntity, UUID duplicateParentEntityId) {
+        newEntity.setTwinFactoryConditionSetId(duplicateParentEntityId);
+    }
+}

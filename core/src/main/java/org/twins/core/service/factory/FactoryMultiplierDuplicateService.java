@@ -15,6 +15,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -24,6 +26,8 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
 
     @Lazy
     private final FactoryMultiplierService factoryMultiplierService;
+    @Lazy
+    private final FactoryMultiplierFilterDuplicateService factoryMultiplierFilterDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryMultiplierEntity> entityService() {
@@ -81,5 +85,21 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     @Override
     protected void setNewParentEntityId(TwinFactoryMultiplierEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
+    }
+
+    @Override
+    protected void afterSave(Collection<FactoryMultiplierDuplicate> duplicates, Collection<TwinFactoryMultiplierEntity> saved) throws ServiceException {
+        Map<TwinFactoryMultiplierEntity, TwinFactoryMultiplierEntity> filtersMap = null;
+        for (var duplicate : duplicates) {
+            TwinFactoryMultiplierEntity src = duplicate.getOriginalEntity();
+            TwinFactoryMultiplierEntity dst = duplicate.getNewEntity();
+            if (duplicate.isDuplicateFilters()) {
+                if (filtersMap == null) filtersMap = new HashMap<>();
+                filtersMap.put(src, dst);
+            }
+        }
+        if (filtersMap != null) {
+            factoryMultiplierFilterDuplicateService.duplicateFor(filtersMap);
+        }
     }
 }

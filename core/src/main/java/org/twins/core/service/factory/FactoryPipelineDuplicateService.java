@@ -26,6 +26,8 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
 
     @Lazy
     private final FactoryPipelineService factoryPipelineService;
+    @Lazy
+    private final FactoryPipelineStepDuplicateService factoryStepDuplicateService;
 
 
     @Override
@@ -94,10 +96,10 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
 
     @Override
     protected void afterSave(Collection<FactoryPipelineDuplicate> duplicates, Collection<TwinFactoryPipelineEntity> saved) throws ServiceException {
-        Map<TwinFactoryEntity, TwinFactoryEntity> stepsMap = null;
+        Map<TwinFactoryPipelineEntity, TwinFactoryPipelineEntity> stepsMap = null;
         for (var duplicate : duplicates) {
-            TwinFactoryEntity src = duplicate.getOriginalEntity();
-            TwinFactoryEntity dst = duplicate.getNewEntity();
+            TwinFactoryPipelineEntity src = duplicate.getOriginalEntity();
+            TwinFactoryPipelineEntity dst = duplicate.getNewEntity();
             if (duplicate.isDuplicateSteps()) {
                 if (stepsMap == null) stepsMap = new HashMap<>();
                 stepsMap.put(src, dst);

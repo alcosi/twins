@@ -108,6 +108,11 @@ public class TwinFactoryEntity implements EasyLoggable {
     @ToString.Exclude
     private Kit<TwinFactoryTriggerEntity, UUID> twinFactoryTriggerKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryConditionSetEntity, UUID> twinFactoryConditionSetKit;
+
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactory[" + id + "]";
