@@ -8,17 +8,19 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.domain.factory.FactoryBranchDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FactoryBranchDuplicateService extends EntityDuplicateService<FactoryBranchDuplicate, TwinFactoryBranchEntity> {
+public class FactoryBranchDuplicateService extends EntityDuplicateService<FactoryBranchDuplicate, TwinFactoryBranchEntity, TwinFactoryEntity> {
 
     @Lazy
     private final FactoryBranchService factoryBranchService;
@@ -31,6 +33,11 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected FactoryBranchDuplicate createNewDuplicate() {
         return new FactoryBranchDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
+        return factoryBranchService::loadFactoryBranches;
     }
 
     @Override

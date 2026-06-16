@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.domain.factory.FactoryTriggerDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -14,11 +15,12 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FactoryTriggerDuplicateService extends EntityDuplicateService<FactoryTriggerDuplicate, TwinFactoryTriggerEntity> {
+public class FactoryTriggerDuplicateService extends EntityDuplicateService<FactoryTriggerDuplicate, TwinFactoryTriggerEntity, TwinFactoryEntity> {
 
     @Lazy
     private final FactoryTriggerService factoryTriggerService;
@@ -31,6 +33,11 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     @Override
     protected FactoryTriggerDuplicate createNewDuplicate() {
         return new FactoryTriggerDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
+        return factoryTriggerService::loadFactoryTriggers;
     }
 
     @Override

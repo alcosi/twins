@@ -8,6 +8,7 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatusDuplicate, TwinStatusEntity> {
+public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatusDuplicate, TwinStatusEntity, TwinClassEntity> {
 
     @Lazy
     private final TwinStatusService twinStatusService;
@@ -35,6 +36,11 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     @Override
     protected TwinStatusDuplicate createNewDuplicate() {
         return new TwinStatusDuplicate();
+    }
+
+    @Override
+    protected java.util.function.Consumer<java.util.Collection<TwinClassEntity>> inParentLoader() {
+        return twinStatusService::loadStatusesForTwinClasses;
     }
 
     @Override

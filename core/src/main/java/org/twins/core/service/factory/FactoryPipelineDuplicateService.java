@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.domain.factory.FactoryPipelineDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -14,11 +15,12 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FactoryPipelineDuplicateService extends EntityDuplicateService<FactoryPipelineDuplicate, TwinFactoryPipelineEntity> {
+public class FactoryPipelineDuplicateService extends EntityDuplicateService<FactoryPipelineDuplicate, TwinFactoryPipelineEntity, TwinFactoryEntity> {
 
     @Lazy
     private final FactoryPipelineService factoryPipelineService;
@@ -31,6 +33,11 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     @Override
     protected FactoryPipelineDuplicate createNewDuplicate() {
         return new FactoryPipelineDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
+        return factoryPipelineService::loadFactoryPipelines;
     }
 
     @Override

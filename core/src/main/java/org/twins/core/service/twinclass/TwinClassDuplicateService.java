@@ -23,11 +23,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassDuplicate, TwinClassEntity> {
+public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassDuplicate, TwinClassEntity, Void> {
 
     @Lazy
     private final TwinClassService twinClassService;
@@ -49,6 +50,11 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     @Override
     protected TwinClassDuplicate createNewDuplicate() {
         return new TwinClassDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<Void>> inParentLoader() {
+        return voids -> {};  // top-level entity — no parent, never invoked
     }
 
     @Override
@@ -138,14 +144,12 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
         if (copyFieldsFor != null) {
             twinClassFieldDuplicateService.duplicateFor(
                     copyFieldsFor,
-                    twinClassFieldService::loadTwinClassFields,
                     TwinClassEntity::getTwinClassFieldKit,
                     TwinClassEntity::getId);
         }
         if (copyStatusesFor != null) {
             twinStatusDuplicateService.duplicateFor(
                     copyStatusesFor,
-                    twinStatusService::loadStatusesForTwinClasses,
                     TwinClassEntity::getTwinStatusKit,
                     TwinClassEntity::getId);
         }

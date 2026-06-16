@@ -14,7 +14,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
-public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
+/**
+ * @param <D> duplicate descriptor type
+ * @param <E> duplicated entity type
+ * @param <P> parent entity type — meaningful only for services invoked via {@link #duplicateFor(Map, Function, Function)};
+ *            use {@link Void} for top-level entities that have no parent
+ */
+public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P> {
 
     protected abstract EntitySecureFindServiceImpl<E> entityService();
 
@@ -28,6 +34,12 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
      * Factory for fresh {@link D} instances — used by {@link #duplicateFor} to build one duplicate per child entity.
      */
     protected abstract D createNewDuplicate();
+
+    /**
+     * Loads children into source parents prior to iteration in {@link #duplicateFor}.
+     * Implementations may be no-ops if loading is performed externally by the caller.
+     */
+    protected abstract Consumer<Collection<P>> inParentLoader();
 
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
     }
@@ -66,22 +78,21 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E> {
      * <p>
      * For each entry {@code (sourceParent -> destinationParent)}:
      * <ol>
-     *     <li>loads children into all source parents (once, via {@code childLoader});</li>
+     *     <li>loads children into all source parents (once, via {@link #inParentLoader()});</li>
      *     <li>extracts children from the source parent;</li>
      *     <li>builds a {@link D} per child pointing at the destination parent via {@link #createNewDuplicate()};</li>
      * </ol>
      * then delegates to {@link #duplicate(Collection)} for the actual save.
      */
     @Transactional(rollbackFor = Throwable.class)
-    public <P> Collection<E> duplicateFor(
+    public Collection<E> duplicateFor(
             Map<P, P> parentMap,
-            Consumer<Collection<P>> childLoader,
             Function<P, Kit<E, UUID>> childExtractor,
             Function<P, UUID> destinationParentIdExtractor) throws ServiceException {
         if (parentMap == null || parentMap.isEmpty()) {
             return Collections.emptyList();
         }
-        childLoader.accept(parentMap.keySet());
+        inParentLoader().accept(parentMap.keySet());
         Function<E, UUID> childIdExtractor = entityService().entityGetIdFunction();
         List<D> duplicates = new ArrayList<>();
         for (var entry : parentMap.entrySet()) {

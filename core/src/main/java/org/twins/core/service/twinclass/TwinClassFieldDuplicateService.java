@@ -7,18 +7,21 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.i18n.I18nService;
 
+import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinClassFieldDuplicate, TwinClassFieldEntity> {
+public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinClassFieldDuplicate, TwinClassFieldEntity, TwinClassEntity> {
 
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
@@ -34,6 +37,11 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     @Override
     protected TwinClassFieldDuplicate createNewDuplicate() {
         return new TwinClassFieldDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<TwinClassEntity>> inParentLoader() {
+        return twinClassFieldService::loadTwinClassFields;
     }
 
     @Override

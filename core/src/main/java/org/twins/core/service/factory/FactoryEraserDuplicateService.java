@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.domain.factory.FactoryEraserDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -14,11 +15,12 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FactoryEraserDuplicateService extends EntityDuplicateService<FactoryEraserDuplicate, TwinFactoryEraserEntity> {
+public class FactoryEraserDuplicateService extends EntityDuplicateService<FactoryEraserDuplicate, TwinFactoryEraserEntity, TwinFactoryEntity> {
 
     @Lazy
     private final FactoryEraserService factoryEraserService;
@@ -31,6 +33,11 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected FactoryEraserDuplicate createNewDuplicate() {
         return new FactoryEraserDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
+        return factoryEraserService::loadFactoryErasers;
     }
 
     @Override

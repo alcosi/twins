@@ -17,13 +17,16 @@ import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FactoryDuplicateService extends EntityDuplicateService<FactoryDuplicate, TwinFactoryEntity> {
+public class FactoryDuplicateService extends EntityDuplicateService<FactoryDuplicate, TwinFactoryEntity, Void> {
     @Lazy
     private final TwinFactoryService twinFactoryService;
     @Lazy
@@ -48,6 +51,11 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     @Override
     protected FactoryDuplicate createNewDuplicate() {
         return new FactoryDuplicate();
+    }
+
+    @Override
+    protected Consumer<Collection<Void>> inParentLoader() {
+        return voids -> {};  // top-level entity — no parent, never invoked
     }
 
     @Override
@@ -111,32 +119,20 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
                 triggersMap.put(src, dst);
             }
         }
-        if (branchesMap == null && multipliersMap == null && pipelinesMap == null && erasersMap == null && triggersMap == null) {
-            return;
-        }
-        // loadFactoryElements populates every category kit at once, so call it once with the union of all source factories
-        Set<TwinFactoryEntity> sourceFactories = new HashSet<>();
-        if (branchesMap != null) sourceFactories.addAll(branchesMap.keySet());
-        if (multipliersMap != null) sourceFactories.addAll(multipliersMap.keySet());
-        if (pipelinesMap != null) sourceFactories.addAll(pipelinesMap.keySet());
-        if (erasersMap != null) sourceFactories.addAll(erasersMap.keySet());
-        if (triggersMap != null) sourceFactories.addAll(triggersMap.keySet());
-        twinFactoryService.loadFactoryElements(sourceFactories);
-        Consumer<Collection<TwinFactoryEntity>> noopLoader = factories -> {};
         if (branchesMap != null) {
-            factoryBranchDuplicateService.duplicateFor(branchesMap, noopLoader, TwinFactoryEntity::getTwinFactoryBranchKit, TwinFactoryEntity::getId);
+            factoryBranchDuplicateService.duplicateFor(branchesMap, TwinFactoryEntity::getTwinFactoryBranchKit, TwinFactoryEntity::getId);
         }
         if (multipliersMap != null) {
-            factoryMultiplierDuplicateService.duplicateFor(multipliersMap, noopLoader, TwinFactoryEntity::getTwinFactoryMultiplierKit, TwinFactoryEntity::getId);
+            factoryMultiplierDuplicateService.duplicateFor(multipliersMap, TwinFactoryEntity::getTwinFactoryMultiplierKit, TwinFactoryEntity::getId);
         }
         if (pipelinesMap != null) {
-            factoryPipelineDuplicateService.duplicateFor(pipelinesMap, noopLoader, TwinFactoryEntity::getTwinFactoryPipelineKit, TwinFactoryEntity::getId);
+            factoryPipelineDuplicateService.duplicateFor(pipelinesMap, TwinFactoryEntity::getTwinFactoryPipelineKit, TwinFactoryEntity::getId);
         }
         if (erasersMap != null) {
-            factoryEraserDuplicateService.duplicateFor(erasersMap, noopLoader, TwinFactoryEntity::getTwinFactoryEraserKit, TwinFactoryEntity::getId);
+            factoryEraserDuplicateService.duplicateFor(erasersMap, TwinFactoryEntity::getTwinFactoryEraserKit, TwinFactoryEntity::getId);
         }
         if (triggersMap != null) {
-            factoryTriggerDuplicateService.duplicateFor(triggersMap, noopLoader, TwinFactoryEntity::getTwinFactoryTriggerKit, TwinFactoryEntity::getId);
+            factoryTriggerDuplicateService.duplicateFor(triggersMap, TwinFactoryEntity::getTwinFactoryTriggerKit, TwinFactoryEntity::getId);
         }
     }
 
