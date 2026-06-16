@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.twins.core.service.EntityDuplicateService;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -38,6 +40,16 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     @Override
     protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
         return factoryPipelineService::loadFactoryPipelines;
+    }
+
+    @Override
+    protected Function<TwinFactoryEntity, Kit<TwinFactoryPipelineEntity, UUID>> childExtractor() {
+        return TwinFactoryEntity::getTwinFactoryPipelineKit;
+    }
+
+    @Override
+    protected Function<TwinFactoryEntity, UUID> destinationParentIdExtractor() {
+        return TwinFactoryEntity::getId;
     }
 
     @Override

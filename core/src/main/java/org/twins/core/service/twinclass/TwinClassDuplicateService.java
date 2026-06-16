@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -55,6 +57,16 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     @Override
     protected Consumer<Collection<Void>> inParentLoader() {
         return voids -> {};  // top-level entity — no parent, never invoked
+    }
+
+    @Override
+    protected Function<Void, Kit<TwinClassEntity, UUID>> childExtractor() {
+        return v -> null;  // top-level entity — never invoked
+    }
+
+    @Override
+    protected Function<Void, UUID> destinationParentIdExtractor() {
+        return v -> null;  // top-level entity — never invoked
     }
 
     @Override
@@ -142,16 +154,10 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
             }
         }
         if (copyFieldsFor != null) {
-            twinClassFieldDuplicateService.duplicateFor(
-                    copyFieldsFor,
-                    TwinClassEntity::getTwinClassFieldKit,
-                    TwinClassEntity::getId);
+            twinClassFieldDuplicateService.duplicateFor(copyFieldsFor);
         }
         if (copyStatusesFor != null) {
-            twinStatusDuplicateService.duplicateFor(
-                    copyStatusesFor,
-                    TwinClassEntity::getTwinStatusKit,
-                    TwinClassEntity::getId);
+            twinStatusDuplicateService.duplicateFor(copyStatusesFor);
         }
     }
 

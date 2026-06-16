@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -56,6 +58,16 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     @Override
     protected Consumer<Collection<Void>> inParentLoader() {
         return voids -> {};  // top-level entity — no parent, never invoked
+    }
+
+    @Override
+    protected Function<Void, Kit<TwinFactoryEntity, UUID>> childExtractor() {
+        return v -> null;  // top-level entity — never invoked
+    }
+
+    @Override
+    protected Function<Void, UUID> destinationParentIdExtractor() {
+        return v -> null;  // top-level entity — never invoked
     }
 
     @Override
@@ -120,19 +132,19 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
             }
         }
         if (branchesMap != null) {
-            factoryBranchDuplicateService.duplicateFor(branchesMap, TwinFactoryEntity::getTwinFactoryBranchKit, TwinFactoryEntity::getId);
+            factoryBranchDuplicateService.duplicateFor(branchesMap);
         }
         if (multipliersMap != null) {
-            factoryMultiplierDuplicateService.duplicateFor(multipliersMap, TwinFactoryEntity::getTwinFactoryMultiplierKit, TwinFactoryEntity::getId);
+            factoryMultiplierDuplicateService.duplicateFor(multipliersMap);
         }
         if (pipelinesMap != null) {
-            factoryPipelineDuplicateService.duplicateFor(pipelinesMap, TwinFactoryEntity::getTwinFactoryPipelineKit, TwinFactoryEntity::getId);
+            factoryPipelineDuplicateService.duplicateFor(pipelinesMap);
         }
         if (erasersMap != null) {
-            factoryEraserDuplicateService.duplicateFor(erasersMap, TwinFactoryEntity::getTwinFactoryEraserKit, TwinFactoryEntity::getId);
+            factoryEraserDuplicateService.duplicateFor(erasersMap);
         }
         if (triggersMap != null) {
-            factoryTriggerDuplicateService.duplicateFor(triggersMap, TwinFactoryEntity::getTwinFactoryTriggerKit, TwinFactoryEntity::getId);
+            factoryTriggerDuplicateService.duplicateFor(triggersMap);
         }
     }
 

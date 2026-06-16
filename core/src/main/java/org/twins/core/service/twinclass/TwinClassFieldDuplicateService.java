@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
@@ -17,6 +18,7 @@ import org.twins.core.service.i18n.I18nService;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -42,6 +44,16 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     @Override
     protected Consumer<Collection<TwinClassEntity>> inParentLoader() {
         return twinClassFieldService::loadTwinClassFields;
+    }
+
+    @Override
+    protected Function<TwinClassEntity, Kit<TwinClassFieldEntity, UUID>> childExtractor() {
+        return TwinClassEntity::getTwinClassFieldKit;
+    }
+
+    @Override
+    protected Function<TwinClassEntity, UUID> destinationParentIdExtractor() {
+        return TwinClassEntity::getId;
     }
 
     @Override
