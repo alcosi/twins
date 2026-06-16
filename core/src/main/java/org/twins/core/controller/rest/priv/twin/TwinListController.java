@@ -21,7 +21,10 @@ import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.*;
+import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchRqDTOv2;
+import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -48,8 +51,6 @@ public class TwinListController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
     private final TwinSearchRqDTOv2ReverseMapper twinSearchRqDTOv2ReverseMapper;
-    private final TwinSearchExtendedDTOv2ReverseMapper twinSearchExtendedDTOv2ReverseMapper;
-    private final TwinCountRestDTOMapper twinCountRestDTOMapper;
     private final TwinSortDTOReverseMapperV2 twinSortDTOReverseMapperV2;
 
     @ParametersApiUserHeaders
@@ -191,35 +192,6 @@ public class TwinListController extends ApiController {
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
-                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinCountV1", summary = "Count twins grouped by TwinClassFieldId")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Count results", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinCountRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin/count/v1")
-    @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinCountV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
-            @RequestBody @Valid TwinCountRqDTOv1 request) {
-        TwinCountRsDTOv1 rs = new TwinCountRsDTOv1();
-        try {
-            BasicSearch search = twinSearchExtendedDTOv2ReverseMapper.convert(request.getSearch());
-            var results = twinSearchServiceV2.countByGroupFields(search, request.getGroupFields(), pagination);
-            rs
-                    .setCounts(twinCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(results))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
