@@ -15,8 +15,8 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1337, name = "Division", description = "First / Second")
 public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase {
 
-    @FeaturerParam(name = "divisionByZeroResul", description = "Result if division by zero", defaultValue = "<n/a>")
-    public static final FeaturerParamString divisionByZeroResul = new FeaturerParamString("divisionByZeroResul");
+    @FeaturerParam(name = "divisionByZeroResult", description = "Result if division by zero", defaultValue = "<n/a>")
+    public static final FeaturerParamString divisionByZeroResult = new FeaturerParamString("divisionByZeroResult");
 
     @Override
     protected String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
@@ -24,7 +24,7 @@ public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase {
         var d2 = v2 != null ? v2 : BigDecimal.ZERO;
 
         if (d2.compareTo(BigDecimal.ZERO) == 0) {
-            return divisionByZeroResul.extract(properties);
+            return divisionByZeroResult.extract(properties);
         }
 
         var scale = decimalPlaces.extract(properties) == null ? 10 : decimalPlaces.extract(properties);

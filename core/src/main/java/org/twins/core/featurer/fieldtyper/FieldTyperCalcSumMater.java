@@ -22,7 +22,7 @@ import java.util.UUID;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_1352,
-        name = "Sum fields (saved)",
+        name = "Sum fields (materialization)",
         description = "Save sum of twin fields on serializeValue, and return saved total from database"
 )
 public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperScalable, FieldTyperCalcMater {
@@ -37,7 +37,7 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (shouldSkipSerializeOnMissingOperands(twin, properties, twinClassFieldService, fieldIds.extract(properties), value.getTwinClassField())) {
+        if (skipIfEmpty(twin, properties, twinClassFieldService, fieldIds.extract(properties), value.getTwinClassField())) {
             return;
         }
         if (twinFieldEntity == null) {

@@ -25,13 +25,7 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (shouldSkipSerializeOnMissingOperands(
-                twin,
-                properties,
-                twinClassFieldService,
-                List.of(firstFieldId.extract(properties), secondFieldId.extract(properties)),
-                value.getTwinClassField()
-        )) {
+        if (skipIfEmpty(twin, properties, twinClassFieldService, List.of(firstFieldId.extract(properties), secondFieldId.extract(properties)), value.getTwinClassField())) {
             return;
         }
         if (twinFieldEntity == null) {

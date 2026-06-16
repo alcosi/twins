@@ -13,7 +13,7 @@ import java.util.Properties;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_1355,
-        name = "Multiplication (saved)",
+        name = "Multiplication (materialization)",
         description = "Save first multiplied by second field on serializeValue, and return saved total from database"
 )
 public class FieldTyperCalcMultiplicationMater extends FieldTyperCalcBinaryMater {
@@ -33,7 +33,7 @@ public class FieldTyperCalcMultiplicationMater extends FieldTyperCalcBinaryMater
 
     private BigDecimal prepare(BigDecimal v, boolean replace) {
         if (v == null) {
-            return BigDecimal.ZERO;
+            return replace ? BigDecimal.ONE : BigDecimal.ZERO;
         }
         if (replace && v.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ONE;

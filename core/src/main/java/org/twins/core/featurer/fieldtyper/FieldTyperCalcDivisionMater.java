@@ -3,7 +3,7 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamBigDecimal;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -14,13 +14,13 @@ import java.util.Properties;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_1356,
-        name = "Division (saved)",
+        name = "Division (materialization)",
         description = "Save first divided by second field on serializeValue, and return saved total from database"
 )
 public class FieldTyperCalcDivisionMater extends FieldTyperCalcBinaryMater {
 
-    @FeaturerParam(name = "divisionByZeroResul", description = "Result if division by zero", defaultValue = "<n/a>")
-    public static final FeaturerParamString divisionByZeroResul = new FeaturerParamString("divisionByZeroResul");
+    @FeaturerParam(name = "divisionByZeroResult", description = "Result if division by zero", defaultValue = "0")
+    public static final FeaturerParamBigDecimal divisionByZeroResult = new FeaturerParamBigDecimal("divisionByZeroResult");
 
     @Override
     protected BigDecimal calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
@@ -28,7 +28,8 @@ public class FieldTyperCalcDivisionMater extends FieldTyperCalcBinaryMater {
         var d2 = v2 != null ? v2 : BigDecimal.ZERO;
 
         if (d2.compareTo(BigDecimal.ZERO) == 0) {
-            return divisionByZeroResult(properties);
+            var result = divisionByZeroResult.extract(properties);
+            return scaleAndRound(result != null ? result : BigDecimal.ZERO, properties);
         }
 
         Integer scaleParam = FieldTyperScalable.decimalPlaces.extract(properties);
@@ -38,14 +39,5 @@ public class FieldTyperCalcDivisionMater extends FieldTyperCalcBinaryMater {
                 : FieldTyperScalable.roundingMode.extract(properties);
 
         return scaleAndRound(d1.divide(d2, scale, roundingModeValue), properties);
-    }
-
-    private BigDecimal divisionByZeroResult(Properties properties) throws ServiceException {
-        var divisionByZeroResult = divisionByZeroResul.extract(properties);
-        try {
-            return scaleAndRound(new BigDecimal(divisionByZeroResult), properties);
-        } catch (NumberFormatException e) {
-            return scaleAndRound(BigDecimal.ZERO, properties);
-        }
     }
 }
