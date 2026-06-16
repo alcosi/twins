@@ -30,4 +30,7 @@ public class FactoryDuplicateDTOv1 {
 
     @Schema(description = "[optional] duplicate triggers with condition sets, conditions")
     public boolean duplicateTriggers = false;
+
+    @Schema(description = "[optional] duplicate condition set with condition sets, conditions")
+    public boolean duplicateConditionSets = false;
 }

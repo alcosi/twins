@@ -39,6 +39,8 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     private final FactoryEraserDuplicateService factoryEraserDuplicateService;
     @Lazy
     private final FactoryTriggerDuplicateService factoryTriggerDuplicateService;
+    @Lazy
+    private final FactoryConditionSetDuplicateService conditionSetDuplicateService;
     private final I18nService i18nService;
     @Lazy
     private final AuthService authService;
@@ -104,6 +106,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         Map<TwinFactoryEntity, TwinFactoryEntity> pipelinesMap = null;
         Map<TwinFactoryEntity, TwinFactoryEntity> erasersMap = null;
         Map<TwinFactoryEntity, TwinFactoryEntity> triggersMap = null;
+        Map<TwinFactoryEntity, TwinFactoryEntity> conditionSetsMap = null;
         for (var duplicate : duplicates) {
             TwinFactoryEntity src = duplicate.getOriginalEntity();
             TwinFactoryEntity dst = duplicate.getNewEntity();
@@ -127,6 +130,10 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
                 if (triggersMap == null) triggersMap = new HashMap<>();
                 triggersMap.put(src, dst);
             }
+            if (duplicate.isDuplicateConditionSets()) {
+                if (conditionSetsMap == null) conditionSetsMap = new HashMap<>();
+                conditionSetsMap.put(src, dst);
+            }
         }
         if (branchesMap != null) {
             factoryBranchDuplicateService.duplicateFor(branchesMap);
@@ -143,6 +150,10 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         if (triggersMap != null) {
             factoryTriggerDuplicateService.duplicateFor(triggersMap);
         }
+        if (conditionSetsMap != null) {
+            conditionSetDuplicateService.duplicateFor(conditionSetsMap);
+        }
+
     }
 
     @Override

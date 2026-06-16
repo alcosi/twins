@@ -67,8 +67,8 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
             PaginationResult<TwinFactoryMultiplierFilterEntity> multiplierFilter = factoryMultiplierFilterSearchService
                     .findFactoryMultiplierFilters(factoryMultiplierFilerSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setMultiplierFilters(factoryMultiplierFilterRestDTOMapper.convertCollection(multiplierFilter.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(multiplierFilter))
+                    .setMultiplierFilters(factoryMultiplierFilterRestDTOMapper.convertCollection(multiplierFilter.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
