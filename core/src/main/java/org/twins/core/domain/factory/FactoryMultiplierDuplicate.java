@@ -10,4 +10,5 @@ import org.twins.core.domain.EntityDuplicate;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FactoryMultiplierDuplicate extends EntityDuplicate<TwinFactoryMultiplierEntity> {
+    private boolean duplicateFilters = false;
 }

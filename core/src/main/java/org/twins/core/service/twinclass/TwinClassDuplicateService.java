@@ -16,7 +16,6 @@ import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinStatusDuplicateService;
-import org.twins.core.service.twin.TwinStatusService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -24,14 +23,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassDuplicate, TwinClassEntity, Void> {
-
     @Lazy
     private final TwinClassService twinClassService;
     @Lazy
@@ -41,8 +37,6 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     private final I18nService i18nService;
     @Lazy
     private final AuthService authService;
-    private final TwinStatusService twinStatusService;
-    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinClassEntity> entityService() {
@@ -55,18 +49,18 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected Consumer<Collection<Void>> inParentLoader() {
-        return voids -> {};  // top-level entity — no parent, never invoked
+    protected void loadFor(Collection<Void> parents) {
+        // top-level entity — no parent, nothing to load
     }
 
     @Override
-    protected Function<Void, Kit<TwinClassEntity, UUID>> childExtractor() {
-        return v -> null;  // top-level entity — never invoked
+    protected Kit<TwinClassEntity, UUID> extractorChildren(Void parent) {
+        return null;  // top-level entity — never invoked
     }
 
     @Override
-    protected Function<Void, UUID> destinationParentIdExtractor() {
-        return v -> null;  // top-level entity — never invoked
+    protected UUID extractParentId(Void parent) {
+        return null;  // top-level entity — never invoked
     }
 
     @Override

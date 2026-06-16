@@ -15,4 +15,7 @@ public class FactoryMultiplierDuplicateDTOv1 {
 
     @Schema(description = "[optional] fill if multiplier should be copied to other factory")
     public UUID newTwinFactoryId;
+
+    @Schema(description = "[optional] duplicate filters")
+    public boolean duplicateFilters = true;
 }

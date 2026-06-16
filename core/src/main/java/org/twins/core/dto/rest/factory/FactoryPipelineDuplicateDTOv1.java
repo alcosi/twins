@@ -15,4 +15,7 @@ public class FactoryPipelineDuplicateDTOv1 {
 
     @Schema(description = "[optional] fill if pipeline should be copied to other factory")
     public UUID newTwinFactoryId;
+
+    @Schema(description = "[optional] duplicate steps")
+    public boolean duplicateSteps = true;
 }

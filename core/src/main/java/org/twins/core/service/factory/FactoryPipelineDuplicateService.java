@@ -15,9 +15,9 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -27,6 +27,7 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     @Lazy
     private final FactoryPipelineService factoryPipelineService;
 
+
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryPipelineEntity> entityService() {
         return factoryPipelineService;
@@ -34,22 +35,23 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
 
     @Override
     protected FactoryPipelineDuplicate createNewDuplicate() {
-        return new FactoryPipelineDuplicate();
+        return new FactoryPipelineDuplicate()
+                .setDuplicateSteps(true);
     }
 
     @Override
-    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
-        return factoryPipelineService::loadFactoryPipelines;
+    protected void loadFor(Collection<TwinFactoryEntity> parents) {
+        factoryPipelineService.loadFactoryPipelines(parents);
     }
 
     @Override
-    protected Function<TwinFactoryEntity, Kit<TwinFactoryPipelineEntity, UUID>> childExtractor() {
-        return TwinFactoryEntity::getTwinFactoryPipelineKit;
+    protected Kit<TwinFactoryPipelineEntity, UUID> extractorChildren(TwinFactoryEntity parent) {
+        return parent.getTwinFactoryPipelineKit();
     }
 
     @Override
-    protected Function<TwinFactoryEntity, UUID> destinationParentIdExtractor() {
-        return TwinFactoryEntity::getId;
+    protected UUID extractParentId(TwinFactoryEntity parent) {
+        return parent.getId();
     }
 
     @Override
@@ -88,5 +90,21 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     @Override
     protected void setNewParentEntityId(TwinFactoryPipelineEntity newEntity, UUID duplicateParentEntityId) {
         newEntity.setTwinFactoryId(duplicateParentEntityId);
+    }
+
+    @Override
+    protected void afterSave(Collection<FactoryPipelineDuplicate> duplicates, Collection<TwinFactoryPipelineEntity> saved) throws ServiceException {
+        Map<TwinFactoryEntity, TwinFactoryEntity> stepsMap = null;
+        for (var duplicate : duplicates) {
+            TwinFactoryEntity src = duplicate.getOriginalEntity();
+            TwinFactoryEntity dst = duplicate.getNewEntity();
+            if (duplicate.isDuplicateSteps()) {
+                if (stepsMap == null) stepsMap = new HashMap<>();
+                stepsMap.put(src, dst);
+            }
+        }
+        if (stepsMap != null) {
+            factoryStepDuplicateService.duplicateFor(stepsMap);
+        }
     }
 }

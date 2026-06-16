@@ -16,8 +16,6 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -38,18 +36,18 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     }
 
     @Override
-    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
-        return factoryTriggerService::loadFactoryTriggers;
+    protected void loadFor(Collection<TwinFactoryEntity> parents) {
+        factoryTriggerService.loadFactoryTriggers(parents);
     }
 
     @Override
-    protected Function<TwinFactoryEntity, Kit<TwinFactoryTriggerEntity, UUID>> childExtractor() {
-        return TwinFactoryEntity::getTwinFactoryTriggerKit;
+    protected Kit<TwinFactoryTriggerEntity, UUID> extractorChildren(TwinFactoryEntity parent) {
+        return parent.getTwinFactoryTriggerKit();
     }
 
     @Override
-    protected Function<TwinFactoryEntity, UUID> destinationParentIdExtractor() {
-        return TwinFactoryEntity::getId;
+    protected UUID extractParentId(TwinFactoryEntity parent) {
+        return parent.getId();
     }
 
     @Override

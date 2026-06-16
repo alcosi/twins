@@ -16,8 +16,6 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -34,22 +32,23 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
 
     @Override
     protected FactoryMultiplierDuplicate createNewDuplicate() {
-        return new FactoryMultiplierDuplicate();
+        return new FactoryMultiplierDuplicate()
+                .setDuplicateFilters(true);
     }
 
     @Override
-    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
-        return factoryMultiplierService::loadFactoryMultipliers;
+    protected void loadFor(Collection<TwinFactoryEntity> parents) {
+        factoryMultiplierService.loadFactoryMultipliers(parents);
     }
 
     @Override
-    protected Function<TwinFactoryEntity, Kit<TwinFactoryMultiplierEntity, UUID>> childExtractor() {
-        return TwinFactoryEntity::getTwinFactoryMultiplierKit;
+    protected Kit<TwinFactoryMultiplierEntity, UUID> extractorChildren(TwinFactoryEntity parent) {
+        return parent.getTwinFactoryMultiplierKit();
     }
 
     @Override
-    protected Function<TwinFactoryEntity, UUID> destinationParentIdExtractor() {
-        return TwinFactoryEntity::getId;
+    protected UUID extractParentId(TwinFactoryEntity parent) {
+        return parent.getId();
     }
 
     @Override

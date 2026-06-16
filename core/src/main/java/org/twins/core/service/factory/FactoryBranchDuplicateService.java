@@ -16,8 +16,6 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -38,18 +36,18 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
-        return factoryBranchService::loadFactoryBranches;
+    protected void loadFor(Collection<TwinFactoryEntity> parents) {
+        factoryBranchService.loadFactoryBranches(parents);
     }
 
     @Override
-    protected Function<TwinFactoryEntity, Kit<TwinFactoryBranchEntity, UUID>> childExtractor() {
-        return TwinFactoryEntity::getTwinFactoryBranchKit;
+    protected Kit<TwinFactoryBranchEntity, UUID> extractorChildren(TwinFactoryEntity parent) {
+        return parent.getTwinFactoryBranchKit();
     }
 
     @Override
-    protected Function<TwinFactoryEntity, UUID> destinationParentIdExtractor() {
-        return TwinFactoryEntity::getId;
+    protected UUID extractParentId(TwinFactoryEntity parent) {
+        return parent.getId();
     }
 
     @Override

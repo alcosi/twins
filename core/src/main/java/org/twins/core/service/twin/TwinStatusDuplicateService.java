@@ -18,8 +18,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -43,18 +41,18 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
-    protected Consumer<Collection<TwinClassEntity>> inParentLoader() {
-        return twinStatusService::loadStatusesForTwinClasses;
+    protected void loadFor(Collection<TwinClassEntity> parents) {
+        twinStatusService.loadStatuses(parents);
     }
 
     @Override
-    protected Function<TwinClassEntity, Kit<TwinStatusEntity, UUID>> childExtractor() {
-        return TwinClassEntity::getTwinStatusKit;
+    protected Kit<TwinStatusEntity, UUID> extractorChildren(TwinClassEntity parent) {
+        return parent.getTwinStatusKit();
     }
 
     @Override
-    protected Function<TwinClassEntity, UUID> destinationParentIdExtractor() {
-        return TwinClassEntity::getId;
+    protected UUID extractParentId(TwinClassEntity parent) {
+        return parent.getId();
     }
 
     @Override

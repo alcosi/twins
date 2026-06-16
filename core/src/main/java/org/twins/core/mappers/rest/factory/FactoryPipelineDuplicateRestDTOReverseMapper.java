@@ -14,6 +14,7 @@ public class FactoryPipelineDuplicateRestDTOReverseMapper extends RestSimpleDTOM
     @Override
     public void map(FactoryPipelineDuplicateDTOv1 src, FactoryPipelineDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
+                .setDuplicateSteps(src.isDuplicateSteps())
                 .setOriginalEntityId(src.getOriginalFactoryPipelineId())
                 .setDuplicateParentEntityId(src.getNewTwinFactoryId());
     }

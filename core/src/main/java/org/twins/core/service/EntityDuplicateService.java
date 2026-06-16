@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.EntityDuplicate;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -39,19 +38,19 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
      * Loads children into source parents prior to iteration in {@link #duplicateFor}.
      * Implementations may be no-ops if loading is performed externally by the caller.
      */
-    protected abstract Consumer<Collection<P>> inParentLoader();
+    protected abstract void loadFor(Collection<P> parents);
 
     /**
      * Extracts the child entity kit from a source parent during {@link #duplicateFor}.
-     * For top-level services (P = {@link Void}) this is never invoked.
+     * For top-level services this is never invoked.
      */
-    protected abstract Function<P, Kit<E, UUID>> childExtractor();
+    protected abstract Kit<E, UUID> extractorChildren(P parent);
 
     /**
      * Extracts the UUID from a destination parent during {@link #duplicateFor}.
-     * For top-level services (P = {@link Void}) this is never invoked.
+     * For top-level services this is never invoked.
      */
-    protected abstract Function<P, UUID> destinationParentIdExtractor();
+    protected abstract UUID extractParentId(P parent);
 
     protected void afterSave(Collection<D> duplicates, Collection<E> saved) throws ServiceException {
     }
@@ -90,8 +89,8 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
      * <p>
      * For each entry {@code (sourceParent -> destinationParent)}:
      * <ol>
-     *     <li>loads children into all source parents (once, via {@link #inParentLoader()});</li>
-     *     <li>extracts children from the source parent via {@link #childExtractor()};</li>
+     *     <li>loads children into all source parents (once, via {@link #loadFor(Collection)});</li>
+     *     <li>extracts children from the source parent via {@link #extractorChildren(Object)};</li>
      *     <li>builds a {@link D} per child pointing at the destination parent via {@link #createNewDuplicate()};</li>
      * </ol>
      * then delegates to {@link #duplicate(Collection)} for the actual save.
@@ -101,15 +100,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
         if (parentMap == null || parentMap.isEmpty()) {
             return Collections.emptyList();
         }
-        inParentLoader().accept(parentMap.keySet());
-        Function<P, Kit<E, UUID>> childExtractor = childExtractor();
-        Function<P, UUID> destinationParentIdExtractor = destinationParentIdExtractor();
+        loadFor(parentMap.keySet());
         Function<E, UUID> childIdExtractor = entityService().entityGetIdFunction();
         List<D> duplicates = new ArrayList<>();
         for (var entry : parentMap.entrySet()) {
             P destinationParent = entry.getValue();
-            UUID destinationParentId = destinationParentIdExtractor.apply(destinationParent);
-            Kit<E, UUID> children = childExtractor.apply(entry.getKey());
+            UUID destinationParentId = extractParentId(destinationParent);
+            Kit<E, UUID> children = extractorChildren(entry.getKey());
             if (KitUtils.isEmpty(children)) {
                 continue;
             }

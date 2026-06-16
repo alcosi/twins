@@ -10,4 +10,5 @@ import org.twins.core.domain.EntityDuplicate;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FactoryPipelineDuplicate extends EntityDuplicate<TwinFactoryPipelineEntity> {
+    private boolean duplicateSteps = false;
 }

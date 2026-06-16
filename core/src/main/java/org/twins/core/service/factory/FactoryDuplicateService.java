@@ -22,8 +22,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -56,18 +54,17 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     @Override
-    protected Consumer<Collection<Void>> inParentLoader() {
-        return voids -> {};  // top-level entity — no parent, never invoked
+    protected void loadFor(Collection<Void> parents) {
     }
 
     @Override
-    protected Function<Void, Kit<TwinFactoryEntity, UUID>> childExtractor() {
-        return v -> null;  // top-level entity — never invoked
+    protected Kit<TwinFactoryEntity, UUID> extractorChildren(Void parent) {
+        return null;  // top-level entity — never invoked
     }
 
     @Override
-    protected Function<Void, UUID> destinationParentIdExtractor() {
-        return v -> null;  // top-level entity — never invoked
+    protected UUID extractParentId(Void parent) {
+        return null;  // top-level entity — never invoked
     }
 
     @Override

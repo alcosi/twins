@@ -16,8 +16,6 @@ import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -38,18 +36,18 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected Consumer<Collection<TwinFactoryEntity>> inParentLoader() {
-        return factoryEraserService::loadFactoryErasers;
+    protected void loadFor(Collection<TwinFactoryEntity> parents) {
+        factoryEraserService.loadFactoryErasers(parents);
     }
 
     @Override
-    protected Function<TwinFactoryEntity, Kit<TwinFactoryEraserEntity, UUID>> childExtractor() {
-        return TwinFactoryEntity::getTwinFactoryEraserKit;
+    protected Kit<TwinFactoryEraserEntity, UUID> extractorChildren(TwinFactoryEntity parent) {
+        return parent.getTwinFactoryEraserKit();
     }
 
     @Override
-    protected Function<TwinFactoryEntity, UUID> destinationParentIdExtractor() {
-        return TwinFactoryEntity::getId;
+    protected UUID extractParentId(TwinFactoryEntity parent) {
+        return parent.getId();
     }
 
     @Override

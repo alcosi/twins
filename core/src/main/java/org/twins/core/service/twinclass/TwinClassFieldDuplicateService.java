@@ -17,8 +17,6 @@ import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -28,7 +26,6 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     @Lazy
-    private final TwinClassService twinClassService;
     private final I18nService i18nService;
 
     @Override
@@ -42,18 +39,18 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
-    protected Consumer<Collection<TwinClassEntity>> inParentLoader() {
-        return twinClassFieldService::loadTwinClassFields;
+    protected void loadFor(Collection<TwinClassEntity> parents) {
+        twinClassFieldService.loadTwinClassFields(parents);
     }
 
     @Override
-    protected Function<TwinClassEntity, Kit<TwinClassFieldEntity, UUID>> childExtractor() {
-        return TwinClassEntity::getTwinClassFieldKit;
+    protected Kit<TwinClassFieldEntity, UUID> extractorChildren(TwinClassEntity parent) {
+        return parent.getTwinClassFieldKit();
     }
 
     @Override
-    protected Function<TwinClassEntity, UUID> destinationParentIdExtractor() {
-        return TwinClassEntity::getId;
+    protected UUID extractParentId(TwinClassEntity parent) {
+        return parent.getId();
     }
 
     @Override
