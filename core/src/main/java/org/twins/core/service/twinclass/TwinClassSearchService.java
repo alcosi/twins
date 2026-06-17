@@ -156,8 +156,8 @@ public class TwinClassSearchService extends EntitySearchService
             case headTwinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.headTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case headhunterFeaturerName -> toSortSpecification(ascending, TwinClassEntity.Fields.headHunterFeaturerSpecOnly, FeaturerEntity.Fields.name);
             case extendsTwinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale,  TwinClassEntity.Fields.extendsTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
-            case markerDataListName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.markerDataListSpecOnly, DataListEntity.Fields.nameI18n);
-            case tagDataListName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.tagDataListSpecOnly, DataListEntity.Fields.nameI18n);
+            case markerDataListName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.markerDataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
+            case tagDataListName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.tagDataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
             case twinflowSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinflowSchemaSpace);
             case twinClassSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinClassSchemaSpace);
             case aliasSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.aliasSpace);

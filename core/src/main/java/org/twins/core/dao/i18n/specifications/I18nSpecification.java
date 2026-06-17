@@ -93,33 +93,8 @@ public class I18nSpecification<T> {
     }
 
     /**
-     * Legacy sort: navigates through {@code @ManyToOne xxxI18n} -> {@code @OneToMany translations}.
-     * Produces two LEFT JOINs on the leaf step.
-     */
-    public static <T> Specification<T> toSortSpecification(boolean ascending, Locale locale, String... fieldPath) {
-        if (fieldPath == null || fieldPath.length == 0 || locale == null)
-            return (root, query, cb) -> cb.conjunction();
-        return (root, query, cb) -> {
-            if (query.getResultType().equals(Long.class))
-                return cb.conjunction();
-            From<?, ?> current = root;
-            for (int i = 0; i < fieldPath.length - 1; i++) {
-                current = findOrCreateJoin(current, fieldPath[i], JoinType.LEFT);
-            }
-            Join<?, ?> i18nJoin = findOrCreateJoin(current, fieldPath[fieldPath.length - 1], JoinType.LEFT);
-            Join<?, ?> translationJoin = i18nJoin.join(I18nEntity.Fields.translations, JoinType.LEFT);
-            translationJoin.on(cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale));
-            Path<String> translationPath = translationJoin.get(I18nTranslationEntity.Fields.translation);
-            List<Order> orders = new ArrayList<>(query.getOrderList());
-            orders.add(ascending ? cb.asc(translationPath) : cb.desc(translationPath));
-            query.orderBy(orders);
-            return cb.conjunction();
-        };
-    }
-
-    /**
-     * Direct sort: the last segment of {@code fieldPath} must point to a {@code @OneToMany}
-     * association of type {@link I18nTranslationEntity} (e.g. {@code nameI18nTranslationsSpecOnly}).
+     * Sort by i18n translation. The last segment of {@code fieldPath} must point to a
+     * {@code @OneToMany} association of type {@link I18nTranslationEntity} (e.g. {@code nameI18nTranslationsSpecOnly}).
      * All previous segments are normal associations to navigate to the holder entity.
      * Produces a single LEFT JOIN to {@code i18n_translation} on the leaf step (no intermediate {@code i18n}).
      */

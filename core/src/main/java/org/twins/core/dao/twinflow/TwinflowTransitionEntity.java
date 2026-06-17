@@ -1,9 +1,7 @@
 package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -12,6 +10,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -19,6 +18,7 @@ import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -107,6 +107,15 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity nameI18n;
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
