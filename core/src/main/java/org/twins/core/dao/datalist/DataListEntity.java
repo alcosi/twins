@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 
 import java.sql.Timestamp;
@@ -97,29 +96,41 @@ public class DataListEntity implements EasyLoggable {
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attribute_1_name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity attribute1nameI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_1_name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> attribute1nameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attribute_2_name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity attribute2nameI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_2_name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> attribute2nameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attribute_3_name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity attribute3nameI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_3_name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> attribute3nameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attribute_4_name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity attribute4nameI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_4_name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> attribute4nameI18nTranslationsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
