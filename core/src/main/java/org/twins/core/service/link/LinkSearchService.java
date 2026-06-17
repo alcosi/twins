@@ -26,7 +26,7 @@ import org.twins.core.service.EntitySearchService;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.link.LinkSpecification.*;
 
@@ -81,10 +81,10 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
                 checkTernary(search.getDstTwinClassInheritable(), LinkEntity.Fields.dstTwinClassInheritable),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true),
-                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18nSpecOnly, search.getForwardNameLikeList(), locale, true, false),
-                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18nSpecOnly, search.getForwardNameNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18nSpecOnly, search.getBackwardNameLikeList(), locale, true, false),
-                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18nSpecOnly, search.getBackwardNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly, search.getForwardNameLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly, search.getForwardNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(LinkEntity.Fields.backwardNameI18nTranslationsSpecOnly, search.getBackwardNameLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(LinkEntity.Fields.backwardNameI18nTranslationsSpecOnly, search.getBackwardNameNotLikeList(), locale, true, true),
                 checkFieldLikeIn(safeConvertTypeLink(search.getTypeLikeList()), false, true, LinkEntity.Fields.type),
                 checkFieldLikeIn(safeConvertTypeLink(search.getTypeNotLikeList()), true, true, LinkEntity.Fields.type),
                 checkFieldLikeIn(safeConvertStrengthLink(search.getStrengthLikeList()), false, true, LinkEntity.Fields.linkStrengthId),
@@ -107,13 +107,13 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case linkStrength ->
                     toSortSpecification(ascending, LinkEntity.Fields.linkStrengthId);
             case srcTwinClassName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.srcTwinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.srcTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case dstTwinClassName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.dstTwinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.dstTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case forwardName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.forwardNameI18nSpecOnly);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly);
             case backwardName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.backwardNameI18nSpecOnly);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.backwardNameI18nTranslationsSpecOnly);
         };
     }
 

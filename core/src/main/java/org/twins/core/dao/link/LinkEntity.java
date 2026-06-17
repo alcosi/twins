@@ -9,7 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.link.LinkStrength;
@@ -17,6 +17,7 @@ import org.twins.core.enums.link.LinkType;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -97,21 +98,23 @@ public class LinkEntity implements EasyLoggable {
     @ToString.Exclude
     private UserEntity createdByUserSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "forward_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity forwardNameI18nSpecOnly;
+    private List<I18nTranslationEntity> forwardNameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "backward_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity backwardNameI18nSpecOnly;
+    private List<I18nTranslationEntity> backwardNameI18nTranslationsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude

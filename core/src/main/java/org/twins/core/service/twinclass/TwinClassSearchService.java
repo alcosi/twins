@@ -38,7 +38,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
 
@@ -92,10 +92,10 @@ public class TwinClassSearchService extends EntitySearchService
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdList(), false, false, TwinClassEntity.Fields.id))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdExcludeList(), true, false, TwinClassEntity.Fields.id))
                         .and(checkFieldLikeIn(twinClassSearch.getTwinClassKeyLikeList(), false, true, TwinClassEntity.Fields.key))
-                        .and(joinAndSearchByI18NField(TwinClassEntity.Fields.nameI18nSpecOnly, twinClassSearch.getNameI18nLikeList(), locale, false, false))
-                        .and(joinAndSearchByI18NField(TwinClassEntity.Fields.nameI18nSpecOnly, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
-                        .and(joinAndSearchByI18NField(TwinClassEntity.Fields.descriptionI18nSpecOnly, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
-                        .and(joinAndSearchByI18NField(TwinClassEntity.Fields.descriptionI18nSpecOnly, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NFieldDirect(TwinClassEntity.Fields.nameI18nTranslationsSpecOnly, twinClassSearch.getNameI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NFieldDirect(TwinClassEntity.Fields.nameI18nTranslationsSpecOnly, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NFieldDirect(TwinClassEntity.Fields.descriptionI18nTranslationsSpecOnly, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NFieldDirect(TwinClassEntity.Fields.descriptionI18nTranslationsSpecOnly, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, true, TwinClassEntity.Fields.externalId))
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, true, TwinClassEntity.Fields.externalId))
 
@@ -144,8 +144,8 @@ public class TwinClassSearchService extends EntitySearchService
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, TwinClassEntity.Fields.key);
-            case name -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.nameI18nSpecOnly);
-            case description -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.descriptionI18nSpecOnly);
+            case name -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+            case description -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.descriptionI18nTranslationsSpecOnly);
             case createdAt -> toSortSpecification(ascending, TwinClassEntity.Fields.createdAt);
             case externalId -> toSortSpecification(ascending, TwinClassEntity.Fields.externalId);
             case ownerType -> toSortSpecification(ascending, TwinClassEntity.Fields.ownerType);
@@ -153,15 +153,15 @@ public class TwinClassSearchService extends EntitySearchService
             case abstractt -> toSortSpecification(ascending, TwinClassEntity.Fields.abstractt);
             case segment -> toSortSpecification(ascending, TwinClassEntity.Fields.segment);
             case uniqueName -> toSortSpecification(ascending, TwinClassEntity.Fields.uniqueName);
-            case headTwinClassName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.headTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nSpecOnly);
+            case headTwinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.headTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case headhunterFeaturerName -> toSortSpecification(ascending, TwinClassEntity.Fields.headHunterFeaturerSpecOnly, FeaturerEntity.Fields.name);
-            case extendsTwinClassName -> I18nSpecification.toSortSpecification(ascending, locale,  TwinClassEntity.Fields.extendsTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nSpecOnly);
+            case extendsTwinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale,  TwinClassEntity.Fields.extendsTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case markerDataListName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.markerDataListSpecOnly, DataListEntity.Fields.nameI18n);
             case tagDataListName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.tagDataListSpecOnly, DataListEntity.Fields.nameI18n);
             case twinflowSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinflowSchemaSpace);
             case twinClassSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinClassSchemaSpace);
             case aliasSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.aliasSpace);
-            case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinClassEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
+            case viewPermissionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nTranslationsSpecOnly);
             case assigneeRequired -> toSortSpecification(ascending, TwinClassEntity.Fields.assigneeRequired);
             case hasDynamicMarkers -> toSortSpecification(ascending, TwinClassEntity.Fields.hasDynamicMarkers);
             case breadCrumbsFaceName -> toSortSpecification(ascending, TwinClassEntity.Fields.breadCrumbsFaceSpecOnly, FaceEntity.Fields.name);
