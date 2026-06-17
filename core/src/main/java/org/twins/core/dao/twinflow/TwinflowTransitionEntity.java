@@ -9,7 +9,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -110,12 +109,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
-    // Runtime field — populated by mappers, consumed by services. Never read by JPA.
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity nameI18n;
-
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -124,12 +117,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
-
-    // Runtime field — populated by mappers, consumed by services. Never read by JPA.
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity descriptionI18n;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 
 import java.util.List;
@@ -43,12 +42,6 @@ public class ActionRestrictionReasonEntity implements EasyLoggable {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
-
-    // Runtime field — populated by mappers, consumed by services. Never read by JPA.
-    @Transient
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private I18nEntity descriptionI18n;
 
     @Override
     public String easyLog(Level level) {

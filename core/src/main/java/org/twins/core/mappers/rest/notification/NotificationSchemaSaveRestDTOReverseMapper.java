@@ -22,9 +22,6 @@ public class NotificationSchemaSaveRestDTOReverseMapper extends RestSimpleDTOMap
         dst
                 .setNameI18n(nameI18n)
                 .setDescriptionI18n(descriptionI18n)
-                .setNotificationSchema(
-                new NotificationSchemaEntity()
-                        .setNameI18n(nameI18n)
-                        .setDescriptionI18n(descriptionI18n));
+                .setNotificationSchema(new NotificationSchemaEntity());
     }
 }

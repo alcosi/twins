@@ -129,9 +129,10 @@ public class DataListEntity implements EasyLoggable {
     //needed for specification
     @Deprecated
     @OneToMany(mappedBy = "dataList", fetch = FetchType.LAZY)
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Collection<DataListOptionEntity> dataListOptions;
+    private Collection<DataListOptionEntity> dataListOptionsSpecOnly;
 
     @Transient
     private Map<String, DataListOptionEntity.AttributeAccessor> attributes;

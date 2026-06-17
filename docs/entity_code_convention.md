@@ -90,8 +90,7 @@ createdByUserId, twinClassId, srcTwinClassId, nameI18nId
 Append `SpecOnly`:
 
 ```
-createdByUserSpecOnly, twinSpecOnly, parentSpecOnly, statusSpecOnly,
-nameI18nSpecOnly (legacy — see §7), forwardNameI18nSpecOnly (legacy — see §7)
+createdByUserSpecOnly, twinSpecOnly, parentSpecOnly, statusSpecOnly
 ```
 
 For collections:
@@ -170,7 +169,7 @@ private Collection<TwinTagEntity> tags;
 Naive JPA navigation goes through `I18nEntity.translations`:
 
 ```
-TwinClassEntity.nameI18nSpecOnly  →  I18nEntity  →  I18nTranslationEntity
+TwinClassEntity.nameI18n  →  I18nEntity  →  I18nTranslationEntity
 ```
 
 This produces two LEFT JOINs — one to `i18n` (intermediate) and one to `i18n_translation`. The intermediate join reads no columns; it just bridges the FK.
@@ -240,11 +239,15 @@ I18nSpecification.doubleJoinAndSearchByI18NFieldDirect(
     search.getOptionI18nLikeList(), locale, false, false);
 ```
 
-### 6.5 Legacy path (deprecated)
+### 6.5 Create / update flows — use a domain envelope, not a `@Transient` carrier
 
-`@ManyToOne xxxI18nSpecOnly` (pointing at `I18nEntity`) plus `I18nSpecification.toSortSpecification` / `joinAndSearchByI18NField` / `doubleJoinAndSearchByI18NField` is the legacy path. It produces one extra JOIN per i18n field. Migrate to the direct pattern whenever the holder entity is touched.
+When a REST request needs to create / update an entity with i18n data, **do not** declare `@Transient I18nEntity xxxI18n` on the entity to carry the request payload between mapper and service. That mixes persistence state with request-scoped data and blurs the entity boundary.
 
-`I18nSpecification.toSortSpecification` has been removed — only `*Direct` is supported for sorting.
+Instead, use a **domain save envelope** (`XxxSave` + `XxxCreate` / `XxxUpdate`). The envelope carries the entity + auxiliary `I18nEntity` instances; the service resolves them into FK ids. The entity itself stays clean — only raw columns + JPA-mapped relations.
+
+See [`docs/domain_save_envelope.md`](domain_save_envelope.md) for the full pattern with a `NotificationSchemaSave` reference implementation.
+
+The `@ManyToOne xxxI18n` pattern (mapping directly to `I18nEntity`) is **forbidden** — it forces an extra JOIN in every specification query that touches the same FK, and conflates "spec relation" with "runtime carrier". Use `*TranslationsSpecOnly` `@OneToMany` + domain envelope instead.
 
 ---
 
@@ -324,7 +327,8 @@ where the field is loaded via bulk loading (see `load_method_pattern.md`).
 - Loading admin-area data through the domain model
 - Relying on Hibernate to solve N+1
 - Calling `entity.getXxxSpecOnly()` outside query construction
-- Navigating `@ManyToOne xxxI18n` → `translations` when a `*TranslationsSpecOnly` direct field is available
+- Declaring `@ManyToOne xxxI18n` to `I18nEntity` for spec purposes — use `*I18nTranslationsSpecOnly` `@OneToMany` instead
+- Calling the removed legacy methods (`joinAndSearchByI18NField`, `doubleJoinAndSearchByI18NField`, `toSortSpecification`) — only `*Direct` variants exist
 - Using `@Data` on entities
 - Omitting `fetch = LAZY` on a relation
 
@@ -422,6 +426,8 @@ private UUID nameI18nId;
 @ToString.Exclude
 private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 ```
+
+For create / update flows, the carrier `I18nEntity` lives in a domain `XxxSave` envelope, not on the entity — see [`docs/domain_save_envelope.md`](domain_save_envelope.md).
 
 ---
 
