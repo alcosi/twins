@@ -23,7 +23,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.*;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.doubleJoinAndSearchByI18NFieldDirect;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.datalist.DataListSpecification.*;
 
 //Log calls that took more than 2 seconds
@@ -49,8 +50,8 @@ public class DataListSearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListEntity.Fields.id),
                 joinAndSearchByI18NFieldDirect(DataListEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), apiUser.getLocale(), false, false),
                 joinAndSearchByI18NFieldDirect(DataListEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(DataListEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), false, false),
-                joinAndSearchByI18NField(DataListEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(DataListEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionLikeList(), apiUser.getLocale(), false, false),
+                joinAndSearchByI18NFieldDirect(DataListEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, DataListEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, DataListEntity.Fields.key),
                 checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdList() : null, false, false),

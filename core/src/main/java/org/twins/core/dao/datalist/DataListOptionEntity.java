@@ -106,6 +106,15 @@ public class DataListOptionEntity implements EasyLoggable {
     @JoinColumn(name = "i18n_id", referencedColumnName = "option_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> optionI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
+
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)

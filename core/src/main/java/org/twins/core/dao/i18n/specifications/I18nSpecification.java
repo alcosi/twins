@@ -4,7 +4,6 @@ import jakarta.persistence.criteria.*;
 import jakarta.persistence.metamodel.Attribute;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
@@ -16,28 +15,6 @@ import java.util.Locale;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class I18nSpecification<T> {
-
-    /**
-     * Legacy: joins through {@code @ManyToOne xxxI18n} -> {@code @OneToMany translations}.
-     * Produces two LEFT JOINs (i18n + i18n_translation).
-     * Use {@link #joinAndSearchByI18NFieldDirect} when the source entity exposes a
-     * {@code @OneToMany xxxI18nTranslationsSpecOnly} association — that variant skips the
-     * intermediate {@code i18n} table.
-     */
-    public static <T> Specification<T> joinAndSearchByI18NField(final String fieldName, final Collection<String> search, final Locale locale, final boolean or, final boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search)) return cb.conjunction();
-
-            Join<T, I18nEntity> i18nJoin = root.join(fieldName, JoinType.LEFT);
-            Join<I18nEntity, I18nTranslationEntity> translationJoin = i18nJoin.join(I18nEntity.Fields.translations, JoinType.LEFT);
-
-            Predicate localePredicate = cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale);
-            List<Predicate> likePredicates = buildLikePredicates(cb, translationJoin.get(I18nTranslationEntity.Fields.translation), search, not);
-            Predicate searchPredicate = getPredicate(cb, likePredicates, or);
-
-            return cb.and(localePredicate, searchPredicate);
-        };
-    }
 
     /**
      * Direct join to {@code i18n_translation} via {@code @OneToMany xxxI18nTranslationsSpecOnly}
@@ -56,28 +33,8 @@ public class I18nSpecification<T> {
     }
 
     /**
-     * Legacy: double join via nested entity's {@code @ManyToOne xxxI18n} -> {@code @OneToMany translations}.
-     * Produces three LEFT JOINs.
-     */
-    public static <T, S> Specification<T> doubleJoinAndSearchByI18NField(final String fieldJoin, final String fieldName, final Collection<String> search, final Locale locale, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search)) return cb.conjunction();
-
-            Join<T, S> tableJoin = root.join(fieldJoin, JoinType.LEFT);
-            Join<T, I18nEntity> i18nJoin = tableJoin.join(fieldName, JoinType.LEFT);
-            Join<I18nEntity, I18nTranslationEntity> translationJoin = i18nJoin.join(I18nEntity.Fields.translations, JoinType.LEFT);
-
-            Predicate localePredicate = cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale);
-            List<Predicate> likePredicates = buildLikePredicates(cb, translationJoin.get(I18nTranslationEntity.Fields.translation), search, not);
-            Predicate searchPredicate = getPredicate(cb, likePredicates, or);
-
-            return cb.and(localePredicate, searchPredicate);
-        };
-    }
-
-    /**
      * Direct double join: navigate to the holder entity, then join {@code i18n_translation} directly
-     * via {@code @OneToMany xxxI18nTranslationsSpecOnly}. Produces two LEFT JOINs instead of three.
+     * via {@code @OneToMany xxxI18nTranslationsSpecOnly}. Produces two LEFT JOINs.
      */
     public static <T, S> Specification<T> doubleJoinAndSearchByI18NFieldDirect(final String fieldJoin, final String translationsFieldName, final Collection<String> search, final Locale locale, final boolean not, final boolean or) {
         return (root, query, cb) -> {
@@ -96,7 +53,7 @@ public class I18nSpecification<T> {
      * Sort by i18n translation. The last segment of {@code fieldPath} must point to a
      * {@code @OneToMany} association of type {@link I18nTranslationEntity} (e.g. {@code nameI18nTranslationsSpecOnly}).
      * All previous segments are normal associations to navigate to the holder entity.
-     * Produces a single LEFT JOIN to {@code i18n_translation} on the leaf step (no intermediate {@code i18n}).
+     * Produces a single LEFT JOIN to {@code i18n_translation} on the leaf step.
      */
     public static <T> Specification<T> toSortSpecificationDirect(boolean ascending, Locale locale, String... fieldPath) {
         if (fieldPath == null || fieldPath.length == 0 || locale == null)

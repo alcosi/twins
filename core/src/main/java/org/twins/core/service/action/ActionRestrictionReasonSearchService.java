@@ -13,12 +13,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.action.ActionRestrictionReasonRepository;
-import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.ActionRestrictionReasonSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -43,8 +42,8 @@ public class ActionRestrictionReasonSearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, ActionRestrictionReasonEntity.Fields.id),
                 checkFieldLikeIn(search.getTypeLikeList(), false, true, ActionRestrictionReasonEntity.Fields.type),
                 checkFieldLikeIn(search.getTypeNotLikeList(), true, true, ActionRestrictionReasonEntity.Fields.type),
-                joinAndSearchByI18NField(ActionRestrictionReasonEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), false, false),
-                joinAndSearchByI18NField(ActionRestrictionReasonEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true)
+                joinAndSearchByI18NFieldDirect(ActionRestrictionReasonEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionLikeList(), apiUser.getLocale(), false, false),
+                joinAndSearchByI18NFieldDirect(ActionRestrictionReasonEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true)
         );
     }
 }
