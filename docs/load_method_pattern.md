@@ -3,7 +3,7 @@
 A pattern for batch loading `@Transient` fields in JPA entities. It solves the N+1 query problem when working with related data that is not loaded through standard JPA mechanisms (lazy relations, JOIN FETCH, etc.).
 
 ## Related documents
-* transient_vs_many_to_one.md
+* entity_code_convention.md
 
 ## Problem Overview
 

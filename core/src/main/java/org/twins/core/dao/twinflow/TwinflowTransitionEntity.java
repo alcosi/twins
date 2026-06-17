@@ -101,13 +101,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
     private TwinflowEntity twinflow;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity nameI18n;
-
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -116,6 +109,12 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
+
+    // Runtime field — populated by mappers, consumed by services. Never read by JPA.
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)

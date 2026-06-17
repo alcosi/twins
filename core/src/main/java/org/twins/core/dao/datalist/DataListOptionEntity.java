@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.enums.datalist.DataListStatus;
 
@@ -98,13 +97,6 @@ public class DataListOptionEntity implements EasyLoggable {
     private BusinessAccountEntity businessAccount;
 
 
-    @Deprecated //for specification only
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-    private I18nEntity optionI18n;
-
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -118,10 +110,6 @@ public class DataListOptionEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptions;
-
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity optionI18n;
 
     public String easyLog(Level level) {
         return switch (level) {
