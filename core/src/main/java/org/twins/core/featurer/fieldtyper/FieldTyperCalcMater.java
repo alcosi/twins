@@ -14,12 +14,11 @@ import java.util.UUID;
 
 public interface FieldTyperCalcMater {
 
-    @FeaturerParam(name = "required", description = "If true, throw error when operand field is missing or empty. If false, skip serialization", optional = true, defaultValue = "false", order = 200)
-
-    FeaturerParamBoolean required = new FeaturerParamBoolean("required");
+    @FeaturerParam(name = "skipIfEmpty", description = "If true, throw error when operand field is missing or empty. If false, skip serialization", optional = true, defaultValue = "false", order = 200)
+    public static final FeaturerParamBoolean skipIfEmpty = new FeaturerParamBoolean("skipIfEmpty");
 
     default boolean skipIfEmpty(TwinEntity twin, Properties properties, TwinClassFieldService twinClassFieldService, Collection<UUID> operandFieldIds, TwinClassFieldEntity twinClassField) throws ServiceException {
-        if (!Boolean.TRUE.equals(required.extract(properties))) {
+        if (!Boolean.TRUE.equals(skipIfEmpty.extract(properties))) {
             for (UUID operandFieldId : operandFieldIds) {
                 if (twinClassFieldService.isDecimalFieldEmpty(twin, operandFieldId)) {
                     return true;
