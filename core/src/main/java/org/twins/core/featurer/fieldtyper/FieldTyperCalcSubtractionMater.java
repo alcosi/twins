@@ -11,7 +11,7 @@ import java.util.Properties;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_1353,
-        name = "Subtraction (saved)",
+        name = "Subtraction (materialization)",
         description = "Save first minus second field on serializeValue, and return saved total from database"
 )
 public class FieldTyperCalcSubtractionMater extends FieldTyperCalcBinaryMater {

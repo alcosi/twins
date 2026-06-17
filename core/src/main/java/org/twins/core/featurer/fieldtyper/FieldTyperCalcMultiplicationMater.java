@@ -11,22 +11,24 @@ import java.math.BigDecimal;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1338, name = "Multiplication", description = "First * Second")
-public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
+@Featurer(
+        id = FeaturerTwins.ID_1355,
+        name = "Multiplication (materialization)",
+        description = "Save first multiplied by second field on serializeValue, and return saved total from database"
+)
+public class FieldTyperCalcMultiplicationMater extends FieldTyperCalcBinaryMater {
 
     @FeaturerParam(name = "replaceZeroWithOne", description = "if some filed value is null or 0, then mulitply on 1")
     public static final FeaturerParamBoolean replaceZeroWithOne = new FeaturerParamBoolean("replaceZeroWithOne");
 
     @Override
-    protected String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
+    protected BigDecimal calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
         boolean replace = replaceZeroWithOne.extract(properties);
 
         var d1 = prepare(v1, replace);
         var d2 = prepare(v2, replace);
 
-        var result = scaleAndRound(d1.multiply(d2),  properties);
-
-        return result.toPlainString();
+        return scaleAndRound(d1.multiply(d2), properties);
     }
 
     private BigDecimal prepare(BigDecimal v, boolean replace) {

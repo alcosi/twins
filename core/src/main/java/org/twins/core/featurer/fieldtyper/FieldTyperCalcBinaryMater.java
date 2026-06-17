@@ -11,9 +11,10 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Properties;
 
-public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary {
+public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater {
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -24,6 +25,9 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (skipIfEmpty(twin, properties, twinClassFieldService, List.of(firstFieldId.extract(properties), secondFieldId.extract(properties)), value.getTwinClassField())) {
+            return;
+        }
         if (twinFieldEntity == null) {
             twinFieldEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
             twinChangesCollector.add(twinFieldEntity);
