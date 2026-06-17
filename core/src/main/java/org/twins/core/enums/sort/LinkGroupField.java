@@ -5,6 +5,7 @@ public enum LinkGroupField {
     dstTwinClassId,
     type,
     linkStrength,
+    createdByUserId,
     srcTwinClassInheritable,
     dstTwinClassInheritable
 }

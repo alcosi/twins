@@ -14,6 +14,7 @@ import org.twins.core.dao.i18n.specifications.I18nSpecification;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.search.LinkSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.link.LinkStrength;
@@ -80,10 +81,10 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
                 checkTernary(search.getDstTwinClassInheritable(), LinkEntity.Fields.dstTwinClassInheritable),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false),
                 checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true),
-                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), locale, true, false),
-                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), locale, true, false),
-                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18nSpecOnly, search.getForwardNameLikeList(), locale, true, false),
+                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18nSpecOnly, search.getForwardNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18nSpecOnly, search.getBackwardNameLikeList(), locale, true, false),
+                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18nSpecOnly, search.getBackwardNameNotLikeList(), locale, true, true),
                 checkFieldLikeIn(safeConvertTypeLink(search.getTypeLikeList()), false, true, LinkEntity.Fields.type),
                 checkFieldLikeIn(safeConvertTypeLink(search.getTypeNotLikeList()), true, true, LinkEntity.Fields.type),
                 checkFieldLikeIn(safeConvertStrengthLink(search.getStrengthLikeList()), false, true, LinkEntity.Fields.linkStrengthId),
@@ -99,6 +100,8 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
         return switch (sortField) {
             case createdAt ->
                     toSortSpecification(ascending, LinkEntity.Fields.createdAt);
+            case createdByUser ->
+                    toSortSpecification(ascending, LinkEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
             case type ->
                     toSortSpecification(ascending, LinkEntity.Fields.type);
             case linkStrength ->
@@ -108,9 +111,9 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case dstTwinClassName ->
                     I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.dstTwinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
             case forwardName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.forwardNameI18n);
+                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.forwardNameI18nSpecOnly);
             case backwardName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.backwardNameI18n);
+                    I18nSpecification.toSortSpecification(ascending, locale, LinkEntity.Fields.backwardNameI18nSpecOnly);
         };
     }
 
@@ -121,6 +124,7 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case dstTwinClassId -> LinkEntity.Fields.dstTwinClassId;
             case type -> LinkEntity.Fields.type;
             case linkStrength -> LinkEntity.Fields.linkStrengthId;
+            case createdByUserId -> LinkEntity.Fields.createdByUserId;
             case srcTwinClassInheritable -> LinkEntity.Fields.srcTwinClassInheritable;
             case dstTwinClassInheritable -> LinkEntity.Fields.dstTwinClassInheritable;
         };
@@ -132,6 +136,7 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case srcTwinClassId -> entity.setSrcTwinClassId((UUID) o);
             case dstTwinClassId -> entity.setDstTwinClassId((UUID) o);
             case type -> entity.setType((LinkType) o);
+            case createdByUserId -> entity.setCreatedByUserId((UUID) o);
             case linkStrength -> entity.setLinkStrengthId((LinkStrength) o);
             case srcTwinClassInheritable -> entity.setSrcTwinClassInheritable((Boolean) o);
             case dstTwinClassInheritable -> entity.setDstTwinClassInheritable((Boolean) o);

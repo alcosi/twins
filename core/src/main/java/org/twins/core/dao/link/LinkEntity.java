@@ -2,9 +2,7 @@ package org.twins.core.dao.link;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -72,43 +70,53 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassEntity srcTwinClass;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassEntity dstTwinClass;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private UserEntity createdByUser;
-
-    @Deprecated //for specification only
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity forwardNameI18n;
-
-    @Deprecated //for specification only
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity backwardNameI18n;
-
     @Column(name = "linker_featurer_id")
     private Integer linkerFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "linker_params", columnDefinition = "hstore")
     private HashMap<String, String> linkerParams;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity srcTwinClass;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity dstTwinClass;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUserSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private I18nEntity forwardNameI18nSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private I18nEntity backwardNameI18nSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUser;
 
     public String easyLog(Level level) {
         return switch (level) {

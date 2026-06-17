@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.CountDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
@@ -25,6 +26,10 @@ public class LinkCountDTOv1 extends CountDTOv1 {
     @Schema(description = "destination twin class id", example = DTOExamples.TWIN_CLASS_ID)
     @RelatedObject(type = TwinClassDTOv1.class, name = "dstTwinClass")
     public UUID dstTwinClassId;
+
+    @Schema(description = "created by user", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
+    public UUID createdByUserId;
 
     @Schema(description = "link type")
     public LinkType type;

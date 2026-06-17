@@ -12,7 +12,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.link.LinkService;
 
 import java.util.Collection;
@@ -26,6 +28,7 @@ public class LinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Link
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     private final LinkService linkService;
+    private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
     public void map(CountResult<LinkEntity, LinkGroupField> src, LinkCountDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -41,14 +44,19 @@ public class LinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Link
                 .setLinkStrength(entity.getLinkStrengthId())
                 .setSrcTwinClassInheritable(entity.getSrcTwinClassInheritable())
                 .setDstTwinClassInheritable(entity.getDstTwinClassInheritable())
+                .setCreatedByUserId(entity.getCreatedByUserId())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, TwinClassMode.LinkSrc2TwinClassMode.HIDE, src, LinkGroupField.srcTwinClassId)) {
-            linkService.loadSrcTwinClass(entity);
+            linkService.loadTwinClasses(entity);
             twinClassRestDTOMapper.convertOrPostpone(entity.getSrcTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.LinkSrc2TwinClassMode.SHORT)));
         }
         if (needLoad(mapperContext, TwinClassMode.LinkDst2TwinClassMode.HIDE, src, LinkGroupField.dstTwinClassId)) {
-            linkService.loadDstTwinClass(entity);
+            linkService.loadTwinClasses(entity);
             twinClassRestDTOMapper.convertOrPostpone(entity.getDstTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
+        }
+        if (needLoad(mapperContext, UserMode.Link2UserMode.HIDE, src, LinkGroupField.createdByUserId)) {
+            linkService.loadCreatedBy(entity);
+            userRestDTOMapper.convertOrPostpone(entity.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Link2UserMode.SHORT)));
         }
     }
 
@@ -60,10 +68,13 @@ public class LinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Link
         var entityCollection = srcCollection.stream().map(CountResult::getEntity).toList();
         var someCount = srcCollection.iterator().next();
         if (needLoad(mapperContext, TwinClassMode.LinkSrc2TwinClassMode.HIDE, someCount, LinkGroupField.srcTwinClassId)) {
-            linkService.loadSrcTwinClass(entityCollection);
+            linkService.loadTwinClasses(entityCollection);
         }
         if (needLoad(mapperContext, TwinClassMode.LinkDst2TwinClassMode.HIDE, someCount, LinkGroupField.dstTwinClassId)) {
-            linkService.loadDstTwinClass(entityCollection);
+            linkService.loadTwinClasses(entityCollection);
+        }
+        if (needLoad(mapperContext, UserMode.Link2UserMode.HIDE, someCount, LinkGroupField.createdByUserId)) {
+            linkService.loadCreatedBy(entityCollection);
         }
     }
 }
