@@ -78,6 +78,9 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Exclude dst twins with given links. AND join")
     public List<TwinSearchByLinkDTOv1> linksNoAllOfList;
 
+    @Schema(description = "Filter by space role")
+    public List<TwinSearchBySpaceRoleUserDTOv1> spaceRoleUsersList;
+
     @Schema(description = "Hierarchy ids filter")
     public Set<UUID> hierarchyTreeContainsIdList;
 
@@ -246,6 +249,11 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addLinksNoAllOfListItem(TwinSearchByLinkDTOv1 item) {
         this.linksNoAllOfList = CollectionUtils.safeAdd(this.linksNoAllOfList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addSpaceRoleUsersListItem(TwinSearchBySpaceRoleUserDTOv1 item) {
+        this.spaceRoleUsersList = CollectionUtils.safeAdd(this.spaceRoleUsersList, item);
         return this;
     }
 
