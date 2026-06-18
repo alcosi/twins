@@ -21,8 +21,10 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -35,6 +37,7 @@ public class EraseflowService extends EntitySecureFindServiceImpl<EraseflowEntit
     private final EraseflowLinkCascadeRepository eraseflowLinkCascadeRepository;
     @Lazy
     private final TwinflowService twinflowService;
+    private final UserService userService;
 
 
     @Override
@@ -97,6 +100,17 @@ public class EraseflowService extends EntitySecureFindServiceImpl<EraseflowEntit
             return;
         // here we use EraseflowLinkCascadeEntity::getLinkId, but not EraseflowLinkCascadeEntity::getId, because we have complex uniq key
         eraseflow.setCascadeLinkKit(new Kit<>(eraseflowLinkCascadeRepository.findByEraseflowId(eraseflow.getId()), EraseflowLinkCascadeEntity::getLinkId));
+    }
+
+    public void loadCreatedByUser(EraseflowEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<EraseflowEntity> entities) throws ServiceException {
+        userService.load(entities,
+                EraseflowEntity::getCreatedByUserId,
+                EraseflowEntity::getCreatedByUser,
+                EraseflowEntity::setCreatedByUser);
     }
 }
 

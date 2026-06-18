@@ -1,9 +1,7 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -55,10 +53,17 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
     @Transient
     private TwinFactoryEntity twinFactory;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Transient

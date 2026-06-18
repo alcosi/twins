@@ -1,17 +1,15 @@
 package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.domain.Identifiable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -65,10 +63,17 @@ public class SpaceRoleUserEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Override

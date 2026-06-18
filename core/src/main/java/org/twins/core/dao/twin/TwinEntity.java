@@ -1,13 +1,9 @@
 package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import lombok.AccessLevel;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -196,10 +192,17 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity twinStatus;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @EqualsAndHashCode.Exclude

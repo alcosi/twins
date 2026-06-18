@@ -1,9 +1,7 @@
 package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinEntity;
@@ -59,10 +57,17 @@ public class SpaceRoleUserGroupEntity {
     @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
     private UserGroupEntity userGroup;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
 //    @Deprecated //for specification only

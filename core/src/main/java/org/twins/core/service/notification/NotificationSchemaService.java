@@ -21,6 +21,7 @@ import org.twins.core.domain.notification.NotificationSchemaUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -38,6 +39,7 @@ public class NotificationSchemaService extends EntitySecureFindServiceImpl<Notif
     private final AuthService authService;
     private final NotificationSchemaRepository repository;
     private final I18nService i18nService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<NotificationSchemaEntity, UUID> entityRepository() {
@@ -111,5 +113,16 @@ public class NotificationSchemaService extends EntitySecureFindServiceImpl<Notif
 
         updateSafe(changes);
         return allEntities;
+    }
+
+    public void loadCreatedByUser(NotificationSchemaEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<NotificationSchemaEntity> entities) throws ServiceException {
+        userService.load(entities,
+                NotificationSchemaEntity::getCreatedByUserId,
+                NotificationSchemaEntity::getCreatedByUser,
+                NotificationSchemaEntity::setCreatedByUser);
     }
 }

@@ -13,7 +13,10 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
+import org.twins.core.service.user.UserService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -25,6 +28,7 @@ import java.util.function.Function;
 public class TwinflowSchemaService  extends EntitySecureFindServiceImpl<TwinflowSchemaEntity> {
     private final TwinflowRepository twinflowRepository;
     private final TwinflowSchemaRepository twinflowSchemaRepository;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinflowSchemaEntity, UUID> entityRepository() {return twinflowSchemaRepository;}
@@ -38,5 +42,16 @@ public class TwinflowSchemaService  extends EntitySecureFindServiceImpl<Twinflow
     @Override
     public boolean validateEntity(TwinflowSchemaEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public void loadCreatedByUser(TwinflowSchemaEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinflowSchemaEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinflowSchemaEntity::getCreatedByUserId,
+                TwinflowSchemaEntity::getCreatedByUser,
+                TwinflowSchemaEntity::setCreatedByUser);
     }
 }

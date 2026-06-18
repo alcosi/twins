@@ -43,6 +43,7 @@ import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -69,6 +70,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
+    private final UserService userService;
     @Autowired
     private CacheManager cacheManager;
 
@@ -314,5 +316,16 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     public List<TwinflowSchemaMapEntity> findTwinflowSchemaMapByTwinflowIdIn(Collection<UUID> twinflowIds) {
         return twinflowSchemaMapRepository.findByTwinflowIdIn(twinflowIds);
+    }
+
+    public void loadCreatedByUser(TwinflowEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinflowEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinflowEntity::getCreatedByUserId,
+                TwinflowEntity::getCreatedByUser,
+                TwinflowEntity::setCreatedByUser);
     }
 }
