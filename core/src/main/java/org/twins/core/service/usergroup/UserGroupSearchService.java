@@ -17,7 +17,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.UserGroupSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.usergroup.UserGroupSpecification.*;
 
 
@@ -41,10 +41,10 @@ public class UserGroupSearchService {
                 checkFieldUuid(apiUser.getDomainId(), UserGroupEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, UserGroupEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, UserGroupEntity.Fields.id),
-                joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18NLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(UserGroupEntity.Fields.nameI18NTranslationsSpecOnly, search.getNameI18NLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(UserGroupEntity.Fields.nameI18NTranslationsSpecOnly, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(UserGroupEntity.Fields.descriptionI18NTranslationsSpecOnly, search.getDescriptionI18NLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(UserGroupEntity.Fields.descriptionI18NTranslationsSpecOnly, search.getDescriptionI18NNotLikeList(), apiUser.getLocale(), true, true),
                 checkFieldLikeIn(search.getTypeList(), false, true, UserGroupEntity.Fields.userGroupTypeId),
                 checkFieldLikeIn(search.getTypeExcludeList(), true, true, UserGroupEntity.Fields.userGroupTypeId));
     }

@@ -23,7 +23,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Locale;
 import java.util.UUID;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
@@ -66,10 +66,10 @@ public class TwinStatusSearchService extends EntitySearchService
                 checkTernary(search.getInheritable(), TwinStatusEntity.Fields.inheritable),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18nSpecOnly, search.getNameI18nLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18nSpecOnly, search.getNameI18nNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18nSpecOnly, search.getDescriptionI18nLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18nSpecOnly, search.getDescriptionI18nNotLikeList(), locale, true, true)
+                joinAndSearchByI18NFieldDirect(TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(TwinStatusEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(TwinStatusEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nNotLikeList(), locale, true, true)
         );
     }
 
@@ -80,13 +80,13 @@ public class TwinStatusSearchService extends EntitySearchService
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, TwinStatusEntity.Fields.key);
-            case name -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.nameI18nSpecOnly);
-            case description -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.descriptionI18nSpecOnly);
+            case name -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly);
+            case description -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinStatusEntity.Fields.descriptionI18nTranslationsSpecOnly);
             case inheritable -> toSortSpecification(ascending, TwinStatusEntity.Fields.inheritable);
             case backgroundColor -> toSortSpecification(ascending, TwinStatusEntity.Fields.backgroundColor);
             case fontColor -> toSortSpecification(ascending, TwinStatusEntity.Fields.fontColor);
             case type -> toSortSpecification(ascending, TwinStatusEntity.Fields.type);
-            case twinClassName -> I18nSpecification.toSortSpecification(ascending, locale, TwinStatusEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
+            case twinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinStatusEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
         };
     }
 
