@@ -94,6 +94,7 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
                 .setLink(link)
                 .setSrcTwinId(srcTwinId)
                 .setSrcTwin(srcTwin)
-                .setCreatedByUserId(createdByUserId);
+                .setCreatedByUserId(createdByUserId)
+                .setCreatedByUser(createdByUser);
     }
 }

@@ -40,6 +40,8 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
     @Autowired
     private TwinClassFieldService twinClassFieldService;
 
+    @Lazy
+    @Autowired
     private TwinService twinService;
 
     @Override

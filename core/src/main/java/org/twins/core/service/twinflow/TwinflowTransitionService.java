@@ -33,7 +33,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
@@ -192,13 +191,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return twinflowTransitionEntity.getPermission();
         twinflowTransitionEntity.setPermission(permissionService.findEntitySafe(twinflowTransitionEntity.getPermissionId()));
         return twinflowTransitionEntity.getPermission();
-    }
-
-    public UserEntity loadCreatedBy(TwinflowTransitionEntity twinflowTransitionEntity) throws ServiceException {
-        if (twinflowTransitionEntity.getCreatedByUser() != null)
-            return twinflowTransitionEntity.getCreatedByUser();
-        twinflowTransitionEntity.setCreatedByUser(userService.findEntitySafe(twinflowTransitionEntity.getCreatedByUserId()));
-        return twinflowTransitionEntity.getCreatedByUser();
     }
 
     public PaginationResult<TwinflowTransitionEntity> search(TransitionSearch transitionSearch, SimplePagination pagination) throws ServiceException {
@@ -889,6 +881,19 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
         Map<UUID, Integer> transitionAliasMap = mapUuidInt(twinflowTransitionRepository.countByTransitionAliasIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(transitionAlias -> transitionAlias.setInTwinflowTransitionUsagesCount(transitionAliasMap.getOrDefault(transitionAlias.getId(), 0)));
+    }
+
+    public void loadUsers(TwinflowTransitionEntity twinflowTransitionEntity) throws ServiceException {
+        loadUsers(Collections.singletonList(twinflowTransitionEntity));
+    }
+
+    public void loadUsers(Collection<TwinflowTransitionEntity> srcCollection) throws ServiceException {
+        userService.load(
+                srcCollection,
+                TwinflowTransitionEntity::getCreatedByUserId,
+                TwinflowTransitionEntity::getCreatedByUser,
+                TwinflowTransitionEntity::setCreatedByUser
+        );
     }
 }
 
