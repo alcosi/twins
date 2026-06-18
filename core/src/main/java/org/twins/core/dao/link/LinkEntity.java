@@ -78,17 +78,21 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "linker_params", columnDefinition = "hstore")
     private HashMap<String, String> linkerParams;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassEntity srcTwinClass;
+    private TwinClassEntity srcTwinClassSpecOnly;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassEntity dstTwinClass;
+    private TwinClassEntity dstTwinClassSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -115,6 +119,16 @@ public class LinkEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private List<I18nTranslationEntity> backwardNameI18nTranslationsSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity srcTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity dstTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude

@@ -107,9 +107,9 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case linkStrength ->
                     toSortSpecification(ascending, LinkEntity.Fields.linkStrengthId);
             case srcTwinClassName ->
-                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.srcTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.srcTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case dstTwinClassName ->
-                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.dstTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.dstTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case forwardName ->
                     I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly);
             case backwardName ->

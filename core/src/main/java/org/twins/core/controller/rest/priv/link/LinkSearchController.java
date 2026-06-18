@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -64,7 +65,7 @@ public class LinkSearchController extends ApiController {
     public ResponseEntity<?> linkSearchV1(
             @MapperContextBinding(roots = LinkForwardRestDTOV2Mapper.class, response = LinkSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody LinkSearchRqDTOv1 request) {
+            @RequestBody @Valid LinkSearchRqDTOv1 request) {
         LinkSearchRsDTOv1 rs = new LinkSearchRsDTOv1();
         try {
             PaginationResult<LinkEntity> linkList = linkSearchService
@@ -92,7 +93,7 @@ public class LinkSearchController extends ApiController {
     public ResponseEntity<?> linkSearchV2(
             @MapperContextBinding(roots = LinkForwardRestDTOV2Mapper.class, response = LinkSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody LinkSearchRqDTOv2 request) {
+            @RequestBody @Valid LinkSearchRqDTOv2 request) {
         LinkSearchRsDTOv2 rs = new LinkSearchRsDTOv2();
         try {
             PaginationResult<LinkEntity> linkList = linkSearchService

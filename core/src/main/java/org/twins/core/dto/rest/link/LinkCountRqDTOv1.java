@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,6 +16,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "LinkCountRqV1")
 public class LinkCountRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "search params")
     public LinkSearchDTOv1 search;
 
