@@ -13,7 +13,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
 import java.util.Collection;
@@ -29,7 +28,7 @@ import java.util.function.Function;
 public class PermissionSchemaService extends EntitySecureFindServiceImpl<PermissionSchemaEntity> {
     @Getter
     private final PermissionSchemaRepository repository;
-    private final AuthService authService;
+    @Lazy
     private final UserService userService;
 
     @Override

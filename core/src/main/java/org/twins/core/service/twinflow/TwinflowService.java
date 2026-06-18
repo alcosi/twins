@@ -70,6 +70,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
+    @Lazy
     private final UserService userService;
     @Autowired
     private CacheManager cacheManager;

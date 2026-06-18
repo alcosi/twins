@@ -35,10 +35,10 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class NotificationSchemaService extends EntitySecureFindServiceImpl<NotificationSchemaEntity> {
-
     private final AuthService authService;
     private final NotificationSchemaRepository repository;
     private final I18nService i18nService;
+    @Lazy
     private final UserService userService;
 
     @Override
