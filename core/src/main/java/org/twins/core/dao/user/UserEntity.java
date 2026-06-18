@@ -1,8 +1,10 @@
 package org.twins.core.dao.user;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -49,15 +51,17 @@ public class UserEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<UserGroupMapEntity> userGroupMaps;
+    private Set<UserGroupMapEntity> userGroupMapsSpecOnly;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<SpaceRoleUserEntity> spaceRoleUsers;
+    private Set<SpaceRoleUserEntity> spaceRoleUsersSpecOnly;
 
 
     @Transient

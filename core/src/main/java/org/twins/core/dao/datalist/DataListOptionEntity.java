@@ -115,10 +115,11 @@ public class DataListOptionEntity implements EasyLoggable {
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
-    private Set<DataListSubsetOptionEntity> subsetOptions;
+    private Set<DataListSubsetOptionEntity> subsetOptionsSpecOnly;
 
     public String easyLog(Level level) {
         return switch (level) {

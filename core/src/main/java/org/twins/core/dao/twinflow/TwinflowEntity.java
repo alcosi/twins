@@ -109,13 +109,13 @@ public class TwinflowEntity implements EasyLoggable {
     @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialSketchTwinStatus;
 
-    //    needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twinflow_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Collection<TwinflowSchemaMapEntity> schemaMappings;
+    private Collection<TwinflowSchemaMapEntity> schemaMappingsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude

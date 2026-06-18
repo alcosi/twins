@@ -178,21 +178,21 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "twin_sorter_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity twinSorterFeaturerSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Collection<ProjectionEntity> projectionsBySrc;
+    private Collection<ProjectionEntity> projectionsBySrcSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Collection<ProjectionEntity> projectionsByDst;
+    private Collection<ProjectionEntity> projectionsByDstSpecOnly;
 
     @Transient
     @ToString.Exclude

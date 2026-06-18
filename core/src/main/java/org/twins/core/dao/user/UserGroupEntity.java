@@ -83,17 +83,19 @@ public class UserGroupEntity implements EasyLoggable {
     @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
     private UserGroupTypeEntity userGroupType;
 
-    @Deprecated // specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
-    private Set<UserGroupMapEntity> userGroupUserGroups;
+    private Set<UserGroupMapEntity> userGroupUserGroupsSpecOnly;
 
-    @Deprecated // specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
-    private Set<SpaceRoleUserGroupEntity> spaceRoleUserGroups;
+    private Set<SpaceRoleUserGroupEntity> spaceRoleUserGroupsSpecOnly;
 
     public String easyLog(Level level) {
         return "userGroup[id:" + id + "]";
