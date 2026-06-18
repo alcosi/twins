@@ -15,6 +15,6 @@ public class FactoryConditionDuplicateRestDTOReverseMapper extends RestSimpleDTO
     public void map(FactoryConditionDuplicateDTOv1 src, FactoryConditionDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
                 .setOriginalEntityId(src.getOriginalFactoryConditionId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryConditionSetId());
+                .setNewParentEntityId(src.getNewTwinFactoryConditionSetId());
     }
 }

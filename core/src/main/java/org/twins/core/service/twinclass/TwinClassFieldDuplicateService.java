@@ -101,7 +101,7 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
-    protected void setNewParentEntityId(TwinClassFieldEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinClassId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinClassFieldEntity newEntity, TwinClassEntity parentEntity) {
+        newEntity.setTwinClassId(parentEntity);
     }
 }

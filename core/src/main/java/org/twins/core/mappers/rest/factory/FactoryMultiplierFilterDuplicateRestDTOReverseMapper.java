@@ -15,6 +15,6 @@ public class FactoryMultiplierFilterDuplicateRestDTOReverseMapper extends RestSi
     public void map(FactoryMultiplierFilterDuplicateDTOv1 src, FactoryMultiplierFilterDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
                 .setOriginalEntityId(src.getOriginalFactoryMultiplierFilterId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryMultiplierId());
+                .setNewParentEntityId(src.getNewTwinFactoryMultiplierId());
     }
 }

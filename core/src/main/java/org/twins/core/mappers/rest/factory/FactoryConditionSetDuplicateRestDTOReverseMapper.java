@@ -16,6 +16,6 @@ public class FactoryConditionSetDuplicateRestDTOReverseMapper extends RestSimple
         dst
                 .setDuplicateConditions(src.isDuplicateConditions())
                 .setOriginalEntityId(src.getOriginalFactoryConditionSetId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryId());
+                .setNewParentEntityId(src.getNewTwinFactoryId());
     }
 }

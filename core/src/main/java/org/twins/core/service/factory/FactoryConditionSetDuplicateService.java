@@ -94,8 +94,10 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryConditionSetEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryConditionSetEntity newEntity, TwinFactoryEntity parentEntity) {
+        newEntity
+                .setTwinFactoryId(parentEntity.getId())
+                .setTwinFactory(parentEntity);
     }
 
     @Override

@@ -83,7 +83,7 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
-    protected void setNewParentEntityId(TwinStatusEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinClassId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinStatusEntity newEntity, TwinClassEntity parentEntity) {
+        newEntity.setTwinClassId(parentEntity);
     }
 }

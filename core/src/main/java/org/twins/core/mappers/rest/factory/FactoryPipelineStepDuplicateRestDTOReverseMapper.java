@@ -15,6 +15,6 @@ public class FactoryPipelineStepDuplicateRestDTOReverseMapper extends RestSimple
     public void map(FactoryPipelineStepDuplicateDTOv1 src, FactoryPipelineStepDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
                 .setOriginalEntityId(src.getOriginalFactoryPipelineStepId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryPipelineId());
+                .setNewParentEntityId(src.getNewTwinFactoryPipelineId());
     }
 }

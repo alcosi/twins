@@ -12,7 +12,6 @@ import org.twins.core.domain.EntityDuplicateContext;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
 
 /**
  * @param <D> duplicate descriptor type
@@ -20,9 +19,11 @@ import java.util.stream.StreamSupport;
  * @param <P> parent entity type — meaningful only for services invoked via {@link #duplicateFor(Map)};
  *            use {@link Void} for top-level entities that have no parent
  */
-public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P> {
+public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E, P> {
 
     protected abstract EntitySecureFindServiceImpl<E> entityService();
+
+    protected abstract EntitySecureFindServiceImpl<P> entityParentService();
 
     protected abstract E createNewEntity(D duplicate) throws ServiceException;
 
@@ -53,7 +54,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
      */
     protected abstract UUID extractParentId(P parent);
 
-    protected abstract void setNewParentEntityId(E newEntity, UUID duplicateParentEntityId);
+    protected abstract void setNewParentEntity(E newEntity, P parentEntity);
 
     /**
      * Entity class used to register old→new id mappings in {@link EntityDuplicateContext}.
@@ -68,7 +69,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
     /**
      * Hook to remap foreign keys on the newly-built entity so they point at the duplicated
      * copies of referenced entities instead of the originals. Invoked after
-     * {@link #createNewEntity}, {@link #setNewParentEntityId} and {@link #duplicateI18nFields},
+     * {@link #createNewEntity}, {@link #setNewParentEntity} and {@link #duplicateI18nFields},
      * before {@code saveSafe()}.
      * <p>
      * Default: no-op. Override to translate FKs that are "internal" to the duplication graph
@@ -113,12 +114,14 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
         }
         validateKeyUniqueness(duplicates);
         loadOriginalEntities(duplicates);
+        loadNewParentEntities(duplicates);
+        collectDuplicatesTree(duplicates, ctx);
         var entitiesToSave = new ArrayList<E>();
         for (var duplicate : duplicates) {
             var original = duplicate.getOriginalEntity();
             var newEntity = createNewEntity(duplicate);
-            if (duplicate.getDuplicateParentEntityId() != null) {
-                setNewParentEntityId(newEntity, duplicate.getDuplicateParentEntityId());
+            if (duplicate.getNewParentEntityId() != null) {
+                setNewParentEntity(newEntity, duplicate.getNewParentEntity());
             }
             duplicateI18nFields(original, newEntity);
             remapReferences(newEntity, ctx);
@@ -130,6 +133,8 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
         afterSave(duplicates, saved, ctx);
         return saved;
     }
+
+    protected abstract void collectDuplicatesTree(Collection<D> duplicates, EntityDuplicateContext ctx);
 
     /**
      * Bulk duplicate child entities of one or more source parents into matching destination parents.
@@ -162,7 +167,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
                 D newDuplicate = createNewDuplicate();
                 newDuplicate.setOriginalEntity(child);
                 newDuplicate.setOriginalEntityId(childIdExtractor.apply(child));
-                newDuplicate.setDuplicateParentEntityId(destinationParentId);
+                newDuplicate.setNewParentEntityId(destinationParentId);
                 duplicates.add(newDuplicate);
             }
         }
@@ -187,6 +192,16 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E>, E, P>
                 EntityDuplicate::getOriginalEntityId,
                 EntityDuplicate::getOriginalEntity,
                 EntityDuplicate::setOriginalEntity);
+    }
+
+    private void loadNewParentEntities(Collection<D> duplicates) throws ServiceException {
+        if (entityParentService() == null) {
+            return;
+        }
+        entityParentService().load(duplicates,
+                EntityDuplicate::getNewParentEntityId,
+                EntityDuplicate::getNewParentEntity,
+                EntityDuplicate::setNewParentEntity);
     }
 
     /**

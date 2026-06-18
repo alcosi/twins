@@ -16,6 +16,6 @@ public class FactoryMultiplierDuplicateRestDTOReverseMapper extends RestSimpleDT
         dst
                 .setDuplicateFilters(src.isDuplicateFilters())
                 .setOriginalEntityId(src.getOriginalFactoryMultiplierId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryId());
+                .setNewParentEntityId(src.getNewTwinFactoryId());
     }
 }

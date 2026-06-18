@@ -167,7 +167,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryEntity newEntity, UUID duplicateParentEntityId) {
+    protected void setNewParentEntity(TwinFactoryEntity newEntity, Void parentEntity) {
         //no parent
     }
 }

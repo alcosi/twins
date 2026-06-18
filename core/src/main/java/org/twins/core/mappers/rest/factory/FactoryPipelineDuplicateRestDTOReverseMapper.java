@@ -16,6 +16,6 @@ public class FactoryPipelineDuplicateRestDTOReverseMapper extends RestSimpleDTOM
         dst
                 .setDuplicateSteps(src.isDuplicateSteps())
                 .setOriginalEntityId(src.getOriginalFactoryPipelineId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryId());
+                .setNewParentEntityId(src.getNewTwinFactoryId());
     }
 }

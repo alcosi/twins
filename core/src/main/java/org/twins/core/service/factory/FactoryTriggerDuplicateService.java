@@ -82,8 +82,10 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryTriggerEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryTriggerEntity newEntity, TwinFactoryEntity parentEntity) {
+        newEntity
+                .setTwinFactoryId(parentEntity.getId())
+                .setTwinFactory(parentEntity);
     }
 
     @Override

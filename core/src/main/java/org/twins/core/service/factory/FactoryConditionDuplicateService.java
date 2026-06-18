@@ -25,9 +25,17 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
     @Lazy
     private final FactoryConditionService factoryConditionService;
 
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
+
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryConditionEntity> entityService() {
         return factoryConditionService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryConditionSetEntity> entityParentService() {
+        return factoryConditionSetService;
     }
 
     @Override
@@ -78,7 +86,9 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryConditionEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryConditionSetId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryConditionEntity newEntity, TwinFactoryConditionSetEntity parentEntity) {
+        newEntity
+                .setTwinFactoryConditionSetId(parentEntity.getId())
+                .setConditionSet(parentEntity);
     }
 }

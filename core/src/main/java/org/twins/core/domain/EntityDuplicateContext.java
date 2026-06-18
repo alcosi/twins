@@ -2,6 +2,7 @@ package org.twins.core.domain;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -17,6 +18,7 @@ import java.util.UUID;
  */
 public class EntityDuplicateContext {
     private final Map<Class<?>, Map<UUID, UUID>> mapping = new HashMap<>();
+    private final Map<Class<?>, Set<EntityDuplicate<?, ?>>> duplicates = new HashMap<>();
 
     public EntityDuplicateContext register(Class<?> clazz, UUID oldId, UUID newId) {
         if (clazz == null || oldId == null || newId == null) {

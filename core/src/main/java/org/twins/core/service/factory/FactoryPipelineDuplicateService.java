@@ -92,8 +92,10 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryPipelineEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryPipelineEntity newEntity, TwinFactoryEntity parentEntity) {
+        newEntity
+                .setTwinFactoryId(parentEntity.getId())
+                .setTwinFactory(parentEntity);
     }
 
     @Override

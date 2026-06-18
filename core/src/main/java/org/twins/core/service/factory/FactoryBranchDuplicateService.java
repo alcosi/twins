@@ -27,9 +27,17 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     @Lazy
     private final FactoryBranchService factoryBranchService;
 
+    @Lazy
+    private final FactoryService factoryService;
+
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryBranchEntity> entityService() {
         return factoryBranchService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityParentService() {
+        return factoryService;
     }
 
     @Override
@@ -80,13 +88,20 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryBranchEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryBranchEntity newEntity, TwinFactoryEntity parentEntity) {
+        newEntity
+                .setTwinFactoryId(parentEntity.getId())
+                .setFactory(parentEntity);
     }
 
     @Override
     protected void remapReferences(TwinFactoryBranchEntity newEntity, EntityDuplicateContext ctx) {
         newEntity.setTwinFactoryConditionSetId(
                 ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
+    }
+
+    @Override
+    protected void collectDuplicatesTree(Collection<FactoryBranchDuplicate> duplicates, EntityDuplicateContext ctx) {
+
     }
 }

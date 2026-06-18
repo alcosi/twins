@@ -17,7 +17,7 @@ public class TwinClassFieldDuplicateRestDTOReverseMapper extends RestSimpleDTOMa
         dst
                 .setOriginalEntityId(src.getOriginalTwinClassFieldId())
                 .setNewKey(src.getNewKey())
-                .setDuplicateParentEntityId(src.getNewTwinClassId());
+                .setNewParentEntityId(src.getNewTwinClassId());
         dst
                 .setDuplicateRules(src.isDuplicateRules());
     }

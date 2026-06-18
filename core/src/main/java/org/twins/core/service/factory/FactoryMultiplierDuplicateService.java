@@ -84,8 +84,10 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryMultiplierEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryMultiplierEntity newEntity, TwinFactoryEntity parentEntity) {
+        newEntity
+                .setTwinFactoryId(parentEntity.getId())
+                .setTwinFactory(parentEntity);
     }
 
     @Override

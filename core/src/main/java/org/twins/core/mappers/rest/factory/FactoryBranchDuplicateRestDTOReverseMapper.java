@@ -15,6 +15,6 @@ public class FactoryBranchDuplicateRestDTOReverseMapper extends RestSimpleDTOMap
     public void map(FactoryBranchDuplicateDTOv1 src, FactoryBranchDuplicate dst, MapperContext mapperContext) throws Exception {
         dst
                 .setOriginalEntityId(src.getOriginalFactoryBranchId())
-                .setDuplicateParentEntityId(src.getNewTwinFactoryId());
+                .setNewParentEntityId(src.getNewTwinFactoryId());
     }
 }

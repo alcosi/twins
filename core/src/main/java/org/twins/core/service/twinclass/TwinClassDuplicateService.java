@@ -157,7 +157,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected void setNewParentEntityId(TwinClassEntity newEntity, UUID duplicateParentEntityId) {
+    protected void setNewParentEntity(TwinClassEntity newEntity, Void parentEntity) {
         //no parent
     }
 }

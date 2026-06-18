@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FactoryDuplicate extends EntityDuplicate<TwinFactoryEntity> {
+public class FactoryDuplicate extends EntityDuplicate<TwinFactoryEntity, Void> {
     private UUID newFactoryId;
     private boolean duplicateBranches = false;
     private boolean duplicateMultipliers = false;

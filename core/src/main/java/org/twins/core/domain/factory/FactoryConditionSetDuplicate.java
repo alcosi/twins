@@ -4,11 +4,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.domain.EntityDuplicate;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FactoryConditionSetDuplicate extends EntityDuplicate<TwinFactoryConditionSetEntity> {
+public class FactoryConditionSetDuplicate extends EntityDuplicate<TwinFactoryConditionSetEntity, TwinFactoryEntity> {
     private boolean duplicateConditions = true;
 }

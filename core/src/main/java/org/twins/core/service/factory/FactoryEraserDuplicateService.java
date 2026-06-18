@@ -81,8 +81,10 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void setNewParentEntityId(TwinFactoryEraserEntity newEntity, UUID duplicateParentEntityId) {
-        newEntity.setTwinFactoryId(duplicateParentEntityId);
+    protected void setNewParentEntity(TwinFactoryEraserEntity newEntity, TwinFactoryEntity parentEntity) {
+        newEntity
+                .setTwinFactoryId(parentEntity.getId())
+                .setTwinFactory(parentEntity);
     }
 
     @Override
