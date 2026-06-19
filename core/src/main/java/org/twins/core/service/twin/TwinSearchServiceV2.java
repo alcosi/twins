@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.i18n.specifications.I18nSpecification;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -25,6 +26,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
+import org.twins.core.featurer.twin.counter.TwinCounter;
 import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -34,9 +36,11 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.usergroup.UserGroupService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
@@ -187,6 +191,11 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
             entity.setCreatedByUserId((UUID) value);
         else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID))
             entity.setHeadTwinId((UUID) value);
+        else {
+            // dynamic twin class field — store the grouped value generically for the count DTO
+            entity.setGroupedTwinClassFieldId(field);
+            entity.setGroupedFieldValue(value);
+        }
     }
 
     private static org.hibernate.query.SortDirection toHibernateDirection(SortDirection direction) {
@@ -217,6 +226,30 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
 
     public Map<UUID, Long> countByGroupFields(BasicSearch basicSearch, TwinEntity.BasicField basicField) throws ServiceException {
         return countByGroupFields(basicSearch, basicField.getId());
+    }
+
+    /**
+     * Provider path for twin grouping: basic system field -> direct root field (reusing the
+     * {@link #convertToEntityField(UUID)} groupable whitelist); dynamic twin class field ->
+     * {@link TwinCounter} featurer configured on the field. Provider order matches the
+     * {@code groupFields} iteration (read back in the same order).
+     */
+    @Override
+    protected List<GroupExpressionProvider<TwinEntity>> resolveGroupProviders(BasicSearch search, Set<UUID> groupFields) throws ServiceException {
+        List<GroupExpressionProvider<TwinEntity>> providers = new ArrayList<>(groupFields.size());
+        for (UUID fieldId : groupFields) {
+            TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(fieldId);
+            if (basicField != null) {
+                providers.add(GroupExpressionProvider.ofField(convertToEntityField(fieldId)));
+            } else {
+                TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(fieldId);
+                if (twinClassField == null || twinClassField.getTwinCounterFeaturerId() == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + fieldId + " is not countable");
+                TwinCounter counter = featurerService.getFeaturer(twinClassField.getTwinCounterFeaturerId(), TwinCounter.class);
+                providers.add(counter.createGroup(twinClassField.getTwinCounterParams(), twinClassField));
+            }
+        }
+        return providers;
     }
 
 

@@ -61,6 +61,11 @@ public class TwinCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Twin
             if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID))
                 dst.setHeadTwinId(entity.getHeadTwinId());
         }
+        // dynamic twin class field grouping — value comes straight from the group expression
+        if (entity.getGroupedTwinClassFieldId() != null) {
+            dst.setGroupedTwinClassFieldId(entity.getGroupedTwinClassFieldId());
+            dst.setGroupedFieldValue(entity.getGroupedFieldValue());
+        }
         dst.setCount(src.getCount());
 
         if (needLoad(mapperContext, StatusMode.Twin2StatusMode.HIDE, src, SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS_ID)) {

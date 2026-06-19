@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.twins.core.dao.specifications.CountQueryExecutor;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.domain.CountResult;
 import org.twins.core.domain.search.EntitySearch;
 import org.twins.core.enums.SortDirection;
@@ -93,12 +94,28 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
             return List.of(new CountResult<E, GF>().setCount(total));
         }
 
-        List<String> entityGroupFields = new ArrayList<>(groupFields.size());
-        for (var field : groupFields) {
-            entityGroupFields.add(convertToEntityField(field));
+        List<GroupExpressionProvider<E>> providers = resolveGroupProviders(search, groupFields);
+        List<Object[]> rows;
+        if (providers != null) {
+            rows = countQueryExecutor.executeGroupedCountByProviders(entityClass(), filterSpec, providers);
+        } else {
+            List<String> entityGroupFields = new ArrayList<>(groupFields.size());
+            for (var field : groupFields) {
+                entityGroupFields.add(convertToEntityField(field));
+            }
+            rows = countQueryExecutor.executeGroupedCount(entityClass(), filterSpec, entityGroupFields);
         }
-        List<Object[]> rows = countQueryExecutor.executeGroupedCount(entityClass(), filterSpec, entityGroupFields);
         return mapCountResults(rows, groupFields);
+    }
+
+    /**
+     * Opt-in hook for services whose group dimensions need JOINs (dynamic fields, links).
+     * Default {@code null} keeps the legacy {@link #convertToEntityField(GF)} String path
+     * (direct root fields only). Override to return one provider per groupField, in the SAME
+     * iteration order as {@code groupFields} (the row columns are read back in that order).
+     */
+    protected List<GroupExpressionProvider<E>> resolveGroupProviders(S search, Set<GF> groupFields) throws ServiceException {
+        return null;
     }
 
     private List<CountResult<E, GF>> mapCountResults(
@@ -138,12 +155,17 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
             return result;
         }
 
-        List<String> entityGroupFields = new ArrayList<>(groupFields.size());
-        for (var field : groupFields) {
-            entityGroupFields.add(convertToEntityField(field));
+        List<GroupExpressionProvider<E>> providers = resolveGroupProviders(search, groupFields);
+        Page<Object[]> page;
+        if (providers != null) {
+            page = countQueryExecutor.executeGroupedCountPaginatedByProviders(entityClass(), filterSpec, providers, pagination);
+        } else {
+            List<String> entityGroupFields = new ArrayList<>(groupFields.size());
+            for (var field : groupFields) {
+                entityGroupFields.add(convertToEntityField(field));
+            }
+            page = countQueryExecutor.executeGroupedCountPaginated(entityClass(), filterSpec, entityGroupFields, pagination);
         }
-
-        Page<Object[]> page = countQueryExecutor.executeGroupedCountPaginated(entityClass(), filterSpec, entityGroupFields, pagination);
         List<CountResult<E, GF>> results = mapCountResults(page.getContent(), groupFields);
         PaginationResult<CountResult<E, GF>> pr = new PaginationResult<>();
         pr.setList(results);

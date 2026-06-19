@@ -73,6 +73,104 @@ public class CountQueryExecutor {
         return new PageImpl<>(content, pageable, total);
     }
 
+    /**
+     * Grouped count driven by {@link GroupExpressionProvider}s, so dimensions backed by JOINs
+     * (dynamic twin fields, twin links) are supported — not only direct root fields.
+     */
+    public <E> List<Object[]> executeGroupedCountByProviders(
+            Class<E> entityClass,
+            Specification<E> filterSpec,
+            List<GroupExpressionProvider<E>> groupProviders) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<E> root = query.from(entityClass);
+
+        applyFilter(query, root, filterSpec, cb);
+        List<Expression<?>> groupBy = buildGroupBy(root, query, groupProviders, cb);
+
+        query.multiselect(buildSelections(root, groupBy, groupProviders, cb));
+        query.groupBy(groupBy);
+
+        return entityManager.createQuery(query).getResultList();
+    }
+
+    /**
+     * Paginated grouped count driven by {@link GroupExpressionProvider}s.
+     */
+    public <E> Page<Object[]> executeGroupedCountPaginatedByProviders(
+            Class<E> entityClass,
+            Specification<E> filterSpec,
+            List<GroupExpressionProvider<E>> groupProviders,
+            SimplePagination pagination) throws ServiceException {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        long total = countTotalGroupsProviders(entityClass, filterSpec, groupProviders, cb);
+        if (total == 0) {
+            Pageable pageable = PaginationUtils.pageableOffset(pagination);
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<E> root = query.from(entityClass);
+
+        applyFilter(query, root, filterSpec, cb);
+        List<Expression<?>> groupBy = buildGroupBy(root, query, groupProviders, cb);
+
+        query.multiselect(buildSelections(root, groupBy, groupProviders, cb));
+        query.groupBy(groupBy);
+
+        Pageable pageable = PaginationUtils.pageableOffset(pagination);
+        List<Object[]> content = entityManager.createQuery(query)
+                .setFirstResult(pagination.getOffset())
+                .setMaxResults(pagination.getLimit())
+                .getResultList();
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    private <E> long countTotalGroupsProviders(
+            Class<E> entityClass,
+            Specification<E> filterSpec,
+            List<GroupExpressionProvider<E>> groupProviders,
+            CriteriaBuilder cb) {
+        // Count distinct groups by grouping on the provider expressions and counting the groups.
+        // Same "load groups and count them" approach as countDistinctMultiple (line ~140 todo).
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<E> root = query.from(entityClass);
+        applyFilter(query, root, filterSpec, cb);
+        List<Expression<?>> groupBy = buildGroupBy(root, query, groupProviders, cb);
+        List<Selection<?>> selections = new ArrayList<>(groupBy);
+        query.multiselect(selections);
+        query.groupBy(groupBy);
+        return entityManager.createQuery(query).getResultList().size();
+    }
+
+    private <E> List<Expression<?>> buildGroupBy(
+            Root<E> root,
+            CriteriaQuery<?> query,
+            List<GroupExpressionProvider<E>> groupProviders,
+            CriteriaBuilder cb) {
+        List<Expression<?>> groupBy = new ArrayList<>(groupProviders.size());
+        for (GroupExpressionProvider<E> provider : groupProviders) {
+            // apply() may register JOINs on root as a side effect
+            groupBy.add(provider.apply(root, query, cb));
+        }
+        return groupBy;
+    }
+
+    private <E> List<Selection<?>> buildSelections(
+            Root<E> root,
+            List<Expression<?>> groupBy,
+            List<GroupExpressionProvider<E>> groupProviders,
+            CriteriaBuilder cb) {
+        List<Selection<?>> selections = new ArrayList<>(groupBy.size() + 1);
+        selections.addAll(groupBy);
+        boolean distinct = groupProviders.stream().anyMatch(GroupExpressionProvider::isDistinctGroup);
+        // Hibernate renders count(root)/countDistinct(root) over the entity identifier.
+        selections.add(distinct ? cb.countDistinct(root) : cb.count(root));
+        return selections;
+    }
+
     private <E> long countTotalGroups(
             Class<E> entityClass,
             Specification<E> filterSpec,
