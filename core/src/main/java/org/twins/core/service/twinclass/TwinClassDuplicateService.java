@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -20,10 +20,7 @@ import org.twins.core.service.twin.TwinStatusDuplicateService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -45,6 +42,21 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
+    protected EntitySecureFindServiceImpl<Void> entityParentService() {
+        return null; // top-level entity
+    }
+
+    @Override
+    protected Class<TwinClassEntity> getEntityClass() {
+        return TwinClassEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(); // top-level
+    }
+
+    @Override
     protected TwinClassDuplicate createNewDuplicate() {
         return new TwinClassDuplicate();
     }
@@ -56,12 +68,12 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
 
     @Override
     protected Kit<TwinClassEntity, UUID> extractorChildren(Void parent) {
-        return null;  // top-level entity — never invoked
+        return null; // top-level entity — never invoked
     }
 
     @Override
     protected UUID extractParentId(Void parent) {
-        return null;  // top-level entity — never invoked
+        return null; // top-level entity — never invoked
     }
 
     @Override
@@ -70,10 +82,11 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate) throws ServiceException {
+    protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinClassEntity original = duplicate.getOriginalEntity();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
         return new TwinClassEntity()
+                .setId(duplicate.getNewEntityId())
                 .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
                 .setCreatedByUserId(authService.getApiUser().getUser().getId())
                 .setPermissionSchemaSpace(original.getPermissionSchemaSpace())
@@ -127,37 +140,37 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected void afterSave(Collection<TwinClassDuplicate> duplicates, Collection<TwinClassEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
-        for (var savedClass : saved) {
-            twinClassService.refreshExtendsHierarchyTree(savedClass);
-            twinClassService.refreshHeadHierarchyTree(savedClass);
-        }
+    protected void collectDuplicatesTree(Collection<TwinClassDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
         Map<TwinClassEntity, TwinClassEntity> copyStatusesFor = null;
         Map<TwinClassEntity, TwinClassEntity> copyFieldsFor = null;
         for (var duplicate : duplicates) {
             if (duplicate.isDuplicateFields()) {
-                if (copyFieldsFor == null) {
-                    copyFieldsFor = new HashMap<>();
-                }
+                if (copyFieldsFor == null) copyFieldsFor = new HashMap<>();
                 copyFieldsFor.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
             if (duplicate.isDuplicateStatuses()) {
-                if (copyStatusesFor == null) {
-                    copyStatusesFor = new HashMap<>();
-                }
+                if (copyStatusesFor == null) copyStatusesFor = new HashMap<>();
                 copyStatusesFor.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
         if (copyFieldsFor != null) {
-            twinClassFieldDuplicateService.duplicateFor(copyFieldsFor, ctx);
+            twinClassFieldDuplicateService.collectViaParentMap(ctx, copyFieldsFor);
         }
         if (copyStatusesFor != null) {
-            twinStatusDuplicateService.duplicateFor(copyStatusesFor, ctx);
+            twinStatusDuplicateService.collectViaParentMap(ctx, copyStatusesFor);
+        }
+    }
+
+    @Override
+    protected void afterCommit(Collection<TwinClassDuplicate> duplicates, Collection<TwinClassEntity> saved, EntityDuplicateCollector ctx) throws ServiceException {
+        for (var savedClass : saved) {
+            twinClassService.refreshExtendsHierarchyTree(savedClass);
+            twinClassService.refreshHeadHierarchyTree(savedClass);
         }
     }
 
     @Override
     protected void setNewParentEntity(TwinClassEntity newEntity, Void parentEntity) {
-        //no parent
+        // no parent
     }
 }

@@ -12,6 +12,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -23,6 +24,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -266,7 +268,8 @@ class TwinClassServiceDuplicateTest {
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, true)));
 
             verify(twinClassFieldDuplicateService, times(1))
-                    .duplicateFieldsForClass(eq(srcClass), any(TwinClassEntity.class));
+                    .collectViaParentMap(any(EntityDuplicateCollector.class),
+                            argThat(map -> map != null && map.containsKey(srcClass)));
         }
 
         @Test
@@ -276,7 +279,7 @@ class TwinClassServiceDuplicateTest {
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             verify(twinClassFieldDuplicateService, never())
-                    .duplicateFieldsForClass(any(), any());
+                    .collectViaParentMap(any(), any());
         }
     }
 

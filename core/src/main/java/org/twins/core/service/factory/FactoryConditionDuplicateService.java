@@ -10,11 +10,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryConditionDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -24,7 +26,6 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
 
     @Lazy
     private final FactoryConditionService factoryConditionService;
-
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
 
@@ -36,6 +37,16 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryConditionSetEntity> entityParentService() {
         return factoryConditionSetService;
+    }
+
+    @Override
+    protected Class<TwinFactoryConditionEntity> getEntityClass() {
+        return TwinFactoryConditionEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryConditionSetEntity.class);
     }
 
     @Override
@@ -69,9 +80,10 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
     }
 
     @Override
-    protected TwinFactoryConditionEntity createNewEntity(FactoryConditionDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryConditionEntity createNewEntity(FactoryConditionDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryConditionEntity()
+                .setId(duplicate.getNewEntityId())
                 .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
                 .setConditionerFeaturerId(src.getConditionerFeaturerId())
                 .setConditionerParams(src.getConditionerParams())

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryConditionSetDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -18,10 +18,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -32,6 +29,8 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     private final FactoryConditionSetService factoryConditionSetService;
     @Lazy
     private final FactoryConditionDuplicateService factoryConditionDuplicateService;
+    @Lazy
+    private final FactoryService factoryService;
     private final AuthService authService;
 
     @Override
@@ -40,8 +39,18 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityParentService() {
+        return factoryService;
+    }
+
+    @Override
     protected Class<TwinFactoryConditionSetEntity> getEntityClass() {
         return TwinFactoryConditionSetEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryEntity.class);
     }
 
     @Override
@@ -76,9 +85,10 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected TwinFactoryConditionSetEntity createNewEntity(FactoryConditionSetDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryConditionSetEntity createNewEntity(FactoryConditionSetDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryConditionSetEntity()
+                .setId(duplicate.getNewEntityId())
                 .setName(src.getName())
                 .setDescription(src.getDescription())
                 .setDomainId(src.getDomainId())
@@ -101,18 +111,16 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected void afterSave(Collection<FactoryConditionSetDuplicate> duplicates, Collection<TwinFactoryConditionSetEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
+    protected void collectDuplicatesTree(Collection<FactoryConditionSetDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
         Map<TwinFactoryConditionSetEntity, TwinFactoryConditionSetEntity> conditionsMap = null;
         for (var duplicate : duplicates) {
-            TwinFactoryConditionSetEntity src = duplicate.getOriginalEntity();
-            TwinFactoryConditionSetEntity dst = duplicate.getNewEntity();
             if (duplicate.isDuplicateConditions()) {
                 if (conditionsMap == null) conditionsMap = new HashMap<>();
-                conditionsMap.put(src, dst);
+                conditionsMap.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
         if (conditionsMap != null) {
-            factoryConditionDuplicateService.duplicateFor(conditionsMap, ctx);
+            factoryConditionDuplicateService.collectViaParentMap(ctx, conditionsMap);
         }
     }
 }

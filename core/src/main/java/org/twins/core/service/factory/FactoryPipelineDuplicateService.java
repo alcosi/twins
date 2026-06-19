@@ -11,15 +11,12 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryPipelineDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -30,11 +27,29 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     private final FactoryPipelineService factoryPipelineService;
     @Lazy
     private final FactoryPipelineStepDuplicateService factoryStepDuplicateService;
-
+    @Lazy
+    private final FactoryService factoryService;
+    @Lazy
+    private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryPipelineEntity> entityService() {
         return factoryPipelineService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityParentService() {
+        return factoryService;
+    }
+
+    @Override
+    protected Class<TwinFactoryPipelineEntity> getEntityClass() {
+        return TwinFactoryPipelineEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryEntity.class, TwinFactoryConditionSetEntity.class);
     }
 
     @Override
@@ -68,22 +83,27 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
         // pipelines have no key concept
     }
 
-
     @Override
-    protected TwinFactoryPipelineEntity createNewEntity(FactoryPipelineDuplicate duplicate) throws ServiceException {
-        var originalEntity = duplicate.getOriginalEntity();
+    protected TwinFactoryPipelineEntity createNewEntity(FactoryPipelineDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        var src = duplicate.getOriginalEntity();
+        var dstFactory = duplicate.getNewParentEntity();
+        UUID newConditionSetId = src.getTwinFactoryConditionSetId();
+        if (newConditionSetId != null && src.getTwinFactoryId() != dstFactory.getId()) {
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), dstFactory.getId(), duplicateCollector);
+        }
         return new TwinFactoryPipelineEntity()
-                .setTwinFactoryId(originalEntity.getTwinFactoryId())
-                .setInputTwinClassId(originalEntity.getInputTwinClassId())
-                .setTwinFactoryConditionSetId(originalEntity.getTwinFactoryConditionSetId())
-                .setTwinFactoryConditionInvert(originalEntity.getTwinFactoryConditionInvert())
-                .setOutputTwinStatusId(originalEntity.getOutputTwinStatusId())
-                .setNextTwinFactoryId(originalEntity.getNextTwinFactoryId())
-                .setNextTwinFactoryLimitScope(originalEntity.getNextTwinFactoryLimitScope())
-                .setAfterCommitTwinFactoryId(originalEntity.getAfterCommitTwinFactoryId())
-                .setTemplateTwinId(originalEntity.getTemplateTwinId())
-                .setDescription(originalEntity.getDescription())
-                .setActive(originalEntity.getActive());
+                .setId(duplicate.getNewEntityId())
+                .setTwinFactoryId(src.getTwinFactoryId())
+                .setInputTwinClassId(src.getInputTwinClassId())
+                .setTwinFactoryConditionSetId(newConditionSetId)
+                .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
+                .setOutputTwinStatusId(src.getOutputTwinStatusId())
+                .setNextTwinFactoryId(src.getNextTwinFactoryId())
+                .setNextTwinFactoryLimitScope(src.getNextTwinFactoryLimitScope())
+                .setAfterCommitTwinFactoryId(src.getAfterCommitTwinFactoryId())
+                .setTemplateTwinId(src.getTemplateTwinId())
+                .setDescription(src.getDescription())
+                .setActive(src.getActive());
     }
 
     @Override
@@ -99,24 +119,16 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     }
 
     @Override
-    protected void remapReferences(TwinFactoryPipelineEntity newEntity, EntityDuplicateContext ctx) {
-        newEntity.setTwinFactoryConditionSetId(
-                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
-    }
-
-    @Override
-    protected void afterSave(Collection<FactoryPipelineDuplicate> duplicates, Collection<TwinFactoryPipelineEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
+    protected void collectDuplicatesTree(Collection<FactoryPipelineDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
         Map<TwinFactoryPipelineEntity, TwinFactoryPipelineEntity> stepsMap = null;
         for (var duplicate : duplicates) {
-            TwinFactoryPipelineEntity src = duplicate.getOriginalEntity();
-            TwinFactoryPipelineEntity dst = duplicate.getNewEntity();
             if (duplicate.isDuplicateSteps()) {
                 if (stepsMap == null) stepsMap = new HashMap<>();
-                stepsMap.put(src, dst);
+                stepsMap.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
         if (stepsMap != null) {
-            factoryStepDuplicateService.duplicateFor(stepsMap, ctx);
+            factoryStepDuplicateService.collectViaParentMap(ctx, stepsMap);
         }
     }
 }

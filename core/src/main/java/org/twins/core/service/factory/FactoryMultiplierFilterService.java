@@ -20,6 +20,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -32,6 +33,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     @Getter
     private final TwinFactoryMultiplierFilterRepository repository;
     private final AuthService authService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierFilterEntity, UUID> entityRepository() {
@@ -71,5 +74,16 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 repository::findByTwinFactoryMultiplierIdIn,
                 TwinFactoryMultiplierFilterEntity::getId,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
+    }
+
+    public void loadConditionSet(TwinFactoryMultiplierFilterEntity src) throws ServiceException {
+        loadConditionSet(Collections.singletonList(src));
+    }
+
+    public void loadConditionSet(List<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
+                TwinFactoryMultiplierFilterEntity::getConditionSet,
+                TwinFactoryMultiplierFilterEntity::setConditionSet);
     }
 }

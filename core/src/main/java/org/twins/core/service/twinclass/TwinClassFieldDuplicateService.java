@@ -10,12 +10,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -26,11 +28,27 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     @Lazy
+    private final TwinClassService twinClassService;
     private final I18nService i18nService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinClassFieldEntity> entityService() {
         return twinClassFieldService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinClassEntity> entityParentService() {
+        return twinClassService;
+    }
+
+    @Override
+    protected Class<TwinClassFieldEntity> getEntityClass() {
+        return TwinClassFieldEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinClassEntity.class);
     }
 
     @Override
@@ -59,11 +77,11 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
-    protected TwinClassFieldEntity createNewEntity(TwinClassFieldDuplicate duplicate) throws ServiceException {
+    protected TwinClassFieldEntity createNewEntity(TwinClassFieldDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinClassFieldEntity original = duplicate.getOriginalEntity();
         return new TwinClassFieldEntity()
+                .setId(duplicate.getNewEntityId())
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
-                .setTwinClassId(original.getId())
                 .setFieldTyperFeaturerId(original.getFieldTyperFeaturerId())
                 .setFieldTyperParams(original.getFieldTyperParams())
                 .setTwinSorterFeaturerId(original.getTwinSorterFeaturerId())
@@ -102,6 +120,8 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
 
     @Override
     protected void setNewParentEntity(TwinClassFieldEntity newEntity, TwinClassEntity parentEntity) {
-        newEntity.setTwinClassId(parentEntity);
+        newEntity
+                .setTwinClassId(parentEntity.getId())
+                .setTwinClass(parentEntity);
     }
 }

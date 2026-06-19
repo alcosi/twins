@@ -10,15 +10,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryMultiplierDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -28,11 +25,28 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     @Lazy
     private final FactoryMultiplierService factoryMultiplierService;
     @Lazy
+    private final FactoryService factoryService;
+    @Lazy
     private final FactoryMultiplierFilterDuplicateService factoryMultiplierFilterDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryMultiplierEntity> entityService() {
         return factoryMultiplierService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityParentService() {
+        return factoryService;
+    }
+
+    @Override
+    protected Class<TwinFactoryMultiplierEntity> getEntityClass() {
+        return TwinFactoryMultiplierEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryEntity.class);
     }
 
     @Override
@@ -67,9 +81,10 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     }
 
     @Override
-    protected TwinFactoryMultiplierEntity createNewEntity(FactoryMultiplierDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryMultiplierEntity createNewEntity(FactoryMultiplierDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryMultiplierEntity()
+                .setId(duplicate.getNewEntityId())
                 .setTwinFactoryId(src.getTwinFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setMultiplierFeaturerId(src.getMultiplierFeaturerId())
@@ -91,18 +106,16 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     }
 
     @Override
-    protected void afterSave(Collection<FactoryMultiplierDuplicate> duplicates, Collection<TwinFactoryMultiplierEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
+    protected void collectDuplicatesTree(Collection<FactoryMultiplierDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
         Map<TwinFactoryMultiplierEntity, TwinFactoryMultiplierEntity> filtersMap = null;
         for (var duplicate : duplicates) {
-            TwinFactoryMultiplierEntity src = duplicate.getOriginalEntity();
-            TwinFactoryMultiplierEntity dst = duplicate.getNewEntity();
             if (duplicate.isDuplicateFilters()) {
                 if (filtersMap == null) filtersMap = new HashMap<>();
-                filtersMap.put(src, dst);
+                filtersMap.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
             }
         }
         if (filtersMap != null) {
-            factoryMultiplierFilterDuplicateService.duplicateFor(filtersMap, ctx);
+            factoryMultiplierFilterDuplicateService.collectViaParentMap(ctx, filtersMap);
         }
     }
 }

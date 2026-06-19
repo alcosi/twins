@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -17,6 +18,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +35,21 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     @Override
     protected EntitySecureFindServiceImpl<TwinStatusEntity> entityService() {
         return twinStatusService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinClassEntity> entityParentService() {
+        return twinClassService;
+    }
+
+    @Override
+    protected Class<TwinStatusEntity> getEntityClass() {
+        return TwinStatusEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinClassEntity.class);
     }
 
     @Override
@@ -61,11 +78,11 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
-    protected TwinStatusEntity createNewEntity(TwinStatusDuplicate duplicate) throws ServiceException {
+    protected TwinStatusEntity createNewEntity(TwinStatusDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinStatusEntity original = duplicate.getOriginalEntity();
         return new TwinStatusEntity()
+                .setId(duplicate.getNewEntityId())
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
-                .setTwinClassId(original.getId())
                 .setInheritable(original.getInheritable())
                 .setBackgroundColor(original.getBackgroundColor())
                 .setFontColor(original.getFontColor())
@@ -84,6 +101,8 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
 
     @Override
     protected void setNewParentEntity(TwinStatusEntity newEntity, TwinClassEntity parentEntity) {
-        newEntity.setTwinClassId(parentEntity);
+        newEntity
+                .setTwinClassId(parentEntity.getId())
+                .setTwinClass(parentEntity);
     }
 }

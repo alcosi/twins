@@ -23,6 +23,7 @@ import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -127,5 +128,16 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 twinFactoryBranchRepository::findByTwinFactoryIdIn,
                 TwinFactoryBranchEntity::getId,
                 TwinFactoryBranchEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSet(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadConditionSet(Collections.singletonList(branch));
+    }
+
+    public void loadConditionSet(List<TwinFactoryBranchEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
+                TwinFactoryBranchEntity::getConditionSet,
+                TwinFactoryBranchEntity::setConditionSet);
     }
 }

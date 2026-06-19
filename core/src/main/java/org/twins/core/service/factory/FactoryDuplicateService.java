@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
@@ -19,10 +19,7 @@ import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -52,22 +49,38 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     @Override
+    protected EntitySecureFindServiceImpl<Void> entityParentService() {
+        return null; // top-level entity
+    }
+
+    @Override
+    protected Class<TwinFactoryEntity> getEntityClass() {
+        return TwinFactoryEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(); // top-level
+    }
+
+    @Override
     protected FactoryDuplicate createNewDuplicate() {
         return new FactoryDuplicate();
     }
 
     @Override
     protected void loadFor(Collection<Void> parents) {
+        // top-level entity — never invoked
     }
 
     @Override
     protected Kit<TwinFactoryEntity, UUID> extractorChildren(Void parent) {
-        return null;  // top-level entity — never invoked
+        return null; // top-level entity — never invoked
     }
 
     @Override
     protected UUID extractParentId(Void parent) {
-        return null;  // top-level entity — never invoked
+        return null; // top-level entity — never invoked
     }
 
     @Override
@@ -75,13 +88,13 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
 
-
     @Override
-    protected TwinFactoryEntity createNewEntity(FactoryDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryEntity createNewEntity(FactoryDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var original = duplicate.getOriginalEntity();
         var apiUser = authService.getApiUser();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
         return new TwinFactoryEntity()
+                .setId(duplicate.getNewEntityId())
                 .setKey(duplicate.getNewKey())
                 .setCreatedByUserId(apiUser.getUser().getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
@@ -101,10 +114,19 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     @Override
-    protected void afterSave(Collection<FactoryDuplicate> duplicates, Collection<TwinFactoryEntity> saved, EntityDuplicateContext ctx) throws ServiceException {
-        // condition sets must be duplicated first so their old→new ids land in ctx before
-        // any entity that references them (branches/multipliers/pipelines/erasers/triggers)
-        // is built and saved — otherwise those entities would still point at the originals.
+    protected void setNewParentEntity(TwinFactoryEntity newEntity, Void parentEntity) {
+        // no parent
+    }
+
+    /**
+     * Cascade child duplication. Note: under policy B (scope-aware remapping), condition sets
+     * referenced by branches/multipliers/pipelines/erasers/triggers are auto-duplicated via
+     * {@code conditionSetDuplicateService.lookupOrCollect} inside each child's {@code createNewEntity}. The explicit
+     * {@code duplicateConditionSets} flag still cascades ALL condition sets of the source
+     * factory (including unreferenced ones) — useful when the user wants a full clone.
+     */
+    @Override
+    protected void collectDuplicatesTree(Collection<FactoryDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
         Map<TwinFactoryEntity, TwinFactoryEntity> conditionSetsMap = null;
         Map<TwinFactoryEntity, TwinFactoryEntity> branchesMap = null;
         Map<TwinFactoryEntity, TwinFactoryEntity> multipliersMap = null;
@@ -114,14 +136,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         for (var duplicate : duplicates) {
             TwinFactoryEntity src = duplicate.getOriginalEntity();
             TwinFactoryEntity dst = duplicate.getNewEntity();
-            // any child cascade that references a condition set needs the condition sets duplicated first
-            boolean needConditionSets = duplicate.isDuplicateConditionSets()
-                    || duplicate.isDuplicateBranches()
-                    || duplicate.isDuplicateMultipliers()
-                    || duplicate.isDuplicatePipelines()
-                    || duplicate.isDuplicateErasers()
-                    || duplicate.isDuplicateTriggers();
-            if (needConditionSets) {
+            if (duplicate.isDuplicateConditionSets()) {
                 if (conditionSetsMap == null) conditionSetsMap = new HashMap<>();
                 conditionSetsMap.put(src, dst);
             }
@@ -147,27 +162,22 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
             }
         }
         if (conditionSetsMap != null) {
-            conditionSetDuplicateService.duplicateFor(conditionSetsMap, ctx);
+            conditionSetDuplicateService.collectViaParentMap(ctx, conditionSetsMap);
         }
         if (branchesMap != null) {
-            factoryBranchDuplicateService.duplicateFor(branchesMap, ctx);
+            factoryBranchDuplicateService.collectViaParentMap(ctx, branchesMap);
         }
         if (multipliersMap != null) {
-            factoryMultiplierDuplicateService.duplicateFor(multipliersMap, ctx);
+            factoryMultiplierDuplicateService.collectViaParentMap(ctx, multipliersMap);
         }
         if (pipelinesMap != null) {
-            factoryPipelineDuplicateService.duplicateFor(pipelinesMap, ctx);
+            factoryPipelineDuplicateService.collectViaParentMap(ctx, pipelinesMap);
         }
         if (erasersMap != null) {
-            factoryEraserDuplicateService.duplicateFor(erasersMap, ctx);
+            factoryEraserDuplicateService.collectViaParentMap(ctx, erasersMap);
         }
         if (triggersMap != null) {
-            factoryTriggerDuplicateService.duplicateFor(triggersMap, ctx);
+            factoryTriggerDuplicateService.collectViaParentMap(ctx, triggersMap);
         }
-    }
-
-    @Override
-    protected void setNewParentEntity(TwinFactoryEntity newEntity, Void parentEntity) {
-        //no parent
     }
 }

@@ -9,9 +9,11 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class EntityDuplicate<E, P> {
     private UUID originalEntityId;
+    private UUID newEntityId;
     private UUID newParentEntityId; //optional - target parent when copying to a different parent
     private String newKey; //optional
     private E originalEntity;
     private E newEntity;
     private P newParentEntity;
+
 }

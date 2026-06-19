@@ -22,6 +22,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -37,6 +38,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public CrudRepository<TwinFactoryEraserEntity, UUID> entityRepository() {
@@ -111,5 +114,16 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryEraserEntity::getId,
                 TwinFactoryEraserEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSet(TwinFactoryEraserEntity src) throws ServiceException {
+        loadConditionSet(Collections.singletonList(src));
+    }
+
+    public void loadConditionSet(List<TwinFactoryEraserEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
+                TwinFactoryEraserEntity::getConditionSet,
+                TwinFactoryEraserEntity::setConditionSet);
     }
 }

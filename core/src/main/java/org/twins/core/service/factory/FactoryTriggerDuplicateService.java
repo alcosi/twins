@@ -11,12 +11,13 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryTriggerDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -26,10 +27,29 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
 
     @Lazy
     private final FactoryTriggerService factoryTriggerService;
+    @Lazy
+    private final FactoryService factoryService;
+    @Lazy
+    private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> entityService() {
         return factoryTriggerService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityParentService() {
+        return factoryService;
+    }
+
+    @Override
+    protected Class<TwinFactoryTriggerEntity> getEntityClass() {
+        return TwinFactoryTriggerEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryEntity.class, TwinFactoryConditionSetEntity.class);
     }
 
     @Override
@@ -63,12 +83,18 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     }
 
     @Override
-    protected TwinFactoryTriggerEntity createNewEntity(FactoryTriggerDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryTriggerEntity createNewEntity(FactoryTriggerDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
+        UUID targetFactoryId = duplicate.getNewParentEntity().getId();
+        UUID newConditionSetId = src.getTwinFactoryConditionSetId();
+        if (newConditionSetId != null && src.getTwinFactoryId() != targetFactoryId) {
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), targetFactoryId, duplicateCollector);
+        }
         return new TwinFactoryTriggerEntity()
+                .setId(duplicate.getNewEntityId())
                 .setTwinFactoryId(src.getTwinFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
-                .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionSetId(newConditionSetId)
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setTwinTriggerId(src.getTwinTriggerId())
                 .setAsync(src.getAsync())
@@ -86,11 +112,5 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
         newEntity
                 .setTwinFactoryId(parentEntity.getId())
                 .setTwinFactory(parentEntity);
-    }
-
-    @Override
-    protected void remapReferences(TwinFactoryTriggerEntity newEntity, EntityDuplicateContext ctx) {
-        newEntity.setTwinFactoryConditionSetId(
-                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
     }
 }

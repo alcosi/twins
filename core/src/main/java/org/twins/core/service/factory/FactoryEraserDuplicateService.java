@@ -11,12 +11,14 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryEraserDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -26,10 +28,29 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
 
     @Lazy
     private final FactoryEraserService factoryEraserService;
+    @Lazy
+    private final FactoryService factoryService;
+    @Lazy
+    private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryEraserEntity> entityService() {
         return factoryEraserService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityParentService() {
+        return factoryService;
+    }
+
+    @Override
+    protected Class<TwinFactoryEraserEntity> getEntityClass() {
+        return TwinFactoryEraserEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryEntity.class, TwinFactoryConditionSetEntity.class);
     }
 
     @Override
@@ -63,12 +84,18 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected TwinFactoryEraserEntity createNewEntity(FactoryEraserDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryEraserEntity createNewEntity(FactoryEraserDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
+        UUID targetFactoryId = duplicate.getNewParentEntity().getId();
+        UUID newConditionSetId = src.getTwinFactoryConditionSetId();
+        if (newConditionSetId != null && src.getTwinFactoryId() != targetFactoryId) {
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
+        }
         return new TwinFactoryEraserEntity()
+                .setId(duplicate.getNewEntityId())
                 .setTwinFactoryId(src.getTwinFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
-                .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionSetId(newConditionSetId)
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setEraserAction(src.getEraserAction())
                 .setDescription(src.getDescription())
@@ -88,8 +115,8 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void remapReferences(TwinFactoryEraserEntity newEntity, EntityDuplicateContext ctx) {
-        newEntity.setTwinFactoryConditionSetId(
-                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
+    protected void loadRequiredRelations(List<TwinFactoryEraserEntity> originalEntities) throws ServiceException {
+        super.loadRequiredRelations(originalEntities);
+        factoryEraserService.loadConditionSet(originalEntities);
     }
 }

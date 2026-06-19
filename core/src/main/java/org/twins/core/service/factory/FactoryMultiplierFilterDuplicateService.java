@@ -11,12 +11,14 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
-import org.twins.core.domain.EntityDuplicateContext;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryMultiplierFilterDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -26,10 +28,29 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
 
     @Lazy
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
+    @Lazy
+    private final FactoryMultiplierService factoryMultiplierService;
+    @Lazy
+    private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryMultiplierFilterEntity> entityService() {
         return factoryMultiplierFilterService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinFactoryMultiplierEntity> entityParentService() {
+        return factoryMultiplierService;
+    }
+
+    @Override
+    protected Class<TwinFactoryMultiplierFilterEntity> getEntityClass() {
+        return TwinFactoryMultiplierFilterEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinFactoryMultiplierEntity.class, TwinFactoryConditionSetEntity.class);
     }
 
     @Override
@@ -63,12 +84,18 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
     }
 
     @Override
-    protected TwinFactoryMultiplierFilterEntity createNewEntity(FactoryMultiplierFilterDuplicate duplicate) throws ServiceException {
+    protected TwinFactoryMultiplierFilterEntity createNewEntity(FactoryMultiplierFilterDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
+        UUID targetFactoryId = duplicate.getNewParentEntity().getTwinFactoryId();
+        UUID newConditionSetId = src.getTwinFactoryConditionSetId();
+        if (newConditionSetId != null && src.getMultiplier().getTwinFactoryId() != targetFactoryId) {
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
+        }
         return new TwinFactoryMultiplierFilterEntity()
+                .setId(duplicate.getNewEntityId())
                 .setTwinFactoryMultiplierId(src.getTwinFactoryMultiplierId())
                 .setInputTwinClassId(src.getInputTwinClassId())
-                .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                .setTwinFactoryConditionSetId(newConditionSetId)
                 .setTwinFactoryConditionInvert(src.isTwinFactoryConditionInvert())
                 .setActive(src.isActive())
                 .setDescription(src.getDescription());
@@ -87,8 +114,8 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
     }
 
     @Override
-    protected void remapReferences(TwinFactoryMultiplierFilterEntity newEntity, EntityDuplicateContext ctx) {
-        newEntity.setTwinFactoryConditionSetId(
-                ctx.resolveOrDefault(TwinFactoryConditionSetEntity.class, newEntity.getTwinFactoryConditionSetId()));
+    protected void loadRequiredRelations(List<TwinFactoryMultiplierFilterEntity> originalEntities) throws ServiceException {
+        super.loadRequiredRelations(originalEntities);
+        factoryMultiplierFilterService.loadConditionSet(originalEntities);
     }
 }

@@ -94,7 +94,11 @@ class TwinClassFieldServiceDuplicateTest {
         d.setOriginalEntityId(original.getId());
         d.setOriginalEntity(original);
         d.setNewKey(key);
-        d.setDuplicateParentEntityId(newTwinClassId);
+        d.setNewParentEntityId(newTwinClassId);
+        // bypass DB load: parent entity service is a mock, so wire the entity directly
+        if (newTwinClassId != null) {
+            d.setNewParentEntity(newTwinClassId.equals(dstClassId) ? dstClass : srcClass);
+        }
         return d;
     }
 
@@ -154,14 +158,13 @@ class TwinClassFieldServiceDuplicateTest {
         }
 
         @Test
-        void usesOriginalClassIdWhenNewTwinClassIdIsNull() throws ServiceException {
-            List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
-
+        void throwsWhenNewTwinClassIdIsNull() {
             TwinClassFieldDuplicate dup = duplicateOf(srcField, null, "new_key"); // newTwinClassId = null
 
-            twinClassFieldDuplicateService.duplicate(List.of(dup));
+            ServiceException ex = assertThrows(ServiceException.class,
+                    () -> twinClassFieldDuplicateService.duplicate(List.of(dup)));
 
-            assertEquals(srcClassId, captured.get(0).getTwinClassId());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT.getCode(), ex.getErrorCode());
         }
 
         @Test
