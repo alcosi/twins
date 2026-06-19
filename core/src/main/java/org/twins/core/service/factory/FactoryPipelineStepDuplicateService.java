@@ -17,6 +17,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -62,6 +63,12 @@ public class FactoryPipelineStepDuplicateService extends EntityDuplicateService<
     @Override
     protected void loadFor(Collection<TwinFactoryPipelineEntity> parents) {
         factoryPipelineStepService.loadFactoryPipelineSteps(parents);
+    }
+
+    @Override
+    protected void loadRequiredRelations(List<TwinFactoryPipelineStepEntity> originalEntities) throws ServiceException {
+        factoryPipelineStepService.loadPipeline(originalEntities);
+        factoryPipelineStepService.loadConditionSet(originalEntities);
     }
 
     @Override

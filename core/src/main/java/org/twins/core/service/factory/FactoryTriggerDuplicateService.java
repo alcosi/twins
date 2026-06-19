@@ -17,6 +17,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -60,6 +61,11 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     @Override
     protected void loadFor(Collection<TwinFactoryEntity> parents) {
         factoryTriggerService.loadFactoryTriggers(parents);
+    }
+
+    @Override
+    protected void loadRequiredRelations(List<TwinFactoryTriggerEntity> originalEntities) throws ServiceException {
+        factoryTriggerService.loadConditionSets(originalEntities);
     }
 
     @Override

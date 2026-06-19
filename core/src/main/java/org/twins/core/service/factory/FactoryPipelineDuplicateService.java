@@ -64,6 +64,11 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     }
 
     @Override
+    protected void loadRequiredRelations(List<TwinFactoryPipelineEntity> originalEntities) throws ServiceException {
+        factoryPipelineService.loadConditionSet(originalEntities);
+    }
+
+    @Override
     protected Kit<TwinFactoryPipelineEntity, UUID> extractorChildren(TwinFactoryEntity parent) {
         return parent.getTwinFactoryPipelineKit();
     }

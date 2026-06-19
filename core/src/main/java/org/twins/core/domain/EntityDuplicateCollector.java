@@ -1,5 +1,6 @@
 package org.twins.core.domain;
 
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.*;
@@ -77,11 +78,13 @@ public class EntityDuplicateCollector {
      * ({@link EntityDuplicate#setNewEntityId}) so subclasses can read it inside
      * {@code createNewEntity} via {@code new EntityClass().setId(duplicate.getReservedNewId())}.
      */
-    public EntityDuplicate<?, ?> register(DuplicateKey key, EntityDuplicate<?, ?> duplicate) {
-        var reserved = UUID.randomUUID(); //todo delegate
-        duplicate.setNewEntityId(reserved);
+    public void register(DuplicateKey key, EntityDuplicate<?, ?> duplicate) {
+        duplicate.setNewEntityId(generateNewId());
         entries.put(key, duplicate);
-        return duplicate;
+    }
+
+    private UUID generateNewId() {
+        return UuidUtils.generate();
     }
 
     /**
@@ -89,7 +92,7 @@ public class EntityDuplicateCollector {
      * for them). Used by both {@code commitClass} (to find what to save) and {@code afterCommit}.
      */
     @SuppressWarnings("unchecked")
-    public <E> List<E> getBuiltEntities(Class<E> clazz) {
+    public <E> List<E> getNewEntities(Class<E> clazz) {
         var result = new ArrayList<E>();
         for (var e : entries.entrySet()) {
             if (!e.getKey().clazz().equals(clazz)) {
@@ -98,24 +101,6 @@ public class EntityDuplicateCollector {
             var newEntity = e.getValue().getNewEntity();
             if (newEntity != null) {
                 result.add((E) newEntity);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * All duplicates of {@code clazz} whose newEntity has been built, in registration order.
-     */
-    @SuppressWarnings("unchecked")
-    public <D extends EntityDuplicate<?, ?>> List<D> getBuiltDuplicates(Class<?> clazz) {
-        var result = new ArrayList<D>();
-        for (var e : entries.entrySet()) {
-            if (!e.getKey().clazz().equals(clazz)) {
-                continue;
-            }
-            var dup = e.getValue();
-            if (dup.getNewEntity() != null) {
-                result.add((D) dup);
             }
         }
         return result;

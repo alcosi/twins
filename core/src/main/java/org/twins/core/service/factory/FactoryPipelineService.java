@@ -24,6 +24,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -129,5 +130,16 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryPipelineEntity::getId,
                 TwinFactoryPipelineEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSet(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadConditionSet(Collections.singletonList(src));
+    }
+
+    public void loadConditionSet(List<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineEntity::getConditionSet,
+                TwinFactoryPipelineEntity::setConditionSet);
     }
 }

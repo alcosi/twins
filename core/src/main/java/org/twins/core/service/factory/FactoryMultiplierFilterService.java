@@ -35,6 +35,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     private final AuthService authService;
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
+    @Lazy
+    private final FactoryMultiplierService factoryMultiplierService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierFilterEntity, UUID> entityRepository() {
@@ -85,5 +87,16 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
                 TwinFactoryMultiplierFilterEntity::getConditionSet,
                 TwinFactoryMultiplierFilterEntity::setConditionSet);
+    }
+
+    public void loadMultiplier(TwinFactoryMultiplierFilterEntity src) throws ServiceException {
+        loadMultiplier(Collections.singletonList(src));
+    }
+
+    public void loadMultiplier(List<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
+        factoryMultiplierService.load(srcCollection,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
+                TwinFactoryMultiplierFilterEntity::getMultiplier,
+                TwinFactoryMultiplierFilterEntity::setMultiplier);
     }
 }

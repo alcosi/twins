@@ -30,7 +30,7 @@ import java.util.function.Function;
  *       Single outer transaction; rollback is atomic.</li>
  * </ul>
  *
- * Dedup invariant (enforced by ctx keying on {@code (class, originalId, newParentId)}):
+ * Dedup invariant (enforced by duplicateCollector keying on {@code (class, originalId, newParentId)}):
  * the same target parent + the same source entity always yields one shared duplicate.
  *
  * @param <D> duplicate descriptor type
@@ -49,7 +49,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
     protected abstract EntitySecureFindServiceImpl<P> entityParentService();
 
     /**
-     * Builds a fresh new entity from {@code duplicate.originalEntity}. May consult {@code ctx}
+     * Builds a fresh new entity from {@code duplicate.originalEntity}. May consult {@code duplicateCollector}
      * via {@link #lookupOrCollect(E, UUID, EntityDuplicateCollector)} to reserve cross-entity FK
      * targets. The reserved id of any reserved target is available from the returned entry; this
      * method is expected to set it on the corresponding FK field.
@@ -79,7 +79,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
     protected abstract void setNewParentEntity(E newEntity, P parentEntity);
 
     /**
-     * Entity class used as ctx key and as the discriminator for topological sort. Always
+     * Entity class used as duplicateCollector key and as the discriminator for topological sort. Always
      * override — there is no sensible default.
      */
     protected abstract Class<E> getEntityClass();
@@ -97,18 +97,18 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * Hook called after this service's own duplicates have been built and registered, but before
      * any commit. Override to:
      * <ul>
-     *   <li>cascade child duplication via {@code childService.collectViaParentMap(ctx, parentMap)}</li>
+     *   <li>cascade child duplication via {@code childService.collectViaParentMap(duplicateCollector, parentMap)}</li>
      * </ul>
      * Default: no-op.
      */
-    protected void collectDuplicatesTree(Collection<D> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
+    protected void collectDuplicatesTree(Collection<D> duplicates, EntityDuplicateCollector duplicateCollector) throws ServiceException {
     }
 
     /**
      * Post-commit hook for side effects like hierarchy refresh. Receives only the duplicates
-     * that this service just saved (not the whole ctx). Default: no-op.
+     * that this service just saved (not the whole duplicateCollector). Default: no-op.
      */
-    protected void afterCommit(Collection<D> duplicates, Collection<E> saved, EntityDuplicateCollector ctx) throws ServiceException {
+    protected void afterCommit(Collection<E> saved) throws ServiceException {
     }
 
     // === Public entry points ===
@@ -123,34 +123,34 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * Top-level entry point. Creates a fresh {@link EntityDuplicateCollector}, collects the whole
      * duplicate tree starting from {@code duplicates}, commits in topological order, runs
      * afterCommit hooks, and returns the new top-level entities (other participants are
-     * accessible through the now-discarded ctx — callers needing them should re-resolve from db).
+     * accessible through the now-discarded duplicateCollector — callers needing them should re-resolve from db).
      */
     @Transactional(rollbackFor = Throwable.class)
     public Collection<E> duplicate(Collection<D> duplicates) throws ServiceException {
         if (CollectionUtils.isEmpty(duplicates)) {
             return Collections.emptyList();
         }
-        var ctx = new EntityDuplicateCollector();
-        collect(ctx, duplicates);
-        commit(ctx);
-        return ctx.getBuiltEntities(getEntityClass());
+        var duplicateCollector = new EntityDuplicateCollector();
+        collect(duplicateCollector, duplicates);
+        commit(duplicateCollector);
+        return duplicateCollector.getNewEntities(getEntityClass());
     }
 
     /**
      * Convenience entry point: duplicates children of {@code sourceParent} into matching slots
      * on {@code destParent}. Builds the duplicate list via {@link #collectViaParentMap} inside
-     * a fresh ctx, commits, and returns the new top-level entities.
+     * a fresh duplicateCollector, commits, and returns the new top-level entities.
      */
     @Transactional(rollbackFor = Throwable.class)
     public Collection<E> duplicateFor(Map<P, P> parentMap) throws ServiceException {
         if (parentMap == null || parentMap.isEmpty()) {
             return Collections.emptyList();
         }
-        var ctx = new EntityDuplicateCollector();
-        ctx.registerService(getEntityClass(), this);
-        collectViaParentMap(ctx, parentMap);
-        commit(ctx);
-        return ctx.getBuiltEntities(getEntityClass());
+        var duplicateCollector = new EntityDuplicateCollector();
+        duplicateCollector.registerService(getEntityClass(), this);
+        collectViaParentMap(duplicateCollector, parentMap);
+        commit(duplicateCollector);
+        return duplicateCollector.getNewEntities(getEntityClass());
     }
 
     // === Collect phase ===
@@ -162,7 +162,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * <p>
      * Idempotent per duplicate: if a duplicate's {@code newEntity} is already set (e.g. it was
      * built by an earlier {@link #lookupOrCollect} cascade from another service), it is skipped.
-     * Dedup at ctx level ensures the same {@code (class, originalId, newParentId)} never
+     * Dedup at duplicateCollector level ensures the same {@code (class, originalId, newParentId)} never
      * produces two new entities.
      * <p>
      * Note: collect is <b>not strictly read-only</b> — {@code duplicateI18nFields} persists I18n
@@ -249,7 +249,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * Reserve-or-reuse entry for an entity managed by <b>this</b> service. Idempotent on
      * {@code (getEntityClass(), originalId, newParentId)}.
      * <p>
-     * If already present in ctx: returns the existing entry (deduplication — same key always
+     * If already present in duplicateCollector: returns the existing entry (deduplication — same key always
      * reuses the same new entity).
      * <p>
      * If absent: builds a fresh {@link D} pointing at the original + new parent, registers it
@@ -259,10 +259,10 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * Caller (typically {@code createNewEntity} of another service) should use
      * {@code entry.getReservedNewId()} to set the FK field on its own new entity.
      */
-    public UUID lookupOrCollect(E original, UUID newParentId, EntityDuplicateCollector ctx) throws ServiceException {
+    public UUID lookupOrCollect(E original, UUID newParentId, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         UUID originalId = entityService().entityGetIdFunction().apply(original);
         var key = new DuplicateKey(getEntityClass(), originalId, newParentId);
-        var existing = ctx.getEntry(key);
+        var existing = duplicateCollector.getEntry(key);
         if (existing != null) {
             return existing.getNewEntityId();
         }
@@ -271,10 +271,10 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
                 .setOriginalEntity(original)
                 .setOriginalEntityId(originalId)
                 .setNewParentEntityId(newParentId);
-        ctx.registerService(getEntityClass(), this);
-        ctx.register(key, duplicate);
-        collect(ctx, List.of(duplicate));
-        return ctx.getEntry(key).getNewEntityId();
+        duplicateCollector.registerService(getEntityClass(), this);
+        duplicateCollector.register(key, duplicate);
+        collect(duplicateCollector, List.of(duplicate));
+        return duplicateCollector.getEntry(key).getNewEntityId();
     }
 
     // === Commit phase ===
@@ -284,42 +284,35 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * (so FK targets land in db before referencers), then {@code afterCommit} hooks in the
      * same order. Single outer transaction.
      */
-    private void commit(EntityDuplicateCollector ctx) throws ServiceException {
-        var orderedClasses = topoSortCommitOrder(ctx);
+    private void commit(EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        var orderedClasses = topoSortCommitOrder(duplicateCollector);
         for (var clazz : orderedClasses) {
-            var svc = ctx.getService(clazz);
+            var svc = duplicateCollector.getService(clazz);
             if (svc != null) {
-                svc.commitClass(ctx);
+                svc.commitClass(duplicateCollector);
             }
         }
         for (var clazz : orderedClasses) {
-            var svc = ctx.getService(clazz);
+            var svc = duplicateCollector.getService(clazz);
             if (svc != null) {
-                svc.runAfterCommit(ctx);
+                svc.runAfterCommit(duplicateCollector);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void commitClass(EntityDuplicateCollector ctx) throws ServiceException {
-        var dupsToCommit = ctx.<D>getBuiltDuplicates(getEntityClass());
-        if (dupsToCommit.isEmpty()) {
+    private void commitClass(EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        var toSave = duplicateCollector.getNewEntities(getEntityClass());
+        if (toSave.isEmpty()) {
             return;
         }
-        var toSave = dupsToCommit.stream()
-                .map(EntityDuplicate::getNewEntity)
-                .toList();
         entityService().saveSafe(toSave);
     }
 
     @SuppressWarnings("unchecked")
-    private void runAfterCommit(EntityDuplicateCollector ctx) throws ServiceException {
-        var dups = ctx.<D>getBuiltDuplicates(getEntityClass());
-        if (dups.isEmpty()) {
-            return;
-        }
-        var saved = ctx.<E>getBuiltEntities(getEntityClass());
-        afterCommit((Collection<D>) dups, (Collection<E>) saved, ctx);
+    private void runAfterCommit(EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        var saved = duplicateCollector.getNewEntities(getEntityClass());
+        afterCommit(saved);
     }
 
     /**
@@ -330,8 +323,8 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      * Classes declared in {@code commitAfter()} but not participating in this operation are
      * skipped — they don't constrain anything since they have no entities to commit.
      */
-    private List<Class<?>> topoSortCommitOrder(EntityDuplicateCollector ctx) throws ServiceException {
-        var classes = ctx.getParticipatingClasses();
+    private List<Class<?>> topoSortCommitOrder(EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        var classes = duplicateCollector.getParticipatingClasses();
         var participating = new HashSet<>(classes);
         Map<Class<?>, Integer> inDegree = new java.util.HashMap<>();
         Map<Class<?>, List<Class<?>>> dependents = new java.util.HashMap<>();
@@ -340,7 +333,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
             dependents.put(c, new ArrayList<>());
         }
         for (var c : classes) {
-            var svc = ctx.getService(c);
+            var svc = duplicateCollector.getService(c);
             if (svc == null) {
                 continue;
             }
@@ -401,7 +394,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
                 EntityDuplicate::setOriginalEntity);
     }
 
-    private void loadNewParentEntities(Collection<D> duplicates) throws ServiceException {
+    protected void loadNewParentEntities(Collection<D> duplicates) throws ServiceException {
         entityParentService().load(duplicates,
                 EntityDuplicate::getNewParentEntityId,
                 EntityDuplicate::getNewParentEntity,

@@ -117,5 +117,6 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
     protected void loadRequiredRelations(List<TwinFactoryMultiplierFilterEntity> originalEntities) throws ServiceException {
         super.loadRequiredRelations(originalEntities);
         factoryMultiplierFilterService.loadConditionSet(originalEntities);
+        factoryMultiplierFilterService.loadMultiplier(originalEntities);
     }
 }

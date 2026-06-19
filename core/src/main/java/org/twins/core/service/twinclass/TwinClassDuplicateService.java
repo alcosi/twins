@@ -162,7 +162,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected void afterCommit(Collection<TwinClassDuplicate> duplicates, Collection<TwinClassEntity> saved, EntityDuplicateCollector ctx) throws ServiceException {
+    protected void afterCommit(Collection<TwinClassEntity> saved) throws ServiceException {
         for (var savedClass : saved) {
             twinClassService.refreshExtendsHierarchyTree(savedClass);
             twinClassService.refreshHeadHierarchyTree(savedClass);
