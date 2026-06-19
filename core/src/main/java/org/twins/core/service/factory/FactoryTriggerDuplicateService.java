@@ -110,11 +110,6 @@ public class FactoryTriggerDuplicateService extends EntityDuplicateService<Facto
     }
 
     @Override
-    protected void duplicateI18nFields(TwinFactoryTriggerEntity src, TwinFactoryTriggerEntity dst) throws ServiceException {
-        // no i18n fields
-    }
-
-    @Override
     protected void setNewParentEntity(TwinFactoryTriggerEntity newEntity, TwinFactoryEntity parentEntity) {
         newEntity
                 .setTwinFactoryId(parentEntity.getId())

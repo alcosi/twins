@@ -37,6 +37,7 @@ public class EntityDuplicateCollector {
 
     private final Map<DuplicateKey, EntityDuplicate<?, ?>> entries = new LinkedHashMap<>();
     private final Map<Class<?>, EntityDuplicateService<?, ?, ?>> services = new LinkedHashMap<>();
+    private final Map<UUID, UUID> i18nRemap = new LinkedHashMap<>();
 
     /**
      * Registers the service responsible for {@code clazz}. Idempotent. Each subclass calls this
@@ -102,5 +103,22 @@ public class EntityDuplicateCollector {
             }
         }
         return null;
+    }
+
+    /**
+     * Idempotent reservation of a new i18n id for the supplied source i18n id. Same {@code srcI18nId}
+     * always yields the same reserved new id — so multiple fields (or multiple entities) pointing
+     * at the same source i18n share one duplicate. Reserved ids are consumed by
+     * {@code I18nService.commitDuplicates} during the pre-commit phase.
+     */
+    public UUID reserveI18nDuplicate(UUID srcI18nId) {
+        if (srcI18nId == null) {
+            return null;
+        }
+        return i18nRemap.computeIfAbsent(srcI18nId, k -> UUID.randomUUID());
+    }
+
+    public Map<UUID, UUID> getI18nRemap() {
+        return Collections.unmodifiableMap(i18nRemap);
     }
 }

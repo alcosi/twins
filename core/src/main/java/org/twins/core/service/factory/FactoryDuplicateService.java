@@ -10,13 +10,11 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -43,7 +41,6 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     private final FactoryTriggerDuplicateService factoryTriggerDuplicateService;
     @Lazy
     private final FactoryConditionSetDuplicateService conditionSetDuplicateService;
-    private final I18nService i18nService;
     @Lazy
     private final AuthService authService;
 
@@ -106,15 +103,11 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     @Override
-    protected void duplicateI18nFields(TwinFactoryEntity src, TwinFactoryEntity dst) throws ServiceException {
-        if (src.getNameI18NId() != null) {
-            I18nEntity i18nDuplicate = i18nService.duplicateI18n(src.getNameI18NId());
-            dst.setNameI18NId(i18nDuplicate.getId());
-        }
-        if (src.getDescriptionI18NId() != null) {
-            I18nEntity i18nDuplicate = i18nService.duplicateI18n(src.getDescriptionI18NId());
-            dst.setDescriptionI18NId(i18nDuplicate.getId());
-        }
+    protected List<I18nFieldDuplicate<TwinFactoryEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinFactoryEntity::getNameI18NId,        TwinFactoryEntity::setNameI18NId),
+                I18nFieldDuplicate.of(TwinFactoryEntity::getDescriptionI18NId, TwinFactoryEntity::setDescriptionI18NId)
+        );
     }
 
     @Override

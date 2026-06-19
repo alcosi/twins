@@ -15,10 +15,10 @@ import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,7 +31,6 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     private final TwinStatusService twinStatusService;
     @Lazy
     private final TwinClassService twinClassService;
-    private final I18nService i18nService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinStatusEntity> entityService() {
@@ -91,13 +90,11 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
-    protected void duplicateI18nFields(TwinStatusEntity src, TwinStatusEntity dst) {
-        if (src.getNameI18nId() != null) {
-            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-        }
-        if (src.getDescriptionI18nId() != null) {
-            dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-        }
+    protected List<I18nFieldDuplicate<TwinStatusEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinStatusEntity::getNameI18nId,        TwinStatusEntity::setNameI18nId),
+                I18nFieldDuplicate.of(TwinStatusEntity::getDescriptionI18nId, TwinStatusEntity::setDescriptionI18nId)
+        );
     }
 
     @Override

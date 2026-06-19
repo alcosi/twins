@@ -7,14 +7,18 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.EntityDuplicate;
 import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.EntityDuplicateCollector.DuplicateKey;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -31,7 +35,7 @@ import java.util.function.Predicate;
  *       by {@link #commitAfter()}, then runs {@link #afterCommit} hooks in the same order.
  *       Single outer transaction; rollback is atomic.</li>
  * </ul>
- *
+ * <p>
  * Dedup invariant (enforced by duplicateCollector keying on {@code (class, originalId, newParentId)}):
  * the same target parent + the same source entity always yields one shared duplicate.
  *
@@ -41,6 +45,18 @@ import java.util.function.Predicate;
  */
 @Slf4j
 public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E extends Identifiable, P> {
+
+    /**
+     * Shared i18n batch service — wired via setter injection to avoid a circular-bean deadlock
+     * between {@code I18nService} (which itself can transitively depend on services that subclass
+     * this) and any concrete {@code EntityDuplicateService} constructed during context startup.
+     */
+    private I18nService i18nService;
+
+    @Autowired
+    public final void setI18nService(@Lazy I18nService i18nService) {
+        this.i18nService = i18nService;
+    }
 
     protected abstract EntitySecureFindServiceImpl<E> entityService();
 
@@ -63,21 +79,49 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
 
     protected abstract ErrorCode getKeyDuplicatedErrorCode();
 
-    protected abstract void duplicateI18nFields(E src, E dst) throws ServiceException;
+    /**
+     * Pairs of {@code (getter, setter)} for entity fields holding an i18n id. The engine remaps each
+     * non-null source id to a reserved new id via {@link EntityDuplicateCollector#reserveI18nDuplicate}
+     * during {@code collect} (no db writes), then bulk-persists all i18n copies in one batch during
+     * the pre-commit phase via {@link I18nService#commitDuplicates}. Override in subclasses whose
+     * entities have i18n fields. Default: empty list.
+     */
+    protected List<I18nFieldDuplicate<E>> i18nFields() {
+        return List.of();
+    }
 
-    /** Factory for fresh {@link D} instances — used by {@link #collectViaParentMap} and {@link #lookupOrCollect}. */
+    /**
+     * (getter, setter) pair for an i18n id field on {@code E}.
+     */
+    public record I18nFieldDuplicate<E>(Function<E, UUID> getter, BiConsumer<E, UUID> setter) {
+        public static <E> I18nFieldDuplicate<E> of(Function<E, UUID> getter, BiConsumer<E, UUID> setter) {
+            return new I18nFieldDuplicate<>(getter, setter);
+        }
+    }
+
+    /**
+     * Factory for fresh {@link D} instances — used by {@link #collectViaParentMap} and {@link #lookupOrCollect}.
+     */
     protected abstract D createNewDuplicate();
 
-    /** Loads children into source parents prior to iteration in {@link #collectViaParentMap}. */
+    /**
+     * Loads children into source parents prior to iteration in {@link #collectViaParentMap}.
+     */
     protected abstract void loadFor(Collection<P> parents);
 
-    /** Extracts the child entity kit from a source parent. */
+    /**
+     * Extracts the child entity kit from a source parent.
+     */
     protected abstract Kit<E, UUID> extractorChildren(P parent);
 
-    /** Extracts the UUID from a destination parent. */
+    /**
+     * Extracts the UUID from a destination parent.
+     */
     protected abstract UUID extractParentId(P parent);
 
-    /** Sets the parent reference (both id and entity) on a freshly built new entity. */
+    /**
+     * Sets the parent reference (both id and entity) on a freshly built new entity.
+     */
     protected abstract void setNewParentEntity(E newEntity, P parentEntity);
 
     /**
@@ -197,17 +241,14 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
 
     /**
      * Collects {@code duplicates}: validates keys, loads originals (+ parents if applicable),
-     * builds new entities (reserving newIds), persists i18n, then triggers
-     * {@link #collectDuplicatesTree} for cascade.
+     * builds new entities (reserving newIds), remaps i18n fields via
+     * {@link EntityDuplicateCollector#reserveI18nDuplicate} (no db writes — the actual i18n batch
+     * happens in {@link #commit}), then triggers {@link #collectDuplicatesTree} for cascade.
      * <p>
      * Idempotent per duplicate: if a duplicate's {@code newEntity} is already set (e.g. it was
      * built by an earlier {@link #lookupOrCollect} cascade from another service), it is skipped.
      * Dedup at duplicateCollector level ensures the same {@code (class, originalId, newParentId)} never
      * produces two new entities.
-     * <p>
-     * Note: collect is <b>not strictly read-only</b> — {@code duplicateI18nFields} persists I18n
-     * rows (see {@code I18nService.duplicateI18n}). The whole operation runs inside one outer
-     * {@code @Transactional}, so rollback stays atomic.
      */
     public void collect(EntityDuplicateCollector duplicateCollector, Collection<D> duplicates) throws ServiceException {
         if (CollectionUtils.isEmpty(duplicates)) {
@@ -221,6 +262,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
         if (entityParentService() != null) {
             loadNewParentEntities(duplicates);
         }
+        var fields = i18nFields();
         for (var duplicate : duplicates) {
             if (duplicate.getNewEntity() != null) {
                 // already built by an earlier collect cycle (typical when this collect was
@@ -242,7 +284,12 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
             if (duplicate.getNewParentEntity() != null) {
                 setNewParentEntity(newEntity, duplicate.getNewParentEntity());
             }
-            duplicateI18nFields(duplicate.getOriginalEntity(), newEntity);
+            for (var field : fields) {
+                UUID srcI18nId = field.getter().apply(duplicate.getOriginalEntity());
+                if (srcI18nId != null) {
+                    field.setter().accept(newEntity, duplicateCollector.reserveI18nDuplicate(srcI18nId));
+                }
+            }
             duplicate.setNewEntity(newEntity);
             duplicateCollector.register(key, duplicate);
         }
@@ -321,11 +368,12 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
     // === Commit phase ===
 
     /**
-     * Two-pass commit: first {@code commitClass} per class in topological order
-     * (so FK targets land in db before referencers), then {@code afterCommit} hooks in the
-     * same order. Single outer transaction.
+     * Three-step commit: (1) bulk-persist all reserved i18n copies in one batch (so all i18n ids
+     * referenced by entities land in db before any referencer), (2) {@code commitClass} per class
+     * in topological order, (3) {@code afterCommit} hooks in the same order. Single outer transaction.
      */
     private void commit(EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        i18nService.commitDuplicates(duplicateCollector.getI18nRemap());
         var orderedClasses = topoSortCommitOrder(duplicateCollector);
         for (var clazz : orderedClasses) {
             var svc = duplicateCollector.getService(clazz);

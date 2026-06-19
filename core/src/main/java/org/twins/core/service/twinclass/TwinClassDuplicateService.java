@@ -8,14 +8,12 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinStatusDuplicateService;
 
 import java.sql.Timestamp;
@@ -35,7 +33,6 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     private final TwinClassFieldDuplicateService twinClassFieldDuplicateService;
     @Lazy
     private final TwinStatusDuplicateService twinStatusDuplicateService;
-    private final I18nService i18nService;
     @Lazy
     private final AuthService authService;
 
@@ -130,16 +127,11 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected void duplicateI18nFields(TwinClassEntity src, TwinClassEntity dst) throws ServiceException {
-        I18nEntity i18nDuplicate;
-        if (src.getNameI18NId() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(src.getNameI18NId());
-            dst.setNameI18NId(i18nDuplicate.getId());
-        }
-        if (src.getDescriptionI18NId() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(src.getDescriptionI18NId());
-            dst.setDescriptionI18NId(i18nDuplicate.getId());
-        }
+    protected List<I18nFieldDuplicate<TwinClassEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinClassEntity::getNameI18NId,        TwinClassEntity::setNameI18NId),
+                I18nFieldDuplicate.of(TwinClassEntity::getDescriptionI18NId, TwinClassEntity::setDescriptionI18NId)
+        );
     }
 
     @Override

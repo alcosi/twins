@@ -115,11 +115,6 @@ public class FactoryPipelineStepDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected void duplicateI18nFields(TwinFactoryPipelineStepEntity src, TwinFactoryPipelineStepEntity dst) throws ServiceException {
-        // no i18n fields
-    }
-
-    @Override
     protected void setNewParentEntity(TwinFactoryPipelineStepEntity newEntity, TwinFactoryPipelineEntity parentEntity) {
         newEntity
                 .setTwinFactoryPipelineId(parentEntity.getId())

@@ -108,11 +108,6 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void duplicateI18nFields(TwinFactoryBranchEntity src, TwinFactoryBranchEntity dst) throws ServiceException {
-        // no i18n fields
-    }
-
-    @Override
     protected void setNewParentEntity(TwinFactoryBranchEntity newEntity, TwinFactoryEntity parentEntity) {
         newEntity
                 .setTwinFactoryId(parentEntity.getId())

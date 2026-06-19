@@ -14,9 +14,9 @@ import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,7 +29,6 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     private final TwinClassFieldService twinClassFieldService;
     @Lazy
     private final TwinClassService twinClassService;
-    private final I18nService i18nService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinClassFieldEntity> entityService() {
@@ -103,19 +102,13 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
-    protected void duplicateI18nFields(TwinClassFieldEntity src, TwinClassFieldEntity dst) {
-        if (src.getNameI18nId() != null) {
-            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-        }
-        if (src.getDescriptionI18nId() != null) {
-            dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-        }
-        if (src.getFeValidationErrorI18nId() != null) {
-            dst.setFeValidationErrorI18nId(i18nService.duplicateI18n(src.getFeValidationErrorI18nId()).getId());
-        }
-        if (src.getBeValidationErrorI18nId() != null) {
-            dst.setBeValidationErrorI18nId(i18nService.duplicateI18n(src.getBeValidationErrorI18nId()).getId());
-        }
+    protected List<I18nFieldDuplicate<TwinClassFieldEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getNameI18nId,            TwinClassFieldEntity::setNameI18nId),
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getDescriptionI18nId,     TwinClassFieldEntity::setDescriptionI18nId),
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getFeValidationErrorI18nId, TwinClassFieldEntity::setFeValidationErrorI18nId),
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getBeValidationErrorI18nId, TwinClassFieldEntity::setBeValidationErrorI18nId)
+        );
     }
 
     @Override

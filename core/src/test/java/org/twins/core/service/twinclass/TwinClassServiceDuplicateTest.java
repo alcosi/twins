@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -48,9 +47,9 @@ class TwinClassServiceDuplicateTest {
     @BeforeEach
     void setUp() throws ServiceException {
         twinClassDuplicateService = new TwinClassDuplicateService(
-                twinClassService, twinClassFieldDuplicateService, twinStatusDuplicateService,
-                i18nService, authService
+                twinClassService, twinClassFieldDuplicateService, twinStatusDuplicateService, authService
         );
+        twinClassDuplicateService.setI18nService(i18nService);
 
         srcClassId = UUID.randomUUID();
         domainId = UUID.randomUUID();
@@ -227,23 +226,26 @@ class TwinClassServiceDuplicateTest {
         void duplicatesBothI18nReferencesWhenPresent() throws ServiceException {
             UUID srcNameI18nId = UUID.randomUUID();
             UUID srcDescI18nId = UUID.randomUUID();
-            UUID dupNameI18nId = UUID.randomUUID();
-            UUID dupDescI18nId = UUID.randomUUID();
 
             srcClass.setNameI18NId(srcNameI18nId).setDescriptionI18NId(srcDescI18nId);
-
-            when(i18nService.duplicateI18n(srcNameI18nId)).thenReturn(new I18nEntity().setId(dupNameI18nId));
-            when(i18nService.duplicateI18n(srcDescI18nId)).thenReturn(new I18nEntity().setId(dupDescI18nId));
 
             List<TwinClassEntity> captured = stubSaveSafeAndCapture();
 
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
             TwinClassEntity saved = captured.get(0);
-            assertEquals(dupNameI18nId, saved.getNameI18NId());
-            assertEquals(dupDescI18nId, saved.getDescriptionI18NId());
+            assertNotNull(saved.getNameI18NId());
+            assertNotNull(saved.getDescriptionI18NId());
             assertNotEquals(srcNameI18nId, saved.getNameI18NId());
             assertNotEquals(srcDescI18nId, saved.getDescriptionI18NId());
+
+            // i18n copies are committed as a single batch (srcId → newId) in the pre-commit phase
+            verify(i18nService).commitDuplicates(argThat(m ->
+                    m != null
+                            && m.size() == 2
+                            && m.containsKey(srcNameI18nId) && m.containsKey(srcDescI18nId)
+                            && saved.getNameI18NId().equals(m.get(srcNameI18nId))
+                            && saved.getDescriptionI18NId().equals(m.get(srcDescI18nId))));
         }
 
         @Test
@@ -254,7 +256,7 @@ class TwinClassServiceDuplicateTest {
 
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
-            verifyNoInteractions(i18nService);
+            verify(i18nService).commitDuplicates(argThat(m -> m == null || m.isEmpty()));
         }
     }
 

@@ -104,11 +104,6 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
     }
 
     @Override
-    protected void duplicateI18nFields(TwinFactoryEraserEntity src, TwinFactoryEraserEntity dst) throws ServiceException {
-        // no i18n fields
-    }
-
-    @Override
     protected void setNewParentEntity(TwinFactoryEraserEntity newEntity, TwinFactoryEntity parentEntity) {
         newEntity
                 .setTwinFactoryId(parentEntity.getId())

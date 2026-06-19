@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
@@ -19,6 +18,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,8 +46,9 @@ class TwinClassFieldServiceDuplicateTest {
     @BeforeEach
     void setUp() {
         twinClassFieldDuplicateService = new TwinClassFieldDuplicateService(
-                twinClassFieldService, twinClassService, i18nService
+                twinClassFieldService, twinClassService
         );
+        twinClassFieldDuplicateService.setI18nService(i18nService);
 
         srcFieldId = UUID.randomUUID();
         srcClassId = UUID.randomUUID();
@@ -186,10 +187,6 @@ class TwinClassFieldServiceDuplicateTest {
             UUID srcDescI18nId = UUID.randomUUID();
             UUID srcFeValI18nId = UUID.randomUUID();
             UUID srcBeValI18nId = UUID.randomUUID();
-            UUID dupNameI18nId = UUID.randomUUID();
-            UUID dupDescI18nId = UUID.randomUUID();
-            UUID dupFeValI18nId = UUID.randomUUID();
-            UUID dupBeValI18nId = UUID.randomUUID();
 
             srcField
                     .setNameI18nId(srcNameI18nId)
@@ -197,30 +194,37 @@ class TwinClassFieldServiceDuplicateTest {
                     .setFeValidationErrorI18nId(srcFeValI18nId)
                     .setBeValidationErrorI18nId(srcBeValI18nId);
 
-            when(i18nService.duplicateI18n(srcNameI18nId)).thenReturn(new I18nEntity().setId(dupNameI18nId));
-            when(i18nService.duplicateI18n(srcDescI18nId)).thenReturn(new I18nEntity().setId(dupDescI18nId));
-            when(i18nService.duplicateI18n(srcFeValI18nId)).thenReturn(new I18nEntity().setId(dupFeValI18nId));
-            when(i18nService.duplicateI18n(srcBeValI18nId)).thenReturn(new I18nEntity().setId(dupBeValI18nId));
-
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
             twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             TwinClassFieldEntity saved = captured.get(0);
-            assertEquals(dupNameI18nId, saved.getNameI18nId());
-            assertEquals(dupDescI18nId, saved.getDescriptionI18nId());
-            assertEquals(dupFeValI18nId, saved.getFeValidationErrorI18nId());
-            assertEquals(dupBeValI18nId, saved.getBeValidationErrorI18nId());
+            assertNotNull(saved.getNameI18nId());
+            assertNotNull(saved.getDescriptionI18nId());
+            assertNotNull(saved.getFeValidationErrorI18nId());
+            assertNotNull(saved.getBeValidationErrorI18nId());
             assertNotEquals(srcNameI18nId, saved.getNameI18nId());
             assertNotEquals(srcDescI18nId, saved.getDescriptionI18nId());
             assertNotEquals(srcFeValI18nId, saved.getFeValidationErrorI18nId());
             assertNotEquals(srcBeValI18nId, saved.getBeValidationErrorI18nId());
+
+            // i18n copies are committed as a single batch (srcId → newId) in the pre-commit phase
+            verify(i18nService).commitDuplicates(argThat(m ->
+                    m != null
+                            && m.size() == 4
+                            && m.containsKey(srcNameI18nId)
+                            && m.containsKey(srcDescI18nId)
+                            && m.containsKey(srcFeValI18nId)
+                            && m.containsKey(srcBeValI18nId)
+                            && saved.getNameI18nId().equals(m.get(srcNameI18nId))
+                            && saved.getDescriptionI18nId().equals(m.get(srcDescI18nId))
+                            && saved.getFeValidationErrorI18nId().equals(m.get(srcFeValI18nId))
+                            && saved.getBeValidationErrorI18nId().equals(m.get(srcBeValI18nId))));
         }
 
         @Test
         void skipsI18nDuplicationForNullReferences() throws ServiceException {
             UUID srcDescI18nId = UUID.randomUUID();
-            UUID dupDescI18nId = UUID.randomUUID();
 
             srcField
                     .setNameI18nId(null)
@@ -228,18 +232,20 @@ class TwinClassFieldServiceDuplicateTest {
                     .setFeValidationErrorI18nId(null)
                     .setBeValidationErrorI18nId(null);
 
-            when(i18nService.duplicateI18n(srcDescI18nId)).thenReturn(new I18nEntity().setId(dupDescI18nId));
-
             List<TwinClassFieldEntity> captured = stubSaveSafeAndCapture();
 
             twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
             TwinClassFieldEntity saved = captured.get(0);
             assertNull(saved.getNameI18nId());
-            assertEquals(dupDescI18nId, saved.getDescriptionI18nId());
+            assertNotNull(saved.getDescriptionI18nId());
+            assertNotEquals(srcDescI18nId, saved.getDescriptionI18nId());
             assertNull(saved.getFeValidationErrorI18nId());
             assertNull(saved.getBeValidationErrorI18nId());
-            verify(i18nService, times(1)).duplicateI18n(any(UUID.class));
+
+            // Only one src id was reserved → remap size is 1, key = srcDescI18nId
+            verify(i18nService).commitDuplicates(argThat(m ->
+                    m != null && m.size() == 1 && m.containsKey(srcDescI18nId)));
         }
 
         @Test
@@ -248,7 +254,7 @@ class TwinClassFieldServiceDuplicateTest {
 
             twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
-            verifyNoInteractions(i18nService);
+            verify(i18nService).commitDuplicates(argThat(m -> m == null || m.isEmpty()));
         }
     }
 

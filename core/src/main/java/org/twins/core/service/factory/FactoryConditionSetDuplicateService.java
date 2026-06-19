@@ -103,11 +103,6 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected void duplicateI18nFields(TwinFactoryConditionSetEntity src, TwinFactoryConditionSetEntity dst) throws ServiceException {
-        // no i18n fields
-    }
-
-    @Override
     protected void setNewParentEntity(TwinFactoryConditionSetEntity newEntity, TwinFactoryEntity parentEntity) {
         newEntity
                 .setTwinFactoryId(parentEntity.getId())
