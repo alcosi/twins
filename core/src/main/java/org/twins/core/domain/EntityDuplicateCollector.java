@@ -93,4 +93,14 @@ public class EntityDuplicateCollector {
         }
         return result;
     }
+
+    public <E> E getNewEntity(UUID newId) {
+        for (var e : entries.entrySet()) {
+            var newEntity = e.getValue().getNewEntity();
+            if (newEntity != null && newId.equals(newEntity.getId())) {
+                return (E) newEntity;
+            }
+        }
+        return null;
+    }
 }

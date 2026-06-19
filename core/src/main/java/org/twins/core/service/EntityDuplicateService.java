@@ -235,7 +235,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
             }
             var key = new DuplicateKey(getEntityClass(), duplicate.getOriginalEntityId(), newParentId);
             var registeredDuplicate = duplicateCollector.getEntry(key);
-            if (registeredDuplicate != null) {
+            if (registeredDuplicate != null && registeredDuplicate.getNewEntity() != null) {
                 continue; //skipping
             }
             var newEntity = createNewEntity(duplicate, duplicateCollector);
@@ -310,7 +310,8 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
         duplicate
                 .setOriginalEntity(original)
                 .setOriginalEntityId(originalId)
-                .setNewParentEntityId(newParentId);
+                .setNewParentEntityId(newParentId)
+                .setNewParentEntity(duplicateCollector.getNewEntity(newParentId)); //not null only for new parents
         duplicateCollector.registerService(getEntityClass(), this);
         duplicateCollector.register(key, duplicate);
         collect(duplicateCollector, List.of(duplicate));
