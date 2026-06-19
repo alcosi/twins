@@ -46,4 +46,11 @@ public class TwinCountDTOv1 extends CountDTOv1 {
     @Schema(description = "Head twin id", example = DTOExamples.UUID_ID)
     @RelatedObject(type = TwinDTOv2.class, name = "headTwin")
     public UUID headTwinId;
+
+    @Schema(description = "Twin class field id the results are grouped by (dynamic field grouping)", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = TwinClassDTOv1.class, name = "groupedTwinClassField")
+    public UUID groupedTwinClassFieldId;
+
+    @Schema(description = "Value of the grouped dynamic field for this group (number/text/boolean/dataList option id)")
+    public Object groupedFieldValue;
 }
