@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSearchBySpaceRoleUser;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
@@ -100,6 +101,15 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                     dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
                 }
             }
+        if (src.getSpaceRoleUsersList() != null) {
+            List<TwinSearchBySpaceRoleUser> spaceRoleUsersSearch = new ArrayList<>();
+            for (TwinSearchBySpaceRoleUserDTOv1 spaceRoleUserDTO : src.getSpaceRoleUsersList()) {
+                spaceRoleUsersSearch.add(new TwinSearchBySpaceRoleUser()
+                        .setSpaceRoleId(spaceRoleUserDTO.getSpaceRoleId())
+                        .setUserIdList(convertToSetSafe(spaceRoleUserDTO.getUserIdList())));
+            }
+            dst.setSpaceRoleUsersList(spaceRoleUsersSearch);
+        }
         if (src.getOwnerBusinessAccountIdList() != null) {
             if (permissionService.canViewTwinsOwnedByBusinessAccounts(src.getOwnerBusinessAccountIdList())) // early check. duplicated on service level
                 dst.setOwnerBusinessAccountIdList(src.getOwnerBusinessAccountIdList());
