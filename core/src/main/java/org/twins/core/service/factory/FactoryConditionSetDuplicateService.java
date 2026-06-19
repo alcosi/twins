@@ -18,7 +18,10 @@ import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -111,16 +114,9 @@ public class FactoryConditionSetDuplicateService extends EntityDuplicateService<
     }
 
     @Override
-    protected void collectDuplicatesTree(Collection<FactoryConditionSetDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
-        Map<TwinFactoryConditionSetEntity, TwinFactoryConditionSetEntity> conditionsMap = null;
-        for (var duplicate : duplicates) {
-            if (duplicate.isDuplicateConditions()) {
-                if (conditionsMap == null) conditionsMap = new HashMap<>();
-                conditionsMap.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
-            }
-        }
-        if (conditionsMap != null) {
-            factoryConditionDuplicateService.collectViaParentMap(ctx, conditionsMap);
-        }
+    protected List<ChildCascade<FactoryConditionSetDuplicate, TwinFactoryConditionSetEntity>> childCascades() {
+        return List.of(
+                new ChildCascade<>(FactoryConditionSetDuplicate::isDuplicateConditions, factoryConditionDuplicateService)
+        );
     }
 }

@@ -20,7 +20,10 @@ import org.twins.core.service.twin.TwinStatusDuplicateService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -140,25 +143,11 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     }
 
     @Override
-    protected void collectDuplicatesTree(Collection<TwinClassDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
-        Map<TwinClassEntity, TwinClassEntity> copyStatusesFor = null;
-        Map<TwinClassEntity, TwinClassEntity> copyFieldsFor = null;
-        for (var duplicate : duplicates) {
-            if (duplicate.isDuplicateFields()) {
-                if (copyFieldsFor == null) copyFieldsFor = new HashMap<>();
-                copyFieldsFor.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
-            }
-            if (duplicate.isDuplicateStatuses()) {
-                if (copyStatusesFor == null) copyStatusesFor = new HashMap<>();
-                copyStatusesFor.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
-            }
-        }
-        if (copyFieldsFor != null) {
-            twinClassFieldDuplicateService.collectViaParentMap(ctx, copyFieldsFor);
-        }
-        if (copyStatusesFor != null) {
-            twinStatusDuplicateService.collectViaParentMap(ctx, copyStatusesFor);
-        }
+    protected List<ChildCascade<TwinClassDuplicate, TwinClassEntity>> childCascades() {
+        return List.of(
+                new ChildCascade<>(TwinClassDuplicate::isDuplicateFields,   twinClassFieldDuplicateService),
+                new ChildCascade<>(TwinClassDuplicate::isDuplicateStatuses, twinStatusDuplicateService)
+        );
     }
 
     @Override

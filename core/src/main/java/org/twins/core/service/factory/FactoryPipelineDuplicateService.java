@@ -16,7 +16,10 @@ import org.twins.core.domain.factory.FactoryPipelineDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -124,16 +127,9 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     }
 
     @Override
-    protected void collectDuplicatesTree(Collection<FactoryPipelineDuplicate> duplicates, EntityDuplicateCollector ctx) throws ServiceException {
-        Map<TwinFactoryPipelineEntity, TwinFactoryPipelineEntity> stepsMap = null;
-        for (var duplicate : duplicates) {
-            if (duplicate.isDuplicateSteps()) {
-                if (stepsMap == null) stepsMap = new HashMap<>();
-                stepsMap.put(duplicate.getOriginalEntity(), duplicate.getNewEntity());
-            }
-        }
-        if (stepsMap != null) {
-            factoryStepDuplicateService.collectViaParentMap(ctx, stepsMap);
-        }
+    protected List<ChildCascade<FactoryPipelineDuplicate, TwinFactoryPipelineEntity>> childCascades() {
+        return List.of(
+                new ChildCascade<>(FactoryPipelineDuplicate::isDuplicateSteps, factoryStepDuplicateService)
+        );
     }
 }

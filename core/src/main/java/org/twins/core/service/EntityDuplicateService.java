@@ -15,6 +15,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Two-phase duplicate engine: collect → commit.
@@ -94,14 +95,54 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
     }
 
     /**
-     * Hook called after this service's own duplicates have been built and registered, but before
-     * any commit. Override to:
-     * <ul>
-     *   <li>cascade child duplication via {@code childService.collectViaParentMap(duplicateCollector, parentMap)}</li>
-     * </ul>
-     * Default: no-op.
+     * Pair "duplicate flag" → "child service to cascade". Each entry declares: when
+     * {@code flag.test(duplicate)} is true, the {@code (originalEntity, newEntity)} pair is collected
+     * into a parent map and handed to {@code childService.collectViaParentMap}. The third type-param
+     * of {@code childService} (its {@code P}) must match this service's {@code E} — that's the
+     * compile-time contract "child's parent = this entity".
+     */
+    public record ChildCascade<D extends EntityDuplicate<?, ?>, E>(
+            Predicate<D> flag,
+            EntityDuplicateService<?, ?, E> childService
+    ) {
+    }
+
+    /**
+     * Declares which children to cascade (and on which duplicate flag). Default: no cascade.
+     * Override to register child cascades; {@link #collectDuplicatesTree} runs the boilerplate.
+     */
+    protected List<ChildCascade<D, E>> childCascades() {
+        return List.of();
+    }
+
+    /**
+     * Runs {@link #childCascades()} for the supplied duplicates: for each cascade whose flag is
+     * true on a duplicate, collects {@code (original, new)} into a parent map and delegates to the
+     * child service's {@code collectViaParentMap}. Override {@link #childCascades()} instead of
+     * this method.
      */
     protected void collectDuplicatesTree(Collection<D> duplicates, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        var cascades = childCascades();
+        if (cascades.isEmpty()) {
+            return;
+        }
+        Map<ChildCascade<D, E>, Map<E, E>> pending = new IdentityHashMap<>();
+        for (var c : cascades) {
+            pending.put(c, new LinkedHashMap<>());
+        }
+        for (var d : duplicates) {
+            for (var c : cascades) {
+                if (c.flag().test(d)) {
+                    pending.get(c).put(d.getOriginalEntity(), d.getNewEntity());
+                }
+            }
+        }
+        for (var c : cascades) {
+            var map = pending.get(c);
+            if (!map.isEmpty()) {
+                c.childService().collectViaParentMap(duplicateCollector, map);
+            }
+        }
     }
 
     /**
@@ -110,8 +151,6 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
      */
     protected void afterCommit(Collection<E> saved) throws ServiceException {
     }
-
-    // === Public entry points ===
 
     @Transactional(rollbackFor = Throwable.class)
     public E duplicate(D duplicate) throws ServiceException {
@@ -198,13 +237,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
             if (registeredDuplicate != null) {
                 continue; //skipping
             }
-            duplicateCollector.register(key, duplicate);
             var newEntity = createNewEntity(duplicate, duplicateCollector);
             if (duplicate.getNewParentEntity() != null) {
                 setNewParentEntity(newEntity, duplicate.getNewParentEntity());
             }
             duplicateI18nFields(duplicate.getOriginalEntity(), newEntity);
             duplicate.setNewEntity(newEntity);
+            duplicateCollector.register(key, duplicate);
         }
         collectDuplicatesTree(duplicates, duplicateCollector);
     }
