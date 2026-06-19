@@ -253,7 +253,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
      * topological sort of entity-class commits, so all i18n rows land in db before any referencer.
      */
     @Transactional(rollbackFor = Throwable.class)
-    public void commitDuplicates(Map<UUID, UUID> remap) {
+    public void duplicateTranslations(Map<UUID, UUID> remap) {
         if (remap == null || remap.isEmpty()) {
             return;
         }

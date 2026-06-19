@@ -240,7 +240,7 @@ class TwinClassServiceDuplicateTest {
             assertNotEquals(srcDescI18nId, saved.getDescriptionI18NId());
 
             // i18n copies are committed as a single batch (srcId → newId) in the pre-commit phase
-            verify(i18nService).commitDuplicates(argThat(m ->
+            verify(i18nService).duplicateTranslations(argThat(m ->
                     m != null
                             && m.size() == 2
                             && m.containsKey(srcNameI18nId) && m.containsKey(srcDescI18nId)
@@ -256,7 +256,7 @@ class TwinClassServiceDuplicateTest {
 
             twinClassDuplicateService.duplicate(List.of(duplicateOf(srcClass, newKey, false)));
 
-            verify(i18nService).commitDuplicates(argThat(m -> m == null || m.isEmpty()));
+            verify(i18nService).duplicateTranslations(argThat(m -> m == null || m.isEmpty()));
         }
     }
 

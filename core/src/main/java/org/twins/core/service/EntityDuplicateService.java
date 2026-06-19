@@ -83,7 +83,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
      * Pairs of {@code (getter, setter)} for entity fields holding an i18n id. The engine remaps each
      * non-null source id to a reserved new id via {@link EntityDuplicateCollector#reserveI18nDuplicate}
      * during {@code collect} (no db writes), then bulk-persists all i18n copies in one batch during
-     * the pre-commit phase via {@link I18nService#commitDuplicates}. Override in subclasses whose
+     * the pre-commit phase via {@link I18nService#duplicateTranslations}. Override in subclasses whose
      * entities have i18n fields. Default: empty list.
      */
     protected List<I18nFieldDuplicate<E>> i18nFields() {
@@ -373,7 +373,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
      * in topological order, (3) {@code afterCommit} hooks in the same order. Single outer transaction.
      */
     private void commit(EntityDuplicateCollector duplicateCollector) throws ServiceException {
-        i18nService.commitDuplicates(duplicateCollector.getI18nRemap());
+        i18nService.duplicateTranslations(duplicateCollector.getI18nRemap());
         var orderedClasses = topoSortCommitOrder(duplicateCollector);
         for (var clazz : orderedClasses) {
             var svc = duplicateCollector.getService(clazz);

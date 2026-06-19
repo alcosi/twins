@@ -209,7 +209,7 @@ class TwinClassFieldServiceDuplicateTest {
             assertNotEquals(srcBeValI18nId, saved.getBeValidationErrorI18nId());
 
             // i18n copies are committed as a single batch (srcId → newId) in the pre-commit phase
-            verify(i18nService).commitDuplicates(argThat(m ->
+            verify(i18nService).duplicateTranslations(argThat(m ->
                     m != null
                             && m.size() == 4
                             && m.containsKey(srcNameI18nId)
@@ -244,7 +244,7 @@ class TwinClassFieldServiceDuplicateTest {
             assertNull(saved.getBeValidationErrorI18nId());
 
             // Only one src id was reserved → remap size is 1, key = srcDescI18nId
-            verify(i18nService).commitDuplicates(argThat(m ->
+            verify(i18nService).duplicateTranslations(argThat(m ->
                     m != null && m.size() == 1 && m.containsKey(srcDescI18nId)));
         }
 
@@ -254,7 +254,7 @@ class TwinClassFieldServiceDuplicateTest {
 
             twinClassFieldDuplicateService.duplicate(List.of(duplicateOf(srcField, dstClassId, "new_key")));
 
-            verify(i18nService).commitDuplicates(argThat(m -> m == null || m.isEmpty()));
+            verify(i18nService).duplicateTranslations(argThat(m -> m == null || m.isEmpty()));
         }
     }
 
