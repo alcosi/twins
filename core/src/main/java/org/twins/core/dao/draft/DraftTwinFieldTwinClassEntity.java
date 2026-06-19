@@ -1,13 +1,9 @@
 package org.twins.core.dao.draft;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.UuidUtils;
-import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -55,9 +51,16 @@ public class DraftTwinFieldTwinClassEntity {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClassEntity;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
+    private DraftEntity draftSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DraftEntity draft;
 }
