@@ -1,6 +1,5 @@
 package org.twins.core.domain;
 
-import org.cambium.common.util.UuidUtils;
 import org.twins.core.service.EntityDuplicateService;
 
 import java.util.*;
@@ -72,19 +71,8 @@ public class EntityDuplicateCollector {
         return entries.get(key);
     }
 
-    /**
-     * Registers a fresh duplicate entry under {@code key} and reserves a new UUID for the
-     * future newEntity. The reserved id is stored both on the entry and on the duplicate
-     * ({@link EntityDuplicate#setNewEntityId}) so subclasses can read it inside
-     * {@code createNewEntity} via {@code new EntityClass().setId(duplicate.getReservedNewId())}.
-     */
     public void register(DuplicateKey key, EntityDuplicate<?, ?> duplicate) {
-        duplicate.setNewEntityId(generateNewId());
         entries.put(key, duplicate);
-    }
-
-    private UUID generateNewId() {
-        return UuidUtils.generate();
     }
 
     /**

@@ -80,7 +80,7 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     protected TwinClassFieldEntity createNewEntity(TwinClassFieldDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinClassFieldEntity original = duplicate.getOriginalEntity();
         return new TwinClassFieldEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(null)
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
                 .setFieldTyperFeaturerId(original.getFieldTyperFeaturerId())
                 .setFieldTyperParams(original.getFieldTyperParams())

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -87,7 +88,7 @@ public class FactoryMultiplierDuplicateService extends EntityDuplicateService<Fa
     protected TwinFactoryMultiplierEntity createNewEntity(FactoryMultiplierDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryMultiplierEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(UuidUtils.generate())
                 .setTwinFactoryId(src.getTwinFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setMultiplierFeaturerId(src.getMultiplierFeaturerId())

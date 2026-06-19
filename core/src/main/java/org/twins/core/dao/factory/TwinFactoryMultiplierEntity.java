@@ -12,6 +12,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_factory_multiplier")
-public class TwinFactoryMultiplierEntity implements EasyLoggable {
+public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

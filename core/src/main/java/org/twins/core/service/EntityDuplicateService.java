@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.EntityDuplicate;
 import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.EntityDuplicateCollector.DuplicateKey;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.*;
@@ -39,7 +40,7 @@ import java.util.function.Predicate;
  * @param <P> parent entity type — {@code Void} for top-level entities
  */
 @Slf4j
-public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E, P> {
+public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E extends Identifiable, P> {
 
     protected abstract EntitySecureFindServiceImpl<E> entityService();
 
@@ -303,7 +304,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
         var key = new DuplicateKey(getEntityClass(), originalId, newParentId);
         var existing = duplicateCollector.getEntry(key);
         if (existing != null) {
-            return existing.getNewEntityId();
+            return existing.getNewEntity().getId();
         }
         D duplicate = createNewDuplicate();
         duplicate
@@ -313,7 +314,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E,
         duplicateCollector.registerService(getEntityClass(), this);
         duplicateCollector.register(key, duplicate);
         collect(duplicateCollector, List.of(duplicate));
-        return duplicateCollector.getEntry(key).getNewEntityId();
+        return duplicateCollector.getEntry(key).getNewEntity().getId();
     }
 
     // === Commit phase ===

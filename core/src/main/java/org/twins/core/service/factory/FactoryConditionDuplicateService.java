@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -83,7 +84,7 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
     protected TwinFactoryConditionEntity createNewEntity(FactoryConditionDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var src = duplicate.getOriginalEntity();
         return new TwinFactoryConditionEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(UuidUtils.generate())
                 .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
                 .setConditionerFeaturerId(src.getConditionerFeaturerId())
                 .setConditionerParams(src.getConditionerParams())

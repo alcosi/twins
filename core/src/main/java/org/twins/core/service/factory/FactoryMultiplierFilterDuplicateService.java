@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -92,7 +93,7 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
             newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
         }
         return new TwinFactoryMultiplierFilterEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(UuidUtils.generate())
                 .setTwinFactoryMultiplierId(src.getTwinFactoryMultiplierId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setTwinFactoryConditionSetId(newConditionSetId)

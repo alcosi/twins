@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -97,7 +98,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         var apiUser = authService.getApiUser();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
         return new TwinFactoryEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(UuidUtils.generate())
                 .setKey(duplicate.getNewKey())
                 .setCreatedByUserId(apiUser.getUser().getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))

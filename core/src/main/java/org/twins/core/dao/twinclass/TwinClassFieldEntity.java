@@ -14,6 +14,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
@@ -28,7 +29,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants
-public class TwinClassFieldEntity implements EasyLoggable {
+public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
 
     @Id
     private UUID id;

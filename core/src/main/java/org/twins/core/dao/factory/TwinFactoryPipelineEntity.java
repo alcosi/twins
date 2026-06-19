@@ -12,6 +12,7 @@ import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_pipeline")
-public class TwinFactoryPipelineEntity implements EasyLoggable {
+public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

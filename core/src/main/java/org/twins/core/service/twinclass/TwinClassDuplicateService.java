@@ -89,7 +89,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
         TwinClassEntity original = duplicate.getOriginalEntity();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
         return new TwinClassEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(null)
                 .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
                 .setCreatedByUserId(authService.getApiUser().getUser().getId())
                 .setPermissionSchemaSpace(original.getPermissionSchemaSpace())

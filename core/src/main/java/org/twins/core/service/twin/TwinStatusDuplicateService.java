@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,7 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     protected TwinStatusEntity createNewEntity(TwinStatusDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinStatusEntity original = duplicate.getOriginalEntity();
         return new TwinStatusEntity()
-                .setId(duplicate.getNewEntityId())
+                .setId(UuidUtils.generate())
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setInheritable(original.getInheritable())
                 .setBackgroundColor(original.getBackgroundColor())
