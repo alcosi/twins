@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.checkStatusIdWithFreeze;
+import static org.twins.core.dao.specifications.twin.TwinSpecification.checkSpaceRoleUsersMembership;
 
 public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
 
@@ -63,6 +64,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdExcludeList(), true, true, ownerBusinessAccountIdFieldPath),
+                checkSpaceRoleUsersMembership(twinSearch.getSpaceRoleUsersList()),
                 checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), twinSearch.isCheckFreezeStatus()),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
