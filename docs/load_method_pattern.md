@@ -55,11 +55,12 @@ public void loadTwinflowSchema(Collection<DomainBusinessAccountEntity> srcCollec
 Used for calculated values that do not exist as a separate entity.
 
 ```java
-public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
-    var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getUsersCount);
+// DomainBusinessAccountService.loadUserCount()
+public void loadUserCount(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+    var needLoad = getNeedLoad(srcCollection, DomainBusinessAccountEntity::getUsersCount);
     if (MapUtils.isEmpty(needLoad))
         return;
-    List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.keySet(), domainId);
+    List<EntryCount> entryCounts = domainBusinessAccountUserService.getUsersCount(needLoad.keySet());
     for (EntryCount entryCount : entryCounts) {
         needLoad.get(entryCount.id()).setUsersCount(entryCount.count());
     }
@@ -199,7 +200,7 @@ public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceExc
 | Variant | Scenario                | Key Tools                            | Example                                     |
 | ------- | ----------------------- | ------------------------------------ | ------------------------------------------- |
 | A       | ManyToOne by FK         | `EntitySecureFindServiceImpl.load()` | `loadTwinflowSchema`, `loadTwinClassSchema` |
-| B       | Aggregation (count/sum) | `getNeedLoad()`, aggregating SQL     | `loadUserCountForDomainBusinessAccounts`    |
+| B       | Aggregation (count/sum) | `getNeedLoad()`, aggregating SQL     | `loadUserCount`, `loadTwinCount`            |
 | D       | One-to-many             | `Kit`, `KitGrouped`                  | `loadAttributes`, `loadTags`, `loadMarkers` |
 
 ## Naming Conventions
@@ -250,8 +251,7 @@ The parent service's load method calls the target service's `.load()` under the 
 | Service                               | Method                                                                | Variant       |
 | ------------------------------------- | --------------------------------------------------------------------- | ------------- |
 | `DomainBusinessAccountService`        | `loadTwinflowSchema`, `loadTwinClassSchema`, `loadNotificationSchema` | A             |
-| `UserService`                         | `loadUserCountForDomainBusinessAccounts`                              | B             |
-| `TwinService`                         | `loadTwinCountForDomainBusinessAccounts`                              | B             |
+| `DomainBusinessAccountService`        | `loadUserCount`, `loadTwinCount`                                      | B             |
 | `TwinTagService`                      | `loadTags`                                                            | D             |
 | `AttachmentService`                   | `loadAttachments`                                                     | D             |
 | `CommentService`                      | `loadAttachments`                                                     | D             |

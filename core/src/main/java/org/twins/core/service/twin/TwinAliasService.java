@@ -67,7 +67,7 @@ public class TwinAliasService extends TwinsEntitySecureFindService<TwinAliasEnti
     public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         var twin = twinAliasRepository.findTwinByAlias(
-                twinAlias, apiUser.getDomainId(), apiUser.getDomainId(), apiUser.getUserId());
+                twinAlias, apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId());
         if (twin == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
         return twin;

@@ -668,6 +668,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         twinFieldSpaceUserKit = null;
         twinFieldTwinClassKit = null;
         twinFieldAttributeKit = null;
+        twinFieldDecimalKit = null;
+        twinFieldTimestampKit = null;
+        twinFieldEditability = null;
 
         // Calculated
         twinFieldCalculated = null;

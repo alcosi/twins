@@ -108,19 +108,11 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         }
         if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
             twinService.loadFaces(src);
-
-            faceRestDTOMapper.postpone(
-                    src.getPageFace(),
-                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
-            );
-            faceRestDTOMapper.postpone(
-                    src.getBreadCrumbsFace(),
-                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
-            );
-
             dst
                     .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                     .pageFaceId(faceService.resolvePageFaceId(src));
+            faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
+            faceRestDTOMapper.postpone(src.getBreadCrumbsFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
         }
     }
 
@@ -144,6 +136,9 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         }
         if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
             twinService.loadUser(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
+            twinService.loadFaces(srcCollection);
         }
     }
 
