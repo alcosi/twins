@@ -210,28 +210,40 @@ public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceExc
 
 ## Load Method Placement
 
-Load methods are placed in the service that owns the corresponding repository (i.e., the service managing the child entity), not in the parent entity's service. A coordinating method (e.g., `loadFactoryElements`) may reside in the parent service and delegate to sub-services.
+Load methods are placed in the service that **owns the entity being loaded into** (i.e., the service managing the parent entity that holds the `@Transient` runtime field), not in the service of the related (target) entity. The method delegates to the target entity's service via `.load()` / `.loadKit()` from `EntitySecureFindServiceImpl`.
 
-**Why:** the service managing an entity has access to its repository and understands its loading specifics. This reduces coupling — the parent service doesn't bloat with load methods for every child type.
+**Why:** mappers and other consumers call a single method on the parent service — `twinClassService.loadPermissions(...)` — instead of weaving together calls to `permissionService.load(...)`, `userService.load(...)`, etc. themselves. Keeping the orchestrator on the parent service keeps mapper code thin, and the parent service is the natural place that knows which runtime fields a parent entity needs.
+
+The target service still provides the generic `.load()` / `.loadKit()` helper — it does not need to know anything about the parent entity.
 
 **Example:**
 ```
-TwinFactoryEntity
-  ├── twinFactoryMultiplierKit       → FactoryMultiplierService.loadFactoryMultipliers()
-  ├── twinFactoryPipelineKit         → FactoryPipelineService.loadFactoryPipelines()
-  ├── twinFactoryBranchKit           → FactoryBranchService.loadFactoryBranches()
-  ├── twinFactoryEraserKit           → FactoryEraserService.loadFactoryErasers()
-  └── twinFactoryTriggerKit          → FactoryTriggerService.loadFactoryTriggers()
+TwinClassEntity (parent)
+  ├── viewPermission, createPermission    → TwinClassService.loadPermissions()
+  │                                         (delegates to permissionService.load(...))
+  ├── twinClassSchema, twinflowSchema     → TwinClassService.loadSchemas()
+  └── ...
 
-TwinFactoryPipelineEntity
-  └── twinFactoryPipelineStepKit     → FactoryPipelineStepService.loadFactoryPipelineSteps()
+DomainBusinessAccountEntity (parent)
+  ├── twinflowSchema                     → DomainBusinessAccountService.loadTwinflowSchema()
+  ├── twinClassSchema                    → DomainBusinessAccountService.loadTwinClassSchema()
+  ├── permissionSchema                   → DomainBusinessAccountService.loadPermissionSchema()
+  ├── notificationSchema                 → DomainBusinessAccountService.loadNotificationSchema()
+  └── tier                               → DomainBusinessAccountService.loadTier()
 
-TwinFactoryMultiplierEntity
-  └── twinFactoryMultiplierFilterKit → FactoryMultiplierService.loadFactoryMultiplierFilters()
+The parent service's load method calls the target service's `.load()` under the hood:
 
-Coordination:
-  TwinFactoryService.loadFactoryElements() — delegates to all sub-services
+  TwinClassService.loadPermissions(twinClasses):
+      permissionService.load(twinClasses,
+          new LoadedField<>(TwinClassEntity::getViewPermissionId,
+                            TwinClassEntity::getViewPermission,
+                            TwinClassEntity::setViewPermission),
+          new LoadedField<>(TwinClassEntity::getCreatePermissionId,
+                            TwinClassEntity::getCreatePermission,
+                            TwinClassEntity::setCreatePermission));
 ```
+
+**When the parent entity has no service of its own**, the load method can live on the target service as a fallback. The method then takes the parent entity collection and uses its FK/runtime getters and setter. This is a pragmatic deviation — prefer creating or using the parent service when possible.
 
 ## Examples in the Codebase
 

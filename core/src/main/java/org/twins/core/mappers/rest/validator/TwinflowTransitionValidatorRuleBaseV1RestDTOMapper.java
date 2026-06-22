@@ -11,8 +11,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowTransitionValidatorRuleMode;
-import org.twins.core.service.twin.TwinValidatorSetService;
-import org.twins.core.service.validator.TwinValidatorService;
+import org.twins.core.service.twinflow.TwinflowTransitionValidatorService;
 
 @Component
 @RequiredArgsConstructor
@@ -25,8 +24,7 @@ public class TwinflowTransitionValidatorRuleBaseV1RestDTOMapper extends RestSimp
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.class})
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
-    private final TwinValidatorSetService twinValidatorSetService;
-    private final TwinValidatorService twinValidatorService;
+    private final TwinflowTransitionValidatorService twinflowTransitionValidatorService;
 
     @Override
     public void map(TwinflowTransitionValidatorRuleEntity src, TransitionValidatorRuleBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -49,7 +47,7 @@ public class TwinflowTransitionValidatorRuleBaseV1RestDTOMapper extends RestSimp
                            src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
         if (mapperContext.hasModeButNot(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.HIDE)) {
-            twinValidatorService.loadValidators(src);
+            twinflowTransitionValidatorService.loadValidators(src);
             dst.setTwinValidators(twinValidatorV1RestDTOMapper.convertCollection(
                     src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.SHORT)));
         }

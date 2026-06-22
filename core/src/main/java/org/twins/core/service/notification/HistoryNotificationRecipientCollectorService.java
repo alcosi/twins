@@ -34,6 +34,8 @@ import java.util.stream.StreamSupport;
 public class HistoryNotificationRecipientCollectorService extends EntitySecureFindServiceImpl<HistoryNotificationRecipientCollectorEntity> {
     private final HistoryNotificationRecipientCollectorRepository repository;
     private final HistoryNotificationRecipientCollectorUpdateDTOReverseMapper updateDTOReverseMapper;
+    @Lazy
+    private final HistoryNotificationRecipientService historyNotificationRecipientService;
 
     @Override
     public CrudRepository<HistoryNotificationRecipientCollectorEntity, UUID> entityRepository() {
@@ -124,5 +126,14 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
                 RecipientResolver.class, changesHelper);
     }
 
+    public void loadHistoryNotificationRecipient(HistoryNotificationRecipientCollectorEntity src) throws ServiceException {
+        loadHistoryNotificationRecipient(Collections.singletonList(src));
+    }
 
+    public void loadHistoryNotificationRecipient(Collection<HistoryNotificationRecipientCollectorEntity> srcCollection) throws ServiceException {
+        historyNotificationRecipientService.load(srcCollection,
+                HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipientId,
+                HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipient,
+                HistoryNotificationRecipientCollectorEntity::setHistoryNotificationRecipient);
+    }
 }

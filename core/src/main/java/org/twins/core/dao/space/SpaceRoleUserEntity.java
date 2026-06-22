@@ -45,23 +45,29 @@ public class SpaceRoleUserEntity implements EasyLoggable, Identifiable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twin;
+    private TwinEntity twinSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "space_role_id", insertable = false, updatable = false, nullable = false)
-    private SpaceRoleEntity spaceRole;
+    private SpaceRoleEntity spaceRoleSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private UserEntity user;
+    private UserEntity userSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -70,6 +76,21 @@ public class SpaceRoleUserEntity implements EasyLoggable, Identifiable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity twin;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private SpaceRoleEntity spaceRole;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity user;
 
     @Transient
     @EqualsAndHashCode.Exclude

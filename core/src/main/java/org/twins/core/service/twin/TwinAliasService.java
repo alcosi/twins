@@ -9,6 +9,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,12 +20,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 import static org.twins.core.enums.twin.TwinAliasType.*;
 
@@ -33,22 +36,41 @@ import static org.twins.core.enums.twin.TwinAliasType.*;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinAliasService {
+public class TwinAliasService extends TwinsEntitySecureFindService<TwinAliasEntity> {
     private final TwinAliasRepository twinAliasRepository;
     private final AuthService authService;
-    private final EntitySmartService entitySmartService;
+    @Lazy
+    private final TwinService twinService;
+
+    @Override
+    public CrudRepository<TwinAliasEntity, UUID> entityRepository() {
+        return twinAliasRepository;
+    }
+
+    @Override
+    public Function<TwinAliasEntity, UUID> entityGetIdFunction() {
+        return TwinAliasEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinAliasEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(TwinAliasEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 
     private final Lock counterLock = new ReentrantLock();
 
-    public TwinAliasEntity findAlias(String twinAlias) throws ServiceException {
+    public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-        UUID businessAccountId = apiUser.getBusinessAccountId();
-        UUID userId = apiUser.getUserId();
-        TwinAliasEntity twinAliasEntity = twinAliasRepository.findByAlias(twinAlias, domainId, businessAccountId, userId);
-        if (twinAliasEntity == null)
+        var twin = twinAliasRepository.findTwinByAlias(
+                twinAlias, apiUser.getDomainId(), apiUser.getDomainId(), apiUser.getUserId());
+        if (twin == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
-        return twinAliasEntity;
+        return twin;
     }
 
     public void loadAliases(TwinEntity twinEntity) {
@@ -142,6 +164,17 @@ public class TwinAliasService {
         UUID domainId = apiUser.getDomainId();
         List<UUID> aliasToDelete = twinAliasRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(aliasToDelete, twinAliasRepository);
+    }
+
+    public void loadTwin(TwinAliasEntity src) throws ServiceException {
+        loadTwin(Collections.singletonList(src));
+    }
+
+    public void loadTwin(Collection<TwinAliasEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                TwinAliasEntity::getTwinId,
+                TwinAliasEntity::getTwin,
+                TwinAliasEntity::setTwin);
     }
 }
 

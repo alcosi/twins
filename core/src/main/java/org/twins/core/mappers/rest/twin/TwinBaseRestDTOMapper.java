@@ -107,7 +107,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             dst.aliases(twinAliasRestDTOMapper.convert(src, mapperContext));
         }
         if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
-            faceService.loadFaces(src);
+            twinService.loadFaces(src);
 
             faceRestDTOMapper.postpone(
                     src.getPageFace(),

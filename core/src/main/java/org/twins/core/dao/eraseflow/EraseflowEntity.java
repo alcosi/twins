@@ -53,11 +53,13 @@ public class EraseflowEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassEntity twinClass;
+    private TwinClassEntity twinClassSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -66,11 +68,6 @@ public class EraseflowEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUserSpecOnly;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private UserEntity createdByUser;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
@@ -94,6 +91,16 @@ public class EraseflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<EraseflowLinkCascadeEntity, UUID> cascadeLinkKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity twinClass;
 
     @Override
     public String easyLog(Level level) {

@@ -13,7 +13,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.space.SpaceRoleUserService;
 
+import java.util.Collection;
 import java.util.UUID;
 
 @Component
@@ -24,6 +26,7 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
     private final UserRestDTOMapper userRestDTOMapper;
 
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;
+    private final SpaceRoleUserService spaceRoleUserService;
 
     @Override
     public void map(UserRefSpaceRole src, UserWithinSpaceRolesRsDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -32,6 +35,7 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
             userRestDTOMapper.postpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Space2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(SpaceRoleMode.HIDE)) {
+            spaceRoleUserService.loadSpaceRole(src.getRoles());
             Kit<SpaceRoleEntity, UUID> spaceRoles = new Kit<>(src.getRoles().stream().map(SpaceRoleUserEntity::getSpaceRole).toList(), SpaceRoleEntity::getId);
             dst.setSpaceRoleIdsList(spaceRoles.getIdSet());
             spaceRoleDTOMapper.postpone(spaceRoles, mapperContext);
@@ -41,5 +45,12 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
     @Override
     public String getObjectCacheId(UserRefSpaceRole src) {
         return src.getUser().getId().toString();
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<UserRefSpaceRole> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasModeButNot(SpaceRoleMode.HIDE)) {
+            spaceRoleUserService.loadSpaceRole(srcCollection.stream().map(UserRefSpaceRole::getRoles).flatMap(Collection::stream) .toList());
+        }
     }
 }

@@ -45,10 +45,17 @@ public class DraftTwinFieldTwinClassEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
+    private TwinClassEntity twinClassEntitySpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClassEntity;
 
     @Deprecated // for specification only

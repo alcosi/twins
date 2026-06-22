@@ -39,23 +39,29 @@ public class SpaceRoleUserGroupEntity {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twin;
+    private TwinEntity twinSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "space_role_id", insertable = false, updatable = false, nullable = false)
-    private SpaceRoleEntity spaceRole;
+    private SpaceRoleEntity spaceRoleSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
-    private UserGroupEntity userGroup;
+    private UserGroupEntity userGroupSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -68,7 +74,22 @@ public class SpaceRoleUserGroupEntity {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private UserGroupEntity userGroup;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity twin;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private SpaceRoleEntity spaceRole;
 
 //    @Deprecated //for specification only
 //    @EqualsAndHashCode.Exclude

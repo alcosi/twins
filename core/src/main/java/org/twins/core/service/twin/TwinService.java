@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.QuotaKey;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
@@ -56,6 +55,7 @@ import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -66,6 +66,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
 
 import java.math.BigDecimal;
@@ -130,6 +131,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldAttributeService twinFieldAttributeService;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final FaceService faceService;
+    @Lazy
+    private final TwinflowTransitionService twinflowTransitionService;
     private final UserService userService;
     @Autowired
     private TwinflowFactoryService twinflowFactoryService;
@@ -230,7 +235,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {
-        return twinAliasService.findAlias(twinAlias).getTwin();
+        return twinAliasService.findTwinByAlias(twinAlias);
     }
 
     public TwinEntity findHeadTwin(UUID twinId) {
@@ -1911,19 +1916,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinRepository.countPermissionSchemaMismatches();
     }
 
-    public void loadTwinCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
-        loadTwinCountForDomainBusinessAccounts(Collections.singletonList(dba));
-    }
-
-
-    public void loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
-        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getTwinsCount);
-        if (MapUtils.isEmpty(needLoad))
-            return;
-        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
-        for (var entryCount : entryCounts) {
-            needLoad.get(entryCount.id()).setTwinsCount(entryCount.count());
-        }
+    public List<EntryCount> getTwinsCount(Set<UUID> businessAccounts) throws ServiceException {
+        return twinRepository.countTwinsInBusinessAccounts(businessAccounts, authService.getApiUser().getDomainId());
     }
 
     public boolean isRequired(TwinEntity twin, TwinClassFieldEntity twinClassField) {
@@ -2240,5 +2234,45 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (dep != null) {
             acc.add(dep);
         }
+    }
+
+    public void loadAttachments(TwinEntity src) {
+        attachmentService.loadAttachments(src);
+    }
+
+    public void loadAttachments(Collection<TwinEntity> srcCollection) {
+        attachmentService.loadAttachments(srcCollection);
+    }
+
+    public void loadAttachmentsCount(TwinEntity src) {
+        attachmentService.loadAttachmentsCount(Collections.singletonList(src));
+    }
+
+    public void loadAttachmentsCount(Collection<TwinEntity> srcCollection) {
+        attachmentService.loadAttachmentsCount(srcCollection);
+    }
+
+    public void loadTwinLinks(TwinEntity src) throws ServiceException {
+        twinLinkService.loadTwinLinks(src);
+    }
+
+    public void loadTwinLinks(Collection<TwinEntity> srcCollection) throws ServiceException {
+        twinLinkService.loadTwinLinks(srcCollection);
+    }
+
+    public void loadValidTransitions(TwinEntity src) throws ServiceException {
+        twinflowTransitionService.loadValidTransitions(src);
+    }
+
+    public void loadValidTransitions(Collection<TwinEntity> srcCollection) throws ServiceException {
+        twinflowTransitionService.loadValidTransitions(srcCollection);
+    }
+
+    public void loadFaces(TwinEntity src) {
+        faceService.loadFaces(src);
+    }
+
+    public void loadFaces(Collection<TwinEntity> srcCollection) {
+        faceService.loadFaces(srcCollection);
     }
 }

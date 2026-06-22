@@ -1,9 +1,7 @@
 package org.twins.core.dao.notification;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -39,16 +37,30 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @Column(name = "unique_in_batch")
     private boolean uniqueInBatch = false;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_channel_id", insertable = false, updatable = false)
+    private NotificationChannelEntity notificationChannelSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
+    private NotificationContextEntity notificationContextSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private NotificationChannelEntity notificationChannel;
 
+    @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
     private NotificationContextEntity notificationContext;
 
     public String easyLog(Level level) {

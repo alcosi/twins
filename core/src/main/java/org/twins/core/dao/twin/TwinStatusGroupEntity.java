@@ -1,9 +1,7 @@
 package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
 
@@ -33,9 +31,16 @@ public class TwinStatusGroupEntity {
     @Column(name = "description")
     private String description;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    private DomainEntity domainSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DomainEntity domain;
 }

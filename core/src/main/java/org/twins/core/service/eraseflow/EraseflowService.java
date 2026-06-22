@@ -20,6 +20,7 @@ import org.twins.core.dao.eraseflow.EraseflowRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserService;
 
@@ -38,6 +39,8 @@ public class EraseflowService extends EntitySecureFindServiceImpl<EraseflowEntit
     @Lazy
     private final TwinflowService twinflowService;
     private final UserService userService;
+    @Lazy
+    private final TwinClassService twinClassService;
 
 
     @Override
@@ -111,6 +114,17 @@ public class EraseflowService extends EntitySecureFindServiceImpl<EraseflowEntit
                 EraseflowEntity::getCreatedByUserId,
                 EraseflowEntity::getCreatedByUser,
                 EraseflowEntity::setCreatedByUser);
+    }
+
+    public void loadTwinClass(EraseflowEntity src) throws ServiceException {
+        loadTwinClass(Collections.singletonList(src));
+    }
+
+    public void loadTwinClass(Collection<EraseflowEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                EraseflowEntity::getTwinClassId,
+                EraseflowEntity::getTwinClass,
+                EraseflowEntity::setTwinClass);
     }
 }
 
