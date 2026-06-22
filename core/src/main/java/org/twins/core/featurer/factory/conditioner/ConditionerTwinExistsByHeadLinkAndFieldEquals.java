@@ -32,6 +32,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
 @Component
 @Featurer(id = FeaturerTwins.ID_2443,
         name = "Twin exists by head, link and field equals",
-        description = "True if twin exists with same head, dst link and numeric field value.")
+        description = "True if twin exists with same head, dst link, numeric field value and optional dst twin assignee.")
 @Slf4j
 @RequiredArgsConstructor
 public class ConditionerTwinExistsByHeadLinkAndFieldEquals extends Conditioner {
@@ -61,18 +62,22 @@ public class ConditionerTwinExistsByHeadLinkAndFieldEquals extends Conditioner {
     @FeaturerParam(name = "Equals twin class field id", description = "Numeric field for equals compare (e.g. price)", order = 4)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
-    @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 5, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Match assignee", description = "If true, add dst twin assignerUserId to search when set; ignore assignee when dst twin has none", order = 5, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean matchAssignee = new FeaturerParamBoolean("matchAssignee");
+
+    @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 6, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeFactoryInputTwin = new FeaturerParamBoolean("excludeFactoryInputTwin");
 
-    @FeaturerParam(name = "Match factory item output twin", description = "If true, checks that factory item output twin matches search (for multiplier filter on TwinUpdate)", order = 6, optional = true, defaultValue = "false")
+    @FeaturerParam(name = "Match factory item output twin", description = "If true, checks that factory item output twin matches search (for multiplier filter on TwinUpdate)", order = 7, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean matchFactoryItemOutputTwin = new FeaturerParamBoolean("matchFactoryItemOutputTwin");
 
-    @FeaturerParam(name = "Flavor data list option id", description = "Optional twin flavor for location-specific uniqueness", order = 7, optional = true)
+    @FeaturerParam(name = "Flavor data list option id", description = "Optional twin flavor for location-specific uniqueness", order = 8, optional = true)
     public static final FeaturerParamUUID flavorDataListOptionId = new FeaturerParamUUIDTwinsDataListOptionId("flavorDataListOptionId");
 
     private final TwinSearchServiceV2 twinSearchService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinLinkService twinLinkService;
+    private final TwinService twinService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -122,6 +127,15 @@ public class ConditionerTwinExistsByHeadLinkAndFieldEquals extends Conditioner {
                 .setFieldsFilter(new TwinFieldFilter()
                         .addClause(new TwinFieldClause()
                                 .addCondition(buildNumericFieldEquals(equalsFieldId, equalsValue))));
+
+        if (matchAssignee.extract(properties)) {
+            UUID assigneeUserId = resolveAssigneeUserIdFromDstTwin(dstTwinId);
+            if (assigneeUserId != null) {
+                search.addAssigneeUserId(assigneeUserId, true);
+            } else {
+                log.info("Dst twin [{}] has no assignee, assignee ignored in unique twin search", dstTwinId);
+            }
+        }
 
         UUID flavorId = flavorDataListOptionId.extract(properties);
         if (flavorId != null) {
@@ -191,6 +205,10 @@ public class ConditionerTwinExistsByHeadLinkAndFieldEquals extends Conditioner {
             }
         }
         return null;
+    }
+
+    private UUID resolveAssigneeUserIdFromDstTwin(UUID dstTwinId) throws ServiceException {
+        return twinService.findEntitySafe(dstTwinId).getAssignerUserId();
     }
 
     private TwinFieldSearch buildNumericFieldEquals(UUID fieldId, double value) throws ServiceException {
