@@ -20,7 +20,7 @@ import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -214,21 +214,23 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @ToString.Exclude
     private ResourceEntity iconDarkResource;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18nSpecOnly;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18nSpecOnly;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)

@@ -111,6 +111,10 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         deleteSafe(id);
     }
 
+    public List<TwinFactoryPipelineStepEntity> findByTwinFactoryPipelineIdIn(Collection<UUID> pipelineIds) {
+        return repository.findByTwinFactoryPipelineIdInOrderByOrderAsc(pipelineIds);
+    }
+
     public void loadFactoryPipelineSteps(TwinFactoryPipelineEntity pipeline) {
         loadFactoryPipelineSteps(Collections.singletonList(pipeline));
     }

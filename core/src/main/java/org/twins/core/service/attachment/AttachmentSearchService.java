@@ -98,10 +98,10 @@ public class AttachmentSearchService extends EntitySearchService
             case size -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.size);
             case order -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.order);
             case twinName -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.twinSpecOnly, TwinEntity.Fields.name);
-            case twinClassFieldName -> I18nSpecification.toSortSpecification(ascending, locale, TwinAttachmentEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.nameI18nSpecOnly);
+            case twinClassFieldName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinAttachmentEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.nameI18nTranslationsSpecOnly);
             case authorUserName -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
-            case twinflowTransitionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinAttachmentEntity.Fields.twinflowTransitionSpecOnly, TwinflowTransitionEntity.Fields.nameI18n);
-            case viewPermissionName -> I18nSpecification.toSortSpecification(ascending, locale, TwinAttachmentEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nSpecOnly);
+            case twinflowTransitionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinAttachmentEntity.Fields.twinflowTransitionSpecOnly, TwinflowTransitionEntity.Fields.nameI18nTranslationsSpecOnly);
+            case viewPermissionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinAttachmentEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nTranslationsSpecOnly);
         };
     }
 

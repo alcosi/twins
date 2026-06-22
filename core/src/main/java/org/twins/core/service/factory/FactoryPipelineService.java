@@ -117,6 +117,10 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         return updateSafe(dbEntity, changesHelper);
     }
 
+    public List<TwinFactoryPipelineEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
+
     public void loadFactoryPipelines(TwinFactoryEntity factory) {
         loadFactoryPipelines(Collections.singletonList(factory));
     }

@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
@@ -34,7 +33,6 @@ import java.util.function.Function;
 public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactoryEraserEntity> {
     @Getter
     private final TwinFactoryEraserRepository repository;
-    private final AuthService authService;
     @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinClassService twinClassService;
@@ -101,6 +99,10 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         deleteSafe(id);
     }
 
+    public List<TwinFactoryEraserEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
+
     public void loadFactoryErasers(TwinFactoryEntity factory) {
         loadFactoryErasers(Collections.singletonList(factory));
     }
@@ -116,12 +118,12 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryEraserEntity::getTwinFactoryId);
     }
 
-    public void loadConditionSet(TwinFactoryEraserEntity src) throws ServiceException {
-        loadConditionSet(Collections.singletonList(src));
+    public void loadConditionSets(TwinFactoryEraserEntity eraser) throws ServiceException {
+        loadConditionSets(Collections.singleton(eraser));
     }
 
-    public void loadConditionSet(List<TwinFactoryEraserEntity> srcCollection) throws ServiceException {
-        factoryConditionSetService.load(srcCollection,
+    public void loadConditionSets(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+        factoryConditionSetService.load(erasers,
                 TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
                 TwinFactoryEraserEntity::getConditionSet,
                 TwinFactoryEraserEntity::setConditionSet);

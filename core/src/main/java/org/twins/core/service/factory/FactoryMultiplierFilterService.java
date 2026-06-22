@@ -63,6 +63,10 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
     }
 
+    public List<TwinFactoryMultiplierFilterEntity> findByTwinFactoryMultiplierIdIn(Collection<UUID> multiplierIds) {
+        return repository.findByTwinFactoryMultiplierIdIn(multiplierIds);
+    }
+
     public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
         loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
     }
@@ -78,12 +82,12 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
     }
 
-    public void loadConditionSet(TwinFactoryMultiplierFilterEntity src) throws ServiceException {
-        loadConditionSet(Collections.singletonList(src));
+    public void loadConditionSets(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
+        loadConditionSets(Collections.singleton(filter));
     }
 
-    public void loadConditionSet(List<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
-        factoryConditionSetService.load(srcCollection,
+    public void loadConditionSets(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+        factoryConditionSetService.load(filters,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
                 TwinFactoryMultiplierFilterEntity::getConditionSet,
                 TwinFactoryMultiplierFilterEntity::setConditionSet);

@@ -10,7 +10,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
@@ -19,10 +19,7 @@ import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -124,21 +121,23 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18nSpecOnly;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18nSpecOnly;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)

@@ -111,4 +111,21 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                 .filter(item -> itemId.equals(idExtractor.apply(item)))
                 .toList();
     }
+
+    public static <S, T> Set<T> collect(
+            Collection<S> source,
+            Function<S, T> extractor) {
+
+        Set<T> result = null;
+        for (S item : source) {
+            T value = extractor.apply(item);
+            if (value != null) {
+                if (result == null) {
+                    result = new HashSet<>();
+                }
+                result.add(value);
+            }
+        }
+        return result != null ? result : Collections.emptySet();
+    }
 }

@@ -20,7 +20,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.Set;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.space.SpaceRoleSpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.space.SpaceRoleSpecification.checkUuidIn;
 
@@ -51,10 +51,10 @@ public class SpaceRoleSearchService {
                 checkUuidIn(search.getBusinessAccountIdExcludeList(), true, false, SpaceRoleEntity.Fields.businessAccountId),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, SpaceRoleEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, SpaceRoleEntity.Fields.key),
-                joinAndSearchByI18NField(SpaceRoleEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), false, false),
-                joinAndSearchByI18NField(SpaceRoleEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(SpaceRoleEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), apiUser.getLocale(), false, false),
-                joinAndSearchByI18NField(SpaceRoleEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true)
+                joinAndSearchByI18NFieldDirect(SpaceRoleEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nLikeList(), apiUser.getLocale(), false, false),
+                joinAndSearchByI18NFieldDirect(SpaceRoleEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(SpaceRoleEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nLikeList(), apiUser.getLocale(), false, false),
+                joinAndSearchByI18NFieldDirect(SpaceRoleEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true)
         );
     }
 }

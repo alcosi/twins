@@ -19,7 +19,6 @@ import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,10 +33,6 @@ import java.util.function.Function;
 public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
-    @Lazy
-    private final TwinFactoryService twinFactoryService;
-    @Lazy
-    private final I18nService i18nService;
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
 
@@ -115,6 +110,10 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         return true;
     }
 
+    public List<TwinFactoryBranchEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return twinFactoryBranchRepository.findByTwinFactoryIdIn(factoryIds);
+    }
+
     public void loadFactoryBranches(TwinFactoryEntity factory) {
         loadFactoryBranches(Collections.singletonList(factory));
     }
@@ -130,12 +129,12 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryBranchEntity::getTwinFactoryId);
     }
 
-    public void loadConditionSet(TwinFactoryBranchEntity branch) throws ServiceException {
-        loadConditionSet(Collections.singletonList(branch));
+    public void loadConditionSets(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadConditionSets(Collections.singleton(branch));
     }
 
-    public void loadConditionSet(List<TwinFactoryBranchEntity> srcCollection) throws ServiceException {
-        factoryConditionSetService.load(srcCollection,
+    public void loadConditionSets(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryConditionSetService.load(branches,
                 TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
                 TwinFactoryBranchEntity::getConditionSet,
                 TwinFactoryBranchEntity::setConditionSet);

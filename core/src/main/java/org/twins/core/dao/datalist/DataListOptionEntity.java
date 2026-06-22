@@ -1,17 +1,16 @@
 package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.enums.datalist.DataListStatus;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -98,21 +97,28 @@ public class DataListOptionEntity implements EasyLoggable {
     private BusinessAccountEntity businessAccount;
 
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-    private I18nEntity optionI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "option_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> optionI18nTranslationsSpecOnly;
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptions;
-
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity optionI18n;
 
     public String easyLog(Level level) {
         return switch (level) {

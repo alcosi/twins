@@ -31,7 +31,7 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
 
     private BigDecimal prepare(BigDecimal v, boolean replace) {
         if (v == null) {
-            return BigDecimal.ZERO;
+            return replace ? BigDecimal.ONE : BigDecimal.ZERO;
         }
         if (replace && v.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ONE;

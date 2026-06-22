@@ -245,9 +245,9 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
             ChangesHelper changesHelper = new ChangesHelper();
             i18nService.updateI18nFieldForEntity(userGroup.getNameI18n(), I18nType.USER_GROUP_NAME, entity,
-                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18N, changesHelper);
+                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18NId, changesHelper);
             i18nService.updateI18nFieldForEntity(userGroup.getDescriptionI18n(), I18nType.USER_GROUP_DESCRIPTION, entity,
-                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18N, changesHelper);
+                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18NId, changesHelper);
             // todo for future, as at create
             // updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
 

@@ -12,5 +12,5 @@ import java.util.UUID;
 public interface TwinFactoryConditionRepository extends CrudRepository<TwinFactoryConditionEntity, UUID>, JpaSpecificationExecutor<TwinFactoryConditionEntity> {
     List<TwinFactoryConditionEntity> findByTwinFactoryConditionSetIdAndActiveTrue(UUID twinFactoryConditionSetId);
 
-    List<TwinFactoryConditionEntity> findByTwinFactoryConditionSetIdIn(Collection<UUID> twinFactoryConditionSetIds);
+    List<TwinFactoryConditionEntity> findByTwinFactoryConditionSetIdIn(Collection<UUID> conditionSetIds);
 }

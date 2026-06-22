@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.i18n.specifications.I18nSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
@@ -132,10 +133,12 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
                     return toSortSpecification(ascending, TwinEntity.Fields.createdAt);
                 case EXTERNAL_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.externalId);
+                case FLAVOR_DATA_LIST_OPTION_ID:
+                    return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.flavorDataListOptionSpecOnly, DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly);
                 case TWIN_CLASS_ID:
-                    return I18nSpecification.toSortSpecification(ascending, locale, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nSpecOnly);
+                    return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
                 case TWIN_STATUS_ID:
-                    return I18nSpecification.toSortSpecification(ascending, locale, TwinEntity.Fields.twinStatus, TwinStatusEntity.Fields.nameI18nSpecOnly);
+                    return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.twinStatus, TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly);
                 case OWNER_USER_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.ownerUser, UserEntity.Fields.name);
                 case ASSIGNEE_USER_ID:
@@ -158,6 +161,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     public String convertToEntityField(UUID twinClassFieldId) throws ServiceException {
         var basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
         if (basicField == TwinEntity.BasicField.HEAD_TWIN_ID
+                || basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID
                 || basicField == TwinEntity.BasicField.TWIN_CLASS_ID
                 || basicField == TwinEntity.BasicField.TWIN_STATUS_ID
                 || basicField == TwinEntity.BasicField.OWNER_USER_ID
@@ -175,6 +179,8 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
             entity.setTwinStatusId((UUID) value);
         else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID))
             entity.setOwnerUserId((UUID) value);
+        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_FLAVOR_DATA_LIST_OPTION_ID))
+            entity.setFlavorDataListOptionId((UUID) value);
         else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID))
             entity.setAssignerUserId((UUID) value);
         else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID))

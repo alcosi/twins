@@ -6,12 +6,13 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.status.StatusType;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -77,21 +78,23 @@ public class TwinStatusEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18nSpecOnly;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18nSpecOnly;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
     @Override
     public String easyLog(Level level) {

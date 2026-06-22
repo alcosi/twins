@@ -19,7 +19,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.Locale;
 import java.util.UUID;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
@@ -45,8 +45,8 @@ public class NotificationSchemaSearchService {
     private Specification<NotificationSchemaEntity> createNotificationSchemaSearchSpecification(NotificationSchemaSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return Specification.allOf(
-                joinAndSearchByI18NField(NotificationSchemaEntity.Fields.nameI18n, search.getNameLikeList(), locale, true, false),
-                joinAndSearchByI18NField(NotificationSchemaEntity.Fields.nameI18n, search.getNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(NotificationSchemaEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(NotificationSchemaEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), locale, true, true),
                 checkUuidIn(search.getIdList(), false, true, NotificationSchemaEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, NotificationSchemaEntity.Fields.id),
                 checkUuidIn(search.getCreatedByUserIdList(), false, true, NotificationSchemaEntity.Fields.createdByUserId),

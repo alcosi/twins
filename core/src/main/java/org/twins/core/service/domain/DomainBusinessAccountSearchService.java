@@ -101,7 +101,7 @@ public class DomainBusinessAccountSearchService extends EntitySearchService
             case twinflowSchemaName ->
                     toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.twinflowSchemaSpecOnly, TwinflowSchemaEntity.Fields.name);
             case notificationSchemaName ->
-                    I18nSpecification.toSortSpecification(ascending, locale, DomainBusinessAccountEntity.Fields.notificationSchemaSpecOnly, NotificationSchemaEntity.Fields.nameI18n);
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, DomainBusinessAccountEntity.Fields.notificationSchemaSpecOnly, NotificationSchemaEntity.Fields.nameI18nTranslationsSpecOnly);
             case tierName ->
                     toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.tier, TierEntity.Fields.name);
             case attachmentsStorageUsedCount ->

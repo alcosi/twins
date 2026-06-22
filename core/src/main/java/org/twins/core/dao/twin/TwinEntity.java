@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import lombok.AccessLevel;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -119,6 +120,17 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
+
+    @Column(name = "flavor_data_list_option_id")
+    private UUID flavorDataListOptionId;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "flavor_data_list_option_id", insertable = false, updatable = false)
+    private DataListOptionEntity flavorDataListOptionSpecOnly;
 
     @Column(name = "name")
     private String name;
@@ -567,6 +579,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         DESCRIPTION(Fields.description, SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TwinEntity::getDescription),
         EXTERNAL_ID(Fields.externalId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TwinEntity::getExternalId),
         OWNER_USER_ID(Fields.ownerUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID, TwinEntity::getOwnerUserId),
+        FLAVOR_DATA_LIST_OPTION_ID(Fields.flavorDataListOptionId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_FLAVOR_DATA_LIST_OPTION_ID, TwinEntity::getFlavorDataListOptionId),
         TWIN_CLASS_ID(Fields.twinClassId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID, TwinEntity::getTwinClassId),
         ASSIGNEE_USER_ID(Fields.assignerUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
         HEAD_TWIN_ID(Fields.headTwinId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID, TwinEntity::getHeadTwinId),

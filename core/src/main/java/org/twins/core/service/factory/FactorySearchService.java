@@ -17,7 +17,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.FactorySearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.factory.FactorySpecification.*;
 
 
@@ -44,9 +44,9 @@ public class FactorySearchService {
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryEntity.Fields.id),
                 checkFieldLikeIn(search.getKeyLikeList(), false, false, TwinFactoryEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinFactoryEntity.Fields.key),
-                joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true));
+                joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true));
     }
 }

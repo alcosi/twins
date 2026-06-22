@@ -78,6 +78,9 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Exclude dst twins with given links. AND join")
     public List<TwinSearchByLinkDTOv1> linksNoAllOfList;
 
+    @Schema(description = "Filter by space role")
+    public List<TwinSearchBySpaceRoleUserDTOv1> spaceRoleUsersList;
+
     @Schema(description = "Hierarchy ids filter")
     public Set<UUID> hierarchyTreeContainsIdList;
 
@@ -95,6 +98,12 @@ public class TwinSearchDTOv1 {
 
     @Schema(description = "Twin marker exclude list(data list options ids)")
     public Set<UUID> markerDataListOptionIdExcludeList;
+
+    @Schema(description = "Twin flavor data list option id list")
+    public Set<UUID> flavorDataListOptionIdList;
+
+    @Schema(description = "Twin flavor data list option id exclude list")
+    public Set<UUID> flavorDataListOptionIdExcludeList;
 
     @Schema(description = "Twin extends by twin class list ids")
     public Set<UUID> twinClassExtendsHierarchyContainsIdList;
@@ -243,6 +252,11 @@ public class TwinSearchDTOv1 {
         return this;
     }
 
+    public TwinSearchDTOv1 addSpaceRoleUsersListItem(TwinSearchBySpaceRoleUserDTOv1 item) {
+        this.spaceRoleUsersList = CollectionUtils.safeAdd(this.spaceRoleUsersList, item);
+        return this;
+    }
+
     public TwinSearchDTOv1 addHierarchyTreeContainsIdListItem(UUID item) {
         this.hierarchyTreeContainsIdList = CollectionUtils.safeAdd(this.hierarchyTreeContainsIdList, item);
         return this;
@@ -270,6 +284,16 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addMarkerDataListOptionIdExcludeListItem(UUID item) {
         this.markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(this.markerDataListOptionIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addFlavorDataListOptionIdListItem(UUID item) {
+        this.flavorDataListOptionIdList = CollectionUtils.safeAdd(this.flavorDataListOptionIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addFlavorDataListOptionIdExcludeListItem(UUID item) {
+        this.flavorDataListOptionIdExcludeList = CollectionUtils.safeAdd(this.flavorDataListOptionIdExcludeList, item);
         return this;
     }
 

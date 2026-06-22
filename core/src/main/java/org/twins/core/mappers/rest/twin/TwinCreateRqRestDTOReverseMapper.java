@@ -53,6 +53,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                         .setCreatedByUser(apiUser.getUser())
                         .setHeadTwinId(UuidUtils.fromStringOrNull(src.getHeadTwinId()))
                         .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                        .setFlavorDataListOptionId(src.getFlavorDataListOptionId())
                         .setDescription(src.getDescription())
                         .setExternalId(src.getExternalId()));
 

@@ -9,10 +9,12 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "LinkSearchRsV1")
+@Schema(name = "LinkSearchRsV1",
+        description = "Deprecated. Use LinkSearchRsDTOv2 — paired with the new sorted search request.")
 public class LinkSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;

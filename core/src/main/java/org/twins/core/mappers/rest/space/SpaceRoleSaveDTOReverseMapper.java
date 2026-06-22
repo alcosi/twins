@@ -24,8 +24,6 @@ public class SpaceRoleSaveDTOReverseMapper extends RestSimpleDTOMapper<SpaceRole
                 .setDescriptionI18n(descriptionI18n)
                 .setSpaceRole(
                 new SpaceRoleEntity()
-                        .setNameI18n(nameI18n)
-                        .setDescriptionI18n(descriptionI18n)
                         .setKey(src.getKey())
                         .setTwinClassId(src.getTwinClassId())
                         .setBusinessAccountId(src.getBusinessAccountId()));

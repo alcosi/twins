@@ -345,7 +345,7 @@ CREATE INDEX IF NOT EXISTS idx_i18n_translation_locale_translation
 3. **Whitelist** — enum values are the only allowed sort fields. Invalid value → 400 from Jackson.
 4. **Pageable without Sort** — when using Specification-based sorting, Sort in Pageable must be unsorted (`pagination.setSort(null)`).
 5. **Do not touch TwinSorter** — the existing feature-based Twin sorting mechanism solves a different problem (dynamic fields).
-6. **New `@ManyToOne` for sort JOINs** — if an entity lacks a `@ManyToOne` relationship needed for sort-field JOIN, add it following `entity_many_to_one_relations.md`: `<field>SpecOnly` with `@Getter(AccessLevel.NONE)`, `@Deprecated //for specification only`, `fetch = FetchType.LAZY`, plus a `@Transient` runtime field. Sort specifications reference the `SpecOnly` field name.
+6. **Relations for sort JOINs** — if an entity lacks a relationship needed for sort-field JOIN, add it following `entity_code_convention.md`. For plain relations: `<field>SpecOnly` with `@Getter(AccessLevel.NONE)`, `@Deprecated //for specification only`, `fetch = FetchType.LAZY`, plus a `@Transient` runtime field. For i18n sort fields, prefer the direct pattern (`<field>I18nTranslationsSpecOnly` `@OneToMany` with `referencedColumnName`) and call `I18nSpecification.toSortSpecificationDirect(...)`. Sort specifications reference the `SpecOnly` (or `TranslationsSpecOnly`) field name.
 
 ---
 

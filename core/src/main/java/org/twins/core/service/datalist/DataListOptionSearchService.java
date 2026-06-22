@@ -35,7 +35,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.EnumUtils.convertOrEmpty;
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
 
 //Log calls that took more than 2 seconds
@@ -101,8 +101,8 @@ public class DataListOptionSearchService extends EntitySecureFindServiceImpl<Dat
                 checkDataListKeyLikeIn(search.getDataListKeyExcludeList(), true, true),
                 checkStatusLikeIn(convertOrEmpty(search.getStatusIdList()), false, true),
                 checkStatusLikeIn(convertOrEmpty(search.getStatusIdExcludeList()), true, true),
-                joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true),
                 checkDataListSubset(search.getDataListSubsetIdList(), false),
                 checkDataListSubset(search.getDataListSubsetIdExcludeList(), true),
                 checkDataListSubsetKey(search.getDataListSubsetKeyList(), false, true),
