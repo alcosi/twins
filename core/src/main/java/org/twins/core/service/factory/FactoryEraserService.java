@@ -118,11 +118,11 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryEraserEntity::getTwinFactoryId);
     }
 
-    public void loadConditionSets(TwinFactoryEraserEntity eraser) throws ServiceException {
-        loadConditionSets(Collections.singleton(eraser));
+    public void loadConditionSet(TwinFactoryEraserEntity eraser) throws ServiceException {
+        loadConditionSet(Collections.singleton(eraser));
     }
 
-    public void loadConditionSets(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+    public void loadConditionSet(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
         factoryConditionSetService.load(erasers,
                 TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
                 TwinFactoryEraserEntity::getConditionSet,

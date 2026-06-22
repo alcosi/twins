@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_branch")
-public class TwinFactoryBranchEntity implements EasyLoggable {
+public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

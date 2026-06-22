@@ -3,37 +3,73 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatusDuplicate, TwinStatusEntity> {
+public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatusDuplicate, TwinStatusEntity, TwinClassEntity> {
 
     @Lazy
     private final TwinStatusService twinStatusService;
     @Lazy
     private final TwinClassService twinClassService;
-    private final I18nService i18nService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinStatusEntity> entityService() {
         return twinStatusService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinClassEntity> entityParentService() {
+        return twinClassService;
+    }
+
+    @Override
+    protected Class<TwinStatusEntity> getEntityClass() {
+        return TwinStatusEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinClassEntity.class);
+    }
+
+    @Override
+    protected TwinStatusDuplicate createNewDuplicate() {
+        return new TwinStatusDuplicate();
+    }
+
+    @Override
+    protected void loadFor(Collection<TwinClassEntity> parents) {
+        twinStatusService.loadStatuses(parents);
+    }
+
+    @Override
+    protected Kit<TwinStatusEntity, UUID> extractorChildren(TwinClassEntity parent) {
+        return parent.getTwinStatusKit();
+    }
+
+    @Override
+    protected UUID extractParentId(TwinClassEntity parent) {
+        return parent.getId();
     }
 
     @Override
@@ -42,30 +78,11 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
-    protected void prepareDuplicates(Collection<TwinStatusDuplicate> duplicates) throws ServiceException {
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinClassId() == null) {
-                TwinStatusEntity original = duplicate.getOriginalEntity();
-                duplicate
-                        .setNewTwinClassId(original.getTwinClassId())
-                        .setNewTwinClass(original.getTwinClass());
-            }
-        }
-        twinClassService.load(duplicates,
-                TwinStatusDuplicate::getNewTwinClassId,
-                TwinStatusDuplicate::getNewTwinClass,
-                TwinStatusDuplicate::setNewTwinClass);
-    }
-
-    @Override
-    protected TwinStatusEntity createNewEntity(TwinStatusDuplicate duplicate) throws ServiceException {
+    protected TwinStatusEntity createNewEntity(TwinStatusDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinStatusEntity original = duplicate.getOriginalEntity();
-        TwinClassEntity targetClass = duplicate.getNewTwinClass();
-        log.info("{} will be duplicated for {}", original.logNormal(), targetClass.logNormal());
         return new TwinStatusEntity()
+                .setId(UuidUtils.generate())
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
-                .setTwinClassId(targetClass.getId())
-                .setTwinClass(targetClass)
                 .setInheritable(original.getInheritable())
                 .setBackgroundColor(original.getBackgroundColor())
                 .setFontColor(original.getFontColor())
@@ -73,32 +90,17 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     }
 
     @Override
-    protected void duplicateI18nFields(TwinStatusEntity src, TwinStatusEntity dst) {
-        if (src.getNameI18nId() != null) {
-            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-        }
-        if (src.getDescriptionI18nId() != null) {
-            dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-        }
+    protected List<I18nFieldDuplicate<TwinStatusEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinStatusEntity::getNameI18nId,        TwinStatusEntity::setNameI18nId),
+                I18nFieldDuplicate.of(TwinStatusEntity::getDescriptionI18nId, TwinStatusEntity::setDescriptionI18nId)
+        );
     }
 
-    @Transactional
-    public void duplicateStatusesForClass(TwinClassEntity fromTwinClass, TwinClassEntity toTwinClass) throws ServiceException {
-        twinStatusService.loadStatusesForTwinClasses(fromTwinClass);
-        if (KitUtils.isEmpty(fromTwinClass.getTwinStatusKit())) {
-            return;
-        }
-        var duplicates = new ArrayList<TwinStatusDuplicate>();
-        for (var originalStatus : fromTwinClass.getTwinStatusKit().getCollection()) {
-            if (!originalStatus.getTwinClassId().equals(fromTwinClass.getId()))
-                continue; //skipping inherited statuses
-            var dummy = new TwinStatusDuplicate();
-            dummy.setOriginalEntity(originalStatus);
-            dummy.setNewKey(originalStatus.getKey());
-            dummy.setNewTwinClass(toTwinClass);
-            dummy.setNewTwinClassId(toTwinClass.getId());
-            duplicates.add(dummy);
-        }
-        duplicate(duplicates);
+    @Override
+    protected void setNewParentEntity(TwinStatusEntity newEntity, TwinClassEntity parentEntity) {
+        newEntity
+                .setTwinClassId(parentEntity.getId())
+                .setTwinClass(parentEntity);
     }
 }

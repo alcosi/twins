@@ -10,6 +10,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory")
-public class TwinFactoryEntity implements EasyLoggable {
+public class TwinFactoryEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
@@ -112,6 +113,11 @@ public class TwinFactoryEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinFactoryTriggerEntity, UUID> twinFactoryTriggerKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryConditionSetEntity, UUID> twinFactoryConditionSetKit;
 
     public String easyLog(Level level) {
         return switch (level) {

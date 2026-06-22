@@ -46,7 +46,7 @@ public class LogSupportService {
 
         var domain = apiUser.getDomain();
         var twinClasses = twinClassSearchService.searchTwinClasses(null);
-        twinStatusService.loadStatusesForTwinClasses(twinClasses);
+        twinStatusService.loadStatuses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinks(twinClasses);
         linkService.loadTwinClasses(

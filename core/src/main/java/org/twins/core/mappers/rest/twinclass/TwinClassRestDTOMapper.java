@@ -204,7 +204,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setBackwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinClass2LinkMode.SHORT))));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
-            twinStatusService.loadStatusesForTwinClasses(src);
+            twinStatusService.loadStatuses(src);
             dst.setStatusIds(src.getTwinStatusKit().getIdSet());
             twinStatusRestDTOMapper.postpone(src.getTwinStatusKit(), mapperContext.forkOnPoint(StatusMode.TwinClass2StatusMode.SHORT));
         }
@@ -262,7 +262,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     public void beforeCollectionConversion(Collection<TwinClassEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
-            twinStatusService.loadStatusesForTwinClasses(srcCollection);
+            twinStatusService.loadStatuses(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinClassFieldCollectionMode.HIDE)) {
             twinClassFieldService.loadTwinClassFields(srcCollection);

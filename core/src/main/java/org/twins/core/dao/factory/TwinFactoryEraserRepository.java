@@ -11,9 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface TwinFactoryEraserRepository extends CrudRepository<TwinFactoryEraserEntity, UUID>, JpaSpecificationExecutor<TwinFactoryEraserEntity> {
-    List<TwinFactoryEraserEntity> findByTwinFactoryIdAndActiveTrue(UUID twinFactoryId);
-
     List<TwinFactoryEraserEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
+
+    List<TwinFactoryEraserEntity> findByTwinFactoryIdAndActiveTrue(UUID twinFactoryId);
 
     @Query("SELECT t.twinFactoryId, COUNT(t) FROM TwinFactoryEraserEntity t WHERE t.twinFactoryId IN :ids GROUP BY t.twinFactoryId")
     List<Object[]> countByTwinFactoryIds(Collection<UUID> ids);

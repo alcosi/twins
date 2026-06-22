@@ -3,36 +3,71 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.twinclass.TwinClassFieldDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
-import org.twins.core.service.i18n.I18nService;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinClassFieldDuplicate, TwinClassFieldEntity> {
+public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinClassFieldDuplicate, TwinClassFieldEntity, TwinClassEntity> {
 
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     @Lazy
     private final TwinClassService twinClassService;
-    private final I18nService i18nService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinClassFieldEntity> entityService() {
         return twinClassFieldService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinClassEntity> entityParentService() {
+        return twinClassService;
+    }
+
+    @Override
+    protected Class<TwinClassFieldEntity> getEntityClass() {
+        return TwinClassFieldEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(TwinClassEntity.class);
+    }
+
+    @Override
+    protected TwinClassFieldDuplicate createNewDuplicate() {
+        return new TwinClassFieldDuplicate();
+    }
+
+    @Override
+    protected void loadFor(Collection<TwinClassEntity> parents) {
+        twinClassFieldService.loadTwinClassFields(parents);
+    }
+
+    @Override
+    protected Kit<TwinClassFieldEntity, UUID> extractorChildren(TwinClassEntity parent) {
+        return parent.getTwinClassFieldKit();
+    }
+
+    @Override
+    protected UUID extractParentId(TwinClassEntity parent) {
+        return parent.getId();
     }
 
     @Override
@@ -41,30 +76,11 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
-    protected void prepareDuplicates(Collection<TwinClassFieldDuplicate> duplicates) throws ServiceException {
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinClassId() == null) {
-                TwinClassFieldEntity original = duplicate.getOriginalEntity();
-                duplicate
-                        .setNewTwinClassId(original.getTwinClassId())
-                        .setNewTwinClass(original.getTwinClass());
-            }
-        }
-        twinClassService.load(duplicates,
-                TwinClassFieldDuplicate::getNewTwinClassId,
-                TwinClassFieldDuplicate::getNewTwinClass,
-                TwinClassFieldDuplicate::setNewTwinClass);
-    }
-
-    @Override
-    protected TwinClassFieldEntity createNewEntity(TwinClassFieldDuplicate duplicate) throws ServiceException {
+    protected TwinClassFieldEntity createNewEntity(TwinClassFieldDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinClassFieldEntity original = duplicate.getOriginalEntity();
-        TwinClassEntity targetClass = duplicate.getNewTwinClass();
-        log.info("{} will be duplicated for {}", original.logShort(), targetClass.logNormal());
         return new TwinClassFieldEntity()
+                .setId(null)
                 .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
-                .setTwinClassId(targetClass.getId())
-                .setTwinClass(targetClass)
                 .setFieldTyperFeaturerId(original.getFieldTyperFeaturerId())
                 .setFieldTyperParams(original.getFieldTyperParams())
                 .setTwinSorterFeaturerId(original.getTwinSorterFeaturerId())
@@ -86,38 +102,19 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
     }
 
     @Override
-    protected void duplicateI18nFields(TwinClassFieldEntity src, TwinClassFieldEntity dst) {
-        if (src.getNameI18nId() != null) {
-            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-        }
-        if (src.getDescriptionI18nId() != null) {
-            dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-        }
-        if (src.getFeValidationErrorI18nId() != null) {
-            dst.setFeValidationErrorI18nId(i18nService.duplicateI18n(src.getFeValidationErrorI18nId()).getId());
-        }
-        if (src.getBeValidationErrorI18nId() != null) {
-            dst.setBeValidationErrorI18nId(i18nService.duplicateI18n(src.getBeValidationErrorI18nId()).getId());
-        }
+    protected List<I18nFieldDuplicate<TwinClassFieldEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getNameI18nId,            TwinClassFieldEntity::setNameI18nId),
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getDescriptionI18nId,     TwinClassFieldEntity::setDescriptionI18nId),
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getFeValidationErrorI18nId, TwinClassFieldEntity::setFeValidationErrorI18nId),
+                I18nFieldDuplicate.of(TwinClassFieldEntity::getBeValidationErrorI18nId, TwinClassFieldEntity::setBeValidationErrorI18nId)
+        );
     }
 
-    @Transactional
-    public void duplicateFieldsForClass(TwinClassEntity fromTwinClass, TwinClassEntity toTwinClass) throws ServiceException {
-        twinClassFieldService.loadTwinClassFields(fromTwinClass);
-        if (KitUtils.isEmpty(fromTwinClass.getTwinClassFieldKit())) {
-            return;
-        }
-        var duplicates = new ArrayList<TwinClassFieldDuplicate>();
-        for (TwinClassFieldEntity originalField : fromTwinClass.getTwinClassFieldKit().getCollection()) {
-            if (!originalField.getTwinClassId().equals(fromTwinClass.getId()))
-                continue; //skipping inherited fields
-            var dummy = new TwinClassFieldDuplicate();
-            dummy.setOriginalEntity(originalField);
-            dummy.setNewKey(originalField.getKey());
-            dummy.setNewTwinClass(toTwinClass);
-            dummy.setNewTwinClassId(toTwinClass.getId());
-            duplicates.add(dummy);
-        }
-        duplicate(duplicates);
+    @Override
+    protected void setNewParentEntity(TwinClassFieldEntity newEntity, TwinClassEntity parentEntity) {
+        newEntity
+                .setTwinClassId(parentEntity.getId())
+                .setTwinClass(parentEntity);
     }
 }
