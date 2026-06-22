@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.Identifiable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Data
 @FieldNameConstants
-public class TwinFactoryConditionEntity implements EasyLoggable {
+public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

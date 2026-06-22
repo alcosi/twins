@@ -171,7 +171,7 @@ public class TwinUpdateClassService {
             UUID currentStatusId = dbTwinEntity.getTwinStatusId();
 
             // Load statuses for the new class
-            twinStatusService.loadStatusesForTwinClasses(newTwinClass);
+            twinStatusService.loadStatuses(newTwinClass);
             // Check if the current status is valid for the new class
             boolean statusIsValid = false;
             if (newTwinClass.getTwinStatusKit() != null) {

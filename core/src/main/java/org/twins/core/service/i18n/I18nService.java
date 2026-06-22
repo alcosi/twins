@@ -246,31 +246,46 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return result;
     }
 
-    @Transactional
-    public I18nEntity duplicateI18n(UUID srcI18nId) {
-        return duplicateI18n(i18nRepository.findById(srcI18nId).get());
-    }
-
+    /**
+     * Batch i18n duplication: builds copies for every {@code srcId → dstId} pair in {@code remap}.
+     * Two bulk reads (i18n + translations) + two bulk writes — total of 4 SQL regardless of remap
+     * size. Called by {@code EntityDuplicateService.commit} as a pre-commit step, before the
+     * topological sort of entity-class commits, so all i18n rows land in db before any referencer.
+     */
     @Transactional(rollbackFor = Throwable.class)
-    public I18nEntity duplicateI18n(I18nEntity srcI18nEntity) {
-        I18nEntity duplicateI18nEntity = new I18nEntity()
-                .setKey(addCopyPostfix(srcI18nEntity.getKey()))
-                .setName(addCopyPostfix(srcI18nEntity.getName()))
-                .setType(srcI18nEntity.getType());
-        duplicateI18nEntity = i18nRepository.save(duplicateI18nEntity);
-        List<I18nTranslationEntity> translationEntityList = i18nTranslationRepository.findByI18nId(srcI18nEntity.getId());
-        if (CollectionUtils.isNotEmpty(translationEntityList)) {
-            List<I18nTranslationEntity> duplicateI18nTranslationEntityList = new ArrayList<>();
-            for (I18nTranslationEntity srcI18nTranslationEntity : translationEntityList) {
-                duplicateI18nTranslationEntityList.add(
-                        new I18nTranslationEntity()
-                                .setI18nId(duplicateI18nEntity.getId())
-                                .setLocale(srcI18nTranslationEntity.getLocale())
-                                .setTranslation(srcI18nTranslationEntity.getTranslation()));
-            }
-            i18nTranslationRepository.saveAll(duplicateI18nTranslationEntityList);
+    public void duplicateTranslations(Map<UUID, UUID> remap) {
+        if (remap == null || remap.isEmpty()) {
+            return;
         }
-        return entityManager.merge(duplicateI18nEntity);
+        List<I18nEntity> srcEntities = new ArrayList<>();
+        i18nRepository.findAllById(remap.keySet()).forEach(srcEntities::add);
+        List<I18nTranslationEntity> srcTranslations = i18nTranslationRepository.findByI18nIdIn(remap.keySet());
+        List<I18nEntity> dstEntities = new ArrayList<>(srcEntities.size());
+        for (I18nEntity src : srcEntities) {
+            UUID dstId = remap.get(src.getId());
+            if (dstId == null) {
+                continue;
+            }
+            dstEntities.add(new I18nEntity()
+                    .setId(dstId)
+                    .setKey(addCopyPostfix(src.getKey()))
+                    .setName(addCopyPostfix(src.getName()))
+                    .setType(src.getType())
+                    .setDomainId(src.getDomainId()));
+        }
+        List<I18nTranslationEntity> dstTranslations = new ArrayList<>(srcTranslations.size());
+        for (I18nTranslationEntity src : srcTranslations) {
+            UUID dstI18nId = remap.get(src.getI18nId());
+            if (dstI18nId == null) {
+                continue;
+            }
+            dstTranslations.add(new I18nTranslationEntity()
+                    .setI18nId(dstI18nId)
+                    .setLocale(src.getLocale())
+                    .setTranslation(src.getTranslation()));
+        }
+        i18nRepository.saveAll(dstEntities);
+        i18nTranslationRepository.saveAll(dstTranslations);
     }
 
     @Transactional(rollbackFor = Throwable.class)

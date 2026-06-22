@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
@@ -173,5 +174,20 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryConditionSetEntity::getCreatedByUserId,
                 TwinFactoryConditionSetEntity::getCreatedByUser,
                 TwinFactoryConditionSetEntity::setCreatedByUser);
+    }
+
+    public void loadFactoryConditionSets(TwinFactoryEntity factory) {
+        loadFactoryConditionSets(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryConditionSets(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryConditionSetKit,
+                TwinFactoryEntity::setTwinFactoryConditionSetKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryConditionSetEntity::getId,
+                TwinFactoryConditionSetEntity::getTwinFactoryId);
     }
 }

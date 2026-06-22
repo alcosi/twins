@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinClassDuplicate extends EntityDuplicate<TwinClassEntity> {
+public class TwinClassDuplicate extends EntityDuplicate<TwinClassEntity, Void> {
     private UUID newTwinClassId;
     private boolean duplicateFields = false;
     private boolean duplicateStatuses = false;

@@ -565,6 +565,33 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     }
 
     /**
+     * Top-level (not tied to a twin class field) filter by space_role_user membership.
+     * For each criterion builds an EXISTS subquery: twin has a space_role_user row with
+     * the given spaceRoleId and one of the userIdList. Criteria are OR-joined.
+     */
+    public static Specification<TwinEntity> checkSpaceRoleUsersMembership(final List<TwinSearchBySpaceRoleUser> searchList) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(searchList)) return cb.conjunction();
+            List<Predicate> predicates = new ArrayList<>();
+            for (TwinSearchBySpaceRoleUser search : searchList) {
+                if (search.isEmpty()) continue;
+                Subquery<UUID> subquery = query.subquery(UUID.class);
+                Root<SpaceRoleUserEntity> subRoot = subquery.from(SpaceRoleUserEntity.class);
+                List<Predicate> conditions = new ArrayList<>();
+                conditions.add(cb.equal(subRoot.get(SpaceRoleUserEntity.Fields.twinId), root.get(TwinEntity.Fields.id)));
+                if (search.getSpaceRoleId() != null)
+                    conditions.add(cb.equal(subRoot.get(SpaceRoleUserEntity.Fields.spaceRoleId), search.getSpaceRoleId()));
+                if (CollectionUtils.isNotEmpty(search.getUserIdList()))
+                    conditions.add(subRoot.get(SpaceRoleUserEntity.Fields.userId).in(search.getUserIdList()));
+                subquery.select(subRoot.get(SpaceRoleUserEntity.Fields.id))
+                        .where(conditions.toArray(new Predicate[0]));
+                predicates.add(cb.exists(subquery));
+            }
+            return predicates.isEmpty() ? cb.conjunction() : cb.or(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    /**
      * Retrieves an existing JOIN or creates a new LEFT JOIN to the specified field table.
      *
      * @param root        The root entity (TwinEntity)

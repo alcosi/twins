@@ -20,6 +20,7 @@ import java.util.*;
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.checkStatusIdWithFreeze;
+import static org.twins.core.dao.specifications.twin.TwinSpecification.checkSpaceRoleUsersMembership;
 
 public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
 
@@ -41,6 +42,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] headHierarchyCounterDirectChildrenFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headHierarchyCounterDirectChildren);
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tagsSpecOnly, TwinTagEntity.Fields.tagDataListOptionId);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markersSpecOnly, TwinMarkerEntity.Fields.markerDataListOptionId);
+        String[] flavorDataListOptionIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.flavorDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touchesSpecOnly);
 
         HierarchySearch hierarchyChildrenSearch = Objects.requireNonNullElse(twinSearch.getHierarchyChildrenSearch(), HierarchySearch.EMPTY);
@@ -62,6 +64,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdExcludeList(), true, true, ownerBusinessAccountIdFieldPath),
+                checkSpaceRoleUsersMembership(twinSearch.getSpaceRoleUsersList()),
                 checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), twinSearch.isCheckFreezeStatus()),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
@@ -70,6 +73,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getHierarchyTreeContainsIdList(), hierarchyTreeFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdList(), false, false, markersFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdExcludeList(), true, true, markersFieldPath),
+                checkUuidIn(twinSearch.getFlavorDataListOptionIdList(), false, false, flavorDataListOptionIdFieldPath),
+                checkUuidIn(twinSearch.getFlavorDataListOptionIdExcludeList(), true, true, flavorDataListOptionIdFieldPath),
                 checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, concatArray(twinClassFieldPath, TwinClassEntity.Fields.headTwinClassId)),
                 checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),

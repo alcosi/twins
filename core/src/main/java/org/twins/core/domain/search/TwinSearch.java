@@ -53,6 +53,7 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
     private Map<UUID, Set<UUID>> srcLinksNoAnyOfList;
     private Map<UUID, Set<UUID>> srcLinksAllOfList;
     private Map<UUID, Set<UUID>> srcLinksNoAllOfList;
+    private List<TwinSearchBySpaceRoleUser> spaceRoleUsersList;
     private Set<UUID> hierarchyTreeContainsIdList;
     private Set<UUID> statusIdExcludeList;
     private Set<UUID> tagDataListOptionIdList;
@@ -113,6 +114,7 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
+                (CollectionUtils.isEmpty(spaceRoleUsersList) || spaceRoleUsersList.stream().allMatch(TwinSearchBySpaceRoleUser::isEmpty)) &&
                 (fieldsFilter == null || fieldsFilter.isEmpty()) &&
                 (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
                 createdAt == null &&

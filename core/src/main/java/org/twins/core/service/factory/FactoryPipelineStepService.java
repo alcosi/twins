@@ -19,11 +19,7 @@ import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -134,12 +130,23 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId);
     }
 
-    public void loadConditionSets(TwinFactoryPipelineStepEntity step) throws ServiceException {
-        loadConditionSets(Collections.singleton(step));
+    public void loadPipeline(TwinFactoryPipelineStepEntity src) throws ServiceException {
+        loadPipeline(Collections.singletonList(src));
     }
 
-    public void loadConditionSets(Collection<TwinFactoryPipelineStepEntity> steps) throws ServiceException {
-        factoryConditionSetService.load(steps,
+    public void loadPipeline(List<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
+        factoryPipelineService.load(srcCollection,
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipeline,
+                TwinFactoryPipelineStepEntity::setTwinFactoryPipeline);
+    }
+
+    public void loadConditionSet(TwinFactoryPipelineStepEntity src) throws ServiceException {
+        loadConditionSet(Collections.singletonList(src));
+    }
+
+    public void loadConditionSet(Collection<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
                 TwinFactoryPipelineStepEntity::getTwinFactoryConditionSetId,
                 TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet,
                 TwinFactoryPipelineStepEntity::setTwinFactoryConditionSet);
