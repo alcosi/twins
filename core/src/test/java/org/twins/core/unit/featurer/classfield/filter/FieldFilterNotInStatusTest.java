@@ -72,7 +72,7 @@ class FieldFilterNotInStatusTest extends BaseUnitTest {
 
         @Test
         void filterFields_twinStatusInSet_addsFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(statusId1 + ", " + statusId2),
@@ -86,7 +86,7 @@ class FieldFilterNotInStatusTest extends BaseUnitTest {
 
         @Test
         void filterFields_twinStatusNotInSet_doesNotAddFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(statusId1 + ", " + statusId2),
@@ -100,7 +100,7 @@ class FieldFilterNotInStatusTest extends BaseUnitTest {
 
         @Test
         void filterFields_twinStatusNull_doesNotAddFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(statusId1 + ", " + statusId2),
@@ -114,7 +114,7 @@ class FieldFilterNotInStatusTest extends BaseUnitTest {
 
         @Test
         void filterFields_emptyStatusSet_doesNotAddFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(""),
@@ -128,7 +128,7 @@ class FieldFilterNotInStatusTest extends BaseUnitTest {
 
         @Test
         void filterFields_singleStatus_twinMatches_addsFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(statusId1.toString()),
@@ -142,7 +142,7 @@ class FieldFilterNotInStatusTest extends BaseUnitTest {
 
         @Test
         void filterFields_emptyFieldsList_nothingAdded() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(statusId1.toString()),

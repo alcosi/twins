@@ -97,7 +97,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
 
             var fieldValue = new FieldValueBoolean(fieldEntity);
             fieldValue.setValue(true);
-            var kit = new Kit<FieldValue, UUID>(FieldValue::getTwinClassFieldId);
+            var kit = new Kit<>(FieldValue::getTwinClassFieldId);
             kit.add(fieldValue);
             twin.setFieldValuesKit(kit);
 
@@ -115,7 +115,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
             var dynamicFieldId = UUID.randomUUID();
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
-            twin.setFieldValuesKit(new Kit<FieldValue, UUID>(FieldValue::getTwinClassFieldId));
+            twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
 
             var props = new Properties();
             props.put("twinClassFieldIds", dynamicFieldId.toString());
@@ -140,7 +140,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
 
             var fieldValue = new FieldValueBoolean(fieldEntity);
             fieldValue.setValue(true);
-            var kit = new Kit<FieldValue, UUID>(FieldValue::getTwinClassFieldId);
+            var kit = new Kit<>(FieldValue::getTwinClassFieldId);
             kit.add(fieldValue);
             twin.setFieldValuesKit(kit);
 

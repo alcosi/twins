@@ -55,7 +55,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
         @Test
         void concatSearch_foundRelevantProjections_setsFieldProjectionSearch() throws ServiceException {
             var projectionType = projectionType(projectionTypeId, twinClassId);
-            var grouped = new KitGrouped<ProjectionTypeEntity, UUID, UUID>(
+            var grouped = new KitGrouped<>(
                     List.of(projectionType),
                     ProjectionTypeEntity::getId,
                     ProjectionTypeEntity::getMembershipTwinClassId
@@ -80,7 +80,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
 
         @Test
         void concatSearch_emptyGroupedProjections_doesNotSetFieldProjectionSearch() throws ServiceException {
-            var grouped = new KitGrouped<ProjectionTypeEntity, UUID, UUID>(
+            var grouped = new KitGrouped<>(
                     Collections.emptyList(),
                     ProjectionTypeEntity::getId,
                     ProjectionTypeEntity::getMembershipTwinClassId
@@ -101,7 +101,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
         void concatSearch_noMatchingTwins_emptyProjectionIds() throws ServiceException {
             var otherClassId = UUID.randomUUID();
             var projectionType = projectionType(projectionTypeId, twinClassId);
-            var grouped = new KitGrouped<ProjectionTypeEntity, UUID, UUID>(
+            var grouped = new KitGrouped<>(
                     List.of(projectionType),
                     ProjectionTypeEntity::getId,
                     ProjectionTypeEntity::getMembershipTwinClassId
@@ -129,7 +129,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
             var twinClassId2 = UUID.randomUUID();
             var projectionType1 = projectionType(projectionTypeId, twinClassId);
             var projectionType2 = projectionType(projectionTypeId2, twinClassId2);
-            var grouped = new KitGrouped<ProjectionTypeEntity, UUID, UUID>(
+            var grouped = new KitGrouped<>(
                     List.of(projectionType1, projectionType2),
                     ProjectionTypeEntity::getId,
                     ProjectionTypeEntity::getMembershipTwinClassId

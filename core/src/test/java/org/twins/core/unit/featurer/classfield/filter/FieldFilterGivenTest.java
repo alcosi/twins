@@ -65,7 +65,7 @@ class FieldFilterGivenTest extends BaseUnitTest {
 
         @Test
         void filterFields_excludesGivenIds() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(fieldId1 + ", " + fieldId3),
@@ -80,7 +80,7 @@ class FieldFilterGivenTest extends BaseUnitTest {
 
         @Test
         void filterFields_excludesAllIds_returnsEmpty() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(fieldId1 + ", " + fieldId2 + ", " + fieldId3),
@@ -94,7 +94,7 @@ class FieldFilterGivenTest extends BaseUnitTest {
 
         @Test
         void filterFields_emptyFilterSet_keepsAllFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(""),
@@ -108,7 +108,7 @@ class FieldFilterGivenTest extends BaseUnitTest {
 
         @Test
         void filterFields_singleExcludedId_keepsOthers() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(fieldId2.toString()),
@@ -124,7 +124,7 @@ class FieldFilterGivenTest extends BaseUnitTest {
 
         @Test
         void filterFields_noMatchingIds_keepsAllFields() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
             var unknownId = UUID.randomUUID();
 
             filter.filterFields(
@@ -139,7 +139,7 @@ class FieldFilterGivenTest extends BaseUnitTest {
 
         @Test
         void filterFields_emptyFieldsList_returnsEmpty() throws ServiceException {
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(fieldId1.toString()),

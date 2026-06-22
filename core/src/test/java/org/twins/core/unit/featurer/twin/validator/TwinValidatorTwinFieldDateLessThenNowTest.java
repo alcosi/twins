@@ -67,7 +67,7 @@ class TwinValidatorTwinFieldDateLessThenNowTest extends BaseUnitTest {
         var fieldValue = new FieldValueDate(fieldEntity, null);
         fieldValue.setDate(date);
 
-        var kit = new Kit<FieldValue, UUID>(FieldValue::getTwinClassFieldId);
+        var kit = new Kit<>(FieldValue::getTwinClassFieldId);
         kit.add(fieldValue);
         twin.setFieldValuesKit(kit);
 
@@ -109,7 +109,7 @@ class TwinValidatorTwinFieldDateLessThenNowTest extends BaseUnitTest {
             var fieldId = UUID.randomUUID();
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
-            twin.setFieldValuesKit(new Kit<FieldValue, UUID>(FieldValue::getTwinClassFieldId));
+            twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
 
             var props = new Properties();
             props.put("twinClassFieldDateId", fieldId.toString());

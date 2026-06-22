@@ -48,7 +48,7 @@ class UserGroupManagerSingleGroupTest extends BaseUnitTest {
     private UserEntity buildUserWithGroups(UserGroupEntity... groups) {
         var user = new UserEntity();
         user.setId(UUID.randomUUID());
-        var kit = new Kit<UserGroupEntity, UUID>(UserGroupEntity::getId);
+        var kit = new Kit<>(UserGroupEntity::getId);
         kit.addAll(Arrays.asList(groups));
         user.setUserGroups(kit);
         return user;

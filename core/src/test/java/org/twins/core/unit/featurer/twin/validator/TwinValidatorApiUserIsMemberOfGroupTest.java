@@ -75,7 +75,7 @@ class TwinValidatorApiUserIsMemberOfGroupTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
 
-            var kit = new Kit<UserGroupEntity, UUID>(UserGroupEntity::getId);
+            var kit = new Kit<>(UserGroupEntity::getId);
             var group = new UserGroupEntity();
             group.setId(groupId);
             kit.add(group);
@@ -100,7 +100,7 @@ class TwinValidatorApiUserIsMemberOfGroupTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
 
             var userGroupId = UUID.randomUUID();
-            var kit = new Kit<UserGroupEntity, UUID>(UserGroupEntity::getId);
+            var kit = new Kit<>(UserGroupEntity::getId);
             var group = new UserGroupEntity();
             group.setId(userGroupId);
             kit.add(group);
@@ -143,7 +143,7 @@ class TwinValidatorApiUserIsMemberOfGroupTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
 
-            var kit = new Kit<UserGroupEntity, UUID>(UserGroupEntity::getId);
+            var kit = new Kit<>(UserGroupEntity::getId);
             var user = userWithGroups(kit);
 
             when(authService.getApiUser()).thenReturn(apiUser);
@@ -163,7 +163,7 @@ class TwinValidatorApiUserIsMemberOfGroupTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
 
-            var kit = new Kit<UserGroupEntity, UUID>(UserGroupEntity::getId);
+            var kit = new Kit<>(UserGroupEntity::getId);
             var group = new UserGroupEntity();
             group.setId(groupId);
             kit.add(group);
@@ -187,7 +187,7 @@ class TwinValidatorApiUserIsMemberOfGroupTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
 
             var userGroupId = UUID.randomUUID();
-            var kit = new Kit<UserGroupEntity, UUID>(UserGroupEntity::getId);
+            var kit = new Kit<>(UserGroupEntity::getId);
             var group = new UserGroupEntity();
             group.setId(userGroupId);
             kit.add(group);

@@ -17,8 +17,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.doNothing;
 
 
 class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
@@ -70,7 +70,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
         var entity = new TwinFieldBooleanEntity();
         entity.setTwinClassFieldId(twinClassFieldId);
         entity.setValue(value);
-        var kit = new Kit<TwinFieldBooleanEntity, UUID>(TwinFieldBooleanEntity::getTwinClassFieldId);
+        var kit = new Kit<>(TwinFieldBooleanEntity::getTwinClassFieldId);
         kit.add(entity);
         return kit;
     }
@@ -85,7 +85,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
 
             doNothing().when(twinService).loadTwinFields(twin);
 
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(booleanFieldId, true),
@@ -104,7 +104,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
 
             doNothing().when(twinService).loadTwinFields(twin);
 
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(booleanFieldId, true),
@@ -119,12 +119,12 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
         @Test
         void filterFields_booleanFieldNotFound_doesNotAddFields() throws ServiceException {
             var twin = new TwinEntity();
-            var kit = new Kit<TwinFieldBooleanEntity, UUID>(TwinFieldBooleanEntity::getTwinClassFieldId);
+            var kit = new Kit<>(TwinFieldBooleanEntity::getTwinClassFieldId);
             twin.setTwinFieldBooleanKit(kit);
 
             doNothing().when(twinService).loadTwinFields(twin);
 
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(booleanFieldId, true),
@@ -147,7 +147,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
 
             doNothing().when(twinService).loadTwinFields(twin);
 
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(booleanFieldId, false),
@@ -166,7 +166,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
 
             doNothing().when(twinService).loadTwinFields(twin);
 
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(booleanFieldId, false),
@@ -189,7 +189,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
 
             doNothing().when(twinService).loadTwinFields(twin);
 
-            var unfilteredFieldsKit = new Kit<TwinClassFieldEntity, UUID>(TwinClassFieldEntity::getId);
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
 
             filter.filterFields(
                     props(booleanFieldId, true),

@@ -108,7 +108,7 @@ class TwinActionServiceLoadActionRestrictionReasonsTest extends BaseUnitTest {
 
         @Test
         void loadActionRestrictionReasons_singleTwin_singleReason_populatesMap() throws ServiceException {
-            var reasonsKit = new Kit<ActionRestrictionReasonEntity, UUID>(ActionRestrictionReasonEntity::getId);
+            var reasonsKit = new Kit<>(ActionRestrictionReasonEntity::getId);
             reasonsKit.add(reason1);
             when(actionRestrictionReasonService.findEntitiesSafe(any())).thenReturn(reasonsKit);
 
@@ -119,7 +119,7 @@ class TwinActionServiceLoadActionRestrictionReasonsTest extends BaseUnitTest {
 
         @Test
         void loadActionRestrictionReasons_multipleTwins_differentReasons_eachPopulated() throws ServiceException {
-            var reasonsKit = new Kit<ActionRestrictionReasonEntity, UUID>(ActionRestrictionReasonEntity::getId);
+            var reasonsKit = new Kit<>(ActionRestrictionReasonEntity::getId);
             reasonsKit.add(reason1);
             reasonsKit.add(reason2);
             when(actionRestrictionReasonService.findEntitiesSafe(any())).thenReturn(reasonsKit);
@@ -132,7 +132,7 @@ class TwinActionServiceLoadActionRestrictionReasonsTest extends BaseUnitTest {
 
         @Test
         void loadActionRestrictionReasons_sameReasonSharedByTwins_sameInstanceUsed() throws ServiceException {
-            var reasonsKit = new Kit<ActionRestrictionReasonEntity, UUID>(ActionRestrictionReasonEntity::getId);
+            var reasonsKit = new Kit<>(ActionRestrictionReasonEntity::getId);
             reasonsKit.add(reason1);
             when(actionRestrictionReasonService.findEntitiesSafe(any())).thenReturn(reasonsKit);
 
@@ -144,7 +144,7 @@ class TwinActionServiceLoadActionRestrictionReasonsTest extends BaseUnitTest {
 
         @Test
         void loadActionRestrictionReasons_reasonNotFound_doesNotPopulate() throws ServiceException {
-            var reasonsKit = new Kit<ActionRestrictionReasonEntity, UUID>(ActionRestrictionReasonEntity::getId);
+            var reasonsKit = new Kit<>(ActionRestrictionReasonEntity::getId);
             when(actionRestrictionReasonService.findEntitiesSafe(any())).thenReturn(reasonsKit);
 
             twinActionService.loadActionRestrictionReasons(List.of(twinEntity2));
@@ -154,7 +154,7 @@ class TwinActionServiceLoadActionRestrictionReasonsTest extends BaseUnitTest {
 
         @Test
         void loadActionRestrictionReasons_multipleActionsOneTwin_allPopulated() throws ServiceException {
-            var reasonsKit = new Kit<ActionRestrictionReasonEntity, UUID>(ActionRestrictionReasonEntity::getId);
+            var reasonsKit = new Kit<>(ActionRestrictionReasonEntity::getId);
             reasonsKit.add(reason1);
             reasonsKit.add(reason2);
             when(actionRestrictionReasonService.findEntitiesSafe(any())).thenReturn(reasonsKit);
