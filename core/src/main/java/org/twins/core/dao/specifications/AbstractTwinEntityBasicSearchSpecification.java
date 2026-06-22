@@ -42,6 +42,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] headHierarchyCounterDirectChildrenFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headHierarchyCounterDirectChildren);
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
+        String[] flavorDataListOptionIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.flavorDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
 
         HierarchySearch hierarchyChildrenSearch = Objects.requireNonNullElse(twinSearch.getHierarchyChildrenSearch(), HierarchySearch.EMPTY);
@@ -72,6 +73,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getHierarchyTreeContainsIdList(), hierarchyTreeFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdList(), false, false, markersFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdExcludeList(), true, true, markersFieldPath),
+                checkUuidIn(twinSearch.getFlavorDataListOptionIdList(), false, false, flavorDataListOptionIdFieldPath),
+                checkUuidIn(twinSearch.getFlavorDataListOptionIdExcludeList(), true, true, flavorDataListOptionIdFieldPath),
                 checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, concatArray(twinClassFieldPath, TwinClassEntity.Fields.headTwinClassId)),
                 checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
