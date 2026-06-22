@@ -146,9 +146,9 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     }
 
     public String translateBase24ToLocale(I18nEntity i18NEntity, Locale locale) throws ServiceException {
-        Optional<I18nTranslationBinEntity> translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, locale);
+        Optional<I18nTranslationBinEntity> translationBinEntity = i18nTranslationBinRepository.findByI18nIdAndLocale(i18NEntity.getId(), locale);
         if (translationBinEntity.isEmpty() || translationBinEntity.get().getTranslation().length == 0)
-            translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, resolveDefaultLocale());
+            translationBinEntity = i18nTranslationBinRepository.findByI18nIdAndLocale(i18NEntity.getId(), resolveDefaultLocale());
         if (translationBinEntity.isPresent() && translationBinEntity.get().getTranslation().length > 0)
             return translationBinEntity.get().getBase64();
         return null;
@@ -168,12 +168,12 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
             return;
         List<Locale> locales = Arrays.asList(resolveDefaultLocale(), Locale.forLanguageTag(locale));
         if (i18nEntity.getType().isImage()) {
-            i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationBinEntity::getLocale));
+            i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nIdAndLocaleIn(i18nEntity.getId(), locales), I18nTranslationBinEntity::getLocale));
         } else {
             i18nEntity.setTranslationsKit(new Kit<>(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationEntity::getLocale));
             if (i18nEntity.getType().isStyledText()) {
                 for (I18nTranslationEntity translation : i18nEntity.getTranslationsKit().getCollection()) {
-                    translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
+                    translation.setStyles(i18nTranslationStyleRepository.findByI18nIdAndLocale(translation.getI18n().getId(), translation.getLocale()));
                 }
             }
         }
@@ -195,13 +195,13 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
 
     public void loadStyles(I18nTranslationEntity translation) {
         if (translation.getI18n().getType().isStyledText()) {
-            translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
+            translation.setStyles(i18nTranslationStyleRepository.findByI18nIdAndLocale(translation.getI18n().getId(), translation.getLocale()));
         }
     }
 
     public List<I18nTranslationStyleEntity> getStyles(I18nEntity i18nEntity, String locale) {
         if (i18nEntity.getType().isStyledText()) {
-            return i18nTranslationStyleRepository.findByI18nAndLocale(i18nEntity, Locale.forLanguageTag(locale));
+            return i18nTranslationStyleRepository.findByI18nIdAndLocale(i18nEntity.getId(), Locale.forLanguageTag(locale));
         }
         return new ArrayList<>();
     }

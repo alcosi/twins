@@ -8,24 +8,15 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Repository
 public interface I18nTranslationBinRepository extends CrudRepository<I18nTranslationBinEntity, UUID>, JpaSpecificationExecutor<I18nTranslationBinEntity> {
-    Optional<I18nTranslationBinEntity> findByI18nAndLocale(I18nEntity i18n, Locale locale);
-
-    List<I18nTranslationBinEntity> findByI18nAndLocaleIn(I18nEntity i18n, List<Locale> locale);
+    List<I18nTranslationBinEntity> findByI18nIdAndLocaleIn(UUID i18nId, Collection<Locale> locale);
 
     Optional<I18nTranslationBinEntity> findByI18nIdAndLocale(UUID i18nId, Locale locale);
 
-    Optional<I18nTranslationBinEntity> findByLocaleAndI18nKey(Locale locale, String messageKey);
-
     List<I18nTranslationBinEntity> findAll();
-
-    List<I18nTranslationBinEntity> findByI18nOrderByLocale(I18nEntity i18n);
 
     @Modifying
     @Transactional

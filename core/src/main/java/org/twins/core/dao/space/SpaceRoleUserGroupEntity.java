@@ -90,9 +90,4 @@ public class SpaceRoleUserGroupEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private SpaceRoleEntity spaceRole;
-
-//    @Deprecated //for specification only
-//    @EqualsAndHashCode.Exclude
-//    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
-//    private Set<UserGroupMapEntity> userGroupMaps;
 }

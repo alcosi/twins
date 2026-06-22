@@ -87,14 +87,14 @@ public class UserGroupEntity implements EasyLoggable {
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = UserGroupMapEntity.Fields.userGroupSpecOnly, fetch = FetchType.LAZY)
     private Set<UserGroupMapEntity> userGroupUserGroupsSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "userGroup", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = SpaceRoleUserGroupEntity.Fields.userGroupSpecOnly, fetch = FetchType.LAZY)
     private Set<SpaceRoleUserGroupEntity> spaceRoleUserGroupsSpecOnly;
 
     public String easyLog(Level level) {

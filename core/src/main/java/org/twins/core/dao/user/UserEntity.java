@@ -54,13 +54,13 @@ public class UserEntity implements EasyLoggable {
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = UserGroupMapEntity.Fields.userSpecOnly, fetch = FetchType.LAZY)
     private Set<UserGroupMapEntity> userGroupMapsSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = SpaceRoleUserEntity.Fields.userSpecOnly, fetch = FetchType.LAZY)
     private Set<SpaceRoleUserEntity> spaceRoleUsersSpecOnly;
 
 
