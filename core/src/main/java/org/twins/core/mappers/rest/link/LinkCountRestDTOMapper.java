@@ -23,12 +23,13 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = LinkMode.class)
 public class LinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<LinkEntity, LinkGroupField>, LinkCountDTOv1> {
-
     @MapperModePointerBinding(modes = TwinClassMode.LinkSrc2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
-    private final LinkService linkService;
+    @MapperModePointerBinding(modes = UserMode.Link2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    private final LinkService linkService;
 
     @Override
     public void map(CountResult<LinkEntity, LinkGroupField> src, LinkCountDTOv1 dst, MapperContext mapperContext) throws Exception {
