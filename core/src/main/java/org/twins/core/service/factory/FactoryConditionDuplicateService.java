@@ -57,7 +57,7 @@ public class FactoryConditionDuplicateService extends EntityDuplicateService<Fac
 
     @Override
     protected void loadFor(Collection<TwinFactoryConditionSetEntity> parents) {
-        factoryConditionService.loadFactoryConditions(parents);
+        factoryConditionService.loadConditions(parents);
     }
 
     @Override

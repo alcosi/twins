@@ -145,7 +145,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         loadConditionSet(Collections.singletonList(src));
     }
 
-    public void loadConditionSet(List<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
+    public void loadConditionSet(Collection<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
         factoryConditionSetService.load(srcCollection,
                 TwinFactoryPipelineStepEntity::getTwinFactoryConditionSetId,
                 TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet,

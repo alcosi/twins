@@ -20,7 +20,7 @@ public class FactoryMultiplierFilterExportService extends EntityExportService<Tw
         if (CollectionUtils.isEmpty(filters)) return "";
         var sqlParts = new StringList();
         // Load and export ConditionSets
-        factoryMultiplierFilterService.loadConditionSets(filters);
+        factoryMultiplierFilterService.loadConditionSet(filters);
         sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(filters, TwinFactoryMultiplierFilterEntity::getConditionSet)));
         // Export MultiplierFilters

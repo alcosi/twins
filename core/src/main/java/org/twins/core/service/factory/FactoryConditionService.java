@@ -137,8 +137,8 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
         return repository.findByTwinFactoryConditionSetIdIn(conditionSetIds);
     }
 
-    public void loadFactoryConditions(TwinFactoryConditionSetEntity conditionSet) {
-        loadFactoryConditions(Collections.singletonList(conditionSet));
+    public void loadConditions(TwinFactoryConditionSetEntity conditionSet) {
+        loadConditions(Collections.singletonList(conditionSet));
     }
 
     public void loadConditions(Collection<TwinFactoryConditionSetEntity> conditionSets) {

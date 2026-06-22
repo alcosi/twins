@@ -82,11 +82,11 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
     }
 
-    public void loadConditionSets(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
-        loadConditionSets(Collections.singleton(filter));
+    public void loadConditionSet(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
+        loadConditionSet(Collections.singleton(filter));
     }
 
-    public void loadConditionSets(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+    public void loadConditionSet(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
         factoryConditionSetService.load(filters,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
                 TwinFactoryMultiplierFilterEntity::getConditionSet,

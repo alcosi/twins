@@ -33,7 +33,7 @@ public class FactoryPipelineExportService extends EntityExportService<TwinFactor
         var sqlParts = new StringList();
 
         // Load and export ConditionSets
-        factoryPipelineService.loadConditionSets(pipelines);
+        factoryPipelineService.loadConditionSet(pipelines);
         sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(pipelines, TwinFactoryPipelineEntity::getConditionSet)));
 
