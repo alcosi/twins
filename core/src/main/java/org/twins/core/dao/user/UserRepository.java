@@ -63,6 +63,7 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and d_user.userId = :userId)")
     boolean existsUserInDomain(@Param("userId") UUID userId, @Param("domainId") UUID domainId);
 
+    boolean existsByEmail(String email);
 
     @Query(value = "select dba.domain, dba.businessAccount, user from UserEntity user " +
             "join DomainUserEntity domainUser on user.id = domainUser.userId " +

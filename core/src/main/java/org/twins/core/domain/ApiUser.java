@@ -65,7 +65,7 @@ public class ApiUser {
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
         // do not change this code, because of security issues
-        // if domain is already resolved, changing resolver should not make any sense
+        // if the domain is already resolved, changing the resolver should not make any sense
         this.domainResolver = domainResolver;
         if (NOT_SPECIFIED.equals(this.domainId))
             this.domainId = null;
@@ -74,16 +74,23 @@ public class ApiUser {
 
     public ApiUser setBusinessAccountResolver(BusinessAccountResolver businessAccountResolver) {
         // do not change this code, because of security issues
-        // if businessAccount is already resolved, changing resolver should not make any sense
+        // if the businessAccount is already resolved, changing the resolver should not make any sense
         this.businessAccountResolver = businessAccountResolver;
         if (NOT_SPECIFIED.equals(this.businessAccountId))
             this.businessAccountId = null;
         return this;
     }
 
+    public ApiUser switchBusinessAccountResolver(BusinessAccountResolver businessAccountResolver) {
+        this.businessAccountResolver = businessAccountResolver;
+        this.businessAccountId = null;
+        this.businessAccount = null;
+        return this;
+    }
+
     public ApiUser setUserResolver(UserResolver userResolver) {
         // do not change this code, because of security issues
-        // if user is already resolved, changing resolver should not make any sense
+        // if the user is already resolved, changing the resolver should not make any sense
         this.userResolver = userResolver;
         if (NOT_SPECIFIED.equals(this.userId))
             this.userId = null;
@@ -330,23 +337,23 @@ public class ApiUser {
 
     public ApiUser setAnonymous(UUID domainId) {
         return setDomainResolver(new DomainResolverGivenId(domainId))
-                .setUserResolver(new UserResolverNotSpecified())
+                .setUserResolver(UserResolverNotSpecified.instance)
                 .setLocaleResolver(apiUserResolverService.getLocaleResolverHeader())
-                .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+                .setBusinessAccountResolver(BusinessAccountResolverNotSpecified.instance);
     }
 
     public ApiUser setAnonymous() {
         return setDomainResolver(apiUserResolverService.getDomainResolverHeaders())
-                .setUserResolver(new UserResolverNotSpecified())
+                .setUserResolver(UserResolverNotSpecified.instance)
                 .setLocaleResolver(apiUserResolverService.getLocaleResolverHeader())
-                .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+                .setBusinessAccountResolver(BusinessAccountResolverNotSpecified.instance);
     }
 
     public ApiUser setAnonymousWithDefaultLocale() {
         return setDomainResolver(apiUserResolverService.getDomainResolverHeaders())
-                .setUserResolver(new UserResolverNotSpecified())
-                .setLocaleResolver(new LocaleResolverEnglish())
-                .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+                .setUserResolver(UserResolverNotSpecified.instance)
+                .setLocaleResolver(LocaleResolverEnglish.instance)
+                .setBusinessAccountResolver(BusinessAccountResolverNotSpecified.instance);
     }
 
     public void setActAsUserStep(ActAsUserStep nextActAsUserStep) throws ServiceException {

@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.apiuser.LocaleResolverEnglish;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -61,7 +62,38 @@ public class BusinessAccountUserAddController extends ApiController {
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.userId))
+                    .setLocaleResolver(LocaleResolverEnglish.instance)
                     .setCheckMembershipMode(false);
+            businessAccountUserService.addUserSmart(
+                    businessAccountId,
+                    request.userId,
+                    EntitySmartService.SaveMode.ifNotPresentCreate,
+                    EntitySmartService.SaveMode.ifNotPresentCreate,
+                    true);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ProtectedBy(Permissions.BUSINESS_ACCOUNT_USER_CREATE)
+    @ParameterChannelHeader
+    @Operation(operationId = "businessAccountUserAddV2", summary = "Add user to business account. " +
+            "If business account is not exist it will be created. If user is not exist it will be created")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/business_account/{businessAccountId}/user/v2")
+    public ResponseEntity<?> businessAccountUserAddV2(
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
+            @RequestBody BusinessAccountUserAddRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            authService.getApiUser().setLocaleResolver(LocaleResolverEnglish.instance);
             businessAccountUserService.addUserSmart(
                     businessAccountId,
                     request.userId,

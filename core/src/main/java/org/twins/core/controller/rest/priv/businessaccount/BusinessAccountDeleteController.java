@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -31,6 +33,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BusinessAccountDeleteController extends ApiController {
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountDeleteV1", summary = "Delete businessAccount")
     @ApiResponses(value = {
@@ -40,6 +46,29 @@ public class BusinessAccountDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/business_account/{businessAccountId}/v1")
     public ResponseEntity<?> businessAccountDeleteV1(
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
+        Response rs = new Response();
+        try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
+            throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+    }
+
+    @ProtectedBy(Permissions.BUSINESS_ACCOUNT_DELETE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "businessAccountDeleteV2", summary = "Delete businessAccount")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @DeleteMapping(value = "/private/business_account/{businessAccountId}/v2")
+    public ResponseEntity<?> businessAccountDeleteV2(
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
         Response rs = new Response();
         try {

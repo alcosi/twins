@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
@@ -59,6 +60,32 @@ public class BusinessAccountUpdateController extends ApiController {
                 throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId));
+            BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
+                    .setId(businessAccountService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setName(request.name());
+            businessAccountService.updateBusinessAccount(businessAccountEntity);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ProtectedBy(Permissions.BUSINESS_ACCOUNT_UPDATE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "businessAccountUpdateV2", summary = "Update businessAccount")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PutMapping(value = "/private/business_account/{businessAccountId}/v2")
+    public ResponseEntity<?> businessAccountUpdateV2(
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
+            @RequestBody BusinessAccountUpdateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
             BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                     .setId(businessAccountService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .setName(request.name());

@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
@@ -62,6 +63,31 @@ public class BusinessAccountUserDeleteController extends ApiController {
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(userId));
+            businessAccountUserService.deleteUser(
+                    businessAccountUserService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+                    userId);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ProtectedBy(Permissions.BUSINESS_ACCOUNT_USER_DELETE)
+    @ParametersApiUserHeaders
+    @Operation(operationId = "businessAccountUserDeleteV2", summary = "Delete user from businessAccount")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @DeleteMapping(value = "/private/business_account/{businessAccountId}/user/{userId}/v2")
+    public ResponseEntity<?> businessAccountUserDeleteV2(
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
+        Response rs = new Response();
+        try {
             businessAccountUserService.deleteUser(
                     businessAccountUserService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     userId);

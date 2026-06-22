@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -62,10 +63,16 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     }
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
+        if (EntitySmartService.SaveMode.none.equals(userSaveMode))
+            return userEntity;
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));
         if (userEntity.getUserStatusId() == null) {
             userEntity.setUserStatusId(UserStatus.ACTIVE);
         }
+        if (!EmailValidator.getInstance().isValid(userEntity.getEmail()))
+            throw new ServiceException(ErrorCodeTwins.EMAIL_INVALID);
+        if (userRepository.existsByEmail(userEntity.getEmail()))
+            throw new ServiceException(ErrorCodeTwins.EMAIL_ALREADY_REGISTERED);
         EntitySmartService.SaveResult<UserEntity> saveResult = entitySmartService.saveWithResult(userEntity.getId(), userEntity, userRepository, userSaveMode);
         // The logic of creating a user record in twin is implemented through a trigger in the database
         return saveResult.getSavedEntity();

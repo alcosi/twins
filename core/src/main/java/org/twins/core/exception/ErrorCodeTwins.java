@@ -20,6 +20,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     SORT_FIELD_INCORRECT(10009, "sort field is incorrect" ),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
+    EMAIL_INVALID(10103, "email is invalid" ),
+    EMAIL_ALREADY_REGISTERED(10104, "email is already registered" ),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
     DOMAIN_TYPE_UNSUPPORTED(10202, "domain type unsupported"),
     DOMAIN_KEY_INCORRECT(10203, "domain key is incorrect"),
