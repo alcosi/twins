@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -290,17 +291,22 @@ public class FillerForwardLinkToTwinFoundByHeadAndLinkDst extends FillerLinks {
 
         UUID linkId = dstLinkId.extract(properties);
         twinLinkService.loadTwinLinks(contextTwin);
-        try {
-            return contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst().getDstTwin().getId();
-        } catch (Exception e) {
+        List<TwinLinkEntity> forwardLinks = contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId);
+        if (CollectionUtils.isEmpty(forwardLinks)) {
             log.info("Link dst twin not found by link [{}] on context twin [{}]", linkId, contextTwin.logShort());
             return null;
         }
+        TwinLinkEntity linkEntity = forwardLinks.getFirst();
+        if (linkEntity.getDstTwin() != null) {
+            return linkEntity.getDstTwin().getId();
+        }
+        return linkEntity.getDstTwinId();
     }
 
     private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {
         if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue().getId();
+            TwinEntity linkedTwin = linkSingle.getValue();
+            return linkedTwin != null ? linkedTwin.getId() : null;
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
