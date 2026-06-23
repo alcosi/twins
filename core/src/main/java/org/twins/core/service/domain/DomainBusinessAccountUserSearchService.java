@@ -76,9 +76,9 @@ public class DomainBusinessAccountUserSearchService extends EntitySearchService
             case lastActivityAt ->
                     toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.lastActivityAt);
             case userName ->
-                    toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.user, UserEntity.Fields.name);
+                    toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.userSpecOnly, UserEntity.Fields.name);
             case businessAccountName ->
-                    toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.businessAccount, BusinessAccountEntity.Fields.name);
+                    toSortSpecification(ascending, DomainBusinessAccountUserEntity.Fields.businessAccountSpecOnly, BusinessAccountEntity.Fields.name);
         };
     }
 

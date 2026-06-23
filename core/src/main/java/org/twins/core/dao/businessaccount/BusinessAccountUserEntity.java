@@ -1,9 +1,7 @@
 package org.twins.core.dao.businessaccount;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -34,14 +32,28 @@ public class BusinessAccountUserEntity implements EasyLoggable {
     @Column(name = "user_id")
     private UUID userId;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private BusinessAccountEntity businessAccountSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity userSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private BusinessAccountEntity businessAccount;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private UserEntity user;

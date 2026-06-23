@@ -102,4 +102,26 @@ public class BusinessAccountUserService extends EntitySecureFindServiceImpl<Busi
         for (Map.Entry<UUID, DomainUserEntity> entry : needLoad.entrySet())
             entry.getValue().setBusinessAccountUserKit(new Kit<>(businessAccountUserKit.getGrouped(entry.getKey()), BusinessAccountUserEntity::getId));
     }
+
+    public void loadBusinessAccount(BusinessAccountUserEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<BusinessAccountUserEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                BusinessAccountUserEntity::getBusinessAccountId,
+                BusinessAccountUserEntity::getBusinessAccount,
+                BusinessAccountUserEntity::setBusinessAccount);
+    }
+
+    public void loadUser(BusinessAccountUserEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<BusinessAccountUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                BusinessAccountUserEntity::getUserId,
+                BusinessAccountUserEntity::getUser,
+                BusinessAccountUserEntity::setUser);
+    }
 }
