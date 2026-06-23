@@ -87,6 +87,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             dst
                     .assignerUserId(src.getAssignerUserId())
                     .authorUserId(src.getCreatedByUserId());
+            twinService.loadUser(src);
             userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
             userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
 
@@ -106,20 +107,12 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             dst.aliases(twinAliasRestDTOMapper.convert(src, mapperContext));
         }
         if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
-            faceService.loadFaces(src);
-
-            faceRestDTOMapper.postpone(
-                    src.getPageFace(),
-                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
-            );
-            faceRestDTOMapper.postpone(
-                    src.getBreadCrumbsFace(),
-                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
-            );
-
+            twinService.loadFaces(src);
             dst
                     .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                     .pageFaceId(faceService.resolvePageFaceId(src));
+            faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
+            faceRestDTOMapper.postpone(src.getBreadCrumbsFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
         }
     }
 
@@ -140,6 +133,12 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             twinAliasService.loadAliases(srcCollection);
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
             twinService.loadHead(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
+            twinService.loadUser(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
+            twinService.loadFaces(srcCollection);
         }
     }
 

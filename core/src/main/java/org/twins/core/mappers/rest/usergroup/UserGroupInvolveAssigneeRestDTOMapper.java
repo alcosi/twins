@@ -13,6 +13,9 @@ import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.usergroup.UserGroupInvolveAssigneeService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -33,6 +36,8 @@ public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<U
 
     @MapperModePointerBinding(modes = UserMode.UserGroupInvolveAssignee2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    private final UserGroupInvolveAssigneeService userGroupInvolveAssigneeService;
 
     @Override
     public void map(UserGroupInvolveAssigneeEntity src, UserGroupInvolveAssigneeDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -66,7 +71,16 @@ public class UserGroupInvolveAssigneeRestDTOMapper extends RestSimpleDTOMapper<U
 
         if (mapperContext.hasModeButNot(UserMode.UserGroupInvolveAssignee2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
+            userGroupInvolveAssigneeService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.UserGroupInvolveAssignee2UserMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<UserGroupInvolveAssigneeEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.UserGroupInvolveAssignee2UserMode.HIDE)) {
+            userGroupInvolveAssigneeService.loadCreatedByUser(srcCollection);
         }
     }
 

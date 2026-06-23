@@ -2,9 +2,7 @@ package org.twins.core.dao.domain;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -208,12 +206,12 @@ public class DomainEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private NotificationSchemaEntity notificationSchema;
 
-    // needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private List<DomainBusinessAccountEntity> domainBusinessAccounts;
+    private List<DomainBusinessAccountEntity> domainBusinessAccountsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude

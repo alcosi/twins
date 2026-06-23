@@ -16,7 +16,7 @@ import java.util.UUID;
 @Repository
 public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEntity, UUID>, JpaSpecificationExecutor<SpaceRoleUserEntity> {
 
-    @Query(value = "select su.user from SpaceRoleUserEntity su where su.twinId = :twinId and su.spaceRoleId = :spaceRoleId")
+    @Query(value = "select su.userSpecOnly from SpaceRoleUserEntity su where su.twinId = :twinId and su.spaceRoleId = :spaceRoleId")
     List<UserEntity> findByTwinIdAndSpaceRoleId(@Param("twinId") UUID twinId, @Param("spaceRoleId") UUID spaceRoleId);
 
     List<SpaceRoleUserEntity> findAllByTwinIdAndUserId(UUID twinId, UUID userId);

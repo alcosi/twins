@@ -20,7 +20,6 @@ import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.enums.action.TwinAction;
@@ -91,7 +90,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (twinId != null) {
             twin = twinService.findEntitySafe(twinId);
             twinClass = twin.getTwinClass();
-            attachmentService.loadAttachmentsCount(twin);
+            twinService.loadAttachmentsCount(twin);
             if (CollectionUtils.isNotEmpty(cud.getCreateList())) {
                 twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
             }

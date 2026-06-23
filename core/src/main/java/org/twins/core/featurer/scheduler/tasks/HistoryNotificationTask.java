@@ -21,6 +21,7 @@ import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryRecipientService;
 import org.twins.core.service.notification.HistoryNotificationService;
+import org.twins.core.service.notification.NotificationChannelEventService;
 import org.twins.core.service.notification.NotificationContextService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
@@ -43,6 +44,8 @@ public class HistoryNotificationTask implements Runnable {
     private FeaturerService featurerService;
     @Autowired
     private NotificationContextService notificationContextService;
+    @Autowired
+    private NotificationChannelEventService notificationChannelEventService;
     @Autowired
     private HistoryRecipientService historyRecipientService;
     @Autowired
@@ -99,6 +102,7 @@ public class HistoryNotificationTask implements Runnable {
             );
 
             var recipientsCount = 0;
+            notificationChannelEventService.loadNotificationChannel(notificationConfigsGroupedByChannelEvent.getGroupingObjectMap().values());
             for (var entry : notificationConfigsGroupedByChannelEvent.getGroupedMap().entrySet()) {
                 var channelEvent = notificationConfigsGroupedByChannelEvent.getGroupingObject(entry.getKey());
 

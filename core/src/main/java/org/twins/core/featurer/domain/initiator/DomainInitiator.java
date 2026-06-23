@@ -91,7 +91,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setIdentityProvider(domainTypeEntity.getDefaultIdentityProvider())
                 .setIdentityProviderId(domainTypeEntity.getDefaultIdentityProvider().getId())
-                .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
+                .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturerId())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())
                 .setAttachmentsStorageUsedSize(0L)
                 .setAttachmentsStorageUsedCount(0L);

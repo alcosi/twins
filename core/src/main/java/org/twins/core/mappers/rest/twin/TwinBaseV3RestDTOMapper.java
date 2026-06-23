@@ -74,7 +74,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             mapperContext.setPriorityMinMode(AttachmentMode.Twin2AttachmentMode.SHORT);
         }
         if (showAttachments(mapperContext)) {
-            attachmentService.loadAttachments(src);
+            twinService.loadAttachments(src);
             dst.setAttachments(attachmentRestDTOMapper.convertCollection(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(AttachmentMode.Twin2AttachmentMode.SHORT, AttachmentCollectionMode.Twin2AttachmentCollectionMode.FROM_FIELDS)));
         }
         //todo do optimization load
@@ -82,11 +82,11 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src, mapperContext));
         }
         if (showLinks(mapperContext)) {
-            twinLinkService.loadTwinLinks(src);
+            twinService.loadTwinLinks(src);
             dst.setLinks(twinLinkListRestDTOMapper.convert(src.getTwinLinks(), mapperContext.forkOnPoint(TwinLinkMode.Twin2TwinLinkMode.SHORT)));
         }
         if (showTransitions(mapperContext)) {
-            twinflowTransitionService.loadValidTransitions(src);
+            twinService.loadValidTransitions(src);
             dst.setTransitionsIdList(src.getValidTransitionsKit().getIdSet());
             twinTransitionRestDTOMapper.postpone(src.getValidTransitionsKit(), mapperContext.forkOnPoint(TransitionMode.Twin2TransitionMode.HIDE));
         }
@@ -167,7 +167,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         super.beforeCollectionConversion(srcCollection, mapperContext);
         twinBaseRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         if (showAttachments(mapperContext))
-            attachmentService.loadAttachments(srcCollection);
+            twinService.loadAttachments(srcCollection);
         if (showMarkers(mapperContext))
             twinMarkerService.loadMarkers(srcCollection);
         if (showTags(mapperContext))
@@ -177,9 +177,9 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (showActionRestrictions(mapperContext))
             twinActionService.loadActionRestrictionReasons(srcCollection);
         if (showLinks(mapperContext))
-            twinLinkService.loadTwinLinks(srcCollection);
+            twinService.loadTwinLinks(srcCollection);
         if (showTransitions(mapperContext))
-            twinflowTransitionService.loadValidTransitions(srcCollection);
+            twinService.loadValidTransitions(srcCollection);
         if (showTwinAttachmentsCount(mapperContext))
             twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         if (showCreatableChildTwinClasses(mapperContext))

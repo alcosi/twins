@@ -7,12 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.domain.DomainBusinessAccountUserEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountUserRepository;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.usergroup.UserGroupService;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -22,6 +25,9 @@ import java.util.Collections;
 public class DomainBusinessAccountUserService {
     private final UserService userService;
     private final BusinessAccountService businessAccountService;
+    private final UserGroupService userGroupService;
+    private final DomainBusinessAccountUserRepository domainBusinessAccountUserRepository;
+    private final AuthService authService;
 
 
     public void loadUser(DomainBusinessAccountUserEntity src) throws ServiceException {
@@ -44,5 +50,17 @@ public class DomainBusinessAccountUserService {
                 DomainBusinessAccountUserEntity::getBusinessAccountId,
                 DomainBusinessAccountUserEntity::getBusinessAccount,
                 DomainBusinessAccountUserEntity::setBusinessAccount);
+    }
+
+    public void loadGroups(DomainBusinessAccountUserEntity src) throws ServiceException {
+        loadGroups(Collections.singletonList(src));
+    }
+
+    public void loadGroups(Collection<DomainBusinessAccountUserEntity> srcCollection) throws ServiceException {
+        userGroupService.loadGroupsForDomainBusinessAccountUsers(srcCollection);
+    }
+
+    public List<EntryCount> getUsersCount(Set<UUID> businessAccounts) throws ServiceException {
+        return domainBusinessAccountUserRepository.countUsersInBusinessAccounts(businessAccounts, authService.getApiUser().getDomainId());
     }
 }

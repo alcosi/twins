@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ import java.util.UUID;
 @ProtectedBy(Permissions.SPACE_ROLE_MANAGE)
 public class SpaceRoleUserOverrideController extends ApiController {
     private final UserRestDTOMapper userRestDTOMapper;
-    private final SpaceUserRoleService spaceUserRoleService;
+    private final SpaceRoleUserService spaceRoleUserService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "spaceRoleUserOverrideV1", summary = "Add/Remove user list by role and twin")
@@ -50,9 +50,9 @@ public class SpaceRoleUserOverrideController extends ApiController {
             @RequestBody SpaceRoleUserOverrideRqDTOv1 request) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            spaceUserRoleService.overrideSpaceRoleUsers(spaceId, roleId, request.spaceRoleUserList);
+            spaceRoleUserService.overrideSpaceRoleUsers(spaceId, roleId, request.spaceRoleUserList);
             rs.userList = userRestDTOMapper.convertCollection(
-                    spaceUserRoleService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
+                    spaceRoleUserService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

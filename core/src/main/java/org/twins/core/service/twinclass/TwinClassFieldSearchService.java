@@ -233,13 +233,13 @@ public class TwinClassFieldSearchService extends EntitySearchService
         }
 
         return switch (selector) {
-            case src -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrc, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
-            case dst -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDst, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+            case src -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrcSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+            case dst -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDstSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
             case all -> {
                 Specification<TwinClassFieldEntity> srcSpec =
-                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrc, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrcSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
                 Specification<TwinClassFieldEntity> dstSpec =
-                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDst, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDstSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
                 yield Specification.anyOf(srcSpec, dstSpec);
             }
         };

@@ -47,6 +47,8 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupMapRepository userGroupMapRepository;
     final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
+    @Lazy
+    private final UserGroupMapService userGroupMapService;
     final I18nService i18nService;
     @Lazy
     final AuthService authService;
@@ -104,6 +106,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         if (CollectionUtils.isEmpty(userGroups)) {
             return;
         }
+        userGroupMapService.loadUserGroup(userGroups);
         for (var userGroupMap : userGroups) {
             needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
@@ -131,6 +134,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
             List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroupsStrict(apiUser.getDomainId(), businessAccountId, usersByUserId.keySet());
             if (CollectionUtils.isEmpty(userGroups))
                 continue;
+            userGroupMapService.loadUserGroup(userGroups);
             for (UserGroupMapEntity userGroupMap : userGroups) {
                 DomainBusinessAccountUserEntity entity = usersByUserId.get(userGroupMap.getUserId());
                 if (entity != null)

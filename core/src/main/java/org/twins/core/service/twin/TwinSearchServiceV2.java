@@ -144,7 +144,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
                 case ASSIGNEE_USER_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.assignerUser, UserEntity.Fields.name);
                 case CREATOR_USER_ID:
-                    return toSortSpecification(ascending, TwinEntity.Fields.createdByUser, UserEntity.Fields.name);
+                    return toSortSpecification(ascending, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
                 default:
                     throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + twinClassFieldId + " is not groupable");
             }

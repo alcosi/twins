@@ -40,6 +40,7 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -66,6 +67,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final HistoryService historyService;
     private final TwinChangesService twinChangesService;
     private final FeaturerService featurerService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
@@ -520,5 +522,16 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
         }
         return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(twinIds, linkIds, twinStatusIds, inputTwinIds);
+    }
+
+    public void loadCreatedByUser(TwinLinkEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinLinkEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinLinkEntity::getCreatedByUserId,
+                TwinLinkEntity::getCreatedByUser,
+                TwinLinkEntity::setCreatedByUser);
     }
 }

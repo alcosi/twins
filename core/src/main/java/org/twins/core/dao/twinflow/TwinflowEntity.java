@@ -66,10 +66,17 @@ public class TwinflowEntity implements EasyLoggable {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
@@ -102,13 +109,13 @@ public class TwinflowEntity implements EasyLoggable {
     @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialSketchTwinStatus;
 
-    //    needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twinflow_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Collection<TwinflowSchemaMapEntity> schemaMappings;
+    private Collection<TwinflowSchemaMapEntity> schemaMappingsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude

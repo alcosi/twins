@@ -15,6 +15,8 @@ import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
+import java.util.Collection;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TransitionMode.class)
@@ -66,7 +68,8 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         }
         if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
-            userRestDTOMapper.postpone(twinflowTransitionService.loadCreatedBy(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Transition2UserMode.SHORT)));
+            twinflowTransitionService.loadUsers(src);
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Transition2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(FactoryMode.Transition2FactoryMode.HIDE)) {
             dst.setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId());
@@ -86,4 +89,11 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         return mapperContext.hasModeOrEmpty(TransitionMode.HIDE);
     }
 
+    @Override
+    public void beforeCollectionConversion(Collection<TwinflowTransitionEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE)) {
+            twinflowTransitionService.loadUsers(srcCollection);
+        }
+    }
 }

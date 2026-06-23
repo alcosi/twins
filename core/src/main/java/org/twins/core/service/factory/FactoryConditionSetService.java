@@ -23,6 +23,7 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -48,6 +49,7 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
     private final AuthService authService;
     private final FactoryService factoryService;
     private final CacheManager cacheManager;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinFactoryConditionSetEntity, UUID> entityRepository() {
@@ -161,6 +163,17 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryConditionSetEntity::getTwinFactoryId,
                 TwinFactoryConditionSetEntity::getTwinFactory,
                 TwinFactoryConditionSetEntity::setTwinFactory);
+    }
+
+    public void loadCreatedByUser(TwinFactoryConditionSetEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinFactoryConditionSetEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinFactoryConditionSetEntity::getCreatedByUserId,
+                TwinFactoryConditionSetEntity::getCreatedByUser,
+                TwinFactoryConditionSetEntity::setCreatedByUser);
     }
 
     public void loadFactoryConditionSets(TwinFactoryEntity factory) {

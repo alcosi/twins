@@ -16,6 +16,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamBasicsTwinBasicField;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Properties;
@@ -39,11 +40,16 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
     @Autowired
     private TwinClassFieldService twinClassFieldService;
 
+    @Lazy
+    @Autowired
+    private TwinService twinService;
+
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.checkSingleContextTwin();
         TwinBasicFields.Basics fieldName = field.extract(properties);
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
+        twinService.loadUser(factoryItemTwin);
         switch (fieldName) {
             case createdByUserId -> {
                 if (null == factoryItemTwin.getCreatedByUserId()) {

@@ -42,7 +42,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupFootprintService;
@@ -67,7 +67,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
     private final SpaceRepository spaceRepository;
-    private final SpaceUserRoleService spaceUserRoleService;
+    private final SpaceRoleUserService spaceRoleUserService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
     private final I18nService i18nService;
 
@@ -341,7 +341,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         List<SpaceRoleUserEntity> grantedSpaceRoleUsers = new ArrayList<>();
         List<SpaceRoleUserGroupEntity> grantedSpaceRoleUserGroups = new ArrayList<>();
         if (spaceTwin != null) {
-            final List<SpaceRoleUserEntity> spaceRoleUsers = spaceUserRoleService.findSpaceRoleUsersByTwinIdAndUserId(spaceTwin.getId(), userId);
+            final List<SpaceRoleUserEntity> spaceRoleUsers = spaceRoleUserService.findSpaceRoleUsersByTwinIdAndUserId(spaceTwin.getId(), userId);
             final List<SpaceRoleUserGroupEntity> spaceRoleUserGroups = spaceRoleUserGroupRepository.findAllByTwinIdAndUserGroupIdIn(spaceTwin.getId(), groupsForUserKit.getIdSet());
             final List<PermissionGrantSpaceRoleEntity> grantedForSpaceRoles = permissionGrantSpaceRoleRepository.findByPermissionId(permissionId);
             for (PermissionGrantSpaceRoleEntity grantedForSpaceRole : grantedForSpaceRoles) {
