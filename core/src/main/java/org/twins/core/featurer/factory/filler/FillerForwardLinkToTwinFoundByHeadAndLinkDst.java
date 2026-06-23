@@ -140,14 +140,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndLinkDst extends FillerLinks {
         return Optional.of(dbMatches.getFirst());
     }
 
-    private List<TwinEntity> findUncommittedMatches(
-            FactoryItem factoryItem,
-            UUID extractedTwinClassId,
-            UUID headTwinId,
-            UUID extractedDstLinkId,
-            UUID dstTwinId,
-            Set<UUID> excludeIds
-    ) {
+    private List<TwinEntity> findUncommittedMatches(FactoryItem factoryItem, UUID extractedTwinClassId, UUID headTwinId, UUID extractedDstLinkId, UUID dstTwinId, Set<UUID> excludeIds) {
         List<TwinEntity> matches = new ArrayList<>();
         for (FactoryItem candidateItem : factoryItem.getFactoryContext().getAllFactoryItemList()) {
             TwinOperation candidateOutput = candidateItem.getOutput();
