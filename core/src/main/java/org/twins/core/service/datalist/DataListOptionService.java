@@ -33,6 +33,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
@@ -61,6 +62,9 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     private DataListOptionSearchService dataListOptionSearchService;
     @Autowired
     private AdvancedEntityManager advancedEntityManager;
+    @Lazy
+    @Autowired
+    private BusinessAccountService businessAccountService;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -431,4 +435,26 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
     }
     //todo move *options methods from  DataListService
+
+    public void loadDataList(DataListOptionEntity src) throws ServiceException {
+        loadDataList(Collections.singletonList(src));
+    }
+
+    public void loadDataList(Collection<DataListOptionEntity> srcCollection) throws ServiceException {
+        dataListService.load(srcCollection,
+                DataListOptionEntity::getDataListId,
+                DataListOptionEntity::getDataList,
+                DataListOptionEntity::setDataList);
+    }
+
+    public void loadBusinessAccount(DataListOptionEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<DataListOptionEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                DataListOptionEntity::getBusinessAccountId,
+                DataListOptionEntity::getBusinessAccount,
+                DataListOptionEntity::setBusinessAccount);
+    }
 }

@@ -60,10 +60,10 @@ public class DataListOptionSearchPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymous();
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
-                    .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
+                    .search(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
