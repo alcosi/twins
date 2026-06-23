@@ -66,6 +66,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionGrantGlobalRepository permissionGrantGlobalRepository;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
+    private final PermissionGrantUserGroupService permissionGrantUserGroupService;
     private final SpaceRepository spaceRepository;
     private final SpaceRoleUserService spaceRoleUserService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
@@ -312,6 +313,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         Kit<UserGroupEntity, UUID> groupsForUserKit = userGroupService.findGroupsForUser(userId);
         List<UserGroupEntity> grantedForGroups = new ArrayList<>();
         final List<PermissionGrantUserGroupEntity> grantedPermissions = permissionGrantUserGroupRepository.findByPermissionSchemaIdAndPermissionIdAndUserGroupIdIn(permissionSchema.getId(), permissionId, groupsForUserKit.getIdSet());
+        permissionGrantUserGroupService.loadUserGroup(grantedPermissions);
         for (PermissionGrantUserGroupEntity grantedPermission : grantedPermissions)
             grantedForGroups.add(grantedPermission.getUserGroup());
         result.setGrantedByUserGroups(new Kit<>(grantedForGroups, UserGroupEntity::getId));
