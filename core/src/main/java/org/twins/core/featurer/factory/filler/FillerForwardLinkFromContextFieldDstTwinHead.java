@@ -3,6 +3,7 @@ package org.twins.core.featurer.factory.filler;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -28,7 +29,7 @@ import java.util.UUID;
         name = "Forward link from context field dst twin head",
         description = "Reads link field from transition context. " +
                 "Resolves dst twin (by entity or id). " +
-                "Creates new forward link from output twin pointing to dst twin head"
+                "Creates new forward link from output twin pointing to dst twin or its head"
 )
 public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
 
@@ -37,6 +38,9 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
 
     @FeaturerParam(name = "New links id", description = "", order = 2)
     public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
+
+    @FeaturerParam(name = "Use dst twin head", description = "If true, link dst is head of resolved twin; if false, resolved twin itself", order = 3, optional = true, defaultValue = "true")
+    public static final FeaturerParamBoolean useDstTwinHead = new FeaturerParamBoolean("useDstTwinHead");
 
     @Lazy
     @Autowired
@@ -54,9 +58,14 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         }
 
         TwinEntity dstTwin = resolveDstTwin(fieldValueLink.getItems().getFirst());
-        TwinEntity detectedHead = twinService.loadHead(dstTwin);
-        if (detectedHead == null) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + dstTwin.logDetailed());
+        TwinEntity linkDstTwin;
+        if (useDstTwinHead.extract(properties)) {
+            linkDstTwin = twinService.loadHead(dstTwin);
+            if (linkDstTwin == null) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + dstTwin.logDetailed());
+            }
+        } else {
+            linkDstTwin = dstTwin;
         }
 
         TwinEntity outputTwin = factoryItem.getTwin();
@@ -66,8 +75,8 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
                 .setLinkId(link.getId())
                 .setSrcTwinId(outputTwin.getId())
                 .setSrcTwin(outputTwin)
-                .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId());
+                .setDstTwin(linkDstTwin)
+                .setDstTwinId(linkDstTwin.getId());
         addLink(factoryItem.getOutput(), newLink);
     }
 
