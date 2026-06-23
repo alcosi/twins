@@ -3,6 +3,7 @@ package org.twins.core.featurer.factory.conditioner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -61,7 +62,6 @@ public class ConditionerTwinExistsByHeadAndLinkDst extends Conditioner {
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         Optional<BasicSearch> search = buildSearch(properties, factoryItem);
         if (search.isEmpty()) {
-            log.info("Twin exists by head and link dst search skipped");
             return false;
         }
         return twinSearchService.exists(search.get());
@@ -69,18 +69,23 @@ public class ConditionerTwinExistsByHeadAndLinkDst extends Conditioner {
 
     private Optional<BasicSearch> buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        UUID headTwinId = contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
-        if (headTwinId == null) {
-            log.info("Context twin has no head, twin exists by head and link dst search skipped");
+        Optional<UUID> headTwinId = Optional.ofNullable(contextTwin.getHeadTwinId())
+                .or(() -> Optional.ofNullable(contextTwin.getId()));
+        if (headTwinId.isEmpty()) {
+            log.debug("Context twin has no head, twin exists by head and link dst search skipped");
             return Optional.empty();
         }
 
-        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, contextTwin);
-        if (dstTwinId == null) {
-            log.info("Link dst twin id is not resolved, twin exists by head and link dst search skipped");
+        Optional<UUID> dstTwinId = resolveDstTwinId(properties, factoryItem, contextTwin);
+        if (dstTwinId.isEmpty()) {
+            log.debug("Link dst twin id is not resolved, twin exists by head and link dst search skipped");
             return Optional.empty();
         }
 
+        return assembleSearch(properties, factoryItem, contextTwin, headTwinId.get(), dstTwinId.get());
+    }
+
+    private Optional<BasicSearch> assembleSearch(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin, UUID headTwinId, UUID dstTwinId) {
         BasicSearch search = new BasicSearch().setCheckViewPermission(false);
         search
                 .addTwinClassId(twinClassId.extract(properties), false)
@@ -100,55 +105,64 @@ public class ConditionerTwinExistsByHeadAndLinkDst extends Conditioner {
         }
 
         if (matchFactoryItemOutputTwin.extract(properties)) {
-            UUID outputTwinId = factoryItem.getOutput().getTwinEntity().getId();
-            if (outputTwinId == null) {
-                log.info("Factory item output twin has no id, twin exists by head and link dst match skipped");
-                return Optional.empty();
-            }
-            search.addTwinId(outputTwinId, false);
+            return Optional.ofNullable(factoryItem.getOutput().getTwinEntity().getId())
+                    .map(outputTwinId -> {
+                        search.addTwinId(outputTwinId, false);
+                        return search;
+                    })
+                    .or(() -> {
+                        log.debug("Factory item output twin has no id, twin exists by head and link dst match skipped");
+                        return Optional.empty();
+                    });
         }
 
         return Optional.of(search);
     }
 
-    private UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
+    private Optional<UUID> resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         if (dstFieldId != null) {
             FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                     .lookupFieldValue(factoryItem, dstFieldId);
-            UUID dstTwinId = extractTwinIdFromFieldValue(dstFieldValue);
-            if (dstTwinId != null) {
+            Optional<UUID> dstTwinId = extractTwinIdFromFieldValue(dstFieldValue);
+            if (dstTwinId.isPresent()) {
                 return dstTwinId;
             }
         }
-
-        UUID linkId = dstLinkId.extract(properties);
-        twinLinkService.loadTwinLinks(contextTwin);
-        try {
-            return contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst().getDstTwin().getId();
-        } catch (Exception e) {
-            log.info("Link dst twin not found by link [{}] on context twin [{}]", linkId, contextTwin.logShort());
-            return null;
-        }
+        return resolveDstTwinIdFromLink(contextTwin, dstLinkId.extract(properties));
     }
 
-    private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {
+    private Optional<UUID> resolveDstTwinIdFromLink(TwinEntity contextTwin, UUID linkId) throws ServiceException {
+        twinLinkService.loadTwinLinks(contextTwin);
+        List<TwinLinkEntity> forwardLinks = contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId);
+        if (CollectionUtils.isEmpty(forwardLinks)) {
+            log.debug("Link dst twin not found by link [{}] on context twin [{}]", linkId, contextTwin.logShort());
+            return Optional.empty();
+        }
+        TwinLinkEntity linkEntity = forwardLinks.getFirst();
+        if (linkEntity.getDstTwin() != null) {
+            return Optional.ofNullable(linkEntity.getDstTwin().getId());
+        }
+        return Optional.ofNullable(linkEntity.getDstTwinId());
+    }
+
+    private Optional<UUID> extractTwinIdFromFieldValue(FieldValue fieldValue) {
         if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue().getId();
+            return Optional.ofNullable(linkSingle.getValue().getId());
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
             if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
+                return Optional.ofNullable(linkEntity.getDstTwin().getId());
             }
-            return linkEntity.getDstTwinId();
+            return Optional.ofNullable(linkEntity.getDstTwinId());
         }
         if (fieldValue instanceof FieldValueText textField && textField.isNotEmpty()) {
             String value = textField.getValue().trim();
             if (UuidUtils.isUUID(value)) {
-                return UUID.fromString(value);
+                return Optional.of(UUID.fromString(value));
             }
         }
-        return null;
+        return Optional.empty();
     }
 }
