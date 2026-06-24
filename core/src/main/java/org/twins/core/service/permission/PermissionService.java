@@ -20,7 +20,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.*;
@@ -66,6 +65,8 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionGrantGlobalRepository permissionGrantGlobalRepository;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
+    @Lazy
+    private final PermissionGrantUserGroupService permissionGrantUserGroupService;
     private final SpaceRepository spaceRepository;
     private final SpaceRoleUserService spaceRoleUserService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
@@ -145,10 +146,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionSchemaEntity.getId();
     }
 
-    public UUID checkPermissionSchemaAllowed(DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        return checkPermissionSchemaAllowed(domainBusinessAccountEntity.getDomainId(), domainBusinessAccountEntity.getBusinessAccountId(), domainBusinessAccountEntity.getPermissionSchema());
-    }
-
     public boolean hasPermission(TwinEntity twinEntity, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroupsForCurrentUser();
@@ -202,8 +199,9 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (null != twin.getPermissionSchemaSpaceId()) space = spaceRepository.findById(twin.getPermissionSchemaSpaceId()).orElse(null);
         if (null != space) permissionSchema = space.getPermissionSchema();
         if (null == permissionSchema) {
-            if(apiUser.getDomain().getDomainType() == DomainType.b2b && apiUser.isBusinessAccountSpecified()) {
-                final DomainBusinessAccountEntity domainBusinessAccount = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+            if (apiUser.getDomain().getDomainType() == DomainType.b2b && apiUser.isBusinessAccountSpecified()) {
+                var domainBusinessAccount = apiUser.getDomainBusinessAccount();
+                domainBusinessAccountService.loadPermissionSchema(domainBusinessAccount);
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
             } else {
                 permissionSchema = apiUser.getDomain().getPermissionSchema();
@@ -312,6 +310,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         Kit<UserGroupEntity, UUID> groupsForUserKit = userGroupService.findGroupsForUser(userId);
         List<UserGroupEntity> grantedForGroups = new ArrayList<>();
         final List<PermissionGrantUserGroupEntity> grantedPermissions = permissionGrantUserGroupRepository.findByPermissionSchemaIdAndPermissionIdAndUserGroupIdIn(permissionSchema.getId(), permissionId, groupsForUserKit.getIdSet());
+        permissionGrantUserGroupService.loadUserGroup(grantedPermissions);
         for (PermissionGrantUserGroupEntity grantedPermission : grantedPermissions)
             grantedForGroups.add(grantedPermission.getUserGroup());
         result.setGrantedByUserGroups(new Kit<>(grantedForGroups, UserGroupEntity::getId));
@@ -394,8 +393,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private UUID detectPermissionSchemaId(ApiUser apiUser) throws ServiceException {
         UUID permissionSchemaId;
         if (apiUser.isBusinessAccountSpecified() && apiUser.getBusinessAccount() != null) {
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId());
-            checkPermissionSchemaAllowed(domainBusinessAccountEntity);
+            var domainBusinessAccountEntity = apiUser.getDomainBusinessAccount();
             permissionSchemaId = domainBusinessAccountEntity.getPermissionSchemaId();
         } else {
             permissionSchemaId = apiUser.getDomain().getPermissionSchemaId();

@@ -1,9 +1,7 @@
 package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -51,38 +49,80 @@ public class DomainBusinessAccountUserEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DomainUserEntity domainUser;
+    private DomainUserEntity domainUserSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_business_account_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DomainBusinessAccountEntity domainBusinessAccount;
+    private DomainBusinessAccountEntity domainBusinessAccountSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private BusinessAccountUserEntity businessAccountUserSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity userSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainEntity domainSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private BusinessAccountEntity businessAccountSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainUserEntity domainUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainBusinessAccountEntity domainBusinessAccount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private BusinessAccountUserEntity businessAccountUser;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private UserEntity user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DomainEntity domain;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private BusinessAccountEntity businessAccount;

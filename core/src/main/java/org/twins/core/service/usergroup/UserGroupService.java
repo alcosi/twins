@@ -30,11 +30,14 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -54,6 +57,10 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final AuthService authService;
     @Lazy
     final UserService userService;
+    @Lazy
+    final DomainService domainService;
+    @Lazy
+    final BusinessAccountService businessAccountService;
 
     @Override
     public CrudRepository<UserGroupEntity, UUID> entityRepository() {
@@ -260,5 +267,51 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
         updateSafe(changes);
         return allEntities;
+    }
+
+    public void loadDomain(UserGroupEntity src) throws ServiceException {
+        loadDomain(Collections.singletonList(src));
+    }
+
+    public void loadDomain(Collection<UserGroupEntity> srcCollection) throws ServiceException {
+        domainService.load(srcCollection,
+                UserGroupEntity::getDomainId,
+                UserGroupEntity::getDomain,
+                UserGroupEntity::setDomain);
+    }
+
+    public void loadBusinessAccount(UserGroupEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<UserGroupEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                UserGroupEntity::getBusinessAccountId,
+                UserGroupEntity::getBusinessAccount,
+                UserGroupEntity::setBusinessAccount);
+    }
+
+    public void loadUserGroupType(UserGroupEntity src) {
+        loadUserGroupType(Collections.singletonList(src));
+    }
+
+    public void loadUserGroupType(Collection<UserGroupEntity> srcCollection) {
+        Set<String> needLoad = null;
+        for (UserGroupEntity src : srcCollection) {
+            if (src.getUserGroupType() == null && src.getUserGroupTypeId() != null) {
+                if (needLoad == null)
+                    needLoad = new HashSet<>();
+                needLoad.add(src.getUserGroupTypeId().name());
+            }
+        }
+        if (needLoad == null)
+            return;
+        Map<String, UserGroupTypeEntity> byId = StreamSupport.stream(userGroupTypeRepository.findAllById(needLoad).spliterator(), false)
+                .collect(Collectors.toMap(UserGroupTypeEntity::getId, t -> t));
+        for (UserGroupEntity src : srcCollection) {
+            UserGroupTypeEntity type = byId.get(src.getUserGroupTypeId() == null ? null : src.getUserGroupTypeId().name());
+            if (type != null)
+                src.setUserGroupType(type);
+        }
     }
 }

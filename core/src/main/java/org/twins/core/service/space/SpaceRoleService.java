@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.space.SpaceRoleRepository;
 import org.twins.core.domain.ApiUser;
@@ -25,7 +24,6 @@ import org.twins.core.domain.space.SpaceRoleUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -97,11 +95,7 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
                     UUID domainId = apiUser.getDomainId();
 
                     // Verify business account is registered in current domain
-                    DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
-
-                    if (entity.getBusinessAccount() == null) {
-                        entity.setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount());
-                    }
+                    domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
                 }
         }
         return true;

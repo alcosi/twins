@@ -110,12 +110,12 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
         TokenMetaData tokenMetaData = resolveAuthTokenMetaData(clientSideAuthData.getAuthToken());
-        authService.getApiUser()
+        var apiUser = authService.getApiUser();
+        apiUser
                 .setUserResolver(new UserResolverGivenId(tokenMetaData.getUserId()))
                 .setBusinessAccountResolver(new BusinessAccountResolverGivenId(tokenMetaData.getBusinessAccountId()));
         if (authService.getApiUser().getDomain().getDomainType() == DomainType.b2b && tokenMetaData.getBusinessAccountId() == null) {
             //looks like we need to switch active BA
-
             DomainUserEntity domainUserEntity = domainUserService.findByUserId(tokenMetaData.getUserId());
             if (domainUserEntity.getLastActiveBusinessAccountId() != null) {
                 switchActiveBusinessAccount(clientSideAuthData.getAuthToken(), tokenMetaData.getUserId(), domainUserEntity.getLastActiveBusinessAccountId());
