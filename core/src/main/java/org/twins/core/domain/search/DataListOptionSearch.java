@@ -7,17 +7,19 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionSearchEntity;
 import org.twins.core.enums.datalist.DataListStatus;
 
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class DataListOptionSearch {
+public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> dataListIdList;

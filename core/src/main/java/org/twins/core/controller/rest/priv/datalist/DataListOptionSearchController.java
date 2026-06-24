@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -24,6 +25,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchConfiguredRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionSearchDTOReverseMapper;
@@ -48,6 +50,7 @@ public class DataListOptionSearchController extends ApiController {
     private final DataListOptionSearchService dataListOptionSearchService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionSearchListV1", summary = "Return a list of all data list option for the current domain")
     @ApiResponses(value = {
@@ -58,15 +61,43 @@ public class DataListOptionSearchController extends ApiController {
     @PostMapping(value = "/private/data_list_option/search/v1")
     public ResponseEntity<?> dataListOptionSearchListV1(
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListOptionSearchRqDTOv1 request,
+            @RequestBody @Valid DataListOptionSearchRqDTOv1 request,
             @SimplePaginationParams(sortField = {DataListOptionEntity.Fields.option, DataListOptionEntity.Fields.externalId}) SimplePagination pagination) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
-                    .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
+                    .search(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "dataListOptionSearchListV2", summary = "Return a list of all data list option for the current domain. V2 with sort enum support.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = DataListOptionSearchRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/data_list_option/search/v2")
+    public ResponseEntity<?> dataListOptionSearchListV2(
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody @Valid DataListOptionSearchRqDTOv2 request) {
+        DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
+        try {
+            PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
+                    .search(dataListOptionSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
+            rs
+                    .setPagination(paginationMapper.convert(dataListOptionList))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -88,14 +119,14 @@ public class DataListOptionSearchController extends ApiController {
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestBody DataListOptionSearchConfiguredRqDTOv1 request) {
+            @RequestBody @Valid DataListOptionSearchConfiguredRqDTOv1 request) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
                     .findDataListOptions(searchId, request.getParams(), dataListOptionSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
-                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
