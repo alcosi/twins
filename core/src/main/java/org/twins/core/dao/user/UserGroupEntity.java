@@ -65,22 +65,43 @@ public class UserGroupEntity implements EasyLoggable {
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18NTranslationsSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    private DomainEntity domainSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    private BusinessAccountEntity businessAccountSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
+    private UserGroupTypeEntity userGroupTypeSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DomainEntity domain;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
     private UserGroupTypeEntity userGroupType;
 
     @Deprecated // for specification only

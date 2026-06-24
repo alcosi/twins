@@ -133,7 +133,7 @@
 | 106 | `TwinflowTransitionTriggerEntity` | twinflow | 2 | 2 | 0 | 0 | 0 | ready |
 | 107 | `TwinflowTransitionValidatorRuleEntity` | validator | 1 | 1 | 0 | 0 | 0 | ready |
 | 108 | `UserEmailVerificationEntity` | user | 2 | 1 | 1 | 0 | 0 | partial |
-| 109 | `UserGroupEntity` | user | 3 | 2 | 1 | 0 | 0 | partial |
+| 109 | `UserGroupEntity` | user | 0 | 0 | 0 | 0 | 0 | done |
 | 110 | `UserGroupInvolveAssigneeEntity` | usergroup | 3 | 3 | 0 | 0 | 0 | ready |
 | 111 | `UserGroupMapEntity` | usergroup | 0 | 0 | 0 | 0 | 0 | done |
 | 112 | `UserSearchPredicateEntity` | user | 1 | 1 | 0 | 0 | 0 | ready |
@@ -142,15 +142,16 @@
 
 | Статус | Кол-во сущностей |
 |---|---|
-| done | 19 |
+| done | 20 |
 | ready | 63 |
-| partial | 16 |
+| partial | 15 |
 | audit | 9 |
 | blocked | 4 |
 
-**Итого полей:** legacy=195, simple=170, business=20, blocked=5
+**Итого полей:** legacy=192, simple=170, business=17, blocked=5
 
 **История обновлений:**
+- 2026-06-24: `UserGroupEntity` → `done` (3 поля: `domain`, `businessAccount`, `userGroupType`). `loadUserGroupType` написан вручную через repository (UserGroupTypeEntity.id это String, не UUID — `EntitySecureFindServiceImpl.load()` не подходит). `UserGroupTypeRepository.findValidTypes` JPQL обновлён: 5 ссылок `ug.userGroupType` → `ug.userGroupTypeSpecOnly`. `getUserGroupType()` getter-uses в featurer-ах (Slugger, UserGroupManager — 5 мест) — пользователь взял аудит на себя.
 - 2026-06-24: `DomainUserEntity` → `done` (2 поля: `domain`, `user`). `DomainUserSpecification` updated (`Fields.user` → `Fields.userSpecOnly`, 3 места), `DomainUserSearchService` updated (`Fields.domain` → `Fields.domainSpecOnly`). Маппер с `beforeCollectionConversion`. По ходу пофикшен missing-return в `DomainBusinessAccountUserRepository.findByDomainIdAndBusinessAccountIdAndUserId`.
 - 2026-06-23: `DomainBusinessAccountEntity` → `done` (4 поля: `domain`, `businessAccount`, `permissionSchema`, `tier`). Существуют getter-uses в бизнес-логике (`PermissionService`, `BusinessAccountInitiator`, `DomainService`) — пользователь взял аудит на себя. В сервис добавлены `loadDomain`/`loadBusinessAccount` (loadPermissionSchema/loadTier уже были), маппер обновлён для вызова всех load-методов в `map()` и `beforeCollectionConversion()`.
 - 2026-06-23: `BusinessAccountUserEntity`, `DomainBusinessAccountUserEntity` → `done`. `DomainBusinessAccountEntity`: статус `partial`→`audit` (при ручном аудите все 4 legacy-поля оказались в бизнес-логике сервисов/featurer — эвристика пропустила из-за того, что getter-использования вне `{Entity}Service` ищутся через переменные с произвольным именом).

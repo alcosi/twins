@@ -3,7 +3,6 @@ package org.twins.core.featurer.usergroup.manager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.Featurer;
@@ -43,7 +42,8 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             groupsToLoad.addAll(userGroupExitList);
         if (CollectionUtils.isEmpty(groupsToLoad))
             return;
-        Kit<UserGroupEntity, UUID> loadedUserGroupsKit = new Kit<>(userGroupRepository.findByIdIn(groupsToLoad), UserGroupEntity::getId);
+        var loadedUserGroupsKit = userGroupService.findEntitiesSafe(groupsToLoad);
+        userGroupService.loadUserGroupType(loadedUserGroupsKit.getCollection());
         userGroupService.loadGroups(user);
         if (CollectionUtils.isNotEmpty(userGroupEnterList)) {
             if (CollectionUtils.size(userGroupEnterList) != 1)
