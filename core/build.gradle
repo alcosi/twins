@@ -141,6 +141,7 @@ dependencies {
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.3.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.2'
 }
 
 configurations {

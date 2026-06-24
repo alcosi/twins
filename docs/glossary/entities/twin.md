@@ -54,7 +54,22 @@ Twins support hierarchies (parent-child via `headTwinId`) and multi-tenant owner
 
 ## Relations
 
-Belongs to a [TwinClass](twin-class.md) (many-to-one, EAGER — the schema is always needed). Holds a current [TwinStatus](twin-status.md) (many-to-one). Owns collections of [TwinLink](twin-link.md) (outgoing via `srcTwinId`, incoming via `dstTwinId`), [TwinTag](twin-tag.md), [TwinMarker](twin-marker.md), [TwinAttachment](twin-attachment.md), [TwinComment](twin-comment.md), [TwinAlias](twin-alias.md), and per-type TwinField values (`twin_field_simple`, `twin_field_boolean`, etc.). Optional parent Twin via `headTwinId` (hierarchy materialized in `hierarchyTree`).
+| Target | Cardinality | Kind | Description |
+|---|---|---|---|
+| [TwinClass](twin-class.md) | many-to-one | owning | This twin's class — defines schema (EAGER; always needed) |
+| [TwinStatus](twin-status.md) | many-to-one | transient_runtime | Current status in twinflow (loaded via service) |
+| [Twin](twin.md) | many-to-one | owning | Optional parent via `headTwinId` (hierarchy materialized in `hierarchyTree`) |
+| [TwinLink](twin-link.md) | one-to-many | own_collection | Outgoing links via `srcTwinId` |
+| [TwinLink](twin-link.md) | one-to-many | own_collection | Incoming links via `dstTwinId` |
+| [TwinTag](twin-tag.md) | many-to-many | link | User-assigned tags |
+| [TwinMarker](twin-marker.md) | many-to-many | link | System/computed markers |
+| [TwinAttachment](twin-attachment.md) | one-to-many | link | Attached files |
+| [TwinComment](twin-comment.md) | one-to-many | link | User comments |
+| [TwinAlias](twin-alias.md) | one-to-many | link | Human-readable aliases (e.g., PROJECT-123) |
+| [TwinField](twin-field.md) | one-to-many | link | Per-type field values (routed to `twin_field_*` tables) |
+| [Permission](permission.md) | many-to-one | owning | Optional custom view permission override |
+| [BusinessAccount](business-account.md) | many-to-one | owning | Org-owner |
+| [User](user.md) | many-to-one | owning | User-owner + author + assigner |
 
 ## API
 

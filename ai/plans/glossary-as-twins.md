@@ -240,28 +240,56 @@ Inside `## Fields`, each entry is a bullet:
 
 ## 4. TWINS_GLOSSARY TwinClass Schema
 
-The glossary Twins live in a single TwinClass with key `TWINS_GLOSSARY`. Each field in this class corresponds to a section of the source markdown — see §3.2 for the mapping.
+The glossary Twins live in a single TwinClass with key `TWINS_GLOSSARY`. Each field in this class corresponds to a section of the source markdown — see §3.2 for the mapping. All UUIDs are registered as constants in `SystemEntityService` (see §15.6 for the constant block).
+
+### Class identity
+
+| Property | Value                                                                      |
+|---|----------------------------------------------------------------------------|
+| UUID | `00000000-0000-0000-0001-000000000006`                                     |
+| Constant | `SystemEntityService.TWIN_CLASS_TWINS_GLOSSARY`                            |
+| Key | `TWINS_GLOSSARY`                                                           |
+| Owner type | `SYSTEM`                                                                   |
+| Domain | null                                                                       |
+| Created by | `SystemEntityService.USER_SYSTEM` (`00000000-0000-0000-0000-000000000000`) |
+
+### Statuses
+
+Two statuses are defined on the class — both migrated in §17, both registered as constants in §15.6. `ACTUAL` is the default for newly-bootstrapped Twins; `DELETED` is the soft-delete target for orphan cleanup (see §16 PHASE 2, MARK_DELETED action).
+
+| Status | UUID | Constant |
+|---|---|---|
+| ACTUAL | `00000000-0000-0000-0003-000000001001` | `SystemEntityService.TWIN_STATUS_GLOSSARY_ACTUAL` |
+| DELETED | `00000000-0000-0000-0003-000000001002` | `SystemEntityService.TWIN_STATUS_GLOSSARY_DELETED` |
+
+i18n name/description UUIDs for each status (all in `0012-...` range, registered in `SystemEntityService` per §15.6):
+- `I18N_GLOSSARY_STATUS_ACTUAL_NAME` = `00000000-0000-0000-0012-000000000039` (i18n_type `'twinStatusName'`, English: "Actual")
+- `I18N_GLOSSARY_STATUS_ACTUAL_DESCRIPTION` = `00000000-0000-0000-0012-000000000040` (i18n_type `'twinStatusDescription'`, English: "Glossary entry is in sync with its markdown source file")
+- `I18N_GLOSSARY_STATUS_DELETED_NAME` = `00000000-0000-0000-0012-000000000041` (English: "Deleted")
+- `I18N_GLOSSARY_STATUS_DELETED_DESCRIPTION` = `00000000-0000-0000-0012-000000000042` (English: "Source markdown file removed; Twin retained for referential integrity")
 
 ### Fields
 
-| Field key | Field type | Required | Source | Admin UI tier |
-|---|---|---|---|---|
-| `category` | DataList option (`GLOSSARY_CATEGORY`) | yes | frontmatter `category` | always visible (chip) |
-| `actualized_at` | date | yes | frontmatter `actualized_at` | always visible (meta line) |
-| `purpose` | long text | no | body `## Purpose` | default open |
-| `fields` | long text (markdown) | yes | body `## Fields` | default open |
-| `relations_overview` | long text | no | body `## Relations` | default open |
-| `api` | long text (markdown) | no | body `## API` | default open |
-| `api_deprecated` | long text (markdown) | no | body `## API (deprecated)` | collapsible (deprecated badge) |
-| `examples` | long text (markdown) | no | body `## Examples` | collapsible |
-| `dev_notes` | long text (markdown) | no | body `## Dev notes` | **hidden** (developer mode only) |
-| `jpa_class` | simple string | no | frontmatter `class` | developer-only |
-| `db_table` | simple string | no | frontmatter `table` | developer-only |
-| `is_system` | boolean | yes | frontmatter `is_system` | developer-only (chip) |
-| `markdown_source` | simple string | yes (auto) | computed at bootstrap | developer-only |
-| `markdown_hash` | simple string | yes (auto) | sha256 of source content | hidden (internal) |
+All field UUIDs share the prefix `00000000-0000-0000-0011-` and are registered in `SystemEntityService` as `TWIN_CLASS_FIELD_GLOSSARY_*` (see §15.6). Featurer IDs: 1336 = `FieldTyperTextNonIndexedField` (long markdown), 1301 = `FieldTyperTextField` (indexed short text), 1306 = `FieldTyperBooleanV1`, 1302 = `FieldTyperTimestamp`.
 
-**Note:** the `## Summary` body section is stored on the base `Twin.description` field (base entity field), not as a separate TwinClass field. This avoids duplicating a long-text column that already exists on every Twin.
+| Field UUID | Field key | Field type (featurer ID) | Required | Source | Admin UI tier | Constant suffix |
+|---|---|---|---|---|---|---|
+| `00000000-0000-0000-0011-000000001000` | `purpose` | long text (1336) | no | body `## Purpose` | default open | `_GLOSSARY_PURPOSE` |
+| `00000000-0000-0000-0011-000000001001` | `fields` | long text markdown (1336) | yes | body `## Fields` | default open | `_GLOSSARY_FIELDS` |
+| `00000000-0000-0000-0011-000000001002` | `relations_overview` | long text (1336) | no | body `## Relations` | default open | `_GLOSSARY_RELATIONS_OVERVIEW` |
+| `00000000-0000-0000-0011-000000001003` | `api` | long text markdown (1336) | no | body `## API` | default open | `_GLOSSARY_API` |
+| `00000000-0000-0000-0011-000000001004` | `api_deprecated` | long text markdown (1336) | no | body `## API (deprecated)` | collapsible (deprecated badge) | `_GLOSSARY_API_DEPRECATED` |
+| `00000000-0000-0000-0011-000000001005` | `examples` | long text markdown (1336) | no | body `## Examples` | collapsible | `_GLOSSARY_EXAMPLES` |
+| `00000000-0000-0000-0011-000000001006` | `dev_notes` | long text markdown (1336) | no | body `## Dev notes` | **hidden** (developer mode only) | `_GLOSSARY_DEV_NOTES` |
+| `00000000-0000-0000-0011-000000001007` | `jpa_class` | simple string (1301) | no | frontmatter `class` | developer-only | `_GLOSSARY_JPA_CLASS` |
+| `00000000-0000-0000-0011-000000001008` | `db_table` | simple string (1301) | no | frontmatter `table` | developer-only | `_GLOSSARY_DB_TABLE` |
+| `00000000-0000-0000-0011-000000001009` | `markdown_source` | simple string (1301) | yes (auto) | computed at bootstrap | developer-only | `_GLOSSARY_MARKDOWN_SOURCE` |
+| `00000000-0000-0000-0011-000000001010` | `markdown_hash` | simple string (1301) | yes (auto) | sha256 of source content | hidden (internal) | `_GLOSSARY_MARKDOWN_HASH` |
+| `00000000-0000-0000-0011-000000001011` | `is_system` | boolean (1306) | yes | frontmatter `is_system` | developer-only (chip) | `_GLOSSARY_IS_SYSTEM` |
+| `00000000-0000-0000-0011-000000001012` | `actualized_at` | date (1302) | yes | frontmatter `actualized_at` | always visible (meta line) | `_GLOSSARY_ACTUALIZED_AT` |
+| *(not a TwinClassField)* | `category` | DataList option (`GLOSSARY_CATEGORY`) | yes | frontmatter `category` | always visible (chip) | n/a — stored as TwinTag |
+
+**Note:** the `## Summary` body section is stored on the base `Twin.description` field (`SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION = 00000000-0000-0000-0011-000000000004`, inherited from `GLOBAL_ANCESTOR`), not as a separate TwinClass field. This avoids duplicating a long-text column that already exists on every Twin.
 
 **Markdown rendering** — `fields`, `api`, `api_deprecated`, `examples`, `dev_notes` are stored as raw markdown. Admin UI renders them with a markdown renderer. Inline links like `[TwinClass](twin-class.md)` are intercepted and routed to the corresponding glossary Twin (lookup by `externalId`), not to the file system.
 
@@ -269,19 +297,29 @@ The glossary Twins live in a single TwinClass with key `TWINS_GLOSSARY`. Each fi
 
 ### Twin built-ins used
 
-- `Twin.name` ← frontmatter `title`
-- `Twin.externalId` ← `"glossary:" + slug` — used for idempotent upsert
-- `Twin.description` ← body `## Summary` section (card preview text; reuses the base long-text field instead of creating a parallel TwinClass field)
+- `Twin.name` ← frontmatter `title` (base field, no glossary-specific UUID)
+- `Twin.externalId` ← `"glossary:" + slug` — used for idempotent upsert (base field)
+- `Twin.description` ← body `## Summary` section (base field `SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION`)
 
 ### Tags
 
-- `category` value as `TwinTag` via `GLOSSARY_CATEGORY` DataList — for filtering in admin UI and MCP queries
+| Tag source | DataList UUID | Options UUID prefix |
+|---|---|---|
+| `GLOSSARY_CATEGORY` | `00000000-0000-0000-0020-000000000001` | `00000000-0000-0020-0001-00000000000X` (9 options: core, workflow, multi-tenancy, permissions, content, cross-cutting, fields, validation, other) |
+
+`category` value as `TwinTag` via `GLOSSARY_CATEGORY` DataList — for filtering in admin UI and MCP queries. DataList UUIDs are NOT registered in SystemEntityService (the bootstrap service references options by slug, not UUID).
 
 ### Links
 
-| Link key | Source → Target | Cardinality | Created from |
-|---|---|---|---|
-| `GLOSSARY_SEE_ALSO` | any glossary Twin → any glossary Twin | many_to_many | frontmatter `see_also[]` |
+| Link UUID | Link key | Source → Target | Cardinality | Created from |
+|---|---|---|---|---|
+| `00000000-0000-0000-0019-000000000001` | `GLOSSARY_SEE_ALSO` | any glossary Twin → any glossary Twin | many_to_many | frontmatter `see_also[]` |
+
+Link UUID is registered in `SystemEntityService` as `LINK_GLOSSARY_SEE_ALSO` (see §15.6) — useful for code-side lookups, debugging, and future direct queries.
+
+Forward/backward i18n UUIDs (NOT registered in SystemEntityService — bootstrap service doesn't reference them):
+- Forward name (`'See also'`): `00000000-0000-0000-0012-000000000043` (i18n_type `'linkForwardName'`)
+- Backward name (`'Referenced by'`): `00000000-0000-0000-0012-000000000044` (i18n_type `'linkBackwardName'`)
 
 Links are reconciled on every bootstrap pass: add new, remove stale. See §5.
 
@@ -337,7 +375,7 @@ This makes reboots cheap when nothing changed.
 | Markdown change | What happens on next startup |
 |---|---|
 | New file added | New glossary Twin created |
-| File deleted | Twin marked with `deprecated` tag (manual cleanup) |
+| File deleted | Twin status set to `DELETED` (soft delete — kept for referential integrity, still visible in standard search) |
 | File renamed (slug changed) | Old Twin marked deprecated; new Twin created. **Breaking** — links from other entities pointing to old slug will dangle. To avoid: rename via "create new + add redirect alias in old file" pattern. |
 | `title`, `class`, `table`, `category` changed | Twin fields updated |
 | `key_fields` / `relations` / `see_also` changed | Twin fields updated; TwinLink set reconciled (add new, remove stale) |
@@ -355,7 +393,6 @@ Per the chosen "markdown wins" model: edits made directly in DB (via admin UI) *
 
 ```
 TWINS_GLOSSARY_VIEW    — required to read glossary Twins (granted to authenticated users)
-TWINS_GLOSSARY_MANAGE  — required to create/update glossary Twins (system only)
 ```
 
 - Public MCP server reads with a service account holding `TWINS_GLOSSARY_VIEW`.
@@ -372,12 +409,12 @@ POST /private/twin/search/v1
 {
   "search": {
     "twinClassIdList": ["<UUID of TWINS_GLOSSARY>"],
-    "twinfield_jpa_class_simple_text": "TwinEntity"
+    "nameLikeList": "class"
   }
 }
 ```
 
-Returns the glossary Twin for `TwinEntity`.
+Returns the glossary Twin for `TwinClass`.
 
 ### Admin frontend: list all workflow entities
 
@@ -394,7 +431,7 @@ POST /private/twin/search/v1
 ### MCP server: get related entities
 
 ```http
-POST /private/twin/link/search/v1
+POST /private/twin_link/search/v1
 {
   "search": {
     "srcTwinId": "<UUID of glossary:twin Twin>",
@@ -410,7 +447,7 @@ Returns Twins for `twin-class`, `twin-status`, `twin-link`, `twin-tag`, `twin-ma
 ## 9. Identity & Determinism
 
 - `externalId = "glossary:" + slug` — stable across environments (dev/test/stage).
-- The TWINS_GLOSSARY class itself is created by a Flyway migration with `key = 'TWINS_GLOSSARY'` and `domainId = <system domain>`, so its UUID is deterministic via `UUID.nameUUIDFromBytes(("TWINS_GLOSSARY" + systemDomainId).getBytes())`.
+- The TWINS_GLOSSARY class itself is created by a Flyway migration with `key = 'TWINS_GLOSSARY'` and `domainId = null`, .
 - Glossary Twins live in the **system domain** (not in any tenant domain) to avoid cross-tenant leakage.
 
 ---
@@ -447,7 +484,7 @@ Returns Twins for `twin-class`, `twin-status`, `twin-link`, `twin-tag`, `twin-ma
 | Risk | Mitigation |
 |---|---|
 | Markdown format drift (typos in frontmatter) | Strict parser — fail fast on startup if any file doesn't validate; print offending file + reason |
-| Slug rename breaks incoming links | Detect dangling references in pass 2 — log warning, do not fail; the deprecated tag on the old Twin flags the issue |
+| Slug rename breaks incoming links | Detect dangling references in pass 2 — log warning, do not fail; the DELETED status on the old Twin flags the issue |
 | Bootstrap slows startup | Hash-based skip means steady-state is fast. Measure with 40 files; expect <500ms |
 | Glossary Twins pollute normal search | `externalId LIKE 'glossary:%'` filter convention; admin UI hides them by default unless "show glossary" toggle is on |
 | TWINS_GLOSSARY class requires TWINS_GLOSSARY description (chicken/egg) | TWINS_GLOSSARY class itself is documented in markdown, but its own Twin is bootstrapped as part of phase 2; it's just another entity entry |
@@ -521,20 +558,41 @@ The bootstrap pipeline consists of five Spring components. Dependencies flow top
           ┌────────────────────────────────────────────┐
           │   GlossaryBootstrapService                 │
           │   - @Service, @Transactional (one tx)      │
-          │   - orchestrates Pass 1-4                  │
-          │   - pre-validates DTO list, drops invalid  │
+          │   - orchestrates 2-phase flow:             │
+          │     DISCOVERY (parse + classify) →         │
+          │     EXECUTE (TwinService createTwin/       │
+          │     updateTwin batched)                    │
+          │   - status mgmt: ACTUAL on create/restore, │
+          │     DELETED on orphan cleanup              │
           │   - returns GlossaryBootstrapResult        │
-          └──┬──────────────┬─────────────┬────────────┘
-             │              │             │
-             ▼              ▼             ▼
-   ┌─────────────────┐  ┌──────────────┐  ┌──────────────────────┐
-   │ MarkdownParser  │  │ entitySmart  │  │ TwinLinkService      │
-   │ - @Component    │  │ Service      │  │ TwinTagService       │
-   │ - reads .md     │  │ .saveAll     │  │ (existing services)  │
-   │   from disk     │  │ AndLog()     │  │                      │
-   │ - parses YAML + │  │              │  │                      │
-   │   H2 sections   │  │              │  │                      │
-   └────────┬────────┘  └──────────────┘  └──────────────────────┘
+          └──┬────────────────────────┬────────────────┘
+             │                        │
+             ▼                        ▼
+   ┌─────────────────┐  ┌──────────────────────────────┐
+   │ MarkdownParser  │  │ TwinService                  │
+   │ - @Component    │  │ - createTwin(TwinCreate)     │
+   │ - reads .md     │  │   with fields + links + tags │
+   │   from disk     │  │   in one call                │
+   │ - parses YAML + │  │ - updateTwin(TwinUpdate)     │
+   │   H2 sections   │  │   with TwinLinkCUD +         │
+   └────────┬────────┘  │   TwinTagCUD + field changes │
+            │           │ - permission bypass via      │
+            │           │   checkCreate/EditPermission │
+            │           │   =false (default)           │
+            │           │ - handles TwinFields         │
+            │           │   typecast + search index    │
+            │           │   + GLOBAL_ANCESTOR          │
+            │           │   inheritance internally     │
+            │           └──────────────────────────────┘
+            │ produces
+            ▼
+   ┌────────────────────────────────────────────┐
+   │   GlossaryEntityDto (plain Java record)    │
+   │   - identity (slug, title, category, ...)  │
+   │   - sections map (Summary, Fields, ...)    │
+   │   - markdownSource, markdownHash           │
+   │   - validation: throws GlossaryParseExcn   │
+   └────────────────────────────────────────────┘
             │ produces
             ▼
    ┌────────────────────────────────────────────┐
@@ -567,7 +625,7 @@ The bootstrap pipeline consists of five Spring components. Dependencies flow top
 ### 15.1 GlossaryMarkdownParser
 
 ```java
-package org.twins.core.service.glossary;
+package org.twins.bootstrap;
 
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -599,7 +657,7 @@ public class GlossaryMarkdownParser {
 ### 15.2 GlossaryEntityDto
 
 ```java
-package org.twins.core.service.glossary;
+package org.twins.bootstrap;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -648,7 +706,7 @@ public record GlossaryEntityDto(
 ### 15.3 GlossaryBootstrapService
 
 ```java
-package org.twins.core.service.glossary;
+package org.twins.bootstrap;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -658,48 +716,90 @@ import java.util.List;
 public class GlossaryBootstrapService {
 
     final GlossaryMarkdownParser parser;
-    final EntitySmartService entitySmartService;
-    final TwinRepository twinRepository;
-    final TwinClassRepository twinClassRepository;
-    final TwinLinkService twinLinkService;
-    final TwinTagService twinTagService;
+    final TwinService twinService;                  // primary — handles TwinEntity + TwinFields + links + tags + search index
+    final TwinRepository twinRepository;            // for hash-based lookup by ID
+    final TwinClassRepository twinClassRepository;  // for classId resolution
 
     /**
-     * Run the full bootstrap pipeline (Pass 1-4).
-     * Single @Transactional — all-or-nothing for the batch save,
-     * but invalid files are dropped BEFORE entering the transaction
-     * (so broken markdown doesn't abort the whole pass).
+     * Two-phase pipeline:
+     *   DISCOVERY (in-memory, in tx) — parse all .md, classify each dto against DB state
+     *   EXECUTE (in tx, batched)     — TwinService.createTwin / updateTwin with full payload
+     *
+     * Single @Transactional — all-or-nothing for the batch. Invalid .md files are
+     * dropped DURING DISCOVERY (logged WARN), so they don't abort the whole pass.
      */
     @Transactional(rollbackFor = Throwable.class)
     public GlossaryBootstrapResult bootstrap() throws ServiceException;
 
-    // Pass 1: upsert all Twins (batch saveAllAndLog)
-    // Pass 1: upsert all Twins (batch saveAllAndLog).
-    // Each TwinEntity is built with:
-    //   .setId(dto.twinId())
-    //   .setName(dto.title())
-    //   .setTwinClassId(glossaryClassId)
-    //   .setDescription(dto.sections().get("Summary"))  // reuses base field, no TwinClass field needed
-    //   .setExternalId("glossary:" + dto.slug())
-    //   + TwinField rows for purpose/fields/relations_overview/api/api_deprecated/examples/dev_notes/
-    //     jpa_class/db_table/markdown_source/markdown_hash/is_system/actualized_at/category
-    private List<TwinEntity> upsertTwins(List<GlossaryEntityDto> dtos, UUID glossaryClassId);
+    // ─── DISCOVERY ──────────────────────────────────────────────
+    // parser.parseAll() → List<GlossaryEntityDto> (valid only)
+    // load all existing glossary Twins by twinClassId = TWIN_CLASS_TWINS_GLOSSARY
+    //   (single SELECT — returns Map<twinId, TwinEntity> for classification)
+    // classify each dto + each existing Twin:
+    //   - dto not in DB                              → action CREATE
+    //   - dto in DB, hash matches, status = ACTUAL   → action SKIP
+    //   - dto in DB, hash differs                    → action UPDATE
+    //   - dto in DB, hash matches, status = DELETED  → action RESTORE (subset of UPDATE)
+    //   - existing Twin, .md gone, status = ACTUAL   → action MARK_DELETED
+    // returns BootstrapPlan { creates, updates, restores, markDeletes, skips }
+    private BootstrapPlan discover(List<GlossaryEntityDto> dtos, UUID glossaryClassId);
 
-    // Pass 2: reconcile GLOSSARY_SEE_ALSO TwinLinks (add new, remove stale)
-    private void reconcileLinks(List<GlossaryEntityDto> dtos);
-
-    // Pass 3: reconcile category TwinTag (set new, remove old if changed)
-    private void reconcileTags(List<GlossaryEntityDto> dtos);
-
-    // Pass 4: tag orphans (Twins whose .md no longer exists on classpath)
-    private void tagOrphans(Set<String> existingSlugs);
+    // ─── EXECUTE ────────────────────────────────────────────────
+    // For each CREATE:
+    //   build TwinCreate
+    //     .setTwinEntity(new TwinEntity()
+    //         .setId(dto.twinId())                                    // deterministic UUIDv5
+    //         .setName(dto.title())
+    //         .setTwinClassId(TWIN_CLASS_TWINS_GLOSSARY)
+    //         .setTwinStatusId(TWIN_STATUS_GLOSSARY_ACTUAL)
+    //         .setDescription(dto.sections().get("Summary"))          // base field, no TwinClassField
+    //         .setExternalId("glossary:" + dto.slug()))
+    //     .setFields(buildFieldMap(dto))                             // Map<fieldUUID, FieldValue> for 13 fields
+    //     .setLinksEntityList(buildSeeAlsoLinks(dto))                // List<TwinLinkEntity> with dst = target UUIDv5
+    //     .setTagsAddExisted(Set.of(categoryDataListOptionId))       // tag from GLOSSARY_CATEGORY
+    //     .setCheckCreatePermission(false)                           // system bootstrap
+    //   collect for batch
+    // For each UPDATE / RESTORE:
+    //   build TwinUpdate
+    //     .setDbTwinEntity(existingTwin)                              // snapshot from DB
+    //     .setTwinEntity(existingTwin.copy()                          // new values
+    //         .setDescription(dto.sections().get("Summary"))
+    //         .setTwinStatusId(TWIN_STATUS_GLOSSARY_ACTUAL))          // RESTORE: from DELETED → ACTUAL
+    //     .setFields(buildFieldMap(dto))                              // full refresh — idempotent
+    //     .setTwinLinkCUD(computeLinkCUD(existingLinks, dto.seeAlso)) // EntityCUD: add new, remove stale
+    //     .setTagsAddExisted(...) / setTagsDelete(...)                // category change if any
+    //     .setCheckEditPermission(false)
+    // For each MARK_DELETED:
+    //   build TwinUpdate
+    //     .setDbTwinEntity(existingTwin)
+    //     .setTwinEntity(existingTwin.copy().setTwinStatusId(TWIN_STATUS_GLOSSARY_DELETED))
+    //     .setCheckEditPermission(false)
+    //
+    // Batched execution:
+    //   twinService.createTwins(TwinCreateStage.of(creates))   // sync batch, internally splits on stages for see_also forward refs
+    //   twinService.updateTwin(updates, false)                 // sync batch (List<TwinUpdate>, validateAll=false)
+    private void execute(BootstrapPlan plan);
 }
 ```
+
+**Why TwinService instead of `entitySmartService.save()` directly:**
+
+`TwinService.createTwin(TwinCreate)` and `updateTwin(TwinUpdate)` do work that we'd otherwise have to reimplement:
+
+1. **TwinFields typecast** — each field type (`FieldTyperTextField`=1301, `FieldTyperTextNonIndexedField`=1336, `FieldTyperBooleanV1`=1306, `FieldTyperTimestamp`=1302) has its own JPA entity class and repository. TwinService routes via `initFields()` + `saveTwinFields()` through `TwinChangesCollector`.
+2. **Search index update** — `twinChangesService.applyChanges()` updates the search index after TwinField writes, so glossary Twins are findable via `/private/twin/search/v1` predicates (`twinfield_jpa_class_text`, etc.) without manual reindexing.
+3. **GLOBAL_ANCESTOR inheritance** — glossary Twins must inherit `name`/`description`/`externalId` from `GLOBAL_ANCESTOR`. TwinService ensures inheritance is respected; direct save can silently skip it.
+4. **Validation** — `validateAndCollect()` enforces field-level constraints (required, format) before commit, surfacing markdown content bugs at bootstrap time rather than runtime.
+5. **History** — `twinChangesService` records creation/update events. Free audit trail of glossary curation.
+
+The "performance overhead" argument for bypass is weak: hash-skip means most startups do zero CREATE/UPDATE calls. The 1-2s overhead is real only on first boot or after markdown changes — acceptable cost for correctness.
+
+`checkCreatePermission = false` / `checkEditPermission = false` are the default in `TwinCreate` / `TwinUpdate`, so the system-bootstrap context bypasses permission checks automatically (we're running as the system, not a user).
 
 ### 15.4 GlossaryBootstrapRunner
 
 ```java
-package org.twins.core.service.glossary;
+package org.twins.bootstrap;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -720,9 +820,10 @@ public class GlossaryBootstrapRunner implements ApplicationListener<ApplicationR
     public void onApplicationEvent(ApplicationReadyEvent event) {
         try {
             GlossaryBootstrapResult result = bootstrapService.bootstrap();
-            log.info("Glossary bootstrap: created={}, updated={}, skipped={}, links_added={}, links_removed={}, orphans={}",
+            log.info("Glossary bootstrap: created={}, updated={}, skipped={}, links_added={}, links_removed={}, orphans_marked_deleted={}, orphans_restored={}",
                     result.created(), result.updated(), result.skipped(),
-                    result.linksAdded(), result.linksRemoved(), result.orphansTagged());
+                    result.linksAdded(), result.linksRemoved(),
+                    result.orphansMarkedDeleted(), result.orphansRestored());
         } catch (Exception e) {
             log.error("Glossary bootstrap failed — glossary may be incomplete", e);
             // intentionally swallow — does not abort application startup
@@ -740,14 +841,61 @@ public record GlossaryBootstrapResult(
         int skipped,
         int linksAdded,
         int linksRemoved,
-        int orphansTagged,
+        int orphansMarkedDeleted,  // Twins transitioned ACTUAL → DELETED (PHASE 2 MARK_DELETED action)
+        int orphansRestored,       // Twins transitioned DELETED → ACTUAL (PHASE 2 RESTORE action, .md reappeared)
         List<String> invalidFiles  // filenames that were dropped during parse
 ) {}
 ```
 
+### 15.6 SystemEntityService constants
+
+All UUIDs referenced by the migration and by `GlossaryBootstrapService` are registered as `public static final UUID` constants in `core/src/main/java/org/twins/core/service/SystemEntityService.java`, following the existing pattern at lines 54-137. The migration INSERTs these literal UUIDs; the bootstrap service reads them via the constants. UUID ranges chosen to avoid collisions with existing system classes (USER=`0001-...-0001`, BUSINESS_ACCOUNT=`0001-...-0003`, GLOBAL_ANCESTOR=`0001-...-0004`, FACE_PAGE=`0001-...-0100`).
+
+```java
+// last type.id = 0015 → +1 for TWINS_GLOSSARY
+public static final UUID TWIN_CLASS_TWINS_GLOSSARY = UUID.fromString("00000000-0000-0000-0001-000000000006");
+
+// last field.id = 16 → +34 reserved for glossary fields (50..63, leaves gap for future system fields)
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_PURPOSE            = UUID.fromString("00000000-0000-0000-0011-000000001000");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_FIELDS             = UUID.fromString("00000000-0000-0000-0011-000000001001");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_RELATIONS_OVERVIEW = UUID.fromString("00000000-0000-0000-0011-000000001002");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_API                = UUID.fromString("00000000-0000-0000-0011-000000001003");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_API_DEPRECATED     = UUID.fromString("00000000-0000-0000-0011-000000001004");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_EXAMPLES           = UUID.fromString("00000000-0000-0000-0011-000000001005");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_DEV_NOTES          = UUID.fromString("00000000-0000-0000-0011-000000001006");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_JPA_CLASS          = UUID.fromString("00000000-0000-0000-0011-000000001007");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_DB_TABLE           = UUID.fromString("00000000-0000-0000-0011-000000001008");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_MARKDOWN_SOURCE    = UUID.fromString("00000000-0000-0000-0011-000000001009");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_MARKDOWN_HASH      = UUID.fromString("00000000-0000-0000-0011-000000001010");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_IS_SYSTEM          = UUID.fromString("00000000-0000-0000-0011-000000001011");
+public static final UUID TWIN_CLASS_FIELD_GLOSSARY_ACTUALIZED_AT      = UUID.fromString("00000000-0000-0000-0011-000000001012");
+
+// last i18.id = 56 → +4 reserved for glossary status name/description pairs (57..60)
+public static final UUID I18N_GLOSSARY_STATUS_ACTUAL_NAME        = UUID.fromString("00000000-0000-0000-0012-000000000039");
+public static final UUID I18N_GLOSSARY_STATUS_ACTUAL_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000040");
+public static final UUID I18N_GLOSSARY_STATUS_DELETED_NAME       = UUID.fromString("00000000-0000-0000-0012-000000000041");
+public static final UUID I18N_GLOSSARY_STATUS_DELETED_DESCRIPTION= UUID.fromString("00000000-0000-0000-0012-000000000042");
+
+// last status.id = 0015 → +2 for glossary (FACE_PAGE was the last system one)
+public static final UUID TWIN_STATUS_GLOSSARY_ACTUAL  = UUID.fromString("00000000-0000-0000-0003-000000001001");
+public static final UUID TWIN_STATUS_GLOSSARY_DELETED = UUID.fromString("00000000-0000-0000-0003-000000001002");
+
+// Link type for cross-references between glossary Twins
+public static final UUID LINK_GLOSSARY_SEE_ALSO = UUID.fromString("00000000-0000-0000-0019-000000000001");
+```
+
+**Naming convention notes:**
+
+- TwinClass UUID range extended from `0001-...-0005` (FACE_PAGE) → `0001-...-0006` for TWINS_GLOSSARY.
+- TwinClassField UUIDs use a new gap at `0011-...-1001..1012` (existing system fields stop at `...0016`) to leave room for future non-glossary system fields.
+- TwinStatus UUIDs extend `0003-...-0004` (FACE_PAGE) → `0003-...-1001, ...-1002`.
+- i18n UUIDs extend `0012-...-0038` → `0012-...-0039..0042` (statuses) and `0012-...-0043, ...-0044` (link forward/backward names — not registered as constants since the bootstrap service doesn't reference them).
+- Link UUID `LINK_GLOSSARY_SEE_ALSO` is registered as a constant for code-side referencing (e.g. lookups, debugging, future direct queries).
+- DataList and DataListOption UUIDs are **not** registered in SystemEntityService — the bootstrap service resolves options by slug (`core`, `workflow`, etc.) via the DataList name, not by UUID. They live only in the migration file.
+
 ---
 
-## 16. Sequence Flow (Pass 1-4 with Transaction Boundaries)
+## 16. Sequence Flow (2-phase: DISCOVERY → EXECUTE)
 
 ```
 ApplicationReadyEvent fires
@@ -758,7 +906,8 @@ GlossaryBootstrapRunner.onApplicationEvent
   ▼
 GlossaryBootstrapService.bootstrap()   ← @Transactional BEGINS
   │
-  │  ─── PRE-VALIDATE PHASE (in-tx, in-memory only) ───────────
+  │  ─── PHASE 1: DISCOVERY (in-memory, no DB writes) ─────────
+  │
   │  parser.parseAll()
   │    ├─ for each /docs/glossary/entities/*.md on classpath:
   │    │    - read bytes → sha256 → markdownHash
@@ -769,52 +918,68 @@ GlossaryBootstrapService.bootstrap()   ← @Transactional BEGINS
   │    │    - on failure → log WARN with filename + reason, drop from list
   │    └─ returns List<GlossaryEntityDto> (valid only)
   │
-  │  resolve glossaryClassId via twinClassRepository.findByDomainIdAndKey(systemDomainId, "TWINS_GLOSSARY")
+  │  resolve glossaryClassId via twinClassRepository
+  │    .findByDomainIdAndKey(null, "TWINS_GLOSSARY")  // null domainId — system class
   │
-  │  ─── PASS 1: UPSERT TWINS (single batch save) ───────────────
-  │  upsertTwins(dtos, glossaryClassId):
-  │    ├─ load all existing glossary Twins by id IN [dto.twinId for dto in dtos]
-  │    │  (single SELECT — uses IN clause on PK)
-  │    ├─ classify each dto:
-  │    │    - not in DB → CREATE: build TwinEntity with name=title,
-  │    │      description=sections["Summary"], externalId="glossary:"+slug,
-  │    │      + 14 TwinField rows (purpose/fields/.../markdown_hash/category)
-  │    │    - in DB, markdown_hash matches → SKIP (no-op)
-  │    │    - in DB, hash differs → UPDATE: refresh description + TwinField rows
-  │    ├─ build List<TwinEntity> for all CREATE + UPDATE
-  │    └─ entitySmartService.saveAllAndLog(list, twinRepository)
-  │       (ONE batch SQL — that's the performance win)
+  │  load all existing glossary Twins:
+  │    SELECT * FROM twin WHERE twin_class_id = glossaryClassId
+  │    → Map<twinId, TwinEntity>  (used for hash + status comparison)
   │
-  │  ─── PASS 2: RECONCILE TWINLINKS (GLOSSARY_SEE_ALSO) ──────
-  │  reconcileLinks(dtos):
-  │    ├─ load all existing GLOSSARY_SEE_ALSO TwinLinks where
-  │    │  srcTwinId IN [dto.twinId for dto in dtos]
-  │    │  (single SELECT)
-  │    ├─ compute diff:
-  │    │    - toAdd: (dto.twinId → seeAlsoSlug.twinId) pairs not in DB
-  │    │    - toRemove: TwinLinks in DB not present in any dto.seeAlso
-  │    ├─ batch INSERT new TwinLinkEntity list
-  │    └─ batch DELETE stale TwinLinks
+  │  classify each DTO against DB state:
+  │    ├─ dto.twinId NOT in DB                  → action CREATE
+  │    ├─ in DB, hash matches, status = ACTUAL  → action SKIP
+  │    ├─ in DB, hash differs                   → action UPDATE
+  │    └─ in DB, hash matches, status = DELETED → action RESTORE (subset of UPDATE)
   │
-  │  ─── PASS 3: RECONCILE TWIN-TAGS (category) ────────────────
-  │  reconcileTags(dtos):
-  │    ├─ load DataListOption for each dto.category (one query, all categories)
-  │    ├─ load existing twin_tag rows for all glossary Twins
-  │    ├─ classify:
-  │    │    - tag already correct → SKIP
-  │    │    - tag differs → remove old tag, add new tag
-  │    │    - no tag yet → add new tag
-  │    └─ batch INSERT/DELETE twin_tag rows
+  │  classify each existing Twin with no matching .md:
+  │    └─ existing, no .md, status = ACTUAL     → action MARK_DELETED
+  │  (existing Twins with status = DELETED and no .md → no-op, idempotent)
   │
-  │  ─── PASS 4: ORPHAN CLEANUP ────────────────────────────────
-  │  tagOrphans(existingSlugs):
-  │    ├─ SELECT all glossary Twins (by twinClassId = glossaryClassId)
-  │    ├─ for each Twin whose markdownSource is NOT in existingSlugs set:
-  │    │    - check if already tagged GLOSSARY_DEPRECATED → skip if yes
-  │    │    - else INSERT twin_tag (twin_id, GLOSSARY_DEPRECATED_TAG)
-  │    └─ return orphanCount
+  │  → BootstrapPlan { creates[], updates[], restores[], markDeletes[], skips }
   │
-  │  return GlossaryBootstrapResult(created, updated, skipped, ...)
+  │  ─── PHASE 2: EXECUTE (TwinService batched) ────────────────
+  │
+  │  For each CREATE — build TwinCreate:
+  │    .setTwinEntity(TwinEntity with
+  │       id = dto.twinId (deterministic UUIDv5),
+  │       name = dto.title,
+  │       twinClassId = TWIN_CLASS_TWINS_GLOSSARY,
+  │       twinStatusId = TWIN_STATUS_GLOSSARY_ACTUAL,
+  │       description = dto.sections["Summary"],
+  │       externalId = "glossary:" + dto.slug)
+  │    .setFields(buildFieldMap(dto))              // Map<UUID, FieldValue> for 13 fields
+  │    .setLinksEntityList(buildSeeAlsoLinks(dto)) // TwinLinkEntity list with dst=UUIDv5 per see_also slug
+  │    .setTagsAddExisted({categoryId})            // resolved from GLOSSARY_CATEGORY DataListOption
+  │    .setCheckCreatePermission(false)            // system bootstrap bypass
+  │
+  │  For each UPDATE / RESTORE — build TwinUpdate:
+  │    .setDbTwinEntity(existingTwin)              // snapshot loaded from DB
+  │    .setTwinEntity(existingTwin.copy()
+  │       .setDescription(dto.sections["Summary"])
+  │       .setTwinStatusId(TWIN_STATUS_GLOSSARY_ACTUAL))   // RESTORE: DELETED → ACTUAL
+  │    .setFields(buildFieldMap(dto))              // full refresh — idempotent
+  │    .setTwinLinkCUD(computeCUD(                 // EntityCUD<TwinLinkEntity>
+  │       existingLinks = loadLinks(existingTwin.id),
+  │       desiredLinks = dto.seeAlso))
+  │    .setTagsAddExisted(...) / setTagsDelete(...)  // only if category changed
+  │    .setCheckEditPermission(false)
+  │
+  │  For each MARK_DELETED — build TwinUpdate:
+  │    .setDbTwinEntity(orphanTwin)
+  │    .setTwinEntity(orphanTwin.copy()
+  │       .setTwinStatusId(TWIN_STATUS_GLOSSARY_DELETED))
+  │    .setCheckEditPermission(false)
+  │
+  │  Execute batched:
+  │    1. twinService.createTwins(TwinCreateStage.of(creates))
+  │       (internally splits on stages to resolve see_also forward references)
+  │    2. twinService.updateTwin(allUpdates, false)
+  │       where allUpdates = updates + restores + markDeletes (each as TwinUpdate)
+  │
+  │  → counts: created.size, updated.size, restored.size,
+  │            markDeletes.size, skips.size
+  │
+  │  return GlossaryBootstrapResult(...)
   │
   ▼
 @Transactional COMMITS (or rolls back on DB error — entire batch)
@@ -825,10 +990,13 @@ Runner logs summary, returns. Application startup continues.
 
 **Transaction boundary rules:**
 
-1. **Single `@Transactional` on `bootstrap()`** — entire pipeline is one tx. DB error anywhere rolls back the whole batch.
-2. **Invalid files excluded pre-batch** — parsing & validation happens inside the tx but is in-memory only (no DB writes). If a file is invalid, it's logged + dropped before any DB write. This preserves resilience without fragmenting the tx.
-3. **All DB writes use batch APIs** — `saveAllAndLog(list)` on each repository, no per-entity save loops. Reduces round-trips from 40×N to 4 (one per pass).
-4. **Failure mode** — DB constraint violation aborts the tx. The runner catches, logs, and **does not crash the app**. Glossary may be in pre-bootstrap state until next restart with a fix.
+1. **Single `@Transactional` on `bootstrap()`** — entire DISCOVERY + EXECUTE is one tx. DB error anywhere rolls back the whole batch.
+2. **Invalid files excluded pre-execute** — parsing & validation happens in DISCOVERY (in-memory only). Broken `.md` is logged WARN and dropped before any DB write, so it doesn't abort the pass.
+3. **TwinService handles per-twin transaction internally** — both `createTwin` and `updateTwin` are themselves `@Transactional`. Our outer transaction composes cleanly (Spring joins them via propagation REQUIRED).
+4. **Batched execution** — single `createTwins(TwinCreateStage)` call for all CREATEs, single `updateTwin(List<TwinUpdate>)` for all UPDATE+RESTORE+MARK_DELETED. TwinService internally batches the SQL.
+5. **Failure mode** — DB constraint violation aborts the tx. The runner catches, logs, and **does not crash the app**. Glossary may be in pre-bootstrap state until next restart with a fix.
+
+**Why not 4 separate passes anymore:** `TwinCreate.setLinksEntityList` + `setTagsAddExisted` covers link/tag creation in the same call as Twin creation. `TwinUpdate.setTwinLinkCUD` + `setTagsAddExisted/Delete` covers link/tag reconciliation in the same call as Twin update. No need for separate Pass 2 (links) or Pass 3 (tags) — they fold into CREATE/UPDATE.
 
 ---
 
@@ -836,130 +1004,191 @@ Runner logs summary, returns. Application startup continues.
 
 **File:** `core/src/main/resources/db/migration/V1.4.100.01__TWINS-854_glossary_class.sql`
 
-```sql
--- TWINS-854: Glossary-as-Twins — bootstrap class, fields, link, data list
--- Creates TWINS_GLOSSARY TwinClass + 15 TwinClassFields + 1 link type +
--- 1 DataList (GLOSSARY_CATEGORY) + 1 DataList (GLOSSARY_FLAGS).
--- Glossary Twins themselves are created at app startup by GlossaryBootstrapService.
+All UUIDs below are registered as constants in `SystemEntityService` (see §15.6). The migration INSERTs the literal UUID values; the bootstrap service references them via the constants. Glossary Twins themselves are **not** created by the migration — they are created at app startup by `GlossaryBootstrapService`.
 
--- Use deterministic UUID for the class itself so bootstrap service can find it
--- by (domainId, key) — UUID value here doesn't need to be deterministic.
--- Replace <SYSTEM_DOMAIN_ID> with the actual system-domain UUID (already bootstrapped).
+Schema conventions (verified against existing migrations):
+- `i18n` columns: `(id, name, key, i18n_type_id, domain_id)`; `i18n_type_id` is lowercase string FK (`'twinStatusName'`, `'linkForwardName'`, …).
+- `i18n_translation` columns: `(i18n_id, locale, translation, usage_counter)`.
+- `twin_status` columns: `(id, twins_class_id, name_i18n_id, description_i18n_id, logo, background_color, key, font_color)` — note `twins_class_id` (with `s`).
+- `twin_class_owner_type_id` value: `'system'` (lowercase) — system class marker, `domain_id` is `null` for system classes.
+- `link_type_id` value: `'ManyToMany'` (CamelCase as in `org.twins.core.enums.link.LinkType`).
+- `data_list_option_status_id` value: `'active'` (lowercase) — enum `'active'|'disabled'|'hidden'`.
+- All INSERTs use `on conflict (...) do nothing` for idempotency (re-runnable migrations).
+
+```sql
+-- TWINS-854: Glossary-as-Twins — bootstrap class schema.
+-- Creates: TWINS_GLOSSARY TwinClass + 13 TwinClassFields + 2 TwinStatuses
+--          (ACTUAL, DELETED) + 4 i18n rows (statuses) + 2 i18n rows (link names)
+--          + 1 link type (GLOSSARY_SEE_ALSO) + 1 DataList (GLOSSARY_CATEGORY)
+--          with 9 options.
+-- Glossary Twins are bootstrapped at app startup by GlossaryBootstrapService.
 
 -- 1. TwinClass: TWINS_GLOSSARY
-INSERT INTO twin_class (
-    id, domain_id, key, twin_class_owner_type_id, abstract,
-    created_by_user_id, created_at, twin_class_schema_space,
-    twin_counter, extends_hierarchy_counter_direct_children,
-    head_hierarchy_counter_direct_children
+--    UUID: SystemEntityService.TWIN_CLASS_TWINS_GLOSSARY
+--    domain_id = null (system class — no tenant domain)
+INSERT INTO public.twin_class (
+    id, domain_id, key, permission_schema_space, abstract,
+    head_twin_class_id, extends_twin_class_id, name_i18n_id, description_i18n_id, logo,
+    created_by_user_id, created_at, twin_class_owner_type_id,
+    domain_alias_counter, marker_data_list_id, tag_data_list_id,
+    twinflow_schema_space, twin_class_schema_space, alias_space,
+    view_permission_id, head_hierarchy_tree, extends_hierarchy_tree,
+    head_hunter_featurer_id, head_hunter_featurer_params,
+    create_permission_id, edit_permission_id, delete_permission_id, page_face_id
 ) VALUES (
-    '11111111-0000-0000-0001-000000000001',  -- TODO: replace with deterministic UUID
-    '<SYSTEM_DOMAIN_ID>',
-    'TWINS_GLOSSARY',
-    'SYSTEM',  -- owner_type
-    false,
-    '00000000-0000-0000-0000-000000000000',  -- USER_SYSTEM
+    '00000000-0000-0000-0001-000000000006'::uuid,         -- TWIN_CLASS_TWINS_GLOSSARY
+    null::uuid,                                            -- domain_id (null for system class)
+    'TWINS_GLOSSARY'::varchar(100),
+    false::boolean, false::boolean,
+    null::uuid, null::uuid, null::uuid, null::uuid, null::varchar,
+    '00000000-0000-0000-0000-000000000000'::uuid,          -- USER_SYSTEM
     CURRENT_TIMESTAMP,
-    false, 0, 0, 0
-);
+    'system'::varchar,                                     -- owner_type_id (lowercase)
+    0::integer,
+    null::uuid,
+    '00000000-0000-0000-0020-000000000001'::uuid,          -- tag_data_list_id → GLOSSARY_CATEGORY
+    false::boolean, false::boolean, false::boolean,
+    null::uuid, null::ltree, null::ltree,
+    null::integer, null::hstore,
+    null::uuid, null::uuid, null::uuid, null::uuid
+) ON CONFLICT (id) DO NOTHING;
 
--- 2. TwinClassFields — see plan §4 for the field schema.
+-- 2. i18n entries — 4 rows for statuses + 2 rows for GLOSSARY_SEE_ALSO link names
+INSERT INTO public.i18n (id, name, key, i18n_type_id, domain_id) VALUES
+    -- Status ACTUAL name/description
+    ('00000000-0000-0000-0012-000000000039'::uuid, null, null, 'twinStatusName'::varchar,       null::uuid),
+    ('00000000-0000-0000-0012-000000000040'::uuid, null, null, 'twinStatusDescription'::varchar, null::uuid),
+    -- Status DELETED name/description
+    ('00000000-0000-0000-0012-000000000041'::uuid, null, null, 'twinStatusName'::varchar,       null::uuid),
+    ('00000000-0000-0000-0012-000000000042'::uuid, null, null, 'twinStatusDescription'::varchar, null::uuid),
+    -- GLOSSARY_SEE_ALSO link forward/backward names
+    ('00000000-0000-0000-0012-000000000043'::uuid, null, null, 'linkForwardName'::varchar,      null::uuid),
+    ('00000000-0000-0000-0012-000000000044'::uuid, null, null, 'linkBackwardName'::varchar,     null::uuid)
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. i18n English translations (usage_counter = 0, following SystemEntityService pattern)
+INSERT INTO public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+    ('00000000-0000-0000-0012-000000000039'::uuid, 'en', 'Actual',                                                                       0),
+    ('00000000-0000-0000-0012-000000000040'::uuid, 'en', 'Glossary entry is in sync with its markdown source file',                       0),
+    ('00000000-0000-0000-0012-000000000041'::uuid, 'en', 'Deleted',                                                                       0),
+    ('00000000-0000-0000-0012-000000000042'::uuid, 'en', 'Source markdown file removed; Twin retained for referential integrity',           0),
+    ('00000000-0000-0000-0012-000000000043'::uuid, 'en', 'See also',                                                                      0),
+    ('00000000-0000-0000-0012-000000000044'::uuid, 'en', 'Referenced by',                                                                 0)
+ON CONFLICT (i18n_id, locale) DO NOTHING;
+
+-- 4. TwinStatus: ACTUAL + DELETED
+--    UUIDs: SystemEntityService.TWIN_STATUS_GLOSSARY_ACTUAL / _DELETED
+INSERT INTO public.twin_status (id, twins_class_id, name_i18n_id, description_i18n_id, logo, background_color, key, font_color) VALUES
+    ('00000000-0000-0000-0003-000000001001'::uuid,         -- TWIN_STATUS_GLOSSARY_ACTUAL
+     '00000000-0000-0000-0001-000000000006'::uuid,         -- TWIN_CLASS_TWINS_GLOSSARY
+     '00000000-0000-0000-0012-000000000039'::uuid,
+     '00000000-0000-0000-0012-000000000040'::uuid,
+     null::varchar, null::varchar, 'ACTUAL'::varchar, null::varchar),
+    ('00000000-0000-0000-0003-000000001002'::uuid,         -- TWIN_STATUS_GLOSSARY_DELETED
+     '00000000-0000-0000-0001-000000000006'::uuid,
+     '00000000-0000-0000-0012-000000000041'::uuid,
+     '00000000-0000-0000-0012-000000000042'::uuid,
+     null::varchar, null::varchar, 'DELETED'::varchar, null::varchar)
+ON CONFLICT (id) DO NOTHING;
+
+-- 5. TwinClassFields — see plan §4 for the field schema.
 --    Field typer featurer IDs (verified in FeaturerTwins.java):
 --      1301 = FieldTyperTextField (indexed, short searchable)
 --      1336 = FieldTyperTextNonIndexedField (long markdown bodies)
 --      1306 = FieldTyperBooleanV1
 --      1302 = FieldTyperTimestamp
-
--- 2a. Long-text section fields (non-indexed).
+--    name_i18n_id and description_i18n_id are nullable — left null for MVP
+--    (field keys are self-describing; admin UI can show key directly).
 --    NOTE: ## Summary is stored on Twin.description (inherited base field from
 --    GLOBAL_ANCESTOR via SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION)
 --    so no TwinClassField is created for it.
-INSERT INTO twin_class_field (id, twin_class_id, key, field_typer_featurer_id, required) VALUES
-    ('11111111-0000-0000-0011-000000000102', '11111111-0000-0000-0001-000000000001', 'purpose',             1336, false),
-    ('11111111-0000-0000-0011-000000000103', '11111111-0000-0000-0001-000000000001', 'fields',              1336, true),
-    ('11111111-0000-0000-0011-000000000104', '11111111-0000-0000-0001-000000000001', 'relations_overview',  1336, false),
-    ('11111111-0000-0000-0011-000000000105', '11111111-0000-0000-0001-000000000001', 'api',                 1336, false),
-    ('11111111-0000-0000-0011-000000000106', '11111111-0000-0000-0001-000000000001', 'api_deprecated',      1336, false),
-    ('11111111-0000-0000-0011-000000000107', '11111111-0000-0000-0001-000000000001', 'examples',            1336, false),
-    ('11111111-0000-0000-0011-000000000108', '11111111-0000-0000-0001-000000000001', 'dev_notes',           1336, false);
 
--- 2b. Short indexed-text fields
-INSERT INTO twin_class_field (id, twin_class_id, key, field_typer_featurer_id, required) VALUES
-    ('11111111-0000-0000-0011-000000000110', '11111111-0000-0000-0001-000000000001', 'jpa_class',         1301, false),
-    ('11111111-0000-0000-0011-000000000111', '11111111-0000-0000-0001-000000000001', 'db_table',          1301, false),
-    ('11111111-0000-0000-0011-000000000112', '11111111-0000-0000-0001-000000000001', 'markdown_source',   1301, true),
-    ('11111111-0000-0000-0011-000000000113', '11111111-0000-0000-0001-000000000001', 'markdown_hash',     1301, true);
+-- 5a. Long-text section fields (non-indexed, featurer 1336)
+INSERT INTO public.twin_class_field (id, twin_class_id, key, name_i18n_id, description_i18n_id, field_typer_featurer_id, field_typer_params, view_permission_id, edit_permission_id, required) VALUES
+    ('00000000-0000-0000-0011-000000001000'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'purpose'::varchar,            null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001001'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'fields'::varchar,             null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, true),
+    ('00000000-0000-0000-0011-000000001002'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'relations_overview'::varchar, null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001003'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'api'::varchar,                null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001004'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'api_deprecated'::varchar,     null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001005'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'examples'::varchar,           null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001006'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'dev_notes'::varchar,          null::uuid, null::uuid, 1336, null::hstore, null::uuid, null::uuid, false)
+ON CONFLICT (id) DO NOTHING;
 
--- 2c. Boolean + date fields
-INSERT INTO twin_class_field (id, twin_class_id, key, field_typer_featurer_id, required) VALUES
-    ('11111111-0000-0000-0011-000000000114', '11111111-0000-0000-0001-000000000001', 'is_system',     1306, true),
-    ('11111111-0000-0000-0011-000000000115', '11111111-0000-0000-0001-000000000001', 'actualized_at', 1302, true);
+-- 5b. Short indexed-text fields (featurer 1301)
+INSERT INTO public.twin_class_field (id, twin_class_id, key, name_i18n_id, description_i18n_id, field_typer_featurer_id, field_typer_params, view_permission_id, edit_permission_id, required) VALUES
+    ('00000000-0000-0000-0011-000000001007'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'jpa_class'::varchar,       null::uuid, null::uuid, 1301, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001008'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'db_table'::varchar,        null::uuid, null::uuid, 1301, null::hstore, null::uuid, null::uuid, false),
+    ('00000000-0000-0000-0011-000000001009'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'markdown_source'::varchar, null::uuid, null::uuid, 1301, null::hstore, null::uuid, null::uuid, true),
+    ('00000000-0000-0000-0011-000000001010'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'markdown_hash'::varchar,   null::uuid, null::uuid, 1301, null::hstore, null::uuid, null::uuid, true)
+ON CONFLICT (id) DO NOTHING;
 
--- 3. Link type: GLOSSARY_SEE_ALSO (glossary Twin → glossary Twin, many-to-many)
-INSERT INTO link (
+-- 5c. Boolean + date fields
+INSERT INTO public.twin_class_field (id, twin_class_id, key, name_i18n_id, description_i18n_id, field_typer_featurer_id, field_typer_params, view_permission_id, edit_permission_id, required) VALUES
+    ('00000000-0000-0000-0011-000000001011'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'is_system'::varchar,     null::uuid, null::uuid, 1306, null::hstore, null::uuid, null::uuid, true),
+    ('00000000-0000-0000-0011-000000001012'::uuid, '00000000-0000-0000-0001-000000000006'::uuid, 'actualized_at'::varchar, null::uuid, null::uuid, 1302, null::hstore, null::uuid, null::uuid, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 6. Link type: GLOSSARY_SEE_ALSO (glossary Twin → glossary Twin, many-to-many)
+--    UUID: SystemEntityService.LINK_GLOSSARY_SEE_ALSO
+INSERT INTO public.link (
     id, domain_id, src_twin_class_id, dst_twin_class_id,
     forward_name_i18n_id, backward_name_i18n_id, link_type_id,
     link_strength_id, created_by_user_id, created_at
 ) VALUES (
-    '22222222-0000-0000-0001-000000000001',
-    '<SYSTEM_DOMAIN_ID>',
-    '11111111-0000-0000-0001-000000000001',  -- TWINS_GLOSSARY → TWINS_GLOSSARY
-    '11111111-0000-0000-0001-000000000001',
-    '<GLOSSARY_SEE_ALSO_FWD_I18N_ID>',       -- TODO: seed i18n rows first
-    '<GLOSSARY_SEE_ALSO_BWD_I18N_ID>',
-    'SEE_ALSO',                              -- TODO: confirm link_type_id from enum/sead table
-    'OPTIONAL',
-    '00000000-0000-0000-0000-000000000000',
+    '00000000-0000-0000-0019-000000000001'::uuid,
+    null::uuid,                                            -- domain_id (null — system class)
+    '00000000-0000-0000-0001-000000000006'::uuid,          -- TWINS_GLOSSARY → TWINS_GLOSSARY
+    '00000000-0000-0000-0001-000000000006'::uuid,
+    '00000000-0000-0000-0012-000000000043'::uuid,          -- "See also" (forward)
+    '00000000-0000-0000-0012-000000000044'::uuid,          -- "Referenced by" (backward)
+    'ManyToMany'::varchar,
+    'OPTIONAL'::varchar,
+    '00000000-0000-0000-0000-000000000000'::uuid,          -- USER_SYSTEM
     CURRENT_TIMESTAMP
-);
+) ON CONFLICT (id) DO NOTHING;
 
--- 4. DataList: GLOSSARY_CATEGORY
-INSERT INTO data_list (id, name, description, updated_at) VALUES
-    ('33333333-0000-0000-0001-000000000001', 'GLOSSARY_CATEGORY', 'Categories for glossary entries', CURRENT_TIMESTAMP);
+-- 7. DataList: GLOSSARY_CATEGORY (used as TwinTag source for categorizing glossary Twins)
+INSERT INTO public.data_list (id, name, description, updated_at) VALUES
+    ('00000000-0000-0000-0020-000000000001'::uuid, 'GLOSSARY_CATEGORY', 'Categories for glossary entries', CURRENT_TIMESTAMP)
+ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO data_list_option (id, data_list_id, option, data_list_option_status_id, "order") VALUES
-    ('33333333-0000-0001-0001-000000000001', '33333333-0000-0000-0001-000000000001', 'core',            'ACTIVE', 1),
-    ('33333333-0000-0001-0001-000000000002', '33333333-0000-0000-0001-000000000001', 'workflow',        'ACTIVE', 2),
-    ('33333333-0000-0001-0001-000000000003', '33333333-0000-0000-0001-000000000001', 'multi-tenancy',   'ACTIVE', 3),
-    ('33333333-0000-0001-0001-000000000004', '33333333-0000-0000-0001-000000000001', 'permissions',     'ACTIVE', 4),
-    ('33333333-0000-0001-0001-000000000005', '33333333-0000-0000-0001-000000000001', 'content',         'ACTIVE', 5),
-    ('33333333-0000-0001-0001-000000000006', '33333333-0000-0000-0001-000000000001', 'cross-cutting',   'ACTIVE', 6),
-    ('33333333-0000-0001-0001-000000000007', '33333333-0000-0000-0001-000000000001', 'fields',          'ACTIVE', 7),
-    ('33333333-0000-0001-0001-000000000008', '33333333-0000-0000-0001-000000000001', 'validation',      'ACTIVE', 8),
-    ('33333333-0000-0001-0001-000000000009', '33333333-0000-0000-0001-000000000001', 'other',           'ACTIVE', 9);
+INSERT INTO public.data_list_option (id, data_list_id, option, data_list_option_status_id, "order") VALUES
+    ('00000000-0000-0020-0001-000000000001'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'core',            'active', 1),
+    ('00000000-0000-0020-0001-000000000002'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'workflow',        'active', 2),
+    ('00000000-0000-0020-0001-000000000003'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'multi-tenancy',   'active', 3),
+    ('00000000-0000-0020-0001-000000000004'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'permissions',     'active', 4),
+    ('00000000-0000-0020-0001-000000000005'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'content',         'active', 5),
+    ('00000000-0000-0020-0001-000000000006'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'cross-cutting',   'active', 6),
+    ('00000000-0000-0020-0001-000000000007'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'fields',          'active', 7),
+    ('00000000-0000-0020-0001-000000000008'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'validation',      'active', 8),
+    ('00000000-0000-0020-0001-000000000009'::uuid, '00000000-0000-0000-0020-000000000001'::uuid, 'other',           'active', 9)
+ON CONFLICT (id) DO NOTHING;
 
--- 5. DataList: GLOSSARY_FLAGS (for the deprecated soft-delete tag)
-INSERT INTO data_list (id, name, description, updated_at) VALUES
-    ('33333333-0000-0000-0002-000000000001', 'GLOSSARY_FLAGS', 'Operational flags for glossary entries (e.g. deprecated)', CURRENT_TIMESTAMP);
-
-INSERT INTO data_list_option (id, data_list_id, option, data_list_option_status_id, "order") VALUES
-    ('33333333-0000-0002-0001-000000000001', '33333333-0000-0000-0002-000000000001', 'deprecated', 'ACTIVE', 1);
-
--- 6. Index FK columns (CLAUDE.md rule)
+-- 8. Index FK columns (CLAUDE.md rule — every FK gets an index)
 CREATE INDEX IF NOT EXISTS idx_twin_class_field_twin_class_id
-    ON twin_class_field (twin_class_id);
+    ON public.twin_class_field (twin_class_id);
+CREATE INDEX IF NOT EXISTS idx_twin_status_twins_class_id
+    ON public.twin_status (twins_class_id);
 CREATE INDEX IF NOT EXISTS idx_link_src_twin_class_id
-    ON link (src_twin_class_id);
+    ON public.link (src_twin_class_id);
 CREATE INDEX IF NOT EXISTS idx_link_dst_twin_class_id
-    ON link (dst_twin_class_id);
+    ON public.link (dst_twin_class_id);
 CREATE INDEX IF NOT EXISTS idx_data_list_option_data_list_id
-    ON data_list_option (data_list_id);
+    ON public.data_list_option (data_list_id);
 ```
 
-**Migration TODOs before implementation:**
-
-1. Resolve `<SYSTEM_DOMAIN_ID>` — find the deterministic UUID of the system domain from existing migrations or `SystemEntityService`.
-2. Resolve i18n IDs for `GLOSSARY_SEE_ALSO` link forward/backward names — seed i18n + i18n_translation rows.
-3. Confirm `link_type_id` enum values — check the `link_type` seed table for valid keys (probably `'BIDIRECTIONAL'` or `'MANY_TO_MANY'`).
-4. Confirm `data_list_option_status_id` enum values — likely `'ACTIVE'`/`'DEPRECATED'` (verify against existing seed data).
-5. Confirm `twin_class_owner_type_id` accepts `'SYSTEM'` as string or requires lookup against an enum table.
-6. Replace placeholder `11111111-...` UUIDs with deterministic values (UUIDv5 from readable names) so the bootstrap service can locate fields by class ID + key without hardcoding.
+**Status:** all design decisions resolved — migration is ready for implementation. Verified against:
+- `V1.3.98.01__TWINS_init.sql` (initial schema + seed tables `link_type`, `link_strength`, `data_list_option_status`, `twin_class_owner_type`)
+- `V1.3.216.01__TWINS-362_ak1_globa_ancestor_class.sql` (reference pattern for system TwinClass + TwinClassField)
+- `V1.3.316.02__TWINS-438_kk1_add_sketch_status.sql` (reference pattern for TwinStatus + i18n + i18n_translation)
+- `core/.../enums/i18n/I18nType.java` (i18n_type_id lowercase values)
+- `core/.../enums/link/LinkType.java` (link_type_id enum values: `ManyToOne`, `ManyToMany`, `OneToOne`)
 
 ---
 
 ## 18. Test Plan
 
-All tests live under `core/src/test/java/org/twins/core/service/glossary/` and use the existing Testcontainers PostgreSQL fixture (see `TwinServiceIntegrationTest` for the pattern).
+All tests live under `core/src/test/java/org/twins/bootstrap/` and use the existing Testcontainers PostgreSQL fixture (see `TwinServiceIntegrationTest` for the pattern).
 
 ### 18.1 Unit tests (no Spring context)
 
@@ -983,17 +1212,18 @@ Tests run with `twins.glossary.bootstrap.enabled=true` so the runner fires. Each
 
 | Test | Validates |
 |---|---|
-| `GlossaryBootstrapIntegrationTest.bootstrap_emptyDb_createsAllTwins` | Run on empty DB with 3 markdown files → 3 Twins created. `## Summary` body lands in `Twin.description`; remaining sections land in matching TwinFields. |
+| `GlossaryBootstrapIntegrationTest.bootstrap_emptyDb_createsAllTwins` | Run on empty DB with 3 markdown files → 3 Twins created. `## Summary` body lands in `Twin.description`; remaining sections land in matching TwinFields; all new Twins start in `ACTUAL` status. |
 | `GlossaryBootstrapIntegrationTest.bootstrap_reRunWithNoChanges_skipsAll` | Second run with same files → 0 created, 0 updated, 3 skipped (hash match) |
 | `GlossaryBootstrapIntegrationTest.bootstrap_markdownChanged_updatesFields` | Edit `## Summary` in one file → 1 Twin updated, hash rotated |
-| `GlossaryBootstrapIntegrationTest.bootstrap_newFileAdded_createsNewTwin` | Add 4th file → 1 created on next run |
-| `GlossaryBootstrapIntegrationTest.bootstrap_fileRemoved_tagsOrphanDeprecated` | Remove one file → orphan Twin gets `deprecated` tag, not deleted |
-| `GlossaryBootstrapIntegrationTest.bootstrap_orphanRestored_clearsDeprecatedTag` | Re-add the removed file → deprecated tag removed automatically |
+| `GlossaryBootstrapIntegrationTest.bootstrap_newFileAdded_createsNewTwin` | Add 4th file → 1 created on next run, status `ACTUAL` |
+| `GlossaryBootstrapIntegrationTest.bootstrap_fileRemoved_marksOrphanDeleted` | Remove one file → orphan Twin's status transitions ACTUAL → DELETED. Twin still returned by standard search (DELETED not excluded). |
+| `GlossaryBootstrapIntegrationTest.bootstrap_orphanRestored_resetsStatusToActual` | Re-add the removed file → Twin's status transitions DELETED → ACTUAL (PHASE 2 RESTORE action), fields refreshed |
 | `GlossaryBootstrapIntegrationTest.bootstrap_seeAlsoChanged_reconcilesLinks` | Add/remove entry in frontmatter `see_also` → TwinLink added/removed |
 | `GlossaryBootstrapIntegrationTest.bootstrap_categoryChanged_reconcilesTag` | Change `category` from `core` to `workflow` → old tag removed, new tag added |
 | `GlossaryBootstrapIntegrationTest.bootstrap_invalidFilePresent_loadsOthersOnly` | Mix 2 valid + 1 invalid file → 2 Twins created, invalid logged, no crash |
 | `GlossaryBootstrapIntegrationTest.bootstrap_conditionalPropertyDisabled_runnerDoesNotFire` | Set `twins.glossary.bootstrap.enabled=false` → bean not in context, no Twins created |
 | `GlossaryBootstrapIntegrationTest.bootstrap_deterministicUuid_sameAcrossRestarts` | UUIDs of Twins stable across two runs of bootstrap |
+| `GlossaryBootstrapIntegrationTest.bootstrap_deletedTwinVisibleInStandardSearch` | Twin in DELETED status is returned by `/private/twin/search/v1` (no implicit filtering) |
 
 ### 18.3 Performance check (optional, in `@Tag("slow")`)
 

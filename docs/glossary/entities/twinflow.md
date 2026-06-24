@@ -43,7 +43,17 @@ A flow also binds an Eraseflow policy (`eraseflowId`) that defines what happens 
 
 ## Relations
 
-Belongs to a [TwinClass](twin-class.md). References one [TwinStatus](twin-status.md) as the initial status and another as the initial sketch status. Owns collections of [TwinflowTransition](twinflow-transition.md) (directed edges) and [TwinflowFactory](twinflow-factory.md) (factories triggered by lifecycle events). References an [Eraseflow](eraseflow.md) policy. All display strings resolve through the [I18n](i18n.md) entity.
+| Target | Cardinality | Kind | Description |
+|---|---|---|---|
+| [TwinClass](twin-class.md) | many-to-one | owning | Owner TwinClass (one active flow per class) |
+| [TwinStatus](twin-status.md) | many-to-one | owning | Initial status for new Twins (`initialTwinStatusId`) |
+| [TwinStatus](twin-status.md) | many-to-one | owning | Initial sketch status for drafts (`initialSketchTwinStatusId`) |
+| [TwinflowTransition](twinflow-transition.md) | one-to-many | own_collection | Directed edges between statuses |
+| [TwinflowFactory](twinflow-factory.md) | one-to-many | own_collection | Factories triggered by lifecycle events |
+| [Eraseflow](eraseflow.md) | many-to-one | owning | Cascade-delete policy applied on Twin deletion |
+| [I18n](i18n.md) | many-to-one | owning | Name translations |
+| [I18n](i18n.md) | many-to-one | owning | Description translations |
+| [User](user.md) | many-to-one | owning | Author (`createdByUserId`) |
 
 ## API
 

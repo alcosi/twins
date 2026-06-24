@@ -64,7 +64,22 @@ Classes can extend each other via `extendsTwinClassId` (inheritance): a child cl
 
 ## Relations
 
-Belongs to a [Domain](domain.md). Owns collections of [TwinClassField](twin-class-field.md), [TwinStatus](twin-status.md), [Twinflow](twinflow.md), [Link](link.md), and [TwinFactory](twin-factory.md). References a default view [Permission](permission.md) and create [Permission](permission.md). Optionally extends another TwinClass (inheritance). UI icons resolve through Resource entity; display strings resolve through [I18n](i18n.md).
+| Target | Cardinality | Kind | Description |
+|---|---|---|---|
+| [Domain](domain.md) | many-to-one | owning | Owner domain |
+| [TwinClassField](twin-class-field.md) | one-to-many | own_collection | Field definitions |
+| [TwinStatus](twin-status.md) | one-to-many | own_collection | Available statuses |
+| [Twinflow](twinflow.md) | one-to-many | own_collection | State machine(s) attached to this class |
+| [Link](link.md) | one-to-many | own_collection | Link types declared between instances |
+| [TwinFactory](twin-factory.md) | one-to-many | own_collection | Factories that produce/transform instances |
+| [TwinClass](twin-class.md) | many-to-one | owning | Parent in class hierarchy (`headTwinClassId`) |
+| [TwinClass](twin-class.md) | many-to-one | owning | Extended class for inheritance (`extendsTwinClassId`) |
+| [Permission](permission.md) | many-to-one | owning | Default view permission for instances |
+| [Permission](permission.md) | many-to-one | owning | Permission required to create instances |
+| [TwinClassSchema](twin-class-schema.md) | many-to-one | semantic | Schema template (when inherited) |
+| [DataList](data-list.md) | many-to-one | owning | Allowed markers (`markerDataListId`) |
+| [DataList](data-list.md) | many-to-one | owning | Allowed tags (`tagDataListId`) |
+| [I18n](i18n.md) | many-to-one | owning | Display name and description translations |
 
 ## API
 
