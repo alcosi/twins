@@ -50,17 +50,21 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "last_activity_at")
     private Timestamp lastActivityAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
+    private DomainEntity domainSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private UserEntity user;
+    private UserEntity userSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -77,6 +81,16 @@ public class DomainUserEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<BusinessAccountUserEntity> businessAccountUsersByUserIdSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainEntity domain;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity user;
 
     @Transient
     @EqualsAndHashCode.Exclude

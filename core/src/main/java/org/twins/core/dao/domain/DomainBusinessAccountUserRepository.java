@@ -42,6 +42,7 @@ public interface DomainBusinessAccountUserRepository extends CrudRepository<Doma
                 .setDomainBusinessAccount((DomainBusinessAccountEntity) row[4])
                 .setDomainUser((DomainUserEntity) row[5])
                 .setBusinessAccountUser((BusinessAccountUserEntity) row[6]);
+        return dbau;
     }
 
     @Modifying

@@ -29,6 +29,8 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
@@ -124,5 +126,27 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
 
     public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID userId) throws ServiceException {
         return domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomain().getId(), userId, DomainUserNoRelationProjection.class);
+    }
+
+    public void loadDomain(DomainUserEntity src) throws ServiceException {
+        loadDomain(Collections.singletonList(src));
+    }
+
+    public void loadDomain(Collection<DomainUserEntity> srcCollection) throws ServiceException {
+        domainService.load(srcCollection,
+                DomainUserEntity::getDomainId,
+                DomainUserEntity::getDomain,
+                DomainUserEntity::setDomain);
+    }
+
+    public void loadUser(DomainUserEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<DomainUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                DomainUserEntity::getUserId,
+                DomainUserEntity::getUser,
+                DomainUserEntity::setUser);
     }
 }

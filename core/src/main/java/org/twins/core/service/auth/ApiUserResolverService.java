@@ -86,9 +86,9 @@ public class ApiUserResolverService {
                         .setDomain(dbuEntity.getDomain())
                         .setBusinessAccount(dbuEntity.getBusinessAccount())
                         .setUser(dbuEntity.getUser())
-                        .setDomainBusinessAccount(dbu.getDomainBusinessAccount())
-                        .setDomainUser(dbu.getDomainUser())
-                        .setBusinessAccountUser(dbu.getBusinessAccountUser());
+                        .setDomainBusinessAccount(dbuEntity.getDomainBusinessAccount())
+                        .setDomainUser(dbuEntity.getDomainUser())
+                        .setBusinessAccountUser(dbuEntity.getBusinessAccountUser());
                 updateActivityThrottled(dbuEntity.getLastActivityAt(),
                         () -> {
                             domainBusinessAccountUserRepository.updateLastActivityAt(domainId, businessAccountId, userId);

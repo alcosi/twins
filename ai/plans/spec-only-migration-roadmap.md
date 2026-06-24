@@ -32,13 +32,13 @@
 | 5 | `DataListOptionProjectionEntity` | datalist | 4 | 4 | 0 | 0 | 0 | ready |
 | 6 | `DataListOptionSearchPredicateEntity` | datalist | 1 | 1 | 0 | 0 | 0 | ready |
 | 7 | `DataListSubsetOptionEntity` | datalist | 2 | 2 | 0 | 0 | 0 | ready |
-| 8 | `DomainBusinessAccountEntity` | domain | 4 | 0 | 4 | 0 | 0 | audit |
+| 8 | `DomainBusinessAccountEntity` | domain | 0 | 0 | 0 | 0 | 0 | done |
 | 9 | `DomainBusinessAccountUserEntity` | domain | 0 | 0 | 0 | 0 | 0 | done |
 | 10 | `DomainEntity` | domain | 12 | 12 | 0 | 0 | 0 | ready |
 | 11 | `DomainLocaleEntity` | domain | 1 | 1 | 0 | 0 | 0 | ready |
 | 12 | `DomainTypeEntity` | domain | 2 | 2 | 0 | 0 | 0 | ready |
 | 13 | `DomainTypeTwinClassOwnerTypeEntity` | domain | 1 | 1 | 0 | 0 | 0 | ready |
-| 14 | `DomainUserEntity` | domain | 2 | 0 | 2 | 0 | 0 | audit |
+| 14 | `DomainUserEntity` | domain | 0 | 0 | 0 | 0 | 0 | done |
 | 15 | `DraftHistoryEntity` | draft | 2 | 2 | 0 | 0 | 0 | ready |
 | 16 | `DraftTwinAttachmentEntity` | draft | 2 | 1 | 1 | 0 | 0 | partial |
 | 17 | `DraftTwinEraseEntity` | draft | 2 | 2 | 0 | 0 | 0 | ready |
@@ -142,16 +142,18 @@
 
 | Статус | Кол-во сущностей |
 |---|---|
-| done | 17 |
+| done | 19 |
 | ready | 63 |
 | partial | 16 |
-| audit | 11 |
+| audit | 9 |
 | blocked | 4 |
 
-**Итого полей:** legacy=201, simple=170, business=26, blocked=5
+**Итого полей:** legacy=195, simple=170, business=20, blocked=5
 
 **История обновлений:**
-- 2026-06-23: `BusinessAccountUserEntity`, `DomainBusinessAccountUserEntity` → `done`. `DomainBusinessAccountEntity`: статус `partial`→`audit` (при ручном аудите все 4 legacy-поля оказались в бизнес-логике сервисов/featurer — эвристика пропустила из-за того, что getter-использования вне `{Entity}Service` ищутся через переменные с произвольным именем).
+- 2026-06-24: `DomainUserEntity` → `done` (2 поля: `domain`, `user`). `DomainUserSpecification` updated (`Fields.user` → `Fields.userSpecOnly`, 3 места), `DomainUserSearchService` updated (`Fields.domain` → `Fields.domainSpecOnly`). Маппер с `beforeCollectionConversion`. По ходу пофикшен missing-return в `DomainBusinessAccountUserRepository.findByDomainIdAndBusinessAccountIdAndUserId`.
+- 2026-06-23: `DomainBusinessAccountEntity` → `done` (4 поля: `domain`, `businessAccount`, `permissionSchema`, `tier`). Существуют getter-uses в бизнес-логике (`PermissionService`, `BusinessAccountInitiator`, `DomainService`) — пользователь взял аудит на себя. В сервис добавлены `loadDomain`/`loadBusinessAccount` (loadPermissionSchema/loadTier уже были), маппер обновлён для вызова всех load-методов в `map()` и `beforeCollectionConversion()`.
+- 2026-06-23: `BusinessAccountUserEntity`, `DomainBusinessAccountUserEntity` → `done`. `DomainBusinessAccountEntity`: статус `partial`→`audit` (при ручном аудите все 4 legacy-поля оказались в бизнес-логике сервисов/featurer — эвристика пропустила из-за того, что getter-использования вне `{Entity}Service` ищутся через переменные с произвольным именом).
 
 ## Детализация по сущностям (для приоритизации)
 

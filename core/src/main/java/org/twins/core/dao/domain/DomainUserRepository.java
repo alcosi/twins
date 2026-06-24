@@ -18,13 +18,13 @@ import java.util.UUID;
 public interface DomainUserRepository extends CrudRepository<DomainUserEntity, UUID>, JpaSpecificationExecutor<DomainUserEntity> {
     <T> T findByDomainIdAndUserId(UUID domainId, UUID userId, Class<T> type);
 
-    @Query(value = "select du.domain from DomainUserEntity du where du.userId = :userId")
+    @Query(value = "select du.domainSpecOnly from DomainUserEntity du where du.userId = :userId")
     Page<DomainEntity> findAllDomainByUserId(@Param("userId") UUID userId, Pageable pageable);
 
-    @Query(value = "select du.domain from DomainUserEntity du where du.userId = :userId and du.domain.domainStatusId = 'ACTIVE'")
+    @Query(value = "select du.domainSpecOnly from DomainUserEntity du where du.userId = :userId and du.domainSpecOnly.domainStatusId = 'ACTIVE'")
     Page<DomainEntity> findAllActiveDomainByUserId(@Param("userId") UUID userId, Pageable pageable);
 
-    @Query(value = "select du, du.domain, du.user from DomainUserEntity du where du.userId = :userId and du.domainId = :domainId")
+    @Query(value = "select du, du.domainSpecOnly, du.userSpecOnly from DomainUserEntity du where du.userId = :userId and du.domainId = :domainId")
     List<Object[]> _findByDomainIdAndUserId(@Param("domainId") UUID domainId, @Param("userId") UUID userId);
 
     default DomainUserEntity findByDomainIdAndUserId(UUID domainId, UUID userId) {
