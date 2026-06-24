@@ -386,7 +386,7 @@ public class ApiUser {
             return domainUser;
         loadDBU();
         if (domainUser == null)
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS);
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS);
         return domainUser;
     }
 

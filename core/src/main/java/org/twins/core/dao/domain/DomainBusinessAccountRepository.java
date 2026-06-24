@@ -1,5 +1,6 @@
 package org.twins.core.dao.domain;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -16,7 +17,7 @@ public interface DomainBusinessAccountRepository extends CrudRepository<DomainBu
 
     default DomainBusinessAccountEntity findByDomainIdAndBusinessAccountId(UUID domainId, UUID businessAccountId) {
         var results = _findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
-        if (results == null)
+        if (CollectionUtils.isEmpty(results))
             return null;
         var row = results.getFirst();
         var ret = (DomainBusinessAccountEntity) row[0];

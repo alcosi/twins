@@ -20,7 +20,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.*;
@@ -201,7 +200,8 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (null != space) permissionSchema = space.getPermissionSchema();
         if (null == permissionSchema) {
             if (apiUser.getDomain().getDomainType() == DomainType.b2b && apiUser.isBusinessAccountSpecified()) {
-                final DomainBusinessAccountEntity domainBusinessAccount = apiUser.getDomainBusinessAccount();
+                var domainBusinessAccount = apiUser.getDomainBusinessAccount();
+                domainBusinessAccountService.loadPermissionSchema(domainBusinessAccount);
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
             } else {
                 permissionSchema = apiUser.getDomain().getPermissionSchema();

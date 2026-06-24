@@ -1,5 +1,6 @@
 package org.twins.core.dao.domain;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -29,7 +30,7 @@ public interface DomainUserRepository extends CrudRepository<DomainUserEntity, U
 
     default DomainUserEntity findByDomainIdAndUserId(UUID domainId, UUID userId) {
         var results = _findByDomainIdAndUserId(domainId, userId);
-        if (results == null)
+        if (CollectionUtils.isEmpty(results))
             return null;
         var row = results.getFirst();
         var du = (DomainUserEntity) row[0];

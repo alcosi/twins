@@ -1,5 +1,6 @@
 package org.twins.core.dao.domain;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,12 +27,12 @@ public interface DomainBusinessAccountUserRepository extends CrudRepository<Doma
     List<DomainBusinessAccountUserEntity> findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId);
 
     @Query(value = "SELECT dbau, dbau.domainSpecOnly, dbau.businessAccountSpecOnly, dbau.userSpecOnly, dbau.domainBusinessAccountSpecOnly, dbau.domainUserSpecOnly, dbau.businessAccountUserSpecOnly " +
-            "FROM DomainBusinessAccountUserEntity dbau where dbau.domainId = :domainId and dbau.businessAccountId = :businessAccountId and dbau.userId = :userId")
+            "FROM DomainBusinessAccountUserEntity dbau where dbau.userId = :userId and dbau.domainId = :domainId and dbau.businessAccountId = :businessAccountId")
     List<Object[]> _findByDomainIdAndBusinessAccountIdAndUserId(@Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId, @Param("userId") UUID userId);
 
     default DomainBusinessAccountUserEntity findByDomainIdAndBusinessAccountIdAndUserId(UUID domainId, UUID businessAccountId, UUID userId) {
         var results = _findByDomainIdAndBusinessAccountIdAndUserId(domainId, businessAccountId, userId);
-        if (results == null)
+        if (CollectionUtils.isEmpty(results))
             return null;
         var row = results.getFirst();
         var dbau = (DomainBusinessAccountUserEntity) row[0];

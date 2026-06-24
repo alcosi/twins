@@ -1,5 +1,6 @@
 package org.twins.core.dao.businessaccount;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +22,7 @@ public interface BusinessAccountUserRepository extends CrudRepository<BusinessAc
 
     default BusinessAccountUserEntity findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId) {
         var results = _findByBusinessAccountIdAndUserId(businessAccountId, userId);
-        if (results == null)
+        if (CollectionUtils.isEmpty(results))
             return null;
         var row = results.getFirst();
         var ret = (BusinessAccountUserEntity) row[0];
