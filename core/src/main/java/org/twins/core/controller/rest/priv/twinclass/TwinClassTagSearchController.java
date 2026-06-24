@@ -88,7 +88,7 @@ public class TwinClassTagSearchController extends ApiController {
                         .setBusinessAccountIdList(Set.of(apiUser.getBusinessAccountId()));
 
             PaginationResult<DataListOptionEntity> tags = dataListOptionSearchService
-                    .findDataListOptionForDomain(dataListOptionSearch, pagination);
+                    .search(dataListOptionSearch, pagination);
 
             rs.setOptions(dataListOptionRestDTOMapper.convertCollection(tags.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(tags));
