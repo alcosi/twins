@@ -18,7 +18,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleMapEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleMapRepository;
-import org.twins.core.service.twin.TwinFieldRuleExecutionService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -29,10 +28,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<TwinClassFieldRuleMapEntity> {
     private final TwinClassFieldRuleMapRepository twinClassFieldRuleMapRepository;
-    private final TwinClassService twinClassService;
-    private final TwinFieldRuleExecutionService twinFieldRuleExecutionService;
     @Lazy
-    private final TwinClassFieldRuleService twinClassFieldRuleService;
+    private final TwinClassService twinClassService;
     private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     @Override

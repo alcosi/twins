@@ -120,7 +120,7 @@ public class DomainUserSearchController extends ApiController {
             @MapperContextBinding(roots = DomainUserRestDTOMapper.class, response = DomainUserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
-            DomainUserEntity domainUser = domainUserService.getCurrentUser();
+            DomainUserEntity domainUser = authService.getApiUser().getDomainUser();
             rs
                     .setUser(domainUserRestDTOMapper.convert(domainUser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

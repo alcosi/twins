@@ -7,6 +7,9 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.twins.core.dao.EntryCount;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,7 +25,24 @@ public interface DomainBusinessAccountUserRepository extends CrudRepository<Doma
 
     List<DomainBusinessAccountUserEntity> findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId);
 
-    DomainBusinessAccountUserEntity findByDomainIdAndBusinessAccountIdAndUserId(UUID domainId, UUID businessAccountId, UUID userId);
+    @Query(value = "SELECT dbau, dbau.domainSpecOnly, dbau.businessAccountSpecOnly, dbau.userSpecOnly, dbau.domainBusinessAccountSpecOnly, dbau.domainUserSpecOnly, dbau.businessAccountUserSpecOnly " +
+            "FROM DomainBusinessAccountUserEntity dbau where dbau.domainId = :domainId and dbau.businessAccountId = :businessAccountId and dbau.userId = :userId")
+    List<Object[]> _findByDomainIdAndBusinessAccountIdAndUserId(@Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId, @Param("userId") UUID userId);
+
+    default DomainBusinessAccountUserEntity findByDomainIdAndBusinessAccountIdAndUserId(UUID domainId, UUID businessAccountId, UUID userId) {
+        var results = _findByDomainIdAndBusinessAccountIdAndUserId(domainId, businessAccountId, userId);
+        if (results == null)
+            return null;
+        var row = results.getFirst();
+        var dbau = (DomainBusinessAccountUserEntity) row[0];
+        dbau
+                .setDomain((DomainEntity) row[1])
+                .setBusinessAccount((BusinessAccountEntity) row[2])
+                .setUser((UserEntity) row[3])
+                .setDomainBusinessAccount((DomainBusinessAccountEntity) row[4])
+                .setDomainUser((DomainUserEntity) row[5])
+                .setBusinessAccountUser((BusinessAccountUserEntity) row[6]);
+    }
 
     @Modifying
     @Query("UPDATE DomainBusinessAccountUserEntity e SET e.lastActivityAt = CURRENT_TIMESTAMP "

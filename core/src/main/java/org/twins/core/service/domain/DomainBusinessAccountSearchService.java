@@ -93,9 +93,9 @@ public class DomainBusinessAccountSearchService extends EntitySearchService
             case createdAt ->
                     toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.createdAt);
             case businessAccountName ->
-                    toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.businessAccount, BusinessAccountEntity.Fields.name);
+                    toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.businessAccountSpecOnly, BusinessAccountEntity.Fields.name);
             case permissionSchemaName ->
-                    toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.name);
+                    toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.permissionSchemaSpecOnly, PermissionSchemaEntity.Fields.name);
             case twinClassSchemaName ->
                     toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.twinClassSchemaSpecOnly, TwinClassSchemaEntity.Fields.name);
             case twinflowSchemaName ->
@@ -103,7 +103,7 @@ public class DomainBusinessAccountSearchService extends EntitySearchService
             case notificationSchemaName ->
                     I18nSpecification.toSortSpecificationDirect(ascending, locale, DomainBusinessAccountEntity.Fields.notificationSchemaSpecOnly, NotificationSchemaEntity.Fields.nameI18nTranslationsSpecOnly);
             case tierName ->
-                    toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.tier, TierEntity.Fields.name);
+                    toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.tierSpecOnly, TierEntity.Fields.name);
             case attachmentsStorageUsedCount ->
                     toSortSpecification(ascending, DomainBusinessAccountEntity.Fields.attachmentsStorageUsedCount);
             case attachmentsStorageUsedSize ->

@@ -23,6 +23,7 @@ import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
@@ -78,6 +79,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     private final UserGroupService userGroupService;
     @Lazy
     private final DomainBusinessAccountUserService domainBusinessAccountUserService;
+    @Lazy
+    private final DomainService domainService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
@@ -143,6 +146,7 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity, String name) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
         ChangesHelper changesHelper = new ChangesHelper();
+        loadBusinessAccount(dbEntity);
         if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
             dbEntity.setPermissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getPermissionSchemaId()));
         }
@@ -166,6 +170,10 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     }
 
     public DomainBusinessAccountEntity getDomainBusinessAccountEntitySafe(UUID domainId, UUID businessAccountId) throws ServiceException {
+        var apiUser = authService.getApiUser();
+        if (apiUser.getDomainId().equals(domainId) && apiUser.isBusinessAccountSpecified() && apiUser.getBusinessAccountId().equals(businessAccountId)) { //shortcut
+            return apiUser.getDomainBusinessAccount();
+        }
         DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
         if (domainBusinessAccountEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS, "businessAccount[" + businessAccountId + "] is not registered in domain[" + domainId + "]");
@@ -184,6 +192,21 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         permissionService.forceDeleteSchemas(businessAccountId);
 
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
+    }
+
+    public AttachmentQuotas getTierQuotas() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.isBusinessAccountSpecified())
+            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
+        DomainBusinessAccountEntity domainBusinessAccountEntity = apiUser.getDomainBusinessAccount();
+        loadTier(domainBusinessAccountEntity);
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
+                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
+                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
+                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
+        return attachmentQuotas;
     }
 
     public Map<UUID, DomainBusinessAccountEntity> getNeedLoad(Collection<DomainBusinessAccountEntity> srcCollection, Function<DomainBusinessAccountEntity, Object> functionGetLoadableValue) throws ServiceException {
@@ -215,6 +238,28 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
                 DomainBusinessAccountEntity::getTwinflowSchemaId,
                 DomainBusinessAccountEntity::getTwinflowSchema,
                 DomainBusinessAccountEntity::setTwinflowSchema);
+    }
+
+    public void loadDomain(DomainBusinessAccountEntity src) throws ServiceException {
+        loadDomain(Collections.singletonList(src));
+    }
+
+    public void loadDomain(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        domainService.load(srcCollection,
+                DomainBusinessAccountEntity::getDomainId,
+                DomainBusinessAccountEntity::getDomain,
+                DomainBusinessAccountEntity::setDomain);
+    }
+
+    public void loadBusinessAccount(DomainBusinessAccountEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                DomainBusinessAccountEntity::getBusinessAccountId,
+                DomainBusinessAccountEntity::getBusinessAccount,
+                DomainBusinessAccountEntity::setBusinessAccount);
     }
 
     public void loadTwinClassSchema(DomainBusinessAccountEntity src) throws ServiceException {

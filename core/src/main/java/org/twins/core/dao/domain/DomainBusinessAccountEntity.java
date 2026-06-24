@@ -59,29 +59,37 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Column(name = "attachments_storage_used_size")
     private Long attachmentsStorageUsedSize;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DomainEntity domain;
+    private DomainEntity domainSpecOnly;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private BusinessAccountEntity businessAccount;
+    private BusinessAccountEntity businessAccountSpecOnly;
 
-    @ManyToOne // EAGER
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private PermissionSchemaEntity permissionSchema;
+    private PermissionSchemaEntity permissionSchemaSpecOnly;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tier_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TierEntity tier;
+    private TierEntity tierSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -91,11 +99,6 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @ToString.Exclude
     private NotificationSchemaEntity notificationSchemaSpecOnly;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private NotificationSchemaEntity notificationSchema;
-
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -103,11 +106,6 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinflowSchemaEntity twinflowSchemaSpecOnly;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinflowSchemaEntity twinflowSchema;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -120,7 +118,37 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private DomainEntity domain;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private BusinessAccountEntity businessAccount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private PermissionSchemaEntity permissionSchema;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TierEntity tier;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassSchemaEntity twinClassSchema;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinflowSchemaEntity twinflowSchema;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private NotificationSchemaEntity notificationSchema;
 
     @Transient
     private Long twinsCount;

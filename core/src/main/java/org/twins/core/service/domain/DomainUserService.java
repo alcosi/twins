@@ -17,9 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.*;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.domain.DomainUserNoRelationProjection;
+import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.domain.user.DomainUserInitiator;
 import org.twins.core.service.auth.AuthService;
@@ -79,15 +81,6 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return entity;
     }
 
-    public DomainUserEntity getCurrentUser() throws ServiceException {
-        var entity = domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomainId(), authService.getApiUser().getUserId());
-        if (entity == null)
-            return null;
-        if (isEntityReadDenied(entity))
-            return null;
-        return entity;
-    }
-
     @Transactional(rollbackFor = Throwable.class)
     public void addUser(UserEntity userEntity, boolean ignoreAlreadyExists) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
@@ -131,15 +124,5 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
 
     public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID userId) throws ServiceException {
         return domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomain().getId(), userId, DomainUserNoRelationProjection.class);
-    }
-
-    public DomainUserNoCollectionProjection getDomainUser() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId(), DomainUserNoCollectionProjection.class);
-    }
-
-    public DomainUserEntity getDomainUserV2() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
     }
 }
