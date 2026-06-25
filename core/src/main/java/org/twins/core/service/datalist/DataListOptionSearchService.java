@@ -118,7 +118,7 @@ public class DataListOptionSearchService extends EntitySearchService
         ApiUser apiUser = authService.getApiUser();
         limitSearchByValidForTwinClassFieldIdList(search);
         return Specification.allOf(
-                checkFieldUuid(domainId, DataListOptionEntity.Fields.dataList, DataListEntity.Fields.domainId),
+                checkFieldUuid(domainId, DataListOptionEntity.Fields.dataListSpecOnly, DataListEntity.Fields.domainId),
                 createBusinessAccountSpecification(apiUser, search),
                 checkUuidIn(search.getIdList(), false, false, DataListOptionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListOptionEntity.Fields.id),
@@ -191,9 +191,9 @@ public class DataListOptionSearchService extends EntitySearchService
             case optionName ->
                     toSortSpecificationDirect(ascending, locale, DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly);
             case dataListKey ->
-                    toSortSpecification(ascending, DataListOptionEntity.Fields.dataList, DataListEntity.Fields.key);
+                    toSortSpecification(ascending, DataListOptionEntity.Fields.dataListSpecOnly, DataListEntity.Fields.key);
             case dataListName ->
-                    toSortSpecificationDirect(ascending, locale, DataListOptionEntity.Fields.dataList, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, DataListOptionEntity.Fields.dataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
         };
     }
 

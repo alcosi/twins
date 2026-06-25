@@ -80,9 +80,10 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     public boolean isEntityReadDenied(DataListOptionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DomainEntity domain = apiUser.getDomain();
-        boolean readDenied = (!entity.getDataList().getDomainId().equals(domain.getId()) || (apiUser.isBusinessAccountSpecified()
+        //todo check domain in findQuery
+        boolean readDenied = (apiUser.isBusinessAccountSpecified()
                 && entity.getBusinessAccountId() != null
-                && !entity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId())));
+                && !entity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId()));
         if (readDenied) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
         }
@@ -179,7 +180,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
         ChangesHelperMulti<DataListOptionEntity> changes = new ChangesHelperMulti<>();
         List<DataListOptionEntity> allEntities = new ArrayList<>(optionUpdates.size());
-
+        var dbEntities = findEntitiesSafe(optionUpdates.stream().map(DataListOptionUpdate::getId).collect(Collectors.toSet()));
+        loadDataList(dbEntities.getCollection());
         for (DataListOptionUpdate update : optionUpdates) {
             DataListOptionEntity dbOption = findEntitySafe(update.getId());
             allEntities.add(dbOption);
@@ -252,7 +254,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         List<UUID> idsForReload = new ArrayList<>();
 
         for (var option : valueSelect.getItemsOrEmpty()) {
-            if (option.getId() != null && (null == option.getDataList() || null == option.getDataListId())) {
+            if (option.getId() != null && null == option.getDataListId()) {
                 idsForReload.add(option.getId());
             }
         }

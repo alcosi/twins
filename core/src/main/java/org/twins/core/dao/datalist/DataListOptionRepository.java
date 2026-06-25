@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -91,7 +90,7 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
             "ORDER BY option.order")
     Set<UUID> findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId, @Param("excludeTwinId") UUID excludeTwinId);
 
-    @Query("select dlo.id from DataListOptionEntity dlo where dlo.businessAccountId = :businessAccountId and dlo.dataList.domainId = :domainId")
+    @Query("select dlo.id from DataListOptionEntity dlo where dlo.businessAccountId = :businessAccountId and dlo.dataListSpecOnly.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
     @Query(value = "SELECT o FROM DataListOptionEntity o " +
