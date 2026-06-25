@@ -1806,7 +1806,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      *      take the value from there. No DB hits, no rule evaluation.
      *   2. Otherwise check permission + validation rules for THIS specific field only
      *      (not the whole class — that's what the twin-level loaders are for).
-     * Validation rules are bulk-loaded once for all unique fields in the collection to avoid N+1.
+     * Validation rules are bulk-loaded once for all unique fields, and rule evaluation is
+     * batched per field (all twins sharing a field → one {@code isValid} call), mirroring
+     * {@link #loadFieldAccessibility}.
      */
     private void loadFieldPermissionFlag(Collection<TwinField> collection,
                                          Function<TwinField, Boolean> flagGetter,
@@ -1814,8 +1816,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                                          Function<TwinClassFieldEntity, UUID> permissionIdGetter,
                                          TwinClassFieldAction action,
                                          Function<TwinEntity, Map<UUID, Boolean>> twinMapGetter) throws ServiceException {
-        // Bulk-load validation rules for all unique fields in the collection up front — one DB hit
-        // instead of N. The loader is idempotent via null-guard on the field entity.
+        // Bulk-load validation rules for all unique fields up front — one DB hit instead of N.
+        // The loader is idempotent via null-guard on the field entity.
         Set<TwinClassFieldEntity> uniqueFields = new HashSet<>();
         for (var twinField : collection) {
             uniqueFields.add(twinField.getTwinClassField());
@@ -1824,6 +1826,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinClassFieldService.loadTwinClassFieldActionValidationRules(uniqueFields);
         }
 
+        // First pass: per-TwinField shortcut and permission check.
+        // TwinFields that survive both go into a per-field bucket for batched rule evaluation.
+        Map<UUID, TwinClassFieldEntity> fieldsById = new HashMap<>();
+        Map<UUID, List<TwinField>> twinFieldsByFieldId = new HashMap<>();
         for (var twinField : collection) {
             if (flagGetter.apply(twinField) != null) {
                 continue;
@@ -1850,14 +1856,28 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 continue;
             }
 
-            // Validation rules check for this specific field (rules already bulk-loaded above).
-            List<TwinClassFieldActionValidatorRuleEntity> activeRules = activeRulesFor(twinClassField, action);
+            fieldsById.put(fieldId, twinClassField);
+            twinFieldsByFieldId.computeIfAbsent(fieldId, k -> new ArrayList<>()).add(twinField);
+        }
+
+        // Second pass: batch rule evaluation per field (all twins on the same field in one isValid call).
+        for (var entry : twinFieldsByFieldId.entrySet()) {
+            TwinClassFieldEntity field = fieldsById.get(entry.getKey());
+            List<TwinField> bucket = entry.getValue();
+
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = activeRulesFor(field, action);
             if (activeRules.isEmpty()) {
-                flagSetter.accept(twinField, true);
+                for (var tf : bucket) {
+                    flagSetter.accept(tf, true);
+                }
                 continue;
             }
-            Map<UUID, ValidationResult> results = twinValidatorSetService.isValid(List.of(twin), activeRules);
-            flagSetter.accept(twinField, results.get(twin.getId()).isValid());
+
+            Collection<TwinEntity> twins = bucket.stream().map(TwinField::getTwin).toList();
+            Map<UUID, ValidationResult> results = twinValidatorSetService.isValid(twins, activeRules);
+            for (var tf : bucket) {
+                flagSetter.accept(tf, results.get(tf.getTwin().getId()).isValid());
+            }
         }
     }
 
