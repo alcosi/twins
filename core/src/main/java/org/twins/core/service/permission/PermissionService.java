@@ -87,6 +87,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
+    private final PermissionCheckRequestCache permissionCheckRequestCache;
     private final ApiUser apiUser;
 
     @Override
@@ -164,7 +165,15 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (currentUserHasPermission(permissionId))
             return true;
         userGroupService.loadGroupsForCurrentUser();
-        return permissionRepository.hasPermission(
+        PermissionCheckRequestCache.Key cacheKey = new PermissionCheckRequestCache.Key(
+                apiUser.getUserId(),
+                apiUser.getUser().getUserGroupsFootprint(),
+                permissionDetectKey,
+                permissionId);
+        Boolean cached = permissionCheckRequestCache.get(cacheKey);
+        if (cached != null)
+            return cached;
+        boolean result = permissionRepository.hasPermission(
                 permissionDetectKey.getPermissionSchemaId(),
                 permissionId,
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaSpaceId()),
@@ -173,6 +182,8 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 permissionDetectKey.getTwinClassId(),
                 permissionDetectKey.isAssignee,
                 permissionDetectKey.isCreator);
+        permissionCheckRequestCache.put(cacheKey, result);
+        return result;
     }
 
     public Map<PermissionDetectKey, List<TwinEntity>> convertToDetectKeys(Collection<TwinEntity> twinEntities) throws ServiceException {
