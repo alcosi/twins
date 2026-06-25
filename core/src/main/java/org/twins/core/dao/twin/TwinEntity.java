@@ -466,6 +466,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldViewability;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FieldRulesApplyResult fieldRulesApplyResult;
 
     @Transient
@@ -671,6 +676,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         twinFieldDecimalKit = null;
         twinFieldTimestampKit = null;
         twinFieldEditability = null;
+        twinFieldViewability = null;
 
         // Calculated
         twinFieldCalculated = null;

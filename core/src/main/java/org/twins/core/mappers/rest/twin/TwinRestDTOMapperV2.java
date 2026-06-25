@@ -100,10 +100,15 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         }
 
         twinService.loadFieldEditability(src);
+        twinService.loadFieldViewability(src);
         for (var fieldValueText : fieldsValues) {
             UUID fieldId = fieldValueText.getTwinClassField().getId();
             String fieldKey = fieldValueText.getTwinClassField().getKey();
             String fieldValue = fieldValueText.getValue();
+
+            if (Boolean.FALSE.equals(src.getTwinFieldViewability().get(fieldId))) {
+                continue;
+            }
 
             TwinFieldDTOv2 fieldDto = new TwinFieldDTOv2()
                     .setKey(fieldKey)
@@ -141,6 +146,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             twinFieldAttributeService.loadAttributes(srcCollection);
         }
         twinService.loadFieldEditability(srcCollection);
+        twinService.loadFieldViewability(srcCollection);
     }
 
     @Override

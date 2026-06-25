@@ -102,6 +102,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_ASSIGNEE_REQUIRED(10904,"twin assignee is required for this twin class"),
     TWIN_FIELD_IMMUTABLE(10905,"twin field is immutable"),
     TWIN_NAME_IS_NOT_UNIQUE(10906, "This name is already in use", HttpStatus.CONFLICT),
+    TWIN_FIELD_ACCESS_DENIED(10907, "twin field access denied"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
