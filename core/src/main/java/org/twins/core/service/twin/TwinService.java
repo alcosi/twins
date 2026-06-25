@@ -1775,7 +1775,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadEditableFlag(Collection<TwinField> collection) throws ServiceException {
-        loadFieldPermissionFlag(collection, TwinField::getEditable, TwinField::setEditable, TwinClassFieldEntity::getEditPermissionId);
+        loadFieldPermissionFlag(
+                collection,
+                TwinField::getEditable,
+                TwinField::setEditable,
+                TwinClassFieldEntity::getEditPermissionId,
+                TwinClassFieldAction.EDIT,
+                TwinEntity::getTwinFieldEditability);
     }
 
     public void loadViewableFlag(TwinField src) throws ServiceException {
@@ -1783,29 +1789,75 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadViewableFlag(Collection<TwinField> collection) throws ServiceException {
-        loadFieldPermissionFlag(collection, TwinField::getViewable, TwinField::setViewable, TwinClassFieldEntity::getViewPermissionId);
+        loadFieldPermissionFlag(
+                collection,
+                TwinField::getViewable,
+                TwinField::setViewable,
+                TwinClassFieldEntity::getViewPermissionId,
+                TwinClassFieldAction.VIEW,
+                TwinEntity::getTwinFieldViewability);
     }
 
     /**
      * Shared logic for {@link #loadEditableFlag(Collection)} and {@link #loadViewableFlag(Collection)}.
-     * Permission-only check — does not apply validation rules. Per-twin results are de-duplicated
-     * by the request-scoped {@code permissionCheckRequestCache} inside {@link PermissionService#hasPermission}.
+     * Per TwinField:
+     *   1. Shortcut — if the twin's accessibility map is already populated (from a prior
+     *      {@code loadFieldEditability}/{@code loadFieldViewability} call in the same request),
+     *      take the value from there. No DB hits, no rule evaluation.
+     *   2. Otherwise check permission + validation rules for THIS specific field only
+     *      (not the whole class — that's what the twin-level loaders are for).
+     * Validation rules are bulk-loaded once for all unique fields in the collection to avoid N+1.
      */
     private void loadFieldPermissionFlag(Collection<TwinField> collection,
                                          Function<TwinField, Boolean> flagGetter,
                                          BiConsumer<TwinField, Boolean> flagSetter,
-                                         Function<TwinClassFieldEntity, UUID> permissionIdGetter) throws ServiceException {
+                                         Function<TwinClassFieldEntity, UUID> permissionIdGetter,
+                                         TwinClassFieldAction action,
+                                         Function<TwinEntity, Map<UUID, Boolean>> twinMapGetter) throws ServiceException {
+        // Bulk-load validation rules for all unique fields in the collection up front — one DB hit
+        // instead of N. The loader is idempotent via null-guard on the field entity.
+        Set<TwinClassFieldEntity> uniqueFields = new HashSet<>();
+        for (var twinField : collection) {
+            uniqueFields.add(twinField.getTwinClassField());
+        }
+        if (!uniqueFields.isEmpty()) {
+            twinClassFieldService.loadTwinClassFieldActionValidationRules(uniqueFields);
+        }
+
         for (var twinField : collection) {
             if (flagGetter.apply(twinField) != null) {
                 continue;
             }
+            TwinEntity twin = twinField.getTwin();
             TwinClassFieldEntity twinClassField = twinField.getTwinClassField();
+            UUID fieldId = twinClassField.getId();
+
+            // Shortcut: twin already has a fully-computed accessibility map → just look it up.
+            Map<UUID, Boolean> twinMap = twinMapGetter.apply(twin);
+            if (twinMap != null) {
+                Boolean cached = twinMap.get(fieldId);
+                if (cached != null) {
+                    flagSetter.accept(twinField, cached);
+                    continue;
+                }
+            }
+
+            // Permission check. hasPermission(twin, perm) short-circuits to true when the user
+            // has the global permission, so no separate currentUserHasPermission call needed.
             UUID permissionId = permissionIdGetter.apply(twinClassField);
-            // hasPermission(twin, perm) already short-circuits to true when the user has the global
-            // permission, so we don't need a separate currentUserHasPermission check here.
-            boolean accessible = permissionId == null
-                    || permissionService.hasPermission(twinField.getTwin(), permissionId);
-            flagSetter.accept(twinField, accessible);
+            if (permissionId != null && !permissionService.hasPermission(twin, permissionId)) {
+                flagSetter.accept(twinField, false);
+                continue;
+            }
+
+            // Validation rules check for this specific field (rules already bulk-loaded above).
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = activeRulesFor(twinClassField, action);
+            if (activeRules.isEmpty()) {
+                flagSetter.accept(twinField, true);
+                continue;
+            }
+            Map<UUID, ValidationResult> results = twinValidatorSetService.isValid(List.of(twin), activeRules);
+            flagSetter.accept(twinField, results.get(twin.getId()).isValid());
         }
     }
 
