@@ -47,6 +47,30 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * JPA entity for a Twin.
+ *
+ * <p><b>Caching is forbidden.</b> Do NOT cache instances of this class beyond a single
+ * HTTP request / transaction boundary. Concretely: never apply {@code @Cacheable},
+ * never store instances in static fields, singleton beans, or long-lived collections,
+ * and never pass them across {@code @Async} boundaries without copying.
+ *
+ * <p>Reason: this entity carries request-scoped {@code @Transient} permission state —
+ * {@link #twinFieldEditability} and {@link #twinFieldViewability} — populated by
+ * {@code TwinService.loadFieldEditability / loadFieldViewability}. These maps hold
+ * the per-user, per-field access decision for the current {@code ApiUser}. If an
+ * instance leaks to another user (via shared cache, async pool, or any cross-request
+ * reuse), that user inherits the original user's permission decisions — a horizontal
+ * privilege escalation.
+ *
+ * <p>Hibernate L1 (persistence context) is transaction-scoped and therefore safe; the
+ * risk appears only when application code explicitly caches the entity, returns it
+ * from a {@code @RequestScope}/{@code @SessionScope} bean, or hands it to an executor
+ * that does not propagate {@code AuthService}'s {@code ThreadLocal ApiUser}.
+ *
+ * <p>{@link #resetTransientState()} exists for the future case where explicit cleanup
+ * is required, but currently has no callers — assume it is not invoked.
+ */
 @Entity
 @Accessors(chain = true)
 @Data

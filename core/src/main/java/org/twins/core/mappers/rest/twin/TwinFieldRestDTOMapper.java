@@ -14,6 +14,8 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
+
 
 @Component
 @RequiredArgsConstructor
@@ -37,5 +39,11 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinField, TwinF
         if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinField2TwinClassFieldMode.HIDE))
             dst
                     .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.fork().setModeIfNotPresent(TwinClassFieldMode.TwinField2TwinClassFieldMode.SHORT)));
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinField> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        twinService.loadViewableFlag(srcCollection);
     }
 }
