@@ -58,6 +58,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinFieldCollectionFilterEmptyMode.ONLY_NOT,
             DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
             AttachmentMode.HIDE,
+            TwinActionMode.SHOW,
             StatusMode.TwinClass2StatusMode.HIDE,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
