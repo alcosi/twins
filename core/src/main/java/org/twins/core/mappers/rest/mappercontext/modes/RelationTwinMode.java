@@ -241,6 +241,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             UserMode.TwinField2UserMode.DETAILED,
             TwinByFieldMode.YELLOW_LIGHT,
             AttachmentMode.HIDE,
+            TwinActionMode.SHOW,
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.HIDE,
             StatusMode.TwinClass2StatusMode.HIDE,
