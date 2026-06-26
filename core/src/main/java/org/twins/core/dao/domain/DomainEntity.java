@@ -208,7 +208,7 @@ public class DomainEntity implements EasyLoggable {
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
-    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = DomainBusinessAccountEntity.Fields.domainSpecOnly, fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private List<DomainBusinessAccountEntity> domainBusinessAccountsSpecOnly;

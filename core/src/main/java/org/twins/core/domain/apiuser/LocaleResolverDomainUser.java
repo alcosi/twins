@@ -3,10 +3,8 @@ package org.twins.core.domain.apiuser;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.domain.DomainUserNoCollectionProjection;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.domain.DomainUserService;
 
 import java.util.Locale;
 
@@ -14,20 +12,20 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class LocaleResolverDomainUser implements LocaleResolver {
     final DomainService domainService;
-    final DomainUserService domainUserService;
     final AuthService authService;
 
     @Override
     public Locale resolveCurrentLocale() throws ServiceException {
         Locale locale;
-        if (authService.getApiUser().isSystemUser()) {
-            locale = domainService.getDefaultDomainLocale(authService.getApiUser().getDomainId());
+        var apiUser = authService.getApiUser();
+        if (apiUser.isSystemUser()) {
+            locale = domainService.getDefaultDomainLocale(apiUser.getDomainId());
         } else {
-            DomainUserNoCollectionProjection domainUser = domainUserService.getDomainUser();
-            if (domainUser.i18nLocaleId() != null)
-                locale = domainUser.i18nLocaleId();
+            var domainUser = apiUser.getDomainUser();
+            if (domainUser.getI18nLocaleId() != null)
+                locale = domainUser.getI18nLocaleId();
             else
-                locale = domainService.getDefaultDomainLocale(domainUser.domainId());
+                locale = apiUser.getDomain().getDefaultI18nLocaleId();
         }
         return locale;
     }

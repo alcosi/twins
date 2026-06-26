@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleRepository;
 import org.twins.core.service.auth.AuthService;
@@ -23,6 +22,8 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -105,5 +106,38 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
     @Transactional
     public void deleteById(UUID id) throws ServiceException {
         deleteSafe(id);
+    }
+
+    public void loadPermission(PermissionGrantSpaceRoleEntity src) throws ServiceException {
+        loadPermission(Collections.singletonList(src));
+    }
+
+    public void loadPermission(Collection<PermissionGrantSpaceRoleEntity> srcCollection) throws ServiceException {
+        permissionService.load(srcCollection,
+                PermissionGrantSpaceRoleEntity::getPermissionId,
+                PermissionGrantSpaceRoleEntity::getPermission,
+                PermissionGrantSpaceRoleEntity::setPermission);
+    }
+
+    public void loadSpaceRole(PermissionGrantSpaceRoleEntity src) throws ServiceException {
+        loadSpaceRole(Collections.singletonList(src));
+    }
+
+    public void loadSpaceRole(Collection<PermissionGrantSpaceRoleEntity> srcCollection) throws ServiceException {
+        spaceRoleService.load(srcCollection,
+                PermissionGrantSpaceRoleEntity::getSpaceRoleId,
+                PermissionGrantSpaceRoleEntity::getSpaceRole,
+                PermissionGrantSpaceRoleEntity::setSpaceRole);
+    }
+
+    public void loadGrantedByUser(PermissionGrantSpaceRoleEntity src) throws ServiceException {
+        loadGrantedByUser(Collections.singletonList(src));
+    }
+
+    public void loadGrantedByUser(Collection<PermissionGrantSpaceRoleEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                PermissionGrantSpaceRoleEntity::getGrantedByUserId,
+                PermissionGrantSpaceRoleEntity::getGrantedByUser,
+                PermissionGrantSpaceRoleEntity::setGrantedByUser);
     }
 }

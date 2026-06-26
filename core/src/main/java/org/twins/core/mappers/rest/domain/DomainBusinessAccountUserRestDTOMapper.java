@@ -56,10 +56,12 @@ public class DomainBusinessAccountUserRestDTOMapper extends RestSimpleDTOMapper<
         }
         //todo postpone BAU, DBA, DU objects
         if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE)) {
+            domainBusinessAccountUserService.loadUser(src);
             dst.setUserId(src.getUserId());
             userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainBusinessAccountUser2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE)) {
+            domainBusinessAccountUserService.loadBusinessAccount(src);
             dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.SHORT)));
         }
@@ -72,6 +74,10 @@ public class DomainBusinessAccountUserRestDTOMapper extends RestSimpleDTOMapper<
     @Override
     public void beforeCollectionConversion(Collection<DomainBusinessAccountUserEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.DomainBusinessAccountUser2UserMode.HIDE))
+            domainBusinessAccountUserService.loadUser(srcCollection);
+        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccountUser2BusinessAccountMode.HIDE))
+            domainBusinessAccountUserService.loadBusinessAccount(srcCollection);
         if (mapperContext.hasModeButNot(UserGroupMode.DomainBusinessAccountUser2UserGroupMode.HIDE)) {
             domainBusinessAccountUserService.loadGroups(srcCollection);
         }

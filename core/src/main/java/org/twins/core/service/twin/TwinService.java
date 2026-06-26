@@ -73,6 +73,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -1774,27 +1775,108 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadEditableFlag(Collection<TwinField> collection) throws ServiceException {
-        var permissionsCache = new HashMap<UUID, Boolean>();
+        loadFieldPermissionFlag(
+                collection,
+                TwinField::getEditable,
+                TwinField::setEditable,
+                TwinClassFieldEntity::getEditPermissionId,
+                TwinClassFieldAction.EDIT,
+                TwinEntity::getTwinFieldEditability);
+    }
+
+    public void loadViewableFlag(TwinField src) throws ServiceException {
+        loadViewableFlag(Collections.singletonList(src));
+    }
+
+    public void loadViewableFlag(Collection<TwinField> collection) throws ServiceException {
+        loadFieldPermissionFlag(
+                collection,
+                TwinField::getViewable,
+                TwinField::setViewable,
+                TwinClassFieldEntity::getViewPermissionId,
+                TwinClassFieldAction.VIEW,
+                TwinEntity::getTwinFieldViewability);
+    }
+
+    /**
+     * Shared logic for {@link #loadEditableFlag(Collection)} and {@link #loadViewableFlag(Collection)}.
+     * Per TwinField:
+     *   1. Shortcut — if the twin's accessibility map is already populated (from a prior
+     *      {@code loadFieldEditability}/{@code loadFieldViewability} call in the same request),
+     *      take the value from there. No DB hits, no rule evaluation.
+     *   2. Otherwise check permission + validation rules for THIS specific field only
+     *      (not the whole class — that's what the twin-level loaders are for).
+     * Validation rules are bulk-loaded once for all unique fields, and rule evaluation is
+     * batched per field (all twins sharing a field → one {@code isValid} call), mirroring
+     * {@link #loadFieldAccessibility}.
+     */
+    private void loadFieldPermissionFlag(Collection<TwinField> collection,
+                                         Function<TwinField, Boolean> flagGetter,
+                                         BiConsumer<TwinField, Boolean> flagSetter,
+                                         Function<TwinClassFieldEntity, UUID> permissionIdGetter,
+                                         TwinClassFieldAction action,
+                                         Function<TwinEntity, Map<UUID, Boolean>> twinMapGetter) throws ServiceException {
+        // Bulk-load validation rules for all unique fields up front — one DB hit instead of N.
+        // The loader is idempotent via null-guard on the field entity.
+        Set<TwinClassFieldEntity> uniqueFields = new HashSet<>();
         for (var twinField : collection) {
-            if (twinField.getEditable() != null) {
+            uniqueFields.add(twinField.getTwinClassField());
+        }
+        if (!uniqueFields.isEmpty()) {
+            twinClassFieldService.loadTwinClassFieldActionValidationRules(uniqueFields);
+        }
+
+        // First pass: per-TwinField shortcut and permission check.
+        // TwinFields that survive both go into a per-field bucket for batched rule evaluation.
+        Map<UUID, TwinClassFieldEntity> fieldsById = new HashMap<>();
+        Map<UUID, List<TwinField>> twinFieldsByFieldId = new HashMap<>();
+        for (var twinField : collection) {
+            if (flagGetter.apply(twinField) != null) {
                 continue;
             }
-            if (twinField.getTwinClassField().getEditPermissionId() == null) {
-                twinField.setEditable(true);
+            TwinEntity twin = twinField.getTwin();
+            TwinClassFieldEntity twinClassField = twinField.getTwinClassField();
+            UUID fieldId = twinClassField.getId();
+
+            // Shortcut: twin already has a fully-computed accessibility map → just look it up.
+            Map<UUID, Boolean> twinMap = twinMapGetter.apply(twin);
+            if (twinMap != null) {
+                Boolean cached = twinMap.get(fieldId);
+                if (cached != null) {
+                    flagSetter.accept(twinField, cached);
+                    continue;
+                }
+            }
+
+            // Permission check. hasPermission(twin, perm) short-circuits to true when the user
+            // has the global permission, so no separate currentUserHasPermission call needed.
+            UUID permissionId = permissionIdGetter.apply(twinClassField);
+            if (permissionId != null && !permissionService.hasPermission(twin, permissionId)) {
+                flagSetter.accept(twinField, false);
                 continue;
             }
-            if (permissionService.currentUserHasPermission(twinField.getTwinClassField().getEditPermissionId())) {
-                twinField.setEditable(true);
+
+            fieldsById.put(fieldId, twinClassField);
+            twinFieldsByFieldId.computeIfAbsent(fieldId, k -> new ArrayList<>()).add(twinField);
+        }
+
+        // Second pass: batch rule evaluation per field (all twins on the same field in one isValid call).
+        for (var entry : twinFieldsByFieldId.entrySet()) {
+            TwinClassFieldEntity field = fieldsById.get(entry.getKey());
+            List<TwinField> bucket = entry.getValue();
+
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = activeRulesFor(field, action);
+            if (activeRules.isEmpty()) {
+                for (var tf : bucket) {
+                    flagSetter.accept(tf, true);
+                }
                 continue;
             }
-            if (permissionsCache.containsKey(twinField.getTwinClassField().getEditPermissionId())) {
-                twinField.setEditable(permissionsCache.get(twinField.getTwinClassField().getEditPermissionId()));
-                continue;
-            }
-            if (permissionService.hasPermission(twinField.getTwin(), twinField.getTwinClassField().getEditPermissionId())) {
-                permissionsCache.put(twinField.getTwinClassField().getEditPermissionId(), true);
-            } else {
-                permissionsCache.put(twinField.getTwinClassField().getEditPermissionId(), false);
+
+            Collection<TwinEntity> twins = bucket.stream().map(TwinField::getTwin).toList();
+            Map<UUID, ValidationResult> results = twinValidatorSetService.isValid(twins, activeRules);
+            for (var tf : bucket) {
+                flagSetter.accept(tf, results.get(tf.getTwin().getId()).isValid());
             }
         }
     }
@@ -1804,9 +1886,56 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadFieldEditability(Collection<TwinEntity> collection) throws ServiceException {
+        loadFieldAccessibility(
+                collection,
+                TwinEntity::getTwinFieldEditability,
+                TwinEntity::setTwinFieldEditability,
+                TwinClassFieldEntity::getEditPermissionId,
+                TwinClassFieldAction.EDIT,
+                true,   // checkNotSerializable — non-serializable fields cannot be edited via API
+                false); // skipBaseFields — base fields go through normal logic
+    }
+
+    public void loadFieldViewability(TwinEntity src) throws ServiceException {
+        loadFieldViewability(Collections.singletonList(src));
+    }
+
+    public void loadFieldViewability(Collection<TwinEntity> collection) throws ServiceException {
+        loadFieldAccessibility(
+                collection,
+                TwinEntity::getTwinFieldViewability,
+                TwinEntity::setTwinFieldViewability,
+                TwinClassFieldEntity::getViewPermissionId,
+                TwinClassFieldAction.VIEW,
+                false, // checkNotSerializable — view is about permission/visibility, not serialization
+                true); // skipBaseFields — "never filter base" rule
+    }
+
+    /**
+     * Shared logic for {@link #loadFieldEditability(Collection)} and {@link #loadFieldViewability(Collection)}.
+     * For every twin in the collection populates the supplied map (key = fieldId, value = accessible?)
+     * with the following rules:
+     *   - if {@code skipBaseFields}: base fields are always accessible (true)
+     *   - if {@code checkNotSerializable}: non-serializable fields are never accessible (false)
+     *   - fields without a permission requirement: subject to validation rules only
+     *   - fields with a permission requirement: user must have it (globally or for the twin),
+     *     otherwise marked false without rule check
+     *   - surviving fields are checked against the {@code action} validation rules; failing twins
+     *     are marked false
+     *
+     * Per-(twin, permissionId) results are de-duplicated by the request-scoped
+     * {@code permissionCheckRequestCache} inside {@link PermissionService#hasPermission}.
+     */
+    private void loadFieldAccessibility(Collection<TwinEntity> collection,
+                                        Function<TwinEntity, Map<UUID, Boolean>> mapGetter,
+                                        BiConsumer<TwinEntity, Map<UUID, Boolean>> mapSetter,
+                                        Function<TwinClassFieldEntity, UUID> permissionIdGetter,
+                                        TwinClassFieldAction action,
+                                        boolean checkNotSerializable,
+                                        boolean skipBaseFields) throws ServiceException {
         var needLoad = new KitGroupedObj<>(TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
         for (var twin : collection) {
-            if (twin.getTwinFieldEditability() == null) {
+            if (mapGetter.apply(twin) == null) {
                 needLoad.add(twin);
             }
         }
@@ -1814,39 +1943,35 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
 
-        var fieldsForValidation = new HashMap<UUID, Set<TwinEntity>>(); // key - twinClassFieldId
-        var fields = new HashMap<UUID, TwinClassFieldEntity>();
-        var permissionCache = new HashMap<UUID, Boolean>();
+        Map<UUID, Set<TwinEntity>> fieldsForValidation = new HashMap<>(); // key - twinClassFieldId
+        Map<UUID, TwinClassFieldEntity> fieldsById = new HashMap<>();
 
         for (var twin : needLoad) {
-            twin.setTwinFieldEditability(new HashMap<>());
+            mapSetter.accept(twin, new HashMap<>());
             TwinClassEntity twinClass = twin.getTwinClass();
+            Map<UUID, Boolean> fieldMap = mapGetter.apply(twin);
 
             for (var field : twinClass.getTwinClassFieldKit()) {
-                if (twinClassFieldService.notSerializable(field)) {
-                    twin.getTwinFieldEditability().put(field.getId(), false);
+                if (skipBaseFields && field.isBaseField()) {
+                    fieldMap.put(field.getId(), true);
+                    continue;
+                }
+                if (checkNotSerializable && twinClassFieldService.notSerializable(field)) {
+                    fieldMap.put(field.getId(), false);
                     continue;
                 }
 
-                if (field.getEditPermissionId() == null) {
-                    fields.put(field.getId(), field);
-                    fieldsForValidation.computeIfAbsent(field.getId(), k -> new HashSet<>()).add(twin);
-                    twin.getTwinFieldEditability().put(field.getId(), true); // dirty value can be changed during rule validation
+                UUID permissionId = permissionIdGetter.apply(field);
+                // hasPermission(twin, perm) already short-circuits to true when the user has the global
+                // permission, so we don't need a separate currentUserHasPermission check here.
+                if (permissionId != null && !permissionService.hasPermission(twin, permissionId)) {
+                    fieldMap.put(field.getId(), false);
                     continue;
                 }
 
-                if (!permissionCache.containsKey(field.getEditPermissionId())) {
-                    permissionCache.put(field.getEditPermissionId(), permissionService.currentUserHasPermission(field.getEditPermissionId()));
-                }
-                if (!permissionCache.get(field.getEditPermissionId())) {
-                    if (!permissionService.hasPermission(twin, field.getEditPermissionId())) {
-                        twin.getTwinFieldEditability().put(field.getId(), false);
-                        continue;
-                    }
-                }
-                fields.put(field.getId(), field);
+                fieldsById.put(field.getId(), field);
                 fieldsForValidation.computeIfAbsent(field.getId(), k -> new HashSet<>()).add(twin);
-                twin.getTwinFieldEditability().put(field.getId(), true); // dirty value can be changed during rule validation
+                fieldMap.put(field.getId(), true); // dirty value, can be set to false by rule validation
             }
         }
 
@@ -1854,39 +1979,39 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         }
 
-        twinClassFieldService.loadTwinClassFieldActionValidationRules(fields.values());
+        twinClassFieldService.loadTwinClassFieldActionValidationRules(fieldsById.values());
 
         for (var fieldEntry : fieldsForValidation.entrySet()) {
-            var field = fields.get(fieldEntry.getKey());
+            var field = fieldsById.get(fieldEntry.getKey());
             var twins = fieldEntry.getValue();
 
-            var rules = field.getTwinClassFieldActionValidationRules();
-            if (rules == null || CollectionUtils.isEmpty(rules.getGrouped(TwinClassFieldAction.EDIT))) {
-                for (var twin : twins) {
-                    twin.getTwinFieldEditability().put(field.getId(), true);
-                }
-                continue;
-            }
-
-            List<TwinClassFieldActionValidatorRuleEntity> activeRules = rules.getGrouped(TwinClassFieldAction.EDIT).stream()
-                    .filter(TwinClassFieldActionValidatorRuleEntity::isActive)
-                    .toList();
-
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = activeRulesFor(field, action);
             if (activeRules.isEmpty()) {
                 for (var twin : twins) {
-                    twin.getTwinFieldEditability().put(field.getId(), true);
+                    mapGetter.apply(twin).put(field.getId(), true);
                 }
                 continue;
             }
 
             Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, activeRules);
-
             for (var twin : twins) {
-                if (!batchResults.get(twin.getId()).isValid()) {
-                    twin.getTwinFieldEditability().put(field.getId(), false);
-                }
+                mapGetter.apply(twin).put(field.getId(), batchResults.get(twin.getId()).isValid());
             }
         }
+    }
+
+    private List<TwinClassFieldActionValidatorRuleEntity> activeRulesFor(TwinClassFieldEntity field, TwinClassFieldAction action) {
+        var rules = field.getTwinClassFieldActionValidationRules();
+        if (rules == null) {
+            return List.of();
+        }
+        var actionRules = rules.getGrouped(action);
+        if (CollectionUtils.isEmpty(actionRules)) {
+            return List.of();
+        }
+        return actionRules.stream()
+                .filter(TwinClassFieldActionValidatorRuleEntity::isActive)
+                .toList();
     }
 
     public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
