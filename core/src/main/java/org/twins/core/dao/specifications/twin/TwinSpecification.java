@@ -316,7 +316,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 for (UUID option : search.getOptionsAllOfList()) {
                     Join<TwinEntity, TwinFieldDataListEntity> twinFieldJoinForAll = root.join(TwinEntity.Fields.fieldsListSpecOnly, JoinType.INNER);
                     twinFieldJoinForAll.on(
-                            cb.equal(twinFieldJoinForAll.get(TwinFieldDataListEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                            cb.equal(twinFieldJoinForAll.get(TwinFieldBaseEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
                             cb.equal(twinFieldJoinForAll.get(TwinFieldDataListEntity.Fields.dataListOptionId), option)
                     );
                     allOfPredicates.add(cb.isNotNull(twinFieldJoinForAll));
@@ -339,7 +339,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 for (UUID option : search.getOptionsNoAllOfList()) {
                     Join<TwinEntity, TwinFieldDataListEntity> twinFieldJoinForNoAll = root.join(TwinEntity.Fields.fieldsListSpecOnly, JoinType.LEFT);
                     twinFieldJoinForNoAll.on(
-                            cb.equal(twinFieldJoinForNoAll.get(TwinFieldDataListEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                            cb.equal(twinFieldJoinForNoAll.get(TwinFieldBaseEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
                             cb.equal(twinFieldJoinForNoAll.get(TwinFieldDataListEntity.Fields.dataListOptionId), option)
                     );
                     noAllOfPredicates.add(cb.isNotNull(twinFieldJoinForNoAll));
@@ -372,7 +372,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 //  left join twin_field_boolean
                 Join<TwinEntity, TwinFieldBooleanEntity> tfbJoin = getOrCreateFieldJoin(root, cb, search.getTwinClassFieldEntity().getId(), TwinEntity.Fields.fieldsBooleanSpecOnly, JoinType.LEFT);
 
-                Predicate missingBooleanRecord = cb.isNull(tfbJoin.get(TwinFieldBooleanEntity.Fields.twinId));
+                Predicate missingBooleanRecord = cb.isNull(tfbJoin.get(TwinFieldBaseEntity.Fields.twinId));
                 Predicate valueEqualsSearch = cb.equal(tfbJoin.get(TwinFieldBooleanEntity.Fields.value), search.getValue());
 
                 //  equivalent to inner join twin_class_field (we don't have list of TwinClassFieldEntity fields to join them)
@@ -457,8 +457,8 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                     Root<TwinFieldTwinClassEntity> subRoot = subquery.from(TwinFieldTwinClassEntity.class);
                     subquery.select(cb.literal(1L));
                     subquery.where(
-                            cb.equal(subRoot.get(TwinFieldTwinClassEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
-                            cb.equal(subRoot.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                            cb.equal(subRoot.get(TwinFieldBaseEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                            cb.equal(subRoot.get(TwinFieldBaseEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
                             cb.equal(subRoot.get(TwinFieldTwinClassEntity.Fields.twinClassId), id)
                     );
                     includeAllPredicates.add(cb.exists(subquery));
@@ -472,10 +472,10 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             if (CollectionUtils.isNotEmpty(search.getIdExcludeAnySet())) {
                 Subquery<UUID> excludeAnySubquery = cb.createQuery().subquery(UUID.class);
                 Root<TwinFieldTwinClassEntity> excludeAnyRoot = excludeAnySubquery.from(TwinFieldTwinClassEntity.class);
-                excludeAnySubquery.select(excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinId));
+                excludeAnySubquery.select(excludeAnyRoot.get(TwinFieldBaseEntity.Fields.twinId));
                 excludeAnySubquery.where(
-                        cb.equal(excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
-                        cb.equal(excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                        cb.equal(excludeAnyRoot.get(TwinFieldBaseEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                        cb.equal(excludeAnyRoot.get(TwinFieldBaseEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
                         excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinClassId).in(search.getIdExcludeAnySet())
                 );
 
@@ -492,8 +492,8 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                     Root<TwinFieldTwinClassEntity> excludeAllRoot = excludeAllSubquery.from(TwinFieldTwinClassEntity.class);
                     excludeAllSubquery.select(cb.literal(1L));
                     excludeAllSubquery.where(
-                            cb.equal(excludeAllRoot.get(TwinFieldTwinClassEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
-                            cb.equal(excludeAllRoot.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                            cb.equal(excludeAllRoot.get(TwinFieldBaseEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                            cb.equal(excludeAllRoot.get(TwinFieldBaseEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
                             cb.equal(excludeAllRoot.get(TwinFieldTwinClassEntity.Fields.twinClassId), id)
                     );
                     excludeAllConditions.add(cb.exists(excludeAllSubquery));

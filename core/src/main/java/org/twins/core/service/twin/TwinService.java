@@ -309,12 +309,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     if (!fieldStorage.isLoaded(twinEntity)) {
                         needFieldLoad.computeIfAbsent(fieldStorage, k -> new Kit<>(TwinEntity::getId))
                                 .add(twinEntity);
-//                        if (twinClassEntity.getFieldStorageSet().contains(fieldStorage)) {
-//                            needFieldLoad.computeIfAbsent(fieldStorage, k -> new Kit<>(TwinEntity::getId))
-//                                    .add(twinEntity);
-//                        } else {
-//                            fieldStorage.initEmpty(twinEntity);
-//                        }
                     }
                 }
             }
@@ -1683,15 +1677,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         // we should not care about FieldStorage, cause such deletion will do extra cleaning
         List<UUID> twinClassFieldIds = twinClassFieldsForDeletion.stream().map(TwinClassFieldEntity::getId).toList();
-        twinFieldSimpleRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldSimpleNonIndexedRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldUserRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldDataListRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldI18nRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldBooleanRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldTwinClassListRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldTimestampRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
-        twinFieldDecimalRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldSimpleRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldSimpleNonIndexedRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldUserRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldDataListRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldI18nRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldBooleanRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldTwinClassListRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldTimestampRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldDecimalRepository.deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
 
         log.info("Twin class fields [" + StringUtils.join(twinClassFieldIds, ",") + "] perhaps were deleted from all twins of class[" + twinClassId + "]");
     }

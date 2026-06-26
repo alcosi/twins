@@ -1,9 +1,7 @@
 package org.twins.core.dao.twin;
 
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +12,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpleEntity, UUID>, JpaSpecificationExecutor<TwinFieldSimpleEntity> {
+public interface TwinFieldSimpleRepository extends TwinFieldRepository<TwinFieldSimpleEntity> {
 
     List<TwinFieldSimpleEntity> findByTwinIdInAndTwinClassFieldIdIn(Collection<UUID> twinIdSet, Collection<UUID> twinClassFieldIds);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
@@ -39,26 +37,21 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
 
     List<TwinFieldSimpleEntity> findByTwinIdIn(Collection<UUID> twinIdList);
 
-//    @Query(value = "select tfe from TwinFieldEntity tfe join fetch tfe.twinClassField where tfe.twinId in (:twinIds)")
-//    List<TwinFieldEntity> findByTwinIdIn(@Param("twinIds") Collection<UUID> twinIdList);
-
-    TwinFieldSimpleEntity findByTwinIdAndTwinClassField_Key(UUID twinId, String key);
-
     TwinFieldSimpleEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
 
     void deleteByTwinId(UUID twinId);
 
     @Query(value = """
             select distinct field.twinClassFieldId
-            from TwinFieldSimpleEntity field where field.twin.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
+            from TwinFieldSimpleEntity field where field.twinSpecOnly.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
             """)
     List<UUID> findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
 
-    void deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
+    void deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
 
     @Transactional
     @Modifying
-    @Query(value = "update TwinFieldSimpleEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
+    @Query(value = "update TwinFieldSimpleEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twinSpecOnly.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
 
