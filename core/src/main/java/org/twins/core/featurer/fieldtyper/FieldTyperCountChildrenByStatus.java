@@ -13,6 +13,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
 import java.util.Properties;
+import java.util.UUID;
 
 public interface FieldTyperCountChildrenByStatus {
 
@@ -34,10 +35,10 @@ public interface FieldTyperCountChildrenByStatus {
         return result;
     }
 
-    default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinRepository twinRepository) {
+    default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinRepository twinRepository, UUID userId, UUID userGroupFootprintId) {
         return exclude.extract(properties) ?
-                twinRepository.countChildrenTwinsWithStatusNotIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties)) :
-                twinRepository.countChildrenTwinsWithStatusIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties));
+                twinRepository.countChildrenTwinsWithStatusNotIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties), userId, userGroupFootprintId) :
+                twinRepository.countChildrenTwinsWithStatusIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties), userId, userGroupFootprintId);
     }
 
 

@@ -23,7 +23,7 @@ import java.util.Properties;
         name = "Sum fields by link",
         description = "Sum of fields by link twin")
 @RequiredArgsConstructor
-public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByLink, TwinFieldSearchNotImplemented> implements FieldTyperCalcByLink {
+public class FieldTyperCalcSumByLink extends FieldTyperCalcOnFly<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByLink, TwinFieldSearchNotImplemented> implements FieldTyperCalcByLink {
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
@@ -42,7 +42,8 @@ public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptor
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcSumByLink(
                 twinClassFieldEntity.getId(),
                 twinFieldDecimalRepository,
@@ -51,7 +52,9 @@ public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptor
                 linkedTwinOfClassIds.extract(properties),
                 srcElseDst.extract(properties),
                 statusExclude.extract(properties),
-                linkIds.extract(properties)
+                linkIds.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId()
         );
     }
 }

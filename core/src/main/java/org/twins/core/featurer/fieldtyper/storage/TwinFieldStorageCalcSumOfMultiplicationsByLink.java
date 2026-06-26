@@ -22,8 +22,8 @@ public class TwinFieldStorageCalcSumOfMultiplicationsByLink extends TwinFieldSto
     private final Set<UUID> linkedTwinOfClassIds;
     private final boolean statusExclude;
 
-    public TwinFieldStorageCalcSumOfMultiplicationsByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> linkIds, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude) {
-        super(twinClassFieldId);
+    public TwinFieldStorageCalcSumOfMultiplicationsByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> linkIds, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude, UUID calcUserId, UUID calcUserGroupFootprintId) {
+        super(twinClassFieldId, calcUserId, calcUserGroupFootprintId);
         this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.firstFieldId = firstFieldId;
         this.secondFieldId = secondFieldId;
@@ -44,7 +44,9 @@ public class TwinFieldStorageCalcSumOfMultiplicationsByLink extends TwinFieldSto
                 firstFieldId,
                 secondFieldId,
                 linkIds,
-                statusExclude
+                statusExclude,
+                calcUserId,
+                calcUserGroupFootprintId
         );
 
         packResult(twinsKit, calc);
@@ -61,6 +63,7 @@ public class TwinFieldStorageCalcSumOfMultiplicationsByLink extends TwinFieldSto
                 && Objects.equals(this.srcElseDst, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).srcElseDst)
                 && Objects.equals(this.linkedTwinInStatusIdList, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).linkedTwinInStatusIdList)
                 && Objects.equals(this.linkedTwinOfClassIds, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).linkedTwinOfClassIds)
-                && Objects.equals(this.statusExclude, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).statusExclude);
+                && Objects.equals(this.statusExclude, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).statusExclude)
+                && hasSameCalcPermissionContext((TwinFieldStorageCalcSumOfMultiplicationsByLink) o);
     }
 }

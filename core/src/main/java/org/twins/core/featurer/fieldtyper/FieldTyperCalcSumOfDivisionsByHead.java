@@ -50,7 +50,8 @@ public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHe
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcSumOfDivisionsByHead(
                 twinClassFieldEntity.getId(),
                 twinFieldDecimalRepository,
@@ -59,7 +60,9 @@ public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHe
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
                 statusExclude.extract(properties),
-                throwOnDivisionByZero.extract(properties)
+                throwOnDivisionByZero.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId()
         );
     }
 }

@@ -240,31 +240,57 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
         """, nativeQuery = true)
     long countTwinsByQuotaKey(@Param("twinClassSchemaSpaceId") UUID twinClassSchemaSpaceId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId);
 
-    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
-    long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+    @Query(value = """
+            select count(child) from TwinEntity child
+            where child.headTwinId=:headTwinId
+              and not child.twinStatusId in :childrenTwinStatusIdList
+              and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
+            """)
+    long countChildrenTwinsWithStatusNotIn(
+            @Param("headTwinId") UUID headTwinId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
-    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
-    long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+    @Query(value = """
+            select count(child) from TwinEntity child
+            where child.headTwinId=:headTwinId
+              and child.twinStatusId in :childrenTwinStatusIdList
+              and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
+            """)
+    long countChildrenTwinsWithStatusIn(
+            @Param("headTwinId") UUID headTwinId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
         select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
         from TwinEntity child
-        where child.headTwinId in :headTwinIdList and child.twinStatusId in :childrenTwinStatusIdList
+        where child.headTwinId in :headTwinIdList
+          and child.twinStatusId in :childrenTwinStatusIdList
+          and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
         group by child.headTwinId
         """)
     List<TwinFieldCalcProjection> countChildrenTwinsWithStatusIn(
             @Param("headTwinIdList") Collection<UUID> headTwinIdList,
-            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
         select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
         from TwinEntity child
-        where child.headTwinId in :headTwinIdList and not child.twinStatusId in :childrenTwinStatusIdList
+        where child.headTwinId in :headTwinIdList
+          and not child.twinStatusId in :childrenTwinStatusIdList
+          and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
         group by child.headTwinId
         """)
     List<TwinFieldCalcProjection> countChildrenTwinsWithStatusNotIn(
             @Param("headTwinIdList") Collection<UUID> headTwinIdList,
-            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
         select new org.twins.core.dao.twin.TwinFieldCalcProjection(tl.dstTwinId, cast(count(tl) as bigdecimal))
