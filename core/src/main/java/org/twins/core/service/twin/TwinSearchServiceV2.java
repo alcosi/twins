@@ -169,17 +169,17 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
 
     @Override
     public void mapGroupedField(TwinEntity entity, UUID field, Object value) {
-        if (field.equals(SystemIds.TwinClassField.TWIN_TWIN_CLASS_ID))
+        if (field.equals(SystemIds.TwinClassField.Base.TWIN_CLASS_ID))
             entity.setTwinClassId((UUID) value);
-        else if (field.equals(SystemIds.TwinClassField.TWIN_STATUS_ID))
+        else if (field.equals(SystemIds.TwinClassField.Base.STATUS_ID))
             entity.setTwinStatusId((UUID) value);
-        else if (field.equals(SystemIds.TwinClassField.TWIN_OWNER_USER_ID))
+        else if (field.equals(SystemIds.TwinClassField.Base.OWNER_USER_ID))
             entity.setOwnerUserId((UUID) value);
-        else if (field.equals(SystemIds.TwinClassField.TWIN_ASSIGNEE_USER_ID))
+        else if (field.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID))
             entity.setAssignerUserId((UUID) value);
-        else if (field.equals(SystemIds.TwinClassField.TWIN_CREATOR_USER_ID))
+        else if (field.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID))
             entity.setCreatedByUserId((UUID) value);
-        else if (field.equals(SystemIds.TwinClassField.TWIN_HEAD_ID))
+        else if (field.equals(SystemIds.TwinClassField.Base.HEAD_ID))
             entity.setHeadTwinId((UUID) value);
     }
 

@@ -563,18 +563,18 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     }
 
     public enum BasicField {
-        NAME(Fields.name, SystemIds.TwinClassField.TWIN_NAME, TwinEntity::getName),
-        DESCRIPTION(Fields.description, SystemIds.TwinClassField.TWIN_DESCRIPTION, TwinEntity::getDescription),
-        EXTERNAL_ID(Fields.externalId, SystemIds.TwinClassField.TWIN_EXTERNAL_ID, TwinEntity::getExternalId),
-        OWNER_USER_ID(Fields.ownerUserId, SystemIds.TwinClassField.TWIN_OWNER_USER_ID, TwinEntity::getOwnerUserId),
-        TWIN_CLASS_ID(Fields.twinClassId, SystemIds.TwinClassField.TWIN_TWIN_CLASS_ID, TwinEntity::getTwinClassId),
-        ASSIGNEE_USER_ID(Fields.assignerUserId, SystemIds.TwinClassField.TWIN_ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
-        HEAD_TWIN_ID(Fields.headTwinId, SystemIds.TwinClassField.TWIN_HEAD_ID, TwinEntity::getHeadTwinId),
-        CREATOR_USER_ID(Fields.createdByUserId, SystemIds.TwinClassField.TWIN_CREATOR_USER_ID, TwinEntity::getCreatedByUserId),
-        TWIN_STATUS_ID(Fields.twinStatusId, SystemIds.TwinClassField.TWIN_STATUS_ID, TwinEntity::getTwinStatusId),
-        CREATED_AT(Fields.createdAt, SystemIds.TwinClassField.TWIN_CREATED_AT, TwinEntity::getCreatedAt),
-        ID(Fields.id, SystemIds.TwinClassField.TWIN_ID, TwinEntity::getId),
-        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.TWIN_ALIASES, TwinEntity::getAliasSpaceId);
+        NAME(Fields.name, SystemIds.TwinClassField.Base.NAME, TwinEntity::getName),
+        DESCRIPTION(Fields.description, SystemIds.TwinClassField.Base.DESCRIPTION, TwinEntity::getDescription),
+        EXTERNAL_ID(Fields.externalId, SystemIds.TwinClassField.Base.EXTERNAL_ID, TwinEntity::getExternalId),
+        OWNER_USER_ID(Fields.ownerUserId, SystemIds.TwinClassField.Base.OWNER_USER_ID, TwinEntity::getOwnerUserId),
+        TWIN_CLASS_ID(Fields.twinClassId, SystemIds.TwinClassField.Base.TWIN_CLASS_ID, TwinEntity::getTwinClassId),
+        ASSIGNEE_USER_ID(Fields.assignerUserId, SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
+        HEAD_TWIN_ID(Fields.headTwinId, SystemIds.TwinClassField.Base.HEAD_ID, TwinEntity::getHeadTwinId),
+        CREATOR_USER_ID(Fields.createdByUserId, SystemIds.TwinClassField.Base.CREATOR_USER_ID, TwinEntity::getCreatedByUserId),
+        TWIN_STATUS_ID(Fields.twinStatusId, SystemIds.TwinClassField.Base.STATUS_ID, TwinEntity::getTwinStatusId),
+        CREATED_AT(Fields.createdAt, SystemIds.TwinClassField.Base.CREATED_AT, TwinEntity::getCreatedAt),
+        ID(Fields.id, SystemIds.TwinClassField.Base.ID, TwinEntity::getId),
+        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.Base.ALIASES, TwinEntity::getAliasSpaceId);
 
         @Getter
         private final String name;

@@ -53,10 +53,10 @@ public class FillerBasicsFieldFromTwinField extends Filler {
     }
 
     private String handleTextField(UUID sourceFieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
-        if (sourceFieldId.equals(SystemIds.TwinClassField.TWIN_NAME)) {
+        if (sourceFieldId.equals(SystemIds.TwinClassField.Base.NAME)) {
             outputTwinEntity.setName(fieldValueText.getValue());
             return TwinEntity.Fields.name;
-        } else if (sourceFieldId.equals(SystemIds.TwinClassField.TWIN_DESCRIPTION)) {
+        } else if (sourceFieldId.equals(SystemIds.TwinClassField.Base.DESCRIPTION)) {
             outputTwinEntity.setDescription(fieldValueText.getValue());
             return TwinEntity.Fields.description;
         }
@@ -70,12 +70,12 @@ public class FillerBasicsFieldFromTwinField extends Filler {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
         } else {
             UserEntity user = fieldValueUser.getItems().getFirst();
-            if (sourceFieldId.equals(SystemIds.TwinClassField.TWIN_ASSIGNEE_USER_ID)) {
+            if (sourceFieldId.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)) {
                 outputTwinEntity
                         .setAssignerUser(user)
                         .setAssignerUserId(user.getId());
                 return TwinEntity.Fields.assignerUserId;
-            } else if (sourceFieldId.equals(SystemIds.TwinClassField.TWIN_CREATOR_USER_ID)) {
+            } else if (sourceFieldId.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID)) {
                 outputTwinEntity
                         .setCreatedByUser(user)
                         .setCreatedByUserId(user.getId());

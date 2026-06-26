@@ -33,7 +33,7 @@ public class FieldTyperBaseDateField extends FieldTyperImmutable<FieldDescriptor
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         UUID fieldId = twinField.getTwinClassField().getId();
         TwinEntity twin = twinField.getTwin();
-        if (fieldId.equals(SystemIds.TwinClassField.TWIN_CREATED_AT)) {
+        if (fieldId.equals(SystemIds.TwinClassField.Base.CREATED_AT)) {
             return new FieldValueDate(twinField.getTwinClassField(), DateUtils.DEFAULT_DATE_TIME_PATTERN)
                     .setDate(twin.getCreatedAt().toLocalDateTime());
         }

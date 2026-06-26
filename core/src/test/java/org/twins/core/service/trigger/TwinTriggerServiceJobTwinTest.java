@@ -62,11 +62,11 @@ class TwinTriggerServiceJobTwinTest {
                 .setTwinClassId(SystemIds.TwinClass.USER);
 
         srcStatus = new TwinStatusEntity()
-                .setId(SystemIds.TwinStatus.USER)
+                .setId(SystemIds.TwinStatus.User.INIT)
                 .setTwinClassId(SystemIds.TwinClass.USER);
 
         dstStatus = new TwinStatusEntity()
-                .setId(SystemIds.TwinStatus.USER)
+                .setId(SystemIds.TwinStatus.User.INIT)
                 .setTwinClassId(SystemIds.TwinClass.USER);
 
         UUID jobTwinClassId = UuidUtils.generate();

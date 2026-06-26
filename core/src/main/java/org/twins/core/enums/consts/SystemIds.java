@@ -10,6 +10,10 @@ import java.util.UUID;
  * {@code SystemEntityService}) or via Flyway migrations.
  *
  * <p>Usage: {@code SystemIds.TwinClass.USER}, {@code SystemIds.TwinClassField.Glossary.PURPOSE}.
+ *
+ * <p>For TwinClassField and TwinStatus, second-level holders group constants by the owning
+ * TwinClass (User / GlobalAncestor / Glossary / etc.). For TwinStatus, the per-class initial
+ * status is named {@code INIT}.
  */
 public final class SystemIds {
     private SystemIds() {}
@@ -27,23 +31,27 @@ public final class SystemIds {
     }
 
     public static final class TwinClassField {
-        public static final UUID USER_EMAIL         = UUID.fromString("00000000-0000-0000-0011-000000000001");
-        public static final UUID USER_AVATAR        = UUID.fromString("00000000-0000-0000-0011-000000000002");
+        public static final class User {
+            public static final UUID EMAIL  = UUID.fromString("00000000-0000-0000-0011-000000000001");
+            public static final UUID AVATAR = UUID.fromString("00000000-0000-0000-0011-000000000002");
+        }
 
-        public static final UUID TWIN_NAME             = UUID.fromString("00000000-0000-0000-0011-000000000003");
-        public static final UUID TWIN_DESCRIPTION      = UUID.fromString("00000000-0000-0000-0011-000000000004");
-        public static final UUID TWIN_EXTERNAL_ID      = UUID.fromString("00000000-0000-0000-0011-000000000005");
-        public static final UUID TWIN_OWNER_USER_ID    = UUID.fromString("00000000-0000-0000-0011-000000000006");
-        public static final UUID TWIN_ASSIGNEE_USER_ID = UUID.fromString("00000000-0000-0000-0011-000000000007");
-        public static final UUID TWIN_CREATOR_USER_ID  = UUID.fromString("00000000-0000-0000-0011-000000000008");
-        public static final UUID TWIN_HEAD_ID          = UUID.fromString("00000000-0000-0000-0011-000000000009");
-        public static final UUID TWIN_STATUS_ID        = UUID.fromString("00000000-0000-0000-0011-000000000010");
-        public static final UUID TWIN_CREATED_AT       = UUID.fromString("00000000-0000-0000-0011-000000000011");
-        public static final UUID TWIN_ID               = UUID.fromString("00000000-0000-0000-0011-000000000012");
-        public static final UUID TWIN_TWIN_CLASS_ID    = UUID.fromString("00000000-0000-0000-0011-000000000013");
-        public static final UUID TWIN_ALIASES          = UUID.fromString("00000000-0000-0000-0011-000000000014");
-        public static final UUID TWIN_TAGS             = UUID.fromString("00000000-0000-0000-0011-000000000015");
-        public static final UUID TWIN_MARKERS          = UUID.fromString("00000000-0000-0000-0011-000000000016");
+        public static final class Base {
+            public static final UUID NAME             = UUID.fromString("00000000-0000-0000-0011-000000000003");
+            public static final UUID DESCRIPTION      = UUID.fromString("00000000-0000-0000-0011-000000000004");
+            public static final UUID EXTERNAL_ID      = UUID.fromString("00000000-0000-0000-0011-000000000005");
+            public static final UUID OWNER_USER_ID    = UUID.fromString("00000000-0000-0000-0011-000000000006");
+            public static final UUID ASSIGNEE_USER_ID = UUID.fromString("00000000-0000-0000-0011-000000000007");
+            public static final UUID CREATOR_USER_ID  = UUID.fromString("00000000-0000-0000-0011-000000000008");
+            public static final UUID HEAD_ID          = UUID.fromString("00000000-0000-0000-0011-000000000009");
+            public static final UUID STATUS_ID        = UUID.fromString("00000000-0000-0000-0011-000000000010");
+            public static final UUID CREATED_AT       = UUID.fromString("00000000-0000-0000-0011-000000000011");
+            public static final UUID ID               = UUID.fromString("00000000-0000-0000-0011-000000000012");
+            public static final UUID TWIN_CLASS_ID    = UUID.fromString("00000000-0000-0000-0011-000000000013");
+            public static final UUID ALIASES          = UUID.fromString("00000000-0000-0000-0011-000000000014");
+            public static final UUID TAGS             = UUID.fromString("00000000-0000-0000-0011-000000000015");
+            public static final UUID MARKERS          = UUID.fromString("00000000-0000-0000-0011-000000000016");
+        }
 
         public static final class Glossary {
             public static final UUID PURPOSE            = UUID.fromString("00000000-0000-0000-0011-000000001001");
@@ -63,13 +71,22 @@ public final class SystemIds {
     }
 
     public static final class TwinStatus {
-        public static final UUID USER             = UUID.fromString("00000000-0000-0000-0003-000000000001");
-        public static final UUID BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
-        public static final UUID FACE_PAGE        = UUID.fromString("00000000-0000-0000-0003-000000000004");
-        public static final UUID SKETCH           = UUID.fromString("00000001-0000-0000-0000-000000000001");
+        public static final UUID SKETCH = UUID.fromString("00000001-0000-0000-0000-000000000001");
+
+        public static final class User {
+            public static final UUID INIT = UUID.fromString("00000000-0000-0000-0003-000000000001");
+        }
+
+        public static final class BusinessAccount {
+            public static final UUID INIT = UUID.fromString("00000000-0000-0000-0003-000000000003");
+        }
+
+        public static final class FacePage {
+            public static final UUID INIT = UUID.fromString("00000000-0000-0000-0003-000000000004");
+        }
 
         public static final class Glossary {
-            public static final UUID ACTUAL  = UUID.fromString("00000000-0000-0000-0003-000000001001");
+            public static final UUID INIT    = UUID.fromString("00000000-0000-0000-0003-000000001001");
             public static final UUID DELETED = UUID.fromString("00000000-0000-0000-0003-000000001002");
         }
     }
@@ -84,23 +101,19 @@ public final class SystemIds {
     }
 
     public static final class TwinSearch {
-        public static final UUID UNLIMITED             = UUID.fromString("00000000-0000-0000-0014-000000000002");
+        public static final UUID UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000002");
     }
 
     public static final class TwinClassSearch {
-        public static final UUID UNLIMITED       = UUID.fromString("00000000-0000-0000-0014-000000000003");
+        public static final UUID UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000003");
     }
 
     public static final class UserSearch {
-        public static final UUID UNLIMITED             = UUID.fromString("00000000-0000-0000-0014-000000000004");
+        public static final UUID UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000004");
     }
 
     public static final class DataListOptionSearch {
         public static final UUID UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000005");
-    }
-
-    public static final class TwinClassScheme {
-        public static final UUID DEFAULT = UUID.fromString("00000000-0000-0000-0018-000000000001");
     }
 
     public static final class PermissionScheme {
@@ -108,11 +121,31 @@ public final class SystemIds {
     }
 
     public static final class TwinflowScheme {
-        public static final UUID DEFAULT = UUID.fromString("00000000-0000-0000-0016-000000000001");
+        public static final UUID DEFAULT = UUID.fromString("00000000-0000-0000-0017-000000000001");
+    }
+
+    public static final class TwinClassScheme {
+        public static final UUID DEFAULT = UUID.fromString("00000000-0000-0000-0018-000000000001");
     }
 
     public static final class Link {
         public static final UUID GLOSSARY_SEE_ALSO = UUID.fromString("00000000-0000-0000-0019-000000000001");
+    }
+
+    public static final class DataList {
+        public static final UUID GLOSSARY_CATEGORY = UUID.fromString("00000000-0000-0000-0020-000000000001");
+    }
+
+    public static final class DataListOption {
+        public static final UUID GLOSSARY_CATEGORY_CORE           = UUID.fromString("00000000-0000-0020-0001-000000000001");
+        public static final UUID GLOSSARY_CATEGORY_WORKFLOW       = UUID.fromString("00000000-0000-0020-0001-000000000002");
+        public static final UUID GLOSSARY_CATEGORY_MULTI_TENANCY  = UUID.fromString("00000000-0000-0020-0001-000000000003");
+        public static final UUID GLOSSARY_CATEGORY_PERMISSIONS    = UUID.fromString("00000000-0000-0020-0001-000000000004");
+        public static final UUID GLOSSARY_CATEGORY_CONTENT        = UUID.fromString("00000000-0000-0020-0001-000000000005");
+        public static final UUID GLOSSARY_CATEGORY_CROSS_CUTTING  = UUID.fromString("00000000-0000-0020-0001-000000000006");
+        public static final UUID GLOSSARY_CATEGORY_FIELDS         = UUID.fromString("00000000-0000-0020-0001-000000000007");
+        public static final UUID GLOSSARY_CATEGORY_VALIDATION     = UUID.fromString("00000000-0000-0020-0001-000000000008");
+        public static final UUID GLOSSARY_CATEGORY_OTHER          = UUID.fromString("00000000-0000-0020-0001-000000000009");
     }
 
     public static final class Featurer {
@@ -175,8 +208,8 @@ public final class SystemIds {
         }
 
         public static final class GlossaryStatus {
-            public static final UUID ACTUAL_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000047");
-            public static final UUID ACTUAL_DESCRIPTION  = UUID.fromString("00000000-0000-0000-0012-000000000048");
+            public static final UUID INIT_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000047");
+            public static final UUID INIT_DESCRIPTION  = UUID.fromString("00000000-0000-0000-0012-000000000048");
             public static final UUID DELETED_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000049");
             public static final UUID DELETED_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000050");
         }

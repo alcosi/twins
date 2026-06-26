@@ -73,7 +73,7 @@ public class GlossaryBootstrapService {
     private static final UUID FIELD_IS_SYSTEM          = SystemIds.TwinClassField.Glossary.IS_SYSTEM;
     private static final UUID FIELD_ACTUALIZED_AT      = SystemIds.TwinClassField.Glossary.ACTUALIZED_AT;
 
-    private static final UUID STATUS_ACTUAL  = SystemIds.TwinStatus.Glossary.ACTUAL;
+    private static final UUID STATUS_ACTUAL  = SystemIds.TwinStatus.Glossary.INIT;
     private static final UUID STATUS_DELETED = SystemIds.TwinStatus.Glossary.DELETED;
     private static final UUID GLOSSARY_CLASS_ID = SystemIds.TwinClass.TWINS_GLOSSARY;
     private static final UUID USER_SYSTEM = SystemIds.User.SYSTEM;
