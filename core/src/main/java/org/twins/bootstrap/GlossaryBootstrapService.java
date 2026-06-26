@@ -23,6 +23,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Two-phase bootstrap pipeline that converts parsed glossary markdown into TWINS_GLOSSARY Twins.
@@ -76,6 +77,29 @@ public class GlossaryBootstrapService {
     private static final UUID STATUS_DELETED = SystemEntityService.TWIN_STATUS_GLOSSARY_DELETED;
     private static final UUID GLOSSARY_CLASS_ID = SystemEntityService.TWIN_CLASS_TWINS_GLOSSARY;
     private static final UUID USER_SYSTEM = SystemEntityService.USER_SYSTEM;
+
+    /**
+     * Declarative mapping: glossary DTO field → TwinClassField UUID, for all text-typed fields.
+     * Order = definition order; iterated once per Twin in {@link #buildFieldValues}.
+     * TwinService routes each value to the right per-type table via the fieldTyper featurer
+     * on the TwinClassFieldEntity, so both indexed (1301) and non-indexed (1336) text share
+     * {@link FieldValueText} here.
+     */
+    private record TextFieldMapping(UUID fieldId, Function<GlossaryEntityDto, String> extractor) {}
+
+    private static final List<TextFieldMapping> TEXT_FIELD_MAPPINGS = List.of(
+            new TextFieldMapping(FIELD_PURPOSE,            GlossaryEntityDto::sectionPurpose),
+            new TextFieldMapping(FIELD_FIELDS,             GlossaryEntityDto::sectionFields),
+            new TextFieldMapping(FIELD_RELATIONS_OVERVIEW, GlossaryEntityDto::sectionRelations),
+            new TextFieldMapping(FIELD_API,                GlossaryEntityDto::sectionApi),
+            new TextFieldMapping(FIELD_API_DEPRECATED,     GlossaryEntityDto::sectionApiDeprecated),
+            new TextFieldMapping(FIELD_EXAMPLES,           GlossaryEntityDto::sectionExamples),
+            new TextFieldMapping(FIELD_DEV_NOTES,          GlossaryEntityDto::sectionDevNotes),
+            new TextFieldMapping(FIELD_JPA_CLASS,          GlossaryEntityDto::jpaClass),
+            new TextFieldMapping(FIELD_DB_TABLE,           GlossaryEntityDto::dbTable),
+            new TextFieldMapping(FIELD_MARKDOWN_SOURCE,    GlossaryEntityDto::markdownSource),
+            new TextFieldMapping(FIELD_MARKDOWN_HASH,      GlossaryEntityDto::markdownHash)
+    );
 
     /**
      * Run the full pipeline. Single {@code @Transactional} — DB error anywhere rolls back the
@@ -185,51 +209,62 @@ public class GlossaryBootstrapService {
     // ──────────────────────────────────────────────────────────────────────────
 
     private Executed execute(BootstrapPlan plan, TwinClassEntity glossaryClass) {
-        int created = 0;
-        int updated = 0;
-        int restored = 0;
-        int markDeleted = 0;
+        int created = executeCreates(plan.creates(), glossaryClass);
 
-        for (GlossaryEntityDto dto : plan.creates()) {
-            try {
-                createGlossaryTwin(dto, glossaryClass);
-                created++;
-            } catch (Exception e) {
-                log.error("Glossary CREATE failed for slug '{}' ({}): {}", dto.slug(), dto.markdownSource(), e.getMessage(), e);
-            }
-        }
+        // updates, restores, and markDeletes are all TwinUpdate under the hood — bundle into one batch.
+        List<TwinUpdate> updateBatch = new ArrayList<>(
+                plan.updates().size() + plan.restores().size() + plan.markDeletes().size());
         for (BootstrapPlan.Update u : plan.updates()) {
-            try {
-                updateGlossaryTwin(u, glossaryClass);
-                updated++;
-            } catch (Exception e) {
-                log.error("Glossary UPDATE failed for slug '{}' ({}): {}", u.dto().slug(), u.dto().markdownSource(), e.getMessage(), e);
-            }
+            updateBatch.add(buildTwinUpdate(u, glossaryClass));
         }
         for (BootstrapPlan.Update u : plan.restores()) {
-            try {
-                restoreGlossaryTwin(u, glossaryClass);
-                restored++;
-            } catch (Exception e) {
-                log.error("Glossary RESTORE failed for slug '{}' ({}): {}", u.dto().slug(), u.dto().markdownSource(), e.getMessage(), e);
-            }
+            // RESTORE is an UPDATE that flips status DELETED → ACTUAL and refreshes fields.
+            updateBatch.add(buildTwinUpdate(u, glossaryClass));
         }
         for (TwinEntity orphan : plan.markDeletes()) {
-            try {
-                markDeleted(orphan);
-                markDeleted++;
-            } catch (Exception e) {
-                log.error("Glossary MARK_DELETED failed for twin {}: {}", orphan.getId(), e.getMessage(), e);
-            }
+            updateBatch.add(buildMarkDeleteUpdate(orphan));
         }
-        return new Executed(created, updated, restored, markDeleted);
+
+        if (updateBatch.isEmpty()) {
+            return new Executed(created, 0, 0, 0);
+        }
+        int updated  = plan.updates().size();
+        int restored = plan.restores().size();
+        int markDel  = plan.markDeletes().size();
+        try {
+            twinService.updateTwin(updateBatch, false);
+        } catch (Exception e) {
+            log.error("Glossary UPDATE batch failed ({} updates incl. {} restores, {} markDeletes): {}",
+                    updateBatch.size(), restored, markDel, e.getMessage(), e);
+            return new Executed(created, 0, 0, 0);
+        }
+        return new Executed(created, updated, restored, markDel);
     }
 
-    private void createGlossaryTwin(GlossaryEntityDto dto, TwinClassEntity glossaryClass) throws Exception {
+    /**
+     * Single batched {@link TwinService#createTwinsAsync(java.util.List)} call for all new Twins.
+     * Whole batch is atomic — one failure rolls back every Twin in the list.
+     */
+    private int executeCreates(List<GlossaryEntityDto> dtos, TwinClassEntity glossaryClass) {
+        if (dtos.isEmpty()) return 0;
+        List<TwinCreate> creates = new ArrayList<>(dtos.size());
+        for (GlossaryEntityDto dto : dtos) {
+            creates.add(buildTwinCreate(dto, glossaryClass));
+        }
+        try {
+            twinService.createTwinsAsync(creates);
+        } catch (Exception e) {
+            log.error("Glossary CREATE batch failed ({} twins): {}", creates.size(), e.getMessage(), e);
+            return 0;
+        }
+        return creates.size();
+    }
+
+    private TwinCreate buildTwinCreate(GlossaryEntityDto dto, TwinClassEntity glossaryClass) {
         TwinEntity twinEntity = new TwinEntity()
                 .setId(dto.twinId())
                 .setName(dto.title())
-                .setDescription(dto.sections().get("Summary"))
+                .setDescription(dto.sectionSummary())
                 .setTwinClassId(GLOSSARY_CLASS_ID)
                 .setTwinStatusId(STATUS_ACTUAL)
                 .setExternalId("glossary:" + dto.slug())
@@ -240,14 +275,14 @@ public class GlossaryBootstrapService {
         for (FieldValue fv : buildFieldValues(dto, glossaryClass)) {
             twinCreate.addField(fv);
         }
-        twinService.createTwin(twinCreate);
+        return twinCreate;
     }
 
-    private void updateGlossaryTwin(BootstrapPlan.Update u, TwinClassEntity glossaryClass) throws Exception {
+    private TwinUpdate buildTwinUpdate(BootstrapPlan.Update u, TwinClassEntity glossaryClass) {
         TwinEntity dbTwin = u.dbTwin();
         TwinEntity updatedEntity = dbTwin.clone()
                 .setName(u.dto().title())
-                .setDescription(u.dto().sections().get("Summary"))
+                .setDescription(u.dto().sectionSummary())
                 .setTwinStatusId(STATUS_ACTUAL);
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate.setDbTwinEntity(dbTwin);
@@ -256,43 +291,37 @@ public class GlossaryBootstrapService {
         for (FieldValue fv : buildFieldValues(u.dto(), glossaryClass)) {
             twinUpdate.addField(fv);
         }
-        twinService.updateTwin(twinUpdate);
+        return twinUpdate;
     }
 
-    private void restoreGlossaryTwin(BootstrapPlan.Update u, TwinClassEntity glossaryClass) throws Exception {
-        // RESTORE is just an UPDATE that flips status DELETED → ACTUAL and refreshes fields.
-        updateGlossaryTwin(u, glossaryClass);
-    }
-
-    private void markDeleted(TwinEntity orphan) throws Exception {
+    private TwinUpdate buildMarkDeleteUpdate(TwinEntity orphan) {
         TwinEntity updatedEntity = orphan.clone()
                 .setTwinStatusId(STATUS_DELETED);
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate.setDbTwinEntity(orphan);
         twinUpdate.setTwinEntity(updatedEntity);
         twinUpdate.setCheckEditPermission(false);
-        twinService.updateTwin(twinUpdate);
+        return twinUpdate;
     }
 
     /**
-     * Build the 13 FieldValue objects for a parsed DTO. TwinService routes each FieldValue to
-     * the correct per-type table based on the fieldTyper featurer ID on the TwinClassFieldEntity.
+     * Build the 13 FieldValue objects for a parsed DTO. Iterates the declarative
+     * {@link #TEXT_FIELD_MAPPINGS} for text values; boolean and date are added separately
+     * (different FieldValue subtypes). TwinService routes each value to the correct per-type
+     * table based on the fieldTyper featurer ID on the TwinClassFieldEntity.
      */
     private List<FieldValue> buildFieldValues(GlossaryEntityDto dto, TwinClassEntity glossaryClass) {
         List<FieldValue> list = new ArrayList<>(13);
-        // Long-text (non-indexed, featurer 1336) — stored via FieldValueText, typer decides table
-        addText(list, glossaryClass, FIELD_PURPOSE, dto.sections().get("Purpose"));
-        addText(list, glossaryClass, FIELD_FIELDS, dto.sections().get("Fields"));
-        addText(list, glossaryClass, FIELD_RELATIONS_OVERVIEW, dto.sections().get("Relations"));
-        addText(list, glossaryClass, FIELD_API, dto.sections().get("API"));
-        addText(list, glossaryClass, FIELD_API_DEPRECATED, dto.sections().get("API (deprecated)"));
-        addText(list, glossaryClass, FIELD_EXAMPLES, dto.sections().get("Examples"));
-        addText(list, glossaryClass, FIELD_DEV_NOTES, dto.sections().get("Dev notes"));
-        // Short indexed-text (featurer 1301)
-        addText(list, glossaryClass, FIELD_JPA_CLASS, dto.jpaClass());
-        addText(list, glossaryClass, FIELD_DB_TABLE, dto.dbTable());
-        addText(list, glossaryClass, FIELD_MARKDOWN_SOURCE, dto.markdownSource());    // always present
-        addText(list, glossaryClass, FIELD_MARKDOWN_HASH, dto.markdownHash());        // always present
+        for (TextFieldMapping m : TEXT_FIELD_MAPPINGS) {
+            String value = m.extractor().apply(dto);
+            if (value == null || value.isBlank()) continue;
+            TwinClassFieldEntity field = glossaryClass.getTwinClassFieldKit().get(m.fieldId());
+            if (field == null) {
+                log.warn("Glossary field {} not in class kit — skipping value assignment", m.fieldId());
+                continue;
+            }
+            list.add(new FieldValueText(field).setValue(value));
+        }
         // Boolean (featurer 1306)
         TwinClassFieldEntity boolField = glossaryClass.getTwinClassFieldKit().get(FIELD_IS_SYSTEM);
         if (boolField != null) {
@@ -305,16 +334,6 @@ public class GlossaryBootstrapService {
             list.add(new FieldValueDate(dateField, null).setDate(date.atStartOfDay()));
         }
         return list;
-    }
-
-    private static void addText(List<FieldValue> list, TwinClassEntity glossaryClass, UUID fieldId, String value) {
-        if (value == null || value.isBlank()) return;
-        TwinClassFieldEntity field = glossaryClass.getTwinClassFieldKit().get(fieldId);
-        if (field == null) {
-            log.warn("Glossary field {} not in class kit — skipping value assignment", fieldId);
-            return;
-        }
-        list.add(new FieldValueText(field).setValue(value));
     }
 
     /** Internal execute counters. */

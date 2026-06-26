@@ -142,7 +142,15 @@ public class GlossaryMarkdownParser {
 
         return new GlossaryEntityDto(
                 slug, title, category, jpaClass, dbTable, isSystem, actualizedAt,
-                seeAlso, sections,
+                seeAlso,
+                sections.get("Summary"),
+                sections.get("Purpose"),
+                sections.get("Fields"),
+                sections.get("Relations"),
+                sections.get("API"),
+                sections.get("API (deprecated)"),
+                sections.get("Examples"),
+                sections.get("Dev notes"),
                 "docs/glossary/entities/" + (source != null ? source : slug + ".md"),
                 markdownHash,
                 GlossaryEntityDto.computeTwinId(slug));
