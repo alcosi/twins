@@ -20,13 +20,13 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.datalist.finder.DataListOptionFinder;
 import org.twins.core.featurer.datalist.sorter.DataListOptionSorter;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -66,7 +66,7 @@ public class DataListOptionSearchService extends EntitySecureFindServiceImpl<Dat
     }
 
     public PaginationResult<DataListOptionEntity> findDataListOptions(UUID searchId, Map<String, String> namedParamsMap, DataListOptionSearch narrowSearch, SimplePagination pagination) throws ServiceException {
-        if (SystemEntityService.DATA_LIST_OPTION_SEARCH_UNLIMITED.equals(searchId)) {
+        if (SystemIds.DataListOptionSearch.UNLIMITED.equals(searchId)) {
             return findDataListOptionForDomain(narrowSearch, pagination);
         }
 

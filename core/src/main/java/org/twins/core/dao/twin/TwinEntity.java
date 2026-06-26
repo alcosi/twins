@@ -35,11 +35,11 @@ import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.math.BigDecimal;
@@ -536,7 +536,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     private Set<UUID> headTwinsIdSet;
 
     public boolean isSketch() {
-        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
+        return SystemIds.TwinStatus.SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
     }
 
     public Set<UUID> getHeadTwinsIdSet() {
@@ -563,18 +563,18 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     }
 
     public enum BasicField {
-        NAME(Fields.name, SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME, TwinEntity::getName),
-        DESCRIPTION(Fields.description, SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TwinEntity::getDescription),
-        EXTERNAL_ID(Fields.externalId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TwinEntity::getExternalId),
-        OWNER_USER_ID(Fields.ownerUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID, TwinEntity::getOwnerUserId),
-        TWIN_CLASS_ID(Fields.twinClassId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID, TwinEntity::getTwinClassId),
-        ASSIGNEE_USER_ID(Fields.assignerUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
-        HEAD_TWIN_ID(Fields.headTwinId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID, TwinEntity::getHeadTwinId),
-        CREATOR_USER_ID(Fields.createdByUserId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID, TwinEntity::getCreatedByUserId),
-        TWIN_STATUS_ID(Fields.twinStatusId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS_ID, TwinEntity::getTwinStatusId),
-        CREATED_AT(Fields.createdAt, SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATED_AT, TwinEntity::getCreatedAt),
-        ID(Fields.id, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ID, TwinEntity::getId),
-        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ALIASES, TwinEntity::getAliasSpaceId);
+        NAME(Fields.name, SystemIds.TwinClassField.TWIN_NAME, TwinEntity::getName),
+        DESCRIPTION(Fields.description, SystemIds.TwinClassField.TWIN_DESCRIPTION, TwinEntity::getDescription),
+        EXTERNAL_ID(Fields.externalId, SystemIds.TwinClassField.TWIN_EXTERNAL_ID, TwinEntity::getExternalId),
+        OWNER_USER_ID(Fields.ownerUserId, SystemIds.TwinClassField.TWIN_OWNER_USER_ID, TwinEntity::getOwnerUserId),
+        TWIN_CLASS_ID(Fields.twinClassId, SystemIds.TwinClassField.TWIN_TWIN_CLASS_ID, TwinEntity::getTwinClassId),
+        ASSIGNEE_USER_ID(Fields.assignerUserId, SystemIds.TwinClassField.TWIN_ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
+        HEAD_TWIN_ID(Fields.headTwinId, SystemIds.TwinClassField.TWIN_HEAD_ID, TwinEntity::getHeadTwinId),
+        CREATOR_USER_ID(Fields.createdByUserId, SystemIds.TwinClassField.TWIN_CREATOR_USER_ID, TwinEntity::getCreatedByUserId),
+        TWIN_STATUS_ID(Fields.twinStatusId, SystemIds.TwinClassField.TWIN_STATUS_ID, TwinEntity::getTwinStatusId),
+        CREATED_AT(Fields.createdAt, SystemIds.TwinClassField.TWIN_CREATED_AT, TwinEntity::getCreatedAt),
+        ID(Fields.id, SystemIds.TwinClassField.TWIN_ID, TwinEntity::getId),
+        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.TWIN_ALIASES, TwinEntity::getAliasSpaceId);
 
         @Getter
         private final String name;

@@ -24,13 +24,13 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.search.FieldProjectionSearch;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.projection.ProjectionFieldSelector;
 import org.twins.core.enums.sort.TwinClassFieldGroupField;
 import org.twins.core.enums.sort.TwinClassFieldSortField;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.EntitySearchService;
-import org.twins.core.service.SystemEntityService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -193,7 +193,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
     }
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, Map<String, String> namedParamsMap, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
-        if (SystemEntityService.TWIN_CLASS_FIELD_SEARCH_UNLIMITED.equals(searchId)) {
+        if (SystemIds.TwinClassFieldSearch.UNLIMITED.equals(searchId)) {
             return search(narrowSearch, pagination);
         }
         TwinClassFieldSearchEntity searchEntity = twinClassFieldSearchConfigService.findEntitySafe(searchId);

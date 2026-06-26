@@ -24,11 +24,11 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.sort.TwinClassGroupField;
 import org.twins.core.enums.sort.TwinClassSortField;
 import org.twins.core.featurer.classfinder.ClassFinder;
 import org.twins.core.service.EntitySearchService;
-import org.twins.core.service.SystemEntityService;
 
 import java.util.List;
 import java.util.Locale;
@@ -223,7 +223,7 @@ public class TwinClassSearchService extends EntitySearchService
     }
 
     public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, TwinClassSearch narrowSearch, SimplePagination pagination) throws ServiceException {
-        if (SystemEntityService.TWIN_CLASS_SEARCH_UNLIMITED.equals(searchId)) {
+        if (SystemIds.TwinClassSearch.UNLIMITED.equals(searchId)) {
             return search(narrowSearch, pagination);
         }
         TwinClassSearchEntity searchEntity = twinClassSearchConfigService.findEntitySafe(searchId);

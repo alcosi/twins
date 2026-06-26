@@ -9,14 +9,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.trigger.TwinTrigger;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinService.TwinCreateResult;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -25,7 +25,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -58,15 +59,15 @@ class TwinTriggerServiceJobTwinTest {
     void setUp() throws Exception {
         twinEntity = new TwinEntity()
                 .setId(UUID.randomUUID())
-                .setTwinClassId(SystemEntityService.TWIN_CLASS_USER);
+                .setTwinClassId(SystemIds.TwinClass.USER);
 
         srcStatus = new TwinStatusEntity()
-                .setId(SystemEntityService.TWIN_STATUS_USER)
-                .setTwinClassId(SystemEntityService.TWIN_CLASS_USER);
+                .setId(SystemIds.TwinStatus.USER)
+                .setTwinClassId(SystemIds.TwinClass.USER);
 
         dstStatus = new TwinStatusEntity()
-                .setId(SystemEntityService.TWIN_STATUS_USER)
-                .setTwinClassId(SystemEntityService.TWIN_CLASS_USER);
+                .setId(SystemIds.TwinStatus.USER)
+                .setTwinClassId(SystemIds.TwinClass.USER);
 
         UUID jobTwinClassId = UuidUtils.generate();
         jobTwinClass = new TwinClassEntity()

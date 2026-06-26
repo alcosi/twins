@@ -8,6 +8,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
@@ -16,8 +17,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
 import java.util.Properties;
 import java.util.UUID;
-
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATED_AT;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1325,
@@ -34,7 +33,7 @@ public class FieldTyperBaseDateField extends FieldTyperImmutable<FieldDescriptor
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         UUID fieldId = twinField.getTwinClassField().getId();
         TwinEntity twin = twinField.getTwin();
-        if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_CREATED_AT)) {
+        if (fieldId.equals(SystemIds.TwinClassField.TWIN_CREATED_AT)) {
             return new FieldValueDate(twinField.getTwinClassField(), DateUtils.DEFAULT_DATE_TIME_PATTERN)
                     .setDate(twin.getCreatedAt().toLocalDateTime());
         }

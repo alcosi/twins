@@ -26,6 +26,7 @@ import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.dao.twinflow.*;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
@@ -131,13 +132,13 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setAbstractt(false)
                 .setUniqueName(false)
                 .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
-                .setHeadTwinClassId(SystemEntityService.TWIN_CLASS_USER)
+                .setHeadTwinClassId(SystemIds.TwinClass.USER)
                 .setOwnerType(OwnerType.DOMAIN_USER)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())
                 .setAssigneeRequired(false)
-                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
-                .setExtendsHierarchyTree(LTreeUtils.convertToChainLTreeFormat(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR, twinClassId));
+                .setExtendsTwinClassId(SystemIds.TwinClass.GLOBAL_ANCESTOR)
+                .setExtendsHierarchyTree(LTreeUtils.convertToChainLTreeFormat(SystemIds.TwinClass.GLOBAL_ANCESTOR, twinClassId));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
@@ -188,7 +189,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setKey(domainEntity.getKey().toUpperCase())
                 .setOwnerType(OwnerType.DOMAIN)
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
+                .setExtendsTwinClassId(SystemIds.TwinClass.GLOBAL_ANCESTOR)
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())
                 .setAssigneeRequired(false);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

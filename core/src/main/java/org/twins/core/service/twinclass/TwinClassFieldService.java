@@ -31,6 +31,7 @@ import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -162,7 +163,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (extendsClassesSet == null)
             extendsClassesSet = Collections.emptySet();
         else
-            extendsClassesSet.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
+            extendsClassesSet.remove(SystemIds.TwinClass.GLOBAL_ANCESTOR);
 
         List<TwinClassFieldEntity> loaded = twinClassFieldRepository.findByTwinClassIdIn(needLoad.getIdSet(), extendsClassesSet);
         if (CollectionUtils.isEmpty(loaded))
@@ -314,13 +315,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public Kit<TwinClassFieldEntity, UUID> getBaseFieldsKit() {
         return new Kit<>(
-                twinClassFieldRepository.findBaseFields(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR),
+                twinClassFieldRepository.findBaseFields(SystemIds.TwinClass.GLOBAL_ANCESTOR),
                 TwinClassFieldEntity::getId
         );
     }
 
     public TwinClassFieldEntity getBaseField(UUID twinClassFieldId) {
-        for (var baseField : twinClassFieldRepository.findBaseFields(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)) {
+        for (var baseField : twinClassFieldRepository.findBaseFields(SystemIds.TwinClass.GLOBAL_ANCESTOR)) {
             if (baseField.getId().equals(twinClassFieldId)) {
                 return baseField;
             }

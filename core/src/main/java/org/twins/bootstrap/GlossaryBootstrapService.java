@@ -13,11 +13,11 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -58,25 +58,25 @@ public class GlossaryBootstrapService {
     private final TwinClassFieldService twinClassFieldService;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;  // read-only — for stored markdown_hash lookup
 
-    /** Field IDs from SystemEntityService constants. */
-    private static final UUID FIELD_PURPOSE            = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_PURPOSE;
-    private static final UUID FIELD_FIELDS             = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_FIELDS;
-    private static final UUID FIELD_RELATIONS_OVERVIEW = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_RELATIONS_OVERVIEW;
-    private static final UUID FIELD_API                = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_API;
-    private static final UUID FIELD_API_DEPRECATED     = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_API_DEPRECATED;
-    private static final UUID FIELD_EXAMPLES           = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_EXAMPLES;
-    private static final UUID FIELD_DEV_NOTES          = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_DEV_NOTES;
-    private static final UUID FIELD_JPA_CLASS          = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_JPA_CLASS;
-    private static final UUID FIELD_DB_TABLE           = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_DB_TABLE;
-    private static final UUID FIELD_MARKDOWN_SOURCE    = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_MARKDOWN_SOURCE;
-    private static final UUID FIELD_MARKDOWN_HASH      = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_MARKDOWN_HASH;
-    private static final UUID FIELD_IS_SYSTEM          = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_IS_SYSTEM;
-    private static final UUID FIELD_ACTUALIZED_AT      = SystemEntityService.TWIN_CLASS_FIELD_GLOSSARY_ACTUALIZED_AT;
+    /** Field IDs from SystemIds constants. */
+    private static final UUID FIELD_PURPOSE            = SystemIds.TwinClassField.Glossary.PURPOSE;
+    private static final UUID FIELD_FIELDS             = SystemIds.TwinClassField.Glossary.FIELDS;
+    private static final UUID FIELD_RELATIONS_OVERVIEW = SystemIds.TwinClassField.Glossary.RELATIONS_OVERVIEW;
+    private static final UUID FIELD_API                = SystemIds.TwinClassField.Glossary.API;
+    private static final UUID FIELD_API_DEPRECATED     = SystemIds.TwinClassField.Glossary.API_DEPRECATED;
+    private static final UUID FIELD_EXAMPLES           = SystemIds.TwinClassField.Glossary.EXAMPLES;
+    private static final UUID FIELD_DEV_NOTES          = SystemIds.TwinClassField.Glossary.DEV_NOTES;
+    private static final UUID FIELD_JPA_CLASS          = SystemIds.TwinClassField.Glossary.JPA_CLASS;
+    private static final UUID FIELD_DB_TABLE           = SystemIds.TwinClassField.Glossary.DB_TABLE;
+    private static final UUID FIELD_MARKDOWN_SOURCE    = SystemIds.TwinClassField.Glossary.MARKDOWN_SOURCE;
+    private static final UUID FIELD_MARKDOWN_HASH      = SystemIds.TwinClassField.Glossary.MARKDOWN_HASH;
+    private static final UUID FIELD_IS_SYSTEM          = SystemIds.TwinClassField.Glossary.IS_SYSTEM;
+    private static final UUID FIELD_ACTUALIZED_AT      = SystemIds.TwinClassField.Glossary.ACTUALIZED_AT;
 
-    private static final UUID STATUS_ACTUAL  = SystemEntityService.TWIN_STATUS_GLOSSARY_ACTUAL;
-    private static final UUID STATUS_DELETED = SystemEntityService.TWIN_STATUS_GLOSSARY_DELETED;
-    private static final UUID GLOSSARY_CLASS_ID = SystemEntityService.TWIN_CLASS_TWINS_GLOSSARY;
-    private static final UUID USER_SYSTEM = SystemEntityService.USER_SYSTEM;
+    private static final UUID STATUS_ACTUAL  = SystemIds.TwinStatus.Glossary.ACTUAL;
+    private static final UUID STATUS_DELETED = SystemIds.TwinStatus.Glossary.DELETED;
+    private static final UUID GLOSSARY_CLASS_ID = SystemIds.TwinClass.TWINS_GLOSSARY;
+    private static final UUID USER_SYSTEM = SystemIds.User.SYSTEM;
 
     /**
      * Declarative mapping: glossary DTO field → TwinClassField UUID, for all text-typed fields.

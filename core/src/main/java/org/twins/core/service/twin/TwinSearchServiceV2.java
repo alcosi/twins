@@ -22,10 +22,10 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.EntitySearchService;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
@@ -169,17 +169,17 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
 
     @Override
     public void mapGroupedField(TwinEntity entity, UUID field, Object value) {
-        if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID))
+        if (field.equals(SystemIds.TwinClassField.TWIN_TWIN_CLASS_ID))
             entity.setTwinClassId((UUID) value);
-        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS_ID))
+        else if (field.equals(SystemIds.TwinClassField.TWIN_STATUS_ID))
             entity.setTwinStatusId((UUID) value);
-        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID))
+        else if (field.equals(SystemIds.TwinClassField.TWIN_OWNER_USER_ID))
             entity.setOwnerUserId((UUID) value);
-        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID))
+        else if (field.equals(SystemIds.TwinClassField.TWIN_ASSIGNEE_USER_ID))
             entity.setAssignerUserId((UUID) value);
-        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID))
+        else if (field.equals(SystemIds.TwinClassField.TWIN_CREATOR_USER_ID))
             entity.setCreatedByUserId((UUID) value);
-        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID))
+        else if (field.equals(SystemIds.TwinClassField.TWIN_HEAD_ID))
             entity.setHeadTwinId((UUID) value);
     }
 
@@ -195,7 +195,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
         }
         if (CollectionUtils.isEmpty(basicSearch.getTwinClassIdList())) {
             basicSearch
-                    .addTwinClassId(List.of(SystemEntityService.TWIN_CLASS_BUSINESS_ACCOUNT, SystemEntityService.TWIN_CLASS_USER), true)
+                    .addTwinClassId(List.of(SystemIds.TwinClass.BUSINESS_ACCOUNT, SystemIds.TwinClass.USER), true)
                     .setDbuMembershipCheck(DBUMembershipCheck.BLOCKED);
             return;
         }

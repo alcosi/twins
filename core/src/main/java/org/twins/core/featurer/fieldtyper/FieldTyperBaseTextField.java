@@ -7,6 +7,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
@@ -15,8 +16,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
 import java.util.UUID;
-
-import static org.twins.core.service.SystemEntityService.*;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1321,
@@ -33,11 +32,11 @@ public class FieldTyperBaseTextField extends FieldTyperImmutable<FieldDescriptor
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twin = twinField.getTwin();
         UUID fieldId = twinField.getTwinClassField().getId();
-        if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_NAME)) {
+        if (fieldId.equals(SystemIds.TwinClassField.TWIN_NAME)) {
             return new FieldValueText(twinField.getTwinClassField()).setValue(twin.getName());
-        } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_DESCRIPTION)) {
+        } else if (fieldId.equals(SystemIds.TwinClassField.TWIN_DESCRIPTION)) {
             return new FieldValueText(twinField.getTwinClassField()).setValue(twin.getDescription());
-        } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID)) {
+        } else if (fieldId.equals(SystemIds.TwinClassField.TWIN_EXTERNAL_ID)) {
             return new FieldValueText(twinField.getTwinClassField()).setValue(twin.getExternalId());
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
