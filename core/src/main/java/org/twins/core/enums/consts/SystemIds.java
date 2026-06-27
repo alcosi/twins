@@ -1,25 +1,35 @@
 package org.twins.core.enums.consts;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
- * All system-level UUID identifiers used across the Twins codebase.
+ * All system-level UUID identifiers used across the Twins codebase — pure constants only.
  *
  * <p>Grouped into nested holder classes by entity type. Each UUID is the canonical,
  * stable identifier of a system row inserted at application bootstrap (see
- * {@code SystemEntityService}) or via Flyway migrations.
+ * {@code SystemEntityBootstrapService}) or via Flyway migrations.
  *
  * <p>Usage: {@code SystemIds.TwinClass.USER}, {@code SystemIds.TwinClassField.Glossary.PURPOSE}.
  *
  * <p>For TwinClassField and TwinStatus, second-level holders group constants by the owning
  * TwinClass (User / GlobalAncestor / Glossary / etc.). For TwinStatus, the per-class initial
  * status is named {@code INIT}.
+ *
+ * <p>Lookup predicates ({@code isTwinClassForUser}, {@code isSystemField}, etc.) live in
+ * {@code SystemLookup} — this class is data only. When a new system field is added to
+ * {@code SystemBootstrapData.SYSTEM_CLASSES}, add its UUID to
+ * {@link TwinClassField.Base#ALL_FIELDS_SET} below.
  */
 public final class SystemIds {
     private SystemIds() {}
 
     public static final class User {
         public static final UUID SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    }
+
+    public static final class UserGroup {
+        public static final UUID DOMAIN_ADMIN = UUID.fromString("00000000-0000-0000-0006-000000000001");
     }
 
     public static final class TwinClass {
@@ -31,6 +41,7 @@ public final class SystemIds {
     }
 
     public static final class TwinClassField {
+
         public static final class User {
             public static final UUID EMAIL  = UUID.fromString("00000000-0000-0000-0011-000000000001");
             public static final UUID AVATAR = UUID.fromString("00000000-0000-0000-0011-000000000002");
@@ -51,6 +62,30 @@ public final class SystemIds {
             public static final UUID ALIASES          = UUID.fromString("00000000-0000-0000-0011-000000000014");
             public static final UUID TAGS             = UUID.fromString("00000000-0000-0000-0011-000000000015");
             public static final UUID MARKERS          = UUID.fromString("00000000-0000-0000-0011-000000000016");
+            /**
+             * All TwinClassField UUIDs that belong to system TwinClasses (USER / GLOBAL_ANCESTOR /
+             * TWINS_GLOSSARY). Enumerated explicitly to keep this class self-contained — no
+             * dependency back to {@code SystemBootstrapData}. When a new system field is added
+             * to {@code SystemBootstrapData.SYSTEM_CLASSES}, add its UUID here too.
+             *
+             * <p>Used by {@code SystemLookup#isSystemField(UUID)} / {@code SystemLookup#getSystemFieldsIds()}.
+             */
+            public static final Set<UUID> ALL_FIELDS_SET = Set.of(
+                    NAME,
+                    DESCRIPTION,
+                    EXTERNAL_ID,
+                    OWNER_USER_ID,
+                    ASSIGNEE_USER_ID,
+                    CREATOR_USER_ID,
+                    HEAD_ID,
+                    STATUS_ID,
+                    CREATED_AT,
+                    ID,
+                    TWIN_CLASS_ID,
+                    ALIASES,
+                    TAGS,
+                    MARKERS
+            );
         }
 
         public static final class Glossary {

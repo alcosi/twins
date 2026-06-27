@@ -15,6 +15,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
@@ -88,7 +89,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setKey("DOMAIN_BUSINESS_ACCOUNT_FOR_" + domainEntity.getKey().toUpperCase())
                 .setOwnerType(OwnerType.DOMAIN_BUSINESS_ACCOUNT)
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem())
+                .setCreatedByUserId(SystemIds.User.SYSTEM)
                 .setAssigneeRequired(false);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
@@ -106,7 +107,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setCreatedByUserId(SystemIds.User.SYSTEM);
         twinflowEntity = entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = new TwinflowSchemaMapEntity()
@@ -121,7 +122,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setTwinStatusId(twinStatusEntity.getId())
                 .setName("Business account template")
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setCreatedByUserId(SystemIds.User.SYSTEM);
         twinEntity = entitySmartService.save(twinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinEntity.getId();
     }

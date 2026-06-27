@@ -24,6 +24,7 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.domain.DomainStatus;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -33,7 +34,6 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.storage.StorageService;
-import org.twins.core.service.usergroup.UserGroup;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
@@ -113,7 +113,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // welcome to new domain!
         domainLocaleService.addDomainLocale(domainEntity.getId(), apiUser.getLocale());
         domainUserService.addUser(apiUser.getUser(), false);
-        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
+        userGroupService.enterGroup(SystemIds.UserGroup.DOMAIN_ADMIN);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
 

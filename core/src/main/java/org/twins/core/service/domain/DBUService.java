@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
@@ -23,7 +23,7 @@ public class DBUService {
     public DBUMembershipCheck detectSystemTwinsDBUMembershipCheck(UUID twinClassId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DBUMembershipCheck detectedCheck = DBUMembershipCheck.BLOCKED;
-        if (SystemEntityService.isTwinClassForUser(twinClassId)) {
+        if (SystemIdLookup.isTwinClassForUser(twinClassId)) {
             switch (apiUser.getDomain().getDomainType()) {
                 case basic:
                     detectedCheck = DBUMembershipCheck.DU;
@@ -38,7 +38,7 @@ public class DBUService {
                 default:
                     throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
             }
-        } else if (SystemEntityService.isTwinClassForBusinessAccount(twinClassId)) {
+        } else if (SystemIdLookup.isTwinClassForBusinessAccount(twinClassId)) {
             switch (apiUser.getDomain().getDomainType()) {
                 case basic:
                     throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_INCORRECT, "search by business account is not suitable for basic domain");

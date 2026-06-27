@@ -41,7 +41,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyperDateTime;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
@@ -330,7 +330,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
-        if (SystemEntityService.isSystemField(twinClassFieldId))
+        if (SystemIdLookup.isSystemField(twinClassFieldId))
             return getBaseField(twinClassFieldId);
         loadTwinClassFields(twinClass);
         return twinClass.getTwinClassFieldKit().get(twinClassFieldId);

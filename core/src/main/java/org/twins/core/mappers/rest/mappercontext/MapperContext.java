@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
@@ -25,18 +26,17 @@ import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
-import org.twins.core.service.SystemEntityService;
-import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.service.SystemIdLookup;
 
 import java.util.*;
 
@@ -236,7 +236,7 @@ public class MapperContext {
         else if (relatedObject instanceof TwinTriggerEntity twinTrigger)
             smartPut(relatedTwinTriggerMap, twinTrigger, twinTrigger.getId());
         else if (relatedObject instanceof TwinEntity twin) {
-            if (!SystemEntityService.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
+            if (!SystemIdLookup.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
                 smartPut(relatedTwinMap, twin, twin.getId());
         }
         else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
