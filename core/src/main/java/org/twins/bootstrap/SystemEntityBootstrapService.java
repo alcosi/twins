@@ -18,8 +18,7 @@ import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
-import org.twins.core.dao.permission.PermissionSchemaEntity;
-import org.twins.core.dao.permission.PermissionSchemaRepository;
+import org.twins.core.dao.permission.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -75,6 +74,8 @@ public class SystemEntityBootstrapService {
     private final LinkRepository linkRepository;
     private final DataListRepository dataListRepository;
     private final DataListOptionRepository dataListOptionRepository;
+    private final PermissionGroupRepository permissionGroupRepository;
+    private final PermissionRepository permissionRepository;
 
     @PostConstruct
     void postConstruct() throws ServiceException {
@@ -83,6 +84,7 @@ public class SystemEntityBootstrapService {
         bootstrapSystemClasses();      // also seeds i18n for fields/statuses/link names
         bootstrapSystemLinks();
         bootstrapSystemDataLists();
+        bootstrapSystemPermissions();  // also seeds i18n for permission name/description
         bootstrapTemplates();
     }
 
@@ -236,6 +238,32 @@ public class SystemEntityBootstrapService {
         }
         entitySmartService.saveAllAndLog(dataListEntities, dataListRepository);
         entitySmartService.saveAllAndLog(dataListOptionEntities, dataListOptionRepository);
+    }
+
+    private void bootstrapSystemPermissions() throws ServiceException {
+        // System permission group — all system permissions reference this as permission_group_id.
+        PermissionGroupEntity permissionGroup = new PermissionGroupEntity()
+                .setId(SystemIds.Permission.PERMISSION_GROUP_DEFAULT)
+                .setKey("TWINS_GLOBAL_PERMISSIONS")
+                .setName("Twins global permissions");
+        entitySmartService.save(permissionGroup.getId(), permissionGroup, permissionGroupRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+
+        List<I18nEntity> i18nEntities = new ArrayList<>();
+        List<I18nTranslationEntity> i18nTranslationEntities = new ArrayList<>();
+        List<PermissionEntity> permissionEntities = new ArrayList<>();
+        for (SystemPermission systemPermission : SYSTEM_PERMISSIONS) {
+            collectI18n(systemPermission.name(),        I18nType.PERMISSION_NAME,        i18nEntities, i18nTranslationEntities);
+            collectI18n(systemPermission.description(), I18nType.PERMISSION_DESCRIPTION, i18nEntities, i18nTranslationEntities);
+            permissionEntities.add(new PermissionEntity()
+                    .setId(systemPermission.id())
+                    .setKey(systemPermission.key())
+                    .setPermissionGroupId(SystemIds.Permission.PERMISSION_GROUP_DEFAULT)
+                    .setNameI18NId(systemPermission.name() != null ? systemPermission.name().i18nId() : null)
+                    .setDescriptionI18NId(systemPermission.description() != null ? systemPermission.description().i18nId() : null));
+        }
+        entitySmartService.saveAllAndLog(i18nEntities, i18nRepository);
+        entitySmartService.saveAllAndLog(i18nTranslationEntities, i18nTranslationRepository);
+        entitySmartService.saveAllAndLog(permissionEntities, permissionRepository);
     }
 
     private void bootstrapTemplates() throws ServiceException {
