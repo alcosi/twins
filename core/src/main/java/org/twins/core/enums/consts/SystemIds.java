@@ -163,6 +163,483 @@ public final class SystemIds {
         public static final UUID DEFAULT = UUID.fromString("00000000-0000-0000-0018-000000000001");
     }
 
+    /**
+     * System permission UUIDs. Mirror of {@code Permissions} enum — each category gets a
+     * sub-holder with action constants ({@code MANAGE}/{@code CREATE}/{@code VIEW}/
+     * {@code UPDATE}/{@code DELETE}, plus extras where applicable).
+     *
+     * <p>The {@code Permissions} enum sources its UUIDs from here — single source of truth.
+     */
+    public static final class Permission {
+        /** Permission group all system permissions belong to. */
+        public static final UUID PERMISSION_GROUP_DEFAULT = UUID.fromString("00000000-0000-0000-0005-000000000001");
+
+        public static final class General {
+            public static final UUID DENY_ALL            = UUID.fromString("00000000-0000-0004-0001-000000000101");
+            public static final UUID SYSTEM_APP_INFO_VIEW= UUID.fromString("00000000-0000-0004-0001-000000000201");
+            public static final UUID LOG_SUBSTITUTION_VIEW=UUID.fromString("00000000-0000-0004-0001-000000000301");
+            public static final UUID ACT_AS_USER         = UUID.fromString("00000000-0000-0004-0001-000000000401");
+            public static final UUID SYSTEM_CACHE_EVICT  = UUID.fromString("00000000-0000-0004-0001-000000000501");
+        }
+
+        public static final class Twinflow {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0002-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0002-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0002-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0002-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0002-000000000005");
+        }
+
+        public static final class TwinflowSchema {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0003-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0003-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0003-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0003-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0003-000000000005");
+        }
+
+        public static final class TwinClass {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0004-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0004-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0004-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0004-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0004-000000000005");
+        }
+
+        public static final class TwinClassField {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0005-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0005-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0005-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0005-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0005-000000000005");
+        }
+
+        public static final class TwinClassCard {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0006-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0006-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0006-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0006-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0006-000000000005");
+        }
+
+        public static final class Transition {
+            public static final UUID MANAGE  = UUID.fromString("00000000-0000-0004-0007-000000000001");
+            public static final UUID CREATE  = UUID.fromString("00000000-0000-0004-0007-000000000002");
+            public static final UUID VIEW    = UUID.fromString("00000000-0000-0004-0007-000000000003");
+            public static final UUID UPDATE  = UUID.fromString("00000000-0000-0004-0007-000000000004");
+            public static final UUID DELETE  = UUID.fromString("00000000-0000-0004-0007-000000000005");
+            public static final UUID PERFORM = UUID.fromString("00000000-0000-0004-0007-000000000006");
+            public static final UUID DRAFT   = UUID.fromString("00000000-0000-0004-0007-000000000007");
+        }
+
+        public static final class Link {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0008-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0008-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0008-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0008-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0008-000000000005");
+        }
+
+        public static final class Domain {
+            public static final UUID MANAGE            = UUID.fromString("00000000-0000-0004-0009-000000000001");
+            public static final UUID CREATE            = UUID.fromString("00000000-0000-0004-0009-000000000002");
+            public static final UUID VIEW              = UUID.fromString("00000000-0000-0004-0009-000000000003");
+            public static final UUID UPDATE            = UUID.fromString("00000000-0000-0004-0009-000000000004");
+            public static final UUID DELETE            = UUID.fromString("00000000-0000-0004-0009-000000000005");
+            public static final UUID TWINS_VIEW_ALL    = UUID.fromString("00000000-0000-0004-0009-000000000006");
+            public static final UUID TWINS_CREATE_ANY  = UUID.fromString("00000000-0000-0004-0009-000000000007");
+        }
+
+        public static final class TwinStatus {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0010-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0010-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0010-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0010-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0010-000000000005");
+        }
+
+        public static final class Twin {
+            public static final UUID MANAGE        = UUID.fromString("00000000-0000-0004-0011-000000000001");
+            public static final UUID CREATE        = UUID.fromString("00000000-0000-0004-0011-000000000002");
+            public static final UUID VIEW          = UUID.fromString("00000000-0000-0004-0011-000000000003");
+            public static final UUID UPDATE        = UUID.fromString("00000000-0000-0004-0011-000000000004");
+            public static final UUID DELETE        = UUID.fromString("00000000-0000-0004-0011-000000000005");
+            public static final UUID SKETCH_CREATE = UUID.fromString("00000000-0000-0004-0011-000000000006");
+        }
+
+        public static final class Comment {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0012-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0012-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0012-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0012-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0012-000000000005");
+        }
+
+        public static final class Attachment {
+            public static final UUID MANAGE   = UUID.fromString("00000000-0000-0004-0013-000000000001");
+            public static final UUID CREATE   = UUID.fromString("00000000-0000-0004-0013-000000000002");
+            public static final UUID VIEW     = UUID.fromString("00000000-0000-0004-0013-000000000003");
+            public static final UUID UPDATE   = UUID.fromString("00000000-0000-0004-0013-000000000004");
+            public static final UUID DELETE   = UUID.fromString("00000000-0000-0004-0013-000000000005");
+            public static final UUID VALIDATE = UUID.fromString("00000000-0000-0004-0013-000000000006");
+        }
+
+        public static final class User {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0014-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0014-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0014-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0014-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0014-000000000005");
+        }
+
+        public static final class UserGroup {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0015-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0015-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0015-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0015-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0015-000000000005");
+        }
+
+        public static final class DataList {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0016-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0016-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0016-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0016-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0016-000000000005");
+        }
+
+        public static final class DataListOption {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0017-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0017-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0017-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0017-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0017-000000000005");
+        }
+
+        public static final class DataListSubset {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0018-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0018-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0018-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0018-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0018-000000000005");
+        }
+
+        public static final class PermissionEntity {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0019-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0019-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0019-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0019-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0019-000000000005");
+        }
+
+        public static final class UserGroupInvolveAssignee {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0020-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0020-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0020-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0020-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0020-000000000005");
+        }
+
+        public static final class PermissionGrantSpaceRole {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0021-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0021-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0021-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0021-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0021-000000000005");
+        }
+
+        public static final class PermissionGrantTwinRole {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0022-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0022-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0022-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0022-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0022-000000000005");
+        }
+
+        public static final class PermissionGrantUser {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0023-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0023-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0023-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0023-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0023-000000000005");
+        }
+
+        public static final class PermissionGrantUserGroup {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0024-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0024-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0024-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0024-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0024-000000000005");
+        }
+
+        public static final class PermissionGroup {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0025-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0025-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0025-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0025-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0025-000000000005");
+        }
+
+        public static final class PermissionSchema {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0026-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0026-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0026-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0026-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0026-000000000005");
+        }
+
+        public static final class UserPermission {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0027-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0027-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0027-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0027-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0027-000000000005");
+        }
+
+        public static final class I18n {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0028-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0028-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0028-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0028-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0028-000000000005");
+        }
+
+        public static final class FactoryEraser {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0029-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0029-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0029-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0029-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0029-000000000005");
+        }
+
+        public static final class Factory {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0030-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0030-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0030-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0030-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0030-000000000005");
+        }
+
+        public static final class FactoryMultiplier {
+            public static final UUID MANAGE       = UUID.fromString("00000000-0000-0004-0031-000000000001");
+            public static final UUID CREATE       = UUID.fromString("00000000-0000-0004-0031-000000000002");
+            public static final UUID VIEW         = UUID.fromString("00000000-0000-0004-0031-000000000003");
+            public static final UUID UPDATE       = UUID.fromString("00000000-0000-0004-0031-000000000004");
+            public static final UUID DELETE       = UUID.fromString("00000000-0000-0004-0031-000000000005");
+            public static final UUID PARAM_MANAGE = UUID.fromString("00000000-0000-0004-0031-000000000006");
+        }
+
+        public static final class FactoryPipeline {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0032-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0032-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0032-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0032-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0032-000000000005");
+        }
+
+        public static final class FactoryConditionSet {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0033-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0033-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0033-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0033-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0033-000000000005");
+        }
+
+        public static final class FactoryBranch {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0034-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0034-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0034-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0034-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0034-000000000005");
+        }
+
+        public static final class Draft {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0035-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0035-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0035-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0035-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0035-000000000005");
+            public static final UUID COMMIT = UUID.fromString("00000000-0000-0004-0035-000000000006");
+        }
+
+        public static final class DomainBusinessAccount {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0036-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0036-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0036-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0036-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0036-000000000005");
+        }
+
+        public static final class DomainUser {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0037-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0037-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0037-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0037-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0037-000000000005");
+        }
+
+        public static final class BusinessAccount {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0038-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0038-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0038-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0038-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0038-000000000005");
+        }
+
+        public static final class SpaceRole {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0039-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0039-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0039-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0039-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0039-000000000005");
+        }
+
+        public static final class Featurer {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0040-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0040-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0040-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0040-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0040-000000000005");
+        }
+
+        public static final class Tier {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0041-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0041-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0041-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0041-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0041-000000000005");
+        }
+
+        public static final class Face {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0042-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0042-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0042-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0042-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0042-000000000005");
+        }
+
+        public static final class FactoryPipelineStep {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0043-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0043-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0043-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0043-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0043-000000000005");
+        }
+
+        public static final class History {
+            public static final UUID MANAGE            = UUID.fromString("00000000-0000-0004-0044-000000000001");
+            public static final UUID CREATE            = UUID.fromString("00000000-0000-0004-0044-000000000002");
+            public static final UUID VIEW              = UUID.fromString("00000000-0000-0004-0044-000000000003");
+            public static final UUID UPDATE            = UUID.fromString("00000000-0000-0004-0044-000000000004");
+            public static final UUID DELETE            = UUID.fromString("00000000-0000-0004-0044-000000000005");
+            public static final UUID MACHINE_USER_VIEW = UUID.fromString("00000000-0000-0004-0044-000000000006");
+        }
+
+        public static final class Projection {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0045-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0045-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0045-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0045-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0045-000000000005");
+        }
+
+        public static final class ProjectionExclusion {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0046-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0046-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0046-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0046-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0046-000000000005");
+        }
+
+        public static final class TwinClassFieldRule {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0047-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0047-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0047-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0047-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0047-000000000005");
+        }
+
+        public static final class TwinflowFactory {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0048-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0048-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0048-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0048-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0048-000000000005");
+        }
+
+        public static final class TwinClassFreeze {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0049-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0049-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0049-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0049-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0049-000000000005");
+        }
+
+        public static final class HistoryNotification {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0050-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0050-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0050-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0050-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0050-000000000005");
+        }
+
+        public static final class Scheduler {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0051-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0051-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0051-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0051-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0051-000000000005");
+        }
+
+        public static final class TwinClassDynamicMarker {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0052-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0052-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0052-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0052-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0052-000000000005");
+        }
+
+        public static final class TwinValidatorSet {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0053-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0053-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0053-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0053-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0053-000000000005");
+        }
+
+        public static final class TwinTrigger {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0054-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0054-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0054-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0054-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0054-000000000005");
+        }
+
+        public static final class UserGroupInvolveActAsUser {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0055-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0055-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0055-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0055-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0055-000000000005");
+        }
+
+        public static final class ActionRestrictionReason {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0056-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0056-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0056-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0056-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0056-000000000005");
+        }
+
+        public static final class NotificationSchema {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0057-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0057-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0057-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0057-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0057-000000000005");
+        }
+    }
+
     public static final class Link {
         public static final UUID GLOSSARY_SEE_ALSO = UUID.fromString("00000000-0000-0000-0019-000000000001");
     }
