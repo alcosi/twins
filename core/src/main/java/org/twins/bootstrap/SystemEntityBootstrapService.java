@@ -2,7 +2,6 @@ package org.twins.bootstrap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,7 +31,10 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 import static org.cambium.common.util.LTreeUtils.convertToLTreeFormat;
 import static org.twins.bootstrap.SystemEntityBootstrapData.*;
@@ -279,7 +281,7 @@ public class SystemEntityBootstrapService {
 
     private void bootstrapSystemTwins() throws ServiceException {
         for (SystemTwin twin : SYSTEM_TEMPLATE_TWINS) {
-            saveSystemTwin(twin, null, EntitySmartService.SaveMode.ifNotPresentCreate, false);
+            saveSystemTwin(twin, EntitySmartService.SaveMode.ifNotPresentCreate, false);
         }
     }
 
@@ -292,16 +294,13 @@ public class SystemEntityBootstrapService {
      * <p>Used by both {@link #bootstrapSystemTwins()} (static templates) and
      * {@link GlossaryBootstrapService} (markdown-driven glossary Twins).
      *
-     * @param twin             data record
-     * @param twinClass        pre-loaded TwinClass with fields kit; if null, looked up + fields
-     *                         loaded here. Reuse from caller to avoid N+1 lookups when persisting
-     *                         many Twins of the same class.
-     * @param saveMode         {@code ifNotPresentCreate} for first-time bootstrap,
-     *                         {@code saveAndLogOnException} for upsert / update
-     * @param replaceFields    if true, delete-then-insert all field values for the managed
-     *                         TwinClassFieldIds; if false (CREATE case), just insert
+     * @param twin          data record — fields routed to per-type tables by their record type
+     * @param saveMode      {@code ifNotPresentCreate} for first-time bootstrap,
+     *                      {@code saveAndLogOnException} for upsert / update
+     * @param replaceFields if true, delete ALL existing field values for this Twin across all
+     *                      per-type tables before inserting; if false (CREATE case), just insert
      */
-    public void saveSystemTwin(SystemTwin twin, TwinClassEntity twinClass,
+    public void saveSystemTwin(SystemTwin twin,
                                EntitySmartService.SaveMode saveMode, boolean replaceFields) throws ServiceException {
         TwinEntity entity = new TwinEntity()
                 .setId(twin.id())
@@ -315,13 +314,8 @@ public class SystemEntityBootstrapService {
 
         if (twin.simpleFields().isEmpty() && twin.simpleNonIndexedFields().isEmpty()
                 && twin.booleanFields().isEmpty() && twin.timestampFields().isEmpty()) return;
-        if (twinClass == null) {
-            twinClass = twinClassRepository.findById(twin.twinClassId()).orElseThrow(() ->
-                    new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "TwinClass " + twin.twinClassId() + " not found"));
-            twinClassFieldService.loadTwinClassFields(twinClass);
-        }
         if (replaceFields) {
-            deleteSystemTwinFields(twin.id(), twin);
+            deleteSystemTwinFields(twin.id());
         }
         saveSystemTwinFields(twin.id(), twin);
     }
@@ -337,30 +331,15 @@ public class SystemEntityBootstrapService {
     }
 
     /**
-     * Delete existing field values for the TwinClassFieldIds referenced by this SystemTwin.
-     * Each list maps 1:1 to a per-type table — no fieldTyper-featurer-id routing.
+     * Delete ALL field values for a Twin across every per-type table. Used before re-inserting
+     * during UPDATE — the Twin owns its fields exclusively, so scoping by TwinClassFieldId is
+     * unnecessary.
      */
-    private void deleteSystemTwinFields(UUID twinId, SystemTwin twin) {
-        if (!twin.simpleFields().isEmpty()) {
-            Set<UUID> ids = new HashSet<>();
-            for (SystemTwinFieldSimple f : twin.simpleFields()) ids.add(f.twinClassFieldId());
-            twinFieldSimpleRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
-        }
-        if (!twin.simpleNonIndexedFields().isEmpty()) {
-            Set<UUID> ids = new HashSet<>();
-            for (SystemTwinFieldSimpleNonIndexed f : twin.simpleNonIndexedFields()) ids.add(f.twinClassFieldId());
-            twinFieldSimpleNonIndexedRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
-        }
-        if (!twin.booleanFields().isEmpty()) {
-            Set<UUID> ids = new HashSet<>();
-            for (SystemTwinFieldBoolean f : twin.booleanFields()) ids.add(f.twinClassFieldId());
-            twinFieldBooleanRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
-        }
-        if (!twin.timestampFields().isEmpty()) {
-            Set<UUID> ids = new HashSet<>();
-            for (SystemTwinFieldTimestamp f : twin.timestampFields()) ids.add(f.twinClassFieldId());
-            twinFieldTimestampRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
-        }
+    private void deleteSystemTwinFields(UUID twinId) {
+        twinFieldSimpleRepository.deleteByTwinId(twinId);
+        twinFieldSimpleNonIndexedRepository.deleteByTwinId(twinId);
+        twinFieldBooleanRepository.deleteByTwinId(twinId);
+        twinFieldTimestampRepository.deleteByTwinId(twinId);
     }
 
     /**

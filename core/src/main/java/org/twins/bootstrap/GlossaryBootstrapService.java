@@ -13,7 +13,6 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.enums.consts.SystemIds;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -51,7 +50,6 @@ public class GlossaryBootstrapService {
     private final GlossaryMarkdownParser parser;
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
-    private final TwinClassFieldService twinClassFieldService;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;  // read-only — for stored markdown_hash lookup
     private final SystemEntityBootstrapService systemEntityBootstrapService;
 
@@ -120,7 +118,6 @@ public class GlossaryBootstrapService {
             log.error("Glossary bootstrap: TWINS_GLOSSARY class {} not found in DB — SystemEntityBootstrapService did not run? Skipping bootstrap", GLOSSARY_CLASS_ID);
             return GlossaryBootstrapResult.empty(List.of());
         }
-        twinClassFieldService.loadTwinClassFields(glossaryClass);
 
         BootstrapPlan plan = discover(dtos);
         Executed executed = execute(plan, glossaryClass);
@@ -215,7 +212,7 @@ public class GlossaryBootstrapService {
         for (GlossaryEntityDto dto : plan.creates()) {
             try {
                 SystemTwin twin = toSystemTwin(dto, STATUS_ACTUAL);
-                systemEntityBootstrapService.saveSystemTwin(twin, glossaryClass, EntitySmartService.SaveMode.ifNotPresentCreate, false);
+                systemEntityBootstrapService.saveSystemTwin(twin, EntitySmartService.SaveMode.ifNotPresentCreate, false);
                 created++;
             } catch (Exception e) {
                 log.error("Glossary CREATE failed for {}: {}", dto.slug(), e.getMessage(), e);
@@ -225,7 +222,7 @@ public class GlossaryBootstrapService {
         for (BootstrapPlan.Update u : plan.updates()) {
             try {
                 SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL);
-                systemEntityBootstrapService.saveSystemTwin(twin, glossaryClass, EntitySmartService.SaveMode.saveAndLogOnException, true);
+                systemEntityBootstrapService.saveSystemTwin(twin, EntitySmartService.SaveMode.saveAndLogOnException, true);
                 updated++;
             } catch (Exception e) {
                 log.error("Glossary UPDATE failed for {}: {}", u.dto().slug(), e.getMessage(), e);
@@ -235,7 +232,7 @@ public class GlossaryBootstrapService {
         for (BootstrapPlan.Update u : plan.restores()) {
             try {
                 SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL);
-                systemEntityBootstrapService.saveSystemTwin(twin, glossaryClass, EntitySmartService.SaveMode.saveAndLogOnException, true);
+                systemEntityBootstrapService.saveSystemTwin(twin, EntitySmartService.SaveMode.saveAndLogOnException, true);
                 restored++;
             } catch (Exception e) {
                 log.error("Glossary RESTORE failed for {}: {}", u.dto().slug(), e.getMessage(), e);
