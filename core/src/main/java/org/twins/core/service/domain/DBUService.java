@@ -52,6 +52,10 @@ public class DBUService {
                 default:
                     throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
             }
+        } else if (SystemIdLookup.isTwinClassForSystemPublic(twinClassId)) {
+            // System-global metadata (e.g. glossary) is visible to any authenticated user —
+            // no DBU membership restriction. domain_id IS NULL on these classes.
+            detectedCheck = DBUMembershipCheck.SYSTEM_PUBLIC;
         }
         return detectedCheck;
     }

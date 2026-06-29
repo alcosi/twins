@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkClassWithDomain;
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
@@ -87,8 +88,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
 
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !search.isCheckViewPermission()) {
             specification = specification
-                    .and(checkFieldUuid(apiUser.getDomainId(), TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId))
-                    .and(checkClassId(search.getTwinClassIdList()));
+                    .and(checkClassWithDomain(search.getTwinClassIdList(), apiUser));
         } else {
             detectSystemClassSearchCheck(search);
             specification = specification

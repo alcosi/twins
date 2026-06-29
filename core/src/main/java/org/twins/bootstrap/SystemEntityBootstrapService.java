@@ -309,6 +309,7 @@ public class SystemEntityBootstrapService {
                 .setTwinClassId(twin.twinClassId())
                 .setTwinStatusId(twin.twinStatusId())
                 .setExternalId(twin.externalId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(twin.createdByUserId() != null ? twin.createdByUserId() : SystemIds.User.SYSTEM);
         entitySmartService.save(entity.getId(), entity, twinRepository, saveMode);
 

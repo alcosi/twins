@@ -29,8 +29,20 @@ public final class SystemIdLookup {
         return SystemIds.TwinClass.BUSINESS_ACCOUNT.equals(twinClassId);
     }
 
+    /**
+     * System-global TwinClass — metadata shared across all domains and business accounts
+     * (e.g. {@link SystemIds.TwinClass#TWINS_GLOSSARY}). Such Twins have {@code domain_id IS NULL}
+     * and {@code OwnerType.SYSTEM}; they are visible to any authenticated user without DBU
+     * membership restrictions.
+     */
+    public static boolean isTwinClassForSystemPublic(UUID twinClassId) {
+        return SystemIds.TwinClass.TWINS_GLOSSARY.equals(twinClassId);
+    }
+
     public static boolean isSystemClass(UUID twinClassId) {
-        return isTwinClassForUser(twinClassId) || isTwinClassForBusinessAccount(twinClassId);
+        return isTwinClassForUser(twinClassId)
+                || isTwinClassForBusinessAccount(twinClassId)
+                || isTwinClassForSystemPublic(twinClassId);
     }
 
     public static Set<UUID> getSystemFieldsIds() {
