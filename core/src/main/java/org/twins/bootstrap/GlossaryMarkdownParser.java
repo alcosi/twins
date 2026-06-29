@@ -111,7 +111,7 @@ public class GlossaryMarkdownParser {
         String markdownHash = DigestUtils.sha256Hex(bytes);
         String content = stripBom(new String(bytes, StandardCharsets.UTF_8)).replace("\r\n", "\n").replace('\r', '\n');
 
-        String[] split = content.split("^---\\s*$", 3);
+        String[] split = content.split("(?m)^---\\s*$", 3);
         if (split.length < 3) {
             throw new GlossaryParseException(source, "missing YAML frontmatter (need opening and closing '---' lines)");
         }

@@ -148,6 +148,16 @@ configurations {
     runtime.exclude group: "com.zaxxer", module: "HikariCP"
 }
 
+// Glossary markdowns live at the repo root (docs/glossary/) for readability,
+// but GlossaryMarkdownParser reads them from the classpath (classpath:/docs/glossary/entities/*.md).
+// Copy them into build/resources/main/docs/glossary/ at processResources time so they end up inside the JAR.
+processResources {
+    from("${rootProject.projectDir}/docs/glossary") {
+        into('docs/glossary')
+        include '**/*.md'
+    }
+}
+
 jar {
     setZip64(true)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

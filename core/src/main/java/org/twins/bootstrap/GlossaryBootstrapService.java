@@ -18,6 +18,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -57,6 +58,7 @@ public class GlossaryBootstrapService {
     private final TwinClassRepository twinClassRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;  // read-only — for stored markdown_hash lookup
+    private final AuthService authService;  // for system user context — TwinService.createTwins pulls ApiUser via request scope
 
     /** Field IDs from SystemIds constants. */
     private static final UUID FIELD_PURPOSE            = SystemIds.TwinClassField.Glossary.PURPOSE;
@@ -107,6 +109,18 @@ public class GlossaryBootstrapService {
      */
     @Transactional(rollbackFor = Throwable.class)
     public GlossaryBootstrapResult bootstrap() {
+        // TwinService.createTwins reaches into ApiUser (request-scoped) to resolve creator/domain.
+        // ApplicationReadyEvent runs on the main thread without a request context, so we install
+        // the SYSTEM user on the AuthService ThreadLocal for the duration of the bootstrap.
+        authService.setThreadLocalApiUser(null, null, USER_SYSTEM);
+        try {
+            return doBootstrap();
+        } finally {
+            authService.removeThreadLocalApiUser();
+        }
+    }
+
+    private GlossaryBootstrapResult doBootstrap() {
         log.info("Glossary bootstrap starting");
         List<GlossaryEntityDto> dtos = parser.parseAll();
         if (dtos.isEmpty()) {

@@ -1,12 +1,10 @@
 package org.twins.bootstrap;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -31,6 +29,7 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -43,22 +42,25 @@ import static org.twins.bootstrap.SystemEntityBootstrapData.*;
 
 /**
  * Spring service that persists all system entities (schemes, system user, TwinClasses,
- * TwinStatuses, TwinClassFields, Links, DataLists, template Twins) at app startup via
- * {@link PostConstruct}.
+ * TwinStatuses, TwinClassFields, Links, DataLists, template Twins) at app startup.
+ *
+ * <p>Bootstrap is triggered by {@link SystemEntityBootstrapRunner} on {@code ApplicationReadyEvent},
+ * NOT by {@link jakarta.annotation.PostConstruct} — this guarantees execution even when
+ * {@code spring.main.lazy-initialization=true} (PostConstruct on a lazy bean is skipped unless
+ * the bean is injected somewhere).
  *
  * <p>All declarations live in {@link SystemEntityBootstrapData} — this class only contains
- * persistence logic. {@code postConstruct()} delegates to six private methods, one per
+ * persistence logic. {@code bootstrap()} delegates to six private methods, one per
  * entity category, so each can be read and edited in isolation.
  *
- * <p>Gated by {@code twins.system.bootstrap.enabled} (default {@code true}). Set to
+ * <p>Gated by {@code twins.system-entity.bootstrap.enabled} (default {@code true}). Set to
  * {@code false} in test profiles to skip the bootstrap (e.g. when the DB is pre-seeded
  * by fixtures or Flyway alone).
  */
 @Service
 @Slf4j
-@Lazy
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "twins.system-entity.bootstrap.enabled", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "twins.system-entity.bootstrap", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SystemEntityBootstrapService {
     final TwinRepository twinRepository;
     final TwinClassRepository twinClassRepository;
@@ -77,8 +79,12 @@ public class SystemEntityBootstrapService {
     private final PermissionGroupRepository permissionGroupRepository;
     private final PermissionRepository permissionRepository;
 
-    @PostConstruct
-    void postConstruct() throws ServiceException {
+    /**
+     * Entry point — invoked by {@link SystemEntityBootstrapRunner} on {@code ApplicationReadyEvent}.
+     * Delegates to six private methods, one per entity category. Each save uses
+     * {@code SaveMode.ifNotPresentCreate}, so re-runs are idempotent.
+     */
+    public void bootstrap() throws ServiceException {
         bootstrapSchemes();
         bootstrapSystemUser();
         bootstrapSystemClasses();      // also seeds i18n for fields/statuses/link names
@@ -212,6 +218,9 @@ public class SystemEntityBootstrapService {
                     .setBackwardNameI18NId(systemLink.backwardName() != null ? systemLink.backwardName().i18nId() : null)
                     .setType(systemLink.type())
                     .setLinkStrengthId(systemLink.strength())
+                    .setLinkerFeaturerId(FeaturerTwins.ID_3001)
+                    .setSrcTwinClassInheritable(true)
+                    .setDstTwinClassInheritable(true)
                     .setCreatedByUserId(SystemIds.User.SYSTEM));
         }
         entitySmartService.saveAllAndLog(linkEntities, linkRepository);
