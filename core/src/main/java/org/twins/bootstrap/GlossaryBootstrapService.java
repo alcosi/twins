@@ -2,6 +2,8 @@ package org.twins.bootstrap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
@@ -9,22 +11,14 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
-import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.consts.SystemIds;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
-import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
-import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
+
+import static org.twins.bootstrap.SystemEntityBootstrapData.*;
 
 /**
  * Two-phase bootstrap pipeline that converts parsed glossary markdown into TWINS_GLOSSARY Twins.
@@ -32,20 +26,22 @@ import java.util.function.Function;
  * <ul>
  *   <li><b>DISCOVERY</b> — parse all .md files, load existing glossary Twins from DB, classify
  *       each parsed DTO into one of: CREATE / SKIP / UPDATE / RESTORE / MARK_DELETED.</li>
- *   <li><b>EXECUTE</b> — apply the plan via {@link TwinService#createTwin(TwinCreate)} /
- *       {@link TwinService#updateTwin(TwinUpdate)}. The 13 TwinField values are passed inside the
- *       {@code TwinCreate}/{@code TwinUpdate} payload as {@link FieldValue} objects — TwinService
- *       routes them to the correct per-type table (twin_field_simple / _non_indexed / _boolean /
- *       _timestamp) via the fieldTyper featurer on each {@link TwinClassFieldEntity}, applies
- *       validation, updates the search index, and records history.</li>
+ *   <li><b>EXECUTE</b> — for each DTO, build a {@link SystemTwin} record and delegate to
+ *       {@link SystemEntityBootstrapService#saveSystemTwin}. Persistence lives there so the
+ *       logic is shared with the static {@code SYSTEM_TEMPLATE_TWINS} bootstrap.</li>
  * </ul>
  *
+ * <p>This service owns the markdown → record mapping; the service layer owns the TwinEntity +
+ * per-type-field routing. Glossary Twins bypass TwinService on purpose — they are system
+ * metadata, not user content, and TwinService drags in permission checks, validation, aliases,
+ * search index, history, and a request-scoped ApiUser that is not available on
+ * ApplicationReadyEvent.</p>
+ * <p>
  * See {@code ai/plans/glossary-as-twins.md} §15.3 / §16 for the full design.
  *
- * <p><b>MVP scope (current):</b> TwinEntity + 13 TwinField values + status transitions
- * are implemented via TwinService. TwinLink (see_also) and TwinTag (category) reconciliation
- * are stubbed as TODO — they will be added as {@code setLinksEntityList} / {@code setTagsAddExisted}
- * on TwinCreate and {@code setTwinLinkCUD} / {@code setTagsDelete} on TwinUpdate in a follow-up.</p>
+ * <p><b>MVP scope (current):</b> TwinEntity + 13 TwinField values + status transitions.
+ * TwinLink (see_also) and TwinTag (category) reconciliation are stubbed as TODO — they will be
+ * added in a follow-up.</p>
  */
 @Slf4j
 @Service
@@ -53,54 +49,58 @@ import java.util.function.Function;
 public class GlossaryBootstrapService {
 
     private final GlossaryMarkdownParser parser;
-    private final TwinService twinService;
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;  // read-only — for stored markdown_hash lookup
-    private final AuthService authService;  // for system user context — TwinService.createTwins pulls ApiUser via request scope
+    private final SystemEntityBootstrapService systemEntityBootstrapService;
 
-    /** Field IDs from SystemIds constants. */
-    private static final UUID FIELD_PURPOSE            = SystemIds.TwinClassField.Glossary.PURPOSE;
-    private static final UUID FIELD_FIELDS             = SystemIds.TwinClassField.Glossary.FIELDS;
+    /**
+     * Field IDs from SystemIds constants.
+     */
+    private static final UUID FIELD_PURPOSE = SystemIds.TwinClassField.Glossary.PURPOSE;
+    private static final UUID FIELD_FIELDS = SystemIds.TwinClassField.Glossary.FIELDS;
     private static final UUID FIELD_RELATIONS_OVERVIEW = SystemIds.TwinClassField.Glossary.RELATIONS_OVERVIEW;
-    private static final UUID FIELD_API                = SystemIds.TwinClassField.Glossary.API;
-    private static final UUID FIELD_API_DEPRECATED     = SystemIds.TwinClassField.Glossary.API_DEPRECATED;
-    private static final UUID FIELD_EXAMPLES           = SystemIds.TwinClassField.Glossary.EXAMPLES;
-    private static final UUID FIELD_DEV_NOTES          = SystemIds.TwinClassField.Glossary.DEV_NOTES;
-    private static final UUID FIELD_JPA_CLASS          = SystemIds.TwinClassField.Glossary.JPA_CLASS;
-    private static final UUID FIELD_DB_TABLE           = SystemIds.TwinClassField.Glossary.DB_TABLE;
-    private static final UUID FIELD_MARKDOWN_SOURCE    = SystemIds.TwinClassField.Glossary.MARKDOWN_SOURCE;
-    private static final UUID FIELD_MARKDOWN_HASH      = SystemIds.TwinClassField.Glossary.MARKDOWN_HASH;
-    private static final UUID FIELD_IS_SYSTEM          = SystemIds.TwinClassField.Glossary.IS_SYSTEM;
-    private static final UUID FIELD_ACTUALIZED_AT      = SystemIds.TwinClassField.Glossary.ACTUALIZED_AT;
+    private static final UUID FIELD_API = SystemIds.TwinClassField.Glossary.API;
+    private static final UUID FIELD_API_DEPRECATED = SystemIds.TwinClassField.Glossary.API_DEPRECATED;
+    private static final UUID FIELD_EXAMPLES = SystemIds.TwinClassField.Glossary.EXAMPLES;
+    private static final UUID FIELD_DEV_NOTES = SystemIds.TwinClassField.Glossary.DEV_NOTES;
+    private static final UUID FIELD_JPA_CLASS = SystemIds.TwinClassField.Glossary.JPA_CLASS;
+    private static final UUID FIELD_DB_TABLE = SystemIds.TwinClassField.Glossary.DB_TABLE;
+    private static final UUID FIELD_MARKDOWN_SOURCE = SystemIds.TwinClassField.Glossary.MARKDOWN_SOURCE;
+    private static final UUID FIELD_MARKDOWN_HASH = SystemIds.TwinClassField.Glossary.MARKDOWN_HASH;
+    private static final UUID FIELD_IS_SYSTEM = SystemIds.TwinClassField.Glossary.IS_SYSTEM;
+    private static final UUID FIELD_ACTUALIZED_AT = SystemIds.TwinClassField.Glossary.ACTUALIZED_AT;
 
-    private static final UUID STATUS_ACTUAL  = SystemIds.TwinStatus.Glossary.INIT;
+    private static final UUID STATUS_ACTUAL = SystemIds.TwinStatus.Glossary.INIT;
     private static final UUID STATUS_DELETED = SystemIds.TwinStatus.Glossary.DELETED;
     private static final UUID GLOSSARY_CLASS_ID = SystemIds.TwinClass.TWINS_GLOSSARY;
     private static final UUID USER_SYSTEM = SystemIds.User.SYSTEM;
 
     /**
-     * Declarative mapping: glossary DTO field → TwinClassField UUID, for all text-typed fields.
-     * Order = definition order; iterated once per Twin in {@link #buildFieldValues}.
-     * TwinService routes each value to the right per-type table via the fieldTyper featurer
-     * on the TwinClassFieldEntity, so both indexed (1301) and non-indexed (1336) text share
-     * {@link FieldValueText} here.
+     * Declarative mapping: glossary DTO field → TwinClassField UUID + destination table.
+     * {@code indexed=true} → {@code twin_field_simple} (fieldTyper 1301),
+     * {@code indexed=false} → {@code twin_field_simple_non_indexed} (fieldTyper 1336).
+     * Destination is decided here, at mapping construction time — SystemEntityBootstrapService
+     * just writes each list to its table.
      */
-    private record TextFieldMapping(UUID fieldId, Function<GlossaryEntityDto, String> extractor) {}
+    private record TextFieldMapping(UUID fieldId, boolean indexed, Function<GlossaryEntityDto, String> extractor) {
+    }
 
     private static final List<TextFieldMapping> TEXT_FIELD_MAPPINGS = List.of(
-            new TextFieldMapping(FIELD_PURPOSE,            GlossaryEntityDto::sectionPurpose),
-            new TextFieldMapping(FIELD_FIELDS,             GlossaryEntityDto::sectionFields),
-            new TextFieldMapping(FIELD_RELATIONS_OVERVIEW, GlossaryEntityDto::sectionRelations),
-            new TextFieldMapping(FIELD_API,                GlossaryEntityDto::sectionApi),
-            new TextFieldMapping(FIELD_API_DEPRECATED,     GlossaryEntityDto::sectionApiDeprecated),
-            new TextFieldMapping(FIELD_EXAMPLES,           GlossaryEntityDto::sectionExamples),
-            new TextFieldMapping(FIELD_DEV_NOTES,          GlossaryEntityDto::sectionDevNotes),
-            new TextFieldMapping(FIELD_JPA_CLASS,          GlossaryEntityDto::jpaClass),
-            new TextFieldMapping(FIELD_DB_TABLE,           GlossaryEntityDto::dbTable),
-            new TextFieldMapping(FIELD_MARKDOWN_SOURCE,    GlossaryEntityDto::markdownSource),
-            new TextFieldMapping(FIELD_MARKDOWN_HASH,      GlossaryEntityDto::markdownHash)
+            // Non-indexed (fieldTyper 1336): long-form markdown sections
+            new TextFieldMapping(FIELD_PURPOSE, false, GlossaryEntityDto::sectionPurpose),
+            new TextFieldMapping(FIELD_FIELDS, false, GlossaryEntityDto::sectionFields),
+            new TextFieldMapping(FIELD_RELATIONS_OVERVIEW, false, GlossaryEntityDto::sectionRelations),
+            new TextFieldMapping(FIELD_API, false, GlossaryEntityDto::sectionApi),
+            new TextFieldMapping(FIELD_API_DEPRECATED, false, GlossaryEntityDto::sectionApiDeprecated),
+            new TextFieldMapping(FIELD_EXAMPLES, false, GlossaryEntityDto::sectionExamples),
+            new TextFieldMapping(FIELD_DEV_NOTES, false, GlossaryEntityDto::sectionDevNotes),
+            // Indexed (fieldTyper 1301): short identifier-like values
+            new TextFieldMapping(FIELD_JPA_CLASS, true, GlossaryEntityDto::jpaClass),
+            new TextFieldMapping(FIELD_DB_TABLE, true, GlossaryEntityDto::dbTable),
+            new TextFieldMapping(FIELD_MARKDOWN_SOURCE, true, GlossaryEntityDto::markdownSource),
+            new TextFieldMapping(FIELD_MARKDOWN_HASH, true, GlossaryEntityDto::markdownHash)
     );
 
     /**
@@ -109,18 +109,6 @@ public class GlossaryBootstrapService {
      */
     @Transactional(rollbackFor = Throwable.class)
     public GlossaryBootstrapResult bootstrap() {
-        // TwinService.createTwins reaches into ApiUser (request-scoped) to resolve creator/domain.
-        // ApplicationReadyEvent runs on the main thread without a request context, so we install
-        // the SYSTEM user on the AuthService ThreadLocal for the duration of the bootstrap.
-        authService.setThreadLocalApiUser(null, null, USER_SYSTEM);
-        try {
-            return doBootstrap();
-        } finally {
-            authService.removeThreadLocalApiUser();
-        }
-    }
-
-    private GlossaryBootstrapResult doBootstrap() {
         log.info("Glossary bootstrap starting");
         List<GlossaryEntityDto> dtos = parser.parseAll();
         if (dtos.isEmpty()) {
@@ -129,7 +117,7 @@ public class GlossaryBootstrapService {
         }
         TwinClassEntity glossaryClass = twinClassRepository.findById(GLOSSARY_CLASS_ID).orElse(null);
         if (glossaryClass == null) {
-            log.error("Glossary bootstrap: TWINS_GLOSSARY class {} not found in DB — migration V1.4.100.01 not applied? Skipping bootstrap", GLOSSARY_CLASS_ID);
+            log.error("Glossary bootstrap: TWINS_GLOSSARY class {} not found in DB — SystemEntityBootstrapService did not run? Skipping bootstrap", GLOSSARY_CLASS_ID);
             return GlossaryBootstrapResult.empty(List.of());
         }
         twinClassFieldService.loadTwinClassFields(glossaryClass);
@@ -188,7 +176,7 @@ public class GlossaryBootstrapService {
 
         // Orphans: existing Twins with ACTUAL status whose markdown_source file is gone
         List<TwinEntity> markDeletes = new ArrayList<>();
-        Set<UUID> dtoIds = new java.util.HashSet<>();
+        Set<UUID> dtoIds = new HashSet<>();
         for (GlossaryEntityDto dto : dtos) {
             dtoIds.add(dto.twinId());
         }
@@ -219,137 +207,92 @@ public class GlossaryBootstrapService {
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    //  PHASE 2: EXECUTE
+    //  PHASE 2: EXECUTE — delegate persistence to SystemEntityBootstrapService
     // ──────────────────────────────────────────────────────────────────────────
 
     private Executed execute(BootstrapPlan plan, TwinClassEntity glossaryClass) {
-        int created = executeCreates(plan.creates(), glossaryClass);
-
-        // updates, restores, and markDeletes are all TwinUpdate under the hood — bundle into one batch.
-        List<TwinUpdate> updateBatch = new ArrayList<>(
-                plan.updates().size() + plan.restores().size() + plan.markDeletes().size());
+        int created = 0;
+        for (GlossaryEntityDto dto : plan.creates()) {
+            try {
+                SystemTwin twin = toSystemTwin(dto, STATUS_ACTUAL);
+                systemEntityBootstrapService.saveSystemTwin(twin, glossaryClass, EntitySmartService.SaveMode.ifNotPresentCreate, false);
+                created++;
+            } catch (Exception e) {
+                log.error("Glossary CREATE failed for {}: {}", dto.slug(), e.getMessage(), e);
+            }
+        }
+        int updated = 0;
         for (BootstrapPlan.Update u : plan.updates()) {
-            updateBatch.add(buildTwinUpdate(u, glossaryClass));
+            try {
+                SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL);
+                systemEntityBootstrapService.saveSystemTwin(twin, glossaryClass, EntitySmartService.SaveMode.saveAndLogOnException, true);
+                updated++;
+            } catch (Exception e) {
+                log.error("Glossary UPDATE failed for {}: {}", u.dto().slug(), e.getMessage(), e);
+            }
         }
+        int restored = 0;
         for (BootstrapPlan.Update u : plan.restores()) {
-            // RESTORE is an UPDATE that flips status DELETED → ACTUAL and refreshes fields.
-            updateBatch.add(buildTwinUpdate(u, glossaryClass));
+            try {
+                SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL);
+                systemEntityBootstrapService.saveSystemTwin(twin, glossaryClass, EntitySmartService.SaveMode.saveAndLogOnException, true);
+                restored++;
+            } catch (Exception e) {
+                log.error("Glossary RESTORE failed for {}: {}", u.dto().slug(), e.getMessage(), e);
+            }
         }
+        int markDeleted = 0;
         for (TwinEntity orphan : plan.markDeletes()) {
-            updateBatch.add(buildMarkDeleteUpdate(orphan));
+            try {
+                systemEntityBootstrapService.saveSystemTwinStatus(orphan.getId(), STATUS_DELETED);
+                markDeleted++;
+            } catch (ServiceException e) {
+                log.error("Glossary MARK_DELETE failed for {}: {}", orphan.getId(), e.getMessage(), e);
+            }
         }
-
-        if (updateBatch.isEmpty()) {
-            return new Executed(created, 0, 0, 0);
-        }
-        int updated  = plan.updates().size();
-        int restored = plan.restores().size();
-        int markDel  = plan.markDeletes().size();
-        try {
-            twinService.updateTwin(updateBatch, false);
-        } catch (Exception e) {
-            log.error("Glossary UPDATE batch failed ({} updates incl. {} restores, {} markDeletes): {}",
-                    updateBatch.size(), restored, markDel, e.getMessage(), e);
-            return new Executed(created, 0, 0, 0);
-        }
-        return new Executed(created, updated, restored, markDel);
+        return new Executed(created, updated, restored, markDeleted);
     }
 
     /**
-     * Single batched {@link TwinService#createTwinsAsync(java.util.List)} call for all new Twins.
-     * Whole batch is atomic — one failure rolls back every Twin in the list.
+     * Convert a parsed markdown DTO into a {@link SystemTwin} record. Text fields are split into
+     * indexed vs non-indexed lists at this layer (we know each glossary field's typer statically);
+     * each list then maps 1:1 to its destination table in {@link SystemEntityBootstrapService},
+     * with no fieldTyper routing needed at save time.
      */
-    private int executeCreates(List<GlossaryEntityDto> dtos, TwinClassEntity glossaryClass) {
-        if (dtos.isEmpty()) return 0;
-        List<TwinCreate> creates = new ArrayList<>(dtos.size());
-        for (GlossaryEntityDto dto : dtos) {
-            creates.add(buildTwinCreate(dto, glossaryClass));
-        }
-        try {
-            twinService.createTwinsAsync(creates);
-        } catch (Exception e) {
-            log.error("Glossary CREATE batch failed ({} twins): {}", creates.size(), e.getMessage(), e);
-            return 0;
-        }
-        return creates.size();
-    }
-
-    private TwinCreate buildTwinCreate(GlossaryEntityDto dto, TwinClassEntity glossaryClass) {
-        TwinEntity twinEntity = new TwinEntity()
-                .setId(dto.twinId())
-                .setName(dto.title())
-                .setDescription(dto.sectionSummary())
-                .setTwinClassId(GLOSSARY_CLASS_ID)
-                .setTwinStatusId(STATUS_ACTUAL)
-                .setExternalId("glossary:" + dto.slug())
-                .setCreatedByUserId(USER_SYSTEM);
-        TwinCreate twinCreate = new TwinCreate();
-        twinCreate.setTwinEntity(twinEntity);
-        twinCreate.setCheckCreatePermission(false);
-        for (FieldValue fv : buildFieldValues(dto, glossaryClass)) {
-            twinCreate.addField(fv);
-        }
-        return twinCreate;
-    }
-
-    private TwinUpdate buildTwinUpdate(BootstrapPlan.Update u, TwinClassEntity glossaryClass) {
-        TwinEntity dbTwin = u.dbTwin();
-        TwinEntity updatedEntity = dbTwin.clone()
-                .setName(u.dto().title())
-                .setDescription(u.dto().sectionSummary())
-                .setTwinStatusId(STATUS_ACTUAL);
-        TwinUpdate twinUpdate = new TwinUpdate();
-        twinUpdate.setDbTwinEntity(dbTwin);
-        twinUpdate.setTwinEntity(updatedEntity);
-        twinUpdate.setCheckEditPermission(false);
-        for (FieldValue fv : buildFieldValues(u.dto(), glossaryClass)) {
-            twinUpdate.addField(fv);
-        }
-        return twinUpdate;
-    }
-
-    private TwinUpdate buildMarkDeleteUpdate(TwinEntity orphan) {
-        TwinEntity updatedEntity = orphan.clone()
-                .setTwinStatusId(STATUS_DELETED);
-        TwinUpdate twinUpdate = new TwinUpdate();
-        twinUpdate.setDbTwinEntity(orphan);
-        twinUpdate.setTwinEntity(updatedEntity);
-        twinUpdate.setCheckEditPermission(false);
-        return twinUpdate;
-    }
-
-    /**
-     * Build the 13 FieldValue objects for a parsed DTO. Iterates the declarative
-     * {@link #TEXT_FIELD_MAPPINGS} for text values; boolean and date are added separately
-     * (different FieldValue subtypes). TwinService routes each value to the correct per-type
-     * table based on the fieldTyper featurer ID on the TwinClassFieldEntity.
-     */
-    private List<FieldValue> buildFieldValues(GlossaryEntityDto dto, TwinClassEntity glossaryClass) {
-        List<FieldValue> list = new ArrayList<>(13);
+    private SystemTwin toSystemTwin(GlossaryEntityDto dto, UUID statusId) {
+        List<SystemTwinFieldSimple> indexed = new ArrayList<>();
+        List<SystemTwinFieldSimpleNonIndexed> nonIndexed = new ArrayList<>();
         for (TextFieldMapping m : TEXT_FIELD_MAPPINGS) {
             String value = m.extractor().apply(dto);
             if (value == null || value.isBlank()) continue;
-            TwinClassFieldEntity field = glossaryClass.getTwinClassFieldKit().get(m.fieldId());
-            if (field == null) {
-                log.warn("Glossary field {} not in class kit — skipping value assignment", m.fieldId());
-                continue;
+            if (m.indexed()) {
+                indexed.add(new SystemTwinFieldSimple(m.fieldId(), value));
+            } else {
+                nonIndexed.add(new SystemTwinFieldSimpleNonIndexed(m.fieldId(), value));
             }
-            list.add(new FieldValueText(field).setValue(value));
         }
-        // Boolean (featurer 1306)
-        TwinClassFieldEntity boolField = glossaryClass.getTwinClassFieldKit().get(FIELD_IS_SYSTEM);
-        if (boolField != null) {
-            list.add(new FieldValueBoolean(boolField).setValue(dto.isSystem()));
-        }
-        // Date (featurer 1302)
-        TwinClassFieldEntity dateField = glossaryClass.getTwinClassFieldKit().get(FIELD_ACTUALIZED_AT);
-        if (dateField != null && dto.actualizedAt() != null) {
-            LocalDate date = dto.actualizedAt();
-            list.add(new FieldValueDate(dateField, null).setDate(date.atStartOfDay()));
-        }
-        return list;
+        List<SystemTwinFieldBoolean> booleanFields = List.of(
+                new SystemTwinFieldBoolean(FIELD_IS_SYSTEM, dto.isSystem()));
+        List<SystemTwinFieldTimestamp> timestampFields = dto.actualizedAt() == null
+                ? List.of()
+                : List.of(new SystemTwinFieldTimestamp(FIELD_ACTUALIZED_AT, dto.actualizedAt().atStartOfDay()));
+        return new SystemTwin(
+                dto.twinId(),
+                GLOSSARY_CLASS_ID,
+                statusId,
+                dto.title(),
+                dto.sectionSummary(),
+                "glossary:" + dto.slug(),
+                USER_SYSTEM,
+                indexed,
+                nonIndexed,
+                booleanFields,
+                timestampFields);
     }
 
-    /** Internal execute counters. */
-    private record Executed(int created, int updated, int restored, int markDeleted) {}
+    /**
+     * Internal execute counters.
+     */
+    private record Executed(int created, int updated, int restored, int markDeleted) {
+    }
 }

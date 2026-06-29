@@ -2,6 +2,7 @@ package org.twins.bootstrap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -17,10 +18,7 @@ import org.twins.core.dao.i18n.I18nTranslationRepository;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.dao.permission.*;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twin.TwinStatusRepository;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
@@ -30,12 +28,11 @@ import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static org.cambium.common.util.LTreeUtils.convertToLTreeFormat;
 import static org.twins.bootstrap.SystemEntityBootstrapData.*;
@@ -67,6 +64,11 @@ public class SystemEntityBootstrapService {
     final TwinStatusRepository twinStatusRepository;
     final UserRepository userRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
+    final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
+    final TwinFieldBooleanRepository twinFieldBooleanRepository;
+    final TwinFieldTimestampRepository twinFieldTimestampRepository;
+    final TwinClassFieldService twinClassFieldService;
     final EntitySmartService entitySmartService;
     private final I18nRepository i18nRepository;
     private final I18nTranslationRepository i18nTranslationRepository;
@@ -91,7 +93,7 @@ public class SystemEntityBootstrapService {
         bootstrapSystemLinks();
         bootstrapSystemDataLists();
         bootstrapSystemPermissions();  // also seeds i18n for permission name/description
-        bootstrapTemplates();
+        bootstrapSystemTwins();        // template Twins (USER, BUSINESS_ACCOUNT)
     }
 
     private void bootstrapSchemes() throws ServiceException {
@@ -275,21 +277,132 @@ public class SystemEntityBootstrapService {
         entitySmartService.saveAllAndLog(permissionEntities, permissionRepository);
     }
 
-    private void bootstrapTemplates() throws ServiceException {
-        TwinEntity userTemplate = new TwinEntity()
-                .setId(SystemIds.TwinTemplate.USER)
-                .setName("User")
-                .setTwinClassId(SystemIds.TwinClass.USER)
-                .setTwinStatusId(SystemIds.TwinStatus.User.INIT)
-                .setCreatedByUserId(SystemIds.User.SYSTEM);
-        entitySmartService.save(userTemplate.getId(), userTemplate, twinRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+    private void bootstrapSystemTwins() throws ServiceException {
+        for (SystemTwin twin : SYSTEM_TEMPLATE_TWINS) {
+            saveSystemTwin(twin, null, EntitySmartService.SaveMode.ifNotPresentCreate, false);
+        }
+    }
 
-        TwinEntity baTemplate = new TwinEntity()
-                .setId(SystemIds.TwinTemplate.BUSINESS_ACCOUNT)
-                .setName("Business account")
-                .setTwinClassId(SystemIds.TwinClass.BUSINESS_ACCOUNT)
-                .setTwinStatusId(SystemIds.TwinStatus.BusinessAccount.INIT)
-                .setCreatedByUserId(SystemIds.User.SYSTEM);
-        entitySmartService.save(baTemplate.getId(), baTemplate, twinRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+    /**
+     * Persist a system Twin (and optionally its field values) directly via repositories — bypasses
+     * TwinService on purpose: system Twins do not need permission checks, validation pipeline,
+     * aliases creation, search index, or history records. Also avoids the request-scoped ApiUser
+     * dependency that TwinService pulls in.
+     *
+     * <p>Used by both {@link #bootstrapSystemTwins()} (static templates) and
+     * {@link GlossaryBootstrapService} (markdown-driven glossary Twins).
+     *
+     * @param twin             data record
+     * @param twinClass        pre-loaded TwinClass with fields kit; if null, looked up + fields
+     *                         loaded here. Reuse from caller to avoid N+1 lookups when persisting
+     *                         many Twins of the same class.
+     * @param saveMode         {@code ifNotPresentCreate} for first-time bootstrap,
+     *                         {@code saveAndLogOnException} for upsert / update
+     * @param replaceFields    if true, delete-then-insert all field values for the managed
+     *                         TwinClassFieldIds; if false (CREATE case), just insert
+     */
+    public void saveSystemTwin(SystemTwin twin, TwinClassEntity twinClass,
+                               EntitySmartService.SaveMode saveMode, boolean replaceFields) throws ServiceException {
+        TwinEntity entity = new TwinEntity()
+                .setId(twin.id())
+                .setName(twin.name())
+                .setDescription(twin.description())
+                .setTwinClassId(twin.twinClassId())
+                .setTwinStatusId(twin.twinStatusId())
+                .setExternalId(twin.externalId())
+                .setCreatedByUserId(twin.createdByUserId() != null ? twin.createdByUserId() : SystemIds.User.SYSTEM);
+        entitySmartService.save(entity.getId(), entity, twinRepository, saveMode);
+
+        if (twin.simpleFields().isEmpty() && twin.simpleNonIndexedFields().isEmpty()
+                && twin.booleanFields().isEmpty() && twin.timestampFields().isEmpty()) return;
+        if (twinClass == null) {
+            twinClass = twinClassRepository.findById(twin.twinClassId()).orElseThrow(() ->
+                    new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "TwinClass " + twin.twinClassId() + " not found"));
+            twinClassFieldService.loadTwinClassFields(twinClass);
+        }
+        if (replaceFields) {
+            deleteSystemTwinFields(twin.id(), twin);
+        }
+        saveSystemTwinFields(twin.id(), twin);
+    }
+
+    /**
+     * Convenience overload for status-only updates (e.g. MARK_DELETE) — no field rewriting.
+     */
+    public void saveSystemTwinStatus(UUID twinId, UUID twinStatusId) throws ServiceException {
+        TwinEntity dbTwin = twinRepository.findById(twinId).orElse(null);
+        if (dbTwin == null) return;
+        dbTwin.setTwinStatusId(twinStatusId);
+        entitySmartService.save(dbTwin.getId(), dbTwin, twinRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+    }
+
+    /**
+     * Delete existing field values for the TwinClassFieldIds referenced by this SystemTwin.
+     * Each list maps 1:1 to a per-type table — no fieldTyper-featurer-id routing.
+     */
+    private void deleteSystemTwinFields(UUID twinId, SystemTwin twin) {
+        if (!twin.simpleFields().isEmpty()) {
+            Set<UUID> ids = new HashSet<>();
+            for (SystemTwinFieldSimple f : twin.simpleFields()) ids.add(f.twinClassFieldId());
+            twinFieldSimpleRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
+        }
+        if (!twin.simpleNonIndexedFields().isEmpty()) {
+            Set<UUID> ids = new HashSet<>();
+            for (SystemTwinFieldSimpleNonIndexed f : twin.simpleNonIndexedFields()) ids.add(f.twinClassFieldId());
+            twinFieldSimpleNonIndexedRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
+        }
+        if (!twin.booleanFields().isEmpty()) {
+            Set<UUID> ids = new HashSet<>();
+            for (SystemTwinFieldBoolean f : twin.booleanFields()) ids.add(f.twinClassFieldId());
+            twinFieldBooleanRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
+        }
+        if (!twin.timestampFields().isEmpty()) {
+            Set<UUID> ids = new HashSet<>();
+            for (SystemTwinFieldTimestamp f : twin.timestampFields()) ids.add(f.twinClassFieldId());
+            twinFieldTimestampRepository.deleteByTwinIdAndTwinClassFieldIdIn(twinId, ids);
+        }
+    }
+
+    /**
+     * Insert field values — each list goes straight to its dedicated table. No type detection,
+     * no typer routing, no instanceof: the record's destination table is encoded in its type.
+     */
+    private void saveSystemTwinFields(UUID twinId, SystemTwin twin) {
+        if (!twin.simpleFields().isEmpty()) {
+            List<TwinFieldSimpleEntity> batch = new ArrayList<>(twin.simpleFields().size());
+            for (SystemTwinFieldSimple f : twin.simpleFields()) {
+                if (f.value() == null || f.value().isBlank()) continue;
+                batch.add(new TwinFieldSimpleEntity()
+                        .setTwinId(twinId).setTwinClassFieldId(f.twinClassFieldId()).setValue(f.value()));
+            }
+            if (!batch.isEmpty()) twinFieldSimpleRepository.saveAll(batch);
+        }
+        if (!twin.simpleNonIndexedFields().isEmpty()) {
+            List<TwinFieldSimpleNonIndexedEntity> batch = new ArrayList<>(twin.simpleNonIndexedFields().size());
+            for (SystemTwinFieldSimpleNonIndexed f : twin.simpleNonIndexedFields()) {
+                if (f.value() == null || f.value().isBlank()) continue;
+                batch.add(new TwinFieldSimpleNonIndexedEntity()
+                        .setTwinId(twinId).setTwinClassFieldId(f.twinClassFieldId()).setValue(f.value()));
+            }
+            if (!batch.isEmpty()) twinFieldSimpleNonIndexedRepository.saveAll(batch);
+        }
+        if (!twin.booleanFields().isEmpty()) {
+            List<TwinFieldBooleanEntity> batch = new ArrayList<>(twin.booleanFields().size());
+            for (SystemTwinFieldBoolean f : twin.booleanFields()) {
+                if (f.value() == null) continue;
+                batch.add(new TwinFieldBooleanEntity()
+                        .setTwinId(twinId).setTwinClassFieldId(f.twinClassFieldId()).setValue(f.value()));
+            }
+            if (!batch.isEmpty()) twinFieldBooleanRepository.saveAll(batch);
+        }
+        if (!twin.timestampFields().isEmpty()) {
+            List<TwinFieldTimestampEntity> batch = new ArrayList<>(twin.timestampFields().size());
+            for (SystemTwinFieldTimestamp f : twin.timestampFields()) {
+                if (f.value() == null) continue;
+                batch.add(new TwinFieldTimestampEntity()
+                        .setTwinId(twinId).setTwinClassFieldId(f.twinClassFieldId()).setValue(Timestamp.valueOf(f.value())));
+            }
+            if (!batch.isEmpty()) twinFieldTimestampRepository.saveAll(batch);
+        }
     }
 }

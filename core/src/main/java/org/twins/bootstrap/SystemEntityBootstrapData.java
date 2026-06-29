@@ -29,6 +29,7 @@ public final class SystemEntityBootstrapData {
     public static final List<SystemLink> SYSTEM_LINKS;
     public static final List<SystemDataList> SYSTEM_DATA_LISTS;
     public static final List<SystemPermission> SYSTEM_PERMISSIONS;
+    public static final List<SystemTwin> SYSTEM_TEMPLATE_TWINS;
 
     static {
         SYSTEM_CLASSES = Collections.unmodifiableList(Arrays.asList(
@@ -561,6 +562,26 @@ public final class SystemEntityBootstrapData {
                 new SystemPermission(SystemIds.Permission.NotificationSchema.UPDATE, Permissions.NOTIFICATION_SCHEMA_UPDATE.name(), new I18n(UUID.fromString("00000000-0000-0000-0012-000000001248"), "Notification schema update"), new I18n(UUID.fromString("00000000-0000-0000-0012-000000001249"), "Notification schema update")),
                 new SystemPermission(SystemIds.Permission.NotificationSchema.DELETE, Permissions.NOTIFICATION_SCHEMA_DELETE.name(), new I18n(UUID.fromString("00000000-0000-0000-0012-00000000124a"), "Notification schema delete"), new I18n(UUID.fromString("00000000-0000-0000-0012-00000000124b"), "Notification schema delete"))
         );
+        SYSTEM_TEMPLATE_TWINS = List.of(
+                new SystemTwin(
+                        SystemIds.TwinTemplate.USER,
+                        SystemIds.TwinClass.USER,
+                        SystemIds.TwinStatus.User.INIT,
+                        "User",
+                        null,
+                        null,
+                        SystemIds.User.SYSTEM,
+                        List.of(), List.of(), List.of(), List.of()),
+                new SystemTwin(
+                        SystemIds.TwinTemplate.BUSINESS_ACCOUNT,
+                        SystemIds.TwinClass.BUSINESS_ACCOUNT,
+                        SystemIds.TwinStatus.BusinessAccount.INIT,
+                        "Business account",
+                        null,
+                        null,
+                        SystemIds.User.SYSTEM,
+                        List.of(), List.of(), List.of(), List.of())
+        );
     }
 
     public record SystemClass(UUID id, String key, List<SystemStatus> statuses, List<SystemField> fields,
@@ -590,5 +611,51 @@ public final class SystemEntityBootstrapData {
     }
 
     public record SystemPermission(UUID id, String key, I18n name, I18n description) {
+    }
+
+    /**
+     * A system Twin (instance, not class). Used for two cases:
+     * <ul>
+     *   <li>{@code SYSTEM_TEMPLATE_TWINS} — statically defined template Twins (USER, BUSINESS_ACCOUNT)
+     *       persisted at startup.</li>
+     *   <li>Dynamic Twins built at runtime — e.g. {@link GlossaryBootstrapService} converts each
+     *       parsed markdown file into a {@code SystemTwin} and delegates persistence to
+     *       {@link SystemEntityBootstrapService#saveSystemTwin}.</li>
+     * </ul>
+     *
+     * <p>Field values are split into four lists by destination table — type safety at compile
+     * time, no fieldTyper-featurer-id routing needed at save time. The caller knows which table
+     * each value belongs to when constructing the record.</p>
+     *
+     * @param id           Twin id (deterministic for system Twins, v5 for runtime-built)
+     * @param twinClassId  TwinClass this Twin belongs to
+     * @param twinStatusId Initial status
+     * @param name         Display name
+     * @param description  Optional short description
+     * @param externalId   Optional external identifier (e.g. "glossary:permission")
+     * @param createdByUserId  Creator — usually {@link SystemIds.User#SYSTEM}
+     */
+    public record SystemTwin(UUID id, UUID twinClassId, UUID twinStatusId, String name, String description,
+                             String externalId, UUID createdByUserId,
+                             List<SystemTwinFieldSimple> simpleFields,
+                             List<SystemTwinFieldSimpleNonIndexed> simpleNonIndexedFields,
+                             List<SystemTwinFieldBoolean> booleanFields,
+                             List<SystemTwinFieldTimestamp> timestampFields) {
+    }
+
+    /** Indexed text field value (fieldTyper 1301) → {@code twin_field_simple}. */
+    public record SystemTwinFieldSimple(UUID twinClassFieldId, String value) {
+    }
+
+    /** Non-indexed text field value (fieldTyper 1336) → {@code twin_field_simple_non_indexed}. */
+    public record SystemTwinFieldSimpleNonIndexed(UUID twinClassFieldId, String value) {
+    }
+
+    /** Boolean field value (fieldTyper 1306) → {@code twin_field_boolean}. */
+    public record SystemTwinFieldBoolean(UUID twinClassFieldId, Boolean value) {
+    }
+
+    /** Timestamp field value (fieldTyper 1302) → {@code twin_field_timestamp}. */
+    public record SystemTwinFieldTimestamp(UUID twinClassFieldId, java.time.LocalDateTime value) {
     }
 }
