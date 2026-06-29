@@ -18,6 +18,8 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,17 +29,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.twins.core.featurer.factory.filler.FillerForwardLinkToTwinFoundByHeadAndContextLinkDst.dstLinkId;
+
 @Slf4j
 public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends FillerLinks {
 
     @FeaturerParam(name = "New links id", description = "Forward link id to create from output twin", order = 1)
-    public static final FeaturerParamUUID newLinksId = new org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId("newLinksId");
+    public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
 
     @FeaturerParam(name = "Twin class id", description = "Twin class to search", order = 2)
-    public static final FeaturerParamUUID twinClassId = new org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId("twinClassId");
-
-    @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 3)
-    public static final FeaturerParamUUID dstLinkId = new org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId("dstLinkId");
+    public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
 
     @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 4, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeFactoryInputTwin = new FeaturerParamBoolean("excludeFactoryInputTwin");
