@@ -5,16 +5,22 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -28,8 +34,22 @@ import java.util.UUID;
 @Slf4j
 public class FillerForwardLinkToTwinFoundByHeadAndContextFieldLinkDst extends FillerForwardLinkToTwinFoundByHeadAndLinkDstBase {
 
-    @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 4)
+    @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 3)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
+
+    @Lazy
+    @Autowired
+    private TwinClassFieldService twinClassFieldService;
+
+    @Override
+    protected UUID getLinkId(Properties properties) throws ServiceException {
+        UUID dstFieldId = dstTwinClassFieldId.extract(properties);
+        TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(dstFieldId);
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        if (!(fieldTyper instanceof FieldTyperLink fieldTyperLink))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not link");
+        return fieldTyperLink.getLinkId(twinClassField.getFieldTyperParams());
+    }
 
     @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {

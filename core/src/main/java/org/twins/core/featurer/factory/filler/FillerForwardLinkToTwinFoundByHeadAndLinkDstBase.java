@@ -20,6 +20,7 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +29,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static org.twins.core.featurer.factory.filler.FillerForwardLinkToTwinFoundByHeadAndContextLinkDst.dstLinkId;
 
 @Slf4j
 public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends FillerLinks {
@@ -45,7 +44,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
     @Lazy
     @Autowired
-    private org.twins.core.service.twin.TwinSearchServiceV2 twinSearchService;
+    private TwinSearchServiceV2 twinSearchService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
@@ -78,7 +77,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
         }
 
         UUID extractedTwinClassId = twinClassId.extract(properties);
-        UUID extractedDstLinkId = dstLinkId.extract(properties);
+        UUID linkId = getLinkId(properties);
         UUID dstTwinId = resolveDstTwinId(properties, factoryItem, contextTwin);
         if (dstTwinId == null) {
             log.info("Link dst twin id is not resolved, twin found by head and link dst search skipped");
@@ -87,7 +86,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
         Set<UUID> excludeIds = buildExcludeIds(properties, factoryItem, contextTwin);
 
-        List<TwinEntity> uncommittedMatches = findUncommittedMatches(factoryItem, extractedTwinClassId, headTwinId, extractedDstLinkId, dstTwinId, excludeIds);
+        List<TwinEntity> uncommittedMatches = findUncommittedMatches(factoryItem, extractedTwinClassId, headTwinId, linkId, dstTwinId, excludeIds);
         if (uncommittedMatches.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
                     "More than one uncommitted twin of class[" + extractedTwinClassId + "] found by head and link dst");
@@ -96,7 +95,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
             return Optional.of(uncommittedMatches.getFirst());
         }
 
-        BasicSearch search = buildDbSearch(properties, headTwinId, dstTwinId, excludeIds);
+        BasicSearch search = buildDbSearch(properties, headTwinId, dstTwinId, linkId, excludeIds);
         PaginationResult<TwinEntity> searchResult = twinSearchService.search(search, new SimplePagination().setOffset(0).setLimit(2));
         List<TwinEntity> dbMatches = searchResult.getList();
         if (dbMatches.isEmpty()) {
@@ -109,12 +108,14 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
         return Optional.of(dbMatches.getFirst());
     }
 
-    private BasicSearch buildDbSearch(Properties properties, UUID headTwinId, UUID dstTwinId, Set<UUID> excludeIds) throws ServiceException {
+    private BasicSearch buildDbSearch(Properties properties, UUID headTwinId, UUID dstTwinId, UUID linkId, Set<UUID> excludeIds) throws ServiceException {
         BasicSearch search = new BasicSearch().setCheckViewPermission(false);
         search
                 .addTwinClassId(twinClassId.extract(properties), false)
-                .addHeadTwinId(headTwinId)
-                .addLinkDstTwinsId(dstLinkId.extract(properties), List.of(dstTwinId), false, true);
+                .addHeadTwinId(headTwinId);
+        if (linkId != null) {
+            search.addLinkDstTwinsId(linkId, List.of(dstTwinId), false, true);
+        }
 
         if (!excludeIds.isEmpty()) {
             search.setTwinIdExcludeList(excludeIds);
@@ -124,7 +125,9 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
     protected abstract UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
 
-    private List<TwinEntity> findUncommittedMatches(FactoryItem factoryItem, UUID extractedTwinClassId, UUID headTwinId, UUID extractedDstLinkId, UUID dstTwinId,Set<UUID> excludeIds) {
+    protected abstract UUID getLinkId(Properties properties) throws ServiceException;
+
+    private List<TwinEntity> findUncommittedMatches(FactoryItem factoryItem, UUID extractedTwinClassId, UUID headTwinId, UUID linkId, UUID dstTwinId, Set<UUID> excludeIds) {
         List<TwinEntity> matches = new ArrayList<>();
         for (FactoryItem candidateItem : factoryItem.getFactoryContext().getAllFactoryItemList()) {
             TwinOperation candidateOutput = candidateItem.getOutput();
@@ -142,7 +145,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
             if (!headTwinId.equals(candidateHeadTwinId)) {
                 continue;
             }
-            if (hasLinkDst(candidateOutput, extractedDstLinkId, dstTwinId)) {
+            if (linkId == null || hasLinkDst(candidateOutput, linkId, dstTwinId)) {
                 matches.add(candidateTwin);
             }
         }

@@ -29,6 +29,11 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextLinkDst extends FillerF
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
 
     @Override
+    protected UUID getLinkId(Properties properties) throws ServiceException {
+        return dstLinkId.extract(properties);
+    }
+
+    @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID linkId = dstLinkId.extract(properties);
         twinLinkService.loadTwinLinks(contextTwin);
