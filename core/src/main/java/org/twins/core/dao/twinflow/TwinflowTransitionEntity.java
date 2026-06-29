@@ -100,23 +100,44 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
     private TwinflowEntity twinflow;
 
-    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — see TwinClassFieldEntity.nameI18nTranslationsSpecOnly for explanation
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
