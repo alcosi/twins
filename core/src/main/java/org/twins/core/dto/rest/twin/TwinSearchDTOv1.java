@@ -66,6 +66,12 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Reporter id exclude list")
     public Set<UUID> createdByUserIdExcludeList;
 
+    @Schema(description = "Reporter name list")
+    public Set<String> createdByUserNameList;
+
+    @Schema(description = "Reporter name exclude list")
+    public Set<String> createdByUserNameExcludeList;
+
     @Schema(description = "External id list")
     public Set<String> externalIdList;
 
@@ -235,6 +241,16 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addCreatedByUserIdExcludeListItem(UUID item) {
         this.createdByUserIdExcludeList = CollectionUtils.safeAdd(this.createdByUserIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserNameListItem(String item) {
+        this.createdByUserNameList = CollectionUtils.safeAdd(this.createdByUserNameList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserNameExcludeListItem(String item) {
+        this.createdByUserNameExcludeList = CollectionUtils.safeAdd(this.createdByUserNameExcludeList, item);
         return this;
     }
 

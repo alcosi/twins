@@ -34,6 +34,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
         String[] assignerUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUser, UserEntity.Fields.name);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
+        String[] createdByUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
         String[] ownerBusinessAccountIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.ownerBusinessAccountId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
@@ -66,6 +67,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldLikeIn(twinSearch.getAssigneeUserNameExcludeList(), true, true, assignerUserNameFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
+                checkFieldLikeIn(twinSearch.getCreatedByUserNameList(), false, true, createdByUserNameFieldPath),
+                checkFieldLikeIn(twinSearch.getCreatedByUserNameExcludeList(), true, true, createdByUserNameFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdExcludeList(), true, true, ownerBusinessAccountIdFieldPath),
                 checkSpaceRoleUsersMembership(twinSearch.getSpaceRoleUsersList()),
