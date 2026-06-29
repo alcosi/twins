@@ -8,6 +8,7 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinFieldClause;
 import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.search.*;
@@ -31,6 +32,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] descriptionFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.description);
         String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
+        String[] assignerUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUser, UserEntity.Fields.name);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
         String[] ownerBusinessAccountIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.ownerBusinessAccountId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
@@ -60,6 +62,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldLikeIn(twinSearch.getExternalIdExcludeList(), true, true, externalIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdList(), false, false, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
+                checkFieldLikeIn(twinSearch.getAssigneeUserNameList(), false, true, assignerUserNameFieldPath),
+                checkFieldLikeIn(twinSearch.getAssigneeUserNameExcludeList(), true, true, assignerUserNameFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),

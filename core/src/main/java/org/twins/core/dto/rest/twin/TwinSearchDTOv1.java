@@ -54,6 +54,12 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Assigner id exclude list")
     public Set<UUID> assignerUserIdExcludeList;
 
+    @Schema(description = "Assigner name list")
+    public Set<String> assignerUserNameList;
+
+    @Schema(description = "Assigner name exclude list")
+    public Set<String> assignerUserNameExcludeList;
+
     @Schema(description = "Reporter id list")
     public Set<UUID> createdByUserIdList;
 
@@ -209,6 +215,16 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addAssignerUserIdExcludeListItem(UUID item) {
         this.assignerUserIdExcludeList = CollectionUtils.safeAdd(this.assignerUserIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addAssignerUserNameListItem(String item) {
+        this.assignerUserNameList = CollectionUtils.safeAdd(this.assignerUserNameList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addAssignerUserNameExcludeListItem(String item) {
+        this.assignerUserNameExcludeList = CollectionUtils.safeAdd(this.assignerUserNameExcludeList, item);
         return this;
     }
 

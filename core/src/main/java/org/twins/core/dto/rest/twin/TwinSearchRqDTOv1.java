@@ -89,6 +89,18 @@ public class TwinSearchRqDTOv1 extends TwinSearchExtendedDTOv1 {
     }
 
     @Override
+    public TwinSearchRqDTOv1 addAssignerUserNameListItem(String item) {
+        this.assignerUserNameList = CollectionUtils.safeAdd(this.assignerUserNameList, item);
+        return this;
+    }
+
+    @Override
+    public TwinSearchRqDTOv1 addAssignerUserNameExcludeListItem(String item) {
+        this.assignerUserNameExcludeList = CollectionUtils.safeAdd(this.assignerUserNameExcludeList, item);
+        return this;
+    }
+
+    @Override
     public TwinSearchRqDTOv1 addCreatedByUserIdListItem(UUID item) {
         this.createdByUserIdList = CollectionUtils.safeAdd(this.createdByUserIdList, item);
         return this;

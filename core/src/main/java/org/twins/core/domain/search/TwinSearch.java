@@ -40,6 +40,8 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
     private Set<UUID> statusIdList;
     private Set<UUID> assigneeUserIdList;
     private Set<UUID> assigneeUserIdExcludeList;
+    private Set<String> assigneeUserNameList;
+    private Set<String> assigneeUserNameExcludeList;
     private Set<UUID> createdByUserIdList;
     private Set<UUID> createdByUserIdExcludeList;
     private Set<UUID> ownerUserIdList;
@@ -91,6 +93,8 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
                 CollectionUtils.isEmpty(statusIdList) &&
                 CollectionUtils.isEmpty(assigneeUserIdList) &&
                 CollectionUtils.isEmpty(assigneeUserIdExcludeList) &&
+                CollectionUtils.isEmpty(assigneeUserNameList) &&
+                CollectionUtils.isEmpty(assigneeUserNameExcludeList) &&
                 CollectionUtils.isEmpty(createdByUserIdList) &&
                 CollectionUtils.isEmpty(createdByUserIdExcludeList) &&
                 CollectionUtils.isEmpty(ownerUserIdList) &&
