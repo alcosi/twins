@@ -179,7 +179,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
             entity.setTwinStatusId((UUID) value);
         else if (field.equals(SystemIds.TwinClassField.Base.OWNER_USER_ID))
             entity.setOwnerUserId((UUID) value);
-        else if (field.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_FLAVOR_DATA_LIST_OPTION_ID))
+        else if (field.equals(SystemIds.TwinClassField.Base.FLAVOR_ID))
             entity.setFlavorDataListOptionId((UUID) value);
         else if (field.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID))
             entity.setAssignerUserId((UUID) value);

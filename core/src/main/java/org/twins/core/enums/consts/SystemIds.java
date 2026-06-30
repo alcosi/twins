@@ -62,6 +62,7 @@ public final class SystemIds {
             public static final UUID ALIASES          = UUID.fromString("00000000-0000-0000-0011-000000000014");
             public static final UUID TAGS             = UUID.fromString("00000000-0000-0000-0011-000000000015");
             public static final UUID MARKERS          = UUID.fromString("00000000-0000-0000-0011-000000000016");
+            public static final UUID FLAVOR_ID = UUID.fromString("00000000-0000-0000-0011-000000000017");
             /**
              * All TwinClassField UUIDs that belong to system TwinClasses (USER / GLOBAL_ANCESTOR /
              * TWINS_GLOSSARY). Enumerated explicitly to keep this class self-contained — no
@@ -84,7 +85,8 @@ public final class SystemIds {
                     TWIN_CLASS_ID,
                     ALIASES,
                     TAGS,
-                    MARKERS
+                    MARKERS,
+                    FLAVOR_ID
             );
         }
 
@@ -667,13 +669,13 @@ public final class SystemIds {
     public static final class I18n {
         public static final class UserField {
             public static final UUID EMAIL_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000001");
-            public static final UUID AVATAR_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000002");
+            public static final UUID AVATAR_NAME        = UUID.fromString("00000000-0000-0000-0012-000000000002");
             public static final UUID EMAIL_DESCRIPTION  = UUID.fromString("00000000-0000-0000-0012-000000000012");
             public static final UUID AVATAR_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000013");
         }
 
         public static final class GlobalAncestorField {
-            public static final UUID NAME_NAME                 = UUID.fromString("00000000-0000-0000-0012-000000000003");
+            public static final UUID NAME_NAME                  = UUID.fromString("00000000-0000-0000-0012-000000000003");
             public static final UUID DESCRIPTION_NAME           = UUID.fromString("00000000-0000-0000-0012-000000000004");
             public static final UUID EXTERNAL_ID_NAME           = UUID.fromString("00000000-0000-0000-0012-000000000005");
             public static final UUID OWNER_USER_NAME            = UUID.fromString("00000000-0000-0000-0012-000000000006");
@@ -687,6 +689,7 @@ public final class SystemIds {
             public static final UUID ALIASES_NAME               = UUID.fromString("00000000-0000-0000-0012-000000000029");
             public static final UUID TAGS_NAME                  = UUID.fromString("00000000-0000-0000-0012-000000000030");
             public static final UUID MARKERS_NAME               = UUID.fromString("00000000-0000-0000-0012-000000000031");
+            public static final UUID FLAVOR_NAME                = UUID.fromString("00000000-0000-0000-0012-000000000053");
 
             public static final UUID NAME_DESCRIPTION           = UUID.fromString("00000000-0000-0000-0012-000000000014");
             public static final UUID DESCRIPTION_DESCRIPTION    = UUID.fromString("00000000-0000-0000-0012-000000000015");
@@ -702,6 +705,7 @@ public final class SystemIds {
             public static final UUID ALIASES_DESCRIPTION        = UUID.fromString("00000000-0000-0000-0012-000000000034");
             public static final UUID TAGS_DESCRIPTION           = UUID.fromString("00000000-0000-0000-0012-000000000035");
             public static final UUID MARKERS_DESCRIPTION        = UUID.fromString("00000000-0000-0000-0012-000000000036");
+            public static final UUID FLAVOR_DESCRIPTION         = UUID.fromString("00000000-0000-0000-0012-000000000054");
         }
 
         public static final class UserStatus {
@@ -720,9 +724,9 @@ public final class SystemIds {
         }
 
         public static final class GlossaryStatus {
-            public static final UUID INIT_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000047");
-            public static final UUID INIT_DESCRIPTION  = UUID.fromString("00000000-0000-0000-0012-000000000048");
-            public static final UUID DELETED_NAME         = UUID.fromString("00000000-0000-0000-0012-000000000049");
+            public static final UUID INIT_NAME           = UUID.fromString("00000000-0000-0000-0012-000000000047");
+            public static final UUID INIT_DESCRIPTION    = UUID.fromString("00000000-0000-0000-0012-000000000048");
+            public static final UUID DELETED_NAME        = UUID.fromString("00000000-0000-0000-0012-000000000049");
             public static final UUID DELETED_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000050");
         }
 
