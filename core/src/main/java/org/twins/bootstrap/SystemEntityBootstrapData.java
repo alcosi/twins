@@ -664,10 +664,11 @@ public final class SystemEntityBootstrapData {
     /**
      * Outgoing link from the system Twin to a destination Twin.
      * <p>Unlike the field-value records above, link persistence is <b>not</b> bundled into
-     * {@link SystemEntityBootstrapService#saveSystemTwin} — it has its own
-     * {@code saveSystemTwinLinks} entry point so the caller can defer link writes until all
+     * {@link SystemEntityBootstrapService#saveSystemTwin} — it has its own batched
+     * {@code saveSystemTwinLinksBatch} entry point so the caller can defer link writes until all
      * referenced Twins exist (solves forward-reference FK violations when see_also points to a
-     * Twin that is itself being created in the same pass).</p>
+     * Twin that is itself being created in the same pass) and bulk-reconcile the entire desired
+     * set in two queries (one DELETE + one INSERT) regardless of how many Twins participate.</p>
      *
      * @param linkId    Link type UUID (e.g. {@link SystemIds.Link#GLOSSARY_SEE_ALSO})
      * @param dstTwinId Target Twin UUID

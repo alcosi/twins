@@ -320,65 +320,74 @@ public class SystemEntityBootstrapService {
     }
 
     /**
-     * Convenience overload for status-only updates (e.g. MARK_DELETE) — no field rewriting.
+     * Bulk status transition for a set of Twins — one UPDATE statement regardless of how many
+     * Twins participate. Used by glossary MARK_DELETE pass to replace a per-Twin save() loop.
+     *
+     * @param twinIds  Twins to transition (must already exist in DB)
+     * @param statusId Target TwinStatus id
+     * @return number of rows actually updated (Twins whose status changed)
      */
-    public void saveSystemTwinStatus(UUID twinId, UUID twinStatusId) throws ServiceException {
-        TwinEntity dbTwin = twinRepository.findById(twinId).orElse(null);
-        if (dbTwin == null) return;
-        dbTwin.setTwinStatusId(twinStatusId);
-        entitySmartService.save(dbTwin.getId(), dbTwin, twinRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+    public int setTwinStatusForTwins(Collection<UUID> twinIds, UUID statusId) {
+        if (twinIds.isEmpty()) return 0;
+        return twinRepository.updateStatusByIdIn(statusId, twinIds);
     }
 
     /**
-     * Reconcile outgoing TwinLinks for a system Twin. Used by glossary bootstrap to materialize
-     * frontmatter {@code see_also} as {@code GLOSSARY_SEE_ALSO} TwinLink rows.
+     * Reconcile outgoing TwinLinks for a batch of system Twins. Used by glossary bootstrap to
+     * materialize frontmatter {@code see_also} as {@code GLOSSARY_SEE_ALSO} TwinLink rows.
      *
      * <p>Links are persisted via a separate entry point (not inside {@link #saveSystemTwin}) on
      * purpose: the caller must first save all referenced destination Twins to avoid FK violations
      * on forward references, then call this method in a second pass.
      *
-     * <p><b>Replace semantics:</b> when {@code replace=true}, all existing outgoing links of each
-     * distinct {@code linkId} are deleted before the new set is inserted. Markdown is the source of
-     * truth — same model as {@code replaceFields} on {@link #saveSystemTwin}.
+     * <p><b>Replace semantics:</b> for each distinct {@code linkId} present in {@code srcTwinIdToLinks},
+     * all existing outgoing links of that type from any of the supplied source Twins are deleted in
+     * one bulk statement, then the desired rows are inserted in one batch. Markdown is the source
+     * of truth — same model as {@code replaceFields} on {@link #saveSystemTwin}. Bulk DELETE + bulk
+     * INSERT keep this O(1) queries regardless of how many Twins participate in the pass.
      *
-     * @param srcTwinId Source Twin id (must already exist in DB)
-     * @param links     Desired outgoing link set (grouped internally by linkId)
-     * @param replace   If true, delete existing outgoing links of each linkId before insert
+     * @param srcTwinIdToLinks Map of source Twin id → desired outgoing link set. Source Twins must
+     *                         already exist in DB. Twins with empty link lists still get their
+     *                         existing links of any present linkId removed.
      * @return counters: inserted + deleted row counts (for telemetry / result reporting)
      */
-    public LinkReconcileResult saveSystemTwinLinks(UUID srcTwinId, List<SystemTwinLink> links, boolean replace) {
-        if (links.isEmpty() && !replace) return new LinkReconcileResult(0, 0);
-        Map<UUID, List<UUID>> dstsByLinkId = new LinkedHashMap<>();
-        for (SystemTwinLink l : links) {
-            if (l.dstTwinId() == null) continue;
-            dstsByLinkId.computeIfAbsent(l.linkId(), k -> new ArrayList<>()).add(l.dstTwinId());
+    public LinkReconcileResult saveSystemTwinLinksBatch(Map<UUID, List<SystemTwinLink>> srcTwinIdToLinks) {
+        if (srcTwinIdToLinks.isEmpty()) return new LinkReconcileResult(0, 0);
+        // Group source Twin ids by linkId so we issue one bulk DELETE per link type.
+        Map<UUID, Set<UUID>> srcIdsByLinkId = new LinkedHashMap<>();
+        for (Map.Entry<UUID, List<SystemTwinLink>> e : srcTwinIdToLinks.entrySet()) {
+            UUID src = e.getKey();
+            for (SystemTwinLink l : e.getValue()) {
+                srcIdsByLinkId.computeIfAbsent(l.linkId(), k -> new LinkedHashSet<>()).add(src);
+            }
         }
-        int inserted = 0;
         int deleted = 0;
-        for (Map.Entry<UUID, List<UUID>> e : dstsByLinkId.entrySet()) {
-            UUID linkId = e.getKey();
-            if (replace) {
-                deleted += twinLinkRepository.deleteBySrcTwinIdAndLinkId(srcTwinId, linkId);
-            }
-            List<TwinLinkEntity> batch = new ArrayList<>(e.getValue().size());
-            for (UUID dst : e.getValue()) {
+        for (Map.Entry<UUID, Set<UUID>> e : srcIdsByLinkId.entrySet()) {
+            deleted += twinLinkRepository.deleteByLinkIdAndSrcTwinIdIn(e.getKey(), e.getValue());
+        }
+        // One bulk INSERT for all desired rows across every source Twin and linkId.
+        Timestamp now = Timestamp.from(Instant.now());
+        List<TwinLinkEntity> batch = new ArrayList<>();
+        for (Map.Entry<UUID, List<SystemTwinLink>> e : srcTwinIdToLinks.entrySet()) {
+            UUID src = e.getKey();
+            for (SystemTwinLink l : e.getValue()) {
+                if (l.dstTwinId() == null) continue;
                 batch.add(new TwinLinkEntity()
-                        .setSrcTwinId(srcTwinId)
-                        .setLinkId(linkId)
-                        .setDstTwinId(dst)
+                        .setSrcTwinId(src)
+                        .setLinkId(l.linkId())
+                        .setDstTwinId(l.dstTwinId())
                         .setCreatedByUserId(SystemIds.User.SYSTEM)
-                        .setCreatedAt(Timestamp.from(Instant.now())));
-            }
-            if (!batch.isEmpty()) {
-                twinLinkRepository.saveAll(batch);
-                inserted += batch.size();
+                        .setCreatedAt(now));
             }
         }
-        return new LinkReconcileResult(inserted, deleted);
+        if (!batch.isEmpty()) {
+            twinLinkRepository.saveAll(batch);
+        }
+        return new LinkReconcileResult(batch.size(), deleted);
     }
 
     /**
-     * Counters returned by {@link #saveSystemTwinLinks}.
+     * Counters returned by {@link #saveSystemTwinLinksBatch}.
      */
     public record LinkReconcileResult(int inserted, int deleted) {
     }

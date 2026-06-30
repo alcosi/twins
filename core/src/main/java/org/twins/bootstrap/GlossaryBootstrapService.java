@@ -2,7 +2,6 @@ package org.twins.bootstrap;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -251,38 +250,47 @@ public class GlossaryBootstrapService {
                 log.error("Glossary RESTORE failed for {}: {}", u.dto().slug(), e.getMessage(), e);
             }
         }
+        // MARK_DELETE — single bulk UPDATE for all orphans at once.
         int markDeleted = 0;
-        for (TwinEntity orphan : plan.markDeletes()) {
+        if (!plan.markDeletes().isEmpty()) {
+            Set<UUID> orphanIds = new HashSet<>(plan.markDeletes().size());
+            for (TwinEntity orphan : plan.markDeletes()) {
+                orphanIds.add(orphan.getId());
+            }
             try {
-                systemEntityBootstrapService.saveSystemTwinStatus(orphan.getId(), STATUS_DELETED);
-                markDeleted++;
-            } catch (ServiceException e) {
-                log.error("Glossary MARK_DELETE failed for {}: {}", orphan.getId(), e.getMessage(), e);
+                markDeleted = systemEntityBootstrapService.setTwinStatusForTwins(orphanIds, STATUS_DELETED);
+            } catch (Exception e) {
+                log.error("Glossary MARK_DELETE batch failed for {} twin(s): {}",
+                        orphanIds.size(), e.getMessage(), e);
             }
         }
 
         // PHASE 2b — link reconciliation. Runs AFTER all Twins are persisted so see_also forward
         // references resolve. SKIPs are excluded (hash match → seeAlso unchanged). MARK_DELETEDs
         // are excluded — soft-deleted Twins keep their outgoing links for referential integrity.
-        int linksAdded = 0;
-        int linksRemoved = 0;
+        // Batched: one bulk DELETE per linkId across all participating Twins + one bulk INSERT,
+        // regardless of how many Twins are in the pass.
+        Map<UUID, List<SystemTwinLink>> linkBatch = new LinkedHashMap<>();
         for (GlossaryEntityDto dto : plan.creates()) {
-            SystemEntityBootstrapService.LinkReconcileResult r =
-                    reconcileLinks(dto, knownSlugs);
-            linksAdded += r.inserted();
-            linksRemoved += r.deleted();
+            linkBatch.put(dto.twinId(), buildSeeAlsoLinks(dto, knownSlugs));
         }
         for (BootstrapPlan.Update u : plan.updates()) {
-            SystemEntityBootstrapService.LinkReconcileResult r =
-                    reconcileLinks(u.dto(), knownSlugs);
-            linksAdded += r.inserted();
-            linksRemoved += r.deleted();
+            linkBatch.put(u.dto().twinId(), buildSeeAlsoLinks(u.dto(), knownSlugs));
         }
         for (BootstrapPlan.Update u : plan.restores()) {
-            SystemEntityBootstrapService.LinkReconcileResult r =
-                    reconcileLinks(u.dto(), knownSlugs);
-            linksAdded += r.inserted();
-            linksRemoved += r.deleted();
+            linkBatch.put(u.dto().twinId(), buildSeeAlsoLinks(u.dto(), knownSlugs));
+        }
+        int linksAdded = 0;
+        int linksRemoved = 0;
+        if (!linkBatch.isEmpty()) {
+            try {
+                SystemEntityBootstrapService.LinkReconcileResult r =
+                        systemEntityBootstrapService.saveSystemTwinLinksBatch(linkBatch);
+                linksAdded = r.inserted();
+                linksRemoved = r.deleted();
+            } catch (Exception e) {
+                log.error("Glossary link reconciliation batch failed: {}", e.getMessage(), e);
+            }
         }
         return new Executed(created, updated, restored, markDeleted, linksAdded, linksRemoved);
     }
@@ -324,23 +332,6 @@ public class GlossaryBootstrapService {
                 booleanFields,
                 timestampFields,
                 buildSeeAlsoLinks(dto, knownSlugs));
-    }
-
-    /**
-     * Persist (or re-reconcile) the {@code see_also} links for a glossary Twin. The desired set is
-     * computed from the DTO; existing outgoing GLOSSARY_SEE_ALSO rows for this src Twin are wiped
-     * and re-inserted (markdown is source of truth — same model as field replacement).
-     */
-    private SystemEntityBootstrapService.LinkReconcileResult reconcileLinks(GlossaryEntityDto dto, Set<String> knownSlugs) {
-        try {
-            return systemEntityBootstrapService.saveSystemTwinLinks(
-                    dto.twinId(),
-                    buildSeeAlsoLinks(dto, knownSlugs),
-                    true);
-        } catch (Exception e) {
-            log.error("Glossary link reconciliation failed for {}: {}", dto.slug(), e.getMessage(), e);
-            return new SystemEntityBootstrapService.LinkReconcileResult(0, 0);
-        }
     }
 
     /**
