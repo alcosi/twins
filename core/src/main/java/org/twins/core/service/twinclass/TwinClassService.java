@@ -40,7 +40,7 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.featurer.headhunter.HeadHunterImpl;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -301,7 +301,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
 
             if (twinClass.getHeadTwinClassId() == null ||
-                    SystemEntityService.isSystemClass(twinClass.getHeadTwinClassId())) {
+                    SystemIdLookup.isSystemClass(twinClass.getHeadTwinClassId())) {
                 twinClass
                         .setHeadHunterFeaturerId(null)
                         .setHeadHunterParams(null);

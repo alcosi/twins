@@ -141,10 +141,21 @@ dependencies {
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
     implementation 'io.github.resilience4j:resilience4j-spring-boot3:2.4.0'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.2'
 }
 
 configurations {
     runtime.exclude group: "com.zaxxer", module: "HikariCP"
+}
+
+// Glossary markdowns live at the repo root (docs/glossary/) for readability,
+// but GlossaryMarkdownParser reads them from the classpath (classpath:/docs/glossary/entities/*.md).
+// Copy them into build/resources/main/docs/glossary/ at processResources time so they end up inside the JAR.
+processResources {
+    from("${rootProject.projectDir}/docs/glossary") {
+        into('docs/glossary')
+        include '**/*.md'
+    }
 }
 
 jar {

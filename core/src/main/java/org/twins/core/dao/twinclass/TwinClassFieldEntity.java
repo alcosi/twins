@@ -17,7 +17,7 @@ import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 
 import java.util.*;
 
@@ -259,6 +259,6 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
     }
 
     public boolean isBaseField() {
-        return SystemEntityService.isSystemField(id);
+        return SystemIdLookup.isSystemField(id);
     }
 }

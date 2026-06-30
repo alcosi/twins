@@ -32,10 +32,10 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -232,7 +232,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
+                .setCreatedByUserId(SystemIds.User.SYSTEM);
         return saveSafe(twinflowEntity);
     }
 

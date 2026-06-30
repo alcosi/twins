@@ -14,7 +14,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
@@ -41,7 +41,7 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator {
         Set<UUID> dynamicFieldIds = null;
 
         for (UUID fieldClassId : fieldClassIds) {
-            if (SystemEntityService.isSystemField(fieldClassId)) {
+            if (SystemIdLookup.isSystemField(fieldClassId)) {
                 basicFieldIds = CollectionUtils.safeAdd(basicFieldIds, fieldClassId);
             } else {
                 dynamicFieldIds = CollectionUtils.safeAdd(dynamicFieldIds, fieldClassId);
@@ -62,7 +62,7 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator {
         for (var twinEntity : twinEntityCollection) {
             Set<UUID> nullFieldIds = null;
             for (UUID fieldClassId : basicFieldIds) {
-                Object value = SystemEntityService.getSystemFieldValue(twinEntity, fieldClassId);
+                Object value = SystemIdLookup.getSystemFieldValue(twinEntity, fieldClassId);
                 if (value == null) {
                     nullFieldIds = CollectionUtils.safeAdd(nullFieldIds, fieldClassId);
                 }

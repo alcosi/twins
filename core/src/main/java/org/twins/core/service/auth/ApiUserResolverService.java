@@ -21,8 +21,8 @@ import org.twins.core.domain.apiuser.DomainResolverHeaders;
 import org.twins.core.domain.apiuser.LocaleResolverDomainUser;
 import org.twins.core.domain.apiuser.LocaleResolverHeader;
 import org.twins.core.domain.apiuser.MainResolverAuthToken;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -156,7 +156,7 @@ public class ApiUserResolverService {
     }
 
     public boolean isSystemUser(UUID userId) {
-        return SystemEntityService.USER_SYSTEM.equals(userId);
+        return SystemIds.User.SYSTEM.equals(userId);
     }
 
     @Data

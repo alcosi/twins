@@ -33,5 +33,6 @@ public interface TwinFieldBooleanRepository extends CrudRepository<TwinFieldBool
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+    void deleteByTwinId(UUID twinId);
 
 }

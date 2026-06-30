@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
-import org.cambium.common.file.FileData;
 import org.twins.core.dto.rest.attachment.AttachmentSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.twins.core.exception.ErrorCodeTwins.BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED;
-import static org.twins.core.service.SystemEntityService.TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID;
 
 
 @Component

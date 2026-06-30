@@ -21,7 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
@@ -46,8 +46,8 @@ public class TwinHeadService {
         twinClassService.loadHeadTwinClass(twinClassEntity);
         var headTwinClassEntity = twinClassEntity.getHeadTwinClass();
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
-            if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
-                    || SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
+            if (SystemIdLookup.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
+                    || SystemIdLookup.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
                 basicSearch.addTwinClassId(headTwinClassEntity.getId(), false);// DBU check depends on class for which we are searching heads
             } else {
                 throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, headTwinClassEntity.logShort() + " unknown system twin class for head");
