@@ -28,7 +28,7 @@ public class FactoryEraserExportService extends EntityExportService<TwinFactoryE
         var sqlParts = new StringList();
 
         // Load and export ConditionSets
-        factoryEraserService.loadConditionSets(erasers);
+        factoryEraserService.loadConditionSet(erasers);
         sqlParts.addNotBlank(conditionSetExportService
                 .exportCollectionToSql(CollectionUtils.collect(erasers, TwinFactoryEraserEntity::getConditionSet)));
 

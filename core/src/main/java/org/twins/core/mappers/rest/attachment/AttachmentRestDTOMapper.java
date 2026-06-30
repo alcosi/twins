@@ -60,6 +60,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
 
     @Lazy
     @Autowired
+    @MapperModePointerBinding(modes = TwinClassFieldMode.Attachment2TwinClassFieldMode.class)
     private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     @Autowired

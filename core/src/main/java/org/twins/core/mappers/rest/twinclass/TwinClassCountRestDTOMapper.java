@@ -8,6 +8,7 @@ import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.twinclass.TwinClassCountDTOv1;
 import org.twins.core.enums.sort.TwinClassGroupField;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -37,6 +38,12 @@ public class TwinClassCountRestDTOMapper extends RestSimpleDTOMapper<CountResult
 
     @MapperModePointerBinding(modes = FaceMode.TwinClassPage2FaceMode.class)
     private final FaceRestDTOMapper faceRestDTOMapper;
+
+    @MapperModePointerBinding(modes = {
+            DataListMode.TwinClassMarker2DataListMode.class,
+            DataListMode.TwinClassTag2DataListMode.class
+    })
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     private final TwinClassService twinClassService;
 
@@ -93,6 +100,14 @@ public class TwinClassCountRestDTOMapper extends RestSimpleDTOMapper<CountResult
             faceRestDTOMapper.postpone(entity.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
             faceRestDTOMapper.postpone(entity.getBreadCrumbsFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
         }
+        if (needLoad(mapperContext, DataListMode.TwinClassMarker2DataListMode.HIDE, src, TwinClassGroupField.markerDataListId)) {
+            twinClassService.loadMarkerDataList(entity);
+            dataListRestDTOMapper.postpone(entity.getMarkerDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassMarker2DataListMode.SHORT));
+        }
+        if (needLoad(mapperContext, DataListMode.TwinClassTag2DataListMode.HIDE, src, TwinClassGroupField.tagDataListId)) {
+            twinClassService.loadTagDataList(entity);
+            dataListRestDTOMapper.postpone(entity.getTagDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassTag2DataListMode.SHORT));
+        }
     }
 
     @Override
@@ -105,10 +120,10 @@ public class TwinClassCountRestDTOMapper extends RestSimpleDTOMapper<CountResult
         if (needLoad(mapperContext, TwinClassMode.TwinClassExtends2TwinClassMode.HIDE, someCount, TwinClassGroupField.extendsTwinClassId)) {
             twinClassService.loadExtendsTwinClasses(entities);
         }
-        if (needLoad(mapperContext, DataListMode.TwinClass2MarkerDataListMode.HIDE, someCount, TwinClassGroupField.markerDataListId)) {
+        if (needLoad(mapperContext, DataListMode.TwinClassMarker2DataListMode.HIDE, someCount, TwinClassGroupField.markerDataListId)) {
             twinClassService.loadMarkerDataList(entities, false);
         }
-        if (needLoad(mapperContext, DataListMode.TwinClass2TagDataListMode.HIDE, someCount, TwinClassGroupField.tagDataListId)) {
+        if (needLoad(mapperContext, DataListMode.TwinClassTag2DataListMode.HIDE, someCount, TwinClassGroupField.tagDataListId)) {
             twinClassService.loadTagDataList(entities);
         }
         if (needLoad(mapperContext, TwinClassFreezeMode.TwinClass2TwinClassFreezeMode.HIDE, someCount, TwinClassGroupField.twinClassFreezeId)) {

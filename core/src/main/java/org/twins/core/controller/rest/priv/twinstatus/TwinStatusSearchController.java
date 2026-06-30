@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -24,11 +23,12 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dto.rest.twinstatus.*;
+import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRqDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRqDTOv2;
+import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusCountRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRqRestDTOReverseMapper;
@@ -45,7 +45,6 @@ public class TwinStatusSearchController extends ApiController {
     private final TwinStatusSearchRqRestDTOReverseMapper twinStatusSearchRqRestDTOReverseMapper;
     private final TwinStatusSearchRestDTOReverseMapper twinStatusSearchRestDTOReverseMapper;
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    private final TwinStatusCountRestDTOMapper twinStatusCountRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final TwinStatusSearchService twinStatusSearchService;
 
@@ -98,34 +97,6 @@ public class TwinStatusSearchController extends ApiController {
             rs
                     .setPagination(paginationMapper.convert(twinStatusList))
                     .setStatuses(twinStatusRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinStatusCountV1", summary = "Returns twin status count grouped by specified fields")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin status count prepared", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusCountRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_status/count/v1")
-    public ResponseEntity<?> twinStatusCountV1(
-            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
-            @RequestBody @Valid TwinStatusCountRqDTOv1 request) {
-        TwinStatusCountRsDTOv1 rs = new TwinStatusCountRsDTOv1();
-        try {
-            var results = twinStatusSearchService
-                    .countByGroupFields(twinStatusSearchRestDTOReverseMapper.convert(request.getSearch()), request.getGroupFields(), pagination);
-            rs
-                    .setCounts(twinStatusCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(results))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

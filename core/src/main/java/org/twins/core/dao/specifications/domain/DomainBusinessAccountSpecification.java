@@ -22,7 +22,7 @@ public class DomainBusinessAccountSpecification extends CommonSpecification<Doma
     public static Specification<DomainBusinessAccountEntity> checkBusinessAccountFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
-            Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccount, JoinType.INNER);
+            Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccountSpecOnly, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
                     Predicate predicate = cb.like(cb.lower(baJoin.get(field)), name.toLowerCase(), escapeChar);
@@ -36,7 +36,7 @@ public class DomainBusinessAccountSpecification extends CommonSpecification<Doma
     public static Specification<DomainBusinessAccountEntity> checkBusinessAccountFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
-            Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccount, JoinType.INNER);
+            Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccountSpecOnly, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
                     Predicate predicate = cb.not(cb.like(cb.lower(baJoin.get(field)), name.toLowerCase(), escapeChar));

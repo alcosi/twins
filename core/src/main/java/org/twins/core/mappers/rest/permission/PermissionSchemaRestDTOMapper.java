@@ -13,6 +13,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.permission.PermissionSchemaService;
+
+import java.util.Collection;
 
 import static org.cambium.common.util.DateUtils.convertOrNull;
 
@@ -25,6 +28,8 @@ public class PermissionSchemaRestDTOMapper extends RestSimpleDTOMapper<Permissio
 
     @MapperModePointerBinding(modes = UserMode.PermissionSchema2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    private final PermissionSchemaService permissionSchemaService;
 
     @Override
     public void map(PermissionSchemaEntity src, PermissionSchemaDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -48,7 +53,16 @@ public class PermissionSchemaRestDTOMapper extends RestSimpleDTOMapper<Permissio
         }
         if (mapperContext.hasModeButNot(UserMode.PermissionSchema2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
+            permissionSchemaService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.PermissionSchema2UserMode.SHORT)));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PermissionSchemaEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.PermissionSchema2UserMode.HIDE)) {
+            permissionSchemaService.loadCreatedByUser(srcCollection);
         }
     }
 

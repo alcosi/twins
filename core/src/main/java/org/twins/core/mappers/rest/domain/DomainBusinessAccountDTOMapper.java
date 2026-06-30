@@ -16,8 +16,6 @@ import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 import org.twins.core.service.domain.DomainBusinessAccountService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserService;
 
 import java.util.Collection;
 
@@ -43,16 +41,14 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
     @MapperModePointerBinding(modes = NotificationSchemaMode.DomainBusinessAccount2NotificationSchemaMode.class)
     private final NotificationSchemaRestDTOMapper notificationSchemaRestDTOMapper;
 
-    private final TwinService twinService;
-    private final UserService userService;
     private final DomainBusinessAccountService domainBusinessAccountService;
 
     @Override
     public void map(DomainBusinessAccountEntity src, DomainBusinessAccountDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(DomainBusinessAccountMode.DETAILED)) {
             case DETAILED:
-                twinService.loadTwinCountForDomainBusinessAccount(src);
-                userService.loadUserCountForDomainBusinessAccount(src);
+                domainBusinessAccountService.loadTwinCount(src);
+                domainBusinessAccountService.loadUserCount(src);
                 dst
                         .setId(src.getId())
                         .setBusinessAccountId(src.getBusinessAccountId())
@@ -74,14 +70,17 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
                 break;
         }
         if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.HIDE)) {
+            domainBusinessAccountService.loadBusinessAccount(src);
             dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TierMode.DomainBusinessAccount2TierMode.HIDE)) {
+            domainBusinessAccountService.loadTier(src);
             dst.setTierId(src.getTierId());
             tierRestDTOMapper.postpone(src.getTier(), mapperContext.forkOnPoint(TierMode.DomainBusinessAccount2TierMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.HIDE)) {
+            domainBusinessAccountService.loadPermissionSchema(src);
             dst.setPermissionSchemaId(src.getPermissionSchemaId());
             permissionSchemaRestDTOMapper.postpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.SHORT));
         }
@@ -104,8 +103,17 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
 
     public void beforeCollectionConversion(Collection<DomainBusinessAccountEntity> srcCollection, MapperContext mapperContext) throws Exception {
         if (mapperContext.hasMode(DomainBusinessAccountMode.DETAILED)) {
-            twinService.loadTwinCountForDomainBusinessAccounts(srcCollection);
-            userService.loadUserCountForDomainBusinessAccounts(srcCollection);
+            domainBusinessAccountService.loadTwinCount(srcCollection);
+            domainBusinessAccountService.loadUserCount(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.HIDE)) {
+            domainBusinessAccountService.loadBusinessAccount(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TierMode.DomainBusinessAccount2TierMode.HIDE)) {
+            domainBusinessAccountService.loadTier(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(PermissionSchemaMode.DomainBusinessAccount2PermissionSchemaMode.HIDE)) {
+            domainBusinessAccountService.loadPermissionSchema(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinflowSchemaMode.DomainBusinessAccount2TwinflowSchemaMode.HIDE)) {
             domainBusinessAccountService.loadTwinflowSchema(srcCollection);

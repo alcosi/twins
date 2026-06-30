@@ -51,16 +51,16 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
             "where coalesce(a.involves_count, 0) <> coalesce(e.expected_involves, 0);", nativeQuery = true)
     long countInvalidInvolvesCount();
 
-    @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId = :type")
+    @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroupSpecOnly.domainId = :domainId and ugm.userGroupSpecOnly.userGroupTypeId = :type")
     List<UUID> findAllByBusinessAccountIdAndDomainIdAndType(UUID businessAccountId, UUID domainId, String type);
 
     UserGroupMapEntity findByUserIdAndUserGroupIdAndBusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
 
-    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountIdAndUserGroup_DomainId(UUID userId, UUID userGroupId, UUID businessAccountId, UUID domainId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountIdAndUserGroupSpecOnly_DomainId(UUID userId, UUID userGroupId, UUID businessAccountId, UUID domainId);
 
-    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
 
-    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroup_DomainId(UUID userId, UUID userGroupId, UUID domainId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroupSpecOnly_DomainId(UUID userId, UUID userGroupId, UUID domainId);
 
     UserGroupMapEntity findByUserIdAndUserGroupIdAndDomainId(UUID userId, UUID userGroupId, UUID domainId);
 

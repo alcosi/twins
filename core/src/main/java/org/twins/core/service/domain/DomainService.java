@@ -61,6 +61,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final DomainLocaleService domainLocaleService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
 
 
     @Override
@@ -274,16 +275,11 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!apiUser.isBusinessAccountSpecified())
-            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
-        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
-        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
-        attachmentQuotas
-                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
-                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
-                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
-                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
-        return attachmentQuotas;
+        return switch (apiUser.getDomain().getDomainType()) {
+            case b2b -> domainBusinessAccountService.getTierQuotas();
+            case basic -> getDomainQuotas();
+            default -> throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
+        };
     }
 
     public AttachmentQuotas getDomainQuotas() throws ServiceException {

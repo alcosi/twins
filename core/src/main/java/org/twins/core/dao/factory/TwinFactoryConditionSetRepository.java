@@ -17,4 +17,6 @@ public interface TwinFactoryConditionSetRepository extends CrudRepository<TwinFa
     @Override
     @Cacheable(value = CACHE_CONDITION_SET_BY_ID, key = "#uuid")
     Optional<TwinFactoryConditionSetEntity> findById(UUID uuid);
+
+    List<TwinFactoryConditionSetEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
 }

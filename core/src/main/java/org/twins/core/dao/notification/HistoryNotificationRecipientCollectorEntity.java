@@ -2,7 +2,7 @@ package org.twins.core.dao.notification;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -41,9 +41,18 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     @Column(name = "recipient_resolver_params", columnDefinition = "hstore")
     private HashMap<String, String> recipientResolverParams;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
-    private HistoryNotificationRecipientEntity historyNotificationRecipientEntity;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private HistoryNotificationRecipientEntity historyNotificationRecipientSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private HistoryNotificationRecipientEntity historyNotificationRecipient;
 
     public String easyLog(Level level) {
         return "historyNotificationRecipientCollector[id:" + id + "]";

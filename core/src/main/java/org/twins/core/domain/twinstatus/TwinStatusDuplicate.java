@@ -7,14 +7,9 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityDuplicate;
 
-import java.util.UUID;
-
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinStatusDuplicate extends EntityDuplicate<TwinStatusEntity> {
-    private UUID newTwinClassId;
-    private UUID newTwinStatusId;
+public class TwinStatusDuplicate extends EntityDuplicate<TwinStatusEntity, TwinClassEntity> {
     private boolean duplicateTriggers = false;
-    private TwinClassEntity newTwinClass;
 }

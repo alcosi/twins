@@ -9,7 +9,10 @@ import org.cambium.common.util.UuidUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.apiuser.*;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -28,6 +31,9 @@ public class ApiUser {
     private DomainEntity domain;
     private BusinessAccountEntity businessAccount;
     private BusinessAccountEntity machineBusinessAccount;
+    private DomainBusinessAccountEntity domainBusinessAccount;
+    private DomainUserEntity domainUser;
+    private BusinessAccountUserEntity businessAccountUser;
     private UserEntity user;
     private UserEntity machineUser;
     private UUID domainId;
@@ -35,6 +41,9 @@ public class ApiUser {
     private UUID userId;
     private UUID machineBusinessAccountId;
     private UUID machineUserId;
+    private UUID domainBusinessAccountId;
+    private UUID domainUserId;
+    private UUID businessAccountUserId;
     private DomainResolver domainResolver;
     private Locale locale;
     private LocaleResolver localeResolver;
@@ -310,18 +319,21 @@ public class ApiUser {
         resolveMachineUserId();
         resolveMachineBusinessAccountId();
         if (machineUserId != null && !NOT_SPECIFIED.equals(machineUserId)) {
-            ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, machineBusinessAccount, machineUser); //all args can be null
+            ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, machineBusinessAccount, machineUser, null, null, null); //all args can be null
             apiUserResolverService.loadDBU(domainId, machineBusinessAccountId, machineUserId, dbu, checkMembershipMode);
             domain = dbu.getDomain();
             machineBusinessAccount = dbu.getBusinessAccount();
             machineUser = dbu.getUser();
             setActAsUserStep(ActAsUserStep.PERMISSION_CHECK_NEEDED);
         }
-        ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, businessAccount, user); //all args can be null
+        ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, businessAccount, user, domainUser, businessAccountUser, domainBusinessAccount); //all args can be null
         apiUserResolverService.loadDBU(domainId, businessAccountId, userId, dbu, checkMembershipMode);
         domain = dbu.getDomain();
         businessAccount = dbu.getBusinessAccount();
         user = dbu.getUser();
+        domainBusinessAccount = dbu.getDomainBusinessAccount();
+        domainUser = dbu.getDomainUser();
+        businessAccountUser = dbu.getBusinessAccountUser();
     }
 
     public Channel getChannel() {
@@ -358,6 +370,24 @@ public class ApiUser {
 
     public boolean isSystemUser() throws ServiceException {
         return apiUserResolverService.isSystemUser(getUserId());
+    }
+
+    public DomainBusinessAccountEntity getDomainBusinessAccount() throws ServiceException {
+        if (domainBusinessAccount != null)
+            return domainBusinessAccount;
+        loadDBU();
+        if (domainBusinessAccount == null)
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS);
+        return domainBusinessAccount;
+    }
+
+    public DomainUserEntity getDomainUser() throws ServiceException {
+        if (domainUser != null)
+            return domainUser;
+        loadDBU();
+        if (domainUser == null)
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS);
+        return domainUser;
     }
 
     @RequiredArgsConstructor

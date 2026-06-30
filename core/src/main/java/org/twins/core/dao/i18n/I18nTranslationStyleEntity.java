@@ -1,9 +1,7 @@
 package org.twins.core.dao.i18n;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import org.cambium.common.util.UuidUtils;
 
 import java.util.Locale;
@@ -24,11 +22,13 @@ public class I18nTranslationStyleEntity {
     @Column(name = "i18n_id")
     private UUID i18nId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18n;
+    private I18nEntity i18nSpecOnly;
 
     @Column(name = "locale")
     @Convert(converter = LocaleConverter.class)

@@ -1,9 +1,7 @@
 package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -52,33 +50,47 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "last_activity_at")
     private Timestamp lastActivityAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
+    private DomainEntity domainSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private UserEntity user;
+    private UserEntity userSpecOnly;
 
-    //    needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", referencedColumnName = "domain_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Set<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
+    private Set<DomainBusinessAccountEntity> domainBusinessAccountsByDomainIdSpecOnly;
 
-    //    needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Set<BusinessAccountUserEntity> businessAccountUsersByUserId;
+    private Set<BusinessAccountUserEntity> businessAccountUsersByUserIdSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainEntity domain;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity user;
 
     @Transient
     @EqualsAndHashCode.Exclude

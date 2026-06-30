@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.factory.FactoryEraserAction;
 
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_eraser")
-public class TwinFactoryEraserEntity implements EasyLoggable {
+public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

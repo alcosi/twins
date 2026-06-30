@@ -25,7 +25,6 @@ import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dto.rest.attachment.AttachmentCountRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCountRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentCountRestDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentSearchDTOv1ReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -54,7 +53,7 @@ public class AttachmentCountController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/count/v1")
     public ResponseEntity<?> attachmentCountV1(
-            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentCountRestDTOMapper.class, response = AttachmentCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody @Valid AttachmentCountRqDTOv1 request) {
         AttachmentCountRsDTOv1 rs = new AttachmentCountRsDTOv1();

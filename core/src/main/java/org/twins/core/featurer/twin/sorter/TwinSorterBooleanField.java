@@ -1,6 +1,9 @@
 package org.twins.core.featurer.twin.sorter;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -36,7 +39,7 @@ public class TwinSorterBooleanField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN
-                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsBoolean);
+                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsBooleanSpecOnly);
                 // Get boolean value for sorting
                 Expression<Boolean> value = tfJoin.get(TwinFieldBooleanEntity.Fields.value);
                 // Ensure NULL values are placed at the end

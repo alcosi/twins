@@ -63,5 +63,8 @@ public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, 
         if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE)) {
             linkService.loadCreatedBy(srcCollection);
         }
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE)) {
+            linkService.loadTwinClasses(srcCollection);
+        }
     }
 }

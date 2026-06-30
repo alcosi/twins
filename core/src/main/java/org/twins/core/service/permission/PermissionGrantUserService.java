@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dao.permission.PermissionGrantUserRepository;
 import org.twins.core.domain.ApiUser;
@@ -24,6 +23,8 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -109,5 +110,38 @@ public class PermissionGrantUserService extends EntitySecureFindServiceImpl<Perm
     @Transactional
     public void deletePermissionGrantUser(UUID id) throws ServiceException {
         deleteSafe(id);
+    }
+
+    public void loadPermission(PermissionGrantUserEntity src) throws ServiceException {
+        loadPermission(Collections.singletonList(src));
+    }
+
+    public void loadPermission(Collection<PermissionGrantUserEntity> srcCollection) throws ServiceException {
+        permissionService.load(srcCollection,
+                PermissionGrantUserEntity::getPermissionId,
+                PermissionGrantUserEntity::getPermission,
+                PermissionGrantUserEntity::setPermission);
+    }
+
+    public void loadUser(PermissionGrantUserEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<PermissionGrantUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                PermissionGrantUserEntity::getUserId,
+                PermissionGrantUserEntity::getUser,
+                PermissionGrantUserEntity::setUser);
+    }
+
+    public void loadGrantedByUser(PermissionGrantUserEntity src) throws ServiceException {
+        loadGrantedByUser(Collections.singletonList(src));
+    }
+
+    public void loadGrantedByUser(Collection<PermissionGrantUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                PermissionGrantUserEntity::getGrantedByUserId,
+                PermissionGrantUserEntity::getGrantedByUser,
+                PermissionGrantUserEntity::setGrantedByUser);
     }
 }

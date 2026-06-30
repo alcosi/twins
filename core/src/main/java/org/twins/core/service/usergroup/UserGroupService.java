@@ -30,11 +30,14 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -47,11 +50,17 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupMapRepository userGroupMapRepository;
     final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
+    @Lazy
+    private final UserGroupMapService userGroupMapService;
     final I18nService i18nService;
     @Lazy
     final AuthService authService;
     @Lazy
     final UserService userService;
+    @Lazy
+    final DomainService domainService;
+    @Lazy
+    final BusinessAccountService businessAccountService;
 
     @Override
     public CrudRepository<UserGroupEntity, UUID> entityRepository() {
@@ -104,6 +113,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         if (CollectionUtils.isEmpty(userGroups)) {
             return;
         }
+        userGroupMapService.loadUserGroup(userGroups);
         for (var userGroupMap : userGroups) {
             needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
@@ -131,6 +141,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
             List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroupsStrict(apiUser.getDomainId(), businessAccountId, usersByUserId.keySet());
             if (CollectionUtils.isEmpty(userGroups))
                 continue;
+            userGroupMapService.loadUserGroup(userGroups);
             for (UserGroupMapEntity userGroupMap : userGroups) {
                 DomainBusinessAccountUserEntity entity = usersByUserId.get(userGroupMap.getUserId());
                 if (entity != null)
@@ -245,9 +256,9 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
             ChangesHelper changesHelper = new ChangesHelper();
             i18nService.updateI18nFieldForEntity(userGroup.getNameI18n(), I18nType.USER_GROUP_NAME, entity,
-                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18N, changesHelper);
+                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18NId, changesHelper);
             i18nService.updateI18nFieldForEntity(userGroup.getDescriptionI18n(), I18nType.USER_GROUP_DESCRIPTION, entity,
-                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18N, changesHelper);
+                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18NId, changesHelper);
             // todo for future, as at create
             // updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
 
@@ -256,5 +267,51 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
         updateSafe(changes);
         return allEntities;
+    }
+
+    public void loadDomain(UserGroupEntity src) throws ServiceException {
+        loadDomain(Collections.singletonList(src));
+    }
+
+    public void loadDomain(Collection<UserGroupEntity> srcCollection) throws ServiceException {
+        domainService.load(srcCollection,
+                UserGroupEntity::getDomainId,
+                UserGroupEntity::getDomain,
+                UserGroupEntity::setDomain);
+    }
+
+    public void loadBusinessAccount(UserGroupEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<UserGroupEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                UserGroupEntity::getBusinessAccountId,
+                UserGroupEntity::getBusinessAccount,
+                UserGroupEntity::setBusinessAccount);
+    }
+
+    public void loadUserGroupType(UserGroupEntity src) {
+        loadUserGroupType(Collections.singletonList(src));
+    }
+
+    public void loadUserGroupType(Collection<UserGroupEntity> srcCollection) {
+        Set<String> needLoad = null;
+        for (UserGroupEntity src : srcCollection) {
+            if (src.getUserGroupType() == null && src.getUserGroupTypeId() != null) {
+                if (needLoad == null)
+                    needLoad = new HashSet<>();
+                needLoad.add(src.getUserGroupTypeId().name());
+            }
+        }
+        if (needLoad == null)
+            return;
+        Map<String, UserGroupTypeEntity> byId = StreamSupport.stream(userGroupTypeRepository.findAllById(needLoad).spliterator(), false)
+                .collect(Collectors.toMap(UserGroupTypeEntity::getId, t -> t));
+        for (UserGroupEntity src : srcCollection) {
+            UserGroupTypeEntity type = byId.get(src.getUserGroupTypeId() == null ? null : src.getUserGroupTypeId().name());
+            if (type != null)
+                src.setUserGroupType(type);
+        }
     }
 }

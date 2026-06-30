@@ -107,6 +107,10 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
                 UserGroupInvolveAssigneeEntity::setTwinStatus);
     }
 
+    public void loadCreatedByUser(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
     public void loadCreatedByUser(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
         userService.load(entities,
                 UserGroupInvolveAssigneeEntity::getCreatedByUserId,

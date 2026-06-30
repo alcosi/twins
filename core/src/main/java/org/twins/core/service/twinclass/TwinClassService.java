@@ -716,7 +716,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public boolean isStatusAllowedForTwinClass(TwinClassEntity twinClassEntity, UUID twinStatusId) throws ServiceException {
-        twinStatusService.loadStatusesForTwinClasses(twinClassEntity);
+        twinStatusService.loadStatuses(twinClassEntity);
         return twinClassEntity.getTwinStatusKit().getIdSet().contains(twinStatusId);
     }
 

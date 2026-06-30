@@ -389,10 +389,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         );
     }
 
-    public void loadAttachmentsCount(TwinEntity twinEntity) {
-        loadAttachmentsCount(Collections.singletonList(twinEntity));
-    }
-
     public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)

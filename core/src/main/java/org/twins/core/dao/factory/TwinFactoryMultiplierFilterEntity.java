@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_multiplier_filter")
-public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
+public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 

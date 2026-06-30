@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.HashMap;
@@ -24,6 +25,8 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
     private EntitySmartService entitySmartService;
     @Autowired
     private DomainBusinessAccountRepository domainBusinessAccountRepository;
+    @Autowired
+    private DomainBusinessAccountService domainBusinessAccountService;
     @Lazy
     @Autowired
     private TwinService twinService;

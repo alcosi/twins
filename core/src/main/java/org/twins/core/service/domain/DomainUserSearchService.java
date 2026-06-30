@@ -44,7 +44,7 @@ public class DomainUserSearchService {
             }
         }
 
-        Specification<DomainUserEntity> spec = createDomainUserSearchSpecification(search).and(checkFieldUuid(apiUser.getDomainId(), DomainUserEntity.Fields.domain, DomainEntity.Fields.id));
+        Specification<DomainUserEntity> spec = createDomainUserSearchSpecification(search).and(checkFieldUuid(apiUser.getDomainId(), DomainUserEntity.Fields.domainSpecOnly, DomainEntity.Fields.id));
         Page<DomainUserEntity> ret = domainUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }

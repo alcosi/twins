@@ -10,25 +10,23 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemIdLookup;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants
-public class TwinClassFieldEntity implements EasyLoggable {
+public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
 
     @Id
     private UUID id;
@@ -123,21 +121,47 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — Hibernate sees null in FlushVisitor.processCollection,
+    // does early return (value == null branch), PersistentBag is never instantiated in field,
+    // so "Found shared references to a collection" can't trigger on non-unique referencedColumnName.
+    // Criteria API still works — association metadata is preserved by @OneToMany/@JoinColumn.
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18nSpecOnly;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18nSpecOnly;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -179,21 +203,21 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "twin_sorter_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity twinSorterFeaturerSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Collection<ProjectionEntity> projectionsBySrc;
+    private Collection<ProjectionEntity> projectionsBySrcSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Collection<ProjectionEntity> projectionsByDst;
+    private Collection<ProjectionEntity> projectionsByDstSpecOnly;
 
     @Transient
     @ToString.Exclude

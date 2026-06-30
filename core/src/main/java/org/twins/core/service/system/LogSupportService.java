@@ -23,6 +23,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.io.PrintWriter;
+import java.util.Objects;
 
 @Lazy
 @Slf4j
@@ -45,9 +46,16 @@ public class LogSupportService {
 
         var domain = apiUser.getDomain();
         var twinClasses = twinClassSearchService.searchTwinClasses(null);
-        twinStatusService.loadStatusesForTwinClasses(twinClasses);
+        twinStatusService.loadStatuses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinks(twinClasses);
+        linkService.loadTwinClasses(
+                twinClasses.stream()
+                        .map(TwinClassEntity::getLinksKit)
+                        .filter(Objects::nonNull)
+                        .flatMap(linksKit -> linksKit.getCollection().stream())
+                        .toList()
+        );
         twinflowService.loadTwinflows(twinClasses);
         twinflowTransitionService.loadAllTransitions(twinClasses);
 

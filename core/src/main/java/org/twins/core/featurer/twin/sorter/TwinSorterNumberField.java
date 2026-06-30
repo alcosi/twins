@@ -1,6 +1,9 @@
 package org.twins.core.featurer.twin.sorter;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -35,7 +38,7 @@ public class TwinSorterNumberField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN
-                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
+                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimpleSpecOnly);
                 // Convert string value to Double for numeric sorting
                 Expression<String> stringValue = tfJoin.get(TwinFieldSimpleEntity.Fields.value);
                 Expression<Double> numericValue = cb.function("text2double", Double.class, stringValue);

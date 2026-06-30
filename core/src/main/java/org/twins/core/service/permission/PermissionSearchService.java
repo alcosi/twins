@@ -19,7 +19,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.Locale;
 import java.util.UUID;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.permission.PermissionSpecification.*;
 
 
@@ -47,10 +47,10 @@ public class PermissionSearchService {
                 checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, PermissionEntity.Fields.key),
                 checkUuidIn(search.getIdList(), false, true, PermissionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, PermissionEntity.Fields.id),
-                joinAndSearchByI18NField(PermissionEntity.Fields.nameI18nSpecOnly, search.getNameI18nLikeList(), locale, false, false),
-                joinAndSearchByI18NField(PermissionEntity.Fields.nameI18nSpecOnly, search.getNameI18nNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18nSpecOnly, search.getDescriptionI18nLikeList(), locale, false, false),
-                joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18nSpecOnly, search.getDescriptionI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(PermissionEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nLikeList(), locale, false, false),
+                joinAndSearchByI18NFieldDirect(PermissionEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(PermissionEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nLikeList(), locale, false, false),
+                joinAndSearchByI18NFieldDirect(PermissionEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nNotLikeList(), locale, true, true),
                 checkUuidIn(search.getGroupIdList(), false, true, PermissionEntity.Fields.permissionGroupId),
                 checkUuidIn(search.getGroupIdExcludeList(), true, true, PermissionEntity.Fields.permissionGroupId));
     }

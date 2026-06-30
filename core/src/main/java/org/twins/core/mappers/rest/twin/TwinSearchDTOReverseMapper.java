@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSearchBySpaceRoleUser;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
@@ -37,6 +38,8 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setStatusIdList(convertToSetSafe(src.getStatusIdList()))
                 .setAssigneeUserIdList(convertToSetSafe(src.getAssignerUserIdList()))
                 .setAssigneeUserIdExcludeList(convertToSetSafe(src.getAssignerUserIdExcludeList()))
+                .setAssigneeUserNameList(convertToSetSafe(src.getAssignerUserNameList()))
+                .setAssigneeUserNameExcludeList(convertToSetSafe(src.getAssignerUserNameExcludeList()))
                 .setHeadTwinIdList(convertToSetSafe(src.getHeadTwinIdList()))
                 .setHeadTwinClassIdList(convertToSetSafe(src.getHeadTwinClassIdList()))
                 .setTwinClassExtendsHierarchyContainsIdList(convertToSetSafe(src.getTwinClassExtendsHierarchyContainsIdList()))
@@ -50,12 +53,16 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTwinDescriptionNotLikeList(convertToSetSafe(src.getDescriptionNotLikeList()))
                 .setCreatedByUserIdList(convertToSetSafe(src.getCreatedByUserIdList()))
                 .setCreatedByUserIdExcludeList(convertToSetSafe(src.getCreatedByUserIdExcludeList()))
+                .setCreatedByUserNameList(convertToSetSafe(src.getCreatedByUserNameList()))
+                .setCreatedByUserNameExcludeList(convertToSetSafe(src.getCreatedByUserNameExcludeList()))
                 .setHierarchyTreeContainsIdList(convertToSetSafe(src.getHierarchyTreeContainsIdList()))
                 .setStatusIdExcludeList(convertToSetSafe(src.getStatusIdExcludeList()))
                 .setTagDataListOptionIdList(convertToSetSafe(src.getTagDataListOptionIdList()))
                 .setTagDataListOptionIdExcludeList(convertToSetSafe(src.getTagDataListOptionIdExcludeList()))
                 .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
                 .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
+                .setFlavorDataListOptionIdList(convertToSetSafe(src.getFlavorDataListOptionIdList()))
+                .setFlavorDataListOptionIdExcludeList(convertToSetSafe(src.getFlavorDataListOptionIdExcludeList()))
                 .setTouchList(convertToSetSafe(src.getTouchList()))
                 .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()))
                 .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
@@ -98,6 +105,15 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                     dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
                 }
             }
+        if (src.getSpaceRoleUsersList() != null) {
+            List<TwinSearchBySpaceRoleUser> spaceRoleUsersSearch = new ArrayList<>();
+            for (TwinSearchBySpaceRoleUserDTOv1 spaceRoleUserDTO : src.getSpaceRoleUsersList()) {
+                spaceRoleUsersSearch.add(new TwinSearchBySpaceRoleUser()
+                        .setSpaceRoleId(spaceRoleUserDTO.getSpaceRoleId())
+                        .setUserIdList(convertToSetSafe(spaceRoleUserDTO.getUserIdList())));
+            }
+            dst.setSpaceRoleUsersList(spaceRoleUsersSearch);
+        }
         if (src.getOwnerBusinessAccountIdList() != null) {
             if (permissionService.canViewTwinsOwnedByBusinessAccounts(src.getOwnerBusinessAccountIdList())) // early check. duplicated on service level
                 dst.setOwnerBusinessAccountIdList(src.getOwnerBusinessAccountIdList());

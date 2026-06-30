@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -94,8 +93,9 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 if (entity.getCreatedByUser() == null)
                     entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
             default:
-                if (!entity.getDstTwinClass().getDomainId().equals(entity.getDomainId()) || !entity.getSrcTwinClass().getDomainId().equals(entity.getDomainId()))
-                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible source/destination class [" + entity.getSrcTwinClass().easyLog(EasyLoggable.Level.DETAILED) + " > " + entity.getDstTwinClass().easyLog(EasyLoggable.Level.DETAILED) + "]");
+                //todo move domain check logic to DB query
+                /*if (!entity.getDstTwinClass().getDomainId().equals(entity.getDomainId()) || !entity.getSrcTwinClass().getDomainId().equals(entity.getDomainId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible source/destination class [" + entity.getSrcTwinClass().easyLog(EasyLoggable.Level.DETAILED) + " > " + entity.getDstTwinClass().easyLog(EasyLoggable.Level.DETAILED) + "]");*/
         }
         return true;
     }
@@ -128,6 +128,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         }
         //todo validate linker params
         linkEntity = saveSafe(linkEntity);
+        loadTwinClasses(linkEntity);
         linkEntity.getSrcTwinClass().invalidateLinksKit();
         linkEntity.getDstTwinClass().invalidateLinksKit();
         return linkEntity;
@@ -136,6 +137,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     @Transactional(rollbackFor = Throwable.class)
     public LinkEntity updateLink(LinkUpdate linkUpdate, I18nEntity forwardNameI18n, I18nEntity backwardNameI18n) throws ServiceException {
         LinkEntity dbLinkEntity = findEntitySafe(linkUpdate.getId());
+        loadTwinClasses(dbLinkEntity);
         ChangesHelper changesHelper = new ChangesHelper();
         //for future old classes kit nullify
         linkUpdate.setDstTwinClass(dbLinkEntity.getDstTwinClass());
@@ -272,6 +274,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         loadLinks(twinClassEntity);
         Set<UUID> extendedTwinClasses = twinClassEntity.getExtendedClassIdSet();
         FindTwinClassLinksResult linksResult = new FindTwinClassLinksResult();
+        loadTwinClasses(twinClassEntity.getLinksKit().getCollection());
         for (LinkEntity linkEntity : twinClassEntity.getLinksKit().getCollection()) {
             if (extendedTwinClasses.contains(linkEntity.getSrcTwinClassId())) {
                 if (twinClassService.isEntityReadDenied(linkEntity.getDstTwinClass(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
@@ -400,4 +403,20 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 LinkEntity::setCreatedByUser);
     }
 
+    public void loadTwinClasses(LinkEntity linkEntity) throws ServiceException {
+        loadTwinClasses(Collections.singletonList(linkEntity));
+    }
+
+    public void loadTwinClasses(Collection<LinkEntity> linkEntities) throws ServiceException {
+        twinClassService.load(linkEntities,
+                new LoadedField<>(
+                        LinkEntity::getSrcTwinClassId,
+                        LinkEntity::getSrcTwinClass,
+                        LinkEntity::setSrcTwinClass),
+                new LoadedField<>(
+                        LinkEntity::getDstTwinClassId,
+                        LinkEntity::getDstTwinClass,
+                        LinkEntity::setDstTwinClass)
+                );
+    }
 }

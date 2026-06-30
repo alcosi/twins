@@ -20,7 +20,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.*;
@@ -42,7 +41,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupFootprintService;
@@ -66,8 +65,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionGrantGlobalRepository permissionGrantGlobalRepository;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
+    @Lazy
+    private final PermissionGrantUserGroupService permissionGrantUserGroupService;
     private final SpaceRepository spaceRepository;
-    private final SpaceUserRoleService spaceUserRoleService;
+    private final SpaceRoleUserService spaceRoleUserService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
     private final I18nService i18nService;
 
@@ -86,6 +87,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
+    private final PermissionCheckRequestCache permissionCheckRequestCache;
     private final ApiUser apiUser;
 
     @Override
@@ -145,10 +147,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionSchemaEntity.getId();
     }
 
-    public UUID checkPermissionSchemaAllowed(DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        return checkPermissionSchemaAllowed(domainBusinessAccountEntity.getDomainId(), domainBusinessAccountEntity.getBusinessAccountId(), domainBusinessAccountEntity.getPermissionSchema());
-    }
-
     public boolean hasPermission(TwinEntity twinEntity, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroupsForCurrentUser();
@@ -167,7 +165,15 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (currentUserHasPermission(permissionId))
             return true;
         userGroupService.loadGroupsForCurrentUser();
-        return permissionRepository.hasPermission(
+        PermissionCheckRequestCache.Key cacheKey = new PermissionCheckRequestCache.Key(
+                apiUser.getUserId(),
+                apiUser.getUser().getUserGroupsFootprint(),
+                permissionDetectKey,
+                permissionId);
+        Boolean cached = permissionCheckRequestCache.get(cacheKey);
+        if (cached != null)
+            return cached;
+        boolean result = permissionRepository.hasPermission(
                 permissionDetectKey.getPermissionSchemaId(),
                 permissionId,
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaSpaceId()),
@@ -176,6 +182,8 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 permissionDetectKey.getTwinClassId(),
                 permissionDetectKey.isAssignee,
                 permissionDetectKey.isCreator);
+        permissionCheckRequestCache.put(cacheKey, result);
+        return result;
     }
 
     public Map<PermissionDetectKey, List<TwinEntity>> convertToDetectKeys(Collection<TwinEntity> twinEntities) throws ServiceException {
@@ -202,8 +210,9 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (null != twin.getPermissionSchemaSpaceId()) space = spaceRepository.findById(twin.getPermissionSchemaSpaceId()).orElse(null);
         if (null != space) permissionSchema = space.getPermissionSchema();
         if (null == permissionSchema) {
-            if(apiUser.getDomain().getDomainType() == DomainType.b2b && apiUser.isBusinessAccountSpecified()) {
-                final DomainBusinessAccountEntity domainBusinessAccount = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+            if (apiUser.getDomain().getDomainType() == DomainType.b2b && apiUser.isBusinessAccountSpecified()) {
+                var domainBusinessAccount = apiUser.getDomainBusinessAccount();
+                domainBusinessAccountService.loadPermissionSchema(domainBusinessAccount);
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
             } else {
                 permissionSchema = apiUser.getDomain().getPermissionSchema();
@@ -312,6 +321,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         Kit<UserGroupEntity, UUID> groupsForUserKit = userGroupService.findGroupsForUser(userId);
         List<UserGroupEntity> grantedForGroups = new ArrayList<>();
         final List<PermissionGrantUserGroupEntity> grantedPermissions = permissionGrantUserGroupRepository.findByPermissionSchemaIdAndPermissionIdAndUserGroupIdIn(permissionSchema.getId(), permissionId, groupsForUserKit.getIdSet());
+        permissionGrantUserGroupService.loadUserGroup(grantedPermissions);
         for (PermissionGrantUserGroupEntity grantedPermission : grantedPermissions)
             grantedForGroups.add(grantedPermission.getUserGroup());
         result.setGrantedByUserGroups(new Kit<>(grantedForGroups, UserGroupEntity::getId));
@@ -341,7 +351,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         List<SpaceRoleUserEntity> grantedSpaceRoleUsers = new ArrayList<>();
         List<SpaceRoleUserGroupEntity> grantedSpaceRoleUserGroups = new ArrayList<>();
         if (spaceTwin != null) {
-            final List<SpaceRoleUserEntity> spaceRoleUsers = spaceUserRoleService.findSpaceRoleUsersByTwinIdAndUserId(spaceTwin.getId(), userId);
+            final List<SpaceRoleUserEntity> spaceRoleUsers = spaceRoleUserService.findSpaceRoleUsersByTwinIdAndUserId(spaceTwin.getId(), userId);
             final List<SpaceRoleUserGroupEntity> spaceRoleUserGroups = spaceRoleUserGroupRepository.findAllByTwinIdAndUserGroupIdIn(spaceTwin.getId(), groupsForUserKit.getIdSet());
             final List<PermissionGrantSpaceRoleEntity> grantedForSpaceRoles = permissionGrantSpaceRoleRepository.findByPermissionId(permissionId);
             for (PermissionGrantSpaceRoleEntity grantedForSpaceRole : grantedForSpaceRoles) {
@@ -394,8 +404,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private UUID detectPermissionSchemaId(ApiUser apiUser) throws ServiceException {
         UUID permissionSchemaId;
         if (apiUser.isBusinessAccountSpecified() && apiUser.getBusinessAccount() != null) {
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId());
-            checkPermissionSchemaAllowed(domainBusinessAccountEntity);
+            var domainBusinessAccountEntity = apiUser.getDomainBusinessAccount();
             permissionSchemaId = domainBusinessAccountEntity.getPermissionSchemaId();
         } else {
             permissionSchemaId = apiUser.getDomain().getPermissionSchemaId();

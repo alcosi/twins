@@ -54,11 +54,23 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Assigner id exclude list")
     public Set<UUID> assignerUserIdExcludeList;
 
+    @Schema(description = "Assigner name list")
+    public Set<String> assignerUserNameList;
+
+    @Schema(description = "Assigner name exclude list")
+    public Set<String> assignerUserNameExcludeList;
+
     @Schema(description = "Reporter id list")
     public Set<UUID> createdByUserIdList;
 
     @Schema(description = "Reporter id exclude list")
     public Set<UUID> createdByUserIdExcludeList;
+
+    @Schema(description = "Reporter name list")
+    public Set<String> createdByUserNameList;
+
+    @Schema(description = "Reporter name exclude list")
+    public Set<String> createdByUserNameExcludeList;
 
     @Schema(description = "External id list")
     public Set<String> externalIdList;
@@ -78,6 +90,9 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Exclude dst twins with given links. AND join")
     public List<TwinSearchByLinkDTOv1> linksNoAllOfList;
 
+    @Schema(description = "Filter by space role")
+    public List<TwinSearchBySpaceRoleUserDTOv1> spaceRoleUsersList;
+
     @Schema(description = "Hierarchy ids filter")
     public Set<UUID> hierarchyTreeContainsIdList;
 
@@ -95,6 +110,12 @@ public class TwinSearchDTOv1 {
 
     @Schema(description = "Twin marker exclude list(data list options ids)")
     public Set<UUID> markerDataListOptionIdExcludeList;
+
+    @Schema(description = "Twin flavor data list option id list")
+    public Set<UUID> flavorDataListOptionIdList;
+
+    @Schema(description = "Twin flavor data list option id exclude list")
+    public Set<UUID> flavorDataListOptionIdExcludeList;
 
     @Schema(description = "Twin extends by twin class list ids")
     public Set<UUID> twinClassExtendsHierarchyContainsIdList;
@@ -203,6 +224,16 @@ public class TwinSearchDTOv1 {
         return this;
     }
 
+    public TwinSearchDTOv1 addAssignerUserNameListItem(String item) {
+        this.assignerUserNameList = CollectionUtils.safeAdd(this.assignerUserNameList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addAssignerUserNameExcludeListItem(String item) {
+        this.assignerUserNameExcludeList = CollectionUtils.safeAdd(this.assignerUserNameExcludeList, item);
+        return this;
+    }
+
     public TwinSearchDTOv1 addCreatedByUserIdListItem(UUID item) {
         this.createdByUserIdList = CollectionUtils.safeAdd(this.createdByUserIdList, item);
         return this;
@@ -210,6 +241,16 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addCreatedByUserIdExcludeListItem(UUID item) {
         this.createdByUserIdExcludeList = CollectionUtils.safeAdd(this.createdByUserIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserNameListItem(String item) {
+        this.createdByUserNameList = CollectionUtils.safeAdd(this.createdByUserNameList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserNameExcludeListItem(String item) {
+        this.createdByUserNameExcludeList = CollectionUtils.safeAdd(this.createdByUserNameExcludeList, item);
         return this;
     }
 
@@ -243,6 +284,11 @@ public class TwinSearchDTOv1 {
         return this;
     }
 
+    public TwinSearchDTOv1 addSpaceRoleUsersListItem(TwinSearchBySpaceRoleUserDTOv1 item) {
+        this.spaceRoleUsersList = CollectionUtils.safeAdd(this.spaceRoleUsersList, item);
+        return this;
+    }
+
     public TwinSearchDTOv1 addHierarchyTreeContainsIdListItem(UUID item) {
         this.hierarchyTreeContainsIdList = CollectionUtils.safeAdd(this.hierarchyTreeContainsIdList, item);
         return this;
@@ -270,6 +316,16 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addMarkerDataListOptionIdExcludeListItem(UUID item) {
         this.markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(this.markerDataListOptionIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addFlavorDataListOptionIdListItem(UUID item) {
+        this.flavorDataListOptionIdList = CollectionUtils.safeAdd(this.flavorDataListOptionIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addFlavorDataListOptionIdExcludeListItem(UUID item) {
+        this.flavorDataListOptionIdExcludeList = CollectionUtils.safeAdd(this.flavorDataListOptionIdExcludeList, item);
         return this;
     }
 

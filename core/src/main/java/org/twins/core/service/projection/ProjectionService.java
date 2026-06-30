@@ -20,6 +20,8 @@ import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -33,6 +35,12 @@ import java.util.stream.StreamSupport;
 public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEntity> {
     private final ProjectionRepository projectionRepository;
     private final TwinPointerService twinPointerService;
+    @Lazy
+    private final TwinClassFieldService twinClassFieldService;
+    @Lazy
+    private final TwinClassService twinClassService;
+    @Lazy
+    private final ProjectionTypeService projectionTypeService;
 
     @Override
     public CrudRepository<ProjectionEntity, UUID> entityRepository() {
@@ -46,6 +54,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
     @Override
     public boolean isEntityReadDenied(ProjectionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        loadProjectionType(entity);
         return checkDomainAccessDenied(entity.getProjectionType().getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
@@ -64,9 +73,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getSrcTwinPointer() == null || !entity.getSrcTwinPointer().getId().equals(entity.getSrcTwinPointerId())) {
-                    entity.setSrcTwinPointer(twinPointerService.findEntitySafe(entity.getSrcTwinPointerId()));
-                }
+                loadSrcTwinPointer(entity);
         }
         return true;
     }
@@ -141,6 +148,61 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
     public void deleteProjections(Set<UUID> projectionIds) throws ServiceException {
         deleteSafe(projectionIds);
+    }
+
+    public void loadSrcTwinPointer(ProjectionEntity src) throws ServiceException {
+        loadSrcTwinPointer(Collections.singletonList(src));
+    }
+
+    public void loadSrcTwinPointer(Collection<ProjectionEntity> srcCollection) throws ServiceException {
+        twinPointerService.load(srcCollection,
+                ProjectionEntity::getSrcTwinPointerId,
+                ProjectionEntity::getSrcTwinPointer,
+                ProjectionEntity::setSrcTwinPointer);
+    }
+
+    public void loadSrcTwinClassField(ProjectionEntity src) throws ServiceException {
+        loadSrcTwinClassField(Collections.singletonList(src));
+    }
+
+    public void loadSrcTwinClassField(Collection<ProjectionEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                ProjectionEntity::getSrcTwinClassFieldId,
+                ProjectionEntity::getSrcTwinClassField,
+                ProjectionEntity::setSrcTwinClassField);
+    }
+
+    public void loadDstTwinClassField(ProjectionEntity src) throws ServiceException {
+        loadDstTwinClassField(Collections.singletonList(src));
+    }
+
+    public void loadDstTwinClassField(Collection<ProjectionEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                ProjectionEntity::getDstTwinClassFieldId,
+                ProjectionEntity::getDstTwinClassField,
+                ProjectionEntity::setDstTwinClassField);
+    }
+
+    public void loadDstTwinClass(ProjectionEntity src) throws ServiceException {
+        loadDstTwinClass(Collections.singletonList(src));
+    }
+
+    public void loadDstTwinClass(Collection<ProjectionEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                ProjectionEntity::getDstTwinClassId,
+                ProjectionEntity::getDstTwinClass,
+                ProjectionEntity::setDstTwinClass);
+    }
+
+    public void loadProjectionType(ProjectionEntity src) throws ServiceException {
+        loadProjectionType(Collections.singletonList(src));
+    }
+
+    public void loadProjectionType(Collection<ProjectionEntity> srcCollection) throws ServiceException {
+        projectionTypeService.load(srcCollection,
+                ProjectionEntity::getProjectionTypeId,
+                ProjectionEntity::getProjectionType,
+                ProjectionEntity::setProjectionType);
     }
 
 }

@@ -7,11 +7,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorRepository;
+import org.twins.core.service.twin.TwinValidatorSetService;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,6 +27,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class TwinValidatorService extends EntitySecureFindServiceImpl<TwinValidatorEntity> {
     private final TwinValidatorRepository twinValidatorRepository;
+    @Lazy
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Override
     public CrudRepository<TwinValidatorEntity, UUID> entityRepository() {
@@ -58,5 +62,13 @@ public class TwinValidatorService extends EntitySecureFindServiceImpl<TwinValida
                 twinValidatorRepository::findByTwinValidatorSetIdIn,
                 TwinValidatorEntity::getId,
                 TwinValidatorEntity::getTwinValidatorSetId);
+    }
+
+    public void loadTwinValidatorSet(TwinValidatorEntity src) throws ServiceException {
+        twinValidatorSetService.loadTwinValidatorSet(src);
+    }
+
+    public void loadTwinValidatorSet(Collection<TwinValidatorEntity> srcCollection) throws ServiceException {
+        twinValidatorSetService.loadTwinValidatorSet(srcCollection);
     }
 }

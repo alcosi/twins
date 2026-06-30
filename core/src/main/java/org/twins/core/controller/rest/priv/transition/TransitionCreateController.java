@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.domain.twinflow.TransitionCreate;
 import org.twins.core.dto.rest.twinflow.TransitionCreateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TransitionListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -55,8 +56,8 @@ public class TransitionCreateController extends ApiController {
             @RequestBody TransitionCreateRqDTOv1 request) {
         TransitionListRsDTOv1 rs = new TransitionListRsDTOv1();
         try {
-            List<TwinflowTransitionEntity> transitionEntities = transitionCreateRestDTOReverseMapper.convertCollection(request.getTransitions());
-            List<TwinflowTransitionEntity> resultEntities = twinflowTransitionService.createTwinflowTransitions(transitionEntities);
+            List<TransitionCreate> transitionSaves = transitionCreateRestDTOReverseMapper.convertCollection(request.getTransitions());
+            List<TwinflowTransitionEntity> resultEntities = twinflowTransitionService.createTwinflowTransitions(transitionSaves);
             rs
                     .setTransitions(transitionBaseV2RestDTOMapper.convertCollection(resultEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

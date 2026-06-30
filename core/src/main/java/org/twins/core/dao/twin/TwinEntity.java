@@ -1,10 +1,7 @@
 package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -50,6 +47,30 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * JPA entity for a Twin.
+ *
+ * <p><b>Caching is forbidden.</b> Do NOT cache instances of this class beyond a single
+ * HTTP request / transaction boundary. Concretely: never apply {@code @Cacheable},
+ * never store instances in static fields, singleton beans, or long-lived collections,
+ * and never pass them across {@code @Async} boundaries without copying.
+ *
+ * <p>Reason: this entity carries request-scoped {@code @Transient} permission state —
+ * {@link #twinFieldEditability} and {@link #twinFieldViewability} — populated by
+ * {@code TwinService.loadFieldEditability / loadFieldViewability}. These maps hold
+ * the per-user, per-field access decision for the current {@code ApiUser}. If an
+ * instance leaks to another user (via shared cache, async pool, or any cross-request
+ * reuse), that user inherits the original user's permission decisions — a horizontal
+ * privilege escalation.
+ *
+ * <p>Hibernate L1 (persistence context) is transaction-scoped and therefore safe; the
+ * risk appears only when application code explicitly caches the entity, returns it
+ * from a {@code @RequestScope}/{@code @SessionScope} bean, or hands it to an executor
+ * that does not propagate {@code AuthService}'s {@code ThreadLocal ApiUser}.
+ *
+ * <p>{@link #resetTransientState()} exists for the future case where explicit cleanup
+ * is required, but currently has no callers — assume it is not invoked.
+ */
 @Entity
 @Accessors(chain = true)
 @Data
@@ -120,6 +141,17 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
 
+    @Column(name = "flavor_data_list_option_id")
+    private UUID flavorDataListOptionId;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "flavor_data_list_option_id", insertable = false, updatable = false)
+    private DataListOptionEntity flavorDataListOptionSpecOnly;
+
     @Column(name = "name")
     private String name;
 
@@ -184,10 +216,17 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity twinStatus;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @EqualsAndHashCode.Exclude
@@ -210,157 +249,157 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 //    @EqualsAndHashCode.Exclude
 //    private Collection<TwinEntity> childrenTwins;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
-    private TwinEntity permissionSchemaSpace;
+    private TwinEntity permissionSchemaSpaceSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinTagEntity> tags;
+    private Collection<TwinTagEntity> tagsSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinMarkerEntity> markers;
+    private Collection<TwinMarkerEntity> markersSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
-    private Collection<TwinLinkEntity> linksBySrcTwinId;
+    private Collection<TwinLinkEntity> linksBySrcTwinIdSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
-    private Collection<TwinLinkEntity> linksByDstTwinId;
+    private Collection<TwinLinkEntity> linksByDstTwinIdSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldSimpleEntity> fieldsSimple;
+    private Collection<TwinFieldSimpleEntity> fieldsSimpleSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<SpaceRoleUserEntity> spaceRoleUsers;
+    private Collection<SpaceRoleUserEntity> spaceRoleUsersSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldBooleanEntity> fieldsBoolean;
+    private Collection<TwinFieldBooleanEntity> fieldsBooleanSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldTimestampEntity> fieldsTimestamp;
+    private Collection<TwinFieldTimestampEntity> fieldsTimestampSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldDataListEntity> fieldsList;
+    private Collection<TwinFieldDataListEntity> fieldsListSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldUserEntity> fieldsUser;
+    private Collection<TwinFieldUserEntity> fieldsUserSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldTwinClassEntity> fieldsTwinClassList;
+    private Collection<TwinFieldTwinClassEntity> fieldsTwinClassListSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldDecimalEntity> fieldsDecimal;
+    private Collection<TwinFieldDecimalEntity> fieldsDecimalSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinTouchEntity> touches;
+    private Collection<TwinTouchEntity> touchesSpecOnly;
 
-    //needed for specification (search by last change time)
-    @Deprecated
+    @Deprecated // for specification only (search by last change time)
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinLastChangeEntity> lastChanges;
+    private Collection<TwinLastChangeEntity> lastChangesSpecOnly;
 
-    //needed for specification (USER & BA twins)
-    @Deprecated
+    @Deprecated // for specification only (USER & BA twins)
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Set<DomainUserEntity> domainUsers;
+    private Set<DomainUserEntity> domainUsersSpecOnly;
 
-    //needed for specification (USER & BA twins)
-    @Deprecated
+    @Deprecated // for specification only (USER & BA twins)
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Set<BusinessAccountUserEntity> businessAccountUsersUserTwins;
+    private Set<BusinessAccountUserEntity> businessAccountUsersUserTwinsSpecOnly;
 
-    //needed for specification (USER & BA twins)
-    @Deprecated
+    @Deprecated // for specification only (USER & BA twins)
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Set<BusinessAccountUserEntity> businessAccountUsersBusinessAccountTwins;
+    private Set<BusinessAccountUserEntity> businessAccountUsersBusinessAccountTwinsSpecOnly;
 
-    //needed for specification (USER & BA twins)
-    @Deprecated
+    @Deprecated // for specification only (USER & BA twins)
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Set<DomainBusinessAccountEntity> domainBusinessAccounts;
+    private Set<DomainBusinessAccountEntity> domainBusinessAccountsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -447,6 +486,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Map<UUID, Boolean> twinFieldEditability;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldViewability;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -567,6 +611,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         DESCRIPTION(Fields.description, SystemIds.TwinClassField.Base.DESCRIPTION, TwinEntity::getDescription),
         EXTERNAL_ID(Fields.externalId, SystemIds.TwinClassField.Base.EXTERNAL_ID, TwinEntity::getExternalId),
         OWNER_USER_ID(Fields.ownerUserId, SystemIds.TwinClassField.Base.OWNER_USER_ID, TwinEntity::getOwnerUserId),
+        FLAVOR_DATA_LIST_OPTION_ID(Fields.flavorDataListOptionId, SystemEntityService.TWIN_CLASS_FIELD_TWIN_FLAVOR_DATA_LIST_OPTION_ID, TwinEntity::getFlavorDataListOptionId),
         TWIN_CLASS_ID(Fields.twinClassId, SystemIds.TwinClassField.Base.TWIN_CLASS_ID, TwinEntity::getTwinClassId),
         ASSIGNEE_USER_ID(Fields.assignerUserId, SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
         HEAD_TWIN_ID(Fields.headTwinId, SystemIds.TwinClassField.Base.HEAD_ID, TwinEntity::getHeadTwinId),
@@ -652,6 +697,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         twinFieldSpaceUserKit = null;
         twinFieldTwinClassKit = null;
         twinFieldAttributeKit = null;
+        twinFieldDecimalKit = null;
+        twinFieldTimestampKit = null;
+        twinFieldEditability = null;
+        twinFieldViewability = null;
 
         // Calculated
         twinFieldCalculated = null;

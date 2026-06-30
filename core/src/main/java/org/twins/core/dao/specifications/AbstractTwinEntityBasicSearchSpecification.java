@@ -8,18 +8,20 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.search.*;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinFieldClause;
 import org.twins.core.domain.TwinFieldFilter;
+import org.twins.core.domain.search.*;
 import org.twins.core.enums.twin.Touch;
 
-import java.util.*;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.*;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.checkStatusIdWithFreeze;
+import static org.twins.core.dao.specifications.twin.TwinSpecification.checkSpaceRoleUsersMembership;
 
 public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
 
@@ -30,7 +32,9 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] descriptionFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.description);
         String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
+        String[] assignerUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUser, UserEntity.Fields.name);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
+        String[] createdByUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
         String[] ownerBusinessAccountIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.ownerBusinessAccountId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
@@ -39,9 +43,10 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] twinClassExtendsHierarchyTreeFieldPath = concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree);
         String[] createdAtFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdAt);
         String[] headHierarchyCounterDirectChildrenFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headHierarchyCounterDirectChildren);
-        String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
-        String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
-        String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
+        String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tagsSpecOnly, TwinTagEntity.Fields.tagDataListOptionId);
+        String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markersSpecOnly, TwinMarkerEntity.Fields.markerDataListOptionId);
+        String[] flavorDataListOptionIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.flavorDataListOptionId);
+        String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touchesSpecOnly);
 
         HierarchySearch hierarchyChildrenSearch = Objects.requireNonNullElse(twinSearch.getHierarchyChildrenSearch(), HierarchySearch.EMPTY);
 
@@ -58,10 +63,15 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldLikeIn(twinSearch.getExternalIdExcludeList(), true, true, externalIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdList(), false, false, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
+                checkFieldLikeIn(twinSearch.getAssigneeUserNameList(), false, true, assignerUserNameFieldPath),
+                checkFieldLikeIn(twinSearch.getAssigneeUserNameExcludeList(), true, true, assignerUserNameFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
+                checkFieldLikeIn(twinSearch.getCreatedByUserNameList(), false, true, createdByUserNameFieldPath),
+                checkFieldLikeIn(twinSearch.getCreatedByUserNameExcludeList(), true, true, createdByUserNameFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdList(), false, false, ownerBusinessAccountIdFieldPath),
                 checkUuidIn(twinSearch.getOwnerBusinessAccountIdExcludeList(), true, true, ownerBusinessAccountIdFieldPath),
+                checkSpaceRoleUsersMembership(twinSearch.getSpaceRoleUsersList()),
                 checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), twinSearch.isCheckFreezeStatus()),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
@@ -70,6 +80,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getHierarchyTreeContainsIdList(), hierarchyTreeFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdList(), false, false, markersFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdExcludeList(), true, true, markersFieldPath),
+                checkUuidIn(twinSearch.getFlavorDataListOptionIdList(), false, false, flavorDataListOptionIdFieldPath),
+                checkUuidIn(twinSearch.getFlavorDataListOptionIdExcludeList(), true, true, flavorDataListOptionIdFieldPath),
                 checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, concatArray(twinClassFieldPath, TwinClassEntity.Fields.headTwinClassId)),
                 checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
@@ -149,7 +161,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 return cb.conjunction();
             }
 
-            Join<TwinEntity, TwinLastChangeEntity> join = root.join(TwinEntity.Fields.lastChanges, JoinType.INNER);
+            Join<TwinEntity, TwinLastChangeEntity> join = root.join(TwinEntity.Fields.lastChangesSpecOnly, JoinType.INNER);
             join.on(cb.equal(join.get(TwinLastChangeEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 
             Path<Timestamp> lastChangedAt = join.get(TwinLastChangeEntity.Fields.lastChangedAt);
@@ -182,7 +194,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
 
             From twinsJoin = getReducedRoot(root, JoinType.INNER, twinsEntityFieldPath);
 
-            String targetJoinFieldName = srcElseDst ? TwinEntity.Fields.linksByDstTwinId : TwinEntity.Fields.linksBySrcTwinId;
+            String targetJoinFieldName = srcElseDst ? TwinEntity.Fields.linksByDstTwinIdSpecOnly : TwinEntity.Fields.linksBySrcTwinIdSpecOnly;
             String searchDirectionFieldName = srcElseDst ? TwinLinkEntity.Fields.srcTwinId : TwinLinkEntity.Fields.dstTwinId;
             Map<UUID, Set<UUID>> linksAnyOfList = srcElseDst ? twinSearch.getSrcLinksAnyOfList() : twinSearch.getDstLinksAnyOfList();
             Map<UUID, Set<UUID>> linksAllOfList = srcElseDst ? twinSearch.getSrcLinksAllOfList() : twinSearch.getDstLinksAllOfList();

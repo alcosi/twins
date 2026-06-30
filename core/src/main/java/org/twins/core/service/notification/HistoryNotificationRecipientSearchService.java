@@ -17,7 +17,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.HistoryNotificationRecipientSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
@@ -41,9 +41,9 @@ public class HistoryNotificationRecipientSearchService {
                 checkFieldUuid(apiUser.getDomainId(), HistoryNotificationRecipientEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, HistoryNotificationRecipientEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, HistoryNotificationRecipientEntity.Fields.id),
-                joinAndSearchByI18NField(HistoryNotificationRecipientEntity.Fields.nameI18n, search.getNameLikeList(), apiUser.getLocale(), false, false),
-                joinAndSearchByI18NField(HistoryNotificationRecipientEntity.Fields.nameI18n, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(HistoryNotificationRecipientEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), false, false),
-                joinAndSearchByI18NField(HistoryNotificationRecipientEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true));
+                joinAndSearchByI18NFieldDirect(HistoryNotificationRecipientEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), apiUser.getLocale(), false, false),
+                joinAndSearchByI18NFieldDirect(HistoryNotificationRecipientEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(HistoryNotificationRecipientEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionLikeList(), apiUser.getLocale(), false, false),
+                joinAndSearchByI18NFieldDirect(HistoryNotificationRecipientEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true));
     }
 }

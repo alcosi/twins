@@ -192,7 +192,4 @@ public class TwinClassDTOv1 {
     @Schema(description = "Map of markers." + DTOExamples.LAZY_RELATION_MODE_ON)
     public Map<UUID, DataListOptionDTOv1> markerMap;
 
-    @Deprecated
-    @Schema(description = "Map of tags." + DTOExamples.LAZY_RELATION_MODE_ON)
-    public Map<UUID, DataListOptionDTOv1> tagMap;
 }

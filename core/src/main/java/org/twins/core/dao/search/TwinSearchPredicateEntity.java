@@ -4,9 +4,7 @@ package org.twins.core.dao.search;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
@@ -35,10 +33,17 @@ public class TwinSearchPredicateEntity implements EasyLoggable {
     @Column(name = "twin_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> twinFinderParams;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JoinColumn(name = "twin_search_id", insertable = false, updatable = false, nullable = false)
+    private TwinSearchEntity searchSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinSearchEntity search;
 
     public String easyLog(Level level)  {

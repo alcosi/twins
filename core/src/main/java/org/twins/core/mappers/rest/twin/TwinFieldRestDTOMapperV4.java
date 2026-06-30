@@ -1,12 +1,14 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.domain.TwinField;
 import org.twins.core.dto.rest.twin.TwinFieldAttributeDTOv1;
 import org.twins.core.dto.rest.twin.TwinFieldDTOv4;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -36,6 +38,10 @@ public class TwinFieldRestDTOMapperV4 extends RestSimpleDTOMapper<TwinField, Twi
 
     @Override
     public void map(TwinField src, TwinFieldDTOv4 dst, MapperContext mapperContext) throws Exception {
+        twinService.loadViewableFlag(src);
+        if (Boolean.FALSE.equals(src.getViewable())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_ACCESS_DENIED, "{} is not viewable", src.getTwinClassField().logNormal());
+        }
         FieldValue fieldValue = twinService.getTwinFieldValue(src); // N+1 problem
         var fieldValueText = twinFieldValueRestDTOMapperV2.convert(fieldValue, mapperContext);
         String fieldKey = src.getTwinClassField().getKey();
@@ -60,6 +66,7 @@ public class TwinFieldRestDTOMapperV4 extends RestSimpleDTOMapper<TwinField, Twi
     @Override
     public void beforeCollectionConversion(Collection<TwinField> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        twinService.loadViewableFlag(srcCollection);
         twinService.loadEditableFlag(srcCollection);
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadFieldAttributes(srcCollection);

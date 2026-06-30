@@ -88,11 +88,11 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return CacheSupportType.REQUEST;
     }
 
-    public void loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
-        loadStatusesForTwinClasses(Collections.singletonList(twinClassEntity));
+    public void loadStatuses(TwinClassEntity twinClassEntity) {
+        loadStatuses(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadStatusesForTwinClasses(Collection<TwinClassEntity> twinClassEntities) {
+    public void loadStatuses(Collection<TwinClassEntity> twinClassEntities) {
         Kit<TwinClassEntity, UUID> needLoad = null;
         Set<UUID> extendsClassesSet = null;
         for (TwinClassEntity twinClassEntity : twinClassEntities) {

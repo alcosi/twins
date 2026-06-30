@@ -27,7 +27,7 @@ public class FactoryPipelineStepExportService extends EntityExportService<TwinFa
         var sqlParts = new StringList();
 
         // Load and export ConditionSets
-        factoryPipelineStepService.loadConditionSets(steps);
+        factoryPipelineStepService.loadConditionSet(steps);
         sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(steps, TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet)));
 

@@ -1,9 +1,7 @@
 package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -49,22 +47,43 @@ public class PermissionGrantSpaceRoleEntity implements EasyLoggable {
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false, nullable = false)
     private PermissionSchemaEntity permissionSchema;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", insertable = false, updatable = false, nullable = false)
+    private PermissionEntity permissionSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "space_role_id", insertable = false, updatable = false, nullable = false)
+    private SpaceRoleEntity spaceRoleSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity grantedByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity permission;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "space_role_id", insertable = false, updatable = false, nullable = false)
     private SpaceRoleEntity spaceRole;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;
 
     public String easyLog(Level level) {

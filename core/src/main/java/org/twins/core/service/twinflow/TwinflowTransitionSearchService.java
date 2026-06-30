@@ -20,7 +20,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Locale;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkAliasLikeIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkTransitionTypeLikeIn;
@@ -40,10 +40,10 @@ public class TwinflowTransitionSearchService {
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinflowTransitionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionEntity.Fields.id),
-                joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.nameI18n, search.getNameLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.nameI18n, search.getNameNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(TwinflowTransitionEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(TwinflowTransitionEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(TwinflowTransitionEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(TwinflowTransitionEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), locale, true, true),
                 checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinflowTransitionEntity.Fields.twinflow, TwinflowEntity.Fields.twinClassId),
                 checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinflowTransitionEntity.Fields.twinflow, TwinflowEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinflowIdList(), false, false, TwinflowTransitionEntity.Fields.twinflowId),

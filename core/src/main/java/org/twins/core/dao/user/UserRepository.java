@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.twins.core.dao.EntryCount;
 
 import java.util.Collection;
 import java.util.List;
@@ -64,7 +63,7 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
     boolean existsUserInDomain(@Param("userId") UUID userId, @Param("domainId") UUID domainId);
 
 
-    @Query(value = "select dba.domain, dba.businessAccount, user from UserEntity user " +
+    @Query(value = "select dba.domainSpecOnly, dba.businessAccountSpecOnly, user from UserEntity user " +
             "join DomainUserEntity domainUser on user.id = domainUser.userId " +
             "join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
             "join DomainBusinessAccountEntity dba on dba.domainId = domainUser.domainId and dba.businessAccountId = businessAccountUser.businessAccountId " +
@@ -104,7 +103,4 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "left join DomainUserEntity du on u.id = du.userId and du.domainId = :domainId " +
             "where u.id in :userIds and (bau.userId is null or du.userId is null)")
     List<UUID> getUsersOutOfDomainAndBusinessAccount(@Param("userIds") Set<UUID> userIds, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
-
-    @Query(value = "SELECT dbau.business_account_id AS id, COUNT(dbau) AS count FROM domain_business_account_user dbau INNER JOIN \"user\" u ON u.id = dbau.user_id WHERE dbau.business_account_id IN :businessAccountIds AND u.user_status_id = 'ACTIVE' AND dbau.domain_id = :domainId GROUP BY dbau.business_account_id", nativeQuery = true)
-    List<EntryCount> countUsersInBusinessAccounts(@Param("businessAccountIds") Collection<UUID> businessAccountIds, @Param("domainId") UUID domainId);
 }

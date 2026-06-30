@@ -12,7 +12,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountUserCollec
 import org.twins.core.mappers.rest.mappercontext.modes.DomainUserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.domain.DomainUserService;
 
+import java.util.Collection;
 import java.util.Locale;
 
 
@@ -22,6 +24,8 @@ import java.util.Locale;
 public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntity, DomainUserDTOv1> {
     @MapperModePointerBinding(modes = UserMode.DomainUser2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
+
+    private final DomainUserService domainUserService;
 
     @Override
     public void map(DomainUserEntity src, DomainUserDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -41,8 +45,16 @@ public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntit
                 break;
         }
         if (mapperContext.hasModeButNot(UserMode.DomainUser2UserMode.HIDE)) {
+            domainUserService.loadUser(src);
             dst.setUserId(src.getUserId());
             userDTOMapper.postpone(src.getUser(), mapperContext.forkOnPoint(UserMode.DomainUser2UserMode.SHORT));
         }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<DomainUserEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.DomainUser2UserMode.HIDE))
+            domainUserService.loadUser(srcCollection);
     }
 }

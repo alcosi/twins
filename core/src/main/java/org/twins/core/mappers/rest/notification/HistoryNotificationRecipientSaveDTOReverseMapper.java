@@ -22,9 +22,6 @@ public class HistoryNotificationRecipientSaveDTOReverseMapper extends RestSimple
         dst
                 .setNameI18n(nameI18N)
                 .setDescriptionI18n(descriptionI18N)
-                .setHistoryNotificationRecipient(
-                new HistoryNotificationRecipientEntity()
-                        .setNameI18n(nameI18N)
-                        .setDescriptionI18n(descriptionI18N));
+                .setHistoryNotificationRecipient(new HistoryNotificationRecipientEntity());
     }
 }

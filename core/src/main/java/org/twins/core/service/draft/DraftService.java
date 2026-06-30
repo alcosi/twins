@@ -46,6 +46,7 @@ import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -89,6 +90,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final DraftNormalizeService draftNormalizeService;
     @Lazy
     private final DraftCheckConflictsService draftCheckConflictsService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<DraftEntity, UUID> entityRepository() {
@@ -1133,7 +1135,14 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
+    public void loadCreatedByUser(DraftEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
 
-
-
+    public void loadCreatedByUser(Collection<DraftEntity> entities) throws ServiceException {
+        userService.load(entities,
+                DraftEntity::getCreatedByUserId,
+                DraftEntity::getCreatedByUser,
+                DraftEntity::setCreatedByUser);
+    }
 }

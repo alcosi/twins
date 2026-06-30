@@ -48,6 +48,7 @@ import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -95,6 +96,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private final TwinFactoryTriggerRepository twinFactoryTriggerRepository;
     @Lazy
     private final TwinTriggerService twinTriggerService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -817,5 +819,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
         Map<UUID, Integer> mulitplierFilterMap = mapUuidInt(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
+    }
+
+    public void loadCreatedByUser(TwinFactoryEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinFactoryEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinFactoryEntity::getCreatedByUserId,
+                TwinFactoryEntity::getCreatedByUser,
+                TwinFactoryEntity::setCreatedByUser);
     }
 }

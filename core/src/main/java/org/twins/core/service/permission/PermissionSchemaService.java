@@ -5,18 +5,18 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -28,7 +28,8 @@ import java.util.function.Function;
 public class PermissionSchemaService extends EntitySecureFindServiceImpl<PermissionSchemaEntity> {
     @Getter
     private final PermissionSchemaRepository repository;
-    private final AuthService authService;
+    @Lazy
+    private final UserService userService;
 
     @Override
     public CrudRepository<PermissionSchemaEntity, UUID> entityRepository() {
@@ -48,5 +49,16 @@ public class PermissionSchemaService extends EntitySecureFindServiceImpl<Permiss
     @Override
     public boolean validateEntity(PermissionSchemaEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+    }
+
+    public void loadCreatedByUser(PermissionSchemaEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<PermissionSchemaEntity> entities) throws ServiceException {
+        userService.load(entities,
+                PermissionSchemaEntity::getCreatedByUserId,
+                PermissionSchemaEntity::getCreatedByUser,
+                PermissionSchemaEntity::setCreatedByUser);
     }
 }

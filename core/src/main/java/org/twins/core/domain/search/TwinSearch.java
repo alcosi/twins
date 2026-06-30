@@ -40,8 +40,12 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
     private Set<UUID> statusIdList;
     private Set<UUID> assigneeUserIdList;
     private Set<UUID> assigneeUserIdExcludeList;
+    private Set<String> assigneeUserNameList;
+    private Set<String> assigneeUserNameExcludeList;
     private Set<UUID> createdByUserIdList;
     private Set<UUID> createdByUserIdExcludeList;
+    private Set<String> createdByUserNameList;
+    private Set<String> createdByUserNameExcludeList;
     private Set<UUID> ownerUserIdList;
     private Set<UUID> ownerBusinessAccountIdList;
     private Set<UUID> ownerBusinessAccountIdExcludeList;
@@ -53,12 +57,15 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
     private Map<UUID, Set<UUID>> srcLinksNoAnyOfList;
     private Map<UUID, Set<UUID>> srcLinksAllOfList;
     private Map<UUID, Set<UUID>> srcLinksNoAllOfList;
+    private List<TwinSearchBySpaceRoleUser> spaceRoleUsersList;
     private Set<UUID> hierarchyTreeContainsIdList;
     private Set<UUID> statusIdExcludeList;
     private Set<UUID> tagDataListOptionIdList;
     private Set<UUID> tagDataListOptionIdExcludeList;
     private Set<UUID> markerDataListOptionIdList;
     private Set<UUID> markerDataListOptionIdExcludeList;
+    private Set<UUID> flavorDataListOptionIdList;
+    private Set<UUID> flavorDataListOptionIdExcludeList;
     private Set<Touch> touchList;
     private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
@@ -88,8 +95,12 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
                 CollectionUtils.isEmpty(statusIdList) &&
                 CollectionUtils.isEmpty(assigneeUserIdList) &&
                 CollectionUtils.isEmpty(assigneeUserIdExcludeList) &&
+                CollectionUtils.isEmpty(assigneeUserNameList) &&
+                CollectionUtils.isEmpty(assigneeUserNameExcludeList) &&
                 CollectionUtils.isEmpty(createdByUserIdList) &&
                 CollectionUtils.isEmpty(createdByUserIdExcludeList) &&
+                CollectionUtils.isEmpty(createdByUserNameList) &&
+                CollectionUtils.isEmpty(createdByUserNameExcludeList) &&
                 CollectionUtils.isEmpty(ownerUserIdList) &&
                 CollectionUtils.isEmpty(ownerBusinessAccountIdList) &&
                 CollectionUtils.isEmpty(dstLinksAnyOfList) &&
@@ -106,9 +117,12 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
                 CollectionUtils.isEmpty(tagDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(markerDataListOptionIdList) &&
                 CollectionUtils.isEmpty(markerDataListOptionIdExcludeList) &&
+                CollectionUtils.isEmpty(flavorDataListOptionIdList) &&
+                CollectionUtils.isEmpty(flavorDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
+                (CollectionUtils.isEmpty(spaceRoleUsersList) || spaceRoleUsersList.stream().allMatch(TwinSearchBySpaceRoleUser::isEmpty)) &&
                 (fieldsFilter == null || fieldsFilter.isEmpty()) &&
                 (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
                 createdAt == null &&
@@ -323,6 +337,22 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
         return this;
     }
 
+    public TwinSearch addFlavorDataListOptionId(UUID flavorDataListOptionId, boolean exclude) {
+        if (exclude)
+            flavorDataListOptionIdExcludeList = CollectionUtils.safeAdd(flavorDataListOptionIdExcludeList, flavorDataListOptionId);
+        else
+            flavorDataListOptionIdList = CollectionUtils.safeAdd(flavorDataListOptionIdList, flavorDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addFlavorDataListOptionId(Collection<UUID> flavorDataListOptionIds, boolean exclude) {
+        if (exclude)
+            flavorDataListOptionIdExcludeList = CollectionUtils.safeAdd(flavorDataListOptionIdExcludeList, flavorDataListOptionIds);
+        else
+            flavorDataListOptionIdList = CollectionUtils.safeAdd(flavorDataListOptionIdList, flavorDataListOptionIds);
+        return this;
+    }
+
     public static final ImmutableList<Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>>> FUNCTIONS = ImmutableList.of(
             Pair.of(TwinSearch::getHeadTwinIdList, TwinSearch::setHeadTwinIdList),
             Pair.of(TwinSearch::getCreatedByUserIdList, TwinSearch::setCreatedByUserIdList),
@@ -333,6 +363,8 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
             Pair.of(TwinSearch::getMarkerDataListOptionIdExcludeList, TwinSearch::setMarkerDataListOptionIdExcludeList),
             Pair.of(TwinSearch::getTagDataListOptionIdList, TwinSearch::setTagDataListOptionIdList),
             Pair.of(TwinSearch::getTagDataListOptionIdExcludeList, TwinSearch::setTagDataListOptionIdExcludeList),
+            Pair.of(TwinSearch::getFlavorDataListOptionIdList, TwinSearch::setFlavorDataListOptionIdList),
+            Pair.of(TwinSearch::getFlavorDataListOptionIdExcludeList, TwinSearch::setFlavorDataListOptionIdExcludeList),
             Pair.of(TwinSearch::getTwinIdList, TwinSearch::setTwinIdList),
             Pair.of(TwinSearch::getTwinIdExcludeList, TwinSearch::setTwinIdExcludeList),
             Pair.of(TwinSearch::getOwnerBusinessAccountIdList, TwinSearch::setOwnerBusinessAccountIdList),

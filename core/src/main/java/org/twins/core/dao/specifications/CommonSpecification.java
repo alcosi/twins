@@ -199,8 +199,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             switch (dbuMembershipCheck) {
                 case DBU_FOR_USER:
                     domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
-                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
-                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
+                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
                     Root<DomainBusinessAccountEntity> subRootUsers = subqueryUsers.from(DomainBusinessAccountEntity.class);
                     subqueryUsers.select(subRootUsers);
@@ -223,8 +223,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                             cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
                             cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
                     );
-                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwins, JoinType.INNER);
-                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwinsSpecOnly, JoinType.INNER);
+                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
                     Subquery<DomainUserEntity> subqueryBusinessAccount = cb.createQuery().subquery(DomainUserEntity.class);
                     Root<DomainUserEntity> subRootBusinessAccount = subqueryBusinessAccount.from(DomainUserEntity.class);
                     subqueryBusinessAccount.select(subRootBusinessAccount);
@@ -244,7 +244,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DB:
                     // Join for business accounts linked to domain
-                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
                     List<Predicate> dbPredicates = new java.util.ArrayList<>();
                     dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId));
                     dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)));
@@ -252,7 +252,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DU:
                     // Join for users linked to domain
-                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
                     systemLevelPredicate = cb.and(
                             cb.equal(domainUserDU.get(DomainUserEntity.Fields.domainId), finalDomainId)
 //                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
@@ -260,7 +260,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case BU:
                     // Join for users linked to business account
-                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     systemLevelPredicate = cb.and(
                             cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
 //                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
@@ -310,7 +310,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
-            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpace, JoinType.LEFT);
+            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpaceSpecOnly, JoinType.LEFT);
 
             Join<TwinEntity, PermissionEntity> viewPermissionJoin = joinTwin.join(TwinEntity.Fields.viewPermission, JoinType.LEFT);
 
