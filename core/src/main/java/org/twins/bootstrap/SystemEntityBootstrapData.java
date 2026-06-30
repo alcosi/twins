@@ -571,7 +571,7 @@ public final class SystemEntityBootstrapData {
                         null,
                         null,
                         SystemIds.User.SYSTEM,
-                        List.of(), List.of(), List.of(), List.of()),
+                        List.of(), List.of(), List.of(), List.of(), List.of()),
                 new SystemTwin(
                         SystemIds.TwinTemplate.BUSINESS_ACCOUNT,
                         SystemIds.TwinClass.BUSINESS_ACCOUNT,
@@ -580,7 +580,7 @@ public final class SystemEntityBootstrapData {
                         null,
                         null,
                         SystemIds.User.SYSTEM,
-                        List.of(), List.of(), List.of(), List.of())
+                        List.of(), List.of(), List.of(), List.of(), List.of())
         );
     }
 
@@ -640,7 +640,8 @@ public final class SystemEntityBootstrapData {
                              List<SystemTwinFieldSimple> simpleFields,
                              List<SystemTwinFieldSimpleNonIndexed> simpleNonIndexedFields,
                              List<SystemTwinFieldBoolean> booleanFields,
-                             List<SystemTwinFieldTimestamp> timestampFields) {
+                             List<SystemTwinFieldTimestamp> timestampFields,
+                             List<SystemTwinLink> links) {
     }
 
     /** Indexed text field value (fieldTyper 1301) → {@code twin_field_simple}. */
@@ -657,5 +658,19 @@ public final class SystemEntityBootstrapData {
 
     /** Timestamp field value (fieldTyper 1302) → {@code twin_field_timestamp}. */
     public record SystemTwinFieldTimestamp(UUID twinClassFieldId, java.time.LocalDateTime value) {
+    }
+
+    /**
+     * Outgoing link from the system Twin to a destination Twin.
+     * <p>Unlike the field-value records above, link persistence is <b>not</b> bundled into
+     * {@link SystemEntityBootstrapService#saveSystemTwin} — it has its own
+     * {@code saveSystemTwinLinks} entry point so the caller can defer link writes until all
+     * referenced Twins exist (solves forward-reference FK violations when see_also points to a
+     * Twin that is itself being created in the same pass).</p>
+     *
+     * @param linkId    Link type UUID (e.g. {@link SystemIds.Link#GLOSSARY_SEE_ALSO})
+     * @param dstTwinId Target Twin UUID
+     */
+    public record SystemTwinLink(UUID linkId, UUID dstTwinId) {
     }
 }

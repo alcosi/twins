@@ -25,22 +25,25 @@ import static org.twins.bootstrap.SystemEntityBootstrapData.*;
  * <ul>
  *   <li><b>DISCOVERY</b> — parse all .md files, load existing glossary Twins from DB, classify
  *       each parsed DTO into one of: CREATE / SKIP / UPDATE / RESTORE / MARK_DELETED.</li>
- *   <li><b>EXECUTE</b> — for each DTO, build a {@link SystemTwin} record and delegate to
- *       {@link SystemEntityBootstrapService#saveSystemTwin}. Persistence lives there so the
+ *   <li><b>EXECUTE — PHASE 2a</b> — for each DTO, build a {@link SystemTwin} record and delegate
+ *       to {@link SystemEntityBootstrapService#saveSystemTwin}. Persistence lives there so the
  *       logic is shared with the static {@code SYSTEM_TEMPLATE_TWINS} bootstrap.</li>
+ *   <li><b>EXECUTE — PHASE 2b</b> — after every Twin is in DB, reconcile outgoing see_also
+ *       TwinLinks via {@link SystemEntityBootstrapService#saveSystemTwinLinks}. Deferred to a
+ *       second pass so see_also forward references resolve (a Twin may point to another that is
+ *       itself being created in the same pass).</li>
  * </ul>
  *
  * <p>This service owns the markdown → record mapping; the service layer owns the TwinEntity +
- * per-type-field routing. Glossary Twins bypass TwinService on purpose — they are system
- * metadata, not user content, and TwinService drags in permission checks, validation, aliases,
- * search index, history, and a request-scoped ApiUser that is not available on
+ * per-type-field + TwinLink routing. Glossary Twins bypass TwinService on purpose — they are
+ * system metadata, not user content, and TwinService drags in permission checks, validation,
+ * aliases, search index, history, and a request-scoped ApiUser that is not available on
  * ApplicationReadyEvent.</p>
  * <p>
  * See {@code ai/plans/glossary-as-twins.md} §15.3 / §16 for the full design.
  *
- * <p><b>MVP scope (current):</b> TwinEntity + 13 TwinField values + status transitions.
- * TwinLink (see_also) and TwinTag (category) reconciliation are stubbed as TODO — they will be
- * added in a follow-up.</p>
+ * <p><b>Current scope:</b> TwinEntity + 13 TwinField values + status transitions + see_also
+ * TwinLink reconciliation. TwinTag (category) reconciliation is still a stub.</p>
  */
 @Slf4j
 @Service
@@ -73,6 +76,7 @@ public class GlossaryBootstrapService {
     private static final UUID STATUS_ACTUAL = SystemIds.TwinStatus.Glossary.INIT;
     private static final UUID STATUS_DELETED = SystemIds.TwinStatus.Glossary.DELETED;
     private static final UUID GLOSSARY_CLASS_ID = SystemIds.TwinClass.TWINS_GLOSSARY;
+    private static final UUID LINK_SEE_ALSO = SystemIds.Link.GLOSSARY_SEE_ALSO;
     private static final UUID USER_SYSTEM = SystemIds.User.SYSTEM;
 
     /**
@@ -119,17 +123,26 @@ public class GlossaryBootstrapService {
             return GlossaryBootstrapResult.empty(List.of());
         }
 
-        BootstrapPlan plan = discover(dtos);
-        Executed executed = execute(plan, glossaryClass);
+        // Pre-compute the set of valid source slugs so dangling see_also references can be filtered
+        // out before they would FK-violate on link insert. Markdown is the curated source of truth,
+        // so unresolved slugs point to Twins that simply do not exist (yet).
+        Set<String> knownSlugs = new HashSet<>(dtos.size());
+        for (GlossaryEntityDto dto : dtos) {
+            knownSlugs.add(dto.slug());
+        }
 
-        log.info("Glossary bootstrap done: created={}, updated={}, skipped={}, restored={}, markedDeleted={}",
-                executed.created, executed.updated, plan.skips(), executed.restored, executed.markDeleted);
+        BootstrapPlan plan = discover(dtos);
+        Executed executed = execute(plan, knownSlugs);
+
+        log.info("Glossary bootstrap done: created={}, updated={}, skipped={}, restored={}, markedDeleted={}, linksAdded={}, linksRemoved={}",
+                executed.created, executed.updated, plan.skips(), executed.restored, executed.markDeleted,
+                executed.linksAdded, executed.linksRemoved);
         return new GlossaryBootstrapResult(
                 executed.created,
                 executed.updated,
                 plan.skips(),
-                0,              // linksAdded — TODO MVP-2 (TwinLink reconciliation)
-                0,              // linksRemoved — TODO MVP-2
+                executed.linksAdded,
+                executed.linksRemoved,
                 executed.markDeleted,
                 executed.restored,
                 List.of()       // invalidFiles — parser already logged them; not currently propagated
@@ -165,9 +178,9 @@ public class GlossaryBootstrapService {
             if (hashMatches && !isDeleted) {
                 skips++;
             } else if (hashMatches && isDeleted) {
-                restores.add(new BootstrapPlan.Update(dto, existing, List.of()));
+                restores.add(new BootstrapPlan.Update(dto, existing));
             } else {
-                updates.add(new BootstrapPlan.Update(dto, existing, List.of()));
+                updates.add(new BootstrapPlan.Update(dto, existing));
             }
         }
 
@@ -207,11 +220,11 @@ public class GlossaryBootstrapService {
     //  PHASE 2: EXECUTE — delegate persistence to SystemEntityBootstrapService
     // ──────────────────────────────────────────────────────────────────────────
 
-    private Executed execute(BootstrapPlan plan, TwinClassEntity glossaryClass) {
+    private Executed execute(BootstrapPlan plan, Set<String> knownSlugs) {
         int created = 0;
         for (GlossaryEntityDto dto : plan.creates()) {
             try {
-                SystemTwin twin = toSystemTwin(dto, STATUS_ACTUAL);
+                SystemTwin twin = toSystemTwin(dto, STATUS_ACTUAL, knownSlugs);
                 systemEntityBootstrapService.saveSystemTwin(twin, EntitySmartService.SaveMode.ifNotPresentCreate, false);
                 created++;
             } catch (Exception e) {
@@ -221,7 +234,7 @@ public class GlossaryBootstrapService {
         int updated = 0;
         for (BootstrapPlan.Update u : plan.updates()) {
             try {
-                SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL);
+                SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL, knownSlugs);
                 systemEntityBootstrapService.saveSystemTwin(twin, EntitySmartService.SaveMode.saveAndLogOnException, true);
                 updated++;
             } catch (Exception e) {
@@ -231,7 +244,7 @@ public class GlossaryBootstrapService {
         int restored = 0;
         for (BootstrapPlan.Update u : plan.restores()) {
             try {
-                SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL);
+                SystemTwin twin = toSystemTwin(u.dto(), STATUS_ACTUAL, knownSlugs);
                 systemEntityBootstrapService.saveSystemTwin(twin, EntitySmartService.SaveMode.saveAndLogOnException, true);
                 restored++;
             } catch (Exception e) {
@@ -247,16 +260,41 @@ public class GlossaryBootstrapService {
                 log.error("Glossary MARK_DELETE failed for {}: {}", orphan.getId(), e.getMessage(), e);
             }
         }
-        return new Executed(created, updated, restored, markDeleted);
+
+        // PHASE 2b — link reconciliation. Runs AFTER all Twins are persisted so see_also forward
+        // references resolve. SKIPs are excluded (hash match → seeAlso unchanged). MARK_DELETEDs
+        // are excluded — soft-deleted Twins keep their outgoing links for referential integrity.
+        int linksAdded = 0;
+        int linksRemoved = 0;
+        for (GlossaryEntityDto dto : plan.creates()) {
+            SystemEntityBootstrapService.LinkReconcileResult r =
+                    reconcileLinks(dto, knownSlugs);
+            linksAdded += r.inserted();
+            linksRemoved += r.deleted();
+        }
+        for (BootstrapPlan.Update u : plan.updates()) {
+            SystemEntityBootstrapService.LinkReconcileResult r =
+                    reconcileLinks(u.dto(), knownSlugs);
+            linksAdded += r.inserted();
+            linksRemoved += r.deleted();
+        }
+        for (BootstrapPlan.Update u : plan.restores()) {
+            SystemEntityBootstrapService.LinkReconcileResult r =
+                    reconcileLinks(u.dto(), knownSlugs);
+            linksAdded += r.inserted();
+            linksRemoved += r.deleted();
+        }
+        return new Executed(created, updated, restored, markDeleted, linksAdded, linksRemoved);
     }
 
     /**
      * Convert a parsed markdown DTO into a {@link SystemTwin} record. Text fields are split into
      * indexed vs non-indexed lists at this layer (we know each glossary field's typer statically);
      * each list then maps 1:1 to its destination table in {@link SystemEntityBootstrapService},
-     * with no fieldTyper routing needed at save time.
+     * with no fieldTyper routing needed at save time. The Twin also carries its desired see_also
+     * link set, persisted separately in PHASE 2b.
      */
-    private SystemTwin toSystemTwin(GlossaryEntityDto dto, UUID statusId) {
+    private SystemTwin toSystemTwin(GlossaryEntityDto dto, UUID statusId, Set<String> knownSlugs) {
         List<SystemTwinFieldSimple> indexed = new ArrayList<>();
         List<SystemTwinFieldSimpleNonIndexed> nonIndexed = new ArrayList<>();
         for (TextFieldMapping m : TEXT_FIELD_MAPPINGS) {
@@ -284,12 +322,49 @@ public class GlossaryBootstrapService {
                 indexed,
                 nonIndexed,
                 booleanFields,
-                timestampFields);
+                timestampFields,
+                buildSeeAlsoLinks(dto, knownSlugs));
+    }
+
+    /**
+     * Persist (or re-reconcile) the {@code see_also} links for a glossary Twin. The desired set is
+     * computed from the DTO; existing outgoing GLOSSARY_SEE_ALSO rows for this src Twin are wiped
+     * and re-inserted (markdown is source of truth — same model as field replacement).
+     */
+    private SystemEntityBootstrapService.LinkReconcileResult reconcileLinks(GlossaryEntityDto dto, Set<String> knownSlugs) {
+        try {
+            return systemEntityBootstrapService.saveSystemTwinLinks(
+                    dto.twinId(),
+                    buildSeeAlsoLinks(dto, knownSlugs),
+                    true);
+        } catch (Exception e) {
+            log.error("Glossary link reconciliation failed for {}: {}", dto.slug(), e.getMessage(), e);
+            return new SystemEntityBootstrapService.LinkReconcileResult(0, 0);
+        }
+    }
+
+    /**
+     * Map the DTO's {@code see_also} slug set to {@link SystemTwinLink} records. Slugs that do not
+     * resolve to a known parsed file are dropped (with WARN) — otherwise the link insert would
+     * FK-violate against {@code twin.id}.
+     */
+    private List<SystemTwinLink> buildSeeAlsoLinks(GlossaryEntityDto dto, Set<String> knownSlugs) {
+        if (dto.seeAlso() == null || dto.seeAlso().isEmpty()) return List.of();
+        List<SystemTwinLink> links = new ArrayList<>(dto.seeAlso().size());
+        for (String slug : dto.seeAlso()) {
+            if (!knownSlugs.contains(slug)) {
+                log.warn("Glossary {}: see_also references unknown slug '{}' — dropping link", dto.slug(), slug);
+                continue;
+            }
+            links.add(new SystemTwinLink(LINK_SEE_ALSO, GlossaryEntityDto.computeTwinId(slug)));
+        }
+        return links;
     }
 
     /**
      * Internal execute counters.
      */
-    private record Executed(int created, int updated, int restored, int markDeleted) {
+    private record Executed(int created, int updated, int restored, int markDeleted,
+                            int linksAdded, int linksRemoved) {
     }
 }

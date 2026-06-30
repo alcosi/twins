@@ -24,6 +24,15 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
             "where twinLink.id in (:linkIdList) and (twinLink.srcTwinId = :twinId or twinLink.dstTwinId = :twinId)")
     void deleteNotMandatory(@Param("twinId") UUID twinId, @Param("linkIdList") List<UUID> twinLinksDeleteUUIDList);
 
+    /**
+     * Delete every outgoing link of a given type from a single source Twin.
+     * Used by system-bootstrap reconciliation (e.g. glossary {@code see_also}) where markdown is
+     * the source of truth and the desired link set is rebuilt from scratch each pass.
+     */
+    @Modifying
+    @Query("delete from TwinLinkEntity tl where tl.srcTwinId = :srcTwinId and tl.linkId = :linkId")
+    int deleteBySrcTwinIdAndLinkId(@Param("srcTwinId") UUID srcTwinId, @Param("linkId") UUID linkId);
+
     <T> List<T> findBySrcTwinId(UUID srcTwinId, Class<T> type);
     <T> List<T> findBySrcTwinIdAndLinkIdIn(UUID srcTwinId, Collection<UUID> linkIdList,  Class<T> type);
 

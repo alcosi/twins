@@ -31,10 +31,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 import static org.cambium.common.util.LTreeUtils.convertToLTreeFormat;
 import static org.twins.bootstrap.SystemEntityBootstrapData.*;
@@ -70,6 +67,7 @@ public class SystemEntityBootstrapService {
     final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
     final TwinFieldBooleanRepository twinFieldBooleanRepository;
     final TwinFieldTimestampRepository twinFieldTimestampRepository;
+    final TwinLinkRepository twinLinkRepository;
     final TwinClassFieldService twinClassFieldService;
     final EntitySmartService entitySmartService;
     private final I18nRepository i18nRepository;
@@ -329,6 +327,60 @@ public class SystemEntityBootstrapService {
         if (dbTwin == null) return;
         dbTwin.setTwinStatusId(twinStatusId);
         entitySmartService.save(dbTwin.getId(), dbTwin, twinRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+    }
+
+    /**
+     * Reconcile outgoing TwinLinks for a system Twin. Used by glossary bootstrap to materialize
+     * frontmatter {@code see_also} as {@code GLOSSARY_SEE_ALSO} TwinLink rows.
+     *
+     * <p>Links are persisted via a separate entry point (not inside {@link #saveSystemTwin}) on
+     * purpose: the caller must first save all referenced destination Twins to avoid FK violations
+     * on forward references, then call this method in a second pass.
+     *
+     * <p><b>Replace semantics:</b> when {@code replace=true}, all existing outgoing links of each
+     * distinct {@code linkId} are deleted before the new set is inserted. Markdown is the source of
+     * truth — same model as {@code replaceFields} on {@link #saveSystemTwin}.
+     *
+     * @param srcTwinId Source Twin id (must already exist in DB)
+     * @param links     Desired outgoing link set (grouped internally by linkId)
+     * @param replace   If true, delete existing outgoing links of each linkId before insert
+     * @return counters: inserted + deleted row counts (for telemetry / result reporting)
+     */
+    public LinkReconcileResult saveSystemTwinLinks(UUID srcTwinId, List<SystemTwinLink> links, boolean replace) {
+        if (links.isEmpty() && !replace) return new LinkReconcileResult(0, 0);
+        Map<UUID, List<UUID>> dstsByLinkId = new LinkedHashMap<>();
+        for (SystemTwinLink l : links) {
+            if (l.dstTwinId() == null) continue;
+            dstsByLinkId.computeIfAbsent(l.linkId(), k -> new ArrayList<>()).add(l.dstTwinId());
+        }
+        int inserted = 0;
+        int deleted = 0;
+        for (Map.Entry<UUID, List<UUID>> e : dstsByLinkId.entrySet()) {
+            UUID linkId = e.getKey();
+            if (replace) {
+                deleted += twinLinkRepository.deleteBySrcTwinIdAndLinkId(srcTwinId, linkId);
+            }
+            List<TwinLinkEntity> batch = new ArrayList<>(e.getValue().size());
+            for (UUID dst : e.getValue()) {
+                batch.add(new TwinLinkEntity()
+                        .setSrcTwinId(srcTwinId)
+                        .setLinkId(linkId)
+                        .setDstTwinId(dst)
+                        .setCreatedByUserId(SystemIds.User.SYSTEM)
+                        .setCreatedAt(Timestamp.from(Instant.now())));
+            }
+            if (!batch.isEmpty()) {
+                twinLinkRepository.saveAll(batch);
+                inserted += batch.size();
+            }
+        }
+        return new LinkReconcileResult(inserted, deleted);
+    }
+
+    /**
+     * Counters returned by {@link #saveSystemTwinLinks}.
+     */
+    public record LinkReconcileResult(int inserted, int deleted) {
     }
 
     /**
