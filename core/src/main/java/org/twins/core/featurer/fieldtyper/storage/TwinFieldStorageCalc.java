@@ -9,9 +9,18 @@ import java.util.*;
 
 public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
     protected final UUID twinClassFieldId;
+    protected final UUID calcUserId;
+    protected final UUID calcUserGroupFootprintId;
 
-    protected TwinFieldStorageCalc(UUID twinClassFieldId) {
+    protected TwinFieldStorageCalc(UUID twinClassFieldId, UUID calcUserId, UUID calcUserGroupFootprintId) {
         this.twinClassFieldId = twinClassFieldId;
+        this.calcUserId = calcUserId;
+        this.calcUserGroupFootprintId = calcUserGroupFootprintId;
+    }
+
+    protected boolean hasSameCalcPermissionContext(TwinFieldStorageCalc other) {
+        return Objects.equals(calcUserId, other.calcUserId)
+                && Objects.equals(calcUserGroupFootprintId, other.calcUserGroupFootprintId);
     }
 
     public void packResult(Kit<TwinEntity, UUID> twinsKit, List<TwinFieldCalcProjection> calc) {

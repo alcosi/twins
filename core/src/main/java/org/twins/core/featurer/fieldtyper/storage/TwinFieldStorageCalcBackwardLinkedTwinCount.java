@@ -21,8 +21,10 @@ public class TwinFieldStorageCalcBackwardLinkedTwinCount extends TwinFieldStorag
             UUID twinClassFieldId,
             Set<UUID> linkIds,
             Set<UUID> linkedTwinStatusIdSet,
-            boolean exclude) {
-        super(twinClassFieldId);
+            boolean exclude,
+            UUID calcUserId,
+            UUID calcUserGroupFootprintId) {
+        super(twinClassFieldId, calcUserId, calcUserGroupFootprintId);
         this.twinRepository = twinRepository;
         this.linkIds = linkIds;
         this.linkedTwinStatusIdSet = linkedTwinStatusIdSet;
@@ -43,6 +45,7 @@ public class TwinFieldStorageCalcBackwardLinkedTwinCount extends TwinFieldStorag
                 && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).twinClassFieldId)
                 && Objects.equals(this.linkIds, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).linkIds)
                 && Objects.equals(this.linkedTwinStatusIdSet, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).linkedTwinStatusIdSet)
-                && Objects.equals(this.exclude, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).exclude);
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcBackwardLinkedTwinCount) o).exclude)
+                && hasSameCalcPermissionContext((TwinFieldStorageCalcBackwardLinkedTwinCount) o);
     }
 }

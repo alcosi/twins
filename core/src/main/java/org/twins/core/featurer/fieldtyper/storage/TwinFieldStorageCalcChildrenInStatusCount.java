@@ -17,8 +17,8 @@ public class TwinFieldStorageCalcChildrenInStatusCount extends TwinFieldStorageC
     private final Set<UUID> childrenTwinStatusIdSet;
     private final boolean exclude;
 
-    public TwinFieldStorageCalcChildrenInStatusCount(TwinRepository twinRepository, UUID twinClassFieldId, Set<UUID> childrenTwinStatusIdSet, boolean exclude) {
-        super(twinClassFieldId);
+    public TwinFieldStorageCalcChildrenInStatusCount(TwinRepository twinRepository, UUID twinClassFieldId, Set<UUID> childrenTwinStatusIdSet, boolean exclude, UUID calcUserId, UUID calcUserGroupFootprintId) {
+        super(twinClassFieldId, calcUserId, calcUserGroupFootprintId);
         this.twinRepository = twinRepository;
         this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
         this.exclude = exclude;
@@ -27,8 +27,8 @@ public class TwinFieldStorageCalcChildrenInStatusCount extends TwinFieldStorageC
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         List<TwinFieldCalcProjection> calc = exclude ?
-                twinRepository.countChildrenTwinsWithStatusNotIn(twinsKit.getIdSet(), childrenTwinStatusIdSet) :
-                twinRepository.countChildrenTwinsWithStatusIn(twinsKit.getIdSet(), childrenTwinStatusIdSet);
+                twinRepository.countChildrenTwinsWithStatusNotIn(twinsKit.getIdSet(), childrenTwinStatusIdSet, calcUserId, calcUserGroupFootprintId) :
+                twinRepository.countChildrenTwinsWithStatusIn(twinsKit.getIdSet(), childrenTwinStatusIdSet, calcUserId, calcUserGroupFootprintId);
         packResult(twinsKit, calc);
     }
 
@@ -37,6 +37,7 @@ public class TwinFieldStorageCalcChildrenInStatusCount extends TwinFieldStorageC
         return isSameClass(o)
                 && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcChildrenInStatusCount) o).twinClassFieldId)
                 && Objects.equals(this.childrenTwinStatusIdSet, ((TwinFieldStorageCalcChildrenInStatusCount) o).childrenTwinStatusIdSet)
-                && Objects.equals(this.exclude, ((TwinFieldStorageCalcChildrenInStatusCount) o).exclude);
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcChildrenInStatusCount) o).exclude)
+                && hasSameCalcPermissionContext((TwinFieldStorageCalcChildrenInStatusCount) o);
     }
 }

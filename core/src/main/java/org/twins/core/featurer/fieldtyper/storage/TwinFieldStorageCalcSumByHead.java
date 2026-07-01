@@ -19,8 +19,8 @@ public class TwinFieldStorageCalcSumByHead extends TwinFieldStorageCalc {
     private final Set<UUID> childrenTwinOfClassIdSet;
     private final boolean exclude;
 
-    public TwinFieldStorageCalcSumByHead(TwinFieldDecimalRepository twinFieldDecimalRepository, UUID twinClassFieldId, Set<UUID> childrenTwinClassFieldIds, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude) {
-        super(twinClassFieldId);
+    public TwinFieldStorageCalcSumByHead(TwinFieldDecimalRepository twinFieldDecimalRepository, UUID twinClassFieldId, Set<UUID> childrenTwinClassFieldIds, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude, UUID calcUserId, UUID calcUserGroupFootprintId) {
+        super(twinClassFieldId, calcUserId, calcUserGroupFootprintId);
         this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.childrenTwinClassFieldIds = childrenTwinClassFieldIds;
         this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
@@ -35,7 +35,9 @@ public class TwinFieldStorageCalcSumByHead extends TwinFieldStorageCalc {
                 childrenTwinClassFieldIds,
                 childrenTwinStatusIdSet,
                 exclude,
-                childrenTwinOfClassIdSet);
+                childrenTwinOfClassIdSet,
+                calcUserId,
+                calcUserGroupFootprintId);
 
         packResult(twinsKit, calc);
     }
@@ -47,6 +49,7 @@ public class TwinFieldStorageCalcSumByHead extends TwinFieldStorageCalc {
                 && Objects.equals(this.childrenTwinClassFieldIds, ((TwinFieldStorageCalcSumByHead) o).childrenTwinClassFieldIds)
                 && Objects.equals(this.childrenTwinStatusIdSet, ((TwinFieldStorageCalcSumByHead) o).childrenTwinStatusIdSet)
                 && Objects.equals(this.childrenTwinOfClassIdSet, ((TwinFieldStorageCalcSumByHead) o).childrenTwinOfClassIdSet)
-                && Objects.equals(this.exclude, ((TwinFieldStorageCalcSumByHead) o).exclude);
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcSumByHead) o).exclude)
+                && hasSameCalcPermissionContext((TwinFieldStorageCalcSumByHead) o);
     }
 }

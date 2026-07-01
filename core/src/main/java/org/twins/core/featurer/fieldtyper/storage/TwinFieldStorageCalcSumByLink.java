@@ -21,8 +21,8 @@ public class TwinFieldStorageCalcSumByLink extends TwinFieldStorageCalc {
     private final Set<UUID> linkedTwinOfClassIds;
     private final boolean statusExclude;
 
-    public TwinFieldStorageCalcSumByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, Set<UUID> linkedTwinClassIds, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean srcElseDst, boolean statusExclude, Set<UUID> linkIds) {
-        super(twinClassFieldId);
+    public TwinFieldStorageCalcSumByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, Set<UUID> linkedTwinClassIds, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean srcElseDst, boolean statusExclude, Set<UUID> linkIds, UUID calcUserId, UUID calcUserGroupFootprintId) {
+        super(twinClassFieldId, calcUserId, calcUserGroupFootprintId);
         this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.linkedTwinClassIds = linkedTwinClassIds;
         this.linkIds = linkIds;
@@ -41,7 +41,9 @@ public class TwinFieldStorageCalcSumByLink extends TwinFieldStorageCalc {
                 linkedTwinOfClassIds,
                 linkedTwinClassIds,
                 linkIds,
-                statusExclude
+                statusExclude,
+                calcUserId,
+                calcUserGroupFootprintId
         );
 
         packResult(twinsKit, calc);
@@ -57,6 +59,7 @@ public class TwinFieldStorageCalcSumByLink extends TwinFieldStorageCalc {
                 && Objects.equals(this.srcElseDst, ((TwinFieldStorageCalcSumByLink) o).srcElseDst)
                 && Objects.equals(this.linkedTwinInStatusIdList, ((TwinFieldStorageCalcSumByLink) o).linkedTwinInStatusIdList)
                 && Objects.equals(this.linkedTwinOfClassIds, ((TwinFieldStorageCalcSumByLink) o).linkedTwinOfClassIds)
-                && Objects.equals(this.statusExclude, ((TwinFieldStorageCalcSumByLink) o).statusExclude);
+                && Objects.equals(this.statusExclude, ((TwinFieldStorageCalcSumByLink) o).statusExclude)
+                && hasSameCalcPermissionContext((TwinFieldStorageCalcSumByLink) o);
     }
 }

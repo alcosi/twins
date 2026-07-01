@@ -11,6 +11,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.math.BigDecimal;
 import java.util.Properties;
+import java.util.UUID;
 
 public interface FieldTyperCalcChildrenField {
     @FeaturerParam(name = "childrenTwinClassFieldId", description = "Twin.Class.Field Id of child twin fields")
@@ -22,10 +23,10 @@ public interface FieldTyperCalcChildrenField {
     @FeaturerParam(name = "exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
     FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
-    default BigDecimal getSumResult(Properties properties, TwinEntity twinEntity, TwinFieldDecimalRepository twinFieldDecimalRepository) {
+    default BigDecimal getSumResult(Properties properties, TwinEntity twinEntity, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID userId, UUID userGroupFootprintId) {
         return exclude.extract(properties) ?
-                twinFieldDecimalRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
-                twinFieldDecimalRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
+                twinFieldDecimalRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties), userId, userGroupFootprintId) :
+                twinFieldDecimalRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties), userId, userGroupFootprintId);
     }
 
 }
