@@ -17,13 +17,13 @@ import java.util.UUID;
 @FieldNameConstants
 public abstract class TwinFieldBaseEntity implements EasyLoggable, Identifiable {
     @Id
-    private UUID id;
+    protected UUID id;
 
     @Column(name = "twin_id")
-    private UUID twinId;
+    protected UUID twinId;
 
     @Column(name = "twin_class_field_id")
-    private UUID twinClassFieldId;
+    protected UUID twinClassFieldId;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -44,12 +44,12 @@ public abstract class TwinFieldBaseEntity implements EasyLoggable, Identifiable 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinEntity twin;
+    protected TwinEntity twin;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassFieldEntity twinClassField;
+    protected TwinClassFieldEntity twinClassField;
 
     @PrePersist
     protected void onCreate() {

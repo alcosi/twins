@@ -56,7 +56,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
     @Query("""
     select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(tfd.value), count(tfd.id))
     from TwinFieldDecimalEntity tfd
-    join tfd.twin t
+    join tfd.twinSpecOnly t
     where t.headTwinId in :headTwinIdSet
       and tfd.twinClassFieldId = :twinClassFieldId
     group by t.headTwinId

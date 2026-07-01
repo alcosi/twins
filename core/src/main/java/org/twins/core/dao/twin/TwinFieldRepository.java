@@ -2,12 +2,14 @@ package org.twins.core.dao.twin;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.NoRepositoryBean;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@NoRepositoryBean
 public interface TwinFieldRepository<E extends TwinFieldBaseEntity> extends CrudRepository<E, UUID>, JpaSpecificationExecutor<E> {
     List<E> findByTwinIdIn(Collection<UUID> twinIds);
 
