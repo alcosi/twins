@@ -133,6 +133,8 @@ public final class SystemEntityBootstrapData {
                 new SystemDataList(
                         SystemIds.DataList.GLOSSARY_CATEGORY,
                         "GLOSSARY_CATEGORY",
+                        new I18n(SystemIds.I18n.GlossaryDataList.CATEGORY_NAME, "Glossary category"),
+                        new I18n(SystemIds.I18n.GlossaryDataList.CATEGORY_DESCRIPTION, "Glossary entry category"),
                         List.of(
                                 new SystemDataListOption(SystemIds.DataListOption.GLOSSARY_CATEGORY_CORE,           "core",           DataListStatus.active, (short) 1),
                                 new SystemDataListOption(SystemIds.DataListOption.GLOSSARY_CATEGORY_WORKFLOW,      "workflow",       DataListStatus.active, (short) 2),
@@ -605,7 +607,7 @@ public final class SystemEntityBootstrapData {
                              LinkType type, LinkStrength strength) {
     }
 
-    public record SystemDataList(UUID id, String key, List<SystemDataListOption> options) {
+    public record SystemDataList(UUID id, String key, I18n name, I18n description, List<SystemDataListOption> options) {
     }
 
     public record SystemDataListOption(UUID id, String option, DataListStatus status, Short order) {

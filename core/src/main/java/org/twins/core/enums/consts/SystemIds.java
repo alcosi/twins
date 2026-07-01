@@ -734,5 +734,10 @@ public final class SystemIds {
             public static final UUID SEE_ALSO_FORWARD  = UUID.fromString("00000000-0000-0000-0012-000000000051");
             public static final UUID SEE_ALSO_BACKWARD = UUID.fromString("00000000-0000-0000-0012-000000000052");
         }
+
+        public static final class GlossaryDataList {
+            public static final UUID CATEGORY_NAME        = UUID.fromString("00000000-0000-0000-0012-000000000060");
+            public static final UUID CATEGORY_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000061");
+        }
     }
 }

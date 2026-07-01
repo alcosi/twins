@@ -229,12 +229,18 @@ public class SystemEntityBootstrapService {
     }
 
     private void bootstrapSystemDataLists() {
+        List<I18nEntity> i18nEntities = new ArrayList<>();
+        List<I18nTranslationEntity> i18nTranslationEntities = new ArrayList<>();
         List<DataListEntity> dataListEntities = new ArrayList<>();
         List<DataListOptionEntity> dataListOptionEntities = new ArrayList<>();
         for (SystemDataList systemDataList : SYSTEM_DATA_LISTS) {
+            collectI18n(systemDataList.name(),        I18nType.DATA_LIST_NAME,        i18nEntities, i18nTranslationEntities);
+            collectI18n(systemDataList.description(), I18nType.DATA_LIST_DESCRIPTION, i18nEntities, i18nTranslationEntities);
             dataListEntities.add(new DataListEntity()
                     .setId(systemDataList.id())
                     .setKey(systemDataList.key())
+                    .setNameI18nId(systemDataList.name() != null ? systemDataList.name().i18nId() : null)
+                    .setDescriptionI18NId(systemDataList.description() != null ? systemDataList.description().i18nId() : null)
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setUpdatedAt(Timestamp.from(Instant.now())));
             for (SystemDataListOption option : systemDataList.options()) {
@@ -247,6 +253,8 @@ public class SystemEntityBootstrapService {
                         .setCreatedAt(Timestamp.from(Instant.now())));
             }
         }
+        entitySmartService.saveAllAndLog(i18nEntities, i18nRepository);
+        entitySmartService.saveAllAndLog(i18nTranslationEntities, i18nTranslationRepository);
         entitySmartService.saveAllAndLog(dataListEntities, dataListRepository);
         entitySmartService.saveAllAndLog(dataListOptionEntities, dataListOptionRepository);
     }
