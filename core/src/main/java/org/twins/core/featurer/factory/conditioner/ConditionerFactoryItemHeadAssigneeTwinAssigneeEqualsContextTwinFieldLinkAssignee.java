@@ -15,10 +15,10 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Objects;
 import java.util.Properties;
 
 @Component
@@ -33,10 +33,6 @@ public class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFiel
 
     @Lazy
     @Autowired
-    AuthService authService;
-
-    @Lazy
-    @Autowired
     TwinService twinService;
 
     @Lazy
@@ -47,14 +43,10 @@ public class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFiel
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         TwinLinkEntity twinLinkEntity = fieldValue.getItems().getFirst();
-        TwinEntity dstTwin = twinLinkEntity.getDstTwin();
-        if (dstTwin == null) {
-            dstTwin = twinService.findEntitySafe(twinLinkEntity.getDstTwinId());
-            twinLinkEntity.setDstTwin(dstTwin);
-        }
+        twinLinkService.loadDstTwin(twinLinkEntity);
         TwinEntity headTwin = twinService.loadHead(factoryItem.getTwin());
         if(null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItem.getTwin().logDetailed());
-        return dstTwin.getAssignerUserId().equals(headTwin.getAssignerUserId());
+        return Objects.equals(twinLinkEntity.getDstTwin().getAssignerUserId(), headTwin.getAssignerUserId());
     }
 }

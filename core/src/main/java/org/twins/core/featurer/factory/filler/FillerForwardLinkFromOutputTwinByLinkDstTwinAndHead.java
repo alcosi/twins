@@ -55,9 +55,7 @@ public class FillerForwardLinkFromOutputTwinByLinkDstTwinAndHead extends FillerL
         }
 
         TwinEntity dstTwin = getDstTwinByLink(properties, twinCreate, outputTwin);
-
         TwinEntity detectedHead = twinService.loadHead(dstTwin);
-
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
         TwinLinkEntity newLink = new TwinLinkEntity()
                 .setLink(link)
@@ -82,14 +80,7 @@ public class FillerForwardLinkFromOutputTwinByLinkDstTwinAndHead extends FillerL
         if (matchedLinks.size() != 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + firstHopLinkId + "] configured from " + outputTwin.logShort());
         }
-        TwinLinkEntity matchedLink = matchedLinks.getFirst();
-        TwinEntity dstTwin = matchedLink.getDstTwin();
-        if (dstTwin == null) {
-            if (matchedLink.getDstTwinId() == null) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Matched link has empty dstTwin and dstTwinId");
-            }
-            dstTwin = twinService.findEntitySafe(matchedLink.getDstTwinId());
-        }
-        return dstTwin;
+        twinLinkService.loadDstTwin(matchedLinks);
+        return  matchedLinks.getFirst().getDstTwin();
     }
 }

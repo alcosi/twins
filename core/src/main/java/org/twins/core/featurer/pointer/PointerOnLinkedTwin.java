@@ -42,7 +42,9 @@ public class PointerOnLinkedTwin extends Pointer {
             return null;
         else if (forwardLinks.size() > 1)
             throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE, srcTwinEntity.logShort() + " has " + forwardLinks.size() + " linked twins by link[" + linkIdValue + "]");
-        else
+        else {
+            twinLinkService.loadDstTwin(forwardLinks);
             return forwardLinks.getFirst().getDstTwin();
+        }
     }
 }

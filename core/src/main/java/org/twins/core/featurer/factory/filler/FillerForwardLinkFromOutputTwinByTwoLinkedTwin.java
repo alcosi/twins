@@ -102,7 +102,7 @@ public class FillerForwardLinkFromOutputTwinByTwoLinkedTwin extends FillerLinks 
         if (firstHopLinks.size() != 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + linkId + "] configured from " + outputTwin.logShort());
         }
-
+        twinLinkService.loadDstTwin(firstHopLinks);
         TwinLinkEntity firstHopLinkEntity = firstHopLinks.getFirst();
         TwinEntity dstTwin = firstHopLinkEntity.getDstTwin();
         if (dstTwin == null) {

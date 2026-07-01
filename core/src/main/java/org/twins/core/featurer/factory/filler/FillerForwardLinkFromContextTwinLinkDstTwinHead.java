@@ -47,7 +47,10 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
         if (contextTwinLinksList.size() != 1)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
-        TwinEntity detectedHead = twinService.loadHead(contextTwinLinksList.get(0).getDstTwin());
+        twinLinkService.loadDstTwin(contextTwinLinksList);
+        var dstTwin = contextTwinLinksList.getFirst().getDstTwin();
+        twinService.loadHead(dstTwin);
+        var detectedHead = dstTwin.getHeadTwin();
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
         TwinLinkEntity newLink = new TwinLinkEntity()
                 .setLink(link)

@@ -125,6 +125,8 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         Set<TwinLinkEntity> origTwinLinks = childrenStatusIds.isEmpty()
                 ? twinLinkService.findAllBetweenTwinsIn(collectedTwinIds)
                 : twinLinkService.findAllBetweenTwinsInAndTwinsInStatusIds(collectedTwinIds, childrenStatusIds);
+        twinLinkService.loadDstTwin(origTwinLinks);
+        twinLinkService.loadLink(origTwinLinks);
 
         var origTwinLinksGrouped = new KitGrouped<>(origTwinLinks, TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
 
@@ -252,9 +254,9 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         return copyContext;
     }
 
-    private List<TwinLinkEntity> copyForwardLinks(TwinEntity srcTwinCopy, List<TwinLinkEntity> origTwinLinks, UserEntity user, Map<UUID, CopyContext> copyContextMap) {
+    private List<TwinLinkEntity> copyForwardLinks(TwinEntity srcTwinCopy, List<TwinLinkEntity> origTwinLinks, UserEntity user, Map<UUID, CopyContext> copyContextMap) throws ServiceException {
         var linksCopy = new ArrayList<TwinLinkEntity>(origTwinLinks.size());
-
+        twinLinkService.loadDstTwin(origTwinLinks);
         for (var origTwinLink : origTwinLinks) {
             var dstCtx = createCopyContext(origTwinLink.getDstTwin(), user, copyContextMap);
             var dstTwinCopy = dstCtx.getTwinCopy();

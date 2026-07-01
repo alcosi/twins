@@ -52,8 +52,8 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         if (fieldValueLink.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not filled");
         }
-
-        TwinEntity dstTwin = resolveDstTwin(fieldValueLink.getItems().getFirst());
+        twinLinkService.loadDstTwin(fieldValueLink.getItems());
+        TwinEntity dstTwin = fieldValueLink.getItems().getFirst().getDstTwin();
         TwinEntity detectedHead = twinService.loadHead(dstTwin);
         if (detectedHead == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + dstTwin.logDetailed());

@@ -2,7 +2,6 @@ package org.twins.core.featurer.factory.conditioner;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
@@ -15,7 +14,6 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
-import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchServiceV2;
@@ -106,9 +104,6 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
             return linkEntity.getDstTwinId();
         }
         return null;
