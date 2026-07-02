@@ -8,16 +8,14 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twin.TwinService;
 
+import java.util.Objects;
 import java.util.Properties;
 
 @Component
@@ -26,17 +24,8 @@ import java.util.Properties;
         description = "")
 @Slf4j
 public class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssignee extends Conditioner {
-
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
-
-    @Lazy
-    @Autowired
-    AuthService authService;
-
-    @Lazy
-    @Autowired
-    TwinService twinService;
 
     @Lazy
     @Autowired
@@ -46,11 +35,7 @@ public class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigne
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         TwinLinkEntity twinLinkEntity = fieldValue.getItems().getFirst();
-        TwinEntity dstTwin = twinLinkEntity.getDstTwin();
-        if (dstTwin == null) {
-            dstTwin = twinService.findEntitySafe(twinLinkEntity.getDstTwinId());
-            twinLinkEntity.setDstTwin(dstTwin);
-        }
-        return dstTwin.getAssignerUserId().equals(factoryItem.checkSingleContextItem().getTwin().getAssignerUserId());
+        twinLinkService.loadDstTwin(twinLinkEntity);
+        return Objects.equals(twinLinkEntity.getDstTwin().getAssignerUserId(), factoryItem.checkSingleContextItem().getTwin().getAssignerUserId());
     }
 }

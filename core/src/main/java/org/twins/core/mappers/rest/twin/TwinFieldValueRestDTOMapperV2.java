@@ -21,7 +21,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.link.TwinLinkService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -45,6 +47,8 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByFieldMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    private final TwinLinkService twinLinkService;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -109,8 +113,13 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueLink link) {
             StringJoiner stringJoiner = new StringJoiner(",");
             TwinEntity linkedTwin;
+            boolean forwardLink = link.isForwardLink();
+            if (forwardLink)
+                twinLinkService.loadDstTwin(link.getItems());
+            else
+                twinLinkService.loadSrcTwin(link.getItems());
             for (TwinLinkEntity twinLinkEntity : link.getItems()) {
-                if (link.isForwardLink())
+                if (forwardLink)
                     linkedTwin = twinLinkEntity.getDstTwin();
                 else
                     linkedTwin = twinLinkEntity.getSrcTwin();
@@ -145,6 +154,19 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
         return super.convertCollection(srcList
                 .stream().filter(v -> !(v instanceof FieldValueInvisible) || (v instanceof FieldValueAttachment)).toList(), mapperContext);
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<FieldValue> srcCollection, MapperContext mapperContext) throws Exception {
+        List<TwinLinkEntity> twinLinks = null;
+        for (FieldValue v : srcCollection) {
+            if (v instanceof FieldValueLink valueLink) {
+                if (twinLinks == null)
+                    twinLinks = new ArrayList<>();
+                twinLinks.addAll(valueLink.getItems());
+            }
+        }
+        twinLinkService.loadTwin(twinLinks);
     }
 
     @Override

@@ -31,9 +31,6 @@ public class ConditionerTwinExistsByHeadAndContextLinkDst extends ConditionerTwi
         twinLinkService.loadTwinLinks(contextTwin);
         try {
             var linkEntity = contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
             return linkEntity.getDstTwinId();
         } catch (Exception e) {
             log.debug("Link dst twin not found by link [{}] on context twin [{}]", linkId, contextTwin.logShort());

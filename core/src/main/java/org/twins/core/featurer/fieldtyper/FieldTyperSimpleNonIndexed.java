@@ -28,7 +28,6 @@ public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T ex
     }
 
     public TwinFieldSimpleNonIndexedEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        twinService.loadTwinFields(twinEntity);
         return twinEntity.getTwinFieldSimpleNonIndexedKit().get(twinClassFieldEntity.getId());
     }
 

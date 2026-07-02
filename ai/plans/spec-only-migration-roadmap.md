@@ -28,7 +28,7 @@
 | 1 | `AttachmentDeleteTaskEntity` | attachment | 1 | 1 | 0 | 0 | 0 | ready |
 | 2 | `BusinessAccountEntity` | businessaccount | 1 | 1 | 0 | 0 | 0 | ready |
 | 3 | `BusinessAccountUserEntity` | businessaccount | 0 | 0 | 0 | 0 | 0 | done |
-| 4 | `DataListOptionEntity` | datalist | 2 | 2 | 0 | 0 | 0 | ready |
+| 4 | `DataListOptionEntity` | datalist | 0 | 0 | 0 | 0 | 0 | done |
 | 5 | `DataListOptionProjectionEntity` | datalist | 4 | 4 | 0 | 0 | 0 | ready |
 | 6 | `DataListOptionSearchPredicateEntity` | datalist | 1 | 1 | 0 | 0 | 0 | ready |
 | 7 | `DataListSubsetOptionEntity` | datalist | 2 | 2 | 0 | 0 | 0 | ready |
@@ -113,7 +113,7 @@
 | 86 | `TwinFieldTimestampEntity` | twin | 2 | 2 | 0 | 0 | 0 | ready |
 | 87 | `TwinFieldTwinClassEntity` | twin | 3 | 3 | 0 | 0 | 0 | ready |
 | 88 | `TwinFieldUserEntity` | twin | 2 | 1 | 1 | 0 | 0 | partial |
-| 89 | `TwinLinkEntity` | twin | 3 | 3 | 0 | 0 | 0 | ready |
+| 89 | `TwinLinkEntity` | twin | 0 | 0 | 0 | 0 | 0 | done |
 | 90 | `TwinMarkerEntity` | twin | 2 | 2 | 0 | 0 | 0 | ready |
 | 91 | `TwinPointerEntity` | twin | 1 | 1 | 0 | 0 | 0 | ready |
 | 92 | `TwinPointerValidatorRuleEntity` | twin | 2 | 2 | 0 | 0 | 0 | ready |
@@ -142,15 +142,17 @@
 
 | Статус | Кол-во сущностей |
 |---|---|
-| done | 20 |
-| ready | 63 |
+| done | 22 |
+| ready | 61 |
 | partial | 15 |
 | audit | 9 |
 | blocked | 4 |
 
-**Итого полей:** legacy=192, simple=170, business=17, blocked=5
+**Итого полей:** legacy=187, simple=165, business=17, blocked=5
 
 **История обновлений:**
+- 2026-07-01: `TwinLinkEntity` → `done` (3 поля: `srcTwin`, `dstTwin`, `link`). `srcTwin`/`dstTwin`/`link` переименованы в `*SpecOnly` (`@Getter(AccessLevel.NONE)`, LAZY) с добавлением `@Transient` runtime-полей. В `TwinLinkService` добавлены `loadSrcTwin`/`loadDstTwin`/`loadLink` (collection + single) по образцу `loadCreatedByUser`. Load-вызовы добавлены в: `loadTwinLinks` (srcTwin+dstTwin+link), `filterDenied` (то же), `isLinkDstTwinStatusIn` (dstTwin), `updateTwinLinks` (dbTwinLinkEntity: srcTwin+dstTwin+link), `deleteTwinLinks` (srcTwin+dstTwin+link). `TwinLinkSpecification.checkStrength` — `Fields.link` → `Fields.linkSpecOnly`. Мапперы `TwinLinkForwardRestDTOMapper`/`TwinLinkBackwardRestDTOMapper` — `beforeCollectionConversion` bulk-load + load в `map()`; `TwinFieldValueRestDTOMapperV2` — bulk-load внутри `convert()` для `FieldValueLink`. Featurer'ы: в `FillerLinks.addLinks(FactoryItem, Collection)` добавлен throws + bulk-load (покрывает все subclasses); load'ы в `MultiplierIsolatedCopyWithDepth`, `FillerForwardLinkFromOutputTwinLinkDstTwinHead`, `FillerForwardLinkFromContextTwinLinkDstTwinHead`; null-safe fallback через `getDstTwinId()`+`findEntitySafe` в `FillerFieldAsContextFieldHead` и `FillerBasicsAssigneeFromOutputTwinFieldLink`. Остальные featurer'ы либо берут TwinLinkEntity через `twin.getTwinLinks()` (покрыто `loadTwinLinks`), либо уже имели null-safe fallback.
+- 2026-06-25: `DataListOptionEntity` → `done` (2 поля: `dataList`, `businessAccount`). При ручном аудите нашлись бизнес-использования, пропущенные эвристикой (переменные не с именем `entity.`): `isEntityReadDenied` (`entity.getDataList().getDomainId()`), `updateDataListOptions` (`dbOption.getDataList()`), `reloadOptionsOnDataListAbsent` (null-check — упрощён до `getDataListId()`), маппер `DataListOptionRestDTOMapper.getAttributes` (`src.getDataList().getAttributeXkey()`). В `isEntityReadDenied` добавлен `loadDataList(entity)` при `null`. В `updateDataListOptions` добавлен `loadDataList(dbOption)`. Маппер переписан: добавлен `beforeCollectionConversion` (bulk load) + null-safe `getAttributes`. JPQL в `DataListOptionRepository.findAllByBusinessAccountIdAndDomainId` — `dlo.dataList` → `dlo.dataListSpecOnly`. Спецификации (`DataListOptionSearchService`, `DataListOptionSpecification`) — `Fields.dataList` → `Fields.dataListSpecOnly` (4 места). Load-методы `loadDataList`/`loadBusinessAccount` уже существовали в `DataListOptionService`. Статус в таблице детализации исправлен: 2 поля simple → migrated; эвристика не нашла business-использований из-за имён переменных вне `{Entity}Service`.
 - 2026-06-24: `UserGroupEntity` → `done` (3 поля: `domain`, `businessAccount`, `userGroupType`). `loadUserGroupType` написан вручную через repository (UserGroupTypeEntity.id это String, не UUID — `EntitySecureFindServiceImpl.load()` не подходит). `UserGroupTypeRepository.findValidTypes` JPQL обновлён: 5 ссылок `ug.userGroupType` → `ug.userGroupTypeSpecOnly`. `getUserGroupType()` getter-uses в featurer-ах (Slugger, UserGroupManager — 5 мест) — пользователь взял аудит на себя.
 - 2026-06-24: `DomainUserEntity` → `done` (2 поля: `domain`, `user`). `DomainUserSpecification` updated (`Fields.user` → `Fields.userSpecOnly`, 3 места), `DomainUserSearchService` updated (`Fields.domain` → `Fields.domainSpecOnly`). Маппер с `beforeCollectionConversion`. По ходу пофикшен missing-return в `DomainBusinessAccountUserRepository.findByDomainIdAndBusinessAccountIdAndUserId`.
 - 2026-06-23: `DomainBusinessAccountEntity` → `done` (4 поля: `domain`, `businessAccount`, `permissionSchema`, `tier`). Существуют getter-uses в бизнес-логике (`PermissionService`, `BusinessAccountInitiator`, `DomainService`) — пользователь взял аудит на себя. В сервис добавлены `loadDomain`/`loadBusinessAccount` (loadPermissionSchema/loadTier уже были), маппер обновлён для вызова всех load-методов в `map()` и `beforeCollectionConversion()`.

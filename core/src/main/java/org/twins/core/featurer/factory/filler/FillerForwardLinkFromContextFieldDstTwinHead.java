@@ -81,13 +81,7 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
     }
 
     private TwinEntity resolveDstTwin(TwinLinkEntity matchedLink) throws ServiceException {
-        TwinEntity dstTwin = matchedLink.getDstTwin();
-        if (dstTwin == null) {
-            if (matchedLink.getDstTwinId() == null) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Matched link has empty dstTwin and dstTwinId");
-            }
-            dstTwin = twinService.findEntitySafe(matchedLink.getDstTwinId());
-        }
-        return dstTwin;
+        twinLinkService.loadDstTwin(matchedLink);
+        return matchedLink.getDstTwin();
     }
 }

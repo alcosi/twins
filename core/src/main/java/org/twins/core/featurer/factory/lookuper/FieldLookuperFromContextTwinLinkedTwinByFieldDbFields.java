@@ -19,9 +19,10 @@ public class FieldLookuperFromContextTwinLinkedTwinByFieldDbFields extends Field
         var contextTwin = factoryItem.checkSingleContextTwin();
         twinService.loadFieldsValues(contextTwin);
         var fieldValue = contextTwin.getFieldValuesKit().get(linkedTwinByTwinClassFieldId);
-        if (fieldValue == null || !(fieldValue instanceof FieldValueLink)) {
+        if (!(fieldValue instanceof FieldValueLink)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context twin fields or it's not a link");
         }
+        twinLinkService.loadDstTwin(((FieldValueLink) fieldValue).getItems());
         TwinEntity fromTwin = ((FieldValueLink) fieldValue).getItems().getFirst().getDstTwin();
         FieldValue fieldValueForCopy = twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId);
         if (fieldValueForCopy == null)

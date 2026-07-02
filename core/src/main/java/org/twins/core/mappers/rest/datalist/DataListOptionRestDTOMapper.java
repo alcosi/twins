@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.datalist;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -13,7 +14,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.service.datalist.DataListOptionService;
 
+import java.util.Collection;
 import java.util.Hashtable;
 
 import static org.cambium.common.util.DateUtils.convertOrNull;
@@ -26,9 +29,10 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
     private final DataListRestDTOMapper dataListRestDTOMapper;
     @MapperModePointerBinding(modes = BusinessAccountMode.DataListOption2BusinessAccountMode.class)
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
+    private final DataListOptionService dataListOptionService;
 
     @Override
-    public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
+    public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(DataListOptionMode.DETAILED)) {
             case DETAILED ->
                 dst
@@ -53,23 +57,37 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
         }
         if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
             dst.setDataListId(src.getDataListId());
+            dataListOptionService.loadDataList(src);
             dataListRestDTOMapper.postpone(src.getDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListOption2DataListMode.SHORT)));
-        } if (mapperContext.hasModeButNot(BusinessAccountMode.DataListOption2BusinessAccountMode.HIDE)) {
+        } if (src.getBusinessAccountId() != null && mapperContext.hasModeButNot(BusinessAccountMode.DataListOption2BusinessAccountMode.HIDE)) {
             dst.setBusinessAccountId(src.getBusinessAccountId());
+            dataListOptionService.loadBusinessAccount(src);
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.DataListOption2BusinessAccountMode.SHORT)));
         }
     }
 
-    protected Hashtable<String, String> getAttributes(DataListOptionEntity src) {
+    @Override
+    public void beforeCollectionConversion(Collection<DataListOptionEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasMode(DataListOptionMode.DETAILED) || mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
+            dataListOptionService.loadDataList(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(BusinessAccountMode.DataListOption2BusinessAccountMode.HIDE)) {
+            dataListOptionService.loadBusinessAccount(srcCollection);
+        }
+    }
+
+    protected Hashtable<String, String> getAttributes(DataListOptionEntity src) throws ServiceException {
         Hashtable<String, String> ret = new Hashtable<>();
-        if (src.getAttribute1value() != null && src.getDataList().getAttribute1key() != null)
-            ret.put(src.getDataList().getAttribute1key(), src.getAttribute1value());
-        if (src.getAttribute2value() != null && src.getDataList().getAttribute2key() != null)
-            ret.put(src.getDataList().getAttribute2key(), src.getAttribute2value());
-        if (src.getAttribute3value() != null && src.getDataList().getAttribute3key() != null)
-            ret.put(src.getDataList().getAttribute3key(), src.getAttribute3value());
-        if (src.getAttribute4value() != null && src.getDataList().getAttribute4key() != null)
-            ret.put(src.getDataList().getAttribute4key(), src.getAttribute4value());
+        dataListOptionService.loadDataList(src);
+        var dataList = src.getDataList();
+        if (src.getAttribute1value() != null && dataList.getAttribute1key() != null)
+            ret.put(dataList.getAttribute1key(), src.getAttribute1value());
+        if (src.getAttribute2value() != null && dataList.getAttribute2key() != null)
+            ret.put(dataList.getAttribute2key(), src.getAttribute2value());
+        if (src.getAttribute3value() != null && dataList.getAttribute3key() != null)
+            ret.put(dataList.getAttribute3key(), src.getAttribute3value());
+        if (src.getAttribute4value() != null && dataList.getAttribute4key() != null)
+            ret.put(dataList.getAttribute4key(), src.getAttribute4value());
         return !ret.isEmpty() ? ret : null;
     }
 

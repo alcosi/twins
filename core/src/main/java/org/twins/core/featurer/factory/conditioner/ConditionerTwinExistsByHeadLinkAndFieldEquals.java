@@ -35,11 +35,7 @@ import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -180,7 +176,7 @@ public class ConditionerTwinExistsByHeadLinkAndFieldEquals extends Conditioner {
         UUID linkId = dstLinkId.extract(properties);
         twinLinkService.loadTwinLinks(contextTwin);
         try {
-            return contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst().getDstTwin().getId();
+            return contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst().getDstTwinId();
         } catch (Exception e) {
             log.info("Link dst twin not found by link [{}] on context twin [{}]", linkId, contextTwin.logShort());
             return null;
@@ -193,9 +189,6 @@ public class ConditionerTwinExistsByHeadLinkAndFieldEquals extends Conditioner {
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
             return linkEntity.getDstTwinId();
         }
         if (fieldValue instanceof FieldValueText textField && textField.isNotEmpty()) {

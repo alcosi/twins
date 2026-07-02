@@ -147,7 +147,6 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     @Override
     protected FieldValueUser deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twinEntity = twinField.getTwin();
-        twinService.loadTwinFields(twinEntity);
         List<TwinFieldUserEntity> twinFieldUserEntityList = twinEntity.getTwinFieldUserKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (twinFieldUserEntityList != null)

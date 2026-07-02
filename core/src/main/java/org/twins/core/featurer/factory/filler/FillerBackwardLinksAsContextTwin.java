@@ -35,10 +35,10 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
         if (CollectionUtils.isEmpty(linkEntityList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutput().getTwinEntity().getTwinClass().logShort());
         if (linkEntityList.size() > 1) {
-            log.warn(linkEntityList.size() + " links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutput().getTwinEntity().getTwinClass().logShort());
+            log.warn("{} links configured from {} to {}", linkEntityList.size(), contextTwin.getTwinClass().logShort(), factoryItem.getOutput().getTwinEntity().getTwinClass().logShort());
             //todo get link by hierarchy priority
         }
-        LinkEntity linkEntity = linkEntityList.get(0);
+        LinkEntity linkEntity = linkEntityList.getFirst();
         TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         // todo why loop? we have already call factoryItem.checkSingleContextTwin();

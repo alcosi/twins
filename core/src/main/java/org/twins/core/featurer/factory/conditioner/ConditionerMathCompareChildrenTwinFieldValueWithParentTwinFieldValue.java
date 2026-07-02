@@ -20,7 +20,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twin.TwinFieldSimpleSearchService;
+import org.twins.core.service.twinfield.TwinFieldSimpleService;
 
 import java.util.List;
 import java.util.Properties;
@@ -47,13 +47,13 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
 
     @Lazy
     @Autowired
-    private TwinFieldSimpleSearchService twinFieldSimpleSearchService;
+    private TwinFieldSimpleService twinFieldSimpleService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         FieldValue greaterValue = fieldLookupers.getFromItemOutputUncommitedFields().lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties));
         double comparison, greater;
-        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldsSimple(
+        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleService.findTwinFieldsSimple(
                 List.of(factoryItem.getOutput().getTwinEntity().getId()),
                 factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()),
                 statusIds.extract(properties)
