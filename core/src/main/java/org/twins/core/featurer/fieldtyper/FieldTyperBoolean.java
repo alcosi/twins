@@ -29,7 +29,6 @@ public abstract class FieldTyperBoolean<D extends FieldDescriptor, T extends Fie
     }
 
     public TwinFieldBooleanEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        twinService.loadTwinFields(twinEntity);
         return twinEntity.getTwinFieldBooleanKit().get(twinClassFieldEntity.getId());
     }
 

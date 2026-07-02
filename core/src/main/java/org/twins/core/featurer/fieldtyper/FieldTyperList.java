@@ -183,7 +183,6 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @Override
     protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twinEntity = twinField.getTwin();
-        twinService.loadTwinFields(twinEntity);
         List<TwinFieldDataListEntity> twinFieldDataListEntityList = twinEntity.getTwinFieldDatalistKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueSelect ret = new FieldValueSelect(twinField.getTwinClassField());
         if (twinFieldDataListEntityList != null)

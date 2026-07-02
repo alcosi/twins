@@ -32,11 +32,11 @@ public abstract class TwinFieldStorageMater<E extends TwinFieldBaseEntity> exten
         }
     }
 
-    protected void injectRelations(List<E> entities, TwinEntity twinEntity) {
-        for (var twinFieldBoolean : entities) {
-            twinFieldBoolean
+    protected void injectRelations(List<E> twinFields, TwinEntity twinEntity) {
+        for (var twinField : twinFields) {
+            twinField
                     .setTwin(twinEntity)
-                    .setTwinClassField(twinEntity.getTwinClass().getTwinClassFieldKit().get(twinFieldBoolean.getTwinClassFieldId()));
+                    .setTwinClassField(twinEntity.getTwinClass().getTwinClassFieldKit().get(twinField.getTwinClassFieldId()));
         }
     }
 

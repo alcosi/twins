@@ -115,7 +115,6 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     @Override
     protected FieldValueUser deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twinEntity = twinField.getTwin();
-        twinService.loadTwinFields(twinEntity);
         UUID roleId = spaceRoleId.extract(properties);
         List<SpaceRoleUserEntity> spaceRoleUserEntityList = twinEntity.getTwinFieldSpaceUserKit().getGrouped(roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
