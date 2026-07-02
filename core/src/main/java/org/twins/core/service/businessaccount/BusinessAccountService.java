@@ -16,7 +16,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -35,7 +35,6 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
     final EntitySmartService entitySmartService;
     @Lazy
     final TwinService twinService;
-    final SystemEntityService systemEntityService;
     @Lazy
     final AuthService authService;
 
@@ -72,7 +71,7 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
                         .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId)) // welcome to new BA
                         .setCheckMembershipMode(false); // BA is just created, so no sense to check BA - User membership
             }
-            TwinDuplicate twinDuplicate = twinService.createDuplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
+            TwinDuplicate twinDuplicate = twinService.createDuplicateTwin(SystemIds.TwinTemplate.BUSINESS_ACCOUNT, businessAccountEntity.getId());
             twinService.saveDuplicateTwin(twinDuplicate);
         }
         return saveResult.getSavedEntity();

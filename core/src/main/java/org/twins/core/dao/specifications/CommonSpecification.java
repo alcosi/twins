@@ -21,6 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
@@ -264,6 +265,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                             cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
 //                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
                     );
+                    break;
+                case SYSTEM_PUBLIC:
+                    // System-global metadata (glossary etc.) — no domain, no DBU membership.
+                    // Visible to any authenticated user, provided the TwinClass is SYSTEM-owned
+                    // and has no domain (defensive: matches what bootstrap persists).
+                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
+                    systemLevelPredicate = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
                     break;
             }
 
@@ -523,6 +531,44 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      */
     public static <T> Specification<T> checkFieldUuid(UUID fieldValue, String... filedPath) {
         return (root, query, cb) -> createPredicateWithJoins(root, cb, fieldValue, (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue), JoinType.INNER, filedPath);
+    }
+
+    /**
+     * Combined {@code twinClass.id IN (...)} + {@code twinClass.domain_id} filter in one pass.
+     *
+     * <p>Single INNER join to {@code twinClass} (vs. two separate specifications each creating
+     * their own join). Domain predicate widens to {@code OR domain_id IS NULL} when the requested
+     * class set contains a system-public class ({@link SystemIdLookup#isTwinClassForSystemPublic}),
+     * so global metadata Twins (e.g. TWINS_GLOSSARY) are returned alongside tenant-scoped ones.</p>
+     *
+     * @param twinClassUuids the classes to filter by; null/empty applies domain filter only
+     * @param apiUser        the caller — supplies the domain id
+     * @param twinEntityFieldPath optional path to navigate from the row root to the TwinEntity
+     *                            (e.g. {@code "head"} when filtering head Twins); empty means
+     *                            the row root itself is the TwinEntity
+     */
+    public static <T> Specification<T> checkClassWithDomain(
+            Collection<UUID> twinClassUuids, ApiUser apiUser, String... twinEntityFieldPath) throws ServiceException {
+        UUID domainId = apiUser.getDomainId();
+        boolean includesSystemPublic = CollectionUtils.isNotEmpty(twinClassUuids)
+                && twinClassUuids.stream().anyMatch(SystemIdLookup::isTwinClassForSystemPublic);
+        return (root, query, cb) -> {
+            From<?, ?> fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
+            Join<?, ?> twinClass = getOrCreateJoin(fromTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
+            Expression<UUID> twinClassDomainId = twinClass.get(TwinClassEntity.Fields.domainId);
+            Predicate classPredicate = CollectionUtils.isEmpty(twinClassUuids)
+                    ? cb.conjunction()
+                    : getPredicate(cb,
+                            twinClassUuids.stream()
+                                    .map(id -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), id))
+                                    .toList(),
+                            true);
+            Predicate domainPredicate = cb.equal(twinClassDomainId, domainId);
+            if (includesSystemPublic) {
+                domainPredicate = cb.or(domainPredicate, cb.isNull(twinClassDomainId));
+            }
+            return cb.and(classPredicate, domainPredicate);
+        };
     }
 
 

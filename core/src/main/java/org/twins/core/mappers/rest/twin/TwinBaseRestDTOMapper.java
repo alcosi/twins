@@ -65,7 +65,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .description(src.getDescription())
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())
                         .ownerUserId(src.getOwnerUserId())
-                        .createdAt(src.getCreatedAt().toLocalDateTime())
+                        .createdAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
                         .pageFaceId(faceService.resolvePageFaceId(src))
                         .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                         .freeze(twinService.checkIsFreezeStatus(src));

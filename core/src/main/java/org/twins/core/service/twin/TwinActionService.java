@@ -23,8 +23,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.action.ActionRestrictionReasonService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.validator.TwinValidatorService;
@@ -105,7 +105,7 @@ public class TwinActionService {
                 needLoadByValidators.add(twinClassEntity);
             }
         }
-        needLoadByPermissionsClassIds.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
+        needLoadByPermissionsClassIds.remove(SystemIds.TwinClass.GLOBAL_ANCESTOR);
         if (!needLoadByPermissions.isEmpty()) {
             List<TwinActionPermissionEntity> twinClassActionPermissionEntities = twinActionPermissionRepository.findByTwinClassIdIn(needLoadByPermissionsClassIds);
             Map<TwinAction, Map<UUID, TwinActionPermissionEntity>> groupedByActionThenByClass = new HashMap<>();

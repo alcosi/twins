@@ -27,7 +27,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(
-        id = FeaturerTwins.ID_2359,
+        id = FeaturerTwins.ID_2360,
         name = "Forward link to twin found by head and context field link dst",
         description = "Finds twin by head and link dst resolved from context field; creates forward link from output twin."
 )
@@ -71,8 +71,8 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldLinkDst extends Fi
             return linkEntity.getDstTwinId();
         }
         if (fieldValue instanceof FieldValueText) {
-            // In this scenario dstTwinClassFieldId must be a link field (project is a twin link).
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "dstTwinClassFieldId is expected to be a link field, but it's FieldValueText.");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
+                    "dstTwinClassFieldId is expected to be a link field, but it's FieldValueText.");
         }
         return null;
     }

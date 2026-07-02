@@ -49,7 +49,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
@@ -200,9 +200,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isSystemLevel()) {
-            if (SystemEntityService.isTwinClassForUser(entity.getTwinClassId()))
+            if (SystemIdLookup.isTwinClassForUser(entity.getTwinClassId()))
                 return false;  //todo check if entity.id is in domain businessAccount users scope. should be cached
-            if (SystemEntityService.isTwinClassForBusinessAccount(entity.getTwinClassId()))
+            if (SystemIdLookup.isTwinClassForBusinessAccount(entity.getTwinClassId()))
                 return false;  //todo check if entity.id is in domain businessAccount users scope. should be cached
             return false;
         }
@@ -844,7 +844,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 serializeFieldValue(twinEntity, fields, twinChangesCollector, twinClassFieldEntity);
             }
             for (var twinClassFieldId : fields.keySet()) {
-                if (SystemEntityService.isSystemField(twinClassFieldId)) {
+                if (SystemIdLookup.isSystemField(twinClassFieldId)) {
                     TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getBaseField(twinClassFieldId);
                     serializeFieldValue(twinEntity, fields, twinChangesCollector, twinClassFieldEntity);
                 }

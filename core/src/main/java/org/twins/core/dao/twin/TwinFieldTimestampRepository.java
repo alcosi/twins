@@ -31,5 +31,6 @@ public interface TwinFieldTimestampRepository extends TwinFieldRepository<TwinFi
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+    void deleteByTwinId(UUID twinId);
 
 }
