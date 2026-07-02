@@ -121,23 +121,47 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — Hibernate sees null in FlushVisitor.processCollection,
+    // does early return (value == null branch), PersistentBag is never instantiated in field,
+    // so "Found shared references to a collection" can't trigger on non-unique referencedColumnName.
+    // Criteria API still works — association metadata is preserved by @OneToMany/@JoinColumn.
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
+
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)

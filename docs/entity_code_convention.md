@@ -176,17 +176,20 @@ This produces two LEFT JOINs — one to `i18n` (intermediate) and one to `i18n_t
 
 ### 6.2 Solution — `@OneToMany` with `referencedColumnName`
 
-Map `i18n_translation` directly by raw FK column, skipping the intermediate table:
+Map `i18n_translation` directly by raw FK column, skipping the intermediate table. **Always apply the `@Access(PROPERTY)` + NOOP getter/setter workaround (see §6.6)** — without it, Hibernate throws `Found shared references to a collection` on flush whenever multiple entity rows share the same FK target:
 
 ```java
 @Column(name = "name_i18n_id")
 private UUID nameI18nId;
 
-// Direct join to i18n_translation by raw FK — skips intermediate i18n table
+// Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+// HACK: @Access(PROPERTY) + NOOP getter/setter — see §6.6 for the full explanation.
 @Deprecated // for specification only
 @Getter(AccessLevel.NONE)
+@Setter(AccessLevel.NONE)
 @EqualsAndHashCode.Exclude
 @ToString.Exclude
+@Access(AccessType.PROPERTY)
 @OneToMany(fetch = FetchType.LAZY)
 @JoinColumn(
     name = "i18n_id",
@@ -195,6 +198,14 @@ private UUID nameI18nId;
     updatable = false
 )
 private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
+
+public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+    return null;
+}
+
+public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+    // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+}
 ```
 
 The `referencedColumnName` points at the FK column on **this** entity; `name` points at the join column on `i18n_translation`.
@@ -248,6 +259,59 @@ Instead, use a **domain save envelope** (`XxxSave` + `XxxCreate` / `XxxUpdate`).
 See [`docs/domain_save_envelope.md`](domain_save_envelope.md) for the full pattern with a `NotificationSchemaSave` reference implementation.
 
 The `@ManyToOne xxxI18n` pattern (mapping directly to `I18nEntity`) is **forbidden** — it forces an extra JOIN in every specification query that touches the same FK, and conflates "spec relation" with "runtime carrier". Use `*TranslationsSpecOnly` `@OneToMany` + domain envelope instead.
+
+### 6.6 Required workaround — `@Access(PROPERTY)` + NOOP getter/setter
+
+**Symptom.** Without this workaround, any entity holding a `*I18nTranslationsSpecOnly` collection will throw at flush time:
+
+```
+org.hibernate.HibernateException: Found shared references to a collection:
+    org.twins.core.dao.twinclass.TwinClassFieldEntity.nameI18nTranslationsSpecOnly
+```
+
+The error fires from `Collections.processReachableCollection` whenever multiple entity instances in the persistence context share the same non-unique FK target (very common for i18n — multiple fields/classes reuse the same `i18n_id`).
+
+**Root cause.** `referencedColumnName = "name_i18n_id"` points at a **non-unique** column. Hibernate creates a `PersistentBag` wrapper per `@OneToMany` mapping; during auto-flush it traverses every entity's collections and verifies in `PersistenceContext.collectionEntries` that each wrapper is uniquely owned. With non-unique `referencedColumnName`, wrappers get shared/lost and the check fails.
+
+This is a known limitation of unidirectional `@OneToMany` + `@JoinColumn(referencedColumnName = ...)` in Hibernate 6.x — Vlad Mihalcea's recommendation is to make the relationship bidirectional or point at a unique column, both of which defeat the purpose of the direct-join optimization (§6.2).
+
+**Workaround.** Switch the field from default `FIELD` access to `PROPERTY` access, and provide a NOOP getter/setter pair. The getter returns `null`; the setter discards any value Hibernate tries to assign:
+
+```java
+@Deprecated // for specification only
+@Getter(AccessLevel.NONE)
+@Setter(AccessLevel.NONE)
+@EqualsAndHashCode.Exclude
+@ToString.Exclude
+@Access(AccessType.PROPERTY)
+@OneToMany(fetch = FetchType.LAZY)
+@JoinColumn(
+    name = "i18n_id",
+    referencedColumnName = "name_i18n_id",
+    insertable = false,
+    updatable = false
+)
+private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
+
+public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+    return null;
+}
+
+public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+    // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+}
+```
+
+**Mechanism** (verified against Hibernate 6.6.53 bytecode):
+
+1. On entity load, Hibernate calls the setter to inject the `PersistentBag`. NOOP setter discards it; the field stays `null`.
+2. During flush, `FlushVisitor.processCollection` reads the value via the getter — gets `null`.
+3. Bytecode branches on `value == null` → **early return** (lines 9-10 of `FlushVisitor.processCollection`). `Collections.processReachableCollection` is **never invoked** — no throw.
+4. `@OneToMany` + `@JoinColumn` metadata is preserved, so Criteria API `root.join("nameI18nTranslationsSpecOnly")` continues to work normally.
+
+**Cost.** ~6 lines of boilerplate per field (getter + setter). Considered acceptable — a compile-time codegen alternative (annotation processor) is not viable in pure JLS scope (it cannot modify existing classes), and Lombok-style AST patching is too fragile to maintain.
+
+**Always apply** this workaround to every `*I18nTranslationsSpecOnly` field, even if the FK is currently unique — schema data changes over time and the error surfaces only at flush, which is hard to reproduce in tests.
 
 ---
 
@@ -328,6 +392,7 @@ where the field is loaded via bulk loading (see `load_method_pattern.md`).
 - Relying on Hibernate to solve N+1
 - Calling `entity.getXxxSpecOnly()` outside query construction
 - Declaring `@ManyToOne xxxI18n` to `I18nEntity` for spec purposes — use `*I18nTranslationsSpecOnly` `@OneToMany` instead
+- Declaring `*I18nTranslationsSpecOnly` without the `@Access(PROPERTY)` + NOOP getter/setter workaround (see §6.6) — throws `Found shared references to a collection` at flush time
 - Calling the removed legacy methods (`joinAndSearchByI18NField`, `doubleJoinAndSearchByI18NField`, `toSortSpecification`) — only `*Direct` variants exist
 - Using `@Data` on entities
 - Omitting `fetch = LAZY` on a relation
@@ -406,15 +471,20 @@ public class TwinCommentEntity {
 }
 ```
 
-I18n variant:
+I18n variant (note the `@Access(PROPERTY)` + NOOP getter/setter workaround — see §6.6):
 
 ```java
 @Column(name = "name_i18n_id")
 private UUID nameI18nId;
 
-// Direct join to i18n_translation by raw FK — skips intermediate i18n table
+// Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+// HACK: @Access(PROPERTY) + NOOP getter/setter — see §6.6.
 @Deprecated // for specification only
 @Getter(AccessLevel.NONE)
+@Setter(AccessLevel.NONE)
+@EqualsAndHashCode.Exclude
+@ToString.Exclude
+@Access(AccessType.PROPERTY)
 @OneToMany(fetch = FetchType.LAZY)
 @JoinColumn(
     name = "i18n_id",
@@ -422,9 +492,15 @@ private UUID nameI18nId;
     insertable = false,
     updatable = false
 )
-@EqualsAndHashCode.Exclude
-@ToString.Exclude
 private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
+
+public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+    return null;
+}
+
+public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+    // NOOP
+}
 ```
 
 For create / update flows, the carrier `I18nEntity` lives in a domain `XxxSave` envelope, not on the entity — see [`docs/domain_save_envelope.md`](domain_save_envelope.md).

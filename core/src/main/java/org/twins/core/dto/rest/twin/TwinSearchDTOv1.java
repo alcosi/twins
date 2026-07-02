@@ -54,11 +54,23 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Assigner id exclude list")
     public Set<UUID> assignerUserIdExcludeList;
 
+    @Schema(description = "Assigner name list")
+    public Set<String> assignerUserNameList;
+
+    @Schema(description = "Assigner name exclude list")
+    public Set<String> assignerUserNameExcludeList;
+
     @Schema(description = "Reporter id list")
     public Set<UUID> createdByUserIdList;
 
     @Schema(description = "Reporter id exclude list")
     public Set<UUID> createdByUserIdExcludeList;
+
+    @Schema(description = "Reporter name list")
+    public Set<String> createdByUserNameList;
+
+    @Schema(description = "Reporter name exclude list")
+    public Set<String> createdByUserNameExcludeList;
 
     @Schema(description = "External id list")
     public Set<String> externalIdList;
@@ -212,6 +224,16 @@ public class TwinSearchDTOv1 {
         return this;
     }
 
+    public TwinSearchDTOv1 addAssignerUserNameListItem(String item) {
+        this.assignerUserNameList = CollectionUtils.safeAdd(this.assignerUserNameList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addAssignerUserNameExcludeListItem(String item) {
+        this.assignerUserNameExcludeList = CollectionUtils.safeAdd(this.assignerUserNameExcludeList, item);
+        return this;
+    }
+
     public TwinSearchDTOv1 addCreatedByUserIdListItem(UUID item) {
         this.createdByUserIdList = CollectionUtils.safeAdd(this.createdByUserIdList, item);
         return this;
@@ -219,6 +241,16 @@ public class TwinSearchDTOv1 {
 
     public TwinSearchDTOv1 addCreatedByUserIdExcludeListItem(UUID item) {
         this.createdByUserIdExcludeList = CollectionUtils.safeAdd(this.createdByUserIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserNameListItem(String item) {
+        this.createdByUserNameList = CollectionUtils.safeAdd(this.createdByUserNameList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserNameExcludeListItem(String item) {
+        this.createdByUserNameExcludeList = CollectionUtils.safeAdd(this.createdByUserNameExcludeList, item);
         return this;
     }
 

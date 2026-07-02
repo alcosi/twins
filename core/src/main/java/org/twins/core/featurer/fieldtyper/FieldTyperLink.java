@@ -191,4 +191,13 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         ret.setForwardLink(linkDirection == LinkService.LinkDirection.forward);
         return ret;
     }
+
+    public UUID getLinkId(HashMap<String, String> fieldTyperParams) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams);
+        return getLinkId(properties);
+    }
+
+    public UUID getLinkId(Properties properties) throws ServiceException {
+        return linkUUID.extract(properties);
+    }
 }
