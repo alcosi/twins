@@ -40,10 +40,10 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
         fieldId2 = UUID.randomUUID();
     }
 
-    private Properties props(UUID booleanFieldUuid, boolean excludeOnTrue) {
+    private Properties props(UUID booleanFieldUuid, boolean showOnFieldValue) {
         var props = new Properties();
         props.put("booleanFieldId", booleanFieldUuid.toString());
-        props.put("excludeOnTrue", String.valueOf(excludeOnTrue));
+        props.put("excludeOnTrue", String.valueOf(showOnFieldValue));
         return props;
     }
 
@@ -76,7 +76,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
     }
 
     @Nested
-    class ExcludeOnTrue {
+    class ShowOnTrue {
 
         @Test
         void filterFields_booleanTrue_addsFields() throws ServiceException {
@@ -138,7 +138,7 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
     }
 
     @Nested
-    class ExcludeOnFalse {
+    class ShowOnFalse {
 
         @Test
         void filterFields_booleanFalse_addsFields() throws ServiceException {
@@ -176,6 +176,26 @@ class FieldFilterDependOnBooleanFieldTest extends BaseUnitTest {
             );
 
             assertTrue(unfilteredFieldsKit.isEmpty());
+        }
+
+        @Test
+        void filterFields_booleanFieldNotFound_addsFields() throws ServiceException {
+            var twin = new TwinEntity();
+            var kit = new Kit<>(TwinFieldBooleanEntity::getTwinClassFieldId);
+            twin.setTwinFieldBooleanKit(kit);
+
+            doNothing().when(twinService).loadTwinFields(twin);
+
+            var unfilteredFieldsKit = new Kit<>(TwinClassFieldEntity::getId);
+
+            filter.filterFields(
+                    props(booleanFieldId, false),
+                    unfilteredFieldsKit,
+                    twin,
+                    twoFields()
+            );
+
+            assertEquals(2, unfilteredFieldsKit.size());
         }
     }
 
