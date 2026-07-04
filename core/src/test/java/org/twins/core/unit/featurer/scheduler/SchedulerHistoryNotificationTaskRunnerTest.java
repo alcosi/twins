@@ -157,6 +157,21 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
+    class RevertStatusAndSave {
+
+        @Test
+        void revertStatusAndSave_revertsToNeedStartAndSaves() {
+            var entity = buildEntity();
+            entity.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS);
+
+            runner.revertStatusAndSave(entity);
+
+            assertEquals(HistoryNotificationTaskStatus.NEED_START, entity.getStatusId());
+            verify(historyNotificationTaskRepository).save(entity);
+        }
+    }
+
+    @Nested
     class ProcessTask {
 
         @Test

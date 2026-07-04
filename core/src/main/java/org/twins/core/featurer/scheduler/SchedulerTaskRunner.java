@@ -56,6 +56,15 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
                     taskExecutor.execute(task);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
+
+                    // entity is already saved as IN_PROGRESS, but the task was never submitted
+                    // (bean creation or executor.submit failed) — revert so it is not stuck forever
+                    try {
+                        revertStatusAndSave(entity);
+                        log.warn(">> TASK WAS NOT STARTED — STATUS REVERTED, ENTITY WILL BE RECOLLECTED: [{}] <<", entity.logNormal());
+                    } catch (Exception revertEx) {
+                        log.error("Failed to revert status for {}", entity.logNormal(), revertEx);
+                    }
                 }
             }
 
@@ -81,6 +90,15 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
 
     protected abstract Class<T> getTaskClass();
     protected abstract Collection<E> setStatusAndSave(Collection<E> collectedEntities);
+
+    /**
+     * Reverts the entity back to the status from which it would be collected again
+     * and persists it. Invoked when task bean creation or executor submission fails,
+     * so the entity does not stay stuck in the IN_PROGRESS status (which nothing
+     * re-collects).
+     */
+    protected abstract void revertStatusAndSave(E entity);
+
     protected abstract List<E> collectAll();
     protected abstract List<E> collectBatch(int batchSize);
 }

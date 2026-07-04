@@ -43,6 +43,12 @@ public class SchedulerAttachmentDeleteTaskRunner extends SchedulerTaskRunner<Att
     }
 
     @Override
+    protected void revertStatusAndSave(AttachmentDeleteTaskEntity entity) {
+        entity.setStatus(AttachmentDeleteTaskStatus.NEED_START);
+        attachmentDeleteTaskRepository.save(entity);
+    }
+
+    @Override
     protected List<AttachmentDeleteTaskEntity> collectAll() {
         return attachmentDeleteTaskRepository.findByStatusIn(List.of(AttachmentDeleteTaskStatus.NEED_START));
     }

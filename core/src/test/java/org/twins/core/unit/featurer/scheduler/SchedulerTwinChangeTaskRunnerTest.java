@@ -157,6 +157,21 @@ class SchedulerTwinChangeTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
+    class RevertStatusAndSave {
+
+        @Test
+        void revertStatusAndSave_revertsToNeedStartAndSaves() {
+            var entity = buildEntity();
+            entity.setStatusId(TwinChangeTaskStatus.IN_PROGRESS);
+
+            runner.revertStatusAndSave(entity);
+
+            assertEquals(TwinChangeTaskStatus.NEED_START, entity.getStatusId());
+            verify(twinChangeTaskRepository).save(entity);
+        }
+    }
+
+    @Nested
     class ProcessTask {
 
         @Test

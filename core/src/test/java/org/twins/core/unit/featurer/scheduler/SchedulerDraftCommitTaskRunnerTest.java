@@ -157,6 +157,21 @@ class SchedulerDraftCommitTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
+    class RevertStatusAndSave {
+
+        @Test
+        void revertStatusAndSave_revertsToUncommitedAndSaves() {
+            var entity = buildEntity();
+            entity.setStatus(DraftStatus.COMMIT_IN_PROGRESS);
+
+            runner.revertStatusAndSave(entity);
+
+            assertEquals(DraftStatus.UNCOMMITED, entity.getStatus());
+            verify(draftRepository).save(entity);
+        }
+    }
+
+    @Nested
     class ProcessTask {
 
         @Test

@@ -45,6 +45,12 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
     }
 
     @Override
+    protected void revertStatusAndSave(HistoryNotificationTaskEntity entity) {
+        entity.setStatusId(HistoryNotificationTaskStatus.NEED_START);
+        historyNotificationTaskRepository.save(entity);
+    }
+
+    @Override
     protected List<HistoryNotificationTaskEntity> collectAll() {
         return historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
     }

@@ -157,6 +157,21 @@ class SchedulerDraftEraseScopeCollectTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
+    class RevertStatusAndSave {
+
+        @Test
+        void revertStatusAndSave_revertsToEraseScopeCollectNeedStartAndSaves() {
+            var entity = buildEntity();
+            entity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS);
+
+            runner.revertStatusAndSave(entity);
+
+            assertEquals(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START, entity.getStatus());
+            verify(draftRepository).save(entity);
+        }
+    }
+
+    @Nested
     class ProcessTask {
 
         @Test
