@@ -161,12 +161,27 @@ class ContextCollectorTwinTest extends BaseUnitTest {
         }
 
         @Test
-        void collectData_collectBusinessAccountTrue_nullBusinessAccountId_throwsNullPointerException() {
+        void collectData_collectBusinessAccountTrue_nullBusinessAccountId_skipsWithoutNpe() throws Exception {
             twin.setOwnerBusinessAccountId(null);
             var context = new HashMap<String, String>();
 
-            assertThrows(NullPointerException.class,
-                    () -> collector.collectData(history, context, props(false, false, false, true)));
+            var result = collector.collectData(history, context, props(false, false, false, true));
+
+            assertNull(result.get("TWIN_OWNER_BUSINESS_ACCOUNT_ID"));
+        }
+    }
+
+    @Nested
+    class NullTwin {
+
+        @Test
+        void collectData_nullTwin_allEnabled_collectsNothingWithoutNpe() throws Exception {
+            history.setTwin(null);
+            var context = new HashMap<String, String>();
+
+            var result = collector.collectData(history, context, props(true, true, true, true));
+
+            assertTrue(result.isEmpty());
         }
     }
 

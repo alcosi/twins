@@ -51,19 +51,23 @@ public class ContextCollectorTwinClass extends ContextCollector {
 
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
-        var twinClass = history.getTwin().getTwinClass();
+        var twin = history.getTwin();
 
-        if (collectId.extract(properties)) {
-            context.put(collectIdKey.extract(properties), twinClass.getId().toString());
-        }
-        if (collectKey.extract(properties)) {
-            context.put(collectKeyKey.extract(properties), twinClass.getKey());
-        }
-        if (collectName.extract(properties) && twinClass.getNameI18NId() != null) {
-            context.put(collectNameKey.extract(properties), i18nService.translateToLocale(twinClass.getNameI18NId()));
-        }
-        if (collectDescription.extract(properties) && twinClass.getDescriptionI18NId() != null) {
-            context.put(collectDescriptionKey.extract(properties), i18nService.translateToLocale(twinClass.getDescriptionI18NId()));
+        if (twin != null && twin.getTwinClass() != null) { //todo logic if null
+            var twinClass = twin.getTwinClass();
+
+            if (collectId.extract(properties)) {
+                context.put(collectIdKey.extract(properties), twinClass.getId().toString());
+            }
+            if (collectKey.extract(properties)) {
+                context.put(collectKeyKey.extract(properties), twinClass.getKey());
+            }
+            if (collectName.extract(properties) && twinClass.getNameI18NId() != null) {
+                context.put(collectNameKey.extract(properties), i18nService.translateToLocale(twinClass.getNameI18NId()));
+            }
+            if (collectDescription.extract(properties) && twinClass.getDescriptionI18NId() != null) {
+                context.put(collectDescriptionKey.extract(properties), i18nService.translateToLocale(twinClass.getDescriptionI18NId()));
+            }
         }
 
         return context;

@@ -220,12 +220,25 @@ class ContextCollectorTwinClassTest extends BaseUnitTest {
     class NullHandling {
 
         @Test
-        void collectData_nullTwinClass_throwsNullPointerException() {
+        void collectData_nullTwinClass_collectsNothingWithoutNpe() throws Exception {
             twin.setTwinClass(null);
             var context = new HashMap<String, String>();
 
-            assertThrows(NullPointerException.class,
-                    () -> collector.collectData(history, context, props(true, true, true, true)));
+            var result = collector.collectData(history, context, props(true, true, true, true));
+
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(i18nService);
+        }
+
+        @Test
+        void collectData_nullTwin_collectsNothingWithoutNpe() throws Exception {
+            history.setTwin(null);
+            var context = new HashMap<String, String>();
+
+            var result = collector.collectData(history, context, props(true, true, true, true));
+
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(i18nService);
         }
     }
 }

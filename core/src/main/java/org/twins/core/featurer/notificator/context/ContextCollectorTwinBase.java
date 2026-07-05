@@ -41,18 +41,23 @@ public abstract class ContextCollectorTwinBase extends ContextCollector {
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
         TwinEntity twin = resolveTwin(history);
-        if (collectId.extract(properties)) {
-            context.put(collectIdKey.extract(properties), twin.getId().toString());
+
+        if (twin != null) { //todo logic if null
+            if (collectId.extract(properties)) {
+                context.put(collectIdKey.extract(properties), twin.getId().toString());
+            }
+            if (collectName.extract(properties)) {
+                context.put(collectNameKey.extract(properties), twin.getName());
+            }
+            if (collectDescription.extract(properties)) {
+                context.put(collectDescriptionKey.extract(properties), twin.getDescription());
+            }
+            if (collectBusinessAccount.extract(properties)) {
+                if (twin.getOwnerBusinessAccountId() != null) //todo logic if null
+                    context.put(collectBusinessAccountKey.extract(properties), twin.getOwnerBusinessAccountId().toString());
+            }
         }
-        if (collectName.extract(properties)) {
-            context.put(collectNameKey.extract(properties), twin.getName());
-        }
-        if (collectDescription.extract(properties)) {
-            context.put(collectDescriptionKey.extract(properties), twin.getDescription());
-        }
-        if (collectBusinessAccount.extract(properties)) {
-            context.put(collectBusinessAccountKey.extract(properties),  twin.getOwnerBusinessAccountId().toString());
-        }
+
         return context;
     }
 
