@@ -196,6 +196,43 @@ class FieldFinderByIdExcludeHeadMatchedTest extends BaseUnitTest {
         }
 
         @Test
+        void concatSearch_collidingConcatenation_notTreatedAsMatch() throws ServiceException {
+            var currentFieldId = UUID.randomUUID();
+            var headFieldId = UUID.randomUUID();
+
+            var twin = twinEntity();
+            var headTwin = headTwinEntity();
+            twin.setHeadTwin(headTwin);
+            twin.setTwinClass(twinClassEntity(twinClassId));
+            headTwin.setTwinClass(twinClassEntity(headTwinClassId));
+
+            // Without separators both match codes concatenate to "a12" and would be treated as a match
+            var headField = fieldEntity(headFieldId, "a1", 2, null);
+            var currentField = fieldEntity(currentFieldId, "a", 12, null);
+
+            ((TwinClassEntity) headTwin.getTwinClass()).setTwinClassFieldKit(new Kit<>(TwinClassFieldEntity::getId));
+            headTwin.getTwinClass().getTwinClassFieldKit().add(headField);
+            ((TwinClassEntity) twin.getTwinClass()).setTwinClassFieldKit(new Kit<>(TwinClassFieldEntity::getId));
+            twin.getTwinClass().getTwinClassFieldKit().add(currentField);
+
+            var properties = new Properties();
+            properties.setProperty("exclude", "false");
+
+            when(twinService.findEntitySafe(twinId)).thenReturn(twin);
+            doAnswer(invocation -> {
+                TwinEntity t = invocation.getArgument(0);
+                t.setHeadTwin(headTwin);
+                return null;
+            }).when(twinService).loadHeadForTwin(twin);
+
+            var search = new TwinClassFieldSearch();
+            finder.concatSearch(properties, search, namedParams());
+
+            assertNull(search.getIdList());
+            assertNull(search.getIdExcludeList());
+        }
+
+        @Test
         void concatSearch_missingTwinId_throwsException() {
             var properties = new Properties();
             var search = new TwinClassFieldSearch();

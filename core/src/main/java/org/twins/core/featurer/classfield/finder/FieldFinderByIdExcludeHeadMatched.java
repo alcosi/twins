@@ -60,6 +60,8 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
     }
 
     private static String getMatchCode(TwinClassFieldEntity classField) {
-        return classField.getKey() + classField.getFieldTyperFeaturerId() + (classField.getFieldTyperParams() == null ? "" : classField.getFieldTyperParams().hashCode());
+        return classField.getKey() + ","
+                + classField.getFieldTyperFeaturerId() + ","
+                + (classField.getFieldTyperParams() == null ? "" : classField.getFieldTyperParams().hashCode());
     }
 }
