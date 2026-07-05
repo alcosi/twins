@@ -54,7 +54,7 @@ class TwinFinderByAssigneeUserEqualsCurrentTest extends BaseUnitTest {
     class Concat {
 
         @Test
-        void concat_excludeFalse_addsToAssigneeUserIdExcludeList() throws ServiceException {
+        void concat_excludeFalse_addsToAssigneeUserIdList() throws ServiceException {
             var userId = UUID.randomUUID();
             when(authService.getApiUser()).thenReturn(apiUser);
             when(apiUser.getUserId()).thenReturn(userId);
@@ -65,12 +65,12 @@ class TwinFinderByAssigneeUserEqualsCurrentTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
-            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId));
+            assertNotNull(twinSearch.getAssigneeUserIdList());
+            assertTrue(twinSearch.getAssigneeUserIdList().contains(userId));
         }
 
         @Test
-        void concat_excludeTrue_addsToAssigneeUserIdList() throws ServiceException {
+        void concat_excludeTrue_addsToAssigneeUserIdExcludeList() throws ServiceException {
             var userId = UUID.randomUUID();
             when(authService.getApiUser()).thenReturn(apiUser);
             when(apiUser.getUserId()).thenReturn(userId);
@@ -81,8 +81,8 @@ class TwinFinderByAssigneeUserEqualsCurrentTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getAssigneeUserIdList());
-            assertTrue(twinSearch.getAssigneeUserIdList().contains(userId));
+            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
+            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId));
         }
     }
 }

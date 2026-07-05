@@ -19,7 +19,7 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
     class Concat {
 
         @Test
-        void concat_excludeFalse_addsToCreatedByUserIdExcludeList() throws ServiceException {
+        void concat_excludeFalse_addsToCreatedByUserIdList() throws ServiceException {
             var userId1 = UUID.randomUUID();
             var userId2 = UUID.randomUUID();
 
@@ -30,13 +30,13 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getCreatedByUserIdExcludeList());
-            assertTrue(twinSearch.getCreatedByUserIdExcludeList().contains(userId1));
-            assertTrue(twinSearch.getCreatedByUserIdExcludeList().contains(userId2));
+            assertNotNull(twinSearch.getCreatedByUserIdList());
+            assertTrue(twinSearch.getCreatedByUserIdList().contains(userId1));
+            assertTrue(twinSearch.getCreatedByUserIdList().contains(userId2));
         }
 
         @Test
-        void concat_excludeTrue_addsToCreatedByUserIdList() throws ServiceException {
+        void concat_excludeTrue_addsToCreatedByUserIdExcludeList() throws ServiceException {
             var userId = UUID.randomUUID();
 
             var properties = new Properties();
@@ -46,8 +46,8 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getCreatedByUserIdList());
-            assertTrue(twinSearch.getCreatedByUserIdList().contains(userId));
+            assertNotNull(twinSearch.getCreatedByUserIdExcludeList());
+            assertTrue(twinSearch.getCreatedByUserIdExcludeList().contains(userId));
         }
 
         @Test
@@ -61,8 +61,8 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getCreatedByUserIdExcludeList());
-            assertEquals(1, twinSearch.getCreatedByUserIdExcludeList().size());
+            assertNotNull(twinSearch.getCreatedByUserIdList());
+            assertEquals(1, twinSearch.getCreatedByUserIdList().size());
         }
     }
 }

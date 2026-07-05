@@ -19,7 +19,7 @@ class TwinFinderByAssigneeUserIdGivenTest extends BaseUnitTest {
     class Concat {
 
         @Test
-        void concat_excludeFalse_addsToAssigneeUserIdExcludeList() throws ServiceException {
+        void concat_excludeFalse_addsToAssigneeUserIdList() throws ServiceException {
             var userId1 = UUID.randomUUID();
             var userId2 = UUID.randomUUID();
 
@@ -30,13 +30,13 @@ class TwinFinderByAssigneeUserIdGivenTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
-            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId1));
-            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId2));
+            assertNotNull(twinSearch.getAssigneeUserIdList());
+            assertTrue(twinSearch.getAssigneeUserIdList().contains(userId1));
+            assertTrue(twinSearch.getAssigneeUserIdList().contains(userId2));
         }
 
         @Test
-        void concat_excludeTrue_addsToAssigneeUserIdList() throws ServiceException {
+        void concat_excludeTrue_addsToAssigneeUserIdExcludeList() throws ServiceException {
             var userId = UUID.randomUUID();
 
             var properties = new Properties();
@@ -46,8 +46,8 @@ class TwinFinderByAssigneeUserIdGivenTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getAssigneeUserIdList());
-            assertTrue(twinSearch.getAssigneeUserIdList().contains(userId));
+            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
+            assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId));
         }
 
         @Test
@@ -61,8 +61,8 @@ class TwinFinderByAssigneeUserIdGivenTest extends BaseUnitTest {
 
             finder.concat(twinSearch, properties, null);
 
-            assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
-            assertEquals(1, twinSearch.getAssigneeUserIdExcludeList().size());
+            assertNotNull(twinSearch.getAssigneeUserIdList());
+            assertEquals(1, twinSearch.getAssigneeUserIdList().size());
         }
     }
 }

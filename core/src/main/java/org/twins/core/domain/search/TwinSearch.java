@@ -180,33 +180,33 @@ public class TwinSearch {
 
     public TwinSearch addAssigneeUserId(UUID assigneeUserId, boolean exclude) {
         if (exclude)
-            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserId);
-        else
             assigneeUserIdExcludeList = CollectionUtils.safeAdd(assigneeUserIdExcludeList, assigneeUserId);
+        else
+            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserId);
         return this;
     }
 
     public TwinSearch addAssigneeUserId(Collection<UUID>  assigneeUserIds, boolean exclude) {
         if (exclude)
-            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserIds);
-        else
             assigneeUserIdExcludeList = CollectionUtils.safeAdd(assigneeUserIdExcludeList, assigneeUserIds);
+        else
+            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserIds);
         return this;
     }
 
     public TwinSearch addCreatedByUserId(UUID createdByUserId, boolean exclude) {
         if (exclude)
-            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
-        else
             createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserId);
+        else
+            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
         return this;
     }
 
     public TwinSearch addCreatedByUserId(Collection<UUID> createdByUserIds, boolean exclude) {
         if (exclude)
-            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserIds);
-        else
             createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserIds);
+        else
+            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserIds);
         return this;
     }
 
