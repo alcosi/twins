@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
@@ -24,14 +23,11 @@ class TwinTriggerDuplicateTwinTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
-    @Mock
-    private AuthService authService;
-
     private TwinTriggerDuplicateTwin trigger;
 
     @BeforeEach
     void setUp() throws Exception {
-        trigger = new TwinTriggerDuplicateTwin(twinService, authService);
+        trigger = new TwinTriggerDuplicateTwin(twinService);
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
