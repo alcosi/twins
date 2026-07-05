@@ -202,4 +202,18 @@ class ContextCollectorTwinCreatorUserTest extends BaseUnitTest {
             assertEquals("http://avatar.url/creator.png", result.get("USER_AVATAR"));
         }
     }
+
+    @Nested
+    class NullTwin {
+
+        @Test
+        void collectData_nullTwin_allEnabled_collectsNothingWithoutNpe() throws Exception {
+            history.setTwin(null);
+            var context = new HashMap<String, String>();
+
+            var result = collector.collectData(history, context, props(true, true, true, true));
+
+            assertTrue(result.isEmpty());
+        }
+    }
 }
