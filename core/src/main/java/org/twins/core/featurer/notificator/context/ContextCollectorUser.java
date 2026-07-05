@@ -41,21 +41,24 @@ public abstract class ContextCollectorUser extends ContextCollector {
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) {
         UserEntity user = getUser(history, properties);
 
-        if (collectId.extract(properties)) {
-            context.put(collectIdKey.extract(properties), user.getId().toString());
+        if (user != null) { //todo logic if null
+            if (collectId.extract(properties)) {
+                context.put(collectIdKey.extract(properties), user.getId().toString());
+            }
+            if (collectName.extract(properties)) {
+                if (user.getName() != null) //todo logic if null
+                    context.put(collectNameKey.extract(properties), user.getName());
+            }
+            if (collectEmail.extract(properties)) {
+                if (user.getEmail() != null) //todo logic if null
+                    context.put(collectEmailKey.extract(properties), user.getEmail());
+            }
+            if (collectAvatar.extract(properties)) {
+                if (user.getAvatar() != null) //todo logic if null
+                    context.put(collectAvatarKey.extract(properties), user.getAvatar());
+            }
         }
-        if (collectName.extract(properties)) {
-            if (user.getName() != null) //todo logic if null
-                context.put(collectNameKey.extract(properties), user.getName());
-        }
-        if (collectEmail.extract(properties)) {
-            if (user.getEmail() != null) //todo logic if null
-                context.put(collectEmailKey.extract(properties), user.getEmail());
-        }
-        if (collectAvatar.extract(properties)) {
-            if (user.getAvatar() != null) //todo logic if null
-                context.put(collectAvatarKey.extract(properties), user.getAvatar());
-        }
+
         return context;
     }
 

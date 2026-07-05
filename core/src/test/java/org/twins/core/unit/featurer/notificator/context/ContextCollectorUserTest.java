@@ -214,4 +214,18 @@ class ContextCollectorUserTest extends BaseUnitTest {
             assertEquals(userId.toString(), result.get("USER_ID"));
         }
     }
+
+    @Nested
+    class NullUser {
+
+        @Test
+        void collectData_nullUser_allEnabled_collectsNothingWithoutNpe() throws Exception {
+            var nullUserCollector = new TestableUserCollector(null);
+            var context = new HashMap<String, String>();
+
+            var result = nullUserCollector.collectData(history, context, props(true, true, true, true));
+
+            assertTrue(result.isEmpty());
+        }
+    }
 }
