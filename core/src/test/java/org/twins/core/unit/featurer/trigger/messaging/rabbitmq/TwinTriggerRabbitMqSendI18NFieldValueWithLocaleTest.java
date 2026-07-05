@@ -46,8 +46,7 @@ class TwinTriggerRabbitMqSendI18NFieldValueWithLocaleTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        trigger = new TwinTriggerRabbitMqSendI18NFieldValueWithLocale(ampqManager, i18nLocaleRepository, authService);
-        setField(trigger, "twinClassFieldService", twinClassFieldService);
+        trigger = new TwinTriggerRabbitMqSendI18NFieldValueWithLocale(ampqManager, i18nLocaleRepository, twinClassFieldService, authService);
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
