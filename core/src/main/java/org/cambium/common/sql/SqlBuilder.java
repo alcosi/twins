@@ -1,12 +1,13 @@
 package org.cambium.common.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SqlBuilder {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = JsonMapper.builder().build();
     private static final Cache<Class<?>, EntityMetadata> metadataCache = Caffeine.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES)
             .build();
