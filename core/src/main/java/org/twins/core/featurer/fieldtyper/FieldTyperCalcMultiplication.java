@@ -14,6 +14,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1338, name = "Multiplication", description = "First * Second")
 public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
 
+    // TODO change description of param or logic in prepare method
     @FeaturerParam(name = "replaceZeroWithOne", description = "if some filed value is null or 0, then mulitply on 1")
     public static final FeaturerParamBoolean replaceZeroWithOne = new FeaturerParamBoolean("replaceZeroWithOne");
 
