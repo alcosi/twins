@@ -19,13 +19,22 @@ public class FieldLookuperFromContextTwinLinkedTwinByFieldDbFields extends Field
         var contextTwin = factoryItem.checkSingleContextTwin();
         twinService.loadFieldsValues(contextTwin);
         var fieldValue = contextTwin.getFieldValuesKit().get(linkedTwinByTwinClassFieldId);
-        if (fieldValue == null || !(fieldValue instanceof FieldValueLink)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context twin fields or it's not a link");
+        if (!(fieldValue instanceof FieldValueLink linkFieldValue)) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is not present in context twin fields or it's not a link");
         }
-        TwinEntity fromTwin = ((FieldValueLink) fieldValue).getItems().getFirst().getDstTwin();
+        if (linkFieldValue.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is empty for " + contextTwin);
+        }
+        if (linkFieldValue.size() > 1) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + linkFieldValue.size() + " linked twins in " + contextTwin);
+        }
+
+        TwinEntity fromTwin = twinLinkService.getDstTwinSafe(linkFieldValue.getItems().getFirst());
         FieldValue fieldValueForCopy = twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId);
-        if (fieldValueForCopy == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in head twin fields");
+        if (fieldValueForCopy == null) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in linked twin fields");
+        }
+
         return fieldValueForCopy;
     }
 }
