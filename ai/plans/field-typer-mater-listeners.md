@@ -13,9 +13,9 @@
 
 **Решение.** Две listener-таблицы + одна таблица validator-rule:
 
-- `listener_on_field` — на изменение конкретного `twin_class_field` (intra-twin и cross-twin через TwinPointer)
-- `listener_on_action` — на CREATE/EDIT/DELETE над твинами указанного класса (для `FieldTyperCalcChildrenFieldV1`-кейсов)
-- `listener_on_action_validator_rule` — необязательные validator_set-ы для сложных предикатов (например, «учитывать ребёнка в сумме только если status=ACTIVE»)
+- `field_listener_on_field` — на изменение конкретного `twin_class_field` (intra-twin и cross-twin через TwinPointer)
+- `field_listener_on_action` — на CREATE/EDIT/DELETE над твинами указанного класса (для `FieldTyperCalcChildrenFieldV1`-кейсов)
+- `field_listener_on_action_validator_rule` — необязательные validator_set-ы для сложных предикатов (например, «учитывать ребёнка в сумме только если status=ACTIVE»)
 
 Поиск подписчика (твина, чьё Mater-поле надо пересчитать) идёт через `TwinPointer` — настраиваемый для класса твинов указатель (родитель, родитель родителя, dst TwinLink, родитель dst TwinLink, SELF). Sync/async регулируется per-listener boolean-флагом. Вызовы listeners — в `TwinService.createTwin` / `updateTwin` между `validateAndCollect` и `applyChanges` (команды попадают в тот же collector → atomicity).
 
@@ -97,8 +97,8 @@ protected void serializeValue(Properties properties, TwinEntity twin,
 
 | Trigger-source | Таблица | Описание | Пример |
 |----------------|---------|----------|--------|
-| **OnField** | `listener_on_field` | Изменилось значение поля `publisher_twin_class_field_id` у одного или нескольких твинов. Подписчик — twin, на который указывает `subscriber_twin_pointer_id` от твина-publisher'а | `FieldTyperCalcSumMater` слушает `firstFieldId`/`secondFieldId` через pointer SELF. Или parent-class Mater слушает поле child-class через pointer PARENT |
-| **OnAction** | `listener_on_action` + `listener_on_action_validator_rule` | Выполнен TwinAction (CREATE/EDIT/DELETE) над твином класса `publisher_twin_class_id`. Подписчик — twin, на который указывает `subscriber_twin_pointer_id` от publisher-а | `FieldTyperCalcChildrenFieldV1` analogue в материализованном виде: child-class CREATE/EDIT/DELETE → пересчёт суммы у parent-class Mater |
+| **OnField** | `field_listener_on_field` | Изменилось значение поля `publisher_twin_class_field_id` у одного или нескольких твинов. Подписчик — twin, на который указывает `subscriber_twin_pointer_id` от твина-publisher'а | `FieldTyperCalcSumMater` слушает `firstFieldId`/`secondFieldId` через pointer SELF. Или parent-class Mater слушает поле child-class через pointer PARENT |
+| **OnAction** | `field_listener_on_action` + `field_listener_on_action_validator_rule` | Выполнен TwinAction (CREATE/EDIT/DELETE) над твином класса `publisher_twin_class_id`. Подписчик — twin, на который указывает `subscriber_twin_pointer_id` от publisher-а | `FieldTyperCalcChildrenFieldV1` analogue в материализованном виде: child-class CREATE/EDIT/DELETE → пересчёт суммы у parent-class Mater |
 | _OnLinkChange_ (future) | _projected_ | Изменение TwinLink между твинами | Когда TwinLink «task→assignee» удаляется, пересчитать нагрузку assignee |
 | _OnMarkerChange_ (future) | _projected_ | TwinMarker установлен/снят | При marker BLOCKED → исключить twin из суммы родителя |
 | _OnTagChange_ (future) | _projected_ | TwinTag добавлен/удалён | При tag PRIORITY=HIGH → коэффициент умножения в parent-агрегате |
@@ -111,90 +111,90 @@ protected void serializeValue(Properties properties, TwinEntity twin,
 
 ```sql
 -- ============================================================
--- listener_on_field: срабатывает на изменение поля publisher_twin_class_field_id
+-- field_listener_on_field: срабатывает на изменение поля publisher_twin_class_field_id
 -- ============================================================
-create table if not exists listener_on_field
+create table if not exists field_listener_on_field
 (
     id                             uuid not null
-        constraint listener_on_field_pk primary key,
+        constraint field_listener_on_field_pk primary key,
     domain_id                      uuid not null
-        constraint listener_on_action_domain_id_fk
+        constraint field_listener_on_action_domain_id_fk
             references domain on update cascade on delete cascade,
     subscriber_twin_pointer_id     uuid not null
-        constraint listener_on_field_sub_twin_pointer_id_fk
+        constraint field_listener_on_field_sub_twin_pointer_id_fk
             references twin_pointer on update cascade on delete cascade,
     subscriber_twin_class_field_id uuid not null
-        constraint listener_on_field_sub_twin_class_field_id_fk
+        constraint field_listener_on_field_sub_twin_class_field_id_fk
             references twin_class_field on update cascade  on delete cascade,
     publisher_twin_class_field_id  uuid not null
-        constraint listener_on_field_pub_twin_class_field_id_fk
+        constraint field_listener_on_field_pub_twin_class_field_id_fk
             references twin_class_field on update cascade on delete cascade,
     async                          boolean not null default false
 );
 
-create index if not exists listener_on_field_twin_class_field_id_index
-    on listener_on_field (subscriber_twin_class_field_id);
-create index if not exists listener_on_field_pub_twin_class_field_id_idx
-    on listener_on_field (publisher_twin_class_field_id);
-create index if not exists listener_on_field_sub_twin_pointer_id_idx
-    on listener_on_field (subscriber_twin_pointer_id);
+create index if not exists field_listener_on_field_twin_class_field_id_index
+    on field_listener_on_field (subscriber_twin_class_field_id);
+create index if not exists field_listener_on_field_pub_twin_class_field_id_idx
+    on field_listener_on_field (publisher_twin_class_field_id);
+create index if not exists field_listener_on_field_sub_twin_pointer_id_idx
+    on field_listener_on_field (subscriber_twin_pointer_id);
 
 -- ============================================================
--- listener_on_action: срабатывает на TwinAction над твином класса publisher_twin_class_id
+-- field_listener_on_action: срабатывает на TwinAction над твином класса publisher_twin_class_id
 -- ============================================================
-create table if not exists listener_on_action
+create table if not exists field_listener_on_action
 (
     id                             uuid not null
-        constraint listener_on_action_pk primary key,
+        constraint field_listener_on_action_pk primary key,
     domain_id                      uuid not null
-        constraint listener_on_action_domain_id_fk
+        constraint field_listener_on_action_domain_id_fk
             references domain on update cascade on delete cascade,
     subscriber_twin_pointer_id     uuid not null
-        constraint listener_on_action_sub_twin_pointer_id_fk
+        constraint field_listener_on_action_sub_twin_pointer_id_fk
             references twin_pointer on update cascade on delete cascade,
     subscriber_twin_class_field_id uuid not null
-        constraint listener_on_action_sub_twin_class_field_id_fk
+        constraint field_listener_on_action_sub_twin_class_field_id_fk
             references twin_class_field on update cascade  on delete cascade,
     publisher_twin_class_id        uuid not null
-        constraint listener_on_action_pub_twin_class_id_fk
+        constraint field_listener_on_action_pub_twin_class_id_fk
             references twin_class on update cascade  on delete cascade,
     publisher_twin_action_id       varchar not null
-        constraint listener_on_action_pub_twin_action_id_fk
+        constraint field_listener_on_action_pub_twin_action_id_fk
             references twin_action on update cascade on delete cascade,
     async                          boolean not null default false
 );
 
-create index if not exists listener_on_action_sub_twin_class_field_idx
-    on listener_on_action (subscriber_twin_class_field_id);
-create index if not exists listener_on_action_pub_class_action_idx
-    on listener_on_action (publisher_twin_class_id, publisher_twin_action_id);
-create index if not exists listener_on_action_sub_twin_pointer_idx
-    on listener_on_action (subscriber_twin_pointer_id);
+create index if not exists field_listener_on_action_sub_twin_class_field_idx
+    on field_listener_on_action (subscriber_twin_class_field_id);
+create index if not exists field_listener_on_action_pub_class_action_idx
+    on field_listener_on_action (publisher_twin_class_id, publisher_twin_action_id);
+create index if not exists field_listener_on_action_sub_twin_pointer_idx
+    on field_listener_on_action (subscriber_twin_pointer_id);
 
 -- ============================================================
--- listener_on_action_validator_rule: необязательные validator_set-ы,
--- которые проверяются ДО Mater recompute при срабатывании listener_on_action.
+-- field_listener_on_action_validator_rule: необязательные validator_set-ы,
+-- которые проверяются ДО Mater recompute при срабатывании field_listener_on_action.
 -- Например: «учитывать ребёнка только если status=ACTIVE».
 -- Паттерн переиспользует существующую twin_action_validator_rule (см. TwinActionValidatorRuleEntity).
 -- ============================================================
-create table if not exists listener_on_action_validator_rule
+create table if not exists field_listener_on_action_validator_rule
 (
     id                              uuid                 not null
-        constraint listener_on_action_validator_rule_pk primary key,
-    listener_on_action_id           uuid                 not null
-        constraint listener_on_action_id_fk
-            references listener_on_action on update cascade on delete cascade,
+        constraint field_listener_on_action_validator_rule_pk primary key,
+    field_listener_on_action_id           uuid                 not null
+        constraint field_listener_on_action_id_fk
+            references field_listener_on_action on update cascade on delete cascade,
     "order"                         integer default 1,
     active                          boolean default true not null,
     twin_validator_set_id           uuid
-        constraint listener_on_action_id_twin_validator_set_id_fk
+        constraint field_listener_on_action_id_twin_validator_set_id_fk
             references twin_validator_set on update cascade on delete cascade
 );
 
-create unique index if not exists listener_on_action_validator_rule_order_uniq
-    on listener_on_action_validator_rule (listener_on_action_id, "order");
-create index if not exists listener_on_action_validator_rule_twin_validator_set_idx
-    on listener_on_action_validator_rule (twin_validator_set_id);
+create unique index if not exists field_listener_on_action_validator_rule_order_uniq
+    on field_listener_on_action_validator_rule (field_listener_on_action_id, "order");
+create index if not exists field_listener_on_action_validator_rule_twin_validator_set_idx
+    on field_listener_on_action_validator_rule (twin_validator_set_id);
 ```
 
 **Обоснование колонок.**
@@ -215,23 +215,43 @@ create index if not exists listener_on_action_validator_rule_twin_validator_set_
 
 ### 2.1. TwinPointer как ключ к нахождению подписчика
 
-`TwinPointerEntity` — это метаданные на уровне `twin_class`: связывает `twin_class_id` и `pointer_featurer_id` + `pointer_params`. Pointer-featurer — это реализация логики «для данного твина верни target-twin» (например, «верни parent через TwinLink типа X», «верни grandparent через 2 hop», «верни самого себя»).
+`TwinPointerEntity` (`core/.../dao/twin/TwinPointerEntity.java`) — метаданные на уровне `twin_class`: связывает `twin_class_id`, `pointer_featurer_id` (FK на `featurer` в cambium) и `pointer_params` (HStore). Базовый класс всех pointer-featurer-ов — `Pointer` (`core/.../featurer/pointer/Pointer.java`) с контрактом:
 
-**Примеры pointer-конфигураций:**
+```java
+public TwinEntity point(HashMap<String, String> linkerParams, TwinEntity srcTwinEntity) throws ServiceException
+```
 
-| Pointer-featurer | params | Возвращает |
-|------------------|--------|------------|
-| `TwinPointerSelf` | — | тот же twin (для intra-twin Mater) |
-| `TwinPointerByLink` | `linkType=PARENT_CHILD, direction=SRC→DST` | parent-твин |
-| `TwinPointerByLink` | `linkType=PARENT_CHILD, direction=SRC→DST, hops=2` | grandparent |
-| `TwinPointerByLink` | `linkType=ASSIGNED_TO, direction=DST→SRC` | все assigner-ы |
-| `TwinPointerDstTwinLink` | `linkType=...` | dst twin конкретной TwinLink |
-| `TwinPointerParentOfDstTwinLink` | `linkType=...` | parent dst twin-а |
+**Важно про контракт.** `srcTwinEntity` — это publisher (твин, чьё изменение запустило listener). Возвращаемое значение — **ровно один** subscriber-twin. Если pointer находит несколько кандидатов → `ServiceException(POINTER_NON_SINGLE)`. Если ни одного → `null` (listener пропускается молча, с metric-tag `no_subscriber`). Никаких коллекций — если нужно «подписчики = все assigner-ы», то это либо N listener-ов с разными pointer-ами, либо отдельный pointer-featurer с другими семантиками.
 
-При срабатывании listener-а рантайм:
-1. Грузит `TwinPointerEntity` по `subscriber_twin_pointer_id`
-2. Через `Pointer.point(publisherTwin)` получает подписчика (может быть 0 или 1)
-3. Для каждого подписчика — пересчитывает `subscriber_twin_class_field_id`
+**Реализованные pointer-featurer-ы** (все живут в `core/.../featurer/pointer/`):
+
+| Featurer ID | Класс | Name | Что возвращает от publisher-а | params |
+|-------------|-------|------|--------------------------------|--------|
+| `ID_3101` | `PointerOnSelf` | Self pointed | Того же twin-а (publisher = subscriber). Для intra-twin Mater | — |
+| `ID_3102` | `PointerOnHead` | Head twin pointed | **Непосредственного родителя** (через `twinService.loadHead` → `TwinEntity.headTwin` по FK `head_twin_id`). Это НЕ корень иерархии — корень доступен через `hierarchy_tree` (ltree) отдельно. Если `head_twin_id = null` (twin верхнего уровня) → `null` | — |
+| `ID_3103` | `PointerOnLinkedTwin` | Some linked twin pointed (by link id) | dst TwinLink-и по конкретному `linkId`. Если несколько forward-links одного типа → `POINTER_NON_SINGLE` | `linkId: UUID` |
+| `ID_3104` | `PointerOnSingleChild` | Direct single child | Единственного ребёнка класса `childTwinClassId` (поиск через `headTwinId=publisher`). >1 ребёнок → `POINTER_NON_SINGLE` | `childTwinClassId: UUID` |
+| `ID_3105` | `PointerOnSingleGrandChild` | Direct single grandchild | Единственного внука класса `grandChildTwinClassId` (поиск через `hierarchyTreeContainsId=publisher`). >1 → `POINTER_NON_SINGLE` | `grandChildTwinClassId: UUID` |
+| `ID_3106` | `PointerOnGivenTwin` | Given twin pointed | Захардкоженный twin по `twinId`. Ad-hoc сценарии, не для массовой регистрации | `twinId: UUID` |
+
+**Семантика направления для listener-системы.** `srcTwinEntity = publisher` (твин, чьё изменение запустило listener), return = subscriber (твин, чьё Mater-поле надо пересчитать). То есть pointer описывает отношение **publisher → subscriber**. Примеры:
+
+| Сценарий                                                                                    | Кто publisher | Кто subscriber | Какой pointer |
+|---------------------------------------------------------------------------------------------|---------------|----------------|---------------|
+| Intra-twin Mater: A.field обновился → пересчитать B.field того же твина                     | twin X | twin X | `PointerOnSelf` |
+| `FieldTyperCalcChildrenFieldV1`-кейс: сумма детей на parent-классе, обновилось поле ребёнка | Child | Parent | `PointerOnHead` |
+| Mater на parent слушает единственного ребёнка (если ребёнок один)                           | Parent | Child | `PointerOnSingleChild(childTwinClassId=Child)` |
+| Mater на grandparent слушает поле внука                                                     | Grandchild | Grandparent | `PointerOnHead` дважды (транзит через parent) — или отдельный pointer при появлении |
+| lTwinLink «Task→Assignee»: listener на Task → пересчёт Assignee-поля                        | Task | Assignee | `PointerOnLinkedTwin(linkId=ASSIGNED_TO)` |
+| Mater на корне иерархии слушает любое изменение в поддереве                                 | descendant | root | через `hierarchy_tree` lookup — пока без отдельного pointer-featurer, см. §7 |
+| Mater на конкретном twin-адресе (один глобальный listener)                                  | любой | заданный twin | `PointerOnGivenTwin(twinId=...)` |
+
+**Runtime-флоу при срабатывании listener-а:**
+
+1. Грузим `TwinPointerEntity` по `subscriber_twin_pointer_id` (c Caffeine-кешем по pointer_id)
+2. `Pointer.point(pointer.params, srcTwinEntity=publisherTwin)` → один subscriber-twin (или null)
+3. Если null → listener пропускается, метрика `mater_listener_no_subscriber_total`
+4. Если не null → пересчитываем `subscriber_twin_class_field_id` у найденного подписчика
 
 ### 2.2. Точка вызова в TwinService
 
@@ -242,13 +262,13 @@ create index if not exists listener_on_action_validator_rule_twin_validator_set_
 public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
     createTwins(TwinCreateStage.of(twinCreate), twinChangesCollector);   // существующая логика
     // === НОВЫЙ HOOK ===
-    materListenerTriggerService.triggerAffected(twinChangesCollector);   // добавляет Mater recompute команды в тот же collector
+    fieldListenerService.triggerAffected(twinChangesCollector);   // добавляет Mater recompute команды в тот же collector
     // === КОНЕЦ HOOK ===
 }
 
 public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ...) throws ServiceException {
     // ... существующая логика ...
-    materListenerTriggerService.triggerAffected(twinChangesCollector);
+    fieldListenerService.triggerAffected(twinChangesCollector);
 }
 ```
 
@@ -313,7 +333,7 @@ ON CONFLICT DO NOTHING;
 **Сценарий:** В классе `Order` есть поля `price` (operand) и `total` (Mater: sum price + tax). При обновлении `price` надо пересчитать `total` в том же твине.
 
 ```sql
-INSERT INTO listener_on_field (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
+INSERT INTO field_listener_on_field (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
                                publisher_twin_class_field_id, async, domain_id)
 VALUES (
     gen_random_uuid(),
@@ -325,7 +345,7 @@ VALUES (
 );
 
 -- Аналогично для tax
-INSERT INTO listener_on_field (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
+INSERT INTO field_listener_on_field (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
                                publisher_twin_class_field_id, async, domain_id)
 VALUES (
     gen_random_uuid(),
@@ -337,44 +357,54 @@ VALUES (
 );
 ```
 
-### 3.2. Cross-twin Mater через TwinLink (FieldTyperCalcChildrenFieldV1-analogue)
+### 3.2. Cross-twin Mater: parent подписан на поле ребёнка (FieldTyperCalcChildrenFieldV1-analogue)
 
-**Сценарий:** `Project` имеет Mater-поле `totalTaskEstimate` = SUM `estimate` всех `Task`-детей. При UPDATE `estimate` у Task должен пересчитаться `Project.totalTaskEstimate`.
+**Сценарий:** `Project` имеет Mater-поле `totalTaskEstimate` = SUM `estimate` всех `Task`-детей. При UPDATE `estimate` у Task должен пересчитаться `Project.totalTaskEstimate`. Publisher = Task (ребёнок), subscriber = Project (родитель). Pointer = `PointerOnHead` (ID_3102), настроенный на классе `Task` — он возвращает непосредственного родителя через FK `head_twin_id`.
 
 ```sql
--- pointer "на Project через TwinLink PARENT_CHILD" — настраивается на классе Task
-INSERT INTO listener_on_field (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
+-- Шаг 1. Завести TwinPointer на классе Task, указывающий на родителя (PointerOnHead = featurer ID_3102)
+INSERT INTO twin_pointer (id, twin_class_id, pointer_featurer_id, name)
+VALUES (
+    '<task_head_pointer_uuid>',
+    '<Task_twin_class_id>',
+    3102,                                            -- PointerOnHead
+    'PARENT'
+)
+ON CONFLICT DO NOTHING;
+
+-- Шаг 2. Зарегистрировать listener: при изменении Task.estimate → пересчёт Project.totalTaskEstimate
+INSERT INTO field_listener_on_field (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
                                publisher_twin_class_field_id, async, domain_id)
 VALUES (
     gen_random_uuid(),
-    '<PARENT_pointer_id_for_Task_class>',          -- указатель "на Project родитель"
+    '<task_head_pointer_uuid>',                     -- PointerOnHead на классе Task
     '<twin_class_field_id для Project.totalTaskEstimate>',
     '<twin_class_field_id для Task.estimate>',
-    false,                                          -- sync для single child update; рассмотреть true для deep cascade
+    false,                                           -- sync для single child update; рассмотреть true для deep cascade
     '<domain_id>'
 );
 ```
 
 ### 3.3. OnAction listener (CRUD над твином-ребёнком)
 
-**Сценарий:** `Project.budgetUsed` = SUM всех `Task.cost` где Task.status IN (IN_PROGRESS, DONE). При CREATE новой Task — пересчитать `budgetUsed` с учётом новой задачи (если она подходит по статусу). При DELETE Task — вычесть.
+**Сценарий:** `Project.budgetUsed` = SUM всех `Task.cost` где Task.status IN (IN_PROGRESS, DONE). При CREATE новой Task — пересчитать `budgetUsed` с учётом новой задачи (если она подходит по статусу). При DELETE Task — вычесть. Publisher = Task, subscriber = Project через тот же `PointerOnHead` (см. §3.2 шаг 1).
 
 ```sql
-INSERT INTO listener_on_action (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
+INSERT INTO field_listener_on_action (id, subscriber_twin_pointer_id, subscriber_twin_class_field_id,
                                 publisher_twin_class_id, publisher_twin_action_id, async, domain_id)
 VALUES (
     gen_random_uuid(),
-    '<PARENT_pointer_id_for_Task_class>',          -- указатель на Project родитель
+    '<task_head_pointer_uuid>',                     -- PointerOnHead на классе Task
     '<twin_class_field_id для Project.budgetUsed>',
     '<Task_twin_class_id>',
-    'CREATE',                                       -- TwinAction.CREATE
-    true,                                           -- async (CRUD может быть bulk)
+    'CREATE',                                        -- TwinAction.CREATE
+    true,                                            -- async (CRUD может быть bulk)
     '<domain_id>'
 );
 
 -- То же для EDIT и DELETE
-INSERT INTO listener_on_action (...) VALUES (..., 'EDIT',  true, ...);
-INSERT INTO listener_on_action (...) VALUES (..., 'DELETE', true, ...);
+INSERT INTO field_listener_on_action (...) VALUES (..., 'EDIT',  true, ...);
+INSERT INTO field_listener_on_action (...) VALUES (..., 'DELETE', true, ...);
 ```
 
 ### 3.4. Validator rule для сложных предикатов
@@ -383,10 +413,10 @@ INSERT INTO listener_on_action (...) VALUES (..., 'DELETE', true, ...);
 
 ```sql
 -- Предполагаем, что validator_set уже создан (например, 'Task in active status')
-INSERT INTO listener_on_action_validator_rule (id, listener_on_action_id, "order", active, twin_validator_set_id)
+INSERT INTO field_listener_on_action_validator_rule (id, field_listener_on_action_id, "order", active, twin_validator_set_id)
 VALUES (
     gen_random_uuid(),
-    '<listener_on_action_id для CREATE из §3.3>',
+    '<field_listener_on_action_id для CREATE из §3.3>',
     1,
     true,
     '<validator_set_id для "active status">'
@@ -412,7 +442,7 @@ v1 (см. `field-typer-mater-listeners.md`) содержал критичные 
 **Защита — 4 уровня:**
 
 1. **Статический DAG при config-time** (после ручного INSERT-а или авто-регистрации):
-   - Строим граф: `subscriber_twin_class_field_id → publisher_twin_class_field_id` (по `listener_on_field`)
+   - Строим граф: `subscriber_twin_class_field_id → publisher_twin_class_field_id` (по `field_listener_on_field`)
    - DFS с цветами (WHITE/GRAY/BLACK); GRY-обращение = cycle
    - При обнаружении — `ServiceException(CONFIGURATION_IS_INVALID, "Cycle: A → B → A")`, listener не регистрируется
 
@@ -439,8 +469,8 @@ v1 (см. `field-typer-mater-listeners.md`) содержал критичные 
 ### 4.3. Caffeine cache
 
 Hot path: lookup listeners не должен ходить в БД на каждый twin update. Cache по ключу:
-- `OnField`: key=`(domain_id, publisher_twin_class_field_id)`, value=`List<ListenerOnField>`
-- `OnAction`: key=`(domain_id, publisher_twin_class_id, publisher_twin_action_id)`, value=`List<ListenerOnAction>`
+- `OnField`: key=`(domain_id, publisher_twin_class_field_id)`, value=`List<FieldListenerOnFieldEntity>`
+- `OnAction`: key=`(domain_id, publisher_twin_class_id, publisher_twin_action_id)`, value=`List<FieldListenerOnActionEntity>`
 
 TTL 5 min + invalidation по `TwinClassField`/`TwinClass` update.
 
@@ -490,11 +520,11 @@ public void reconciliationJob() {
 ### 5.1. Сущности (DAO)
 
 ```java
-package org.twins.core.dao.listener;
+package org.twins.core.dao.fieldlistener;
 
 @Data @Entity @Accessors(chain = true)
-@Table(name = "listener_on_field")
-public class ListenerOnFieldEntity {
+@Table(name = "field_listener_on_field")
+public class FieldListenerOnFieldEntity {
     @Id private UUID id;
     @Column(name = "subscriber_twin_pointer_id")     private UUID subscriberTwinPointerId;
     @Column(name = "subscriber_twin_class_field_id") private UUID subscriberTwinClassFieldId;
@@ -504,8 +534,8 @@ public class ListenerOnFieldEntity {
 }
 
 @Data @Entity @Accessors(chain = true)
-@Table(name = "listener_on_action")
-public class ListenerOnActionEntity {
+@Table(name = "field_listener_on_action")
+public class FieldListenerOnActionEntity {
     @Id private UUID id;
     @Column(name = "subscriber_twin_pointer_id")     private UUID subscriberTwinPointerId;
     @Column(name = "subscriber_twin_class_field_id") private UUID subscriberTwinClassFieldId;
@@ -516,10 +546,10 @@ public class ListenerOnActionEntity {
 }
 
 @Data @Entity @Accessors(chain = true)
-@Table(name = "listener_on_action_validator_rule")
-public class ListenerOnActionValidatorRuleEntity {
+@Table(name = "field_listener_on_action_validator_rule")
+public class FieldListenerOnActionValidatorRuleEntity {
     @Id private UUID id;
-    @Column(name = "listener_on_action_id")          private UUID listenerOnActionId;
+    @Column(name = "field_listener_on_action_id")          private UUID listenerOnActionId;
     @Column(name = "order")                          private Integer order;
     @Column(name = "active")                         private boolean active;
     @Column(name = "twin_validator_set_id")          private UUID twinValidatorSetId;
@@ -528,87 +558,249 @@ public class ListenerOnActionValidatorRuleEntity {
 
 ### 5.2. Сервис trigger-а
 
+#### 5.2.1. Репозитории и secure-find сервисы (обязательно для каждой entity)
+
+Каждая из трёх entity получает свой репозиторий (Spring Data `CrudRepository` + `JpaSpecificationExecutor`) и сервис — наследник `TwinsEntitySecureFindService<T>` (см. `core/.../service/TwinsEntitySecureFindService.java`). По конвенции проекта (CLAUDE.md «Services»): override `entityRepository()`, `entityGetIdFunction()`, `isEntityReadDenied()`, `validateEntity()`; write-методы под `@Transactional(rollbackFor = Throwable.class)`. `TwinsEntitySecureFindService` добавляет domain-aware `findByKey` через `AuthService.getApiUser().getDomainId()` — это автоматически даёт multi-tenant isolation для административных REST-эндпоинтов.
+
 ```java
-package org.twins.core.service.listener;
+package org.twins.core.dao.fieldlistener;
+
+public interface FieldListenerOnFieldRepository
+        extends CrudRepository<FieldListenerOnFieldEntity, UUID>,
+                JpaSpecificationExecutor<FieldListenerOnFieldEntity> {
+    List<FieldListenerOnFieldEntity> findByPublisherTwinClassFieldIdIn(Collection<UUID> ids);
+    List<FieldListenerOnFieldEntity> findByDomainId(UUID domainId);
+    void deleteBySubscriberTwinClassFieldId(UUID subscriberFieldId);
+}
+
+public interface FieldListenerOnActionRepository
+        extends CrudRepository<FieldListenerOnActionEntity, UUID>,
+                JpaSpecificationExecutor<FieldListenerOnActionEntity> {
+    List<FieldListenerOnActionEntity> findByPublisherTwinClassIdAndPublisherTwinAction(
+            UUID twinClassId, TwinAction action);
+    List<FieldListenerOnActionEntity> findByDomainId(UUID domainId);
+}
+
+public interface FieldListenerOnActionValidatorRuleRepository
+        extends CrudRepository<FieldListenerOnActionValidatorRuleEntity, UUID>,
+                JpaSpecificationExecutor<FieldListenerOnActionValidatorRuleEntity> {
+    List<FieldListenerOnActionValidatorRuleEntity>
+            findByFieldListenerOnActionIdOrderByOrder(UUID fieldListenerOnActionId);
+}
+```
+
+```java
+package org.twins.core.service.fieldlistener;
+
+@Service
+@RequiredArgsConstructor
+public class FieldListenerOnFieldService
+        extends TwinsEntitySecureFindService<FieldListenerOnFieldEntity> {
+    private final FieldListenerOnFieldRepository repository;
+    @Override public CrudRepository<FieldListenerOnFieldEntity, UUID> entityRepository() { return repository; }
+    @Override public Function<FieldListenerOnFieldEntity, UUID> entityGetIdFunction() { return FieldListenerOnFieldEntity::getId; }
+    @Override public boolean isEntityReadDenied(FieldListenerOnFieldEntity e) { return false; }
+    @Override public void validateEntity(FieldListenerOnFieldEntity e) { /* checks */ }
+}
+
+@Service @RequiredArgsConstructor
+public class FieldListenerOnActionService
+        extends TwinsEntitySecureFindService<FieldListenerOnActionEntity> {
+    private final FieldListenerOnActionRepository repository;
+    /* overrides аналогично */
+}
+
+@Service @RequiredArgsConstructor
+public class FieldListenerOnActionValidatorRuleService
+        extends TwinsEntitySecureFindService<FieldListenerOnActionValidatorRuleEntity> {
+    private final FieldListenerOnActionValidatorRuleRepository repository;
+    /* overrides аналогично */
+}
+```
+
+Эти три сервиса отвечают за административный CRUD (будущий UI для управления listeners). Сам trigger/recompute — отдельный сервис ниже, он работает поверх репозиториев и не наследует `TwinsEntitySecureFindService`, т.к. не является CRUD-сервисом entity.
+
+#### 5.2.2. Оркестратор trigger-а и recompute
+
+**Жизненный цикл события (sync flow):**
+
+1. `createTwin` / `updateTwin` заполнили `TwinChangesCollector` изменениями publisher-ов
+2. `FieldListenerService.triggerAffected(collector)`:
+   - Извлекает `AffectedSnapshot` (какие поля у каких твинов изменились, какие actions выполнялись)
+   - Bulk detection: если >50 twins → consolidated async task, return
+   - Lookup listeners (через Caffeine cache) — отдельно для OnField и OnAction
+   - Для каждого сработавшего listener-а:
+     - `pointer.point(publisher)` → subscriber twin (0 или 1, см. §2.1)
+     - Validator check (для OnAction, опционально)
+     - **Группировка**: кладёт `PublisherRef` в `Map<GroupKey, List<PublisherRef>>`, где `GroupKey = (subscriberTwinId, subscriberFieldId)`
+3. После сбора всех групп — для каждой группы один вызов `subscriber.notify(event, collector)`:
+   - `FieldListenerService` находит `FieldTyper` для `subscriberFieldId`, кастует к `FieldListenerSubscriber`
+   - FieldTyper внутри `notify` сам решает: full recompute через `serializeValue` (MVP) / delta-increment (future) / skip
+4. Каскад: FieldTyper через `serializeValue` положил изменение subscriber-поля в тот же collector → FieldListenerService recurses (visited-set + max-depth cap)
+
+**Ключевой момент про publisher-state в sync flow.** На момент вызова `notify` publishers **уже изменены в collector, но ещё не в БД** (publisher-tx ещё не закоммичена). Это значит:
+- `serializeValue` работает — он читает pending values через `twinClassFieldService.getDecimalValue()`, который ходит в `TwinChangesCollector` поверх БД
+- SQL aggregate на БД (`SELECT SUM(value) FROM twin_field WHERE twin_id IN (publishers)`) **НЕ работает** — данных там ещё нет
+- Delta-increment требует либо (а) чтения pending oldValue из collector, либо (б) откладывания delta до async worker-а (после commit). См. §7 open questions
+
+```java
+package org.twins.core.service.fieldlistener;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MaterListenerTriggerService {
+public class FieldListenerService {
 
-    private final ListenerOnFieldRepository listenerOnFieldRepository;
-    private final ListenerOnActionRepository listenerOnActionRepository;
-    private final ListenerOnActionValidatorRuleRepository validatorRuleRepository;
+    private final FieldListenerOnFieldRepository listenerOnFieldRepository;
+    private final FieldListenerOnActionRepository listenerOnActionRepository;
+    private final FieldListenerOnActionValidatorRuleRepository validatorRuleRepository;
     private final PointerFeaturerService pointerFeaturerService;
+    private final TwinPointerService twinPointerService;
     private final TwinClassFieldService twinClassFieldService;
+    private final TwinService twinService;
     private final FeaturerService featurerService;
     private final TwinChangeTaskService twinChangeTaskService;
+    private final ValidatorService validatorService;
     private final CaffeineListenerCache listenerCache;
+    private final MeterRegistry meterRegistry;
 
     @Value("${twins.mater.max-depth:5}")          private int maxDepth;
     @Value("${twins.mater.bulk-threshold:50}")    private int bulkThreshold;
 
-    /**
-     * Главный hook — вызывается из TwinService.createTwin / updateTwin
-     * между validateAndCollect и applyChanges.
-     */
+    /** Главный hook — вызывается из TwinService.createTwin / updateTwin между validateAndCollect и applyChanges. */
     public void triggerAffected(TwinChangesCollector collector) throws ServiceException {
+        // Каскадная рекурсия использует тот же visited-set по (subscriber twin, field),
+        // чтобы не запускать notify дважды для одной пары и защититься от циклов.
+        triggerAffected(collector, new HashSet<>(), 0);
+    }
+
+    private void triggerAffected(TwinChangesCollector collector, Set<GroupKey> visited, int depth) throws ServiceException {
+        if (depth > maxDepth) {
+            log.warn("FieldListener cascade depth {} exceeded max {}, skipping remaining", depth, maxDepth);
+            return;
+        }
         AffectedSnapshot snapshot = extractAffected(collector);
         if (snapshot.isEmpty()) return;
 
-        // 1. Bulk detection → consolidated async task
         if (snapshot.touchedTwinCount() > bulkThreshold) {
             scheduleConsolidatedBulkTask(snapshot, collector);
             return;
         }
 
-        // 2. OnField listeners: один batch IN-query
-        triggerOnFieldListeners(snapshot, collector);
+        // Группировка publisher-ов по (subscriberTwin, subscriberField) — duplicates merged.
+        // Если у двух listener-ов одинаковый GroupKey (например, Mater = A + B, A и B оба изменились,
+        // оба listener-а резолвятся в один и тот же (subscriber twin, subscriber field)) —
+        // в groups попадёт ОДНА запись с двумя PublisherRef, notify вызовется один раз.
+        Map<GroupKey, List<PublisherRef>> groups = new LinkedHashMap<>();
+        collectOnFieldGroups(snapshot, groups, visited);
+        collectOnActionGroups(snapshot, groups, visited);
 
-        // 3. OnAction listeners: lookup по (twinClassId, action)
-        triggerOnActionListeners(snapshot, collector);
+        for (var entry : groups.entrySet()) {
+            if (!visited.add(entry.getKey())) continue;  // cycle protection
+            dispatchNotify(entry.getKey(), entry.getValue(), collector, visited, depth);
+        }
     }
 
-    private void triggerOnFieldListeners(AffectedSnapshot snapshot, TwinChangesCollector collector) throws ServiceException {
-        Map<UUID, List<ListenerOnFieldEntity>> listenersByChangedField =
+    private void collectOnFieldGroups(AffectedSnapshot snapshot,
+                                      Map<GroupKey, List<PublisherRef>> groups, Set<GroupKey> visited) throws ServiceException {
+        Map<UUID, List<FieldListenerOnFieldEntity>> listenersByField =
                 listenerCache.findOnFieldListeners(snapshot.changedFieldClassIds(), snapshot.domainId());
-
-        Set<UUID> visited = new HashSet<>();
-        for (var entry : listenersByChangedField.entrySet()) {
+        for (var entry : listenersByField.entrySet()) {
             UUID changedFieldId = entry.getKey();
-            for (var affectedTwinId : snapshot.twinsByChangedField(changedFieldId)) {
-                for (var listener : entry.getValue()) {
-                    triggerListener(listener, affectedTwinId, collector, visited, 0, null);
+            for (UUID publisherTwinId : snapshot.twinsByChangedField(changedFieldId)) {
+                for (FieldListenerOnFieldEntity listener : entry.getValue()) {
+                    UUID subscriberTwinId = resolveSubscriberTwin(listener.getSubscriberTwinPointerId(), publisherTwinId);
+                    if (subscriberTwinId == null) continue;
+                    GroupKey key = new GroupKey(subscriberTwinId, listener.getSubscriberTwinClassFieldId());
+                    if (visited.contains(key)) continue;
+                    groups.computeIfAbsent(key, k -> new ArrayList<>())
+                          .add(new PublisherRef(publisherTwinId, changedFieldId, null, listener.isAsync()));
                 }
             }
         }
     }
 
-    private void triggerOnActionListeners(AffectedSnapshot snapshot, TwinChangesCollector collector) throws ServiceException {
-        Map<ActionKey, List<ListenerOnActionEntity>> listenersByAction =
+    private void collectOnActionGroups(AffectedSnapshot snapshot,
+                                       Map<GroupKey, List<PublisherRef>> groups, Set<GroupKey> visited) throws ServiceException {
+        Map<ActionKey, List<FieldListenerOnActionEntity>> listenersByAction =
                 listenerCache.findOnActionListeners(snapshot.twinActionsByKey(), snapshot.domainId());
-
-        Set<UUID> visited = new HashSet<>();
         for (var entry : listenersByAction.entrySet()) {
-            ActionKey key = entry.getKey();
-            for (var publisherTwinId : snapshot.twinIdsByAction(key)) {
-                for (var listener : entry.getValue()) {
+            ActionKey actionKey = entry.getKey();
+            for (UUID publisherTwinId : snapshot.twinIdsByAction(actionKey)) {
+                for (FieldListenerOnActionEntity listener : entry.getValue()) {
                     if (!shouldFireByValidators(listener, publisherTwinId)) continue;
-                    triggerListener(listener, publisherTwinId, collector, visited, 0, key.action());
+                    UUID subscriberTwinId = resolveSubscriberTwin(listener.getSubscriberTwinPointerId(), publisherTwinId);
+                    if (subscriberTwinId == null) continue;
+                    GroupKey key = new GroupKey(subscriberTwinId, listener.getSubscriberTwinClassFieldId());
+                    if (visited.contains(key)) continue;
+                    groups.computeIfAbsent(key, k -> new ArrayList<>())
+                          .add(new PublisherRef(publisherTwinId, null, actionKey.action(), listener.isAsync()));
                 }
             }
         }
     }
 
-    private boolean shouldFireByValidators(ListenerOnActionEntity listener, UUID publisherTwinId) throws ServiceException {
-        List<ListenerOnActionValidatorRuleEntity> rules = validatorRuleRepository
-                .findByListenerOnActionIdOrderByOrder(listener.getId());
+    private void dispatchNotify(GroupKey key, List<PublisherRef> publishers, TwinChangesCollector collector,
+                                Set<GroupKey> visited, int depth) throws ServiceException {
+        // Если хотя бы один publisher помечен async → вся группа идёт async (atomicity по группе).
+        boolean anyAsync = publishers.stream().anyMatch(PublisherRef::async);
+        FieldListenerEvent event = new FieldListenerEvent(
+                key.subscriberTwinId(), key.subscriberFieldId(), List.copyOf(publishers));
+        if (anyAsync) {
+            scheduleAsyncNotify(event, collector);
+            return;
+        }
+
+        TwinClassFieldEntity field = twinClassFieldService.findById(key.subscriberFieldId());
+        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
+        if (!(fieldTyper instanceof FieldListenerSubscriber subscriber)) {
+            log.warn("FieldTyper {} for field {} is not a FieldListenerSubscriber, skipping",
+                    fieldTyper.getClass().getSimpleName(), key.subscriberFieldId());
+            meterRegistry.counter("field_listener_not_subscriber.total").increment();
+            return;
+        }
+
+        // Один вызов notify на группу. FieldTyper внутри сам решает full recompute / delta / skip.
+        // sync flow: serializeValue внутри notify читает operands из collector-pending-state (publishers ещё не в БД).
+        subscriber.notify(event, collector);
+
+        // Каскад: serializeValue положил изменение subscriber-поля в тот же collector.
+        // Recurses с тем же visited-set + depth+1 — новый snapshot обнаружит изменение subscriber-поля
+        // (если оно operand для другого Mater) и trigger-ит новые группы.
+        triggerAffected(collector, visited, depth + 1);
+    }
+
+    private UUID resolveSubscriberTwin(UUID pointerId, UUID publisherTwinId) throws ServiceException {
+        TwinPointerEntity pointer = twinPointerService.findById(pointerId);
+        TwinEntity publisherTwin = twinService.findById(publisherTwinId);
+        TwinEntity subscriber;
+        try {
+            subscriber = pointerFeaturerService.point(pointer, publisherTwin);
+        } catch (ServiceException e) {
+            if (e.getErrorCode() == ErrorCodeTwins.POINTER_NON_SINGLE) {
+                log.warn("Pointer {} returned multiple candidates for publisher {}, skipping",
+                        pointerId, publisherTwinId);
+                meterRegistry.counter("field_listener_pointer_non_single.total").increment();
+                return null;
+            }
+            throw e;
+        }
+        if (subscriber == null) {
+            meterRegistry.counter("field_listener_no_subscriber.total").increment();
+            return null;
+        }
+        return subscriber.getId();
+    }
+
+    private boolean shouldFireByValidators(FieldListenerOnActionEntity listener, UUID publisherTwinId) throws ServiceException {
+        List<FieldListenerOnActionValidatorRuleEntity> rules = validatorRuleRepository
+                .findByFieldListenerOnActionIdOrderByOrder(listener.getId());
         if (rules.isEmpty()) return true;
         for (var rule : rules) {
             if (!rule.isActive()) continue;
             ValidationResult r = validatorService.validate(publisherTwinId, rule.getTwinValidatorSetId());
             if (!r.isSuccess()) {
-                meterRegistry.counter("mater_listener_validation_skipped.total",
+                meterRegistry.counter("field_listener_validation_skipped.total",
                         Tags.of("reason", r.getReason())).increment();
                 return false;
             }
@@ -616,44 +808,128 @@ public class MaterListenerTriggerService {
         return true;
     }
 
-    private <L> void triggerListener(L listener, UUID publisherTwinId, TwinChangesCollector collector,
-                                     Set<UUID> visited, int depth, TwinAction action) throws ServiceException {
-        if (depth > maxDepth) {
-            log.warn("Mater cascade depth {} exceeded max {} for publisher twin {}", depth, maxDepth, publisherTwinId);
-            return;
-        }
-
-        UUID pointerId = getPointerId(listener);
-        TwinPointerEntity pointer = twinPointerService.findById(pointerId);
-        List<UUID> subscriberTwinIds = pointerFeaturerService.resolveSubscriberTwins(publisherTwinId, pointer);
-
-        for (UUID subscriberTwinId : subscriberTwinIds) {
-            UUID materFieldId = getSubscriberFieldId(listener);
-            if (!visited.add(materFieldId)) continue;  // dedup + cycle protection
-
-            if (isAsync(listener)) {
-                scheduleAsyncRecompute(subscriberTwinId, materFieldId, collector);
-            } else {
-                recomputeSync(subscriberTwinId, materFieldId, collector);
-                // Каскад: если этот Mater — operand для другого, trigger recursively
-                cascadeIfNestedOperand(subscriberTwinId, materFieldId, collector, visited, depth + 1);
-            }
-        }
+    private void scheduleAsyncNotify(FieldListenerEvent event, TwinChangesCollector collector) {
+        // Сериализовать event в JSON, положить в TwinChangeTaskEntity (NEED_START) через collector — outbox.
+        // Worker-pool после commit publisher-tx прочитает, десериализует, вызовет subscriber.notify в новой tx.
+        // Здесь publishers уже в БД — поэтому serializeValue / SQL aggregate работают.
+        collector.addPostponedFieldListenerNotify(event);
     }
 
-    private void recomputeSync(UUID subscriberTwinId, UUID materFieldId, TwinChangesCollector collector) throws ServiceException {
-        TwinClassFieldEntity field = twinClassFieldService.findById(materFieldId);
-        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
-        TwinEntity twin = twinService.findById(subscriberTwinId);
-        FieldValue value = fieldTyper.tryToInitializeValue(twin, field);
-        fieldTyper.serializeValue(twin, value, collector);  // → кладёт изменения в collector
+    private void scheduleConsolidatedBulkTask(AffectedSnapshot snapshot, TwinChangesCollector collector) {
+        collector.addPostponedFieldListenerBulk(snapshot.touchedTwinIds(), snapshot.changedFieldClassIds());
     }
 
-    private void scheduleAsyncRecompute(UUID subscriberTwinId, UUID materFieldId, TwinChangesCollector collector) {
-        collector.addPostponedMaterRecompute(subscriberTwinId, materFieldId);
+    // === Group/event DTOs ===
+
+    record GroupKey(UUID subscriberTwinId, UUID subscriberFieldId) {}
+    record PublisherRef(UUID twinId, UUID twinClassFieldId, TwinAction action, boolean async) {}
+}
+```
+
+#### 5.2.3. Интерфейс FieldListenerSubscriber
+
+Реализуется на тех `FieldTyper`, которые могут быть Mater-подписчиками (в первую очередь — `FieldTyperCalcBinaryMater` и его наследники). Конкретные наследники могут override-ить `notify` для оптимизаций (delta-increment для Sum-вариантов и т.п.).
+
+```java
+package org.twins.core.service.fieldlistener;
+
+/**
+ * Контракт: FieldTyper как получатель уведомления от FieldListenerService.
+ *
+ * Реализация сама решает, как именно обновить Mater-поле:
+ *  - full recompute через serializeValue (default в FieldTyperCalcBinaryMater)
+ *  - delta-increment через collector (override в FieldTyperCalcSumMater — future)
+ *  - skip (например, operand missing и skipIfEmpty=true)
+ *
+ * Изменения кладёт в collector для atomicity с publisher-tx (sync flow) или
+ * с worker-tx (async flow). Возвращает void — FieldTyper обновляет ровно одно
+ * поле (subscriber), списка изменений нет по архитектуре FieldTyper.
+ */
+public interface FieldListenerSubscriber {
+
+    /**
+     * @param event     full context: кто подписчик, какое поле, кто publisher-ы (≥1, может быть bulk)
+     * @param collector accumulate-точка для изменений Mater-поля; та же tx что и у publisher (sync) или worker (async)
+     */
+    void notify(FieldListenerEvent event, TwinChangesCollector collector) throws ServiceException;
+}
+
+/**
+ * Событие «обнови Mater-поле subscriber.subscriberFieldId учитывая publishers».
+ * Один event = одна группа (один subscriber twin + одно subscriber field), publishers ≥1.
+ */
+record FieldListenerEvent(
+        UUID subscriberTwinId,
+        UUID subscriberFieldId,
+        List<PublisherRef> publishers
+) {}
+
+/**
+ * Один publisher в группе. Для OnAction: action ∈ {CREATE, EDIT, DELETE}, twinClassFieldId=null.
+ * Для OnField: action=null, twinClassFieldId=operand publisher-а.
+ *
+ * ВАЖНО: на момент notify в sync flow publisher-twin уже изменён в TwinChangesCollector,
+ * но ещё не закоммичен в БД. Старые значения НЕ передаём — FieldTyper при необходимости
+ * берёт их сам из collector-pending-state (для delta) или делает full recompute (MVP default).
+ */
+record PublisherRef(UUID twinId, UUID twinClassFieldId, TwinAction action, boolean async) {}
+```
+
+**Default-реализация на FieldTyperCalcBinaryMater:**
+
+```java
+package org.twins.core.featurer.fieldtyper.mater;
+
+public abstract class FieldTyperCalcBinaryMater
+        extends FieldTyperDecimalBase<Numeric, Text, Numeric>
+        implements FieldTyperCalcBinary, FieldTyperCalcMater, FieldListenerSubscriber {
+
+    private final TwinService twinService;
+    private final TwinClassFieldService twinClassFieldService;
+
+    /**
+     * MVP default: full recompute через serializeValue.
+     * serializeValue читает operands через twinClassFieldService.getDecimalValue(),
+     * который умеет ходить в TwinChangesCollector (pending state) — поэтому работает
+     * даже если publishers ещё не в БД (sync flow).
+     */
+    @Override
+    public void notify(FieldListenerEvent event, TwinChangesCollector collector) throws ServiceException {
+        TwinEntity subscriberTwin = twinService.findById(event.subscriberTwinId());
+        TwinClassFieldEntity field = twinClassFieldService.findById(event.subscriberFieldId());
+        FieldValue fieldValue = tryToInitializeValue(subscriberTwin, field);
+        serializeValue(subscriberTwin, fieldValue, collector);  // переиспользуем существующую логику
     }
 }
 ```
+
+**Override для FieldTyperCalcSumMater (future, delta-optimization):**
+
+```java
+public class FieldTyperCalcSumMater extends FieldTyperCalcBinaryMater {
+
+    /**
+     * Future: для SUM возможен delta-increment вместо full recompute.
+     * Ограничения sync flow: publishers ещё не в БД → SQL aggregate невозможен.
+     * Нужен другой механизм: читать pending oldValue из collector, сравнивать с pending newValue,
+     * delta класть в collector как increment (как applyDecimalIncrements).
+     * В async flow: publishers уже в БД, но oldValue нужно из twin_change_history.
+     *
+     * MVP: просто fallback на super.notify (full recompute).
+     * Optimization — отдельная итерация, см. §7.
+     */
+    @Override
+    public void notify(FieldListenerEvent event, TwinChangesCollector collector) throws ServiceException {
+        super.notify(event, collector);
+    }
+}
+```
+
+**Почему `FieldTyper` реализует интерфейс напрямую (а не отдельный класс-подписчик).**
+
+- **Тесная связь с params и serializeValue.** `notify` нужен доступ к `firstFieldId`, `secondFieldId` из `featurerParams`, и к существующему `serializeValue` — всё это уже на FieldTyper. Отдельный subscriber-класс потребовал бы дублирования или делегирования.
+- **Будущая авто-регистрация listeners из FieldTyper.** На втором этапе (см. §5.4) при `TwinClassFieldService.saveField()` нужно извлекать operand-fields из params и регистрировать listeners. Наличие `FieldListenerSubscriber` на самом FieldTyper даёт единый self-describing контракт: FieldTyper сам знает, на какие поля ему подписываться — это пригодится для авто-регистрации.
+- **Проверка «может ли FieldTyper быть Mater-подписчиком» = `instanceof FieldListenerSubscriber`.** Простой, без реестра featurer_id → subscriber-class.
 
 ### 5.3. Hook в TwinService
 
@@ -661,13 +937,13 @@ public class MaterListenerTriggerService {
 // TwinService.java
 public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
     createTwins(TwinCreateStage.of(twinCreate), twinChangesCollector);
-    materListenerTriggerService.triggerAffected(twinChangesCollector);  // ← НОВЫЙ HOOK
+    fieldListenerService.triggerAffected(twinChangesCollector);  // ← НОВЫЙ HOOK
 }
 
 public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector,
                        ChangesRecorder<TwinEntity, ?> recorder) throws ServiceException {
     // ... существующая логика updateTwin ...
-    materListenerTriggerService.triggerAffected(twinChangesCollector);  // ← НОВЫЙ HOOK
+    fieldListenerService.triggerAffected(twinChangesCollector);  // ← НОВЫЙ HOOK
 }
 ```
 
@@ -695,7 +971,7 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
 
 1. **`TwinAction.CREATE` добавить в enum + БД.** Это явный blocker для OnAction listener-ов на создание твинов. Просто добавить, но это всё-таки расширение публичной модели разрешений.
 
-2. **`listener_on_action.publisher_twin_action_id` — varchar vs enum.** Сейчас varchar + FK на `twin_action` — OK для расширяемости. Альтернатива: `@Enumerated(EnumType.STRING)` в JPA — но тогда нельзя добавить кастомный action без деплоя. Решение: оставить varchar + FK.
+2. **`field_listener_on_action.publisher_twin_action_id` — varchar vs enum.** Сейчас varchar + FK на `twin_action` — OK для расширяемости. Альтернатива: `@Enumerated(EnumType.STRING)` в JPA — но тогда нельзя добавить кастомный action без деплоя. Решение: оставить varchar + FK.
 
 3. **FK ON DELETE для subscriber_twin_class_field_id.** Сейчас `ON DELETE NO ACTION` (по умолчанию). При удалении Mater-поля операция упадёт, пока listener не удалён. Альтернативы: (а) `ON DELETE CASCADE` для listener-ов + `mater_stale=true` на зависимых полях; (б) `ON DELETE RESTRICT` с явным precondition-check. Решение: NO ACTION сейчас, добавить `dropListenerAndMarkStale(fieldId)` в `TwinClassFieldService.deleteField()`.
 
@@ -708,6 +984,21 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
 7. **TwinPointer discovery для ручной регистрации.** MVP требует ручного SQL — но пользователю надо знать UUID-ы pointer-ов. Стоит ли добавить admin-REST endpoint `/twin-pointers?classId=X` для lookup? Или документировать `SELECT id, name FROM twin_pointer WHERE twin_class_id = ...` в README?
 
 8. **Performance baseline.** До реализации снять `pg_stat_statements` + `@Timed` на on-the-fly калькуляторах (см. v1 §15.2). Без baseline нельзя доказать ROI и выбрать SLA.
+
+9. **Pointer на корень иерархии (root) и на TwinLink-родителя dst.** `PointerOnHead` покрывает непосредственного родителя через FK `head_twin_id`. Но если понадобится: (а) listener на «любом descendant → recompute Mater у root-а» — нужен pointer через `hierarchy_tree` (ltree) с lookup корня; (б) listener «от dst TwinLink к parent dst twin-а» — нужен составной pointer. Сейчас это не реализовано; заводить как только появится конкретный use-case, premature сейчас.
+
+10. **Многодетный кейс для `FieldTyperCalcChildrenFieldV1`.** `PointerOnHead` решает «single-parent от ребёнка», но не «multi-child → parent aggregation». Сама агрегация делается не pointer-ом, а serializeValue внутри FieldTyper — pointer только находит subscriber-а (parent). Если parent обновляется из-за одного ребёнка, а детей 1000 — `serializeValue` parent-а сделает SUM заново по всем детям. Это может быть узким местом; оптимизация через delta-increment (SUM только разница) — отдельная тема, см. §4.2 bulk и v1 про `applyDecimalIncrements`.
+
+11. 🔴 **Delta-optimization для SUM Mater — требует проработки отдельно под sync/async flow.** MVP делаем full recompute через `serializeValue` для всех Mater-типов. Delta-increment (`UPDATE twin_field SET value = value + Δ`) привлекательнее для bulk, но есть два принципиально разных flow-а:
+    - **Sync flow (publisher-tx ещё не закоммичена)**: publishers находятся в `TwinChangesCollector`, в БД их нет. SQL aggregate (`SELECT SUM(value) WHERE twin_id IN (publishers)`) бесполезен. Чтобы посчитать Δ нужно: (а) прочитать **persisted oldValue** из БД ДО изменения, (б) прочитать **pending newValue** из collector, (в) Δ = newValue − oldValue. Это требует расширения `TwinChangesCollector` API: метод «дай мне pending newValue и persisted oldValue для этого поля твина».
+    - **Async flow (worker-tx после commit)**: publishers уже в БД. Но oldValue уже утерян — нужно читать из `twin_change_history` (последний snapshot до изменения). Это медленнее и требует индексов по history.
+    
+    **Рекомендация:** не реализовывать delta в MVP. Сначала baseline-замеры (`pg_stat_statements` + `@Timed`) — если SUM Mater на bulk-CUD не упрётся в latency, full recompute достаточно. Если упрётся — приоритизировать sync flow (вариант а) как более дешёвый.
+
+12. **Каскадная рекурсия через `triggerAffected(collector, visited, depth+1)` после `subscriber.notify`.** Сейчас FieldListenerService recursing-ет после каждого notify, рассчитывая, что новый snapshot из collector поймает изменения subscriber-поля (если оно operand для другого Mater). Возможные проблемы:
+    - Один и тот же subscriber-field может быть operand для нескольких других Mater-полей — все они должны быть в одной cascade-волне. Текущая рекурсия ловит это через новый snapshot.
+    - Cycle protection через visited-set: если A → B → A, второе срабатывание A пропустится через visited. Но深度 cap (default 5) — единственная защита от очень длинных цепочек. Если в domain будет 6+ уровней Mater-цепочек — поднять cap через конфиг.
+    - Performance: каждая cascade-волна = новый full snapshot extract. Для глубоких цепочек (depth=5) это 5 snapshots. На больших collector-ах может быть дорого. Альтернатива: incremental snapshot (только новые изменения с прошлого snapshot). Не в MVP.
 
 ---
 
