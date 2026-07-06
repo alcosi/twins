@@ -121,6 +121,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!validate(twin, value).isValid()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
+        var storage = getStorage(value.getTwinClassField());
+        if (!storage.isLoaded(twin)) {
+            storage.load(Kit.singleton(twin, TwinEntity::getId));
+        }
         serializeValue(properties, twin, value, twinChangesCollector);
     }
 
