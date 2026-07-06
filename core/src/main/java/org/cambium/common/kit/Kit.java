@@ -42,7 +42,7 @@ public class Kit<E, K> implements Collection<E> {
     public boolean add(E e) {
         if (collection == null)
             collection = new ArrayList<>();
-
+        // TODO maybe add contains check? to have consistency between collection data and map values (for duplicates case)
         boolean ret = collection.add(e);
         if (map != null) {
             map.put(functionGetId.apply(e), e);

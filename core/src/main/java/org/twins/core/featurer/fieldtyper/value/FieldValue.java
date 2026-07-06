@@ -12,6 +12,8 @@ import java.util.UUID;
  * FieldValue class is not combined with TwinField class, because in some cases
  * we need to have values out of twin (for example, in a transition context)
  */
+
+// todo maybe do smth with equals and hashCode? because all children have @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
     @Getter
