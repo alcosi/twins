@@ -40,6 +40,11 @@ public class Kit<E, K> implements Iterable<E> {
         @Override public Kit freeze() { return this; }
     };
 
+    public static <E, K> Kit<E, K> singleton(E element,
+                                             Function<? super E, ? extends K> functionGetKey) {
+        return new SingletonKit<>(element, functionGetKey);
+    }
+
     public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetKey) {
         this(collection, functionGetKey, DuplicateKeyMode.THROW);
     }
