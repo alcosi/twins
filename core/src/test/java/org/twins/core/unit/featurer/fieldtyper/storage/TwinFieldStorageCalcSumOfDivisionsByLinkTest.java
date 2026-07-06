@@ -120,7 +120,7 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
         }
 
         @Test
-        void equals_differentDivisionByZeroFlag_shouldBeFalse_butCurrentlyIsTrue() throws ServiceException {
+        void equals_differentDivisionByZeroFlag_isFalse() throws ServiceException {
             assertNotEquals(newStorage(true, false, false), newStorage(true, false, true));
         }
     }
