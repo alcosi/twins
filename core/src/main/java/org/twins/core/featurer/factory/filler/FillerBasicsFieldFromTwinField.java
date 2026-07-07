@@ -42,7 +42,7 @@ public class FillerBasicsFieldFromTwinField extends Filler {
         String fieldName;
         switch (fieldValue) {
             case FieldValueText fieldValueText -> fieldName = handleTextField(fieldId, fieldValueText, outputTwinEntity);
-            case FieldValueUser fieldValueUser -> fieldName = handleUserField(fieldValueUser, outputTwinEntity, fieldValue);
+            case FieldValueUser fieldValueUser -> fieldName = handleUserField(fieldId, fieldValueUser, outputTwinEntity, fieldValue);
             default -> throw new ServiceException(
                     ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE,
                     fieldValue.getTwinClassField().logShort() + " is incorrect field type"
@@ -63,7 +63,7 @@ public class FillerBasicsFieldFromTwinField extends Filler {
         return null;
     }
 
-    private String handleUserField(FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue) throws ServiceException {
+    private String handleUserField(UUID fieldId, FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue) throws ServiceException {
         if (fieldValueUser.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
         } else if (fieldValueUser.size() > 1) {

@@ -26,6 +26,10 @@ public class FillerHeadFromContextTwinHead extends Filler {
                 detectedHeadTwinId = contextTwin.getHeadTwinId();
                 detectedHeadTwin = contextTwin.getHeadTwin();
             }
+            // TODO: a null-vs-non-null disagreement is not detected. Because detectedHeadTwinId is re-seeded
+            // while it stays null, a [null, X] context pair (first head null, later head non-null) slips
+            // through this guard and leaves the output head = X instead of throwing FACTORY_INCORRECT.
+            // See red test fill_multipleContextsFirstHeadNullSecondNonNull_throwsFactoryIncorrect.
             if (detectedHeadTwinId != null && !detectedHeadTwinId.equals(contextTwin.getHeadTwinId())) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "multiple head twin context");
             }

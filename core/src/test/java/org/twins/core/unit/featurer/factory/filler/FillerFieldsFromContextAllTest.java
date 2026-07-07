@@ -106,11 +106,10 @@ class FillerFieldsFromContextAllTest extends BaseUnitTest {
         }
 
         @Test
-        void fill_nullContextFields_throwsStepError() {
-            // INTENDED (RED): NAME + error message ("No context fields present. Please check pipeline config")
-            // imply fill should throw FACTORY_PIPELINE_STEP_ERROR when the context carries no fields.
-            // But FactoryContext.getFields() lazily creates a fresh empty map (never returns null), so prod's
-            // `if (contextFields == null)` check is dead code and the throw never fires.
+        void fill_emptyContextFields_throwsStepError() {
+            // NAME + error message ("No context fields present. Please check pipeline config") imply fill must
+            // throw FACTORY_PIPELINE_STEP_ERROR when the context carries no fields. FactoryContext.getFields()
+            // lazily creates a fresh empty map (never returns null), so the guard checks isEmpty, not == null.
             var outputClass = new TwinClassEntity().setId(UUID.randomUUID());
             var output = new TwinCreate();
             output.setTwinEntity(new TwinEntity().setTwinClass(outputClass));
