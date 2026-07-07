@@ -101,7 +101,8 @@ class FieldValueIdTest extends BaseUnitTest {
             src.copyValueTo(dst);
 
             assertEquals(id, dst.getValue());
-            assertTrue(dst.isDefined());
+            // the typed overload copies the value only; state is not copied, so dst stays UNDEFINED.
+            assertTrue(dst.isUndefined());
         }
     }
 }

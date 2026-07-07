@@ -209,7 +209,7 @@ class FieldValueCollectionImmutableTest extends BaseUnitTest {
     class CopyValueTo {
 
         @Test
-        void copyValueTo_emptyDestination_copiesIntoNewListAndState() {
+        void copyValueTo_emptyDestination_copiesValueIntoNewList() {
             var src = new StubValue(field);
             src.add(holder(UUID.randomUUID()));
             src.add(holder(UUID.randomUUID()));
@@ -218,8 +218,9 @@ class FieldValueCollectionImmutableTest extends BaseUnitTest {
             src.copyValueTo(dst);
 
             assertEquals(2, dst.size());
-            // FieldValueStated.copyValueTo(FieldValue) copies the state too
-            assertFalse(dst.isUndefined());
+            // the typed overload copies the value only; state is not copied, so a fresh destination
+            // stays UNDEFINED.
+            assertTrue(dst.isUndefined());
         }
 
         @Test

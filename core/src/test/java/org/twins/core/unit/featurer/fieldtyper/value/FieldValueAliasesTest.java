@@ -166,7 +166,8 @@ class FieldValueAliasesTest extends BaseUnitTest {
 
             assertNotNull(items);
             assertTrue(items.isEmpty());
-            assertThrows(UnsupportedOperationException.class, () -> items.add(alias(UUID.randomUUID())));
+            // bare mock: the add throws before any id lookup, so no getId() stub is needed here.
+            assertThrows(UnsupportedOperationException.class, () -> items.add(mock(TwinAliasEntity.class)));
         }
 
         @Test
@@ -176,7 +177,7 @@ class FieldValueAliasesTest extends BaseUnitTest {
 
             var items = value.getItems();
 
-            assertThrows(UnsupportedOperationException.class, () -> items.add(alias(UUID.randomUUID())));
+            assertThrows(UnsupportedOperationException.class, () -> items.add(mock(TwinAliasEntity.class)));
         }
     }
 

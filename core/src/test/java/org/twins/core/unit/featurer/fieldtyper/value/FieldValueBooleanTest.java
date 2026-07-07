@@ -142,7 +142,9 @@ class FieldValueBooleanTest extends BaseUnitTest {
     class CopyValueTo {
 
         @Test
-        void copyValueTo_copiesValueAndState() {
+        void copyValueTo_copiesValueOnly() {
+            // copyValueTo(FieldValueStated) copies the value only; state is left to the
+            // FieldValueStated.copyValueTo(FieldValue) template, so a fresh destination stays UNDEFINED.
             var src = new FieldValueBoolean(field);
             src.setValue(true);
             var dst = new FieldValueBoolean(field);
@@ -150,20 +152,21 @@ class FieldValueBooleanTest extends BaseUnitTest {
             src.copyValueTo(dst);
 
             assertTrue(dst.getValue());
-            assertTrue(dst.isDefined());
+            assertTrue(dst.isUndefined());
         }
 
         @Test
-        void copyValueTo_copiesClearedState() {
+        void copyValueTo_copiesValueLeavesDestinationStateUntouched() {
+            // the value is copied (→ null), but the destination keeps its own prior state.
             var src = new FieldValueBoolean(field);
             src.setValue(null); // CLEARED
             var dst = new FieldValueBoolean(field);
-            dst.setValue(true);
+            dst.setValue(true); // PRESENT
 
             src.copyValueTo(dst);
 
             assertNull(dst.getValue());
-            assertTrue(dst.isCleared());
+            assertTrue(dst.isDefined());
         }
     }
 

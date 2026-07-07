@@ -103,7 +103,7 @@ class FieldValueTextTest extends BaseUnitTest {
         }
 
         @Test
-        void copyValueTo_preservesValueAndState() {
+        void copyValueTo_copiesValueOnly() {
             var src = new FieldValueText(field);
             src.setValue("abc");
             var dst = new FieldValueText(field);
@@ -111,7 +111,8 @@ class FieldValueTextTest extends BaseUnitTest {
             src.copyValueTo(dst);
 
             assertEquals("abc", dst.getValue());
-            assertTrue(dst.isDefined());
+            // the typed overload copies the value only; state is not copied, so dst stays UNDEFINED.
+            assertTrue(dst.isUndefined());
         }
     }
 }

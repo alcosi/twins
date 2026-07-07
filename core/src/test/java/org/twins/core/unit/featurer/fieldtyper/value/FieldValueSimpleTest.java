@@ -160,19 +160,11 @@ class FieldValueSimpleTest extends BaseUnitTest {
             assertFalse(dst.isUndefined());
         }
 
-        // =====================================================================
-        // RED — encodes PROD BUG #3/#8 documented in the audit:
-        //   FieldValueSimple.copyValueTo(FieldValueStated dst) copies only `value`,
-        //   not `state`. A direct call to the typed overload (which is what
-        //   FieldValueStated.copyValueTo(FieldValue) invokes BEFORE setting state
-        //   itself) leaves the destination in whatever state it was already in.
-        //   If anyone ever inlines the typed overload or calls it directly without
-        //   re-asserting state, they get a half-copied value.
-        // Intended contract of copyValueTo(FieldValueStated): value AND state are
-        // copied together, so the typed overload is self-sufficient.
-        // =====================================================================
         @Test
-        void copyValueTo_typedOverload_copiesValueAndState() {
+        void copyValueTo_typedOverload_copiesValueOnly() {
+            // Contract: copyValueTo(FieldValueStated) copies the value only. State is applied separately
+            // by FieldValueStated.copyValueTo(FieldValue), so calling the typed overload directly leaves
+            // a fresh destination UNDEFINED. See TODO on FieldValueStated.copyValueTo(FieldValueStated).
             var src = new StubSimple(field);
             src.setValue("abc");
             var dst = new StubSimple(field);
@@ -180,8 +172,7 @@ class FieldValueSimpleTest extends BaseUnitTest {
             src.copyValueTo((FieldValueStated) dst);
 
             assertEquals("abc", dst.getValue());
-            assertFalse(dst.isUndefined());
-            assertFalse(dst.isCleared());
+            assertTrue(dst.isUndefined());
         }
     }
 

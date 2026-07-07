@@ -160,13 +160,14 @@ class FieldValueTest extends BaseUnitTest {
         }
 
         @Test
-        void setValidationResult_returnsStoredResult() {
+        void setValidationResult_returnsThisForChaining() {
             var value = new StubFieldValue(field);
             var result = new ValidationResult(false);
 
             var returned = value.setValidationResult(result);
 
-            assertSame(result, returned);
+            // Lombok @Accessors(chain=true) setter returns this (the FieldValue), not the stored result.
+            assertSame(value, returned);
             assertSame(result, value.getValidationResult());
         }
 
