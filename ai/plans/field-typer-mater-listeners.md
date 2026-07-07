@@ -1047,7 +1047,7 @@ public class FieldListenerOnActionValidatorRuleService
    - Для каждого сработавшего listener-а:
      - `pointer.point(publisher)` → subscriber twin (0 или 1, см. §2.1)
      - Validator check (для OnAction, опционально)
-     - **Группировка**: кладёт `PublisherRef` (sealed: `PublisherByField` или `PublisherByAction`) в `Group` с уже загруженными Entity — `Map<SubscriberKey, Group>`, где `SubscriberKey = (subscriberTwinId, subscriberFieldId)` (UUID-pair для HashMap key; TwinEntity нельзя в key из-за JPA hashCode). Внутри Group — `subscriberTwin: TwinEntity`, `subscriberField: TwinClassFieldEntity`, `publishers: List<PublisherRef>`
+     - **Группировка**: кладёт `PublisherRef` (sealed: `PublisherByField` или `PublisherByAction`) в `Map<SubscriberKey, List<PublisherRef>>`. `SubscriberKey = (subscriberTwinId, subscriberFieldId, subscriberTwin, subscriberField)` — UUID-pair как identity для HashMap (override equals/hashCode), Entity как cargo для dispatchNotify (без повторных findById)
 3. После сбора всех групп — для каждой группы один вызов `subscriber.notify(event, collector)`:
    - `FieldListenerService` находит `FieldTyper` для `group.subscriberField()` (по `fieldTyperFeaturerId`), кастует к `FieldListenerSubscriber`
    - FieldTyper внутри `notify` сам решает: full recompute через `serializeValue` (MVP) / delta-increment (future) / skip
@@ -1103,22 +1103,21 @@ public class FieldListenerService {
             return;
         }
 
-        // Группировка publisher-ов по (subscriberTwin, subscriberField) — duplicates merged.
-        // Если у двух listener-ов одинаковый SubscriberKey (например, Mater = A + B, A и B оба изменились,
-        // оба listener-а резолвятся в один и тот же (subscriber twin, subscriber field)) —
-        // в groups попадёт ОДНА запись с двумя PublisherRef, notify вызовется один раз.
-        Map<SubscriberKey, Group> groups = new LinkedHashMap<>();
+        // Группировка publisher-ов по SubscriberKey (subscriberTwin + subscriberField + Entity cargo) —
+        // duplicates merged. Если у двух listener-ов одна и та же пара (subscriberTwin, subscriberField) —
+        // в map попадёт ОДНА запись с двумя PublisherRef, notify вызовется один раз.
+        Map<SubscriberKey, List<PublisherRef>> groups = new LinkedHashMap<>();
         collectOnFieldGroups(snapshot, groups, visited);
         collectOnActionGroups(snapshot, groups, visited);
 
-        for (Group group : groups.values()) {
-            if (!visited.add(group.key())) continue;  // cycle protection
-            dispatchNotify(group, collector, visited, depth);
+        for (var entry : groups.entrySet()) {
+            if (!visited.add(entry.getKey())) continue;  // cycle protection
+            dispatchNotify(entry.getKey(), entry.getValue(), collector, visited, depth);
         }
     }
 
     private void collectOnFieldGroups(AffectedSnapshot snapshot,
-                                      Map<SubscriberKey, Group> groups, Set<SubscriberKey> visited) throws ServiceException {
+                                      Map<SubscriberKey, List<PublisherRef>> groups, Set<SubscriberKey> visited) throws ServiceException {
         // @Cacheable на FieldListenerOnFieldService.findOnFieldListeners(...) — Caffeine под капотом.
         // Cache key — composite через CollectionUtils.generateUniqueKey(#publisherFieldIds).
         List<FieldListenerOnFieldEntity> listeners = listenerOnFieldService
@@ -1139,7 +1138,7 @@ public class FieldListenerService {
     }
 
     private void collectOnActionGroups(AffectedSnapshot snapshot,
-                                       Map<SubscriberKey, Group> groups, Set<SubscriberKey> visited) throws ServiceException {
+                                       Map<SubscriberKey, List<PublisherRef>> groups, Set<SubscriberKey> visited) throws ServiceException {
         Map<UUID, List<PendingResolve>> pendingByPointer = new HashMap<>();
         for (ActionKey actionKey : snapshot.twinActionsByKey()) {
             // @Cacheable lookup per (publisherClassId, action) — Caffeine под капотом.
@@ -1163,7 +1162,7 @@ public class FieldListenerService {
      * Затем распределяет результаты по Group-ам. Один SQL на pointer + один SQL на field-batch — не N.
      */
     private void resolveAndDistribute(Map<UUID, List<PendingResolve>> pendingByPointer,
-                                      Map<SubscriberKey, Group> groups,
+                                      Map<SubscriberKey, List<PublisherRef>> groups,
                                       Set<SubscriberKey> visited, boolean isAction) throws ServiceException {
         for (var e : pendingByPointer.entrySet()) {
             UUID pointerId = e.getKey();
@@ -1190,20 +1189,20 @@ public class FieldListenerService {
                     continue;
                 }
                 UUID subscriberFieldId = p.listenerSubscriberFieldId();
-                SubscriberKey key = new SubscriberKey(subscriber.getId(), subscriberFieldId);
+                TwinClassFieldEntity subscriberField = resolved.subscriberFieldById.get(subscriberFieldId);
+
+                // SubscriberKey несёт Entity как cargo; equals/hashCode только по UUID-pair
+                // (см. ниже реализацию record) — корректно для HashMap key.
+                SubscriberKey key = new SubscriberKey(subscriber.getId(), subscriberFieldId, subscriber, subscriberField);
                 if (visited.contains(key)) continue;
 
                 TwinEntity publisherTwin = resolved.publisherTwinById.get(p.publisherTwinId());
-                TwinClassFieldEntity subscriberField = resolved.subscriberFieldById.get(subscriberFieldId);
-
                 PublisherRef ref = isAction
                         ? new PublisherByAction(publisherTwin, p.action(), p.listenerAsync())
                         : new PublisherByField(publisherTwin,
                             resolved.changedFieldById.get(p.changedFieldId()), p.listenerAsync());
 
-                Group group = groups.computeIfAbsent(key, k ->
-                        new Group(key, subscriber, subscriberField, new ArrayList<>()));
-                group.publishers().add(ref);
+                groups.computeIfAbsent(key, k -> new ArrayList<>()).add(ref);
             }
         }
     }
@@ -1231,22 +1230,22 @@ public class FieldListenerService {
         return new ResolvedBatch(subscriberByPublisher, publisherTwinById, fieldById);
     }
 
-    private void dispatchNotify(Group group, TwinChangesCollector collector,
+    private void dispatchNotify(SubscriberKey key, List<PublisherRef> publishers, TwinChangesCollector collector,
                                 Set<SubscriberKey> visited, int depth) throws ServiceException {
         // Если хотя бы один publisher помечен async → вся группа идёт async (atomicity по группе).
-        boolean anyAsync = group.publishers().stream().anyMatch(PublisherRef::async);
+        boolean anyAsync = publishers.stream().anyMatch(PublisherRef::async);
         FieldListenerEvent event = new FieldListenerEvent(
-                group.subscriberTwin(), group.subscriberField(), List.copyOf(group.publishers()));
+                key.subscriberTwin(), key.subscriberField(), List.copyOf(publishers));
         if (anyAsync) {
             scheduleAsyncNotify(event, collector);
             return;
         }
 
         FieldTyper fieldTyper = featurerService.getFeaturer(
-                group.subscriberField().getFieldTyperFeaturerId(), FieldTyper.class);
+                key.subscriberField().getFieldTyperFeaturerId(), FieldTyper.class);
         if (!(fieldTyper instanceof FieldListenerSubscriber subscriber)) {
             log.warn("FieldTyper {} for field {} is not a FieldListenerSubscriber, skipping",
-                    fieldTyper.getClass().getSimpleName(), group.key().subscriberFieldId());
+                    fieldTyper.getClass().getSimpleName(), key.subscriberFieldId());
             meterRegistry.counter("field_listener_not_subscriber.total").increment();
             return;
         }
@@ -1292,16 +1291,28 @@ public class FieldListenerService {
 
     // === Group/event DTOs ===
 
-    /** Ключ дедупликации групп: UUID-pair (TwinEntity не подходит для HashMap key — hashCode/toString конфликтуют с JPA). */
-    record SubscriberKey(UUID subscriberTwinId, UUID subscriberFieldId) {}
-
-    /** Группа с уже загруженными Entity для dispatchNotify. */
-    record Group(
-            SubscriberKey key,
-            TwinEntity subscriberTwin,
-            TwinClassFieldEntity subscriberField,
-            List<PublisherRef> publishers
-    ) {}
+    /**
+     * Ключ группы + cargo Entity. equals/hashCode только по UUID-pair (TwinEntity нельзя в
+     * identity HashMap key — JPA hashCode нестабилен). Entity-поля — cargo для dispatchNotify,
+     * чтобы не делать findById повторно. Заполняются в resolveAndDistribute после Pointer.load.
+     */
+    record SubscriberKey(
+            UUID subscriberTwinId,
+            UUID subscriberFieldId,
+            TwinEntity subscriberTwin,             // cargo, не part of identity
+            TwinClassFieldEntity subscriberField   // cargo, не part of identity
+    ) {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof SubscriberKey k)) return false;
+            return subscriberTwinId.equals(k.subscriberTwinId) && subscriberFieldId.equals(k.subscriberFieldId);
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(subscriberTwinId, subscriberFieldId);
+        }
+    }
 
     /** Внутренний batch-result: всё, что.loaded для одной группы pendings. */
     record ResolvedBatch(
