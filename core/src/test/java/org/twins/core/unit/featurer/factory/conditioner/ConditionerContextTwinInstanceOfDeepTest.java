@@ -56,13 +56,15 @@ class ConditionerContextTwinInstanceOfDeepTest extends BaseUnitTest {
         return props;
     }
 
+    // lenient: depending on its position in the chain a level exposes a different subset of these stubs
+    // (the root item's own twin/class is never inspected — only its context chain is walked).
     private FactoryItem level(TwinClassEntity twinClass, boolean isInstance, UUID targetClassId, FactoryItem nextContext) throws ServiceException {
         var twin = mock(TwinEntity.class);
-        when(twin.getTwinClass()).thenReturn(twinClass);
+        lenient().when(twin.getTwinClass()).thenReturn(twinClass);
         var item = mock(FactoryItem.class);
-        when(item.getTwin()).thenReturn(twin);
-        when(item.checkNotMultiplyContextItem()).thenReturn(nextContext);
-        when(twinClassService.isInstanceOf(eq(twinClass), eq(targetClassId))).thenReturn(isInstance);
+        lenient().when(item.getTwin()).thenReturn(twin);
+        lenient().when(item.checkNotMultiplyContextItem()).thenReturn(nextContext);
+        lenient().when(twinClassService.isInstanceOf(eq(twinClass), eq(targetClassId))).thenReturn(isInstance);
         return item;
     }
 
@@ -94,13 +96,15 @@ class ConditionerContextTwinInstanceOfDeepTest extends BaseUnitTest {
         }
 
         @Test
-        void check_matchDeeperInChain_intendsToReturnTrue() throws ServiceException {
-            // INTENDED contract (per class name "...Deep"): walk the context chain until an instance is found.
+        void check_matchDeeperInChain_returnsTrue() throws ServiceException {
+            // per class name "...Deep": walk the context chain until an instance is found.
             // chain: not-instance -> not-instance -> instance
             var targetClassId = UUID.randomUUID();
-            var match = level(new TwinClassEntity(), true, targetClassId, null);
-            var mid = level(new TwinClassEntity(), false, targetClassId, match);
-            var top = level(new TwinClassEntity(), false, targetClassId, mid);
+            // distinct ids so the three TwinClassEntity instances are not equals-equal (TwinClassEntity is
+            // @Data) — otherwise the per-level isInstanceOf stubs would collide on matching arguments.
+            var match = level(new TwinClassEntity().setId(UUID.randomUUID()), true, targetClassId, null);
+            var mid = level(new TwinClassEntity().setId(UUID.randomUUID()), false, targetClassId, match);
+            var top = level(new TwinClassEntity().setId(UUID.randomUUID()), false, targetClassId, mid);
 
             assertTrue(conditioner.check(buildProperties(targetClassId), top));
         }

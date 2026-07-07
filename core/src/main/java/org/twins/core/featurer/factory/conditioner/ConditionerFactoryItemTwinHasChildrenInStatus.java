@@ -21,7 +21,6 @@ import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -45,21 +44,23 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        BasicSearch search = new BasicSearch().setCheckViewPermission(false);
+        var search = new BasicSearch().setCheckViewPermission(false);
 
         search.setHierarchyChildrenSearch(
-                new HierarchySearch().setDepth(depth.extract(properties))
+                new HierarchySearch()
+                        .setIdList(Set.of(factoryItem.getOutput().getTwinEntity().getId()))
+                        .setDepth(depth.extract(properties))
         );
 
-        Set<UUID> statusIdsExtracted = statusIds.extract(properties);
-
+        var statusIdsExtracted = statusIds.extract(properties);
         if (CollectionUtils.isNotEmpty(statusIdsExtracted)) {
             search.addStatusId(statusIdsExtracted, false);
         }
 
-        if (excludeFactoryInput.extract(properties))
+        if (excludeFactoryInput.extract(properties)) {
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
-        long count = twinSearchService.count(search);
-        return count > 0;
+        }
+
+        return twinSearchService.count(search) > 0;
     }
 }

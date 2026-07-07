@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -103,26 +104,28 @@ class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
         }
 
         @Test
-        void check_searchScopedToOutputTwinAsHead_intendedHeadTwinIdSet() throws ServiceException {
-            // INTENDED contract (bug #1): "twin HAS CHILDREN in status" must scope the count to
-            // children of THIS output twin. Both sibling conditioners
-            // (ConditionerFactoryItemTwinHasChildrenOfClasses, ConditionerFactoryItemTwinHasChildrenButNotFromFactoryInput)
-            // call search.addHeadTwinId(outputTwinId). This class does NOT -> the search is unscoped and
-            // counts every twin in the given statuses across the space, not just this twin's children.
-            // Red until prod adds: search.addHeadTwinId(factoryItem.getOutput().getTwinEntity().getId());
-            var headId = UUID.randomUUID();
+        void check_searchScopedToOutputTwinSubtree_rootsHierarchyAtOutputTwinWithDepth() throws ServiceException {
+            // contract: "twin HAS CHILDREN in status" must scope the count to descendants of THIS output
+            // twin. Scoping is done via the hierarchy-children search: its root ids (idList) must carry the
+            // output twin id and the configured depth must be propagated, so checkHierarchyChildren walks
+            // only the output twin's subtree instead of counting every twin in the given statuses space-wide.
+            var outputTwinId = UUID.randomUUID();
             var statuses = new LinkedHashSet<UUID>();
             statuses.add(UUID.randomUUID());
             when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
                     .thenReturn(1L);
 
-            conditioner.check(props(statuses, false, null), item(headId, mock(FactoryContext.class)));
+            conditioner.check(props(statuses, false, 3), item(outputTwinId, mock(FactoryContext.class)));
 
             var captor = ArgumentCaptor.forClass(BasicSearch.class);
             org.mockito.Mockito.verify(twinSearchService).count(captor.capture());
             var used = captor.getValue();
-            assertEquals(java.util.Set.of(headId), used.getHeadTwinIdList(),
-                    "search must be scoped to the output twin as head (addHeadTwinId)");
+            var hierarchy = used.getHierarchyChildrenSearch();
+            assertNotNull(hierarchy, "hierarchy children search must be set");
+            assertEquals(Set.of(outputTwinId), hierarchy.getIdList(),
+                    "hierarchy search root (idList) must be the output twin id");
+            assertEquals(3, hierarchy.getDepth().intValue(),
+                    "configured depth must be propagated to the hierarchy search");
         }
 
         @Test
