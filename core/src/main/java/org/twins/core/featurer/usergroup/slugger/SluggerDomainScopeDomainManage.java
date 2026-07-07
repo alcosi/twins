@@ -47,7 +47,7 @@ public class SluggerDomainScopeDomainManage extends Slugger {
 
     @Override
     protected boolean exitGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException {
-        UserGroupMapEntity entityToDelete = userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_DomainId(user.getId(), userGroup.getId(), authService.getApiUser().getDomainId());
+        UserGroupMapEntity entityToDelete = userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_DomainId(user.getId(), userGroup.getId(), authService.getApiUser().getDomainId());
         if (entityToDelete == null)
             return false;
         entitySmartService.deleteAndLog(entityToDelete.getId(), userGroupMapRepository);

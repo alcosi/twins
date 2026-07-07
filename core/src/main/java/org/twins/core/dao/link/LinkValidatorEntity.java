@@ -3,10 +3,7 @@ package org.twins.core.dao.link;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -33,11 +30,6 @@ public class LinkValidatorEntity {
 
     @Column(name = "link_validator_featurer_id")
     private Integer linkValidatorFeaturerId;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity linkValidatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "link_validator_params", columnDefinition = "hstore")

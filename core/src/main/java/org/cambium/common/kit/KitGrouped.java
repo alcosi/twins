@@ -3,10 +3,16 @@ package org.cambium.common.kit;
 import java.util.*;
 import java.util.function.Function;
 
-public class KitGrouped<E, K, GK> extends Kit<E, K>{
+public class KitGrouped<E, K, GK> extends Kit<E, K> {
     protected Map<GK, List<E>> groupedMap;
 
-    public static final KitGrouped EMPTY = new KitGrouped(null, e -> null, e -> null);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static final KitGrouped EMPTY = new KitGrouped(Collections.emptyList(), e -> null, e -> null) {
+        @Override public boolean add(Object e) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
+        @Override public boolean addAll(Collection c) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
+        @Override public boolean remove(Object o) { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
+        @Override public void clear() { throw new UnsupportedOperationException("KitGrouped.EMPTY is immutable"); }
+    };
 
     private final Function<? super E, ? extends GK> functionGetGroupingId;
 
@@ -15,32 +21,53 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
         this.functionGetGroupingId = functionGetGroupingId;
     }
 
+    public KitGrouped(Collection<E> collection, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId, DuplicateKeyMode duplicateKeyMode) {
+        super(collection, functionGetId, duplicateKeyMode);
+        this.functionGetGroupingId = functionGetGroupingId;
+    }
+
     public KitGrouped(Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId) {
         super(functionGetId);
         this.functionGetGroupingId = functionGetGroupingId;
     }
 
+    public KitGrouped(Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId, DuplicateKeyMode duplicateKeyMode) {
+        super(functionGetId, duplicateKeyMode);
+        this.functionGetGroupingId = functionGetGroupingId;
+    }
+
     @Override
     public boolean add(E e) {
-        groupedMap = null; //invalidate
+        groupedMap = null;
         return super.add(e);
     }
 
     @Override
-    public boolean addAll(Collection<? extends E> e) {
-        groupedMap = null; //invalidate
-        return super.addAll(e);
+    public boolean addAll(Collection<? extends E> c) {
+        groupedMap = null;
+        return super.addAll(c);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        groupedMap = null;
+        return super.remove(o);
+    }
+
+    @Override
+    public void clear() {
+        groupedMap = null;
+        super.clear();
     }
 
     public Map<GK, List<E>> getGroupedMap() {
         if (groupedMap != null)
             return groupedMap;
         if (isEmpty() || functionGetGroupingId == null)
-            return Collections.EMPTY_MAP;
+            return Collections.emptyMap();
         groupedMap = new HashMap<>();
-        GK groupingId;
-        for (E entity : collection) {
-            groupingId = functionGetGroupingId.apply(entity);
+        for (E entity : this) {
+            GK groupingId = functionGetGroupingId.apply(entity);
             groupedMap.computeIfAbsent(groupingId, k -> new ArrayList<>());
             groupedMap.get(groupingId).add(entity);
         }
@@ -50,7 +77,7 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
     public Set<GK> getGroupedKeySet() {
         getGroupedMap();
         if (groupedMap == null)
-            return Collections.EMPTY_SET;
+            return Collections.emptySet();
         return groupedMap.keySet();
     }
 
@@ -64,8 +91,8 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
     public List<E> getGrouped(GK key) {
         getGroupedMap();
         if (groupedMap == null || groupedMap.isEmpty())
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         List<E> ret = groupedMap.get(key);
-        return ret != null ? ret : Collections.EMPTY_LIST;
+        return ret != null ? ret : Collections.emptyList();
     }
 }

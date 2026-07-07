@@ -1,17 +1,15 @@
 package org.twins.core.dao.comment;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.comment.TwinCommentAction;
 
 import java.sql.Timestamp;
@@ -19,7 +17,8 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "twin_comment")
 @Accessors(chain = true)
 @FieldNameConstants
@@ -47,14 +46,28 @@ public class TwinCommentEntity implements Identifiable {
     @Column(name = "changed_at")
     private Timestamp changedAt;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity twinSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinEntity twin;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private UserEntity createdByUser;

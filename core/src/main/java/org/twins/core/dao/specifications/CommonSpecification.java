@@ -21,6 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -197,8 +198,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             switch (dbuMembershipCheck) {
                 case DBU_FOR_USER:
                     domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
-                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
-                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
+                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
                     Root<DomainBusinessAccountEntity> subRootUsers = subqueryUsers.from(DomainBusinessAccountEntity.class);
                     subqueryUsers.select(subRootUsers);
@@ -221,8 +222,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                             cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
                             cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
                     );
-                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwins, JoinType.INNER);
-                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwinsSpecOnly, JoinType.INNER);
+                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
                     Subquery<DomainUserEntity> subqueryBusinessAccount = cb.createQuery().subquery(DomainUserEntity.class);
                     Root<DomainUserEntity> subRootBusinessAccount = subqueryBusinessAccount.from(DomainUserEntity.class);
                     subqueryBusinessAccount.select(subRootBusinessAccount);
@@ -242,7 +243,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DB:
                     // Join for business accounts linked to domain
-                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
                     List<Predicate> dbPredicates = new java.util.ArrayList<>();
                     dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId));
                     dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)));
@@ -250,7 +251,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DU:
                     // Join for users linked to domain
-                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
                     systemLevelPredicate = cb.and(
                             cb.equal(domainUserDU.get(DomainUserEntity.Fields.domainId), finalDomainId)
 //                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
@@ -258,7 +259,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case BU:
                     // Join for users linked to business account
-                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     systemLevelPredicate = cb.and(
                             cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
 //                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
@@ -301,7 +302,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
-            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpace, JoinType.LEFT);
+            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpaceSpecOnly, JoinType.LEFT);
 
             Join<TwinEntity, PermissionEntity> viewPermissionJoin = joinTwin.join(TwinEntity.Fields.viewPermission, JoinType.LEFT);
 
@@ -445,6 +446,42 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String twinClassIdFieldPath, final String inheritableFieldPath) {
+        return checkTwinClassAndInheritable(classes, not, new String[]{twinClassIdFieldPath}, new String[]{inheritableFieldPath});
+    }
+
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String[] twinClassIdFieldPath, final String[] inheritableFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(classes))
+                return cb.conjunction();
+
+            Set<UUID> baseIds = new HashSet<>();
+            Set<UUID> extendsIds = new HashSet<>();
+            for (TwinClassService.ClassWithExtends item : classes) {
+                baseIds.add(item.twinClassId());
+                extendsIds.addAll(item.extendsTwinClassIds());
+            }
+
+            Path<UUID> twinClassPath = getFieldPath(root, JoinType.LEFT, twinClassIdFieldPath);
+            Path<Boolean> inheritablePath = getFieldPath(root, JoinType.LEFT, inheritableFieldPath);
+
+            Predicate baseIn = twinClassPath.in(baseIds);
+            Predicate extendsInheritable = null;
+            if (!extendsIds.isEmpty()) {
+                Predicate inExtends = twinClassPath.in(extendsIds);
+                Predicate inheritableTrue = cb.isTrue(inheritablePath);
+                extendsInheritable = cb.and(inExtends, inheritableTrue);
+            }
+
+            Predicate result = extendsInheritable != null
+                    ? cb.or(baseIn, extendsInheritable)
+                    : baseIn;
+
+            return not ? cb.not(result) : result;
+        };
+    }
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
                                                  boolean includeNullValues, final String... uuidFieldPath) {
@@ -544,6 +581,14 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkFieldIn(final Collection<?> values, boolean not, final String field) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(values))
+                return cb.conjunction();
+            return not ? cb.not(root.get(field).in(values)) : root.get(field).in(values);
+        };
+    }
+
     public static <T> Specification<T> checkFieldLongRange(
             final LongRange range,
             final String... fieldPath) {
@@ -614,6 +659,25 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             }
 
             return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    public static <T, S extends SortField<?>> Specification<T> toSortSpecification(final SortOption<S> sort) {
+        if (sort == null) return (root, query, cb) -> cb.conjunction();
+        return sort.toSortSpecification();
+    }
+
+    public static <T> Specification<T> toSortSpecification(boolean ascending, String... fieldPath) {
+        if (fieldPath == null)
+            return (root, query, cb) -> cb.conjunction();
+        return (root, query, cb) -> {
+            if (query.getResultType().equals(Long.class))
+                return cb.conjunction();
+            Path<?> sortPath = getFieldPath(root, JoinType.LEFT, fieldPath);
+            List<Order> orders = new ArrayList<>(query.getOrderList());
+            orders.add(ascending ? cb.asc(sortPath) : cb.desc(sortPath));
+            query.orderBy(orders);
+            return cb.conjunction();
         };
     }
 }

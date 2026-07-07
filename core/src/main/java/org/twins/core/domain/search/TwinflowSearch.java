@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 
 import java.util.Collection;
 import java.util.Map;
@@ -26,6 +27,7 @@ public class TwinflowSearch {
     private Set<UUID> createdByUserIdExcludeList;
     private Set<UUID> twinflowSchemaIdList;
     private Set<UUID> twinflowSchemaIdExcludeList;
+    private Ternary inheritable;
 
     public TwinflowSearch addNameLike(Collection<String> nameLikeSet) {
         nameI18nLikeList = CollectionUtils.safeAdd(nameI18nLikeList, nameLikeSet);

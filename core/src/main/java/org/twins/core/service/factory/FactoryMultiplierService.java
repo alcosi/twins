@@ -8,26 +8,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.MapUtils;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -40,11 +36,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     @Getter
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
-    private final AuthService authService;
-    private final FeaturerService featurerService;
-    private final TwinFactoryService twinFactoryService;
     @Lazy
-    private final TwinService twinService;
+    private final TwinFactoryService twinFactoryService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierEntity, UUID> entityRepository() {
@@ -76,10 +69,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
                     entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
-                if (entity.getMultiplierFeaturer() == null || !(entity.getMultiplierFeaturer().getId() == (entity.getMultiplierFeaturerId()))) {
-                    entity.setMultiplierFeaturer(featurerService.checkValid(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class));
-                    featurerService.prepareForStore(entity.getMultiplierFeaturerId(), entity.getMultiplierParams());
-                }
+                validateAndPrepareFeaturer(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class);
         }
         return true;
     }
@@ -107,36 +97,29 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
 
     public void updateMultiplierFeaturerId(TwinFactoryMultiplierEntity dbMultiplierEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbMultiplierEntity.getMultiplierFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbMultiplierEntity.getMultiplierFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
-            dbMultiplierEntity
-                    .setMultiplierFeaturerId(newMultiplierFeaturer.getId())
-                    .setMultiplierFeaturer(newMultiplierFeaturer);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbMultiplierEntity.getMultiplierParams(), newFeaturerParams)) {
-            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbMultiplierEntity.getMultiplierParams(), newFeaturerParams);
-            dbMultiplierEntity
-                    .setMultiplierParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbMultiplierEntity, newFeaturerId, newFeaturerParams,
+                TwinFactoryMultiplierEntity::getMultiplierFeaturerId, TwinFactoryMultiplierEntity::setMultiplierFeaturerId,
+                TwinFactoryMultiplierEntity::getMultiplierParams, TwinFactoryMultiplierEntity::setMultiplierParams,
+                TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, TwinFactoryMultiplierEntity.Fields.multiplierParams,
+                Multiplier.class, changesHelper);
     }
 
-    public void loadMultiplier(TwinFactoryMultiplierEntity src) {
-        loadMultipliers(Collections.singleton(src) );
+    public List<TwinFactoryMultiplierEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
     }
 
-    public void loadMultipliers(Collection<TwinFactoryMultiplierEntity> srcCollection) {
-        featurerService.loadFeaturers(srcCollection,
+    public void loadFactoryMultipliers(TwinFactoryEntity factory) {
+        loadFactoryMultipliers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryMultipliers(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryMultiplierKit,
+                TwinFactoryEntity::setTwinFactoryMultiplierKit,
+                repository::findByTwinFactoryIdIn,
                 TwinFactoryMultiplierEntity::getId,
-                TwinFactoryMultiplierEntity::getMultiplierFeaturerId,
-                TwinFactoryMultiplierEntity::getMultiplierFeaturer,
-                TwinFactoryMultiplierEntity::setMultiplierFeaturer
-        );
+                TwinFactoryMultiplierEntity::getTwinFactoryId);
     }
 }

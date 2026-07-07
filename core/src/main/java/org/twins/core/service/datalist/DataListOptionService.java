@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -32,6 +33,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
@@ -60,6 +62,9 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     private DataListOptionSearchService dataListOptionSearchService;
     @Autowired
     private AdvancedEntityManager advancedEntityManager;
+    @Lazy
+    @Autowired
+    private BusinessAccountService businessAccountService;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -254,7 +259,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
         if (!idsForReload.isEmpty()) {
             var loadedOptions = findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead);
-            valueSelect.setItems(loadedOptions);
+            valueSelect.setItems(loadedOptions.getCollection());
         }
     }
 
@@ -364,11 +369,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 .setOptionLikeList(incompleteOptionKit.getIdSet());
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
-        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getOption);
+        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(
+                dataListOptionSearchService.findDataListOptions(dataListOptionSearch),
+                DataListOptionEntity::getOption, String::toLowerCase, DuplicateKeyMode.THROW);
         options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
-                .filter(incomplete -> !existedOptions.containsKeyIgnoreCase(incomplete))
+                .filter(incomplete -> !existedOptions.containsKey(incomplete))
                 .collect(Collectors.toList());
 
         if (!missedList.isEmpty()) {
@@ -428,4 +435,26 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
     }
     //todo move *options methods from  DataListService
+
+    public void loadDataList(DataListOptionEntity src) throws ServiceException {
+        loadDataList(Collections.singletonList(src));
+    }
+
+    public void loadDataList(Collection<DataListOptionEntity> srcCollection) throws ServiceException {
+        dataListService.load(srcCollection,
+                DataListOptionEntity::getDataListId,
+                DataListOptionEntity::getDataList,
+                DataListOptionEntity::setDataList);
+    }
+
+    public void loadBusinessAccount(DataListOptionEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<DataListOptionEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                DataListOptionEntity::getBusinessAccountId,
+                DataListOptionEntity::getBusinessAccount,
+                DataListOptionEntity::setBusinessAccount);
+    }
 }

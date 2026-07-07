@@ -1,13 +1,13 @@
 package org.twins.core.dao.user;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -31,9 +31,5 @@ public class UserGroupTypeEntity {
     @Column(name = "slugger_params", columnDefinition = "hstore")
     private HashMap<String, String> sluggerParams;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity sluggerFeaturer;
 
 }

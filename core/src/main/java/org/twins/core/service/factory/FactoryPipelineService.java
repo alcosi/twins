@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
 import org.twins.core.service.auth.AuthService;
@@ -22,6 +22,9 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -35,6 +38,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final TwinFactoryPipelineRepository repository;
     private final AuthService authService;
     private final TwinClassService twinClassService;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
@@ -111,5 +115,35 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
+    }
+
+    public List<TwinFactoryPipelineEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
+
+    public void loadFactoryPipelines(TwinFactoryEntity factory) {
+        loadFactoryPipelines(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryPipelines(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryPipelineKit,
+                TwinFactoryEntity::setTwinFactoryPipelineKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryPipelineEntity::getId,
+                TwinFactoryPipelineEntity::getTwinFactoryId);
+    }
+
+    public void loadConditionSet(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadConditionSet(Collections.singletonList(src));
+    }
+
+    public void loadConditionSet(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineEntity::getConditionSet,
+                TwinFactoryPipelineEntity::setConditionSet);
     }
 }

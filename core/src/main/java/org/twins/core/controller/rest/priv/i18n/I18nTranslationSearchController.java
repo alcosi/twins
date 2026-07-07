@@ -24,8 +24,8 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.domain.search.I18nTranslationSearch;
-import org.twins.core.dto.rest.i18n.I18nTranslationListRsDTOv1;
-import org.twins.core.dto.rest.i18n.I18nTranslationSearchDTOv1;
+import org.twins.core.dto.rest.i18n.I18nTranslationSearchRqDTOv1;
+import org.twins.core.dto.rest.i18n.I18nTranslationSearchRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nTranslationRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nTranslationSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -51,17 +51,17 @@ public class I18nTranslationSearchController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = I18nTranslationListRsDTOv1.class))}),
+                    @Schema(implementation = I18nTranslationSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/i18n_translation/search/v1")
     public ResponseEntity<?> i18nTranslationSearchV1(
-            @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody I18nTranslationSearchDTOv1 request,
+            @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody I18nTranslationSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
-        I18nTranslationListRsDTOv1 rs = new I18nTranslationListRsDTOv1();
+        I18nTranslationSearchRsDTOv1 rs = new I18nTranslationSearchRsDTOv1();
         try {
-            I18nTranslationSearch i18nTranslationSearch = i18nTranslationSearchDTOReverseMapper.convert(request);
+            I18nTranslationSearch i18nTranslationSearch = i18nTranslationSearchDTOReverseMapper.convert(request.search);
             PaginationResult<I18nTranslationEntity> i18nTranslationsList = i18nTranslationSearchService.findI18nTranslations(i18nTranslationSearch, pagination);
             rs.setPagination(paginationMapper.convert(i18nTranslationsList))
                     .setTranslation(i18nTranslationRestDTOMapper.convertCollection(i18nTranslationsList.getList(), mapperContext))

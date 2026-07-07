@@ -7,8 +7,6 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-import java.util.UUID;
-
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldConditionCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldConditionCreateDTOv1, TwinClassFieldConditionEntity> {

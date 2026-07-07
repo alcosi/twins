@@ -46,14 +46,14 @@ public class HistoryNotificationRecipientCollectorDTOMapperV1 extends RestSimple
         if (mapperContext.hasModeButNot(HistoryNotificationRecipientMode.HistoryNotificationRecipientCollector2HistoryNotificationRecipientMode.HIDE)) {
             dst.setRecipientId(src.getHistoryNotificationRecipientId());
 
-            historyNotificationRecipientDTOMapperV1.postpone(src.getHistoryNotificationRecipientEntity(),
+            historyNotificationRecipientCollectorService.loadHistoryNotificationRecipient(src);
+            historyNotificationRecipientDTOMapperV1.postpone(src.getHistoryNotificationRecipient(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryNotificationRecipientMode.HistoryNotificationRecipientCollector2HistoryNotificationRecipientMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.HIDE)) {
             dst.setRecipientResolverFeaturerId(src.getRecipientResolverFeaturerId());
-            historyNotificationRecipientCollectorService.loadRecipientResolverFeaturer(src);
-            featurerRestDTOMapper.postpone(src.getRecipientResolverFeaturer(),
+            featurerRestDTOMapper.postpone(src.getRecipientResolverFeaturerId(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.SHORT)));
         }
     }
@@ -61,8 +61,9 @@ public class HistoryNotificationRecipientCollectorDTOMapperV1 extends RestSimple
     @Override
     public void beforeCollectionConversion(Collection<HistoryNotificationRecipientCollectorEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.HIDE)) {
-            historyNotificationRecipientCollectorService.loadRecipientResolverFeaturer(srcCollection);
+        if (mapperContext.hasModeButNot(HistoryNotificationRecipientMode.HistoryNotificationRecipientCollector2HistoryNotificationRecipientMode.HIDE)) {
+            historyNotificationRecipientCollectorService.loadHistoryNotificationRecipient(srcCollection);
         }
     }
+
 }

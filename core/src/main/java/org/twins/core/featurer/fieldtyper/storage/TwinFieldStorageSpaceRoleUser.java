@@ -1,12 +1,14 @@
 package org.twins.core.featurer.fieldtyper.storage;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.*;
 
@@ -14,9 +16,10 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
     private final SpaceRoleUserRepository spaceRoleUserRepository;
+    private final SpaceRoleUserService spaceRoleUserService;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
         Set<UUID> spaceSet = new HashSet<>();
         for (var twin : twinsKit) {
             spaceSet.add(twin.getPermissionSchemaSpaceId());
@@ -34,6 +37,7 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
                 initEmpty(twinEntity);
             }
         }
+        spaceRoleUserService.loadUser(allTwinsFieldGrouped.getCollection());
     }
 
     @Override

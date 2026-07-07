@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.Collection;
 
@@ -28,7 +28,7 @@ public class TwinValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinValida
     @MapperModePointerBinding(modes = FeaturerMode.TwinValidator2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
-    private final TwinValidatorSetService twinValidatorSetService;
+    private final TwinValidatorService twinValidatorService;
 
     @Override
     public void map(TwinValidatorEntity src, TwinValidatorDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -52,23 +52,19 @@ public class TwinValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinValida
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE)) {
             dst.setTwinValidatorSetId(src.getTwinValidatorSetId());
-            twinValidatorSetService.loadTwinValidatorSet(src);
+            twinValidatorService.loadTwinValidatorSet(src);
             twinValidatorSetRestDTOMapper.postpone(src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE)) {
             dst.setValidatorFeaturerId(src.getTwinValidatorFeaturerId());
-            twinValidatorSetService.loadTwinValidator(src);
-            featurerRestDTOMapper.postpone(src.getTwinValidatorFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT));
+            featurerRestDTOMapper.postpone(src.getTwinValidatorFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT));
         }
     }
 
     @Override
     public void beforeCollectionConversion(Collection<TwinValidatorEntity> srcCollection, MapperContext mapperContext) throws ServiceException {
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE))
-            twinValidatorSetService.loadTwinValidatorSet(srcCollection);
-        if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE)) {
-            twinValidatorSetService.loadTwinValidators(srcCollection);
-        }
+            twinValidatorService.loadTwinValidatorSet(srcCollection);
     }
 
     @Override

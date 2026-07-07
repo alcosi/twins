@@ -5,10 +5,11 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.math.IntegerRange;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.RangeUtils;
 import org.twins.core.dao.search.TwinSearchEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.TwinFieldFilter;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinSearch {
+public class TwinSearch extends EntitySearch<TwinEntity> {
     private Set<UUID> twinIdList;
     private Set<String> twinNameLikeList;
     private Set<String> twinNameNotLikeList;
@@ -52,12 +53,15 @@ public class TwinSearch {
     private Map<UUID, Set<UUID>> srcLinksNoAnyOfList;
     private Map<UUID, Set<UUID>> srcLinksAllOfList;
     private Map<UUID, Set<UUID>> srcLinksNoAllOfList;
+    private List<TwinSearchBySpaceRoleUser> spaceRoleUsersList;
     private Set<UUID> hierarchyTreeContainsIdList;
     private Set<UUID> statusIdExcludeList;
     private Set<UUID> tagDataListOptionIdList;
     private Set<UUID> tagDataListOptionIdExcludeList;
     private Set<UUID> markerDataListOptionIdList;
     private Set<UUID> markerDataListOptionIdExcludeList;
+    private Set<UUID> flavorDataListOptionIdList;
+    private Set<UUID> flavorDataListOptionIdExcludeList;
     private Set<Touch> touchList;
     private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
@@ -105,9 +109,12 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(tagDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(markerDataListOptionIdList) &&
                 CollectionUtils.isEmpty(markerDataListOptionIdExcludeList) &&
+                CollectionUtils.isEmpty(flavorDataListOptionIdList) &&
+                CollectionUtils.isEmpty(flavorDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
+                (CollectionUtils.isEmpty(spaceRoleUsersList) || spaceRoleUsersList.stream().allMatch(TwinSearchBySpaceRoleUser::isEmpty)) &&
                 (fieldsFilter == null || fieldsFilter.isEmpty()) &&
                 (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
                 createdAt == null &&
@@ -322,6 +329,22 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addFlavorDataListOptionId(UUID flavorDataListOptionId, boolean exclude) {
+        if (exclude)
+            flavorDataListOptionIdExcludeList = CollectionUtils.safeAdd(flavorDataListOptionIdExcludeList, flavorDataListOptionId);
+        else
+            flavorDataListOptionIdList = CollectionUtils.safeAdd(flavorDataListOptionIdList, flavorDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addFlavorDataListOptionId(Collection<UUID> flavorDataListOptionIds, boolean exclude) {
+        if (exclude)
+            flavorDataListOptionIdExcludeList = CollectionUtils.safeAdd(flavorDataListOptionIdExcludeList, flavorDataListOptionIds);
+        else
+            flavorDataListOptionIdList = CollectionUtils.safeAdd(flavorDataListOptionIdList, flavorDataListOptionIds);
+        return this;
+    }
+
     public static final ImmutableList<Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>>> FUNCTIONS = ImmutableList.of(
             Pair.of(TwinSearch::getHeadTwinIdList, TwinSearch::setHeadTwinIdList),
             Pair.of(TwinSearch::getCreatedByUserIdList, TwinSearch::setCreatedByUserIdList),
@@ -332,6 +355,8 @@ public class TwinSearch {
             Pair.of(TwinSearch::getMarkerDataListOptionIdExcludeList, TwinSearch::setMarkerDataListOptionIdExcludeList),
             Pair.of(TwinSearch::getTagDataListOptionIdList, TwinSearch::setTagDataListOptionIdList),
             Pair.of(TwinSearch::getTagDataListOptionIdExcludeList, TwinSearch::setTagDataListOptionIdExcludeList),
+            Pair.of(TwinSearch::getFlavorDataListOptionIdList, TwinSearch::setFlavorDataListOptionIdList),
+            Pair.of(TwinSearch::getFlavorDataListOptionIdExcludeList, TwinSearch::setFlavorDataListOptionIdExcludeList),
             Pair.of(TwinSearch::getTwinIdList, TwinSearch::setTwinIdList),
             Pair.of(TwinSearch::getTwinIdExcludeList, TwinSearch::setTwinIdExcludeList),
             Pair.of(TwinSearch::getOwnerBusinessAccountIdList, TwinSearch::setOwnerBusinessAccountIdList),

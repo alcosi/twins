@@ -10,9 +10,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -33,10 +31,7 @@ public class DomainUserDTOv1 {
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
-    @Schema(description = "Business account id list."  + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public Set<UUID> businessAccountUserIdList;
-
-    //todo think over move to related objects
-    @Schema(description = "Business account users." + DTOExamples.LAZY_RELATION_MODE_ON)
-    public List<BusinessAccountUserDTOv1> businessAccountUsers;
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "last activity at", example = DTOExamples.INSTANT)
+    public LocalDateTime lastActivityAt;
 }

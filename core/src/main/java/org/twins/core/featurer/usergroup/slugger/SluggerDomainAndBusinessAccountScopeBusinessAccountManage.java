@@ -62,7 +62,7 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
         //todo no need for select, cause data is already loaded in user
         var apiUser = authService.getApiUser();
         UserGroupMapEntity entityToDelete = userGroupMapRepository
-                .findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountIdAndUserGroup_DomainId(user.getId(), userGroup.getId(), apiUser.getBusinessAccountId(), apiUser.getDomainId());
+                .findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountIdAndUserGroupSpecOnly_DomainId(user.getId(), userGroup.getId(), apiUser.getBusinessAccountId(), apiUser.getDomainId());
         if (entityToDelete == null)
             return false;
         entitySmartService.deleteAndLog(entityToDelete.getId(), userGroupMapRepository);

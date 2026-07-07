@@ -154,4 +154,20 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
         twinClassFieldRuleMapService.deleteRuleMaps(twinClassId);
         twinClassFieldRuleRepository.deleteAllById(ruleIdsToDelete);
     }
+
+    public void loadConditions(TwinClassFieldRuleEntity src) throws ServiceException {
+        twinClassFieldConditionService.loadConditions(src);
+    }
+
+    public void loadConditions(Collection<TwinClassFieldRuleEntity> srcCollection) throws ServiceException {
+        twinClassFieldConditionService.loadConditions(srcCollection);
+    }
+
+    public void loadRuleFields(TwinClassFieldRuleEntity src) throws ServiceException {
+        twinClassFieldService.loadRuleFields(src);
+    }
+
+    public void loadRuleFields(Collection<TwinClassFieldRuleEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.loadRuleFields(srcCollection);
+    }
 }

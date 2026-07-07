@@ -12,8 +12,6 @@ import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -21,10 +19,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -36,7 +32,6 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.twinclass.TwinClassCreate;
-import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.domain.DomainType;
@@ -50,6 +45,7 @@ import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.resource.ResourceService;
@@ -68,7 +64,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
-import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Slf4j
 @Service
@@ -100,8 +95,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Lazy
     private final AuthService authService;
     @Lazy
-    private final FeaturerService featurerService;
-    @Lazy
     private final TwinMarkerService twinMarkerService;
     @Lazy
     private final TwinTagService twinTagService;
@@ -111,6 +104,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinService twinService;
     @Autowired
     private CacheManager cacheManager;
+    @Lazy
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -159,15 +154,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getViewPermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
-                if (entity.getEditPermissionId() != null
-                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getEditPermissionId(), apiUser.getDomainId()))
-                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id[" + entity.getEditPermissionId() + "]");
                 if (entity.getCreatePermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getCreatePermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown create permission id[" + entity.getCreatePermissionId() + "]");
-                if (entity.getDeletePermissionId() != null
-                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getDeletePermissionId(), apiUser.getDomainId()))
-                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown delete permission id[" + entity.getDeletePermissionId() + "]");
                 break;
             default:
         }
@@ -191,115 +180,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     public TwinClassSchemaMapEntity findTwinClassSchemaMap(UUID twinClassSchemaId, UUID twinClassId) {
         Optional<TwinClassSchemaMapEntity> twinClassSchemaMapEntity = twinClassSchemaMapRepository.findByTwinClassSchemaIdAndTwinClassId(twinClassSchemaId, twinClassId);
         return twinClassSchemaMapEntity.orElse(null);
-    }
-
-    @Transactional
-    public Collection<TwinClassEntity> duplicate(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
-        var newKeys = new HashSet<String>();
-        var apiUser = authService.getApiUser();
-        for (var duplicate : duplicates) {
-            if (newKeys.contains(duplicate.getNewKey()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE, "twinClass key[" + duplicate.getNewKey() + "] is duplicated in request");
-            else
-                newKeys.add(duplicate.getNewKey());
-            duplicate.setNewTwinClassId(UUID.nameUUIDFromBytes((duplicate.getNewKey() + apiUser.getDomainId()).getBytes()));
-        }
-        loadOriginalTwinClass(duplicates);
-        var entitiesToSave = new ArrayList<TwinClassEntity>();
-        var needLoadFields = new ArrayList<TwinClassEntity>();
-        var needLoadStatuses = new ArrayList<TwinClassEntity>();
-        for (var duplicate : duplicates) {
-            var originalTwinClass = duplicate.getOriginalTwinClass();
-            log.info("{} will be duplicated with new key[{}]", originalTwinClass.logShort(), duplicate.getNewKey());
-            TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
-                    .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
-                    .setCreatedByUserId(apiUser.getUser().getId())
-                    .setPermissionSchemaSpace(originalTwinClass.getPermissionSchemaSpace())
-                    .setTwinflowSchemaSpace(originalTwinClass.getTwinflowSchemaSpace())
-                    .setTwinClassSchemaSpace(originalTwinClass.getTwinClassSchemaSpace())
-                    .setAliasSpace(originalTwinClass.getAliasSpace())
-                    .setAssigneeRequired(originalTwinClass.getAssigneeRequired())
-                    .setAbstractt(originalTwinClass.getAbstractt())
-                    .setUniqueName(originalTwinClass.getUniqueName())
-                    .setExtendsTwinClassId(originalTwinClass.getExtendsTwinClassId())
-                    .setHeadTwinClassId(originalTwinClass.getHeadTwinClassId())
-                    .setIconDarkResourceId(originalTwinClass.getIconDarkResourceId())
-                    .setIconDarkResource(originalTwinClass.getIconDarkResource())
-                    .setIconLightResourceId(originalTwinClass.getIconLightResourceId())
-                    .setIconLightResource(originalTwinClass.getIconLightResource())
-                    .setCreatedAt(Timestamp.from(Instant.now()))
-                    .setDomainId(originalTwinClass.getDomainId())
-                    .setOwnerType(originalTwinClass.getOwnerType())
-                    .setViewPermissionId(originalTwinClass.getViewPermissionId())
-                    .setCreatePermissionId(originalTwinClass.getCreatePermissionId())
-                    .setEditPermissionId(originalTwinClass.getEditPermissionId())
-                    .setDeletePermissionId(originalTwinClass.getDeletePermissionId())
-                    .setSegment(originalTwinClass.getSegment())
-                    .setHasSegment(false) //change this if we will copy segments also
-                    .setMarkerDataListId(originalTwinClass.getMarkerDataListId())
-                    .setTagDataListId(originalTwinClass.getTagDataListId())
-                    .setHeadHunterFeaturerId(originalTwinClass.getHeadHunterFeaturerId())
-                    .setHeadHunterParams(originalTwinClass.getHeadHunterParams())
-                    .setHasDynamicMarkers(false) //change this if we will copy markers also / or check inherited markers
-                    .setPageFaceId(originalTwinClass.getPageFaceId())
-                    .setBreadCrumbsFaceId(originalTwinClass.getBreadCrumbsFaceId())
-                    .setGeneralAttachmentRestrictionId(originalTwinClass.getGeneralAttachmentRestrictionId())
-                    .setCommentAttachmentRestrictionId(originalTwinClass.getCommentAttachmentRestrictionId())
-                    .setExternalId(originalTwinClass.getExternalId())
-                    .setExternalProperties(originalTwinClass.getExternalProperties())
-                    .setExternalJson(originalTwinClass.getExternalJson())
-                    .setHeadHierarchyCounterDirectChildren(0)
-                    .setExtendsHierarchyCounterDirectChildren(0)
-                    .setTwinCounter(0);
-            I18nEntity i18nDuplicate;
-            if (originalTwinClass.getNameI18NId() != null) {
-                i18nDuplicate = i18nService.duplicateI18n(originalTwinClass.getNameI18NId());
-                duplicateTwinClassEntity
-                        .setNameI18NId(i18nDuplicate.getId());
-            }
-            if (originalTwinClass.getDescriptionI18NId() != null) {
-                i18nDuplicate = i18nService.duplicateI18n(originalTwinClass.getDescriptionI18NId());
-                duplicateTwinClassEntity
-                        .setDescriptionI18NId(i18nDuplicate.getId());
-            }
-            duplicate.setNewTwinClass(duplicateTwinClassEntity);
-            entitiesToSave.add(duplicateTwinClassEntity);
-            if (duplicate.isDuplicateFields()) {
-                needLoadFields.add(duplicate.getOriginalTwinClass());
-            }
-            if (duplicate.isDuplicateStatuses()) {
-                needLoadStatuses.add(duplicate.getOriginalTwinClass());
-            }
-        }
-        //todo check uniq key-s or ids
-        var savedClasses = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
-        for (var savedClass : savedClasses) {
-            refreshExtendsHierarchyTree(savedClass);
-            refreshHeadHierarchyTree(savedClass);
-        }
-        if (CollectionUtils.isNotEmpty(needLoadFields)) {
-            twinClassFieldService.loadTwinClassFields(needLoadFields);
-        }
-        if (CollectionUtils.isNotEmpty(needLoadStatuses)) {
-            twinStatusService.loadStatusesForTwinClasses(needLoadStatuses);
-        }
-        for (var duplicate : duplicates) {
-            if (duplicate.isDuplicateFields()) {
-                twinClassFieldService.duplicateFieldsForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
-            }
-            if (duplicate.isDuplicateStatuses()) {
-                twinStatusService.duplicateStatusesForClass(duplicate.getOriginalTwinClass(), duplicate.getNewTwinClass());
-            }
-        }
-        return savedClasses;
-    }
-
-    private void loadOriginalTwinClass(Collection<TwinClassDuplicate> duplicates) throws ServiceException {
-        load(duplicates,
-                TwinClassDuplicate::getNewTwinClassId,
-                TwinClassDuplicate::getOriginalTwinClassId,
-                TwinClassDuplicate::getOriginalTwinClass,
-                TwinClassDuplicate::setOriginalTwinClass);
     }
 
     public void loadExtendsHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
@@ -354,64 +234,23 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    public void loadPermissions(TwinClassEntity twinClassEntity) {
+    public void loadPermissions(TwinClassEntity twinClassEntity) throws ServiceException {
         loadPermissions(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadPermissions(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadView = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getViewPermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getViewPermission() == null && twinClass.getViewPermissionId() != null)
-                needLoadView.add(twinClass);
-        }
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadCreate = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getCreatePermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getCreatePermission() == null && twinClass.getCreatePermissionId() != null)
-                needLoadCreate.add(twinClass);
-        }
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadEdit = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getEditPermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getEditPermission() == null && twinClass.getEditPermissionId() != null)
-                needLoadEdit.add(twinClass);
-        }
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoadDelete = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getDeletePermissionId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getDeletePermission() == null && twinClass.getDeletePermissionId() != null)
-                needLoadDelete.add(twinClass);
-        }
-        if (!KitUtils.isEmpty(needLoadView)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadView.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadView.getGrouped(permission.getId())) {
-                    twinClass.setViewPermission(permission);
-                }
-            }
-        }
-        if (!KitUtils.isEmpty(needLoadCreate)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadCreate.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadCreate.getGrouped(permission.getId())) {
-                    twinClass.setCreatePermission(permission);
-                }
-            }
-        }
-        if (!KitUtils.isEmpty(needLoadEdit)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadEdit.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadEdit.getGrouped(permission.getId())) {
-                    twinClass.setEditPermission(permission);
-                }
-            }
-        }
-        if (!KitUtils.isEmpty(needLoadDelete)) {
-            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadDelete.getGroupedMap().keySet());
-            for (PermissionEntity permission : permissions) {
-                for (TwinClassEntity twinClass : needLoadDelete.getGrouped(permission.getId())) {
-                    twinClass.setDeletePermission(permission);
-                }
-            }
-        }
-
+    public void loadPermissions(Collection<TwinClassEntity> srcCollection) throws ServiceException {
+        permissionService.load(
+                srcCollection,
+                new LoadedField<>(
+                        TwinClassEntity::getViewPermissionId,
+                        TwinClassEntity::getViewPermission,
+                        TwinClassEntity::setViewPermission
+                ),
+                new LoadedField<>(
+                        TwinClassEntity::getCreatePermissionId,
+                        TwinClassEntity::getCreatePermission,
+                        TwinClassEntity::setCreatePermission
+                ));
     }
 
     public boolean isInstanceOf(TwinEntity twin, UUID ofClass) throws ServiceException {
@@ -423,6 +262,16 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }
         return true;
+    }
+
+    public boolean isInheritedFromClass(TwinClassEntity instanceClass, UUID fromClass, boolean inheritable) throws ServiceException {
+        if (instanceClass.getId().equals(fromClass)) {
+            return true;
+        } else if (!inheritable) {
+            return false;
+        } else {
+            return instanceClass.getExtendedClassIdSet().contains(fromClass);
+        }
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -471,8 +320,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
 
             if (twinClass.getHeadHunterFeaturerId() != null) {
-                featurerService.checkValid(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
-                featurerService.prepareForStore(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams());
+                validateAndPrepareFeaturer(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
             }
 
             if (twinClass.getExtendsTwinClassId() != null) {
@@ -535,22 +383,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     savedClass.setViewPermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW));
                     updated = true;
                 }
-                if (savedClass.getEditPermissionId() == null) {
-                    savedClass.setEditPermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT).getId());
-                    savedClass.setEditPermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT));
-                    updated = true;
-                }
                 if (savedClass.getCreatePermissionId() == null) {
                     savedClass.setCreatePermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE).getId());
                     savedClass.setCreatePermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE));
                     updated = true;
                 }
-                if (savedClass.getDeletePermissionId() == null) {
-                    savedClass.setDeletePermissionId(permissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE).getId());
-                    savedClass.setDeletePermission(permissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE));
-                    updated = true;
-                }
-
                 if (updated) {
                     classesWithPermissions.add(savedClass);
                 }
@@ -572,47 +409,27 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadHeadTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getHeadTwinClassId() == null || twinClassEntity.getHeadTwinClass() != null)
-            return;
-        twinClassEntity.setHeadTwinClass(findEntitySafe(twinClassEntity.getHeadTwinClassId()));
+        loadHeadTwinClasses(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadHeadTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getHeadTwinClass() != null)
-                continue;
-            needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
-        for (TwinClassEntity headTwinClass : heads) {
-            for (TwinClassEntity twinClass : needLoad.getGrouped(headTwinClass.getId()))
-                twinClass.setHeadTwinClass(headTwinClass);
-        }
+    public void loadHeadTwinClasses(Collection<TwinClassEntity> collection) throws ServiceException {
+        load(
+                collection,
+                TwinClassEntity::getHeadTwinClassId,
+                TwinClassEntity::getHeadTwinClass,
+                TwinClassEntity::setHeadTwinClass);
     }
 
     public void loadExtendsTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getExtendsTwinClassId() == null || twinClassEntity.getExtendsTwinClass() != null)
-            return;
-        twinClassEntity.setExtendsTwinClass(findEntitySafe(twinClassEntity.getExtendsTwinClassId()));
+        loadExtendsTwinClasses(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadExtendsTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getExtendsTwinClassId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getExtendsTwinClass() != null)
-                continue;
-            needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
-        for (TwinClassEntity extendsTwinClass : heads) {
-            for (TwinClassEntity twinClass : needLoad.getGrouped(extendsTwinClass.getId()))
-                twinClass.setExtendsTwinClass(extendsTwinClass);
-        }
+    public void loadExtendsTwinClasses(Collection<TwinClassEntity> collection) throws ServiceException {
+        load(
+                collection,
+                TwinClassEntity::getExtendsTwinClassId,
+                TwinClassEntity::getExtendsTwinClass,
+                TwinClassEntity::setExtendsTwinClass);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -651,9 +468,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAssigneeRequired, TwinClassEntity::setAssigneeRequired, TwinClassEntity.Fields.assigneeRequired, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getPermissionSchemaSpace, TwinClassEntity::setPermissionSchemaSpace, TwinClassEntity.Fields.permissionSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getViewPermissionId, TwinClassEntity::setViewPermissionId, TwinClassEntity.Fields.viewPermissionId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getEditPermissionId, TwinClassEntity::setEditPermissionId, TwinClassEntity.Fields.editPermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getCreatePermissionId, TwinClassEntity::setCreatePermissionId, TwinClassEntity.Fields.createPermissionId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getDeletePermissionId, TwinClassEntity::setDeletePermissionId, TwinClassEntity.Fields.deletePermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getKey, TwinClassEntity::setKey, TwinClassEntity.Fields.key, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalProperties, TwinClassEntity::setExternalProperties, TwinClassEntity.Fields.externalProperties, changesHelper);
@@ -661,7 +476,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassFreezeId, TwinClassEntity::setTwinClassFreezeId, TwinClassEntity.Fields.twinClassFreezeId, changesHelper);
 
 
-            updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
+            updateHeadHunterFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
             i18nService.updateI18nFieldForEntity(twinClassUpdate.getNameI18n(), I18nType.TWIN_CLASS_NAME, dbTwinClassEntity, TwinClassEntity::getNameI18NId, TwinClassEntity::setNameI18NId, TwinClassEntity.Fields.nameI18NId, changesHelper);
             i18nService.updateI18nFieldForEntity(twinClassUpdate.getDescriptionI18n(), I18nType.TWIN_CLASS_DESCRIPTION, dbTwinClassEntity, TwinClassEntity::getDescriptionI18NId, TwinClassEntity::setDescriptionI18NId, TwinClassEntity.Fields.descriptionI18NId, changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
@@ -706,19 +521,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    public void updateTwinClassFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
-        if (changesHelper.isChanged(TwinClassEntity.Fields.headHunterFeaturerId, dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
-            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
-            dbTwinClassEntity
-                    .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
-                    .setHeadHunterFeaturer(newHeadHunterFeaturer);
-        }
-        featurerService.prepareForStore(dbTwinClassEntity.getHeadHunterFeaturerId(), headHunterParams);
-        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
-            changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
-            dbTwinClassEntity
-                    .setHeadHunterParams(headHunterParams);
-        }
+    public void updateHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
+        updateEntityFeaturerField(dbTwinClassEntity, newHeadhunterFeaturerId, headHunterParams,
+                TwinClassEntity::getHeadHunterFeaturerId, TwinClassEntity::setHeadHunterFeaturerId,
+                TwinClassEntity::getHeadHunterParams, TwinClassEntity::setHeadHunterParams,
+                TwinClassEntity.Fields.headHunterFeaturerId, TwinClassEntity.Fields.headHunterParams,
+                HeadHunter.class, changesHelper);
     }
 
     public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
@@ -867,27 +675,35 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadMarkerDataList(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getMarkerDataList() != null || twinClassEntity.getMarkerDataListId() == null)
-            return;
-        twinClassEntity.setMarkerDataList(dataListService.findEntitySafe(twinClassEntity.getMarkerDataListId()));
+        loadMarkerDataList(Collections.singleton(twinClassEntity));
     }
 
-    public void loadMarkerDataList(Collection<TwinClassEntity> twinClassCollection, boolean loadOptions) throws ServiceException {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getMarkerDataListId);
-        for (TwinClassEntity twinClassEntity : twinClassCollection) {
-            if (twinClassEntity.getMarkerDataListId() != null && twinClassEntity.getMarkerDataList() == null)
-                needLoad.add(twinClassEntity);
+    public void loadMarkerDataList(Collection<TwinClassEntity> entityCollection) throws ServiceException {
+        dataListService.load(
+                entityCollection,
+                TwinClassEntity::getMarkerDataListId,
+                TwinClassEntity::getMarkerDataList,
+                TwinClassEntity::setMarkerDataList);
+    }
+
+    public void loadMarkerDataList(Collection<TwinClassEntity> entityCollection, boolean loadOptions) throws ServiceException {
+        loadMarkerDataList(entityCollection);
+        if (loadOptions) {
+            var dataLists = entityCollection.stream().map(TwinClassEntity::getMarkerDataList).filter(Objects::nonNull).collect(Collectors.toSet());
+            dataListService.loadDataListOptions(dataLists);
         }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<DataListEntity> markers = dataListRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad.getGroupedMap().keySet());
-        for (DataListEntity dataListEntity : markers) {
-            for (TwinClassEntity twinClassEntity : needLoad.getGrouped(dataListEntity.getId())) {
-                twinClassEntity.setMarkerDataList(dataListEntity);
-            }
-        }
-        if (loadOptions)
-            dataListService.loadDataListOptions(markers);
+    }
+
+    public void loadTagDataList(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadTagDataList(Collections.singleton(twinClassEntity));
+    }
+
+    public void loadTagDataList(Collection<TwinClassEntity> entityCollection) throws ServiceException {
+        dataListService.load(
+                entityCollection,
+                TwinClassEntity::getTagDataListId,
+                TwinClassEntity::getTagDataList,
+                TwinClassEntity::setTagDataList);
     }
 
     private Set<UUID> findExistedTwinHeadIdsOfClass(UUID twinClassId) {
@@ -900,7 +716,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public boolean isStatusAllowedForTwinClass(TwinClassEntity twinClassEntity, UUID twinStatusId) throws ServiceException {
-        twinStatusService.loadStatusesForTwinClasses(twinClassEntity);
+        twinStatusService.loadStatuses(twinClassEntity);
         return twinClassEntity.getTwinStatusKit().getIdSet().contains(twinStatusId);
     }
 
@@ -913,25 +729,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return domainTypeTwinClassOwnerTypeRepository.findAllTwinClassOwnerTypesByDomainTypeId(domainType);
     }
 
-    public void loadHeadHunter(TwinClassEntity twinClassEntity) {
-        loadHeadHunter(Collections.singletonList(twinClassEntity));
-    }
-
-    public void loadHeadHunter(Collection<TwinClassEntity> collection) {
-        featurerService.loadFeaturers(collection,
-                TwinClassEntity::getId,
-                TwinClassEntity::getHeadHunterFeaturerId,
-                TwinClassEntity::getHeadHunterFeaturer,
-                TwinClassEntity::setHeadHunterFeaturer);
-    }
-
     public void loadFreeze(TwinClassEntity src) throws ServiceException {
         loadFreeze(Collections.singletonList(src));
     }
 
     public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
         twinClassFreezeService.load(twinClassCollection,
-                TwinClassEntity::getId,
                 TwinClassEntity::getTwinClassFreezeId,
                 TwinClassEntity::getTwinClassFreeze,
                 TwinClassEntity::setTwinClassFreeze);
@@ -980,11 +783,59 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return ret;
         List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad);
         for (TwinClassExtendsProjection childClass : twinClassExtendsProjectionList) {
-            for (String hierarchyItem : convertUuidFromLtreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
+            for (String hierarchyItem : LTreeUtils.convertUuidFromLTreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
                 ret.add(UUID.fromString(hierarchyItem));
         }
         return ret;
     }
+
+    public Set<ClassWithExtends> loadExtends(Map<UUID, Boolean> twinClassIdMap) throws ServiceException {
+        if (MapUtils.isEmpty(twinClassIdMap))
+            return Collections.emptySet();
+        List<UUID> detectExtends = new ArrayList<>();
+        Set<ClassWithExtends> result = new HashSet<>();
+        // Collect IDs that should not be loaded (value is FALSE) and add with empty extends
+        for (var entry : twinClassIdMap.entrySet()) {
+            UUID id = entry.getKey();
+            Boolean collectExtends = entry.getValue();
+            if (Boolean.TRUE.equals(collectExtends)) {
+                detectExtends.add(id);
+            } else {
+                result.add(new ClassWithExtends(id, Collections.emptySet()));
+            }
+        }
+        if (CollectionUtils.isEmpty(detectExtends))
+            return result;
+        // Load hierarchy for required IDs and build per-class extends set
+        List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), detectExtends);
+        for (TwinClassExtendsProjection classWithExtends : twinClassExtendsProjectionList) {
+            result.add(new ClassWithExtends(classWithExtends.getId(), LTreeUtils.toUuidsSortedSet(classWithExtends.getExtendsHierarchyTree(), true)));
+        }
+        return result;
+    }
+
+    public void loadFaces(TwinClassEntity entity) throws ServiceException {
+        loadFaces(Collections.singletonList(entity));
+    }
+
+    public void loadFaces(List<TwinClassEntity> entities) throws ServiceException {
+        faceService.load(
+                entities,
+                new LoadedField<>(
+                        TwinClassEntity::getPageFaceId,
+                        TwinClassEntity::getPageFace,
+                        TwinClassEntity::setPageFace),
+                new LoadedField<>(
+                        TwinClassEntity::getBreadCrumbsFaceId,
+                        TwinClassEntity::getBreadCrumbsFace,
+                        TwinClassEntity::setBreadCrumbsFace)
+        );
+    }
+
+    public record ClassWithExtends(UUID twinClassId, Set<UUID> extendsTwinClassIds) {
+    }
+
+    ;
 
     public boolean allExist(Set<UUID> twinClassIds) {
         return twinClassRepository.existsAll(twinClassIds);
@@ -1012,4 +863,5 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             return null;
         }
     }
+
 }

@@ -46,10 +46,13 @@ public class CommentActionService {
     final TwinValidatorService twinValidatorService;
 
     private final AuthService authService;
+    @Lazy
+    private final CommentService commentService;
 
     public void loadCommentActions(TwinCommentEntity twinComment) throws ServiceException {
         if (twinComment.getCommentActions() != null)
             return;
+        commentService.loadTwin(twinComment);
         if (twinComment.getCreatedByUserId().equals(authService.getApiUser().getUserId()))
             loadCommentSelfActions(twinComment);
         else
@@ -81,7 +84,7 @@ public class CommentActionService {
                     log.info("{} will not be used, since it is inactive.", twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                twinValidatorService.loadValidators(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules());
+                twinValidatorService.loadValidators(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules().getCollection());
                 List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
@@ -182,9 +185,9 @@ public class CommentActionService {
         List<TwinCommentEntity> needLoad = new ArrayList<>();
         Set<TwinClassEntity> needLoadCommentActionsAlienProtected = new HashSet<>();
         Set<TwinClassEntity> needLoadCommentActionsSelfRestrict = new HashSet<>();
-        TwinEntity twinEntity = null;
         TwinClassEntity twinClassEntity = null;
         UUID currentUserId = authService.getApiUser().getUserId();
+        commentService.loadTwin(twinComments);
         for (TwinCommentEntity twinComment : twinComments) {
             if (twinComment.getCommentActions() != null)
                 continue;

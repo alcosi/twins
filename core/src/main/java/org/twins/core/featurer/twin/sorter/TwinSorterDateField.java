@@ -1,6 +1,9 @@
 package org.twins.core.featurer.twin.sorter;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -36,7 +39,7 @@ public class TwinSorterDateField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN to twin_field_timestamp (actual storage for timestamp fields)
-                Join<TwinEntity, TwinFieldTimestampEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsTimestamp);
+                Join<TwinEntity, TwinFieldTimestampEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsTimestampSpecOnly);
                 Expression<Timestamp> timestampValue = tfJoin.get(TwinFieldTimestampEntity.Fields.value);
                 // Ensure NULL values are placed at the end
                 addNullsPositionOrder(orders, cb, tfJoin, TwinFieldTimestampEntity.Fields.value, properties);

@@ -17,8 +17,6 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.service.domain.DomainService;
 
-import java.util.Collection;
-
 
 @Component
 @RequiredArgsConstructor
@@ -84,8 +82,7 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
         }
         if (mapperContext.hasModeButNot(FeaturerMode.DomainUserGroupManager2FeaturerMode.HIDE)) {
             dst.setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId());
-            domainService.loadUserGroupManager(src);
-            featurerRestDTOMapper.postpone(src.getUserGroupManagerFeaturer(), mapperContext.forkOnPoint(FeaturerMode.DomainUserGroupManager2FeaturerMode.SHORT));
+            featurerRestDTOMapper.postpone(src.getUserGroupManagerFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.DomainUserGroupManager2FeaturerMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionSchemaMode.Domain2PermissionSchemaMode.HIDE)) {
             dst.setPermissionSchemaId(src.getPermissionSchemaId());
@@ -110,11 +107,4 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
 
     }
 
-    @Override
-    public void beforeCollectionConversion(Collection<DomainEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FeaturerMode.DomainUserGroupManager2FeaturerMode.HIDE)) {
-            domainService.loadUserGroupManagers(srcCollection);
-        }
-    }
 }

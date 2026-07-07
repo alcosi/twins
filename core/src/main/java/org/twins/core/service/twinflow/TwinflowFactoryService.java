@@ -163,7 +163,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             if (loaded.containsGroupedKey(twinflow.getId())) {
                 twinflow.setFactoriesKit(new Kit<>(loaded.getGrouped(twinflow.getId()), TwinflowFactoryEntity::getTwinFactoryLauncher));
             } else {
-                twinflow.setFactoriesKit(Kit.EMPTY);
+                twinflow.setFactoriesKit(Kit.emptyKit());
             }
         }
     }

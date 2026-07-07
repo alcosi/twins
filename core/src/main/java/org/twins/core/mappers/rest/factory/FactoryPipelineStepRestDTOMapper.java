@@ -15,8 +15,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryPipelineStepMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.service.factory.FactoryPipelineStepService;
 
-import java.util.Collection;
-
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = FactoryPipelineStepMode.class)
@@ -66,16 +64,8 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE)) {
             dst.setFillerFeaturerId(src.getFillerFeaturerId());
-            factoryPipelineStepService.loadFiller(src);
-            featurerRestDTOMapper.postpone(src.getFillerFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT));
+            featurerRestDTOMapper.postpone(src.getFillerFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT));
         }
     }
 
-    @Override
-    public void beforeCollectionConversion(Collection<TwinFactoryPipelineStepEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE)) {
-            factoryPipelineStepService.loadFillers(srcCollection);
-        }
-    }
 }

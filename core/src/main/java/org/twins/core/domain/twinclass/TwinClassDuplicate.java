@@ -1,20 +1,18 @@
 package org.twins.core.domain.twinclass;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.EntityDuplicate;
 
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinClassDuplicate {
-    private UUID originalTwinClassId;
+public class TwinClassDuplicate extends EntityDuplicate<TwinClassEntity, Void> {
     private UUID newTwinClassId;
-    private String newKey;
     private boolean duplicateFields = false;
     private boolean duplicateStatuses = false;
-
-    private TwinClassEntity originalTwinClass;
-    private TwinClassEntity newTwinClass;
 }

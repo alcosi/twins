@@ -1,5 +1,7 @@
 package org.twins.core.featurer.scheduler;
 
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,8 +12,10 @@ import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.scheduler.tasks.HistoryNotificationTask;
+import org.twins.core.service.history.HistoryService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.StreamSupport;
@@ -25,12 +29,14 @@ import java.util.stream.StreamSupport;
 public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<HistoryNotificationTask, HistoryNotificationTaskEntity> {
 
     private final HistoryNotificationTaskRepository historyNotificationTaskRepository;
+    private final HistoryService historyService;
 
     @Autowired
     public SchedulerHistoryNotificationTaskRunner(@Qualifier("historyNotificationTaskExecutor") Executor taskExecutor,
-                                                  HistoryNotificationTaskRepository historyNotificationTaskRepository) {
+                                                  HistoryNotificationTaskRepository historyNotificationTaskRepository, HistoryService historyService) {
         super(taskExecutor);
         this.historyNotificationTaskRepository = historyNotificationTaskRepository;
+        this.historyService = historyService;
     }
 
     @Override
@@ -40,8 +46,22 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     @Override
     protected Collection<HistoryNotificationTaskEntity> setStatusAndSave(Collection<HistoryNotificationTaskEntity> collectedEntities) {
+        try {
+            loadHistoryActors(collectedEntities);
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
         collectedEntities.forEach(task -> task.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS));
-        return StreamSupport.stream(historyNotificationTaskRepository.saveAll(collectedEntities).spliterator(), false).toList();
+        historyNotificationTaskRepository.saveAll(collectedEntities);
+        return collectedEntities;
+    }
+
+    private void loadHistoryActors(Collection<HistoryNotificationTaskEntity> tasks) throws ServiceException {
+        if (CollectionUtils.isEmpty(tasks)) {
+            return;
+        }
+        var historyEntities = tasks.stream().map(HistoryNotificationTaskEntity::getHistory).toList();
+        historyService.loadUser(historyEntities);
     }
 
     @Override
@@ -51,8 +71,12 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
     }
 
     @Override
-    protected List<HistoryNotificationTaskEntity> collectAll() {
-        return historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
+    protected List<HistoryNotificationTaskEntity> collectAll() throws ServiceException {
+        var historyTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
+        if (CollectionUtils.isEmpty(historyTasks)) {
+            return Collections.emptyList();
+        }
+        return historyTasks;
     }
 
     @Override

@@ -40,6 +40,7 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -66,6 +67,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final HistoryService historyService;
     private final TwinChangesService twinChangesService;
     private final FeaturerService featurerService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
@@ -499,5 +501,37 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             return Collections.emptySet();
         }
         return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
+    }
+
+    public Set<TwinLinkEntity> findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(Collection<UUID> linkIds, Collection<UUID> twinIds) {
+        if (CollectionUtils.isEmpty(linkIds) || CollectionUtils.isEmpty(twinIds)) {
+            return Collections.emptySet();
+        }
+        return twinLinkRepository.findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(linkIds, twinIds);
+    }
+
+    /**
+     * Like {@link #findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds}, but factory input twins skip the status filter
+     * on their endpoint (so links to/from roots passed into the factory are still loaded).
+     */
+    public Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(Collection<UUID> twinIds, Collection<UUID> linkIds, Collection<UUID> twinStatusIds, Collection<UUID> inputTwinIds) {
+        if (CollectionUtils.isEmpty(twinIds) || CollectionUtils.isEmpty(linkIds) || CollectionUtils.isEmpty(twinStatusIds)) {
+            return Collections.emptySet();
+        }
+        if (CollectionUtils.isEmpty(inputTwinIds)) {
+            return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(twinIds, linkIds, twinStatusIds);
+        }
+        return twinLinkRepository.findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(twinIds, linkIds, twinStatusIds, inputTwinIds);
+    }
+
+    public void loadCreatedByUser(TwinLinkEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinLinkEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinLinkEntity::getCreatedByUserId,
+                TwinLinkEntity::getCreatedByUser,
+                TwinLinkEntity::setCreatedByUser);
     }
 }

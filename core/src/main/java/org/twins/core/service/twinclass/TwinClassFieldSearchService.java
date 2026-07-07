@@ -13,30 +13,32 @@ import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.Ternary;
 import org.cambium.common.util.TernaryUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
-import org.cambium.service.EntitySmartService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.i18n.specifications.I18nSpecification;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinclass.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.FieldProjectionSearch;
 import org.twins.core.domain.search.TwinClassFieldSearch;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.projection.ProjectionFieldSelector;
+import org.twins.core.enums.sort.TwinClassFieldGroupField;
+import org.twins.core.enums.sort.TwinClassFieldSortField;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.featurer.classfield.sorter.FieldSorter;
+import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.SystemEntityService;
-import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
+import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
 
@@ -44,38 +46,157 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecific
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<TwinClassFieldSearchEntity> {
+public class TwinClassFieldSearchService extends EntitySearchService
+        <TwinClassFieldSearch, TwinClassFieldEntity, TwinClassFieldSortField, TwinClassFieldGroupField> {
 
     private final TwinClassFieldRepository twinClassFieldRepository;
-    private final TwinClassFieldSearchRepository fieldSearchRepository;
     private final TwinClassFieldSearchPredicateRepository fieldSearchPredicateRepository;
-
-    private final AuthService authService;
+    private final TwinClassFieldSearchConfigService twinClassFieldSearchConfigService;
     private final TwinClassService twinClassService;
     private final FeaturerService featurerService;
+
+    @Override
+    public JpaSpecificationExecutor<TwinClassFieldEntity> jpaSpecificationExecutor() {
+        return twinClassFieldRepository;
+    }
+
+    @Override
+    public TwinClassFieldSearch emptySearch() {
+        return new TwinClassFieldSearch().setExcludeSystemFields(false);
+    }
+
+    @Override
+    protected TwinClassFieldEntity newEntity() {
+        return new TwinClassFieldEntity();
+    }
+
+    @Override
+    protected Class<TwinClassFieldEntity> entityClass() {
+        return TwinClassFieldEntity.class;
+    }
+
+    @Override
+    public Specification<TwinClassFieldEntity> createFilterSpecification(TwinClassFieldSearch search, UUID domainId, Locale locale) {
+        Collection<TwinClassService.ClassWithExtends> twinClassIdMapResolved;
+        Collection<TwinClassService.ClassWithExtends> twinClassIdExcludeMapResolved;
+        try {
+            twinClassIdMapResolved = twinClassService.loadExtends(search.getTwinClassIdMap());
+            twinClassIdExcludeMapResolved = twinClassService.loadExtends(search.getTwinClassIdExcludeMap());
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
+        return Specification.allOf(
+                checkUuid(domainId, false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
+                checkTwinClassAndInheritable(twinClassIdMapResolved, false, TwinClassFieldEntity.Fields.twinClassId, TwinClassFieldEntity.Fields.inheritable),
+                checkTwinClassAndInheritable(twinClassIdExcludeMapResolved, true, TwinClassFieldEntity.Fields.twinClassId, TwinClassFieldEntity.Fields.inheritable),
+                checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
+                checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
+                joinAndSearchByI18NFieldDirect(TwinClassFieldEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(TwinClassFieldEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NFieldDirect(TwinClassFieldEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NFieldDirect(TwinClassFieldEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nNotLikeList(), locale, true, true),
+                checkIntegerIn(search.getFieldTyperIdList(), false, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
+                checkIntegerIn(search.getFieldTyperIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
+                checkIntegerIn(search.getFieldInitiatorIdList(), false, TwinClassFieldEntity.Fields.fieldInitializerFeaturerId),
+                checkIntegerIn(search.getFieldInitiatorIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldInitializerFeaturerId),
+                checkIntegerIn(search.getTwinSorterIdList(), false, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
+                checkIntegerIn(search.getTwinSorterIdExcludeList(), true, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
+                checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.viewPermissionId),
+                checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
+                checkUuidIn(search.getEditPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
+                checkUuidIn(search.getEditPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
+                checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
+                checkTernary(search.getSystem(), TwinClassFieldEntity.Fields.system),
+                checkTernary(search.getInheritable(), TwinClassFieldEntity.Fields.inheritable),
+                checkTernary(search.getDependentField(), TwinClassFieldEntity.Fields.dependentField),
+                checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
+                checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),
+                checkTernary(search.getHasProjectionFields(), TwinClassFieldEntity.Fields.hasProjectedFields),
+                checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order),
+                checkProjections(search)
+        );
+    }
+
+    @Override
+    public Specification<TwinClassFieldEntity> createSortSpecification(TwinClassFieldSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
+        if (sortField == null)
+            sortField = TwinClassFieldSortField.order;
+        boolean ascending = sortDirection != SortDirection.DESC;
+        return switch (sortField) {
+            case order -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.order);
+            case key -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.key);
+            case name -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.nameI18nTranslationsSpecOnly);
+            case description -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.descriptionI18nTranslationsSpecOnly);
+            case externalId -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.externalId);
+            case required -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.required);
+            case inheritable -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.inheritable);
+            case system -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.system);
+            case dependentField -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.dependentField);
+            case hasDependentFields -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.hasDependentFields);
+            case projectionField -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.projectionField);
+            case hasProjectedFields -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.hasProjectedFields);
+            case twinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+            case fieldTyperFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.fieldTyperFeaturerSpecOnly, FeaturerEntity.Fields.name);
+            case fieldInitializerFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.fieldInitializerFeaturerSpecOnly, FeaturerEntity.Fields.name);
+            case twinSorterFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.twinSorterFeaturerSpecOnly, FeaturerEntity.Fields.name);
+            case viewPermissionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nTranslationsSpecOnly);
+            case editPermissionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.editPermissionSpecOnly, PermissionEntity.Fields.nameI18nTranslationsSpecOnly);
+        };
+    }
+
+    @Override
+    public String convertToEntityField(TwinClassFieldGroupField groupField) {
+        return switch (groupField) {
+            case required -> TwinClassFieldEntity.Fields.required;
+            case inheritable -> TwinClassFieldEntity.Fields.inheritable;
+            case system -> TwinClassFieldEntity.Fields.system;
+            case dependentField -> TwinClassFieldEntity.Fields.dependentField;
+            case hasDependentFields -> TwinClassFieldEntity.Fields.hasDependentFields;
+            case projectionField -> TwinClassFieldEntity.Fields.projectionField;
+            case hasProjectedFields -> TwinClassFieldEntity.Fields.hasProjectedFields;
+            case twinClassId -> TwinClassFieldEntity.Fields.twinClassId;
+            case fieldTyperFeaturerId -> TwinClassFieldEntity.Fields.fieldTyperFeaturerId;
+            case twinSorterFeaturerId -> TwinClassFieldEntity.Fields.twinSorterFeaturerId;
+            case fieldInitializerFeaturerId -> TwinClassFieldEntity.Fields.fieldInitializerFeaturerId;
+            case viewPermissionId -> TwinClassFieldEntity.Fields.viewPermissionId;
+            case editPermissionId -> TwinClassFieldEntity.Fields.editPermissionId;
+        };
+    }
+
+    @Override
+    public void mapGroupedField(TwinClassFieldEntity entity, TwinClassFieldGroupField field, Object o) {
+        switch (field) {
+            case required -> entity.setRequired((Boolean) o);
+            case inheritable -> entity.setInheritable((Boolean) o);
+            case system -> entity.setSystem((Boolean) o);
+            case dependentField -> entity.setDependentField((Boolean) o);
+            case hasDependentFields -> entity.setHasDependentFields((Boolean) o);
+            case projectionField -> entity.setProjectionField((Boolean) o);
+            case hasProjectedFields -> entity.setHasProjectedFields((Boolean) o);
+            case twinClassId -> entity.setTwinClassId((UUID) o);
+            case fieldTyperFeaturerId -> entity.setFieldTyperFeaturerId((Integer) o);
+            case twinSorterFeaturerId -> entity.setTwinSorterFeaturerId((Integer) o);
+            case fieldInitializerFeaturerId -> entity.setFieldInitializerFeaturerId((Integer) o);
+            case viewPermissionId -> entity.setViewPermissionId((UUID) o);
+            case editPermissionId -> entity.setEditPermissionId((UUID) o);
+        }
+    }
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         if (search.isInactiveSearch())
             return PaginationResult.EMPTY;
-        Specification<TwinClassFieldEntity> specification = createTwinClassFieldSearchSpecification(search);
-        specification = addSorting(search, pagination, specification);
-        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(specification, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-    public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
-        if (search.isInactiveSearch())
-            return Collections.emptyList();
-        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
-        spec = addSorting(search, null, spec);
-        return twinClassFieldRepository.findAll(spec);
+        return search(search, pagination);
     }
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, Map<String, String> namedParamsMap, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
         if (SystemEntityService.TWIN_CLASS_FIELD_SEARCH_UNLIMITED.equals(searchId)) {
-            return findTwinClassField(narrowSearch, pagination);
+            return search(narrowSearch, pagination);
         }
-        TwinClassFieldSearchEntity searchEntity = findEntitySafe(searchId);
+        TwinClassFieldSearchEntity searchEntity = twinClassFieldSearchConfigService.findEntitySafe(searchId);
         List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
         TwinClassFieldSearch mainSearch = new TwinClassFieldSearch()
                 .setExcludeSystemFields(false);
@@ -85,47 +206,22 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         }
         narrowSearch(mainSearch, narrowSearch);
         mainSearch.setConfiguredSearch(searchEntity);
+        // Apply FieldSorter for configured search
+        if (searchEntity.isForceSorting() || pagination.getSort() == null) {
+            FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
+            var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
+            if (sortFunction != null) {
+                Specification<TwinClassFieldEntity> spec = createFilterSpecification(mainSearch, authService.getApiUser().getDomainId(), authService.getApiUser().getLocale());
+                spec = sortFunction.apply(spec);
+                pagination.setSort(null);
+                Page<TwinClassFieldEntity> page = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+                return PaginationUtils.convertInPaginationResult(page, pagination);
+            }
+        }
         return findTwinClassField(mainSearch, pagination);
     }
 
-    private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return Specification.allOf(
-                checkUuid(apiUser.getDomainId(), false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
-                checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
-                checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassFieldEntity.Fields.twinClassId),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassFieldEntity.Fields.twinClassId),
-                checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
-                checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
-                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true),
-                checkIntegerIn(search.getFieldTyperIdList(), false, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
-                checkIntegerIn(search.getFieldTyperIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
-                checkIntegerIn(search.getFieldInitiatorIdList(), false, TwinClassFieldEntity.Fields.fieldInitializerFeaturerId),
-                checkIntegerIn(search.getFieldInitiatorIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldInitializerFeaturerId),
-                checkIntegerIn(search.getTwinSorterIdList(), false, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
-                checkIntegerIn(search.getTwinSorterIdExcludeList(), true, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
-                checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.viewPermissionId),
-                checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
-                checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
-                checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
-                checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
-                checkTernary(search.getSystem(), TwinClassFieldEntity.Fields.system),
-                checkTernary(search.getDependentField(), TwinClassFieldEntity.Fields.dependentField),
-                checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
-                checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),
-                checkTernary(search.getHasProjectionFields(), TwinClassFieldEntity.Fields.hasProjectedFields),
-                checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId),
-                checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order),
-                checkProjections(search));
-
-    }
-
-    private Specification<TwinClassFieldEntity> checkProjections(TwinClassFieldSearch search) throws ServiceException {
+    private Specification<TwinClassFieldEntity> checkProjections(TwinClassFieldSearch search) {
         FieldProjectionSearch projectionSearch = search.getFieldProjectionSearch();
         if (projectionSearch == null) {
             return (root, query, cb) -> cb.conjunction();
@@ -137,52 +233,16 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         }
 
         return switch (selector) {
-            case src -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrc, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
-            case dst -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDst, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+            case src -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrcSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+            case dst -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDstSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
             case all -> {
                 Specification<TwinClassFieldEntity> srcSpec =
-                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrc, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrcSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
                 Specification<TwinClassFieldEntity> dstSpec =
-                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDst, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
-
+                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDstSpecOnly, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
                 yield Specification.anyOf(srcSpec, dstSpec);
             }
         };
-    }
-
-    private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
-        TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
-        if (searchEntity != null &&
-                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
-            FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
-            var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
-            if (sortFunction != null) {
-                specification = sortFunction.apply(specification);
-                if (pagination != null)
-                    pagination.setSort(null);
-            }
-        }
-        return specification;
-    }
-
-    @Override
-    public CrudRepository<TwinClassFieldSearchEntity, UUID> entityRepository() {
-        return fieldSearchRepository;
-    }
-
-    @Override
-    public Function<TwinClassFieldSearchEntity, UUID> entityGetIdFunction() {
-        return TwinClassFieldSearchEntity::getId;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(TwinClassFieldSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
-    }
-
-    @Override
-    public boolean validateEntity(TwinClassFieldSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
     }
 
     protected void narrowSearch(TwinClassFieldSearch mainSearch, TwinClassFieldSearch narrowSearch) {
@@ -202,6 +262,5 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
 
         mainSearch.setTwinClassIdMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdMap(), narrowSearch.getTwinClassIdMap(), Boolean.TRUE));
         mainSearch.setTwinClassIdExcludeMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdExcludeMap(), narrowSearch.getTwinClassIdExcludeMap(), Boolean.TRUE));
-
     }
 }

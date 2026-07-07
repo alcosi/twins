@@ -8,10 +8,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_factory_multiplier")
-public class TwinFactoryMultiplierEntity implements EasyLoggable {
+public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
@@ -41,11 +42,6 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
 
     @Column(name = "description")
     private String description;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity multiplierFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "multiplier_params", columnDefinition = "hstore")
@@ -68,6 +64,11 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
 
     @Transient
     private Integer factoryMultiplierFiltersCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryMultiplierFilterEntity, UUID> twinFactoryMultiplierFilterKit;
 
     public String easyLog(Level level) {
         return switch (level) {

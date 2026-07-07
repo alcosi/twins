@@ -1,18 +1,21 @@
 package org.twins.core.mappers.rest.comment;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
-import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.comment.CommentActionService;
+import org.twins.core.service.comment.CommentService;
 
 import java.util.Collection;
 
@@ -29,6 +32,11 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
     @MapperModePointerBinding(modes = AttachmentMode.Comment2AttachmentMode.class)
     private final AttachmentRestDTOMapper attachmentRestDTOMapper;
 
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = TwinMode.Comment2TwinMode.class)
+    private TwinRestDTOMapperV2 twinRestDTOMapper;
+
     private final CommentService commentService;
     private final CommentActionService commentActionService;
 
@@ -41,6 +49,7 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
                         .setText(src.getText());
             case DETAILED ->
                 dst
+                        .setTwinId(src.getTwinId())
                         .setId(src.getId())
                         .setText(src.getText())
                         .setAuthorUserId(src.getCreatedByUserId())
@@ -62,6 +71,11 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
             commentActionService.loadCommentActions(src);
             dst.setCommentActions(src.getCommentActions());
         }
+        if (mapperContext.hasModeButNot(TwinMode.Comment2TwinMode.HIDE)) {
+            dst.setTwinId(src.getTwinId());
+            commentService.loadTwin(src);
+            twinRestDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Comment2TwinMode.SHORT));
+        }
     }
 
     @Override
@@ -71,6 +85,8 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
             commentService.loadAttachments(srcCollection);
         if (mapperContext.hasModeButNot(CommentActionMode.HIDE))
             commentActionService.loadCommentActions(srcCollection);
+        if (mapperContext.hasModeButNot(TwinMode.Comment2TwinMode.HIDE))
+            commentService.loadTwin(srcCollection);
     }
 
     @Override

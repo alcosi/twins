@@ -18,14 +18,14 @@ public class TwinFieldStoragePointedHead extends TwinFieldStorageSpirit {
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
-        twinService.loadHeadForTwin(twinsKit.getList());
+        twinService.loadHead(twinsKit.getList());
         var headTwins = new Kit<>(TwinEntity::getId);
         for (var twinEntity : twinsKit.getList()) {
             if (twinEntity.getHeadTwin() != null) {
                 headTwins.add(twinEntity.getHeadTwin());
             }
         }
-        twinService.loadFieldsValues(headTwins);
+        twinService.loadFieldsValues(headTwins.getList());
     }
 
     @Override

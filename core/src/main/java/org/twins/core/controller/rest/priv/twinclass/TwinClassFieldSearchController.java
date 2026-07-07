@@ -66,7 +66,7 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(twinClassFieldSearchRqDTOReverseMapper.convert(request), pagination);
+                    .search(twinClassFieldSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))
@@ -94,7 +94,8 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), pagination,
+                            request.getSortField(), request.getSortDirection());
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))

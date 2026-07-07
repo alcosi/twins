@@ -146,9 +146,9 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     }
 
     public String translateBase24ToLocale(I18nEntity i18NEntity, Locale locale) throws ServiceException {
-        Optional<I18nTranslationBinEntity> translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, locale);
+        Optional<I18nTranslationBinEntity> translationBinEntity = i18nTranslationBinRepository.findByI18nIdAndLocale(i18NEntity.getId(), locale);
         if (translationBinEntity.isEmpty() || translationBinEntity.get().getTranslation().length == 0)
-            translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, resolveDefaultLocale());
+            translationBinEntity = i18nTranslationBinRepository.findByI18nIdAndLocale(i18NEntity.getId(), resolveDefaultLocale());
         if (translationBinEntity.isPresent() && translationBinEntity.get().getTranslation().length > 0)
             return translationBinEntity.get().getBase64();
         return null;
@@ -168,12 +168,12 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
             return;
         List<Locale> locales = Arrays.asList(resolveDefaultLocale(), Locale.forLanguageTag(locale));
         if (i18nEntity.getType().isImage()) {
-            i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationBinEntity::getLocale));
+            i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nIdAndLocaleIn(i18nEntity.getId(), locales), I18nTranslationBinEntity::getLocale));
         } else {
             i18nEntity.setTranslationsKit(new Kit<>(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationEntity::getLocale));
             if (i18nEntity.getType().isStyledText()) {
                 for (I18nTranslationEntity translation : i18nEntity.getTranslationsKit().getCollection()) {
-                    translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
+                    translation.setStyles(i18nTranslationStyleRepository.findByI18nIdAndLocale(translation.getI18n().getId(), translation.getLocale()));
                 }
             }
         }
@@ -184,33 +184,24 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     }
 
     public void loadTranslations(Collection<I18nEntity> i18nEntityList) {
-        Kit<I18nEntity, UUID> needLoad = new Kit<>(I18nEntity::getId);
-        for (var i18nEntity : i18nEntityList) {
-            if (i18nEntity.getTranslationsKit() != null)
-                continue;
-            i18nEntity.setTranslationsKit(new Kit<>(I18nTranslationEntity::getLocale));
-            needLoad.add(i18nEntity);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<I18nTranslationEntity> translations = i18nTranslationRepository.findByI18nIdIn(needLoad.getIdSet());
-        if (CollectionUtils.isEmpty(translations))
-            return;
-        for (var translation : translations) {
-            needLoad.get(translation.getI18nId()).addTranslation(translation);
-        }
-        //todo load styles
+        loadKit(i18nEntityList,
+                I18nEntity::getId,
+                I18nEntity::getTranslationsKit,
+                I18nEntity::setTranslationsKit,
+                i18nTranslationRepository::findByI18nIdIn,
+                I18nTranslationEntity::getLocale,
+                I18nTranslationEntity::getI18nId);
     }
 
     public void loadStyles(I18nTranslationEntity translation) {
         if (translation.getI18n().getType().isStyledText()) {
-            translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
+            translation.setStyles(i18nTranslationStyleRepository.findByI18nIdAndLocale(translation.getI18n().getId(), translation.getLocale()));
         }
     }
 
     public List<I18nTranslationStyleEntity> getStyles(I18nEntity i18nEntity, String locale) {
         if (i18nEntity.getType().isStyledText()) {
-            return i18nTranslationStyleRepository.findByI18nAndLocale(i18nEntity, Locale.forLanguageTag(locale));
+            return i18nTranslationStyleRepository.findByI18nIdAndLocale(i18nEntity.getId(), Locale.forLanguageTag(locale));
         }
         return new ArrayList<>();
     }
@@ -255,31 +246,46 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return result;
     }
 
-    @Transactional
-    public I18nEntity duplicateI18n(UUID srcI18nId) {
-        return duplicateI18n(i18nRepository.findById(srcI18nId).get());
-    }
-
+    /**
+     * Batch i18n duplication: builds copies for every {@code srcId → dstId} pair in {@code remap}.
+     * Two bulk reads (i18n + translations) + two bulk writes — total of 4 SQL regardless of remap
+     * size. Called by {@code EntityDuplicateService.commit} as a pre-commit step, before the
+     * topological sort of entity-class commits, so all i18n rows land in db before any referencer.
+     */
     @Transactional(rollbackFor = Throwable.class)
-    public I18nEntity duplicateI18n(I18nEntity srcI18nEntity) {
-        I18nEntity duplicateI18nEntity = new I18nEntity()
-                .setKey(addCopyPostfix(srcI18nEntity.getKey()))
-                .setName(addCopyPostfix(srcI18nEntity.getName()))
-                .setType(srcI18nEntity.getType());
-        duplicateI18nEntity = i18nRepository.save(duplicateI18nEntity);
-        List<I18nTranslationEntity> translationEntityList = i18nTranslationRepository.findByI18nId(srcI18nEntity.getId());
-        if (CollectionUtils.isNotEmpty(translationEntityList)) {
-            List<I18nTranslationEntity> duplicateI18nTranslationEntityList = new ArrayList<>();
-            for (I18nTranslationEntity srcI18nTranslationEntity : translationEntityList) {
-                duplicateI18nTranslationEntityList.add(
-                        new I18nTranslationEntity()
-                                .setI18nId(duplicateI18nEntity.getId())
-                                .setLocale(srcI18nTranslationEntity.getLocale())
-                                .setTranslation(srcI18nTranslationEntity.getTranslation()));
-            }
-            i18nTranslationRepository.saveAll(duplicateI18nTranslationEntityList);
+    public void duplicateTranslations(Map<UUID, UUID> remap) {
+        if (remap == null || remap.isEmpty()) {
+            return;
         }
-        return entityManager.merge(duplicateI18nEntity);
+        List<I18nEntity> srcEntities = new ArrayList<>();
+        i18nRepository.findAllById(remap.keySet()).forEach(srcEntities::add);
+        List<I18nTranslationEntity> srcTranslations = i18nTranslationRepository.findByI18nIdIn(remap.keySet());
+        List<I18nEntity> dstEntities = new ArrayList<>(srcEntities.size());
+        for (I18nEntity src : srcEntities) {
+            UUID dstId = remap.get(src.getId());
+            if (dstId == null) {
+                continue;
+            }
+            dstEntities.add(new I18nEntity()
+                    .setId(dstId)
+                    .setKey(addCopyPostfix(src.getKey()))
+                    .setName(addCopyPostfix(src.getName()))
+                    .setType(src.getType())
+                    .setDomainId(src.getDomainId()));
+        }
+        List<I18nTranslationEntity> dstTranslations = new ArrayList<>(srcTranslations.size());
+        for (I18nTranslationEntity src : srcTranslations) {
+            UUID dstI18nId = remap.get(src.getI18nId());
+            if (dstI18nId == null) {
+                continue;
+            }
+            dstTranslations.add(new I18nTranslationEntity()
+                    .setI18nId(dstI18nId)
+                    .setLocale(src.getLocale())
+                    .setTranslation(src.getTranslation()));
+        }
+        i18nRepository.saveAll(dstEntities);
+        i18nTranslationRepository.saveAll(dstTranslations);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -463,5 +469,31 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         if (changesHelper.isChanged(fieldName, currentI18nId, savedI18n.getId())) {
             fieldSetter.accept(targetEntity, savedI18n.getId());
         }
+    }
+
+    /**
+     * Collects i18n IDs from a collection of entities.
+     *
+     * @param items the collection of entities
+     * @param nameI18nExtractor function to extract name i18n ID from entity
+     * @param descriptionI18nExtractor function to extract description i18n ID from entity
+     * @param <T> the entity type
+     * @return set of collected i18n IDs
+     */
+    public <T> Set<UUID> collectI18nIds(Collection<T> items,
+                                         Function<T, UUID> nameI18nExtractor,
+                                         Function<T, UUID> descriptionI18nExtractor) {
+        Set<UUID> i18nIds = new HashSet<>();
+        for (T item : items) {
+            UUID nameI18nId = nameI18nExtractor.apply(item);
+            if (nameI18nId != null) {
+                i18nIds.add(nameI18nId);
+            }
+            UUID descI18nId = descriptionI18nExtractor.apply(item);
+            if (descI18nId != null) {
+                i18nIds.add(descI18nId);
+            }
+        }
+        return i18nIds;
     }
 }

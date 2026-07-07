@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
 
@@ -14,9 +13,6 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "CommentListRsv1")
 public class CommentListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "pagination data")
-    public PaginationDTOv1 pagination;
-
     @Schema(description = "comment data")
     public List<CommentDTOv1> comments;
 }

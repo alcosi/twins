@@ -2,11 +2,13 @@ package org.twins.core.domain.search;
 
 import com.google.common.collect.ImmutableList;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Collection;
@@ -17,7 +19,8 @@ import java.util.function.Function;
 
 @Data
 @Accessors(chain = true)
-public class TwinClassSearch {
+@EqualsAndHashCode(callSuper = false)
+public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     private Set<UUID> twinClassIdList;
     private Set<UUID> twinClassIdExcludeList;
     private Set<String> twinClassKeyLikeList;
@@ -53,11 +56,13 @@ public class TwinClassSearch {
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> createPermissionIdList;
     private Set<UUID> createPermissionIdExcludeList;
-    private Set<UUID> editPermissionIdList;
-    private Set<UUID> editPermissionIdExcludeList;
-    private Set<UUID> deletePermissionIdList;
-    private Set<UUID> deletePermissionIdExcludeList;
     private IntegerRange twinCounterRange;
+    private Set<Integer> headHunterFeaturerIdList;
+    private Ternary hasDynamicMarkers;
+    private Set<UUID> breadCrumbsFaceIdList;
+    private Set<UUID> breadCrumbsFaceIdExcludeList;
+    private Set<UUID> pageFaceIdList;
+    private Set<UUID> pageFaceIdExcludeList;
 
     public TwinClassSearch addOwnerTypeExclude() {
         ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, OwnerType.SYSTEM);
@@ -99,11 +104,7 @@ public class TwinClassSearch {
             Pair.of(TwinClassSearch::getViewPermissionIdList, TwinClassSearch::setViewPermissionIdList),
             Pair.of(TwinClassSearch::getViewPermissionIdExcludeList, TwinClassSearch::setViewPermissionIdExcludeList),
             Pair.of(TwinClassSearch::getCreatePermissionIdList, TwinClassSearch::setCreatePermissionIdList),
-            Pair.of(TwinClassSearch::getCreatePermissionIdExcludeList, TwinClassSearch::setCreatePermissionIdExcludeList),
-            Pair.of(TwinClassSearch::getEditPermissionIdList, TwinClassSearch::setEditPermissionIdList),
-            Pair.of(TwinClassSearch::getEditPermissionIdExcludeList, TwinClassSearch::setEditPermissionIdExcludeList),
-            Pair.of(TwinClassSearch::getDeletePermissionIdList, TwinClassSearch::setDeletePermissionIdList),
-            Pair.of(TwinClassSearch::getDeletePermissionIdExcludeList, TwinClassSearch::setDeletePermissionIdExcludeList)
+            Pair.of(TwinClassSearch::getCreatePermissionIdExcludeList, TwinClassSearch::setCreatePermissionIdExcludeList)
     );
 
     public static final ImmutableList<Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(

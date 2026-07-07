@@ -1,5 +1,7 @@
 package org.twins.core.featurer.params;
 
+import org.cambium.common.exception.ErrorCodeCommon;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParam;
 import org.twins.core.domain.TwinBasicFields;
@@ -18,7 +20,19 @@ public class FeaturerParamBasicsTwinBasicField extends FeaturerParam<TwinBasicFi
 
     @Override
     public TwinBasicFields.Basics extract(Properties properties) {
-        TwinBasicFields.Basics ret = TwinBasicFields.Basics.valueOf(properties.get(key).toString());
-        return ret;
+        String property = properties.getProperty(key);
+        if (property == null || property.isBlank()) {
+            return null;
+        }
+        return TwinBasicFields.Basics.valueOf(property.strip());
+    }
+
+    @Override
+    public void validate(String value) throws ServiceException {
+        try {
+            TwinBasicFields.Basics.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS, "param[" + key + "] value[" + value + "] is not valid twin basic field");
+        }
     }
 }

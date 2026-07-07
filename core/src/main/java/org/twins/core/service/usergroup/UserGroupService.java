@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.domain.DomainBusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
@@ -25,6 +26,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.usergroup.UserGroupCreate;
 import org.twins.core.domain.usergroup.UserGroupUpdate;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
@@ -45,6 +47,8 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     final UserGroupMapRepository userGroupMapRepository;
     final UserGroupInvolveActAsUserService userGroupInvolveActAsUserService;
     final FeaturerService featurerService;
+    @Lazy
+    private final UserGroupMapService userGroupMapService;
     final I18nService i18nService;
     @Lazy
     final AuthService authService;
@@ -95,17 +99,48 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
                 needLoad.add(userEntity);
             }
         }
-        if (CollectionUtils.isEmpty(needLoad))
+        if (needLoad.isEmpty())
             return;
 
         List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroups(apiUser.getDomainId(), apiUser.getBusinessAccountId(), needLoad.getIdSet());
         if (CollectionUtils.isEmpty(userGroups)) {
             return;
         }
+        userGroupMapService.loadUserGroup(userGroups);
         for (var userGroupMap : userGroups) {
             needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
         }
         userGroupsForActAsUserInvolve();
+    }
+
+    public void loadGroupsForDomainBusinessAccountUsers(Collection<DomainBusinessAccountUserEntity> entityList) throws ServiceException {
+        Map<UUID, Map<UUID, DomainBusinessAccountUserEntity>> needLoad = new HashMap<>();
+        ApiUser apiUser = authService.getApiUser();
+        for (DomainBusinessAccountUserEntity entity : entityList) {
+            if (!entity.getDomainId().equals(apiUser.getDomainId())) {
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "Unknown domain[{}]", entity.getDomainId());
+            }
+            if (entity.getUserGroupKit() == null) {
+                entity.setUserGroupKit(new Kit<>(UserGroupEntity::getId));
+                needLoad.computeIfAbsent(entity.getBusinessAccountId(), b -> new HashMap<>())
+                        .put(entity.getUserId(), entity);
+            }
+        }
+        if (needLoad.isEmpty())
+            return;
+        for (var entry : needLoad.entrySet()) {
+            var businessAccountId = entry.getKey();
+            var usersByUserId = entry.getValue();
+            List<UserGroupMapEntity> userGroups = userGroupMapRepository.getGroupsStrict(apiUser.getDomainId(), businessAccountId, usersByUserId.keySet());
+            if (CollectionUtils.isEmpty(userGroups))
+                continue;
+            userGroupMapService.loadUserGroup(userGroups);
+            for (UserGroupMapEntity userGroupMap : userGroups) {
+                DomainBusinessAccountUserEntity entity = usersByUserId.get(userGroupMap.getUserId());
+                if (entity != null)
+                    entity.getUserGroupKit().add(userGroupMap.getUserGroup());
+            }
+        }
     }
 
     private void userGroupsForActAsUserInvolve() throws ServiceException {
@@ -214,9 +249,9 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
             ChangesHelper changesHelper = new ChangesHelper();
             i18nService.updateI18nFieldForEntity(userGroup.getNameI18n(), I18nType.USER_GROUP_NAME, entity,
-                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18N, changesHelper);
+                    UserGroupEntity::getNameI18NId, UserGroupEntity::setNameI18NId, UserGroupEntity.Fields.nameI18NId, changesHelper);
             i18nService.updateI18nFieldForEntity(userGroup.getDescriptionI18n(), I18nType.USER_GROUP_DESCRIPTION, entity,
-                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18N, changesHelper);
+                    UserGroupEntity::getDescriptionI18NId, UserGroupEntity::setDescriptionI18NId, UserGroupEntity.Fields.descriptionI18NId, changesHelper);
             // todo for future, as at create
             // updateEntityFieldByValue(entity.getBusinessAccountId(), entity, UserGroupEntity::getBusinessAccountId, UserGroupEntity::setBusinessAccountId, UserGroupEntity.Fields.businessAccountId, changesHelper);
 

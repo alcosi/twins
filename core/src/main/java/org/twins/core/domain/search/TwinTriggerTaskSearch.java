@@ -3,7 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 
 import java.util.Set;
 import java.util.UUID;

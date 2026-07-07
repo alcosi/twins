@@ -1,0 +1,157 @@
+package org.twins.core.service.twinclass;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.KeyUtils;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.EntityDuplicateCollector;
+import org.twins.core.domain.twinclass.TwinClassDuplicate;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntityDuplicateService;
+import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinStatusDuplicateService;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassDuplicate, TwinClassEntity, Void> {
+    @Lazy
+    private final TwinClassService twinClassService;
+    @Lazy
+    private final TwinClassFieldDuplicateService twinClassFieldDuplicateService;
+    @Lazy
+    private final TwinStatusDuplicateService twinStatusDuplicateService;
+    @Lazy
+    private final AuthService authService;
+
+    @Override
+    protected EntitySecureFindServiceImpl<TwinClassEntity> entityService() {
+        return twinClassService;
+    }
+
+    @Override
+    protected EntitySecureFindServiceImpl<Void> entityParentService() {
+        return null; // top-level entity
+    }
+
+    @Override
+    protected Class<TwinClassEntity> getEntityClass() {
+        return TwinClassEntity.class;
+    }
+
+    @Override
+    protected Set<Class<?>> commitAfter() {
+        return Set.of(); // top-level
+    }
+
+    @Override
+    protected TwinClassDuplicate createNewDuplicate() {
+        return new TwinClassDuplicate();
+    }
+
+    @Override
+    protected void loadFor(Collection<Void> parents) {
+        // top-level entity — no parent, nothing to load
+    }
+
+    @Override
+    protected Kit<TwinClassEntity, UUID> extractorChildren(Void parent) {
+        return null; // top-level entity — never invoked
+    }
+
+    @Override
+    protected UUID extractParentId(Void parent) {
+        return null; // top-level entity — never invoked
+    }
+
+    @Override
+    protected org.cambium.common.exception.ErrorCode getKeyDuplicatedErrorCode() {
+        return ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE;
+    }
+
+    @Override
+    protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        TwinClassEntity original = duplicate.getOriginalEntity();
+        log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
+        return new TwinClassEntity()
+                .setId(null)
+                .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
+                .setCreatedByUserId(authService.getApiUser().getUser().getId())
+                .setPermissionSchemaSpace(original.getPermissionSchemaSpace())
+                .setTwinflowSchemaSpace(original.getTwinflowSchemaSpace())
+                .setTwinClassSchemaSpace(original.getTwinClassSchemaSpace())
+                .setAliasSpace(original.getAliasSpace())
+                .setAssigneeRequired(original.getAssigneeRequired())
+                .setAbstractt(original.getAbstractt())
+                .setUniqueName(original.getUniqueName())
+                .setExtendsTwinClassId(original.getExtendsTwinClassId())
+                .setHeadTwinClassId(original.getHeadTwinClassId())
+                .setIconDarkResourceId(original.getIconDarkResourceId())
+                .setIconDarkResource(original.getIconDarkResource())
+                .setIconLightResourceId(original.getIconLightResourceId())
+                .setIconLightResource(original.getIconLightResource())
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setDomainId(original.getDomainId())
+                .setOwnerType(original.getOwnerType())
+                .setViewPermissionId(original.getViewPermissionId())
+                .setCreatePermissionId(original.getCreatePermissionId())
+                .setSegment(original.getSegment())
+                .setHasSegment(false)
+                .setMarkerDataListId(original.getMarkerDataListId())
+                .setTagDataListId(original.getTagDataListId())
+                .setHeadHunterFeaturerId(original.getHeadHunterFeaturerId())
+                .setHeadHunterParams(original.getHeadHunterParams())
+                .setHasDynamicMarkers(false)
+                .setPageFaceId(original.getPageFaceId())
+                .setBreadCrumbsFaceId(original.getBreadCrumbsFaceId())
+                .setGeneralAttachmentRestrictionId(original.getGeneralAttachmentRestrictionId())
+                .setCommentAttachmentRestrictionId(original.getCommentAttachmentRestrictionId())
+                .setExternalId(original.getExternalId())
+                .setExternalProperties(original.getExternalProperties())
+                .setExternalJson(original.getExternalJson())
+                .setHeadHierarchyCounterDirectChildren(0)
+                .setExtendsHierarchyCounterDirectChildren(0)
+                .setTwinCounter(0);
+    }
+
+    @Override
+    protected List<I18nFieldDuplicate<TwinClassEntity>> i18nFields() {
+        return List.of(
+                I18nFieldDuplicate.of(TwinClassEntity::getNameI18NId,        TwinClassEntity::setNameI18NId),
+                I18nFieldDuplicate.of(TwinClassEntity::getDescriptionI18NId, TwinClassEntity::setDescriptionI18NId)
+        );
+    }
+
+    @Override
+    protected List<ChildCascade<TwinClassDuplicate, TwinClassEntity>> childCascades() {
+        return List.of(
+                new ChildCascade<>(TwinClassDuplicate::isDuplicateFields,   twinClassFieldDuplicateService),
+                new ChildCascade<>(TwinClassDuplicate::isDuplicateStatuses, twinStatusDuplicateService)
+        );
+    }
+
+    @Override
+    protected void afterCommit(Collection<TwinClassEntity> saved) throws ServiceException {
+        for (var savedClass : saved) {
+            twinClassService.refreshExtendsHierarchyTree(savedClass);
+            twinClassService.refreshHeadHierarchyTree(savedClass);
+        }
+    }
+
+    @Override
+    protected void setNewParentEntity(TwinClassEntity newEntity, Void parentEntity) {
+        // no parent
+    }
+}

@@ -91,8 +91,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setIdentityProvider(domainTypeEntity.getDefaultIdentityProvider())
                 .setIdentityProviderId(domainTypeEntity.getDefaultIdentityProvider().getId())
-                .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
-                .setUserGroupManagerFeaturer(domainTypeEntity.getDefaultUserGroupManagerFeaturer())
+                .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturerId())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())
                 .setAttachmentsStorageUsedSize(0L)
                 .setAttachmentsStorageUsedCount(0L);
@@ -144,6 +143,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setTwinClass(twinClassEntity)
+                .setInheritable(true)
                 .setKey("Active")
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME,"Active").getId());
         twinStatusEntity = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

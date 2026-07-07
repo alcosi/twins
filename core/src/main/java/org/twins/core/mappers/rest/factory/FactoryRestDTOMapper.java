@@ -74,10 +74,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
         }
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
-            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
-        }
-        if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE)) {
-            dst.setCreatedByUserId(src.getCreatedByUserId());
+            twinFactoryService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
         }
     }
@@ -115,5 +112,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             twinFactoryService.countFactoryBranches(srcCollection);
         if (showFactoryErasersCount(mapperContext))
             twinFactoryService.countFactoryErasers(srcCollection);
+        if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE))
+            twinFactoryService.loadCreatedByUser(srcCollection);
     }
 }

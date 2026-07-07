@@ -9,8 +9,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.Identifiable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Data
 @FieldNameConstants
-public class TwinFactoryConditionEntity implements EasyLoggable {
+public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
@@ -43,11 +43,6 @@ public class TwinFactoryConditionEntity implements EasyLoggable {
 
     @Column(name = "invert")
     private Boolean invert;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity conditionerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "conditioner_params", columnDefinition = "hstore")

@@ -40,9 +40,9 @@ public class FactoryResultUncommited {
     }
 
     public FactoryResultUncommited join(FactoryResultUncommited joinResult) {
-        creates.addAll(joinResult.getCreates());
-        updates.addAll(joinResult.getUpdates());
-        deletes.addAll(joinResult.getDeletes());
+        creates.addAll(joinResult.getCreates().getCollection());
+        updates.addAll(joinResult.getUpdates().getCollection());
+        deletes.addAll(joinResult.getDeletes().getCollection());
         committable = committable && joinResult.committable;
         return this;
     }

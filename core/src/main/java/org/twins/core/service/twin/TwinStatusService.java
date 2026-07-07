@@ -4,14 +4,11 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.CacheUtils;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.KitUtils;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +24,6 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
-import org.twins.core.domain.twinstatus.TwinStatusDuplicate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -38,7 +34,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.StreamSupport;
+
 
 
 @Lazy
@@ -92,48 +88,49 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return CacheSupportType.REQUEST;
     }
 
-    public Kit<TwinStatusEntity, UUID> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getTwinStatusKit() != null)
-            return twinClassEntity.getTwinStatusKit();
-        twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getId));
-        return twinClassEntity.getTwinStatusKit();
+    public void loadStatuses(TwinClassEntity twinClassEntity) {
+        loadStatuses(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadStatusesForTwinClasses(Collection<TwinClassEntity> twinClassEntities) {
-        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClassEntity : twinClassEntities)
-            if (twinClassEntity.getTwinStatusKit() == null)
-                needLoad.put(twinClassEntity.getId(), twinClassEntity);
-        if (needLoad.isEmpty())
-            return;
-        Set<UUID> allClassesSet = new HashSet<>();
-        for (TwinClassEntity twinClassEntity : needLoad.values())
-            if (twinClassEntity.getExtendedClassIdSet() != null)
-                allClassesSet.addAll(twinClassEntity.getExtendedClassIdSet());
-        List<TwinStatusEntity> twinStatusEntityList = twinStatusRepository.findByTwinClassIdIn(allClassesSet);
-        if (CollectionUtils.isEmpty(twinStatusEntityList))
-            return;
-        Map<UUID, List<TwinStatusEntity>> statussMap = new HashMap<>(); // key - twinClassId
-        for (TwinStatusEntity twinStatusEntity : twinStatusEntityList) { // grouping by twinClassId
-            statussMap.computeIfAbsent(twinStatusEntity.getTwinClassId(), k -> new ArrayList<>());
-            statussMap.get(twinStatusEntity.getTwinClassId()).add(twinStatusEntity);
+    public void loadStatuses(Collection<TwinClassEntity> twinClassEntities) {
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID> extendsClassesSet = null;
+        for (TwinClassEntity twinClassEntity : twinClassEntities) {
+            if (twinClassEntity.getTwinStatusKit() != null)
+                continue;
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
+            twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId)); //fix an allocation problem
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1) {
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+            }
         }
-        TwinClassEntity twinClassEntity;
-        List<TwinStatusEntity> statusList;
-        for (Map.Entry<UUID, TwinClassEntity> entry : needLoad.entrySet()) {
-            twinClassEntity = entry.getValue();
-            statusList = new ArrayList<>();
-            if (twinClassEntity.getExtendedClassIdSet() == null) { // it's strange, because in the simplest case class will have link to itself
-                if (statussMap.containsKey(twinClassEntity.getId()))
-                    statusList.addAll(statussMap.get(twinClassEntity.getId()));
-            } else {
-                for (UUID twinClassId : twinClassEntity.getExtendedClassIdSet()) {
-                    if (statussMap.containsKey(twinClassId))
-                        statusList.addAll(statussMap.get(twinClassId));
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
+        var loaded = twinStatusRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
+            return;
+        KitGrouped<TwinStatusEntity, UUID, UUID> statusGroupedByClass = new KitGrouped<>(loaded, TwinStatusEntity::getId, TwinStatusEntity::getTwinClassId);
+        for (var twinClassEntity : needLoad) {
+            for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                var statuses = statusGroupedByClass.getGrouped(extendsTwinClassId);
+                if (statuses == null)
+                    continue;
+                if (extendsTwinClassId.equals(twinClassEntity.getId())) {
+                    twinClassEntity.getTwinStatusKit().addAll(statuses); // we can add all statuses
+                    continue;
+                }
+                for (var statusInherited : statuses) {
+                    if (Boolean.TRUE.equals(statusInherited.getInheritable()))
+                        twinClassEntity.getTwinStatusKit().add(statusInherited);
                 }
             }
-            twinClassEntity.setTwinStatusKit(new Kit<>(statusList, TwinStatusEntity::getId));
         }
+    }
+
+    public List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIds) {
+        return twinStatusRepository.findByTwinClassIdIn(twinClassIds);
     }
 
     public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {
@@ -143,13 +140,13 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
     }
 
-
     @Transactional(rollbackFor = Throwable.class)
     public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setKey(KeyUtils.lowerCaseNullSafe(key, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId());
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId())
+                .setInheritable(true);
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         evictClassesCache(twinClassEntity);
@@ -163,6 +160,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setKey(KeyUtils.lowerCaseNullSafe(twinStatusEntity.getKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId())
                 .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
+        if (twinStatusEntity.getInheritable() == null) {
+            twinStatusEntity.setInheritable(true);
+        }
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         evictClassesCache(twinClassEntity);
@@ -248,94 +248,14 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatusRepository.existsByIdAndType(twinStatusId, StatusType.SKETCH);
     }
 
-    public void duplicateStatusesForClass(TwinClassEntity fromTwinClass, TwinClassEntity toTwinClass) throws ServiceException {
-        loadStatusesForTwinClasses(fromTwinClass);
-        if (KitUtils.isEmpty(fromTwinClass.getTwinStatusKit())) {
-            return;
-        }
-        var entitiesForSave = new ArrayList<TwinStatusEntity>();
-        TwinStatusEntity duplicateStatusEntity;
-        for (var originalStatus : fromTwinClass.getTwinStatusKit().getCollection()) {
-            if (!originalStatus.getTwinClassId().equals(fromTwinClass.getId()))
-                continue; //skipping inherited statuses
-            duplicateStatusEntity = duplicateStatusEntity(originalStatus, toTwinClass, originalStatus.getKey()); // we can copy the status with the same key
-            setI18nForDuplicate(originalStatus, duplicateStatusEntity);
-            entitiesForSave.add(duplicateStatusEntity);
-        }
-        //todo check uniq id and key before safe
-        saveSafe(entitiesForSave);
+    public void loadClass(TwinStatusEntity entity) throws ServiceException {
+        loadClass(Collections.singletonList(entity));
     }
 
-    @Transactional
-    public Collection<TwinStatusEntity> duplicate(Collection<TwinStatusDuplicate> duplicates) throws ServiceException {
-        if (CollectionUtils.isEmpty(duplicates)) {
-            return Collections.emptyList();
-        }
-        var newKeys = new HashSet<String>();
-        for (var duplicate : duplicates) {
-            if (newKeys.contains(duplicate.getNewKey()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT, "twinStatus key[" + duplicate.getNewKey() + "] is duplicated in request");
-            else
-                newKeys.add(duplicate.getNewKey());
-        }
-        loadOriginalTwinStatus(duplicates);
-        for (var duplicate : duplicates) {
-            if (duplicate.getNewTwinClassId() == null)
-                duplicate
-                        .setNewTwinClassId(duplicate.getOriginalTwinStatus().getTwinClassId()) // same class
-                        .setNewTwinClass(duplicate.getOriginalTwinStatus().getTwinClass());
-        }
-        loadNewClasses(duplicates);
-        var entitiesForSave = new ArrayList<TwinStatusEntity>();
-        TwinStatusEntity duplicateStatusEntity;
-        for (var duplicate : duplicates) {
-
-            duplicateStatusEntity = duplicateStatusEntity(duplicate.getOriginalTwinStatus(), duplicate.getNewTwinClass(), duplicate.getNewKey());
-            setI18nForDuplicate(duplicate.getOriginalTwinStatus(), duplicateStatusEntity);
-            entitiesForSave.add(duplicateStatusEntity);
-            if (duplicate.isDuplicateTriggers()) {
-                //todo implement in future
-            }
-        }
-        //todo check uniq id and key before safe
-        return StreamSupport.stream(saveSafe(entitiesForSave).spliterator(), false).toList();
-    }
-
-    private TwinStatusEntity duplicateStatusEntity(TwinStatusEntity srcFieldEntity, TwinClassEntity duplicateTwinClass, String newKey) throws ServiceException {
-        log.info("{} will be duplicated for {}", srcFieldEntity.logNormal(), duplicateTwinClass.logNormal());
-
-        return new TwinStatusEntity()
-                .setKey(KeyUtils.lowerCaseNullSafe(newKey, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
-                .setTwinClassId(duplicateTwinClass.getId())
-                .setTwinClass(duplicateTwinClass)
-                .setBackgroundColor(srcFieldEntity.getBackgroundColor())
-                .setFontColor(srcFieldEntity.getFontColor())
-                .setType(srcFieldEntity.getType());
-    }
-
-    private void setI18nForDuplicate(TwinStatusEntity src, TwinStatusEntity dst) {
-        //todo change to bulk
-        if (src.getNameI18nId() != null) {
-            dst.setNameI18nId(i18nService.duplicateI18n(src.getNameI18nId()).getId());
-        }
-        if (src.getDescriptionI18nId() != null) {
-            dst.setDescriptionI18nId(i18nService.duplicateI18n(src.getDescriptionI18nId()).getId());
-        }
-    }
-
-    private void loadOriginalTwinStatus(Collection<TwinStatusDuplicate> duplicates) throws ServiceException {
-        load(duplicates,
-                TwinStatusDuplicate::getNewTwinStatusId,
-                TwinStatusDuplicate::getOriginalTwinStatusId,
-                TwinStatusDuplicate::getOriginalTwinStatus,
-                TwinStatusDuplicate::setOriginalTwinStatus);
-    }
-
-    private void loadNewClasses(Collection<TwinStatusDuplicate> duplicates) throws ServiceException {
-        twinClassService.load(duplicates,
-                TwinStatusDuplicate::getNewTwinStatusId,
-                TwinStatusDuplicate::getNewTwinClassId,
-                TwinStatusDuplicate::getNewTwinClass,
-                TwinStatusDuplicate::setNewTwinClass);
+    public void loadClass(List<TwinStatusEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                TwinStatusEntity::getTwinClassId,
+                TwinStatusEntity::getTwinClass,
+                TwinStatusEntity::setTwinClass);
     }
 }

@@ -8,26 +8,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.MapUtils;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
+import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
-import org.twins.core.service.auth.AuthService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -38,9 +30,8 @@ import java.util.function.Function;
 public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<TwinFactoryPipelineStepEntity> {
     @Getter
     private final TwinFactoryPipelineStepRepository repository;
-    private final AuthService authService;
+    @Lazy
     private final FactoryPipelineService factoryPipelineService;
-    private final FeaturerService featurerService;
     private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
@@ -72,10 +63,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
             case beforeSave:
                 if (entity.getTwinFactoryPipeline() == null || !entity.getTwinFactoryPipeline().getId().equals(entity.getTwinFactoryPipelineId()))
                     entity.setTwinFactoryPipeline(factoryPipelineService.findEntitySafe(entity.getTwinFactoryPipelineId()));
-                if (entity.getFillerFeaturer() == null || !(entity.getFillerFeaturer().getId() == (entity.getFillerFeaturerId()))){
-                    entity.setFillerFeaturer(featurerService.checkValid(entity.getFillerFeaturerId(), entity.getFillerParams(), Filler.class));
-                    featurerService.prepareForStore(entity.getFillerFeaturerId(), entity.getFillerParams());
-                }
+                validateAndPrepareFeaturer(entity.getFillerFeaturerId(), entity.getFillerParams(), Filler.class);
                 if (entity.getTwinFactoryConditionSetId() != null && (entity.getTwinFactoryConditionSet() == null || !entity.getTwinFactoryConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
                     entity.setTwinFactoryConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
         }
@@ -111,24 +99,11 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
     }
 
     public void updateFillerFeaturerId(TwinFactoryPipelineStepEntity dbEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbEntity.getFillerFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbEntity.getFillerFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newFillerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Filler.class);
-            dbEntity
-                    .setFillerFeaturerId(newFillerFeaturer.getId())
-                    .setFillerFeaturer(newFillerFeaturer);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbEntity.getFillerParams(), newFeaturerParams)) {
-            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbEntity.getFillerParams(), newFeaturerParams);
-            dbEntity
-                    .setFillerParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbEntity, newFeaturerId, newFeaturerParams,
+                TwinFactoryPipelineStepEntity::getFillerFeaturerId, TwinFactoryPipelineStepEntity::setFillerFeaturerId,
+                TwinFactoryPipelineStepEntity::getFillerParams, TwinFactoryPipelineStepEntity::setFillerParams,
+                TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, TwinFactoryPipelineStepEntity.Fields.fillerParams,
+                Filler.class, changesHelper);
     }
 
     @Transactional
@@ -136,15 +111,44 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         deleteSafe(id);
     }
 
-    public void loadFiller(TwinFactoryPipelineStepEntity src) {
-        loadFillers(Collections.singleton(src));
+    public List<TwinFactoryPipelineStepEntity> findByTwinFactoryPipelineIdIn(Collection<UUID> pipelineIds) {
+        return repository.findByTwinFactoryPipelineIdInOrderByOrderAsc(pipelineIds);
     }
 
-    public void loadFillers(Collection<TwinFactoryPipelineStepEntity> srcCollection) {
-        featurerService.loadFeaturers(srcCollection,
+    public void loadFactoryPipelineSteps(TwinFactoryPipelineEntity pipeline) {
+        loadFactoryPipelineSteps(Collections.singletonList(pipeline));
+    }
+
+    public void loadFactoryPipelineSteps(Collection<TwinFactoryPipelineEntity> pipelines) {
+        loadKit(
+                pipelines,
+                TwinFactoryPipelineEntity::getId,
+                TwinFactoryPipelineEntity::getTwinFactoryPipelineStepKit,
+                TwinFactoryPipelineEntity::setTwinFactoryPipelineStepKit,
+                repository::findByTwinFactoryPipelineIdInOrderByOrderAsc,
                 TwinFactoryPipelineStepEntity::getId,
-                TwinFactoryPipelineStepEntity::getFillerFeaturerId,
-                TwinFactoryPipelineStepEntity::getFillerFeaturer,
-                TwinFactoryPipelineStepEntity::setFillerFeaturer);
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId);
+    }
+
+    public void loadPipeline(TwinFactoryPipelineStepEntity src) throws ServiceException {
+        loadPipeline(Collections.singletonList(src));
+    }
+
+    public void loadPipeline(List<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
+        factoryPipelineService.load(srcCollection,
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipeline,
+                TwinFactoryPipelineStepEntity::setTwinFactoryPipeline);
+    }
+
+    public void loadConditionSet(TwinFactoryPipelineStepEntity src) throws ServiceException {
+        loadConditionSet(Collections.singletonList(src));
+    }
+
+    public void loadConditionSet(Collection<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
+        factoryConditionSetService.load(srcCollection,
+                TwinFactoryPipelineStepEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet,
+                TwinFactoryPipelineStepEntity::setTwinFactoryConditionSet);
     }
 }

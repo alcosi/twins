@@ -1,15 +1,19 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSearchBySpaceRoleUser;
 import org.twins.core.dto.rest.twin.*;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.HierarchySearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.permission.PermissionService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +28,7 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
     private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
     private final HierarchySearchRestDTOReverseMapper hierarchySearchRestDTOReverseMapper;
     private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
+    private final PermissionService permissionService;
 
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
@@ -52,6 +57,8 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTagDataListOptionIdExcludeList(convertToSetSafe(src.getTagDataListOptionIdExcludeList()))
                 .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
                 .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
+                .setFlavorDataListOptionIdList(convertToSetSafe(src.getFlavorDataListOptionIdList()))
+                .setFlavorDataListOptionIdExcludeList(convertToSetSafe(src.getFlavorDataListOptionIdExcludeList()))
                 .setTouchList(convertToSetSafe(src.getTouchList()))
                 .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()))
                 .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
@@ -94,6 +101,21 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                     dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
                 }
             }
+        if (src.getSpaceRoleUsersList() != null) {
+            List<TwinSearchBySpaceRoleUser> spaceRoleUsersSearch = new ArrayList<>();
+            for (TwinSearchBySpaceRoleUserDTOv1 spaceRoleUserDTO : src.getSpaceRoleUsersList()) {
+                spaceRoleUsersSearch.add(new TwinSearchBySpaceRoleUser()
+                        .setSpaceRoleId(spaceRoleUserDTO.getSpaceRoleId())
+                        .setUserIdList(convertToSetSafe(spaceRoleUserDTO.getUserIdList())));
+            }
+            dst.setSpaceRoleUsersList(spaceRoleUsersSearch);
+        }
+        if (src.getOwnerBusinessAccountIdList() != null) {
+            if (permissionService.canViewTwinsOwnedByBusinessAccounts(src.getOwnerBusinessAccountIdList())) // early check. duplicated on service level
+                dst.setOwnerBusinessAccountIdList(src.getOwnerBusinessAccountIdList());
+            else
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "Viewing other BA twins is not allowed for current user");
+        }
         if (CollectionUtils.isEmpty(src.getFields())) {
             dst
                     .setFieldsFilter(twinFieldsFilterDTOReverseMapper.convert(src.getFieldsFilter()));

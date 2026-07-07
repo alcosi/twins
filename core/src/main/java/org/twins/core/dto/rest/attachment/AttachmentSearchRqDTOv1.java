@@ -11,6 +11,7 @@ import org.twins.core.dto.rest.Request;
 import java.util.Set;
 import java.util.UUID;
 
+@Deprecated
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)

@@ -3,6 +3,7 @@ package org.twins.core.featurer.scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -78,7 +79,7 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         }
     }
 
-    private List<E> collectTasks(Integer batchSize) {
+    private List<E> collectTasks(Integer batchSize) throws ServiceException {
         log.debug("Loading tasks from database");
 
         if (batchSize == null) {
@@ -90,15 +91,7 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
 
     protected abstract Class<T> getTaskClass();
     protected abstract Collection<E> setStatusAndSave(Collection<E> collectedEntities);
-
-    /**
-     * Reverts the entity back to the status from which it would be collected again
-     * and persists it. Invoked when task bean creation or executor submission fails,
-     * so the entity does not stay stuck in the IN_PROGRESS status (which nothing
-     * re-collects).
-     */
-    protected abstract void revertStatusAndSave(E entity);
-
-    protected abstract List<E> collectAll();
+    protected abstract List<E> collectAll() throws ServiceException;
     protected abstract List<E> collectBatch(int batchSize);
+    protected abstract void revertStatusAndSave(E entity);
 }

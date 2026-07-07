@@ -1,11 +1,14 @@
 package org.twins.core.featurer.notificator.context;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Map;
 import java.util.Properties;
@@ -37,8 +40,12 @@ public abstract class ContextCollectorUser extends ContextCollector {
     @FeaturerParam(name = "Collect avatar key", description = "", order = 8, optional = true, defaultValue = "USER_AVATAR")
     public static final FeaturerParamString collectAvatarKey = new FeaturerParamString("collectAvatarKey");
 
+    @Autowired
+    private TwinService twinService;
+
     @Override
-    protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) {
+    protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
+        twinService.loadUser(history.getTwin());
         UserEntity user = getUser(history, properties);
 
         if (user != null) { //todo logic if null

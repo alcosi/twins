@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
@@ -75,6 +76,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     @Lazy
     private final DataListService dataListService;
     private final UserGroupService userGroupService;
+    @Lazy
+    private final DomainBusinessAccountUserService domainBusinessAccountUserService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
@@ -209,7 +212,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadTwinflowSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         twinflowSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getTwinflowSchemaId,
                 DomainBusinessAccountEntity::getTwinflowSchema,
                 DomainBusinessAccountEntity::setTwinflowSchema);
@@ -221,10 +223,20 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadTwinClassSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         twinClassSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getTwinClassSchemaId,
                 DomainBusinessAccountEntity::getTwinClassSchema,
                 DomainBusinessAccountEntity::setTwinClassSchema);
+    }
+
+    public void loadPermissionSchema(DomainBusinessAccountEntity src) throws ServiceException {
+        loadPermissionSchema(Collections.singletonList(src));
+    }
+
+    public void loadPermissionSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        permissionSchemaService.load(srcCollection,
+                DomainBusinessAccountEntity::getPermissionSchemaId,
+                DomainBusinessAccountEntity::getPermissionSchema,
+                DomainBusinessAccountEntity::setPermissionSchema);
     }
 
     public void loadNotificationSchema(DomainBusinessAccountEntity src) throws ServiceException {
@@ -233,9 +245,48 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public void loadNotificationSchema(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
         notificationSchemaService.load(srcCollection,
-                DomainBusinessAccountEntity::getId,
                 DomainBusinessAccountEntity::getNotificationSchemaId,
                 DomainBusinessAccountEntity::getNotificationSchema,
                 DomainBusinessAccountEntity::setNotificationSchema);
+    }
+
+
+    public void loadTier(DomainBusinessAccountEntity entity) throws ServiceException {
+        loadTier(Collections.singletonList(entity));
+    }
+
+    public void loadTier(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        tierService.load(srcCollection,
+                DomainBusinessAccountEntity::getTierId,
+                DomainBusinessAccountEntity::getTier,
+                DomainBusinessAccountEntity::setTier);
+    }
+
+    public void loadUserCount(DomainBusinessAccountEntity entity) throws ServiceException {
+        loadUserCount(Collections.singletonList(entity));
+    }
+
+    public void loadUserCount(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        var needLoad = getNeedLoad(srcCollection, DomainBusinessAccountEntity::getUsersCount);
+        if (MapUtils.isEmpty(needLoad))
+            return;
+        List<EntryCount> entryCounts = domainBusinessAccountUserService.getUsersCount(needLoad.keySet());
+        for (EntryCount entryCount : entryCounts) {
+            needLoad.get(entryCount.id()).setUsersCount(entryCount.count());
+        }
+    }
+
+    public void loadTwinCount(DomainBusinessAccountEntity entity) throws ServiceException {
+        loadTwinCount(Collections.singletonList(entity));
+    }
+
+    public void loadTwinCount(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
+        var needLoad = getNeedLoad(srcCollection, DomainBusinessAccountEntity::getTwinsCount);
+        if (MapUtils.isEmpty(needLoad))
+            return;
+        List<EntryCount> entryCounts = twinService.getTwinsCount(needLoad.keySet());
+        for (var entryCount : entryCounts) {
+            needLoad.get(entryCount.id()).setTwinsCount(entryCount.count());
+        }
     }
 }

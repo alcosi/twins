@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import static org.cambium.common.util.CacheUtils.evictCache;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.CacheManager;
@@ -22,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -35,6 +36,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.cambium.common.util.CacheUtils.evictCache;
+
 @Slf4j
 @Service
 @Lazy
@@ -46,6 +49,7 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
     private final AuthService authService;
     private final FactoryService factoryService;
     private final CacheManager cacheManager;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinFactoryConditionSetEntity, UUID> entityRepository() {
@@ -156,9 +160,34 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
 
     public void loadFactory(Collection<TwinFactoryConditionSetEntity> collection) throws ServiceException {
         factoryService.load(collection,
-                TwinFactoryConditionSetEntity::getId,
                 TwinFactoryConditionSetEntity::getTwinFactoryId,
                 TwinFactoryConditionSetEntity::getTwinFactory,
                 TwinFactoryConditionSetEntity::setTwinFactory);
+    }
+
+    public void loadCreatedByUser(TwinFactoryConditionSetEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<TwinFactoryConditionSetEntity> entities) throws ServiceException {
+        userService.load(entities,
+                TwinFactoryConditionSetEntity::getCreatedByUserId,
+                TwinFactoryConditionSetEntity::getCreatedByUser,
+                TwinFactoryConditionSetEntity::setCreatedByUser);
+    }
+
+    public void loadFactoryConditionSets(TwinFactoryEntity factory) {
+        loadFactoryConditionSets(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryConditionSets(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryConditionSetKit,
+                TwinFactoryEntity::setTwinFactoryConditionSetKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryConditionSetEntity::getId,
+                TwinFactoryConditionSetEntity::getTwinFactoryId);
     }
 }

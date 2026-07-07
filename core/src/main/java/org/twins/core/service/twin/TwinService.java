@@ -11,6 +11,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.*;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
@@ -26,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
 import org.twins.core.dao.QuotaKey;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
@@ -35,9 +35,11 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.*;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.enums.history.HistoryType;
@@ -53,6 +55,7 @@ import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -63,6 +66,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
 
 import java.math.BigDecimal;
@@ -127,6 +131,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldAttributeService twinFieldAttributeService;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final FaceService faceService;
+    @Lazy
+    private final TwinflowTransitionService twinflowTransitionService;
     private final UserService userService;
     @Autowired
     private TwinflowFactoryService twinflowFactoryService;
@@ -136,6 +144,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private CommentService commentService;
     @Autowired
     private TwinSearchService twinSearchService;
+    @Autowired
+    private TwinSearchServiceV2 twinSearchServiceV2;
     @Lazy
     @Autowired
     private ErrorRepository errorRepository;
@@ -143,6 +153,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private DomainBusinessAccountService domainBusinessAccountService;
     @Autowired
     private TwinFieldRuleExecutionService twinFieldRuleExecutionService;
+    @Autowired
+    private TwinActionService twinActionService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -223,7 +235,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {
-        return twinAliasService.findAlias(twinAlias).getTwin();
+        return twinAliasService.findTwinByAlias(twinAlias);
     }
 
     public TwinEntity findHeadTwin(UUID twinId) {
@@ -336,7 +348,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinField wrapField(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        if (!twinClassService.isInstanceOf(twinEntity.getTwinClass(), twinClassFieldEntity.getTwinClassId()))
+        if (twinClassFieldService.isInvalidForClass(twinEntity.getTwinClass(), twinClassFieldEntity))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, twinClassFieldEntity.logShort()
                     + "is nou suitable for " + twinEntity.logNormal());
         return new TwinField(twinEntity, twinClassFieldEntity);
@@ -393,7 +405,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     protected void createTwins(TwinCreateStage twinCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        var twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
+        var twinEntities = initIds(twinCreateList);
         loadClass(twinEntities);
         var twinsGroupedByClass = new KitGroupedObj<>(
                 twinEntities,
@@ -438,6 +450,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
             runFactoryAfterCreate(twinCreate, twinChangesCollector);
         }
+    }
+
+    private static ArrayList<TwinEntity> initIds(TwinCreateStage twinCreateList) {
+        var twinEntities = new ArrayList<TwinEntity>();
+        for (var twinCreate : twinCreateList) {
+            var entity = twinCreate.getTwinEntity();
+            if (entity.getId() == null) {
+                entity.setId(UUID.randomUUID());
+            }
+            twinEntities.add(entity);
+        }
+        return twinEntities;
     }
 
     public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException {
@@ -559,7 +583,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     twin.setPermissionSchemaId(authService.getApiUser().getUser().getDetectedPermissionSchemaId());
                 }
             }
-            if (CollectionUtils.isNotEmpty(twinToCheck)) {
+            if (KitUtils.isNotEmpty(twinToCheck)) {
                 var validHeads = twinHeadService.checkValidHeadsForClass(twinToCheck.getGroupedKeySet(), twinClass);
                 for (var twin : twinToCheck) {
                     var headTwin = validHeads.get(twin.getHeadTwinId());
@@ -602,20 +626,53 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinStatusId(sketchStatus.getId());
     }
 
-    public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if (null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        return twinEntity.getTwinClass().getDeletePermissionId();
+    public void checkDeletePermission(Collection<TwinEntity> twinCollection) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinCollection))
+            return;
+        for (var twinEntity : twinCollection) {
+            checkCrossBusinessAccountAccess(twinEntity);
+        }
+        twinActionService.checkAllowed(twinCollection, TwinAction.DELETE);
     }
 
     public void checkDeletePermission(TwinEntity twinEntity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID deletePermissionId = detectDeletePermissionId(twinEntity);
-        if (null == deletePermissionId)
+        checkCrossBusinessAccountAccess(twinEntity);
+        twinActionService.checkAllowed(twinEntity, TwinAction.DELETE);
+    }
+
+    public void checkUpdatePermission(TwinEntity twinEntity) throws ServiceException {
+        checkUpdatePermission(Collections.singletonList(twinEntity));
+    }
+
+    public void checkUpdatePermission(Collection<TwinEntity> twinCollection) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinCollection) || permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
             return;
-        boolean hasPermission = permissionService.hasPermission(twinEntity, deletePermissionId);
-        if (!hasPermission)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DELETE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to delete " + twinEntity.logNormal());
+        for (var twinEntity : twinCollection) {
+            checkCrossBusinessAccountAccess(twinEntity);
+        }
+        twinActionService.checkAllowed(twinCollection, TwinAction.EDIT);
+    }
+
+    public void checkUpdatePermissionBatch(Collection<TwinUpdate> twinCollection) throws ServiceException {
+        List<TwinEntity> needCheckTwins = null;
+        for (var twinUpdate : twinCollection) {
+            if (!twinUpdate.isChanged() || !twinUpdate.isCheckEditPermission())
+                continue;
+            if (needCheckTwins == null) {
+                needCheckTwins = new ArrayList<>();
+            }
+            needCheckTwins.add(twinUpdate.getDbTwinEntity());
+            twinUpdate.setCheckEditPermission(false); //this is safe here, because checkUpdatePermission does not need this flag any more
+        }
+        checkUpdatePermission(needCheckTwins);
+    }
+
+    private void checkCrossBusinessAccountAccess(TwinEntity twinEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (twinEntity.getTwinClass().getOwnerType().isBusinessAccountLevel() && twinEntity.getOwnerBusinessAccountId() != null) {
+            if (!apiUser.isBusinessAccountSpecified() || !apiUser.getBusinessAccountId().equals(twinEntity.getOwnerBusinessAccountId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_ACCESS_DENIED, "incorrect business account");
+        }
     }
 
     public void checkCreatePermission(List<TwinEntity> twinEntities) throws ServiceException {
@@ -687,23 +744,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if (null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        return twinEntity.getTwinClass().getEditPermissionId();
-    }
-
-    public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
-        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
-            return;
-        UUID updatePermissionId = detectUpdatePermissionId(twinEntity);
-        if (null == updatePermissionId)
-            return;
-        boolean hasPermission = permissionService.hasPermission(twinEntity, updatePermissionId);
-        if (!hasPermission)
-            throw new ServiceException(ErrorCodeTwins.TWIN_UPDATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to edit " + twinEntity.logNormal());
-    }
-
     public TwinEntity fillOwner(TwinEntity twinEntity) throws ServiceException {
         TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
         ApiUser apiUser = authService.getApiUser();
@@ -747,7 +787,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (!twinEntity.isCreateElseUpdate()) {
                 basicSearch.setTwinIdExcludeList(Set.of(twinEntity.getId()));
             }
-            if (twinSearchService.exists(basicSearch)) {
+            if (twinSearchServiceV2.exists(basicSearch)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_NAME_IS_NOT_UNIQUE);
             }
         }
@@ -846,9 +886,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinBatchFieldValidationException batchFieldValidationException = null;
         var twinUpdatesWithFields = twinUpdates.stream().filter(twinUpdate -> MapUtils.isNotEmpty(twinUpdate.getFields())).map(TwinUpdate::getDbTwinEntity).toList();
         loadFieldEditability(twinUpdatesWithFields);
+        checkUpdatePermissionBatch(twinUpdates);
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
-
             ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
                     twinUpdate.getDbTwinEntity(),
                     twinUpdate.getTwinEntity(),
@@ -877,9 +917,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
         if (!twinUpdate.isChanged())
             return;
-        ApiUser apiUser = authService.getApiUser();
         if (twinUpdate.isCheckEditPermission())
-            checkUpdatePermission(twinUpdate.getDbTwinEntity(), apiUser);
+            checkUpdatePermission(twinUpdate.getDbTwinEntity());
         if (twinUpdate.getTwinEntity().getTwinClassId() == null && twinUpdate.getDbTwinEntity() != null) {
             twinUpdate.getTwinEntity()
                     .setTwinClassId(twinUpdate.getDbTwinEntity().getTwinClassId())
@@ -929,9 +968,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return mergedTwinEntity.getFieldRulesApplyResult().getAllRequiredFieldsFilled();
         }
         loadFieldsValues(twinUpdate.getDbTwinEntity());
-        var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId);
+        var mergedValuesKit = new Kit<>(FieldValue::getTwinClassFieldId, DuplicateKeyMode.REPLACE);
         if (KitUtils.isNotEmpty(mergedTwinEntity.getFieldValuesKit())) {
-            mergedValuesKit.addAll(mergedTwinEntity.getFieldValuesKit());
+            mergedValuesKit.addAll(mergedTwinEntity.getFieldValuesKit().getCollection());
         }
         // let's override with updates
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
@@ -1029,7 +1068,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
             if (changesRecorder.isHistoryCollectorEnabled()) {
                 if (newAssignee != null) {
-                    changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+                    if (changesRecorder.getDbEntity().getAssignerUserId() == null) {
+                        changesRecorder.getHistoryCollector().add(historyService.assigneeAssigned(newAssignee));
+                    } else {
+                        changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
+                    }
                 } else {
                     changesRecorder.getHistoryCollector().add(historyService.assigneeUnassigned(changesRecorder.getDbEntity().getAssignerUser()));
                 }
@@ -1055,6 +1098,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
                 twinEntity
                         .setHeadTwinId(headTwin.getId())
+                        .setHeadTwin(headTwin)
                         .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
         }
     }
@@ -1149,31 +1193,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinEntity loadSpaceForTwin(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getSpaceTwin() != null)
             return twinEntity.getSpaceTwin();
-        loadHeadForTwin(twinEntity);
+        loadHead(twinEntity);
         if (twinEntity.getHeadTwin() == null)
             return null;
         twinEntity.setSpaceTwin(findSpaceForTwin(twinEntity, twinEntity.getHeadTwin(), 10));
         return twinEntity.getSpaceTwin();
     }
 
-    public TwinEntity loadHeadForTwin(TwinEntity twinEntity) throws ServiceException {
-        loadHeadForTwin(Collections.singletonList(twinEntity));
+    public TwinEntity loadHead(TwinEntity twinEntity) throws ServiceException {
+        loadHead(Collections.singletonList(twinEntity));
         return twinEntity.getHeadTwin();
     }
 
-    public void loadHeadForTwin(Collection<TwinEntity> srcCollection) throws ServiceException {
-        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getHeadTwinId);
-        for (var twin : srcCollection) {
-            if (twin.getHeadTwin() != null || twin.getHeadTwinId() == null)
-                continue;
-            needLoad.add(twin);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        Kit<TwinEntity, UUID> heads = findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twin : needLoad) {
-            twin.setHeadTwin(heads.get(twin.getHeadTwinId()));
-        }
+    public void loadHead(Collection<TwinEntity> srcCollection) throws ServiceException {
+        load(srcCollection,
+                TwinEntity::getHeadTwinId,
+                TwinEntity::getHeadTwin,
+                TwinEntity::setHeadTwin);
     }
 
     public void loadSegments(TwinEntity twinEntity) {
@@ -1212,7 +1248,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             log.warn("Can not detect space for " + twinEntity.logShort());
             return null;
         } else {
-            loadHeadForTwin(headTwin);
+            loadHead(headTwin);
             return findSpaceForTwin(twinEntity, headTwin.getHeadTwin(), recursionDepth - 1);
         }
     }
@@ -1623,6 +1659,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinClassFieldEntity inheritedTwinClassFieldEntity : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (skipFromTwinClass != null && skipFromTwinClass.getTwinClassFieldKit().containsKey(inheritedTwinClassFieldEntity.getId()))
                 continue;
+            if (Boolean.FALSE.equals(inheritedTwinClassFieldEntity.getInheritable()))
+                continue;
             var fieldTyper = featurerService.getFeaturer(inheritedTwinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
             TwinFieldStorage twinFieldStorage = fieldTyper.getStorage(inheritedTwinClassFieldEntity);
             inheritedTwinClassFieldIdsByStorage
@@ -1836,22 +1874,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 continue;
             }
 
-            for (var rule : rules.getGrouped(TwinClassFieldAction.EDIT)) {
-                if (!rule.isActive()) continue;
+            List<TwinClassFieldActionValidatorRuleEntity> activeRules = rules.getGrouped(TwinClassFieldAction.EDIT).stream()
+                    .filter(TwinClassFieldActionValidatorRuleEntity::isActive)
+                    .toList();
 
-                Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, rule);
-
-                Iterator<TwinEntity> iterator = twins.iterator();
-                while (iterator.hasNext()) {
-                    var twin = iterator.next();
-                    if (!batchResults.get(twin.getId()).isValid()) {
-                        twin.getTwinFieldEditability().put(field.getId(), false);
-                        iterator.remove();
-                    }
+            if (activeRules.isEmpty()) {
+                for (var twin : twins) {
+                    twin.getTwinFieldEditability().put(field.getId(), true);
                 }
+                continue;
+            }
 
-                if (twins.isEmpty()) {
-                    break;
+            Map<UUID, ValidationResult> batchResults = twinValidatorSetService.isValid(twins, activeRules);
+
+            for (var twin : twins) {
+                if (!batchResults.get(twin.getId()).isValid()) {
+                    twin.getTwinFieldEditability().put(field.getId(), false);
                 }
             }
         }
@@ -1884,23 +1922,44 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinRepository.countPermissionSchemaMismatches();
     }
 
-    public void loadTwinCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
-        loadTwinCountForDomainBusinessAccounts(Collections.singletonList(dba));
-    }
-
-
-    public void loadTwinCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
-        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getTwinsCount);
-        if (MapUtils.isEmpty(needLoad))
-            return;
-        List<EntryCount> entryCounts = twinRepository.countTwinsInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
-        for (var entryCount : entryCounts) {
-            needLoad.get(entryCount.id()).setTwinsCount(entryCount.count());
-        }
+    public List<EntryCount> getTwinsCount(Set<UUID> businessAccounts) throws ServiceException {
+        return twinRepository.countTwinsInBusinessAccounts(businessAccounts, authService.getApiUser().getDomainId());
     }
 
     public boolean isRequired(TwinEntity twin, TwinClassFieldEntity twinClassField) {
         return twinFieldRuleExecutionService.isRequired(twin, twinClassField);
+    }
+
+    public void loadStatus(TwinEntity entity) throws ServiceException {
+        loadStatus(Collections.singletonList(entity));
+    }
+
+    public void loadStatus(Collection<TwinEntity> entities) throws ServiceException {
+        twinStatusService.load(entities,
+                TwinEntity::getTwinStatusId,
+                TwinEntity::getTwinStatus,
+                TwinEntity::setTwinStatus);
+    }
+
+    public void loadUser(TwinEntity entity) throws ServiceException {
+        loadUser(Collections.singletonList(entity));
+    }
+
+    public void loadUser(Collection<TwinEntity> entities) throws ServiceException {
+        userService.load(entities,
+                new LoadedField<>(
+                        TwinEntity::getOwnerUserId,
+                        TwinEntity::getOwnerUser,
+                        TwinEntity::setOwnerUser),
+                new LoadedField<>(
+                        TwinEntity::getAssignerUserId,
+                        TwinEntity::getAssignerUser,
+                        TwinEntity::setAssignerUser),
+                new LoadedField<>(
+                        TwinEntity::getCreatedByUserId,
+                        TwinEntity::getCreatedByUser,
+                        TwinEntity::setCreatedByUser
+                ));
     }
 
     @Data
@@ -2060,7 +2119,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void loadClass(Collection<TwinEntity> collection) throws ServiceException {
         twinClassService.load(collection,
-                TwinEntity::getId,
                 TwinEntity::getTwinClassId,
                 TwinEntity::getTwinClass,
                 TwinEntity::setTwinClass);
@@ -2182,5 +2240,45 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (dep != null) {
             acc.add(dep);
         }
+    }
+
+    public void loadAttachments(TwinEntity src) {
+        attachmentService.loadAttachments(src);
+    }
+
+    public void loadAttachments(Collection<TwinEntity> srcCollection) {
+        attachmentService.loadAttachments(srcCollection);
+    }
+
+    public void loadAttachmentsCount(TwinEntity src) {
+        attachmentService.loadAttachmentsCount(Collections.singletonList(src));
+    }
+
+    public void loadAttachmentsCount(Collection<TwinEntity> srcCollection) {
+        attachmentService.loadAttachmentsCount(srcCollection);
+    }
+
+    public void loadTwinLinks(TwinEntity src) throws ServiceException {
+        twinLinkService.loadTwinLinks(src);
+    }
+
+    public void loadTwinLinks(Collection<TwinEntity> srcCollection) throws ServiceException {
+        twinLinkService.loadTwinLinks(srcCollection);
+    }
+
+    public void loadValidTransitions(TwinEntity src) throws ServiceException {
+        twinflowTransitionService.loadValidTransitions(src);
+    }
+
+    public void loadValidTransitions(Collection<TwinEntity> srcCollection) throws ServiceException {
+        twinflowTransitionService.loadValidTransitions(srcCollection);
+    }
+
+    public void loadFaces(TwinEntity src) {
+        faceService.loadFaces(src);
+    }
+
+    public void loadFaces(Collection<TwinEntity> srcCollection) {
+        faceService.loadFaces(srcCollection);
     }
 }

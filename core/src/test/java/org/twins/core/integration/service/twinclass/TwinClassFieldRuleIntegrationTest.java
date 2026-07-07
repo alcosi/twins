@@ -184,6 +184,7 @@ public class TwinClassFieldRuleIntegrationTest extends BaseIntegrationTest {
                 .setFieldInitializerFeaturerId(2601)
                 .setRequired(false)
                 .setSystem(false)
+                .setInheritable(false)
                 .setDependentField(false)
                 .setHasDependentFields(false)
                 .setProjectionField(false)

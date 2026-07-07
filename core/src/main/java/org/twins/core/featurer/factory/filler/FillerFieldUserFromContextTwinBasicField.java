@@ -38,30 +38,33 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
 
     @Lazy
     @Autowired
-    TwinService twinService;
+    private TwinClassFieldService twinClassFieldService;
 
     @Lazy
     @Autowired
-    private TwinClassFieldService twinClassFieldService;
+    private TwinService twinService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.checkSingleContextTwin();
         TwinBasicFields.Basics fieldName = field.extract(properties);
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
+        twinService.loadUser(factoryItemTwin);
         switch (fieldName) {
-            case createdByUserId:
-                if(null == factoryItemTwin.getCreatedByUserId())
+            case createdByUserId -> {
+                if (null == factoryItemTwin.getCreatedByUserId()) {
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No creator detected for twin: " + factoryItemTwin.logDetailed());
+                }
                 fieldValue.add(factoryItemTwin.getCreatedByUser());
-                break;
-            case assigneeUserId:
-                if(null == factoryItemTwin.getAssignerUserId())
+            }
+            case assigneeUserId -> {
+                if (null == factoryItemTwin.getAssignerUserId()) {
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee detected for twin: " + factoryItemTwin.logDetailed());
+                }
                 fieldValue.add(factoryItemTwin.getAssignerUser());
-                break;
-            default:
-                throw new ServiceException(ErrorCodeTwins.TWIN_BASIC_FIELD_UNKNOWN, "Unknown/Unsupported in featurer twin basic field: " + fieldName);
+            }
+            default ->
+                    throw new ServiceException(ErrorCodeTwins.TWIN_BASIC_FIELD_UNKNOWN, "Unknown/Unsupported in featurer twin basic field: " + fieldName);
         }
         factoryItem.getOutput().addField(fieldValue);
     }

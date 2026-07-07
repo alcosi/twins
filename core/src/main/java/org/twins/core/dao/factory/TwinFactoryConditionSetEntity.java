@@ -1,14 +1,14 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_condition_set")
-public class TwinFactoryConditionSetEntity implements EasyLoggable {
+public class TwinFactoryConditionSetEntity implements EasyLoggable, Identifiable {
     @Id
     private UUID id;
 
@@ -54,10 +54,17 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
     @Transient
     private TwinFactoryEntity twinFactory;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Transient
@@ -74,6 +81,11 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
 
     @Transient
     private Integer inFactoryEraserUsagesCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFactoryConditionEntity, UUID> twinFactoryConditionKit;
 
     @Override
     public String easyLog(Level level) {

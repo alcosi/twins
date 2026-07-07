@@ -37,12 +37,12 @@ public class FillerBasicsFieldFromTwinField extends Filler {
 
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        UUID fieldId = FillerBasicsFieldFromTwinField.fieldId.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, fieldId);
+        UUID sourceFieldId = fieldId.extract(properties);
+        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, sourceFieldId);
         String fieldName;
         switch (fieldValue) {
-            case FieldValueText fieldValueText -> fieldName = handleTextField(fieldId, fieldValueText, outputTwinEntity);
-            case FieldValueUser fieldValueUser -> fieldName = handleUserField(fieldId, fieldValueUser, outputTwinEntity, fieldValue);
+            case FieldValueText fieldValueText -> fieldName = handleTextField(sourceFieldId, fieldValueText, outputTwinEntity);
+            case FieldValueUser fieldValueUser -> fieldName = handleUserField(fieldValueUser, outputTwinEntity, fieldValue, sourceFieldId);
             default -> throw new ServiceException(
                     ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE,
                     fieldValue.getTwinClassField().logShort() + " is incorrect field type"
@@ -52,30 +52,30 @@ public class FillerBasicsFieldFromTwinField extends Filler {
         );
     }
 
-    private String handleTextField(UUID fieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
-        if (fieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME)) {
+    private String handleTextField(UUID sourceFieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
+        if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME)) {
             outputTwinEntity.setName(fieldValueText.getValue());
             return TwinEntity.Fields.name;
-        } else if (fieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION)) {
+        } else if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION)) {
             outputTwinEntity.setDescription(fieldValueText.getValue());
             return TwinEntity.Fields.description;
         }
         return null;
     }
 
-    private String handleUserField(UUID fieldId, FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue) throws ServiceException {
+    private String handleUserField(FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue, UUID sourceFieldId) throws ServiceException {
         if (fieldValueUser.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
         } else if (fieldValueUser.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
         } else {
             UserEntity user = fieldValueUser.getItems().getFirst();
-            if (fieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER)) {
+            if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID)) {
                 outputTwinEntity
                         .setAssignerUser(user)
                         .setAssignerUserId(user.getId());
                 return TwinEntity.Fields.assignerUserId;
-            } else if (fieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER)) {
+            } else if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID)) {
                 outputTwinEntity
                         .setCreatedByUser(user)
                         .setCreatedByUserId(user.getId());

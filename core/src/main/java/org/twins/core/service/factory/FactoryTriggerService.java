@@ -4,16 +4,17 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
 import org.twins.core.service.trigger.TwinTriggerService;
@@ -30,6 +31,7 @@ import java.util.stream.StreamSupport;
 @AllArgsConstructor
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
+    @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
@@ -131,7 +133,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     public void loadFactories(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
         twinFactoryService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
                 TwinFactoryTriggerEntity::getTwinFactoryId,
                 TwinFactoryTriggerEntity::getTwinFactory,
                 TwinFactoryTriggerEntity::setTwinFactory);
@@ -143,7 +144,6 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     public void loadClasses(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
         twinClassService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
                 TwinFactoryTriggerEntity::getInputTwinClassId,
                 TwinFactoryTriggerEntity::getTwinClass,
                 TwinFactoryTriggerEntity::setTwinClass);
@@ -155,9 +155,27 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
 
     public void loadConditionSets(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
         factoryConditionSetService.load(srcCollection,
-                TwinFactoryTriggerEntity::getId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSetId,
                 TwinFactoryTriggerEntity::getTwinFactoryConditionSet,
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
+    }
+
+    public List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return repository.findByTwinFactoryIdIn(factoryIds);
+    }
+
+    public void loadFactoryTriggers(TwinFactoryEntity factory) {
+        loadFactoryTriggers(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryTriggers(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryTriggerKit,
+                TwinFactoryEntity::setTwinFactoryTriggerKit,
+                repository::findByTwinFactoryIdIn,
+                TwinFactoryTriggerEntity::getId,
+                TwinFactoryTriggerEntity::getTwinFactoryId);
     }
 }

@@ -36,6 +36,9 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
     public UUID assignerUserId;
 
+    @Schema(description = "flavor data list option id")
+    public UUID flavorDataListOptionId;
+
     @Schema(description = "description", example = "The biggest tree")
     public String description;
 

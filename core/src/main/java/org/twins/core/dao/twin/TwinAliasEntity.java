@@ -2,9 +2,7 @@
 package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.enums.twin.TwinAliasType;
@@ -50,9 +48,16 @@ public class TwinAliasEntity {
     @Column(name = "archived")
     private boolean archived;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)
+    private TwinEntity twinSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity twin;
 }

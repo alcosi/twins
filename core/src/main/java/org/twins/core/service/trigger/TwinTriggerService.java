@@ -92,8 +92,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
                     : new HashMap<>();
 
             if (trigger.getTriggerFeaturerId() != null) {
-                featurerService.checkValid(trigger.getTriggerFeaturerId(), triggerParams, TwinTrigger.class);
-                featurerService.prepareForStore(trigger.getTriggerFeaturerId(), triggerParams);
+                validateAndPrepareFeaturer(trigger.getTriggerFeaturerId(), triggerParams, TwinTrigger.class);
             } else {
                 throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
             }
@@ -113,25 +112,12 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
         return StreamSupport.stream(saveSafe(triggersToSave).spliterator(), false).toList();
     }
 
-    public void loadTwinTriggerFeaturer(TwinTriggerEntity entity) {
-        loadTwinTriggerFeaturer(List.of(entity));
-    }
-
-    public void loadTwinTriggerFeaturer(Collection<TwinTriggerEntity> entities) {
-        featurerService.loadFeaturers(entities,
-                TwinTriggerEntity::getId,
-                TwinTriggerEntity::getTwinTriggerFeaturerId,
-                TwinTriggerEntity::getTwinTriggerFeaturer,
-                TwinTriggerEntity::setTwinTriggerFeaturer);
-    }
-
     public void loadJobTwinClass(TwinTriggerEntity entity) throws ServiceException {
         loadJobTwinClass(List.of(entity));
     }
 
     public void loadJobTwinClass(Collection<TwinTriggerEntity> entities) throws ServiceException {
         twinClassService.load(entities,
-                TwinTriggerEntity::getId,
                 TwinTriggerEntity::getJobTwinClassId,
                 TwinTriggerEntity::getJobTwinClass,
                 TwinTriggerEntity::setJobTwinClass);
@@ -180,23 +166,11 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
 
     public void updateFieldTwinTriggerFeaturerId(TwinTriggerEntity dbTwinTriggerEntity, Integer newFeaturerId,
                                                  HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (newFeaturerParams.isEmpty())
-                return; // nothing was changed
-            else
-                newFeaturerId = dbTwinTriggerEntity.getTwinTriggerFeaturerId(); // only params were changed
-        }
-        if (changesHelper.isChanged(TwinTriggerEntity.Fields.twinTriggerFeaturerId,
-                dbTwinTriggerEntity.getTwinTriggerFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, TwinTrigger.class);
-            dbTwinTriggerEntity.setTwinTriggerFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!newFeaturerParams.equals(dbTwinTriggerEntity.getTwinTriggerParam())) {
-            changesHelper.add(TwinTriggerEntity.Fields.twinTriggerParam,
-                    dbTwinTriggerEntity.getTwinTriggerParam(), newFeaturerParams);
-            dbTwinTriggerEntity.setTwinTriggerParam(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbTwinTriggerEntity, newFeaturerId, newFeaturerParams,
+                TwinTriggerEntity::getTwinTriggerFeaturerId, TwinTriggerEntity::setTwinTriggerFeaturerId,
+                TwinTriggerEntity::getTwinTriggerParam, TwinTriggerEntity::setTwinTriggerParam,
+                TwinTriggerEntity.Fields.twinTriggerFeaturerId, TwinTriggerEntity.Fields.twinTriggerParam,
+                TwinTrigger.class, changesHelper);
     }
 
     @Transactional(rollbackFor = Throwable.class)

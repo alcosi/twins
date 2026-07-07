@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
-import org.twins.core.dto.rest.domain.BusinessAccountUserDTOv1;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
@@ -32,7 +32,8 @@ public class BusinessAccountUserDTOMapper extends RestSimpleDTOMapper<BusinessAc
                         .setId(src.getId())
                         .setUserId(src.getUserId())
                         .setBusinessAccountId(src.getBusinessAccountId())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setLastActivityAt(src.getLastActivityAt() != null ? src.getLastActivityAt().toLocalDateTime() : null);
                 break;
             case SHORT:
                 dst

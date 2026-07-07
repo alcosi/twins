@@ -7,6 +7,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
+import org.cambium.featurer.Featurer;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -33,6 +35,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Autowired
     protected AuthService authService;
+
+    @Autowired
+    protected FeaturerService featurerService;
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -388,23 +393,184 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         setFunction.accept(dbEntity, (R) updateValue);
     }
 
-    public <E, K> void load(Collection<E> srcCollection,
-                                     Function<? super E, ? extends K> functionGetId,
-                                     Function<? super E, UUID> functionGetGroupingId,
-                                     Function<? super E, T> functionGetGroupingEntity,
-                                     BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
-        if (srcCollection.isEmpty()) {
+    protected <T> void updateEntityFeaturerField(
+            T dbEntity,
+            Integer newFeaturerId,
+            HashMap<String, String> newFeaturerParams,
+            Function<T, Integer> getFeaturerId,
+            BiConsumer<T, Integer> setFeaturerId,
+            Function<T, HashMap<String, String>> getParams,
+            BiConsumer<T, HashMap<String, String>> setParams,
+            String featurerIdField,
+            String paramsField,
+            Class<? extends Featurer> expectedClass,
+            ChangesHelper changesHelper) throws ServiceException {
+
+        Integer currentFeaturerId = getFeaturerId.apply(dbEntity);
+        HashMap<String, String> currentParams = getParams.apply(dbEntity);
+
+        if (newFeaturerId == null || newFeaturerId == 0) {
+            if (MapUtils.isEmpty(newFeaturerParams))
+                return;
+            newFeaturerId = currentFeaturerId;
+        }
+
+        if (changesHelper.isChanged(featurerIdField, currentFeaturerId, newFeaturerId)) {
+            featurerService.checkValid(newFeaturerId, newFeaturerParams, expectedClass);
+            setFeaturerId.accept(dbEntity, newFeaturerId);
+        }
+
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
+
+        if (changesHelper.isChanged(paramsField, currentParams, newFeaturerParams)) {
+            setParams.accept(dbEntity, newFeaturerParams);
+        }
+    }
+
+    protected void validateAndPrepareFeaturer(
+            Integer featurerId,
+            HashMap<String, String> featurerParams,
+            Class<? extends Featurer> expectedClass) throws ServiceException {
+        featurerService.checkValid(featurerId, featurerParams, expectedClass);
+        featurerService.prepareForStore(featurerId, featurerParams);
+    }
+
+    public <E> void load(Collection<E> srcCollection,
+                         Function<? super E, UUID> functionGetGroupingId,
+                         Function<? super E, T> functionGetGroupingEntity,
+                         BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        if (CollectionUtils.isEmpty(srcCollection)) {
             return;
         }
-        KitGrouped<E, K, UUID> needLoad = KitUtils.createNeedLoadGrouped(srcCollection, functionGetId, functionGetGroupingId, functionGetGroupingEntity);
-        if (KitUtils.isEmpty(needLoad)) {
+        List<E> needLoad = null;
+        Set<UUID> groupingIds = null;
+        for (var item : srcCollection) {
+            if (functionGetGroupingEntity.apply(item) == null && functionGetGroupingId.apply(item) != null) {
+                if (needLoad == null) {
+                    needLoad = new ArrayList<>();
+                    groupingIds = new LinkedHashSet<>();
+                }
+                needLoad.add(item);
+                groupingIds.add(functionGetGroupingId.apply(item));
+            }
+        }
+        if (needLoad == null) {
             return;
         }
-        Kit<T, UUID> loaded = findEntitiesSafe(needLoad.getGroupedKeySet());
-        UUID key;
+        Kit<T, UUID> loaded = findEntitiesSafe(groupingIds);
         for (var item : needLoad) {
-            key = functionGetGroupingId.apply(item);
-            functionSetGroupingEntity.accept(item, loaded.get(key));
+            functionSetGroupingEntity.accept(item, loaded.get(functionGetGroupingId.apply(item)));
+        }
+    }
+
+    @SafeVarargs
+    public final <E> void load(Collection<E> srcCollection, LoadedField<E, T>... loadedFields) throws ServiceException {
+        if (CollectionUtils.isEmpty(srcCollection)) {
+            return;
+        }
+        Set<UUID> groupingIds = null;
+        for (E item : srcCollection) {
+            for (LoadedField<E, T> field : loadedFields) {
+                if (field.functionGetGroupingEntity().apply(item) == null) {
+                    UUID id = field.functionGetGroupingId().apply(item);
+                    if (id != null) {
+                        if (groupingIds == null) {
+                            groupingIds = new LinkedHashSet<>();
+                        }
+                        groupingIds.add(id);
+                    }
+                }
+            }
+        }
+        if (groupingIds == null) {
+            return;
+        }
+
+        Kit<T, UUID> loaded = findEntitiesSafe(groupingIds);
+
+        for (E item : srcCollection) {
+            for (LoadedField<E, T> field : loadedFields) {
+                if (field.functionGetGroupingEntity().apply(item) == null) {
+                    UUID id = field.functionGetGroupingId().apply(item);
+                    if (id != null) {
+                        field.functionSetGroupingEntity()
+                                .accept(item, loaded.get(id));
+                    }
+                }
+            }
+        }
+    }
+
+    public record LoadedField<E, T>(
+            Function<? super E, UUID> functionGetGroupingId,
+            Function<? super E, T> functionGetGroupingEntity,
+            BiConsumer<E, T> functionSetGroupingEntity
+    ) {
+    }
+
+    public static <S, R, K, RI> void loadKit(
+            Collection<S> srcCollection,
+            Function<S, K> srcGetId,
+            Function<S, Kit<R, RI>> srcGetKitField,
+            BiConsumer<S, Kit<R, RI>> srcSetKitField,
+            Function<Set<K>, Collection<R>> queryFunction,
+            Function<R, RI> queryResultGetId,
+            Function<R, K> queryResultGetGroupId) {
+        Kit<S, K> needLoad = null;
+        for (S src : srcCollection) {
+            if (srcGetKitField.apply(src) == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(srcGetId);
+                needLoad.add(src);
+            }
+        }
+        if (needLoad == null)
+            return;
+        KitGrouped<R, RI, K> grouped = new KitGrouped<>(
+                queryFunction.apply(needLoad.getIdSet()),
+                queryResultGetId,
+                queryResultGetGroupId);
+        for (S src : needLoad) {
+            K id = srcGetId.apply(src);
+            if (grouped.containsGroupedKey(id))
+                srcSetKitField.accept(src, new Kit<>(grouped.getGrouped(id), queryResultGetId));
+            else
+                srcSetKitField.accept(src, Kit.emptyKit());
+        }
+    }
+
+    public static <S, Q, TL, K, RI> void loadKit(
+            Collection<S> srcCollection,
+            Function<S, K> srcGetId,
+            Function<S, Kit<TL, RI>> srcGetKitField,
+            BiConsumer<S, Kit<TL, RI>> srcSetKitField,
+            Function<Set<K>, Collection<Q>> queryFunction,
+            Function<Q, TL> transformFunction,
+            Function<TL, RI> resultGetId,
+            Function<Q, RI> queryResultGetId,
+            Function<Q, K> queryResultGetGroupId) {
+        Kit<S, K> needLoad = null;
+        for (S src : srcCollection) {
+            if (srcGetKitField.apply(src) == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(srcGetId);
+                needLoad.add(src);
+            }
+        }
+        if (needLoad == null)
+            return;
+        KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
+                queryFunction.apply(needLoad.getIdSet()),
+                queryResultGetId,
+                queryResultGetGroupId);
+        for (S src : needLoad) {
+            K id = srcGetId.apply(src);
+            if (grouped.containsGroupedKey(id))
+                srcSetKitField.accept(src, new Kit<>(
+                        grouped.getGrouped(id).stream().map(transformFunction).toList(),
+                        resultGetId));
+            else
+                srcSetKitField.accept(src, Kit.emptyKit());
         }
     }
 

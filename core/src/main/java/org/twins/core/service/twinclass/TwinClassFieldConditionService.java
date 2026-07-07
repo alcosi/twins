@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -22,6 +24,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.domain.field.rule.ConditionNode;
 import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.factory.multiplier.Multiplier;
 
 import java.util.*;
 import java.util.function.Function;
@@ -35,7 +38,6 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     public static final int MAX_RECURSION_DEPTH = 5;
 
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;
-    private final EntitySmartService entitySmartService;
 
     @Lazy
     private final TwinClassService twinClassService;
@@ -49,21 +51,14 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     }
 
     public void loadConditions(Collection<TwinClassFieldRuleEntity> ruleEntities) {
-        Kit<TwinClassFieldRuleEntity, UUID> needLoad = new Kit<>(TwinClassFieldRuleEntity::getId);
-        for (TwinClassFieldRuleEntity ruleEntity : ruleEntities) {
-            if (ruleEntity.getConditionKit() == null) {
-                needLoad.add(ruleEntity);
-            }
-        }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<TwinClassFieldConditionEntity, UUID, UUID> conditions = new KitGrouped<>(twinClassFieldConditionRepository.findByTwinClassFieldRuleIdIn(needLoad.getIdSet()), TwinClassFieldConditionEntity::getId, TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
-        for (TwinClassFieldRuleEntity ruleEntity : needLoad) {
-            if (conditions.containsGroupedKey(ruleEntity.getId()))
-                ruleEntity.setConditionKit(new Kit<>(conditions.getGrouped(ruleEntity.getId()), TwinClassFieldConditionEntity::getId));
-            else
-                ruleEntity.setConditionKit(Kit.EMPTY);
-        }
+        loadKit(
+            ruleEntities,
+            TwinClassFieldRuleEntity::getId,
+            TwinClassFieldRuleEntity::getConditionKit,
+            TwinClassFieldRuleEntity::setConditionKit,
+            twinClassFieldConditionRepository::findByTwinClassFieldRuleIdIn,
+                TwinClassFieldConditionEntity::getId,
+            TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
     }
 
     public void loadBaseTwinClassField(TwinClassFieldConditionEntity conditionEntity) throws ServiceException {
@@ -83,6 +78,43 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         for (var entity : needLoad) {
             entity.setBaseTwinClassField(loaded.get(entity.getBaseTwinClassFieldId()));
         }
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldConditionEntity> updateConditions(Collection<TwinClassFieldConditionEntity> conditions) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditions))
+            return Collections.emptyList();
+
+        Kit<TwinClassFieldConditionEntity, UUID> dbConditionEntitiesKit = findEntitiesSafe(
+                conditions.stream().map(TwinClassFieldConditionEntity::getId).toList()        );
+
+        ChangesHelperMulti<TwinClassFieldConditionEntity> changes = new ChangesHelperMulti<>();
+        List<TwinClassFieldConditionEntity> allEntities = dbConditionEntitiesKit.getList();
+
+        for (var condition : conditions) {
+            TwinClassFieldConditionEntity dbEntity = dbConditionEntitiesKit.get(condition.getId());
+            ChangesHelper changesHelper = new ChangesHelper();
+
+            updateEntityFieldByValue(condition.getBaseTwinClassFieldId(), dbEntity, TwinClassFieldConditionEntity::getBaseTwinClassFieldId, TwinClassFieldConditionEntity::setBaseTwinClassFieldId, TwinClassFieldConditionEntity.Fields.baseTwinClassFieldId, changesHelper);
+            updateEntityFieldByValue(condition.getConditionOrder(), dbEntity, TwinClassFieldConditionEntity::getConditionOrder, TwinClassFieldConditionEntity::setConditionOrder, TwinClassFieldConditionEntity.Fields.conditionOrder, changesHelper);
+            updateEntityFieldByValue(condition.getParentTwinClassFieldConditionId(), dbEntity, TwinClassFieldConditionEntity::getParentTwinClassFieldConditionId, TwinClassFieldConditionEntity::setParentTwinClassFieldConditionId, TwinClassFieldConditionEntity.Fields.parentTwinClassFieldConditionId, changesHelper);
+            updateEntityFieldByValue(condition.getLogicOperatorId(), dbEntity, TwinClassFieldConditionEntity::getLogicOperatorId, TwinClassFieldConditionEntity::setLogicOperatorId, TwinClassFieldConditionEntity.Fields.logicOperatorId, changesHelper);
+            updateEvaluatorFeaturer(dbEntity, condition.getConditionEvaluatorFeaturerId(), condition.getConditionEvaluatorParams(), changesHelper);
+
+            changes.add(dbEntity, changesHelper);
+        }
+
+        updateSafe(changes);
+
+        return allEntities;
+    }
+
+    public void updateEvaluatorFeaturer(TwinClassFieldConditionEntity dbConditionEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+        updateEntityFeaturerField(dbConditionEntity, newFeaturerId, newFeaturerParams,
+                TwinClassFieldConditionEntity::getConditionEvaluatorFeaturerId, TwinClassFieldConditionEntity::setConditionEvaluatorFeaturerId,
+                TwinClassFieldConditionEntity::getConditionEvaluatorParams, TwinClassFieldConditionEntity::setConditionEvaluatorParams,
+                TwinClassFieldConditionEntity.Fields.conditionEvaluatorFeaturerId, TwinClassFieldConditionEntity.Fields.conditionEvaluatorParams,
+                Multiplier.class, changesHelper);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -197,7 +229,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
             return;
         }
         loadConditions(rule);
-        var conditionTree = buildNewConditionTree(rule.getConditionKit());
+        var conditionTree = buildNewConditionTree(rule.getConditionKit().getCollection());
         rule.setConditionTreeNodes(conditionTree);
     }
 

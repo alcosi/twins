@@ -24,9 +24,11 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentSearchRqDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentSearchRqDTOv2;
 import org.twins.core.dto.rest.attachment.AttachmentSearchRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentSearchDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentSearchDTOv1ReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -42,9 +44,11 @@ public class AttachmentSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final AttachmentSearchDTOReverseMapper attachmentSearchDTOReverseMapper;
+    private final AttachmentSearchDTOv1ReverseMapper attachmentSearchDTOv1ReverseMapper;
     private final AttachmentRestDTOMapper attachmentRestDTOMapper;
     private final AttachmentSearchService attachmentSearchService;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentSearchV1", summary = "Search data list of attachments")
     @ApiResponses(value = {
@@ -60,7 +64,36 @@ public class AttachmentSearchController extends ApiController {
         AttachmentSearchRsDTOv1 rs = new AttachmentSearchRsDTOv1();
         try {
             PaginationResult<TwinAttachmentEntity> attachmentList = attachmentSearchService
-                    .findAttachments(attachmentSearchDTOReverseMapper.convert(request), pagination);
+                    .search(attachmentSearchDTOReverseMapper.convert(request), pagination);
+            rs
+                    .setAttachments(attachmentRestDTOMapper.convertCollection(attachmentList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(attachmentList))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "attachmentSearchV2", summary = "Search data list of attachments with sorting")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of attachments", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = AttachmentSearchRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/attachment/search/v2")
+    public ResponseEntity<?> attachmentSearchV2(
+            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody AttachmentSearchRqDTOv2 request) {
+        AttachmentSearchRsDTOv1 rs = new AttachmentSearchRsDTOv1();
+        try {
+            PaginationResult<TwinAttachmentEntity> attachmentList = attachmentSearchService
+                    .search(attachmentSearchDTOv1ReverseMapper.convert(request.getSearch()), pagination,
+                            request.getSortField(), request.getSortDirection());
             rs
                     .setAttachments(attachmentRestDTOMapper.convertCollection(attachmentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(attachmentList))

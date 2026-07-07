@@ -9,8 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.MapUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -19,18 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorEntity;
 import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorRepository;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorUpdate;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCollectorUpdateDTOReverseMapper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -43,7 +35,7 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
     private final HistoryNotificationRecipientCollectorRepository repository;
     private final HistoryNotificationRecipientCollectorUpdateDTOReverseMapper updateDTOReverseMapper;
     @Lazy
-    private final FeaturerService featurerService;
+    private final HistoryNotificationRecipientService historyNotificationRecipientService;
 
     @Override
     public CrudRepository<HistoryNotificationRecipientCollectorEntity, UUID> entityRepository() {
@@ -76,8 +68,7 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
         for (HistoryNotificationRecipientCollectorCreate recipientCollector : recipientCollectors) {
             HashMap<String, String> recipientResolverParams = new HashMap<>(recipientCollector.getRecipientResolverParams());
             if (recipientCollector.getRecipientResolverFeaturerId() != null) {
-                featurerService.checkValid(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams, RecipientResolver.class);
-                featurerService.prepareForStore(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams);
+                validateAndPrepareFeaturer(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams, RecipientResolver.class);
             } else {
                 throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
             }
@@ -128,35 +119,21 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
     }
 
     public void updateFieldRecipientResolverFeaturerId(HistoryNotificationRecipientCollectorEntity dbHistoryNotificationRecipientCollectorEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId, dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverFeaturerId(), newFeaturerId)) {
-            featurerService.checkValid(newFeaturerId, newFeaturerParams, RecipientResolver.class);
-            dbHistoryNotificationRecipientCollectorEntity
-                    .setRecipientResolverFeaturerId(newFeaturerId);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams)) {
-            changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbHistoryNotificationRecipientCollectorEntity.getRecipientResolverParams(), newFeaturerParams);
-            dbHistoryNotificationRecipientCollectorEntity
-                    .setRecipientResolverParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbHistoryNotificationRecipientCollectorEntity, newFeaturerId, newFeaturerParams,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturerId, HistoryNotificationRecipientCollectorEntity::setRecipientResolverFeaturerId,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverParams, HistoryNotificationRecipientCollectorEntity::setRecipientResolverParams,
+                HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId, HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverParams,
+                RecipientResolver.class, changesHelper);
     }
 
-    public void loadRecipientResolverFeaturer(HistoryNotificationRecipientCollectorEntity entity) {
-        loadRecipientResolverFeaturer(List.of(entity));
+    public void loadHistoryNotificationRecipient(HistoryNotificationRecipientCollectorEntity src) throws ServiceException {
+        loadHistoryNotificationRecipient(Collections.singletonList(src));
     }
 
-    public void loadRecipientResolverFeaturer(Collection<HistoryNotificationRecipientCollectorEntity> entities) {
-        featurerService.loadFeaturers(entities,
-                HistoryNotificationRecipientCollectorEntity::getId,
-                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturerId,
-                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturer,
-                HistoryNotificationRecipientCollectorEntity::setRecipientResolverFeaturer);
+    public void loadHistoryNotificationRecipient(Collection<HistoryNotificationRecipientCollectorEntity> srcCollection) throws ServiceException {
+        historyNotificationRecipientService.load(srcCollection,
+                HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipientId,
+                HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipient,
+                HistoryNotificationRecipientCollectorEntity::setHistoryNotificationRecipient);
     }
-
 }

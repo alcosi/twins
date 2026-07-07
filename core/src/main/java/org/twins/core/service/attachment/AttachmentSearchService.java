@@ -5,15 +5,25 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.i18n.specifications.I18nSpecification;
+import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.search.AttachmentSearch;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.AttachmentGroupField;
+import org.twins.core.enums.sort.AttachmentSortField;
+import org.twins.core.service.EntitySearchService;
+
+import java.util.Locale;
+import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -22,16 +32,33 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class AttachmentSearchService {
+public class AttachmentSearchService extends EntitySearchService
+        <AttachmentSearch, TwinAttachmentEntity, AttachmentSortField, AttachmentGroupField> {
+
     private final TwinAttachmentRepository twinAttachmentRepository;
 
-    public PaginationResult<TwinAttachmentEntity> findAttachments(AttachmentSearch search, SimplePagination pagination) throws ServiceException {
-        Specification<TwinAttachmentEntity> spec = createAttachmentSearchSpecification(search);
-        Page<TwinAttachmentEntity> ret = twinAttachmentRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    @Override
+    public JpaSpecificationExecutor<TwinAttachmentEntity> jpaSpecificationExecutor() {
+        return twinAttachmentRepository;
     }
 
-    private Specification<TwinAttachmentEntity> createAttachmentSearchSpecification(AttachmentSearch search) {
+    @Override
+    public AttachmentSearch emptySearch() {
+        return new AttachmentSearch();
+    }
+
+    @Override
+    protected TwinAttachmentEntity newEntity() {
+        return new TwinAttachmentEntity();
+    }
+
+    @Override
+    protected Class<TwinAttachmentEntity> entityClass() {
+        return TwinAttachmentEntity.class;
+    }
+
+    @Override
+    public Specification<TwinAttachmentEntity> createFilterSpecification(AttachmentSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinAttachmentEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinAttachmentEntity.Fields.id),
@@ -58,5 +85,49 @@ public class AttachmentSearchService {
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinAttachmentEntity.Fields.createdAt),
                 checkFieldLongRange(search.getOrder(), TwinAttachmentEntity.Fields.order)
         );
+    }
+
+    @Override
+    public Specification<TwinAttachmentEntity> createSortSpecification(AttachmentSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
+        if (sortField == null)
+            sortField = AttachmentSortField.createdAt;
+        boolean ascending = sortDirection != SortDirection.DESC;
+        return switch (sortField) {
+            case createdAt -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.createdAt);
+            case externalId -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.externalId);
+            case size -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.size);
+            case order -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.order);
+            case twinName -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.twinSpecOnly, TwinEntity.Fields.name);
+            case twinClassFieldName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinAttachmentEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.nameI18nTranslationsSpecOnly);
+            case authorUserName -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
+            case twinflowTransitionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinAttachmentEntity.Fields.twinflowTransitionSpecOnly, TwinflowTransitionEntity.Fields.nameI18nTranslationsSpecOnly);
+            case viewPermissionName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinAttachmentEntity.Fields.viewPermissionSpecOnly, PermissionEntity.Fields.nameI18nTranslationsSpecOnly);
+        };
+    }
+
+    @Override
+    public String convertToEntityField(AttachmentGroupField groupField) {
+        return switch (groupField) {
+            case twinId -> TwinAttachmentEntity.Fields.twinId;
+            case twinflowTransitionId -> TwinAttachmentEntity.Fields.twinflowTransitionId;
+            case viewPermissionId -> TwinAttachmentEntity.Fields.viewPermissionId;
+            case createdByUserId -> TwinAttachmentEntity.Fields.createdByUserId;
+            case twinCommentId -> TwinAttachmentEntity.Fields.twinCommentId;
+            case twinClassFieldId -> TwinAttachmentEntity.Fields.twinClassFieldId;
+            case storageId -> TwinAttachmentEntity.Fields.storageId;
+        };
+    }
+
+    @Override
+    public void mapGroupedField(TwinAttachmentEntity entity, AttachmentGroupField field, Object o) {
+        switch (field) {
+            case twinId -> entity.setTwinId((UUID) o);
+            case twinflowTransitionId -> entity.setTwinflowTransitionId((UUID) o);
+            case viewPermissionId -> entity.setViewPermissionId((UUID) o);
+            case createdByUserId -> entity.setCreatedByUserId((UUID) o);
+            case twinCommentId -> entity.setTwinCommentId((UUID) o);
+            case twinClassFieldId -> entity.setTwinClassFieldId((UUID) o);
+            case storageId -> entity.setStorageId((UUID) o);
+        }
     }
 }

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 
 import java.util.Set;
 import java.util.UUID;

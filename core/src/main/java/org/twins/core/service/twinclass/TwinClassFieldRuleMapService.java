@@ -109,7 +109,7 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
                 fieldEntity.setRuleKit(Kit.EMPTY);
         }
         if (loadConditions) {
-            twinClassFieldConditionService.loadConditions(ruleMaps.stream().map(TwinClassFieldRuleMapEntity::getTwinClassFieldRule).toList());
+            twinClassFieldConditionService.loadConditions(ruleMaps.getCollection().stream().map(TwinClassFieldRuleMapEntity::getTwinClassFieldRule).toList());
         }
     }
 

@@ -51,6 +51,9 @@ public class BusinessAccountUserEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "last_activity_at")
+    private Timestamp lastActivityAt;
+
     public String easyLog(Level level) {
         return "businessAccountUser[id:" + id + ", businessAccount:" + businessAccountId + ", user:" + userId;
     }

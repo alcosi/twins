@@ -26,6 +26,7 @@ public class TwinClassFieldSaveRestDTOReverseMapper extends RestSimpleDTOMapper<
                         .setEditPermissionId(src.getEditPermissionId())
                         .setRequired(src.getRequired())
                         .setSystem(src.getSystem())
+                        .setInheritable(src.getInheritable())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
                         .setFieldTyperParams(src.getFieldTyperParams())
                         .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())

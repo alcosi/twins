@@ -28,23 +28,11 @@ public class FillerFieldCleaner extends Filler {
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
-    @Lazy
-    @Autowired
-    TwinClassService twinClassService;
-
-    @Lazy
-    @Autowired
-    TwinService twinService;
-
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, twinClassFieldIdExtracted);
-        if(null != fieldValue) {
-            fieldValue.clear();
-            factoryItem.getOutput().addField(fieldValue);
-        } else {
-            log.info("FieldValue of class[" + twinClassFieldIdExtracted + "] is absent fot twin[" + factoryItem.getTwin() + "] and can not be cleared");
-        }
+        FieldValue fieldValue = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, twinClassFieldIdExtracted);
+        fieldValue.clear();
+        factoryItem.getOutput().addField(fieldValue);
     }
 }

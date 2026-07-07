@@ -17,10 +17,11 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,19 +41,20 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
 
     @Lazy
     @Autowired
-    TwinSearchService twinSearchService;
+    TwinSearchServiceV2 twinSearchService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        var search = new BasicSearch().setCheckViewPermission(false);
+        BasicSearch search = new BasicSearch().setCheckViewPermission(false);
 
-        search.setHierarchyChildrenSearch(
-                new HierarchySearch()
-                        .setIdList(Set.of(factoryItem.getOutput().getTwinEntity().getId()))
-                        .setDepth(depth.extract(properties))
-        );
+        search
+                .addHeadTwinId(factoryItem.getOutput().getTwinEntity().getId())
+                .setHierarchyChildrenSearch(
+                        new HierarchySearch().setDepth(depth.extract(properties))
+                );
 
-        var statusIdsExtracted = statusIds.extract(properties);
+        Set<UUID> statusIdsExtracted = statusIds.extract(properties);
+
         if (CollectionUtils.isNotEmpty(statusIdsExtracted)) {
             search.addStatusId(statusIdsExtracted, false);
         }
@@ -61,6 +63,6 @@ public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
         }
 
-        return twinSearchService.count(search) > 0;
+        return twinSearchService.exists(search);
     }
 }

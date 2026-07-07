@@ -24,12 +24,14 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRqDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRqDTOv2;
 import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRqRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinStatusSearchService;
 
@@ -40,11 +42,13 @@ import org.twins.core.service.twin.TwinStatusSearchService;
 @ProtectedBy({Permissions.TWIN_STATUS_MANAGE, Permissions.TWIN_STATUS_VIEW})
 public class TwinStatusSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TwinStatusSearchRqRestDTOReverseMapper twinStatusSearchRqRestDTOReverseMapper;
     private final TwinStatusSearchRestDTOReverseMapper twinStatusSearchRestDTOReverseMapper;
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final TwinStatusSearchService twinStatusSearchService;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusSearchV1", summary = "Returns twin status search result in current domain")
     @ApiResponses(value = {
@@ -60,7 +64,36 @@ public class TwinStatusSearchController extends ApiController {
         TwinStatusSearchRsDTOv1 rs = new TwinStatusSearchRsDTOv1();
         try {
             PaginationResult<TwinStatusEntity> twinStatusList = twinStatusSearchService
-                    .findTwinStatuses(twinStatusSearchRestDTOReverseMapper.convert(request), pagination);
+                    .search(twinStatusSearchRqRestDTOReverseMapper.convert(request), pagination);
+            rs
+                    .setPagination(paginationMapper.convert(twinStatusList))
+                    .setStatuses(twinStatusRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinStatusSearchV2", summary = "Returns twin status search result in current domain")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin status list", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = TwinStatusSearchRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin_status/search/v2")
+    public ResponseEntity<?> twinStatusSearchV2(
+            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody TwinStatusSearchRqDTOv2 request) {
+        TwinStatusSearchRsDTOv1 rs = new TwinStatusSearchRsDTOv1();
+        try {
+            PaginationResult<TwinStatusEntity> twinStatusList = twinStatusSearchService
+                    .search(twinStatusSearchRestDTOReverseMapper.convert(request.getSearch()), pagination,
+                            request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(twinStatusList))
                     .setStatuses(twinStatusRestDTOMapper.convertCollection(twinStatusList.getList(), mapperContext))

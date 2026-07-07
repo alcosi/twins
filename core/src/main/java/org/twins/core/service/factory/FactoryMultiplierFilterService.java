@@ -13,10 +13,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -29,6 +33,10 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     @Getter
     private final TwinFactoryMultiplierFilterRepository repository;
     private final AuthService authService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
+    @Lazy
+    private final FactoryMultiplierService factoryMultiplierService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierFilterEntity, UUID> entityRepository() {
@@ -53,5 +61,46 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     @Override
     public boolean validateEntity(TwinFactoryMultiplierFilterEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+    }
+
+    public List<TwinFactoryMultiplierFilterEntity> findByTwinFactoryMultiplierIdIn(Collection<UUID> multiplierIds) {
+        return repository.findByTwinFactoryMultiplierIdIn(multiplierIds);
+    }
+
+    public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
+    }
+
+    public void loadFactoryMultiplierFilters(Collection<TwinFactoryMultiplierEntity> multipliers) {
+        loadKit(
+                multipliers,
+                TwinFactoryMultiplierEntity::getId,
+                TwinFactoryMultiplierEntity::getTwinFactoryMultiplierFilterKit,
+                TwinFactoryMultiplierEntity::setTwinFactoryMultiplierFilterKit,
+                repository::findByTwinFactoryMultiplierIdIn,
+                TwinFactoryMultiplierFilterEntity::getId,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
+    }
+
+    public void loadConditionSet(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
+        loadConditionSet(Collections.singleton(filter));
+    }
+
+    public void loadConditionSet(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+        factoryConditionSetService.load(filters,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
+                TwinFactoryMultiplierFilterEntity::getConditionSet,
+                TwinFactoryMultiplierFilterEntity::setConditionSet);
+    }
+
+    public void loadMultiplier(TwinFactoryMultiplierFilterEntity src) throws ServiceException {
+        loadMultiplier(Collections.singletonList(src));
+    }
+
+    public void loadMultiplier(List<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
+        factoryMultiplierService.load(srcCollection,
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
+                TwinFactoryMultiplierFilterEntity::getMultiplier,
+                TwinFactoryMultiplierFilterEntity::setMultiplier);
     }
 }

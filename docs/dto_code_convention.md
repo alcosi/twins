@@ -1,0 +1,329 @@
+# DTO Code Convention
+
+## 1. General Rules
+
+All DTO classes must follow consistent naming and structure conventions.
+
+* All DTOs must be located in packages under `org/twins/core/dto/**`
+* DTOs **must not** contain business logic
+* DTOs **must not** depend on Entity classes
+* DTOs are used exclusively for data transfer between layers and/or external interfaces
+
+### 1.1 DTO Suffixes
+
+The following mandatory suffixes are used:
+
+* `RqDTO` — DTO for **requests**
+* `RsDTO` — DTO for **responses**
+
+Examples:
+
+* `ResourceCreateRqDTO`
+* `ResourceSearchRsDTO`
+
+---
+
+## 2. DTO Inheritance Hierarchy
+
+The DTO hierarchy is built around an abstract business entity (for example, `Resource`).
+
+### 2.1 Base DTOs
+
+| DTO                 | Purpose                                         |
+| ------------------- | ----------------------------------------------- |
+| `ResourceDTO`       | Resource representation                         |
+| `ResourceSaveDTO`   | Abstract class for create and update operations |
+| `ResourceCreateDTO` | Creating a new resource                         |
+| `ResourceUpdateDTO` | Updating an existing resource                   |
+| `ResourceSearchDTO` | Search parameters                               |
+| `ResourceCountDTO`  | Count result with groupable fields              |
+
+---
+
+### 2.2 DTOs for Create and Update Operations
+
+All DTOs used for adding and updating data **must inherit** from `ResourceSaveDTO`.
+
+`ResourceSaveDTO` contains fields common to create and update operations.
+
+#### Create
+
+```java
+@Schema(name = "ResourceCreate")
+public class ResourceCreateDTO extends ResourceSaveDTO {
+}
+```
+
+#### Update
+
+```java
+@Schema(name = "ResourceUpdate")
+public class ResourceUpdateDTO extends ResourceSaveDTO {
+
+    @Schema
+    private UUID id;
+}
+```
+
+> ⚠️ The identifier (`id`) **must** be present only in update DTOs.
+
+---
+
+## 3. Request DTOs
+
+### 3.1 General Rules
+
+* All request DTOs **must inherit** from the base class `Request`
+* Request DTOs use the `RqDTO` suffix
+
+### 3.2 Examples
+
+#### Resource Creation
+
+```java
+public class ResourceCreateRqDTO extends Request {
+    public List<ResourceCreateDTO> resources;
+}
+```
+
+#### Resource Update
+
+```java
+public class ResourceUpdateRqDTO extends Request {
+    public List<ResourceUpdateDTO> resources;
+}
+```
+
+#### Resource Search
+
+```java
+public class ResourceSearchRqDTO extends Request {
+    public ResourceSearchDTO search;
+
+    @Schema(description = "Sort field. Default: createdAt")
+    public ResourceSortField sortField;
+
+    @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
+    public SortDirection sortDirection;
+}
+```
+
+**Sort fields** (`sortField`, `sortDirection`) are placed at the `SearchRqDTO` level, **not inside** `SearchDTO`. This allows reusing `SearchDTO` in other APIs (e.g., grouping) where sorting is not needed.
+
+- `sortField` — enum from the `enums.sort` package (e.g., `ResourceSortField`). Swagger automatically renders a dropdown with values. Jackson deserializes the enum from JSON; invalid values result in a 400 error.
+- `sortDirection` — enum `SortDirection` (`ASC` / `DESC`).
+- Both fields are optional. Defaults are set in the domain Search Object (`sortField = ResourceSortField.createdAt`, `sortDirection = SortDirection.ASC`).
+
+---
+
+## 4. Response DTOs
+
+### 4.1 General Rules
+
+* All response DTOs use the `RsDTO` suffix
+* All response DTOs **must inherit** from:
+
+  * `Response`, or
+  * `ResponseRelatedObjectsDTOv1`
+
+---
+
+### 4.2 Response for Create and Update Operations
+
+Common response DTO for create and update operations:
+
+```java
+public class ResourceListRsDTO extends Response {
+    public List<ResourceDTO> resources;
+}
+```
+
+---
+
+### 4.3 Search Response
+
+Search response DTO **inherits** from `ResourceListRsDTO` and additionally contains pagination information.
+
+```java
+public class ResourceSearchRsDTO extends ResourceListRsDTO {
+    public PaginationDTOv1 pagination;
+}
+```
+
+---
+
+## 5. Count API DTOs
+
+Count APIs return the number of records grouped by one or more fields. The DTO pattern is separate from entity DTOs — count DTOs extend `CountDTOv1` and explicitly declare only groupable fields.
+
+### 5.1 `CountDTOv1` — Base Class
+
+```java
+// org.twins.core.dto.rest.CountDTOv1
+@Data
+@Accessors(chain = true)
+@Schema(name = "CountDTOv1")
+public class CountDTOv1 {
+    @Schema(description = "count of records in this group")
+    public Long count;
+}
+```
+
+Minimal base class with only `count`. Every domain count DTO inherits from it.
+
+### 5.2 Domain Count DTO — Explicit Groupable Fields
+
+```java
+@Schema(name = "ResourceCountV1")
+public class ResourceCountDTOv1 extends CountDTOv1 {
+    @Schema(description = "user id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "user")
+    public UUID userId;
+
+    @Schema(description = "business account id", example = DTOExamples.UUID_ID)
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
+    public UUID businessAccountId;
+}
+```
+
+Rules:
+* Extends `CountDTOv1` — **not** the entity DTO (e.g., not `ResourceDTOv1`)
+* Each groupable field is declared explicitly as a simple type (`UUID`, enum, etc.)
+* `@RelatedObject` annotations enable related-object enrichment (resolve `userId` → user details)
+* Only the fields requested in `groupFields` are populated; absent fields remain `null`
+
+### 5.3 Count Request DTO
+
+```java
+@Schema(name = "ResourceCountRqV1")
+public class ResourceCountRqDTOv1 extends Request {
+    @Schema(description = "search params")
+    public ResourceSearchDTO search;
+
+    @Schema(description = "Group by fields")
+    public Set<ResourceGroupField> groupFields;
+}
+```
+
+* Reuses the same `ResourceSearchDTO` from the search API (search criteria without sort)
+* `groupFields` — `Set<enum>`, Swagger renders a dropdown. Enum is in `enums.sort` package
+
+### 5.4 Count Response DTO
+
+```java
+@Schema(name = "ResourceCountRsV1")
+public class ResourceCountRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+    @Schema(description = "count results grouped by requested fields")
+    public List<ResourceCountDTOv1> counts;
+}
+```
+
+Extends `ResponseRelatedObjectsDTOv1` — enables related-object enrichment for group field values.
+
+---
+
+## 6. Export API DTOs
+
+Export APIs produce a downloadable SQL file (`text/sql`), not a JSON response. They use only a **request DTO** — no response DTO is needed.
+
+### 6.1 Export Request DTO
+
+```java
+@Schema(name = "ResourceExportSqlRqV1")
+public class ResourceExportSqlRqDTOv1 extends Request {
+    @Schema(description = "resource ids to export SQL for")
+    public Set<UUID> resourceIds;
+
+    // Optional flags for child entities
+    @Schema(description = "include sub-resources in export")
+    public boolean includeSubResources = false;
+}
+```
+
+Rules:
+* Extends `Request` — standard request DTO base class
+* Contains `Set<UUID>` of entity IDs to export
+* Optional boolean flags control which child entities to include (default `false` — opt-in)
+* No response DTO — the controller returns `ResponseEntity<byte[]>` with `Content-Disposition: attachment`
+
+### 6.2 No Export Response DTO
+
+Export endpoints return raw bytes, not JSON:
+Do not create `ResourceExportSqlRsDTOv1`. The response is a file download.
+
+---
+
+## 7. Duplicate API DTOs
+
+Duplicate APIs create deep copies of entities with a new key, optionally cascading to child entities. They use a **request DTO with a list of duplicate operations** and **reuse the existing entity list response DTO** — no dedicated duplicate response DTO is needed.
+
+### 7.1 Duplicate Item DTO
+
+```java
+@Schema(name = "ResourceDuplicateV1")
+public class ResourceDuplicateDTOv1 {
+    @Schema(description = "original resource id")
+    public UUID originalResourceId;
+
+    @Schema(description = "new resource key", example = "RESOURCE_COPY")
+    public String newKey;
+
+    @Schema(description = "[optional] duplicate child entities")
+    public boolean duplicateChildren = false;
+}
+```
+
+Rules:
+* Does **not** extend any base DTO — plain POJO with `@Data`, `@Accessors(chain = true)`
+* Contains: original entity ID (`UUID`), new key (`String`), optional boolean flags for child duplication
+* Boolean flags default to `false` (child duplication is opt-in)
+* For entities that can be copied to a different parent (e.g., status to another class), include an optional `newParentId` (`UUID`) field
+
+### 7.2 Duplicate Request DTO
+
+```java
+@Schema(name = "ResourceDuplicateRqV1")
+public class ResourceDuplicateRqDTOv1 extends Request {
+    @Schema(description = "duplicates list")
+    public List<ResourceDuplicateDTOv1> duplicates;
+}
+```
+
+* Extends `Request`
+* Contains `List<ResourceDuplicateDTOv1>` — supports batch duplication
+
+### 7.3 Domain Duplicate Object
+
+```java
+// domain/resource/ResourceDuplicate.java
+@Data
+@Accessors(chain = true)
+public class ResourceDuplicate {
+    // From DTO (set by reverse mapper)
+    private UUID originalResourceId;
+    private String newKey;
+    private boolean duplicateChildren = false;
+
+    // Resolved by service
+    private UUID newResourceId;
+    private ResourceEntity originalResource;
+    private ResourceEntity newResource;
+}
+```
+
+* Located in `domain/{domain}/` package
+* Two groups of fields: **from DTO** (raw input) and **resolved by service** (entity references)
+* The reverse mapper sets only DTO fields; the service fills in entity references via `load()`
+
+### 7.4 No Duplicate Response DTO
+
+Duplicate endpoints reuse the existing `{Entity}ListRsDTOv1`. Do not create `ResourceDuplicateRsDTOv1`.
+
+---
+
+## 8. Additional Conventions
+
+* DTOs should be as flat as possible
+* Nested DTOs are allowed only when there is a clear business necessity
+* Collections in DTOs are always initialized at the service level
+* Nullable fields must be explicitly documented via `@Schema`

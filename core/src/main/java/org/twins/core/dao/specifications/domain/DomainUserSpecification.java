@@ -1,6 +1,8 @@
 package org.twins.core.dao.specifications.domain;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -10,9 +12,9 @@ import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.user.UserStatus;
 
-import static org.cambium.common.util.SpecificationUtils.getPredicate;
-
 import java.util.*;
+
+import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class DomainUserSpecification extends CommonSpecification<DomainUserEntity> {
 
@@ -64,8 +66,8 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
                 return cb.conjunction();
 
             query.distinct(true);
-            Join<DomainUserEntity, BusinessAccountUserEntity> businessJoin = root.join(DomainUserEntity.Fields.businessAccountUsersByUserId, JoinType.INNER);
-            Join<DomainUserEntity, DomainBusinessAccountEntity> domainJoin = root.join(DomainUserEntity.Fields.domainBusinessAccountsByDomainId, JoinType.INNER);
+            Join<DomainUserEntity, BusinessAccountUserEntity> businessJoin = root.join(DomainUserEntity.Fields.businessAccountUsersByUserIdSpecOnly, JoinType.INNER);
+            Join<DomainUserEntity, DomainBusinessAccountEntity> domainJoin = root.join(DomainUserEntity.Fields.domainBusinessAccountsByDomainIdSpecOnly, JoinType.INNER);
             Predicate businessAccountPredicate = businessJoin.get(BusinessAccountUserEntity.Fields.businessAccountId).in(businessAccountIds);
             Predicate domainBusinessAccountPredicate = domainJoin.get(BusinessAccountUserEntity.Fields.businessAccountId).in(businessAccountIds);
             if (not) {

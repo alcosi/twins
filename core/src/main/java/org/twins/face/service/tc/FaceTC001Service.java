@@ -3,9 +3,6 @@ package org.twins.face.service.tc;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -62,26 +59,12 @@ public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
     }
 
     public void loadOptions(Collection<FaceTC001Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList)) {
-            return;
-        }
-
-        Kit<FaceTC001Entity, UUID> needLoad = new Kit<>(FaceTC001Entity::getId);
-
-        for (FaceTC001Entity entity : srcList ) {
-            if (entity.getOptions() == null){
-                entity.setOptions(new Kit<>(FaceTC001OptionEntity::getId));
-                needLoad.add(entity);
-            }
-        }
-        if (needLoad.isEmpty()) {
-            return;
-        }
-
-        KitGrouped<FaceTC001OptionEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceTC001OptionRepository.findByFaceTC001IdIn(needLoad.getIdSet()), FaceTC001OptionEntity::getId, FaceTC001OptionEntity::getFaceTC001Id);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getOptions().addAll(entry.getValue());
-        }
+        loadKit(srcList,
+                FaceTC001Entity::getId,
+                FaceTC001Entity::getOptions,
+                FaceTC001Entity::setOptions,
+                faceTC001OptionRepository::findByFaceTC001IdIn,
+                FaceTC001OptionEntity::getId,
+                FaceTC001OptionEntity::getFaceTC001Id);
     }
 }

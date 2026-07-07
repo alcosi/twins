@@ -53,7 +53,7 @@ public class FieldTyperCalcSumOfSubtractionsByLink extends FieldTyperCalcBinaryB
                 twinFieldDecimalRepository,
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
-                linkId.extract(properties),
+                linkIds.extract(properties),
                 srcElseDst.extract(properties),
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),

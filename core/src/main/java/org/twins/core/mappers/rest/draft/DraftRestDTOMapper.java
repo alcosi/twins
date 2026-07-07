@@ -15,6 +15,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.DraftMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.draft.DraftCounterService;
+import org.twins.core.service.draft.DraftService;
+
+import java.util.Collection;
 
 import static org.twins.core.domain.draft.DraftCounters.Counter.*;
 import static org.twins.core.domain.draft.DraftCounters.CounterGroup.ERASES;
@@ -27,6 +30,8 @@ public class DraftRestDTOMapper extends RestSimpleDTOMapper<DraftEntity, DraftDT
     @Lazy
     @Autowired
     private final DraftCounterService draftCounterService;
+
+    private final DraftService draftService;
 
     @MapperModePointerBinding(modes = UserMode.Draft2UserMode.class)
     final UserRestDTOMapper userRestDTOMapper;
@@ -75,7 +80,16 @@ public class DraftRestDTOMapper extends RestSimpleDTOMapper<DraftEntity, DraftDT
         }
         if (mapperContext.hasModeButNot(UserMode.Draft2UserMode.HIDE)) {
             dst.setCreatedByrUserId(src.getCreatedByUserId());
+            draftService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Draft2UserMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<DraftEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.Draft2UserMode.HIDE)) {
+            draftService.loadCreatedByUser(srcCollection);
         }
     }
 

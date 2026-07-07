@@ -1,9 +1,7 @@
 package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.UuidUtils;
 
@@ -38,10 +36,17 @@ public class DraftTwinMarkerEntity {
     @Column(name = "marker_data_list_option_id")
     private UUID markerDataListOptionId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
+    private DraftEntity draftSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DraftEntity draft;
 
 }

@@ -92,6 +92,7 @@ public class TwinCreateController extends ApiController {
                             .setCreatedByUserId(apiUser.getUser().getId())
                             .setHeadTwinId(request.getHeadTwinId())
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                            .setFlavorDataListOptionId(request.getFlavorDataListOptionId())
                             .setDescription(request.getDescription()));
             twinCreate
                     .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
