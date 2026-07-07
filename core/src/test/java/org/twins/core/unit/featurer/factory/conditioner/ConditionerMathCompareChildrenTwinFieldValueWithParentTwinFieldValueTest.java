@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.service.twinfield.TwinFieldSimpleService;
 import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -16,7 +17,6 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputUncom
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.service.twin.TwinFieldSimpleSearchService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -24,14 +24,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest extends BaseUnitTest {
 
@@ -42,7 +37,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
     private FieldLookuperFromItemOutputUncommitedFields lookuper;
 
     @Mock
-    private TwinFieldSimpleSearchService twinFieldSimpleSearchService;
+    private TwinFieldSimpleService twinFieldSimpleService;
 
     private ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValue conditioner;
 
@@ -50,7 +45,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
     void setUp() throws Exception {
         conditioner = new ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValue();
         setField(conditioner, "fieldLookupers", fieldLookupers);
-        setField(conditioner, "twinFieldSimpleSearchService", twinFieldSimpleSearchService);
+        setField(conditioner, "twinFieldSimpleService", twinFieldSimpleService);
         // lenient: the throwing / no-children tests below never resolve a field via the lookuper
         lenient().when(fieldLookupers.getFromItemOutputUncommitedFields()).thenReturn(lookuper);
     }
@@ -94,7 +89,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
         when(item.getFactoryContext()).thenReturn(ctx);
         // the greater value is resolved off the output uncommited fields lookuper
         when(lookuper.lookupFieldValue(any(FactoryItem.class), any(UUID.class))).thenReturn(greaterValue);
-        when(twinFieldSimpleSearchService.findTwinFieldsSimple(
+        when(twinFieldSimpleService.findTwinFieldsSimple(
                 any(List.class), any(Set.class), any(Set.class))).thenReturn(List.of());
         return item;
     }
@@ -137,7 +132,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             when(fi.getOutput()).thenReturn(output);
             when(fi.getFactoryContext()).thenReturn(ctx);
             when(lookuper.lookupFieldValue(any(FactoryItem.class), any(UUID.class))).thenReturn(greater);
-            when(twinFieldSimpleSearchService.findTwinFieldsSimple(
+            when(twinFieldSimpleService.findTwinFieldsSimple(
                     any(List.class), any(Set.class), any(Set.class))).thenReturn(List.of(childProjection));
 
             assertFalse(conditioner.check(props(greaterFieldId, comparisonFieldId, false, statusId), fi));
@@ -166,7 +161,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             when(fi.getOutput()).thenReturn(output);
             when(fi.getFactoryContext()).thenReturn(ctx);
             when(lookuper.lookupFieldValue(any(FactoryItem.class), any(UUID.class))).thenReturn(greater);
-            when(twinFieldSimpleSearchService.findTwinFieldsSimple(
+            when(twinFieldSimpleService.findTwinFieldsSimple(
                     any(List.class), any(Set.class), any(Set.class))).thenReturn(List.of(childProjection));
 
             assertTrue(conditioner.check(props(greaterFieldId, comparisonFieldId, false, statusId), fi));
@@ -193,7 +188,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             when(fi.getOutput()).thenReturn(output);
             when(fi.getFactoryContext()).thenReturn(ctx);
             when(lookuper.lookupFieldValue(any(FactoryItem.class), any(UUID.class))).thenReturn(notText);
-            when(twinFieldSimpleSearchService.findTwinFieldsSimple(
+            when(twinFieldSimpleService.findTwinFieldsSimple(
                     any(List.class), any(Set.class), any(Set.class))).thenReturn(List.of(childProjection));
 
             assertThrows(ServiceException.class,
@@ -221,7 +216,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             when(fi.getOutput()).thenReturn(output);
             when(fi.getFactoryContext()).thenReturn(ctx);
             when(lookuper.lookupFieldValue(any(FactoryItem.class), any(UUID.class))).thenReturn(greater);
-            when(twinFieldSimpleSearchService.findTwinFieldsSimple(
+            when(twinFieldSimpleService.findTwinFieldsSimple(
                     any(List.class), any(Set.class), any(Set.class))).thenReturn(List.of(childProjection));
 
             assertThrows(ServiceException.class,

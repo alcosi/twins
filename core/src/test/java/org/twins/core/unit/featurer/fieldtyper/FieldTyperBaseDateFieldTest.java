@@ -17,7 +17,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATED_AT;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.CREATED_AT;
 
 class FieldTyperBaseDateFieldTest extends BaseUnitTest {
 
@@ -37,7 +37,7 @@ class FieldTyperBaseDateFieldTest extends BaseUnitTest {
             var twin = new TwinEntity()
                     .setId(UUID.randomUUID())
                     .setCreatedAt(Timestamp.valueOf(ldt));
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_CREATED_AT);
+            var classField = new TwinClassFieldEntity().setId(CREATED_AT);
 
             FieldValueDate result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 

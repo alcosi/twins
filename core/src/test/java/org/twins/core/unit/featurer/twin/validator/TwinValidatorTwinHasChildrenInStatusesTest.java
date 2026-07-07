@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class TwinValidatorTwinHasChildrenInStatusesTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchService twinSearchService;
+    private TwinSearchServiceV2 twinSearchService;
 
     private TwinValidatorTwinHasChildrenInStatuses validator;
 
@@ -42,7 +42,7 @@ class TwinValidatorTwinHasChildrenInStatusesTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(twinId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Map.of(twinId, 2L));
 
             var props = new Properties();
@@ -60,7 +60,7 @@ class TwinValidatorTwinHasChildrenInStatusesTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(twinId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Collections.emptyMap());
 
             var props = new Properties();
@@ -78,7 +78,7 @@ class TwinValidatorTwinHasChildrenInStatusesTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(twinId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Map.of(twinId, 0L));
 
             var props = new Properties();
@@ -96,7 +96,7 @@ class TwinValidatorTwinHasChildrenInStatusesTest extends BaseUnitTest {
             var twin = new TwinEntity();
             twin.setId(twinId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Map.of(twinId, 2L));
 
             var props = new Properties();

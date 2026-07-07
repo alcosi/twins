@@ -17,7 +17,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFi
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.enums.consts.SystemIds;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -88,7 +88,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
 
         @Test
         void fill_nameField_setsOutputName() throws ServiceException {
-            var fieldId = SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME;
+            var fieldId = SystemIds.TwinClassField.Base.NAME;
             var factoryItem = buildFactoryItem();
             var fieldValue = new FieldValueText(buildField()).setValue("my name");
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
@@ -100,7 +100,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
 
         @Test
         void fill_descriptionField_setsOutputDescription() throws ServiceException {
-            var fieldId = SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION;
+            var fieldId = SystemIds.TwinClassField.Base.DESCRIPTION;
             var factoryItem = buildFactoryItem();
             var fieldValue = new FieldValueText(buildField()).setValue("a description");
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
@@ -112,7 +112,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
 
         @Test
         void fill_assigneeUserField_setsOutputAssignee() throws ServiceException {
-            var fieldId = SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER;
+            var fieldId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
             var factoryItem = buildFactoryItem();
             var user = new UserEntity().setId(UUID.randomUUID());
             var fieldValue = new FieldValueUser(buildField()).add(user);
@@ -127,7 +127,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
 
         @Test
         void fill_creatorUserField_setsOutputCreatedBy() throws ServiceException {
-            var fieldId = SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER;
+            var fieldId = SystemIds.TwinClassField.Base.CREATOR_USER_ID;
             var factoryItem = buildFactoryItem();
             var user = new UserEntity().setId(UUID.randomUUID());
             var fieldValue = new FieldValueUser(buildField()).add(user);
@@ -143,7 +143,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
 
         @Test
         void fill_emptyUserField_throwsRequired() throws ServiceException {
-            var fieldId = SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER;
+            var fieldId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
             var factoryItem = buildFactoryItem();
             var fieldValue = new FieldValueUser(buildField()); // undefined -> empty
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);

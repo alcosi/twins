@@ -91,7 +91,7 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
 
     protected abstract Class<T> getTaskClass();
     protected abstract Collection<E> setStatusAndSave(Collection<E> collectedEntities);
-    protected abstract List<E> collectAll() throws ServiceException;
+    protected abstract List<E> collectAll();
     protected abstract List<E> collectBatch(int batchSize);
     protected abstract void revertStatusAndSave(E entity);
 }

@@ -1,6 +1,7 @@
 package org.twins.core.featurer.usergroup.manager;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +14,7 @@ import org.twins.core.dao.user.UserGroupRepository;
 import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 
@@ -31,11 +33,15 @@ class UserGroupManagerImplTest extends BaseUnitTest {
     @Mock
     private Slugger slugger;
 
+    @Mock
+    private UserGroupService userGroupService;
+
     private UserGroupManagerImpl userGroupManager;
 
     @BeforeEach
     void setUp() {
         userGroupManager = new UserGroupManagerImpl(userGroupRepository, featurerService);
+        userGroupManager.userGroupService = userGroupService;
     }
 
     private UserEntity buildUser() {
@@ -51,6 +57,11 @@ class UserGroupManagerImplTest extends BaseUnitTest {
         userGroupType.setSluggerFeaturerId(2001);
         userGroup.setUserGroupType(userGroupType);
         return userGroup;
+    }
+
+
+    private Kit<UserGroupEntity, UUID> kitOf(UserGroupEntity... groups) {
+        return new Kit<>(java.util.Arrays.asList(groups), UserGroupEntity::getId);
     }
 
     @Nested
@@ -92,8 +103,8 @@ class UserGroupManagerImplTest extends BaseUnitTest {
             var user = buildUser();
             var userGroup = buildUserGroup(groupId);
 
-            when(userGroupRepository.findByIdIn(Set.of(groupId)))
-                    .thenReturn(List.of(userGroup));
+            when(userGroupService.findEntitiesSafe(Set.of(groupId)))
+                    .thenReturn(kitOf(userGroup));
             when(featurerService.getFeaturer(2001, Slugger.class))
                     .thenReturn(slugger);
 
@@ -115,8 +126,8 @@ class UserGroupManagerImplTest extends BaseUnitTest {
             var user = buildUser();
             var userGroup = buildUserGroup(groupId);
 
-            when(userGroupRepository.findByIdIn(Set.of(groupId)))
-                    .thenReturn(List.of(userGroup));
+            when(userGroupService.findEntitiesSafe(Set.of(groupId)))
+                    .thenReturn(kitOf(userGroup));
             when(featurerService.getFeaturer(2001, Slugger.class))
                     .thenReturn(slugger);
 
@@ -140,8 +151,8 @@ class UserGroupManagerImplTest extends BaseUnitTest {
             var enterGroup = buildUserGroup(enterGroupId);
             var exitGroup = buildUserGroup(exitGroupId);
 
-            when(userGroupRepository.findByIdIn(Set.of(enterGroupId, exitGroupId)))
-                    .thenReturn(List.of(enterGroup, exitGroup));
+            when(userGroupService.findEntitiesSafe(Set.of(enterGroupId, exitGroupId)))
+                    .thenReturn(kitOf(enterGroup, exitGroup));
             when(featurerService.getFeaturer(2001, Slugger.class))
                     .thenReturn(slugger);
 
@@ -162,8 +173,8 @@ class UserGroupManagerImplTest extends BaseUnitTest {
             var unknownGroupId = UUID.randomUUID();
             var user = buildUser();
 
-            when(userGroupRepository.findByIdIn(Set.of(unknownGroupId)))
-                    .thenReturn(Collections.emptyList());
+            when(userGroupService.findEntitiesSafe(Set.of(unknownGroupId)))
+                    .thenReturn(kitOf());
 
             userGroupManager.manageForUser(
                     new Properties(),
@@ -181,8 +192,8 @@ class UserGroupManagerImplTest extends BaseUnitTest {
             var unknownGroupId = UUID.randomUUID();
             var user = buildUser();
 
-            when(userGroupRepository.findByIdIn(Set.of(unknownGroupId)))
-                    .thenReturn(Collections.emptyList());
+            when(userGroupService.findEntitiesSafe(Set.of(unknownGroupId)))
+                    .thenReturn(kitOf());
 
             userGroupManager.manageForUser(
                     new Properties(),

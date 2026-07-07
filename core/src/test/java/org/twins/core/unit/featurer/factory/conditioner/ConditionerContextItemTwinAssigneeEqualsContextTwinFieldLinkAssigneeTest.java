@@ -13,7 +13,7 @@ import org.twins.core.featurer.factory.conditioner.ConditionerContextItemTwinAss
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.link.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -36,7 +36,7 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
     private FieldLookuperFromContextFields lookuper;
 
     @Mock
-    private TwinService twinService;
+    private TwinLinkService twinLinkService;
 
     private ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssignee conditioner;
 
@@ -44,7 +44,7 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
     void setUp() throws Exception {
         conditioner = new ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssignee();
         setField(conditioner, "fieldLookupers", fieldLookupers);
-        setField(conditioner, "twinService", twinService);
+        setField(conditioner, "twinLinkService", twinLinkService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 
@@ -114,22 +114,20 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
         }
 
         @Test
-        void check_dstTwinNotLoaded_fetchedFromServiceThenCompared() throws ServiceException {
-            // contract: when the link's dstTwin is not preloaded, it is fetched by dstTwinId
+        void check_dstTwinLoadedViaTwinLinkServiceThenCompared() throws ServiceException {
+            // contract: the link's dstTwin is loaded via twinLinkService.loadDstTwin before comparison
             var fieldId = UUID.randomUUID();
             var assignerId = UUID.randomUUID();
-            var dstTwinId = UUID.randomUUID();
 
             var link = mock(TwinLinkEntity.class);
             var fieldValue = mock(FieldValueLink.class);
             when(lookuper.lookupFieldValue(org.mockito.ArgumentMatchers.any(FactoryItem.class),
                     eq(fieldId))).thenReturn(fieldValue);
             when(fieldValue.getItems()).thenReturn(List.of(link));
-            when(link.getDstTwin()).thenReturn(null);
-            when(link.getDstTwinId()).thenReturn(dstTwinId);
             var fetched = mock(TwinEntity.class);
             when(fetched.getAssignerUserId()).thenReturn(assignerId);
-            when(twinService.findEntitySafe(eq(dstTwinId))).thenReturn(fetched);
+            // loadDstTwin populates the link; model that by having getDstTwin() return the loaded twin
+            when(link.getDstTwin()).thenReturn(fetched);
 
             var contextTwin = mock(TwinEntity.class);
             when(contextTwin.getAssignerUserId()).thenReturn(assignerId);
@@ -140,8 +138,7 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
 
             assertTrue(conditioner.check(props(fieldId), factoryItem));
 
-            // the fetched twin must be cached back onto the link
-            org.mockito.Mockito.verify(link).setDstTwin(fetched);
+            org.mockito.Mockito.verify(twinLinkService).loadDstTwin(link);
         }
 
         @Test

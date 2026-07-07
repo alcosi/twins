@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinAliasEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
+import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
 import org.twins.core.featurer.fieldtyper.value.FieldValueAliases;
 
@@ -33,8 +34,9 @@ class FieldTyperBaseAliasesFieldTest extends BaseUnitTest {
         @Test
         void deserializeValue_returnsTwinAliases() throws ServiceException {
             // Intended: BaseAliases reads twin.getTwinAliases().getList() into the field-value collection.
-            var alias1 = new TwinAliasEntity().setId(UUID.randomUUID());
-            var alias2 = new TwinAliasEntity().setId(UUID.randomUUID());
+            // Two aliases of distinct types so both survive Kit grouping (Kit drops duplicate keys).
+            var alias1 = new TwinAliasEntity().setId(UUID.randomUUID()).setAliasTypeId(TwinAliasType.D);
+            var alias2 = new TwinAliasEntity().setId(UUID.randomUUID()).setAliasTypeId(TwinAliasType.C);
             var twin = new TwinEntity()
                     .setId(UUID.randomUUID())
                     .setTwinAliases(new Kit<>(TwinAliasEntity::getAliasTypeId));

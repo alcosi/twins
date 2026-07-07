@@ -33,7 +33,7 @@ class TwinFieldStorageAttachmentTest extends BaseUnitTest {
     class Load {
 
         @Test
-        void load_isNoop_doesNotMutateTwins() {
+        void load_isNoop_doesNotMutateTwins() throws org.cambium.common.exception.ServiceException {
             // Attachments are not browsable as fields; load must be a no-op.
             var storage = new TwinFieldStorageAttachment(twinAttachmentRepository);
             var t = twin();

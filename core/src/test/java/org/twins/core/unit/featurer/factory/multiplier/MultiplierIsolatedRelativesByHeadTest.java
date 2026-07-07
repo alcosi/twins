@@ -88,7 +88,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
             doAnswer(inv -> {
                 ((TwinEntity) inv.getArgument(0)).setHeadTwin(head);
                 return head;
-            }).when(twinService).loadHeadForTwin(any(TwinEntity.class));
+            }).when(twinService).loadHead(any(TwinEntity.class));
             when(twinSearchService.findTwins(any(BasicSearch.class)))
                     .thenReturn(List.of(input, relative));
 
@@ -98,7 +98,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
                     mock(FactoryContext.class));
 
             // head loaded before read
-            verify(twinService).loadHeadForTwin(input);
+            verify(twinService).loadHead(input);
             // input twin must be filtered out; only the true relative remains
             assertEquals(1, result.size());
             var out = (TwinUpdate) result.get(0).getOutput();
@@ -111,9 +111,9 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
             input.setId(UUID.randomUUID());
             input.setTwinClassId(UUID.randomUUID());
 
-            // loadHeadForTwin returns a (non-void) TwinEntity; stubbing it to leave head unset
+            // loadHead returns a (non-void) TwinEntity; stubbing it to leave head unset
             // (returns null, no head wired onto the input) makes the multiplier skip this input.
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(null);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(null);
 
             var result = multiplier.multiply(
                     new Properties(),
@@ -135,7 +135,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
             doAnswer(inv -> {
                 ((TwinEntity) inv.getArgument(0)).setHeadTwin(head);
                 return head;
-            }).when(twinService).loadHeadForTwin(any(TwinEntity.class));
+            }).when(twinService).loadHead(any(TwinEntity.class));
             when(twinSearchService.findTwins(any(BasicSearch.class)))
                     .thenReturn(List.of());
 
@@ -152,7 +152,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
             var result = multiplier.multiply(new Properties(), List.of(), mock(FactoryContext.class));
 
             assertTrue(result.isEmpty());
-            verify(twinService, never()).loadHeadForTwin(any(TwinEntity.class));
+            verify(twinService, never()).loadHead(any(TwinEntity.class));
         }
     }
 }

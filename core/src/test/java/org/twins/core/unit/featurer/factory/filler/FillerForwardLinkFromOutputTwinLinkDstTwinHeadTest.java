@@ -99,7 +99,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
                     .setDstTwinId(DST_TWIN_ID);
             var factoryItem = buildFactoryItem(outputLink);
             var headTwin = new TwinEntity().setId(HEAD_TWIN_ID);
-            when(twinService.loadHeadForTwin(dstTwin)).thenReturn(headTwin);
+            when(twinService.loadHead(dstTwin)).thenReturn(headTwin);
             var newLinkEntity = new LinkEntity().setId(NEW_LINK_ID);
             when(linkService.findEntitySafe(NEW_LINK_ID)).thenReturn(newLinkEntity);
 

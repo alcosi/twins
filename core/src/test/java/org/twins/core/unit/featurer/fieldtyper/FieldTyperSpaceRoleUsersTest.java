@@ -17,7 +17,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
@@ -39,7 +39,7 @@ class FieldTyperSpaceRoleUsersTest extends BaseUnitTest {
     private UserService userService;
 
     @Mock
-    private SpaceUserRoleService spaceUserRoleService;
+    private SpaceRoleUserService spaceRoleUserService;
 
     @Mock
     private AuthService authService;
@@ -54,7 +54,7 @@ class FieldTyperSpaceRoleUsersTest extends BaseUnitTest {
         fieldTyper = new FieldTyperSpaceRoleUsers();
         setField(fieldTyper, "userFilterService", userFilterService);
         setField(fieldTyper, "userService", userService);
-        setField(fieldTyper, "spaceUserRoleService", spaceUserRoleService);
+        setField(fieldTyper, "spaceRoleUserService", spaceRoleUserService);
         setField(fieldTyper, "authService", authService);
         setField(fieldTyper, "twinService", twinService);
     }
@@ -150,7 +150,7 @@ class FieldTyperSpaceRoleUsersTest extends BaseUnitTest {
 
             fieldTyper.serializeValue(properties(filterId, roleId, "0"), twin, value, collector);
 
-            verifyNoInteractions(spaceUserRoleService);
+            verifyNoInteractions(spaceRoleUserService);
             verifyNoInteractions(authService);
             verifyNoInteractions(userService);
         }

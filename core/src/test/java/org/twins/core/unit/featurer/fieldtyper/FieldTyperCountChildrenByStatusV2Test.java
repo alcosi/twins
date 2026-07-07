@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -20,14 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FieldTyperCountChildrenByStatusV2Test extends BaseUnitTest {
 
     @Mock
-    private TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private TwinRepository twinRepository;
 
     private FieldTyperCountChildrenByStatusV2 fieldTyper;
 
     @BeforeEach
     void setUp() throws Exception {
         fieldTyper = new FieldTyperCountChildrenByStatusV2();
-        setField(fieldTyper, "twinFieldSimpleRepository", twinFieldSimpleRepository);
+        setField(fieldTyper, "twinRepository", twinRepository);
     }
 
     // V2 persists the computed count into the twin's own simple (text) field on serializeValue, then

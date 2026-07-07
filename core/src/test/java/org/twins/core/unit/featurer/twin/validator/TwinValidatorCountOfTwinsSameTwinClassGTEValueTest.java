@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class TwinValidatorCountOfTwinsSameTwinClassGTEValueTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchService twinSearchService;
+    private TwinSearchServiceV2 twinSearchService;
 
     private TwinValidatorCountOfTwinsSameTwinClassGTEValue validator;
 
@@ -58,7 +58,7 @@ class TwinValidatorCountOfTwinsSameTwinClassGTEValueTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
             twin.setTwinClassId(classId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClassId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.TWIN_CLASS_ID)))
                     .thenReturn(Map.of(classId, 5L));
 
             var props = new Properties();
@@ -76,7 +76,7 @@ class TwinValidatorCountOfTwinsSameTwinClassGTEValueTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
             twin.setTwinClassId(classId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClassId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.TWIN_CLASS_ID)))
                     .thenReturn(Map.of(classId, 2L));
 
             var props = new Properties();
@@ -94,7 +94,7 @@ class TwinValidatorCountOfTwinsSameTwinClassGTEValueTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
             twin.setTwinClassId(classId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClassId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.TWIN_CLASS_ID)))
                     .thenReturn(Map.of(classId, 5L));
 
             var props = new Properties();
@@ -112,7 +112,7 @@ class TwinValidatorCountOfTwinsSameTwinClassGTEValueTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
             twin.setTwinClassId(classId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClassId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.TWIN_CLASS_ID)))
                     .thenReturn(Collections.emptyMap());
 
             var props = new Properties();
@@ -130,7 +130,7 @@ class TwinValidatorCountOfTwinsSameTwinClassGTEValueTest extends BaseUnitTest {
             twin.setId(UUID.randomUUID());
             twin.setTwinClassId(classId);
 
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClassId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.TWIN_CLASS_ID)))
                     .thenReturn(Map.of(classId, 5L));
 
             var props = new Properties();

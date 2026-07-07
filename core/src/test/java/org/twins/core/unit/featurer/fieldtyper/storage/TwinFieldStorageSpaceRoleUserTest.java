@@ -1,5 +1,6 @@
 package org.twins.core.unit.featurer.fieldtyper.storage;
 
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.junit.jupiter.api.Nested;
@@ -10,6 +11,7 @@ import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpaceRoleUser;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
+import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,9 @@ class TwinFieldStorageSpaceRoleUserTest extends BaseUnitTest {
     @Mock
     private SpaceRoleUserRepository spaceRoleUserRepository;
 
+    @Mock
+    private SpaceRoleUserService spaceRoleUserService;
+
     private TwinEntity twin(UUID id, UUID permissionSchemaSpaceId) {
         var t = new TwinEntity();
         t.setId(id);
@@ -35,7 +40,7 @@ class TwinFieldStorageSpaceRoleUserTest extends BaseUnitTest {
     class Load {
 
         @Test
-        void load_collectsPermissionSchemaSpaceIdsAndQueriesRepositoryByThem() {
+        void load_collectsPermissionSchemaSpaceIdsAndQueriesRepositoryByThem() throws ServiceException {
             // Contract: the per-twin permission schema space drives which space-role-users to load.
             var space1 = UUID.randomUUID();
             var space2 = UUID.randomUUID();
@@ -55,7 +60,7 @@ class TwinFieldStorageSpaceRoleUserTest extends BaseUnitTest {
         }
 
         @Test
-        void load_twinWithoutMatchingRows_isInitialisedWithEmptyKit() {
+        void load_twinWithoutMatchingRows_isInitialisedWithEmptyKit() throws ServiceException {
             var space = UUID.randomUUID();
             var t = twin(UUID.randomUUID(), space);
             var kit = new Kit<>(List.of(t), TwinEntity::getId);
@@ -70,7 +75,7 @@ class TwinFieldStorageSpaceRoleUserTest extends BaseUnitTest {
     }
 
     private TwinFieldStorageSpaceRoleUser storage() {
-        return new TwinFieldStorageSpaceRoleUser(spaceRoleUserRepository);
+        return new TwinFieldStorageSpaceRoleUser(spaceRoleUserRepository, spaceRoleUserService);
     }
 
     @Nested

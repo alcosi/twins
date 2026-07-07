@@ -89,8 +89,8 @@ class FieldTyperTwinClassTest extends BaseUnitTest {
             var tc1 = new TwinClassEntity().setId(UUID.randomUUID());
             var tc2 = new TwinClassEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
-            var stored1 = new TwinFieldTwinClassEntity().setTwinClass(tc1).setTwinClassId(tc1.getId()).setTwinClassFieldId(classField.getId());
-            var stored2 = new TwinFieldTwinClassEntity().setTwinClass(tc2).setTwinClassId(tc2.getId()).setTwinClassFieldId(classField.getId());
+            var stored1 = new TwinFieldTwinClassEntity().setId(UUID.randomUUID()).setTwinClass(tc1).setTwinClassId(tc1.getId()).setTwinClassFieldId(classField.getId());
+            var stored2 = new TwinFieldTwinClassEntity().setId(UUID.randomUUID()).setTwinClass(tc2).setTwinClassId(tc2.getId()).setTwinClassFieldId(classField.getId());
             twin.setTwinFieldTwinClassKit(new KitGrouped<>(List.of(stored1, stored2), TwinFieldTwinClassEntity::getId, TwinFieldTwinClassEntity::getTwinClassFieldId));
 
             FieldValueTwinClassList result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));

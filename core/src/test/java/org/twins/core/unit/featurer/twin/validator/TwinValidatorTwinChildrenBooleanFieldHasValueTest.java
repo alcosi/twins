@@ -11,7 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collections;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 class TwinValidatorTwinChildrenBooleanFieldHasValueTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchService twinSearchService;
+    private TwinSearchServiceV2 twinSearchService;
 
     @Mock
     private TwinClassFieldService twinClassFieldService;
@@ -57,7 +57,7 @@ class TwinValidatorTwinChildrenBooleanFieldHasValueTest extends BaseUnitTest {
             fieldEntity.setFieldTyperFeaturerId(1);
             when(twinClassFieldService.findEntitySafe(fieldId)).thenReturn(fieldEntity);
             when(featurerService.getFeaturer(any(Integer.class), eq(FieldTyper.class))).thenReturn(mock(FieldTyper.class));
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Map.of(twinId, 3L));
 
             var props = new Properties();
@@ -80,7 +80,7 @@ class TwinValidatorTwinChildrenBooleanFieldHasValueTest extends BaseUnitTest {
             fieldEntity.setFieldTyperFeaturerId(1);
             when(twinClassFieldService.findEntitySafe(fieldId)).thenReturn(fieldEntity);
             when(featurerService.getFeaturer(any(Integer.class), eq(FieldTyper.class))).thenReturn(mock(FieldTyper.class));
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Collections.emptyMap());
 
             var props = new Properties();
@@ -103,7 +103,7 @@ class TwinValidatorTwinChildrenBooleanFieldHasValueTest extends BaseUnitTest {
             fieldEntity.setFieldTyperFeaturerId(1);
             when(twinClassFieldService.findEntitySafe(fieldId)).thenReturn(fieldEntity);
             when(featurerService.getFeaturer(any(Integer.class), eq(FieldTyper.class))).thenReturn(mock(FieldTyper.class));
-            when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.headTwinId)))
+            when(twinSearchService.countByGroupFields(any(BasicSearch.class), eq(TwinEntity.BasicField.HEAD_TWIN_ID)))
                     .thenReturn(Map.of(twinId, 3L));
 
             var props = new Properties();

@@ -86,6 +86,12 @@ class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
     }
 
     private KitGrouped<TwinLinkEntity, UUID, UUID> kitGrouped(TwinLinkEntity... items) {
+        // Kit rejects null keys (TwinLinkEntity::getId); seed each link with a unique id like real rows have.
+        for (var item : items) {
+            if (item.getId() == null) {
+                item.setId(UUID.randomUUID());
+            }
+        }
         return new KitGrouped<>(
                 List.of(items),
                 TwinLinkEntity::getId,
@@ -108,7 +114,10 @@ class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
                     .setDstTwinId(DST_TWIN_ID);
             when(twinLinkService.findTwinForwardLinks(contextTwin)).thenReturn(kitGrouped(matchedLink));
             var headTwin = new TwinEntity().setId(HEAD_TWIN_ID);
-            when(twinService.loadHeadForTwin(dstTwin)).thenReturn(headTwin);
+            // loadHead mutates dstTwin.headTwin in prod; the mock only returns, so seed the field
+            // that prod reads back via dstTwin.getHeadTwin().
+            dstTwin.setHeadTwin(headTwin);
+            when(twinService.loadHead(dstTwin)).thenReturn(headTwin);
             var newLinkEntity = new LinkEntity().setId(NEW_LINK_ID);
             when(linkService.findEntitySafe(NEW_LINK_ID)).thenReturn(newLinkEntity);
 

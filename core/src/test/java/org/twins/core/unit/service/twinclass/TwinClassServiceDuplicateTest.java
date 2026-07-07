@@ -1,14 +1,12 @@
 package org.twins.core.unit.service.twinclass;
 
-import org.twins.core.base.BaseUnitTest;
 import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -19,7 +17,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinStatusDuplicateService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassDuplicateService;
+import org.twins.core.service.twinclass.TwinClassFieldDuplicateService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -28,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+
 class TwinClassServiceDuplicateTest extends BaseUnitTest {
 
     @Mock private TwinClassService twinClassService;

@@ -87,8 +87,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
         }
 
         @Test
-        @Disabled("bug #14: FillerHeadFromContextTwinHead#fill (the detectedHeadTwinId != null guard) misses a "
-                + "null-vs-non-null head disagreement — a [null, X] context pair slips through. Re-enable once fixed.")
+        @Disabled("bug #14: FillerHeadFromContextTwinHead#fill misses a null-vs-non-null head disagreement (see prod TODO).")
         void fill_multipleContextsFirstHeadNullSecondNonNull_throwsFactoryIncorrect() {
             // INTENDED (RED): NAME/comment says "all context twins must have the same headTwinId, otherwise exception".
             // A null-vs-non-null disagreement must throw — but code only compares when detectedHeadTwinId != null,

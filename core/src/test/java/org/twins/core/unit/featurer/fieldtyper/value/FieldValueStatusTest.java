@@ -100,7 +100,7 @@ class FieldValueStatusTest extends BaseUnitTest {
     class CloneAndCopy {
 
         @Test
-        @Disabled("bug #1: base FieldValue classes lack @EqualsAndHashCode → equals is identity, so clone never equals original. Re-enable once equals/hashCode is fixed (see FieldValue TODO).")
+        @Disabled("bug #1: base FieldValue classes lack @EqualsAndHashCode -> equals is identity, so clone never equals original.")
         void clone_isIndependentCopy() {
             var original = new FieldValueStatus(field);
             var s = status(UUID.randomUUID());

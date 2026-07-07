@@ -15,6 +15,7 @@ import org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemHeadAss
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
@@ -43,6 +44,9 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinLinkService twinLinkService;
+
     private ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAssignee conditioner;
 
     @BeforeEach
@@ -50,6 +54,7 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
         conditioner = new ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAssignee();
         setField(conditioner, "fieldLookupers", fieldLookupers);
         setField(conditioner, "twinService", twinService);
+        setField(conditioner, "twinLinkService", twinLinkService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 
@@ -102,7 +107,7 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
             when(link.getDstTwin()).thenReturn(dstTwin);
             stubLinkField(fieldId, link);
             var head = new TwinEntity().setAssignerUserId(assignerId);
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(head);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(head);
 
             assertTrue(conditioner.check(props(fieldId), item()));
         }
@@ -115,7 +120,7 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
             when(link.getDstTwin()).thenReturn(dstTwin);
             stubLinkField(fieldId, link);
             var head = new TwinEntity().setAssignerUserId(UUID.randomUUID());
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(head);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(head);
 
             assertFalse(conditioner.check(props(fieldId), item()));
         }
@@ -124,11 +129,9 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
         void check_noHeadTwin_throwsFactoryPipelineStepError() throws ServiceException {
             // contract: a missing head twin is a pipeline misconfiguration -> ServiceException.
             var fieldId = UUID.randomUUID();
-            var dstTwin = new TwinEntity().setAssignerUserId(UUID.randomUUID());
             var link = mock(TwinLinkEntity.class);
-            when(link.getDstTwin()).thenReturn(dstTwin);
             stubLinkField(fieldId, link);
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(null);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
                     () -> conditioner.check(props(fieldId), item()));
@@ -136,22 +139,19 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
         }
 
         @Test
-        void check_dstTwinNotPreloaded_fetchedAndCached() throws ServiceException {
+        void check_dstTwinLoadedViaTwinLinkService() throws ServiceException {
             var fieldId = UUID.randomUUID();
-            var dstTwinId = UUID.randomUUID();
             var assignerId = UUID.randomUUID();
             var link = mock(TwinLinkEntity.class);
-            when(link.getDstTwin()).thenReturn(null);
-            when(link.getDstTwinId()).thenReturn(dstTwinId);
-            stubLinkField(fieldId, link);
             var fetched = new TwinEntity().setAssignerUserId(assignerId);
-            when(twinService.findEntitySafe(eq(dstTwinId))).thenReturn(fetched);
+            when(link.getDstTwin()).thenReturn(fetched);
+            stubLinkField(fieldId, link);
             var head = new TwinEntity().setAssignerUserId(assignerId);
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(head);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(head);
 
             assertTrue(conditioner.check(props(fieldId), item()));
 
-            verify(link).setDstTwin(fetched);
+            verify(twinLinkService).loadDstTwin(link);
         }
 
         @Test
@@ -164,11 +164,11 @@ class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFieldLinkAs
             when(link.getDstTwin()).thenReturn(dstTwin);
             stubLinkField(fieldId, link);
             var head = new TwinEntity().setAssignerUserId(assignerId);
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(head);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(head);
 
             conditioner.check(props(fieldId), item());
 
-            verify(twinService).loadHeadForTwin(any(TwinEntity.class));
+            verify(twinService).loadHead(any(TwinEntity.class));
         }
     }
 }

@@ -55,7 +55,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
 
         @Test
         void isValid_systemFieldNotNull_returnsValid() throws ServiceException {
-            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // TWIN_CLASS_FIELD_TWIN_NAME
+            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // NAME
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
             twin.setName("test-name");
@@ -71,7 +71,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
 
         @Test
         void isValid_systemFieldNull_returnsInvalid() throws ServiceException {
-            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // TWIN_CLASS_FIELD_TWIN_NAME
+            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // NAME
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
             twin.setName(null);
@@ -127,7 +127,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
 
         @Test
         void isValid_mixedFields_allNotNull_returnsValid() throws Exception {
-            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // TWIN_CLASS_FIELD_TWIN_NAME
+            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // NAME
             var dynamicFieldId = UUID.randomUUID();
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
@@ -154,7 +154,7 @@ class TwinValidatorTwinFieldNotNullTest extends BaseUnitTest {
 
         @Test
         void isValid_systemFieldNotNull_inverted_returnsInvalid() throws ServiceException {
-            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // TWIN_CLASS_FIELD_TWIN_NAME
+            var systemFieldId = UUID.fromString("00000000-0000-0000-0011-000000000003"); // NAME
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
             twin.setName("test-name");

@@ -4,7 +4,9 @@ import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -26,12 +28,31 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
 
     private FillerBasicsAssigneeFromOutputTwinFieldLink filler;
 
+    @Mock
+    private TwinLinkService twinLinkService;
+
     private static final UUID FIELD_ID = UUID.randomUUID();
     private static final UUID LINK_ID = UUID.randomUUID();
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         filler = new FillerBasicsAssigneeFromOutputTwinFieldLink();
+        setField(filler, "twinLinkService", twinLinkService);
+    }
+
+    private static void setField(Object target, String name, Object value) throws Exception {
+        Class<?> clazz = target.getClass();
+        while (clazz != null) {
+            try {
+                var f = clazz.getDeclaredField(name);
+                f.setAccessible(true);
+                f.set(target, value);
+                return;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(name);
     }
 
     private Properties props() {

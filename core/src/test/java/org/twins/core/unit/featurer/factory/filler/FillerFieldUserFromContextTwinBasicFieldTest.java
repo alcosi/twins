@@ -15,6 +15,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldUserFromContextTwinBasicField;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
@@ -30,6 +31,9 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
     @Mock
     private TwinClassFieldService twinClassFieldService;
 
+    @Mock
+    private TwinService twinService;
+
     private FillerFieldUserFromContextTwinBasicField filler;
 
     private static final UUID FIELD_ID = UUID.randomUUID();
@@ -38,6 +42,7 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldUserFromContextTwinBasicField();
         inject(filler, "twinClassFieldService", twinClassFieldService);
+        inject(filler, "twinService", twinService);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {

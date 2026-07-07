@@ -62,7 +62,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             var linkField = singleLinkField(linkFieldId, dstTwin);
 
             when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(linkField);
-            when(twinService.loadHeadForTwin(dstTwin)).thenReturn(dstHeadTwin);
+            when(twinService.loadHead(dstTwin)).thenReturn(dstHeadTwin);
             var expected = fieldValue(lookupFieldId, "dst-head-val");
             when(twinService.getTwinFieldValue(dstHeadTwin, lookupFieldId)).thenReturn(expected);
             when(twinLinkService.getDstTwinSafe(linkField.getItems().getFirst())).thenReturn(dstTwin);
@@ -71,7 +71,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
 
             assertSame(expected, result);
             verify(twinLinkService).getDstTwinSafe(linkField.getItems().getFirst());
-            verify(twinService).loadHeadForTwin(dstTwin);
+            verify(twinService).loadHead(dstTwin);
             verify(twinService).getTwinFieldValue(dstHeadTwin, lookupFieldId);
             // Must NOT consult the item twin itself for the lookup field.
             verify(twinService, never()).getTwinFieldValue(twin, lookupFieldId);
@@ -87,7 +87,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             var linkField = singleLinkField(linkFieldId, dstTwin);
 
             when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(linkField);
-            when(twinService.loadHeadForTwin(dstTwin)).thenReturn(null);
+            when(twinService.loadHead(dstTwin)).thenReturn(null);
             when(twinLinkService.getDstTwinSafe(linkField.getItems().getFirst())).thenReturn(dstTwin);
 
             var ex = assertThrows(ServiceException.class,

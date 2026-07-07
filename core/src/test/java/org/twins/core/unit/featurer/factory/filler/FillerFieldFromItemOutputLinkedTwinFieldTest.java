@@ -17,7 +17,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputLinke
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.Properties;
@@ -38,7 +38,7 @@ class FillerFieldFromItemOutputLinkedTwinFieldTest extends BaseUnitTest {
     private TwinService twinService;
 
     @Mock
-    private TwinClassService twinClassService;
+    private TwinClassFieldService twinClassFieldService;
 
     private FillerFieldFromItemOutputLinkedTwinField filler;
 
@@ -51,7 +51,7 @@ class FillerFieldFromItemOutputLinkedTwinFieldTest extends BaseUnitTest {
         filler = new FillerFieldFromItemOutputLinkedTwinField();
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
-        inject(filler, "twinClassService", twinClassService);
+        inject(filler, "twinClassFieldService", twinClassFieldService);
         when(fieldLookupers.getFromItemOutputLinkedTwinFields()).thenReturn(lookuper);
     }
 
@@ -104,8 +104,8 @@ class FillerFieldFromItemOutputLinkedTwinFieldTest extends BaseUnitTest {
             var dstClone = new FieldValueText(field(DST_FIELD_ID)).setValue("v");
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID, LOOKUP_FIELD_ID)).thenReturn(srcValue);
             when(twinService.copyToField(srcValue, DST_FIELD_ID)).thenReturn(dstClone);
-            when(twinClassService.isInstanceOf(any(TwinClassEntity.class), eq(dstClone.getTwinClassField().getTwinClassId())))
-                    .thenReturn(true);
+            when(twinClassFieldService.isInvalidForClass(any(TwinClassEntity.class), eq(dstClone.getTwinClassField())))
+                    .thenReturn(false);
 
             filler.fill(props(), factoryItem, null);
 
@@ -121,8 +121,8 @@ class FillerFieldFromItemOutputLinkedTwinFieldTest extends BaseUnitTest {
             var dstClone = new FieldValueText(field(DST_FIELD_ID)).setValue("v");
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID, LOOKUP_FIELD_ID)).thenReturn(srcValue);
             when(twinService.copyToField(srcValue, DST_FIELD_ID)).thenReturn(dstClone);
-            when(twinClassService.isInstanceOf(any(TwinClassEntity.class), eq(dstClone.getTwinClassField().getTwinClassId())))
-                    .thenReturn(false);
+            when(twinClassFieldService.isInvalidForClass(any(TwinClassEntity.class), eq(dstClone.getTwinClassField())))
+                    .thenReturn(true);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));

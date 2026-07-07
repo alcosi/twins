@@ -17,6 +17,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
@@ -37,6 +38,9 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinLinkService twinLinkService;
+
     private FillerFieldAsContextFieldHead filler;
 
     private static final UUID SRC_FIELD_ID = UUID.randomUUID();
@@ -47,6 +51,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         filler = new FillerFieldAsContextFieldHead();
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
+        inject(filler, "twinLinkService", twinLinkService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 

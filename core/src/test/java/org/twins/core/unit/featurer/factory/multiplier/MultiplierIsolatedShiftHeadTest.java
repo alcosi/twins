@@ -84,12 +84,12 @@ class MultiplierIsolatedShiftHeadTest extends BaseUnitTest {
             input2.setHeadTwin(head);
             input2.setHeadTwinId(head.getId());
 
-            // loadHeadForTwin populates headTwin on the entity; stub it to do the assignment
+            // loadHead populates headTwin on the entity; stub it to do the assignment
             doAnswer(inv -> {
                 var t = (TwinEntity) inv.getArgument(0);
                 t.setHeadTwin(head);
                 return head;
-            }).when(twinService).loadHeadForTwin(any(TwinEntity.class));
+            }).when(twinService).loadHead(any(TwinEntity.class));
 
             var result = multiplier.multiply(
                     new Properties(),
@@ -98,7 +98,7 @@ class MultiplierIsolatedShiftHeadTest extends BaseUnitTest {
 
             assertEquals(2, result.size());
             // critical: lazy head MUST be loaded before being read
-            verify(twinService, times(2)).loadHeadForTwin(any(TwinEntity.class));
+            verify(twinService, times(2)).loadHead(any(TwinEntity.class));
 
             for (var item : result) {
                 assertInstanceOf(TwinUpdate.class, item.getOutput());
@@ -113,9 +113,9 @@ class MultiplierIsolatedShiftHeadTest extends BaseUnitTest {
             var input = new TwinEntity();
             input.setId(UUID.randomUUID());
 
-            // loadHeadForTwin returns a (non-void) TwinEntity; stubbing it to return null leaves
+            // loadHead returns a (non-void) TwinEntity; stubbing it to return null leaves
             // head unset, so the multiplier skips this input.
-            when(twinService.loadHeadForTwin(any(TwinEntity.class))).thenReturn(null);
+            when(twinService.loadHead(any(TwinEntity.class))).thenReturn(null);
 
             var result = multiplier.multiply(
                     new Properties(),
@@ -130,7 +130,7 @@ class MultiplierIsolatedShiftHeadTest extends BaseUnitTest {
             var result = multiplier.multiply(new Properties(), List.of(), mock(FactoryContext.class));
 
             assertTrue(result.isEmpty());
-            verify(twinService, never()).loadHeadForTwin(any(TwinEntity.class));
+            verify(twinService, never()).loadHead(any(TwinEntity.class));
         }
 
         @Test
@@ -144,7 +144,7 @@ class MultiplierIsolatedShiftHeadTest extends BaseUnitTest {
             doAnswer(inv -> {
                 ((TwinEntity) inv.getArgument(0)).setHeadTwin(head);
                 return head;
-            }).when(twinService).loadHeadForTwin(any(TwinEntity.class));
+            }).when(twinService).loadHead(any(TwinEntity.class));
 
             var item1 = buildInputItem(input1);
             var item2 = buildInputItem(input2);

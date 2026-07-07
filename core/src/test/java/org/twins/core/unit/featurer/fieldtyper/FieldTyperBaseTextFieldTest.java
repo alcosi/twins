@@ -15,9 +15,9 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.DESCRIPTION;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.EXTERNAL_ID;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.NAME;
 
 class FieldTyperBaseTextFieldTest extends BaseUnitTest {
 
@@ -34,7 +34,7 @@ class FieldTyperBaseTextFieldTest extends BaseUnitTest {
         void deserializeValue_nameField_returnsTwinName() throws ServiceException {
             // Intended: the NAME system field reads twin.getName().
             var twin = new TwinEntity().setId(UUID.randomUUID()).setName("alpha");
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_NAME);
+            var classField = new TwinClassFieldEntity().setId(NAME);
 
             FieldValueText result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 
@@ -45,7 +45,7 @@ class FieldTyperBaseTextFieldTest extends BaseUnitTest {
         void deserializeValue_descriptionField_returnsTwinDescription() throws ServiceException {
             // Intended: the DESCRIPTION system field reads twin.getDescription().
             var twin = new TwinEntity().setId(UUID.randomUUID()).setDescription("desc");
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_DESCRIPTION);
+            var classField = new TwinClassFieldEntity().setId(DESCRIPTION);
 
             FieldValueText result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 
@@ -56,7 +56,7 @@ class FieldTyperBaseTextFieldTest extends BaseUnitTest {
         void deserializeValue_externalIdField_returnsTwinExternalId() throws ServiceException {
             // Intended: the EXTERNAL_ID system field reads twin.getExternalId().
             var twin = new TwinEntity().setId(UUID.randomUUID()).setExternalId("ext-1");
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID);
+            var classField = new TwinClassFieldEntity().setId(EXTERNAL_ID);
 
             FieldValueText result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 

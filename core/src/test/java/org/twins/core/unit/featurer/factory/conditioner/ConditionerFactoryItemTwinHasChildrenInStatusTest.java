@@ -13,7 +13,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinHasChildrenInStatus;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchService twinSearchService;
+    private TwinSearchServiceV2 twinSearchService;
 
     private ConditionerFactoryItemTwinHasChildrenInStatus conditioner;
 
@@ -86,8 +86,8 @@ class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
             var headId = UUID.randomUUID();
             var statuses = new LinkedHashSet<UUID>();
             statuses.add(UUID.randomUUID());
-            when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
-                    .thenReturn(5L);
+            when(twinSearchService.exists(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
+                    .thenReturn(true);
 
             assertTrue(conditioner.check(props(statuses, false, null), item(headId, mock(FactoryContext.class))));
         }
@@ -96,36 +96,31 @@ class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
         void check_noChildren_returnsFalse() throws ServiceException {
             var statuses = new LinkedHashSet<UUID>();
             statuses.add(UUID.randomUUID());
-            when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
-                    .thenReturn(0L);
+            when(twinSearchService.exists(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
+                    .thenReturn(false);
 
             assertFalse(conditioner.check(props(statuses, false, null),
                     item(UUID.randomUUID(), mock(FactoryContext.class))));
         }
 
         @Test
-        void check_searchScopedToOutputTwinSubtree_rootsHierarchyAtOutputTwinWithDepth() throws ServiceException {
-            // contract: "twin HAS CHILDREN in status" must scope the count to descendants of THIS output
-            // twin. Scoping is done via the hierarchy-children search: its root ids (idList) must carry the
-            // output twin id and the configured depth must be propagated, so checkHierarchyChildren walks
-            // only the output twin's subtree instead of counting every twin in the given statuses space-wide.
+        void check_searchScopedToOutputTwinAsHead() throws ServiceException {
+            // contract: "twin HAS CHILDREN in status" must scope the search to children of THIS output twin.
+            // Scoping is done by adding the output twin id as the head twin id of the search.
             var outputTwinId = UUID.randomUUID();
             var statuses = new LinkedHashSet<UUID>();
             statuses.add(UUID.randomUUID());
-            when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
-                    .thenReturn(1L);
+            when(twinSearchService.exists(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
+                    .thenReturn(true);
 
             conditioner.check(props(statuses, false, 3), item(outputTwinId, mock(FactoryContext.class)));
 
             var captor = ArgumentCaptor.forClass(BasicSearch.class);
-            org.mockito.Mockito.verify(twinSearchService).count(captor.capture());
+            org.mockito.Mockito.verify(twinSearchService).exists(captor.capture());
             var used = captor.getValue();
-            var hierarchy = used.getHierarchyChildrenSearch();
-            assertNotNull(hierarchy, "hierarchy children search must be set");
-            assertEquals(Set.of(outputTwinId), hierarchy.getIdList(),
-                    "hierarchy search root (idList) must be the output twin id");
-            assertEquals(3, hierarchy.getDepth().intValue(),
-                    "configured depth must be propagated to the hierarchy search");
+            assertNotNull(used.getHeadTwinIdList(), "search must be scoped to the output twin as head");
+            assertTrue(used.getHeadTwinIdList().contains(outputTwinId),
+                    "head twin id list must contain the output twin id");
         }
 
         @Test
@@ -139,13 +134,13 @@ class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
 
             var statuses = new LinkedHashSet<UUID>();
             statuses.add(UUID.randomUUID());
-            when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
-                    .thenReturn(0L);
+            when(twinSearchService.exists(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
+                    .thenReturn(false);
 
             conditioner.check(props(statuses, true, null), item(headId, ctx));
 
             var captor = ArgumentCaptor.forClass(BasicSearch.class);
-            org.mockito.Mockito.verify(twinSearchService).count(captor.capture());
+            org.mockito.Mockito.verify(twinSearchService).exists(captor.capture());
             var used = captor.getValue();
             assertTrue(used.getTwinIdExcludeList() != null
                     && used.getTwinIdExcludeList().contains(input1.getId())
@@ -159,14 +154,14 @@ class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
             var statuses = new LinkedHashSet<UUID>();
             statuses.add(status1);
             statuses.add(status2);
-            when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
-                    .thenReturn(0L);
+            when(twinSearchService.exists(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
+                    .thenReturn(false);
 
             conditioner.check(props(statuses, false, null),
                     item(UUID.randomUUID(), mock(FactoryContext.class)));
 
             var captor = ArgumentCaptor.forClass(BasicSearch.class);
-            org.mockito.Mockito.verify(twinSearchService).count(captor.capture());
+            org.mockito.Mockito.verify(twinSearchService).exists(captor.capture());
             var used = captor.getValue();
             assertTrue(used.getStatusIdList() != null
                     && used.getStatusIdList().contains(status1)
@@ -176,14 +171,14 @@ class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
         @Test
         void check_emptyStatusSet_doesNotAddStatusFilter() throws ServiceException {
             // contract: with no configured statuses, statusIdList should stay empty (count by children only).
-            when(twinSearchService.count(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
-                    .thenReturn(0L);
+            when(twinSearchService.exists(org.mockito.ArgumentMatchers.any(BasicSearch.class)))
+                    .thenReturn(false);
 
             conditioner.check(props(new LinkedHashSet<>(), false, null),
                     item(UUID.randomUUID(), mock(FactoryContext.class)));
 
             var captor = ArgumentCaptor.forClass(BasicSearch.class);
-            org.mockito.Mockito.verify(twinSearchService).count(captor.capture());
+            org.mockito.Mockito.verify(twinSearchService).exists(captor.capture());
             var used = captor.getValue();
             assertTrue(used.getStatusIdList() == null || used.getStatusIdList().isEmpty());
         }

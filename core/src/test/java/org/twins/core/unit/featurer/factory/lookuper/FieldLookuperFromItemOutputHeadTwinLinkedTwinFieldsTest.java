@@ -59,7 +59,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
 
-            when(twinService.loadHeadForTwin(twin)).thenReturn(null);
+            when(twinService.loadHead(twin)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
@@ -78,7 +78,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             var factoryItem = itemWithTwin(twin);
             var linkField = singleLinkField(linkFieldId, dstTwin);
 
-            when(twinService.loadHeadForTwin(twin)).thenReturn(headTwin);
+            when(twinService.loadHead(twin)).thenReturn(headTwin);
             when(twinService.getTwinFieldValue(headTwin, linkFieldId)).thenReturn(linkField);
             var expected = fieldValue(lookupFieldId, "dst-val");
             when(twinService.getTwinFieldValue(dstTwin, lookupFieldId)).thenReturn(expected);
@@ -100,7 +100,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             var headTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
 
-            when(twinService.loadHeadForTwin(twin)).thenReturn(headTwin);
+            when(twinService.loadHead(twin)).thenReturn(headTwin);
             when(twinService.getTwinFieldValue(headTwin, linkFieldId)).thenReturn(fieldValue(linkFieldId, "text"));
 
             var ex = assertThrows(ServiceException.class,
@@ -121,7 +121,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             multiLink.add(new TwinLinkEntity().setId(UUID.randomUUID()).setDstTwinId(UUID.randomUUID()));
             multiLink.add(new TwinLinkEntity().setId(UUID.randomUUID()).setDstTwinId(UUID.randomUUID()));
 
-            when(twinService.loadHeadForTwin(twin)).thenReturn(headTwin);
+            when(twinService.loadHead(twin)).thenReturn(headTwin);
             when(twinService.getTwinFieldValue(headTwin, linkFieldId)).thenReturn(multiLink);
 
             var ex = assertThrows(ServiceException.class,

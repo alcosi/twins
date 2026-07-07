@@ -1,5 +1,6 @@
 package org.twins.core.unit.service.twin;
 
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -16,11 +17,15 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.PermissionService.PermissionDetectKey;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,6 +56,21 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
 
         permissionId = UUID.randomUUID();
         actionRestrictionReasonId = UUID.randomUUID();
+    }
+
+    // Prod resolves permissions in batch: convertToDetectKeys(twins) -> hasPermission(PermissionDetectKey, UUID).
+    // hasPermission(TwinEntity, UUID) is never called by loadActions(), so we stub the batch path.
+    private void stubPermission(UUID permissionId, boolean granted) throws ServiceException {
+        when(permissionService.convertToDetectKeys(any()))
+                .thenReturn(Map.of(mock(PermissionDetectKey.class), List.of(twinEntity)));
+        when(permissionService.hasPermission(any(PermissionDetectKey.class), eq(permissionId)))
+                .thenReturn(granted);
+    }
+
+    // Prod validates in batch: isValid(Collection<TwinEntity>, Collection<rules>) -> Map<twinId, ValidationResult>.
+    private void stubValidatorResult(boolean valid) throws ServiceException {
+        when(twinValidatorSetService.isValid(any(Collection.class), any(Collection.class)))
+                .thenReturn(Map.of(twinEntity.getId(), valid ? ValidationResult.VALID : new ValidationResult(false)));
     }
 
     @Nested
@@ -112,7 +132,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
             twinClassEntity.setActionsProtectedByValidatorRules(
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
 
-            when(permissionService.hasPermission(twinEntity, permissionId)).thenReturn(false);
+            stubPermission(permissionId, false);
 
             twinActionService.loadActions(twinEntity);
 
@@ -133,7 +153,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
             twinClassEntity.setActionsProtectedByValidatorRules(
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
 
-            when(permissionService.hasPermission(twinEntity, permissionId)).thenReturn(false);
+            stubPermission(permissionId, false);
 
             twinActionService.loadActions(twinEntity);
 
@@ -152,7 +172,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
             twinClassEntity.setActionsProtectedByValidatorRules(
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
 
-            when(permissionService.hasPermission(twinEntity, permissionId)).thenReturn(true);
+            stubPermission(permissionId, true);
 
             twinActionService.loadActions(twinEntity);
 
@@ -173,7 +193,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             twinClassEntity.getActionsProtectedByValidatorRules().add(validatorRule);
 
-            when(twinValidatorSetService.isValid(twinEntity, validatorRule)).thenReturn(true);
+            stubValidatorResult(true);
 
             twinActionService.loadActions(twinEntity);
 
@@ -190,7 +210,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             twinClassEntity.getActionsProtectedByValidatorRules().add(validatorRule);
 
-            when(twinValidatorSetService.isValid(twinEntity, validatorRule)).thenReturn(false);
+            stubValidatorResult(false);
 
             twinActionService.loadActions(twinEntity);
 
@@ -207,7 +227,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             twinClassEntity.getActionsProtectedByValidatorRules().add(validatorRule);
 
-            when(twinValidatorSetService.isValid(twinEntity, validatorRule)).thenReturn(false);
+            stubValidatorResult(false);
 
             twinActionService.loadActions(twinEntity);
 
@@ -228,8 +248,8 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
             twinClassEntity.getActionsProtectedByValidatorRules().add(rule1);
             twinClassEntity.getActionsProtectedByValidatorRules().add(rule2);
 
-            when(twinValidatorSetService.isValid(twinEntity, rule1)).thenReturn(false);
-            when(twinValidatorSetService.isValid(twinEntity, rule2)).thenReturn(true);
+            // Prod combines all active rules into one ValidationResult per twin; a passing rule yields "allowed".
+            stubValidatorResult(true);
 
             twinActionService.loadActions(twinEntity);
 
@@ -255,11 +275,11 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             twinClassEntity.getActionsProtectedByValidatorRules().add(validatorRule);
 
-            when(permissionService.hasPermission(twinEntity, permissionId)).thenReturn(false);
+            stubPermission(permissionId, false);
 
             twinActionService.loadActions(twinEntity);
 
-            verify(twinValidatorSetService, never()).isValid(eq(twinEntity), any(TwinActionValidatorRuleEntity.class));
+            verify(twinValidatorSetService, never()).isValid(any(Collection.class), any(Collection.class));
             assertFalse(twinEntity.getActions().contains(TwinAction.DELETE));
         }
 
@@ -279,8 +299,8 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             twinClassEntity.getActionsProtectedByValidatorRules().add(validatorRule);
 
-            when(permissionService.hasPermission(twinEntity, permissionId)).thenReturn(true);
-            when(twinValidatorSetService.isValid(twinEntity, validatorRule)).thenReturn(false);
+            stubPermission(permissionId, true);
+            stubValidatorResult(false);
 
             twinActionService.loadActions(twinEntity);
 
@@ -305,11 +325,11 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
                     new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             twinClassEntity.getActionsProtectedByValidatorRules().add(validatorRule);
 
-            when(permissionService.hasPermission(twinEntity, permissionId)).thenReturn(false);
+            stubPermission(permissionId, false);
 
             twinActionService.loadActions(twinEntity);
 
-            verify(twinValidatorSetService, never()).isValid(eq(twinEntity), any(TwinActionValidatorRuleEntity.class));
+            verify(twinValidatorSetService, never()).isValid(any(Collection.class), any(Collection.class));
             assertEquals(permissionReasonId, twinEntity.getActionsRestricted().get(TwinAction.DELETE));
         }
     }
@@ -320,6 +340,7 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
         rule.setTwinAction(action);
         rule.setActionRestrictionReasonId(reasonId);
         rule.setTwinValidatorKit(new Kit<>(TwinValidatorEntity::getId));
+        rule.setActive(true); // prod skips inactive rules (activeRules filter)
 
         var validator = new TwinValidatorEntity();
         validator.setId(UUID.randomUUID());

@@ -11,7 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerFieldCleaner;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -29,7 +29,7 @@ class FillerFieldCleanerTest extends BaseUnitTest {
     private FieldLookupers fieldLookupers;
 
     @Mock
-    private FieldLookuperFromItemOutputDbFields lookuper;
+    private FieldLookuperFromItemOutputFields lookuper;
 
     private FillerFieldCleaner filler;
 
@@ -39,7 +39,7 @@ class FillerFieldCleanerTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldCleaner();
         inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getFromItemOutputDbFields()).thenReturn(lookuper);
+        when(fieldLookupers.getFromItemOutputFields()).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -92,14 +92,18 @@ class FillerFieldCleanerTest extends BaseUnitTest {
         }
 
         @Test
-        void fill_absentField_isNoop() throws ServiceException {
-            // NAME promises: when field not present, cleaner does nothing (no add to output).
+        void fill_emptyField_isClearedAndAddedToOutput() throws ServiceException {
+            // the lookuper returns a (possibly empty) field value; the cleaner clears it and adds it to output.
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, FIELD_ID)).thenReturn(null);
+            var fieldEntity = new TwinClassFieldEntity().setId(FIELD_ID);
+            var fieldValue = new FieldValueText(fieldEntity); // undefined/empty
+            when(lookuper.lookupFieldValue(factoryItem, FIELD_ID)).thenReturn(fieldValue);
 
             filler.fill(props(), factoryItem, null);
 
-            assertNull(factoryItem.getOutput().getField(FIELD_ID));
+            var stored = factoryItem.getOutput().getField(FIELD_ID);
+            assertSame(fieldValue, stored);
+            assertTrue(stored.isCleared());
         }
     }
 }

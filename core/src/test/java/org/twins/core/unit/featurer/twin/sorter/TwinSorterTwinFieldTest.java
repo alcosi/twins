@@ -10,7 +10,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageBoolean;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.enums.consts.SystemIds;
 import org.hibernate.query.SortDirection;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -37,7 +37,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownNameField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.NAME);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -48,7 +48,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownDescriptionField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.DESCRIPTION);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.DESCENDING);
@@ -59,7 +59,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownExternalIdField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.EXTERNAL_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -70,7 +70,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownOwnerUserField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.OWNER_USER_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -81,7 +81,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownAssigneeUserField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -92,7 +92,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownCreatorUserField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.CREATOR_USER_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -103,7 +103,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownHeadField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.HEAD_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -114,7 +114,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownStatusField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.STATUS_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -125,7 +125,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownCreatedAtField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATED_AT);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.CREATED_AT);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -136,7 +136,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownIdField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ID);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);
@@ -147,7 +147,7 @@ class TwinSorterTwinFieldTest extends BaseUnitTest {
         @Test
         void createSort_withKnownTwinClassIdField_returnsNonNullFunction() throws ServiceException {
             var fieldEntity = new TwinClassFieldEntity();
-            fieldEntity.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID);
+            fieldEntity.setId(SystemIds.TwinClassField.Base.TWIN_CLASS_ID);
 
             Function<Specification<TwinEntity>, Specification<TwinEntity>> sortFn =
                     sorter.createSort(new Properties(), fieldEntity, SortDirection.ASCENDING);

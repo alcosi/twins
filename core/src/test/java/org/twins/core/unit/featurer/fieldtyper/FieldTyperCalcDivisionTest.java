@@ -61,7 +61,7 @@ class FieldTyperCalcDivisionTest extends BaseUnitTest {
         props.setProperty("secondFieldId", secondFieldId.toString());
         props.setProperty("decimalPlaces", "2");
         props.setProperty("roundingMode", "HALF_UP");
-        props.setProperty("divisionByZeroResul", divisionByZeroResult);
+        props.setProperty("divisionByZeroResult", divisionByZeroResult);
         return props;
     }
 

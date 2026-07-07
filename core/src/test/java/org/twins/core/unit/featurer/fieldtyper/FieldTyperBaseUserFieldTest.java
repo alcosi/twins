@@ -1,8 +1,10 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -12,18 +14,42 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.CREATOR_USER_ID;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.OWNER_USER_ID;
 
 class FieldTyperBaseUserFieldTest extends BaseUnitTest {
 
     private final FieldTyperBaseUserField fieldTyper = new FieldTyperBaseUserField();
+
+    @Mock
+    private TwinService twinService;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        setField(fieldTyper, "twinService", twinService);
+    }
+
+    private static void setField(Object target, String name, Object value) throws Exception {
+        Class<?> clazz = target.getClass();
+        while (clazz != null) {
+            try {
+                var field = clazz.getDeclaredField(name);
+                field.setAccessible(true);
+                field.set(target, value);
+                return;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(name);
+    }
 
     private TwinField twinField(TwinEntity twin, TwinClassFieldEntity classField) {
         return new TwinField(twin, classField);
@@ -37,7 +63,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
             // Intended: the ASSIGNEE_USER field reads twin.getAssignerUser() into the field value.
             var user = new UserEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID()).setAssignerUser(user);
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER);
+            var classField = new TwinClassFieldEntity().setId(ASSIGNEE_USER_ID);
 
             FieldValueUserSingle result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 
@@ -49,7 +75,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
             // Intended: the CREATOR_USER field reads twin.getCreatedByUser().
             var user = new UserEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID()).setCreatedByUser(user);
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_CREATOR_USER);
+            var classField = new TwinClassFieldEntity().setId(CREATOR_USER_ID);
 
             FieldValueUserSingle result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 
@@ -61,7 +87,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
             // Intended: the OWNER_USER field reads twin.getOwnerUser().
             var user = new UserEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID()).setOwnerUser(user);
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_OWNER_USER);
+            var classField = new TwinClassFieldEntity().setId(OWNER_USER_ID);
 
             FieldValueUserSingle result = fieldTyper.deserializeValue(new Properties(), twinField(twin, classField));
 
@@ -90,7 +116,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
             var userId = UUID.randomUUID();
             var user = new UserEntity().setId(userId);
             var twin = new TwinEntity().setId(UUID.randomUUID());
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER);
+            var classField = new TwinClassFieldEntity().setId(ASSIGNEE_USER_ID);
             var value = new FieldValueUserSingle(classField).setValue(user);
 
             fieldTyper.serializeValue(new Properties(), twin, value, new TwinChangesCollector());
@@ -105,7 +131,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
             var userId = UUID.randomUUID();
             var user = new UserEntity().setId(userId);
             var twin = new TwinEntity().setId(UUID.randomUUID());
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_OWNER_USER);
+            var classField = new TwinClassFieldEntity().setId(OWNER_USER_ID);
             var value = new FieldValueUserSingle(classField).setValue(user);
 
             fieldTyper.serializeValue(new Properties(), twin, value, new TwinChangesCollector());
@@ -121,7 +147,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
                     .setId(UUID.randomUUID())
                     .setAssignerUser(new UserEntity().setId(UUID.randomUUID()))
                     .setAssignerUserId(UUID.randomUUID());
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER);
+            var classField = new TwinClassFieldEntity().setId(ASSIGNEE_USER_ID);
             var value = new FieldValueUserSingle(classField).setValue(null);
 
             fieldTyper.serializeValue(new Properties(), twin, value, new TwinChangesCollector());
@@ -134,7 +160,7 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
         void serializeValue_creatorField_throwsImmutable() {
             // Intended: the creator is system-managed; serializing it must throw IMMUTABLE, not mutate the twin.
             var twin = new TwinEntity().setId(UUID.randomUUID());
-            var classField = new TwinClassFieldEntity().setId(TWIN_CLASS_FIELD_TWIN_CREATOR_USER);
+            var classField = new TwinClassFieldEntity().setId(CREATOR_USER_ID);
             var value = new FieldValueUserSingle(classField).setValue(new UserEntity().setId(UUID.randomUUID()));
 
             var ex = assertThrows(ServiceException.class,

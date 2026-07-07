@@ -4,9 +4,11 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.service.twin.TwinService;
@@ -22,6 +24,9 @@ class TwinFieldStoragePointedHeadTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinFieldStorage headTwinFieldStorage;
+
     private TwinEntity twin(UUID id) {
         var t = new TwinEntity();
         t.setId(id);
@@ -32,8 +37,8 @@ class TwinFieldStoragePointedHeadTest extends BaseUnitTest {
     class Load {
 
         @Test
-        void load_delegatesHeadLoadingToTwinServiceThenLoadsHeadFields() throws ServiceException {
-            var storage = new TwinFieldStoragePointedHead(twinService);
+        void load_loadsHeadThenDelegatesHeadFieldLoadingToHeadStorage() throws ServiceException {
+            var storage = new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage);
             var t1 = twin(UUID.randomUUID());
             var head1 = twin(UUID.randomUUID());
             t1.setHeadTwinId(head1.getId());
@@ -42,24 +47,26 @@ class TwinFieldStoragePointedHeadTest extends BaseUnitTest {
 
             storage.load(kit);
 
-            // PointedHead contract: load head for every twin, then load fields of the collected head set.
-            verify(twinService).loadHeadForTwin(kit.getList());
-            var headsCaptor = org.mockito.ArgumentCaptor.forClass(java.util.Collection.class);
-            verify(twinService).loadFieldsValues(headsCaptor.capture());
-            assertTrue(headsCaptor.getValue().contains(head1));
+            // PointedHead contract: load head for every twin, then delegate head-field loading to the
+            // nested head storage over the collected head set.
+            verify(twinService).loadHead(kit.getList());
+            var headsCaptor = ArgumentCaptor.forClass(Kit.class);
+            verify(headTwinFieldStorage).load(headsCaptor.capture());
+            assertTrue(headsCaptor.getValue().getCollection().contains(head1));
         }
 
         @Test
-        void load_twinWithoutHead_doesNotAddAnythingToHeadSet() throws ServiceException {
-            var storage = new TwinFieldStoragePointedHead(twinService);
+        void load_twinWithoutHead_delegatesEmptyHeadSet() throws ServiceException {
+            var storage = new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage);
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
             storage.load(kit);
 
-            verify(twinService).loadHeadForTwin(kit.getList());
-            // Still called (with whatever head set accumulated — here nothing), but must not throw.
-            verify(twinService).loadFieldsValues((java.util.Collection<TwinEntity>) any());
+            verify(twinService).loadHead(kit.getList());
+            var headsCaptor = ArgumentCaptor.forClass(Kit.class);
+            verify(headTwinFieldStorage).load(headsCaptor.capture());
+            assertTrue(headsCaptor.getValue().getCollection().isEmpty());
         }
     }
 
@@ -69,27 +76,27 @@ class TwinFieldStoragePointedHeadTest extends BaseUnitTest {
         @Test
         void isLoaded_twinWithNoHeadTwinId_isTrue() {
             // No head to load -> trivially loaded.
-            var storage = new TwinFieldStoragePointedHead(twinService);
+            var storage = new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage);
             var t = twin(UUID.randomUUID());
 
             assertTrue(storage.isLoaded(t));
         }
 
         @Test
-        void isLoaded_headLoadedWithFieldValuesKit_isTrue() {
-            var storage = new TwinFieldStoragePointedHead(twinService);
+        void isLoaded_headLoadedInHeadStorage_isTrue() {
+            var storage = new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage);
             var t = twin(UUID.randomUUID());
             var head = twin(UUID.randomUUID());
             t.setHeadTwinId(head.getId());
             t.setHeadTwin(head);
-            head.setFieldValuesKit(Kit.EMPTY);
+            when(headTwinFieldStorage.isLoaded(head)).thenReturn(true);
 
             assertTrue(storage.isLoaded(t));
         }
 
         @Test
         void isLoaded_headNotYetLoaded_isFalse() {
-            var storage = new TwinFieldStoragePointedHead(twinService);
+            var storage = new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage);
             var t = twin(UUID.randomUUID());
             var head = twin(UUID.randomUUID());
             t.setHeadTwinId(head.getId());
@@ -105,13 +112,13 @@ class TwinFieldStoragePointedHeadTest extends BaseUnitTest {
         @Test
         void equals_twoInstancesOfSameClass_isTrue() {
             assertEquals(
-                    new TwinFieldStoragePointedHead(twinService),
-                    new TwinFieldStoragePointedHead(twinService));
+                    new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage),
+                    new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage));
         }
 
         @Test
         void equals_differentStorageClass_isFalse() {
-            assertNotEquals(new TwinFieldStoragePointedHead(twinService), new TwinFieldStorageSpirit());
+            assertNotEquals(new TwinFieldStoragePointedHead(twinService, headTwinFieldStorage), new TwinFieldStorageSpirit());
         }
     }
 }

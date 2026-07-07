@@ -8,7 +8,7 @@ import org.cambium.common.ValidationResult;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.enums.consts.SystemIds;
 
 import java.util.UUID;
 
@@ -115,9 +115,9 @@ class FieldValueTest extends BaseUnitTest {
 
         @Test
         void isBaseField_delegatesToField() {
-            // isBaseField() derives from the field id via SystemEntityService.isSystemField(id);
+            // isBaseField() derives from the field id via SystemIdLookup.isSystemField(id);
             // a system field id (e.g. TWIN_NAME) makes the field a base field.
-            field.setId(SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME);
+            field.setId(SystemIds.TwinClassField.Base.NAME);
 
             var value = new StubFieldValue(field);
 
@@ -257,7 +257,7 @@ class FieldValueTest extends BaseUnitTest {
         // Intended contract: a clone of a value is equal-by-value to the original.
         // =====================================================================
         @Test
-        @Disabled("bug #1: base FieldValue classes lack @EqualsAndHashCode → equals is identity, so clone never equals original. Re-enable once equals/hashCode is fixed (see FieldValue TODO).")
+        @Disabled("bug #1: base FieldValue classes lack @EqualsAndHashCode -> equals is identity, so clone never equals original.")
         void clone_isEqualToOriginalByValue() {
             var original = new StubFieldValue(field);
             original.setValue("abc");

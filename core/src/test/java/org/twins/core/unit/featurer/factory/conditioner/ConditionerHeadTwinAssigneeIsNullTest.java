@@ -65,7 +65,7 @@ class ConditionerHeadTwinAssigneeIsNullTest extends BaseUnitTest {
             var factoryTwin = mock(TwinEntity.class);
             var head = mock(TwinEntity.class);
             when(head.getAssignerUserId()).thenReturn(null);
-            when(twinService.loadHeadForTwin(factoryTwin)).thenReturn(head);
+            when(twinService.loadHead(factoryTwin)).thenReturn(head);
 
             assertTrue(conditioner.check(new Properties(), itemWithTwin(factoryTwin)));
         }
@@ -75,7 +75,7 @@ class ConditionerHeadTwinAssigneeIsNullTest extends BaseUnitTest {
             var factoryTwin = mock(TwinEntity.class);
             var head = mock(TwinEntity.class);
             when(head.getAssignerUserId()).thenReturn(UUID.randomUUID());
-            when(twinService.loadHeadForTwin(factoryTwin)).thenReturn(head);
+            when(twinService.loadHead(factoryTwin)).thenReturn(head);
 
             assertFalse(conditioner.check(new Properties(), itemWithTwin(factoryTwin)));
         }
@@ -84,7 +84,7 @@ class ConditionerHeadTwinAssigneeIsNullTest extends BaseUnitTest {
         void check_noHeadTwinDetected_throws() throws ServiceException {
             // contract: a twin with no head twin is a hard error, not a silent true/false
             var factoryTwin = mock(TwinEntity.class);
-            when(twinService.loadHeadForTwin(factoryTwin)).thenReturn(null);
+            when(twinService.loadHead(factoryTwin)).thenReturn(null);
 
             assertThrows(ServiceException.class,
                     () -> conditioner.check(new Properties(), itemWithTwin(factoryTwin)));

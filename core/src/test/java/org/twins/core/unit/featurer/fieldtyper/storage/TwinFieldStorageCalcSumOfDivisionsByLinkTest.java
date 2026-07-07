@@ -29,7 +29,7 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
     private UUID fieldId;
     private UUID firstFieldId;
     private UUID secondFieldId;
-    private UUID linkId;
+    private Set<UUID> linkIds;
     private Set<UUID> linkedInStatusIds;
     private Set<UUID> linkedOfClassIds;
 
@@ -38,14 +38,14 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
         fieldId = UUID.randomUUID();
         firstFieldId = UUID.randomUUID();
         secondFieldId = UUID.randomUUID();
-        linkId = UUID.randomUUID();
+        linkIds = Set.of(UUID.randomUUID());
         linkedInStatusIds = Set.of(UUID.randomUUID());
         linkedOfClassIds = Set.of(UUID.randomUUID());
     }
 
     private TwinFieldStorageCalcSumOfDivisionsByLink newStorage(boolean srcElseDst, boolean statusExclude, boolean divisionByZeroIgnore) {
         return new TwinFieldStorageCalcSumOfDivisionsByLink(
-                fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, linkId,
+                fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, linkIds,
                 srcElseDst, linkedInStatusIds, linkedOfClassIds, statusExclude, divisionByZeroIgnore);
     }
 
@@ -67,7 +67,7 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesOfDivisionsByLink(
                     eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds), eq(linkedOfClassIds),
-                    eq(firstFieldId), eq(secondFieldId), eq(false), eq(true)))
+                    eq(firstFieldId), eq(secondFieldId), eq(linkIds), eq(false), eq(true)))
                     .thenReturn(List.of(
                             new TwinFieldCalcProjection(dst1.getId(), new BigDecimal("2")),
                             new TwinFieldCalcProjection(dst2.getId(), new BigDecimal("5"))));
@@ -77,9 +77,9 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
             // Class name says Divisions ByLink -> must call the *Divisions*ByLink variant.
             verify(twinFieldDecimalRepository).sumLinkedTwinFieldValuesOfDivisionsByLink(
                     eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds), eq(linkedOfClassIds),
-                    eq(firstFieldId), eq(secondFieldId), eq(false), eq(true));
+                    eq(firstFieldId), eq(secondFieldId), eq(linkIds), eq(false), eq(true));
             verify(twinFieldDecimalRepository, never()).sumLinkedTwinFieldValuesOfMultiplicationsByLink(
-                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean());
+                    any(), anyBoolean(), any(), any(), any(), any(), any(), anyBoolean());
             assertEquals(new BigDecimal("2"), dst1.getTwinFieldCalculated().get(fieldId));
             assertEquals(new BigDecimal("5"), dst2.getTwinFieldCalculated().get(fieldId));
         }
@@ -92,7 +92,7 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
             var kit = new Kit<>(java.util.Arrays.asList(dst1, dst2), TwinEntity::getId);
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesOfDivisionsByLink(
-                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean(), anyBoolean()))
+                    any(), anyBoolean(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean()))
                     .thenReturn(List.of(new TwinFieldCalcProjection(dst1.getId(), new BigDecimal("8"))));
 
             storage.load(kit);
@@ -114,7 +114,7 @@ class TwinFieldStorageCalcSumOfDivisionsByLinkTest extends BaseUnitTest {
         void equals_differentLinkId_isFalse() throws ServiceException {
             var a = newStorage(true, false, true);
             var b = new TwinFieldStorageCalcSumOfDivisionsByLink(
-                    fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, UUID.randomUUID(),
+                    fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, Set.of(UUID.randomUUID()),
                     true, linkedInStatusIds, linkedOfClassIds, false, true);
             assertNotEquals(a, b);
         }

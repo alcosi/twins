@@ -51,6 +51,7 @@ class FieldTyperI18nTest extends BaseUnitTest {
 
     private TwinFieldI18nEntity i18nEntity(TwinClassFieldEntity classField, Locale locale, String translation) {
         return new TwinFieldI18nEntity()
+                .setId(UUID.randomUUID())
                 .setTwinClassFieldId(classField.getId())
                 .setTwinClassField(classField)
                 .setLocale(locale)

@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
@@ -43,7 +44,12 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
             storage.load(kit);
 
             // load() must hand the twin collection off to TwinLinkService — that is its only job.
-            verify(twinLinkService).loadTwinLinks(kit.getCollection());
+            // (Kit.getCollection() returns an unmodifiable-collection view with identity equals, so capture
+            // and assert contents rather than comparing two getCollection() results.)
+            var captor = ArgumentCaptor.forClass(java.util.Collection.class);
+            verify(twinLinkService).loadTwinLinks(captor.capture());
+            assertEquals(2, captor.getValue().size());
+            assertTrue(captor.getValue().containsAll(java.util.List.of(t1, t2)));
         }
     }
 

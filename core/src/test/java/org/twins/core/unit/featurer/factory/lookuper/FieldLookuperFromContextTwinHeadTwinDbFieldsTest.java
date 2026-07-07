@@ -35,7 +35,7 @@ class FieldLookuperFromContextTwinHeadTwinDbFieldsTest extends BaseUnitTest {
         setField(lookuper, "twinService", twinService);
     }
 
-    // contract: load the head twin of factoryItem.getTwin() via TwinService.loadHeadForTwin,
+    // contract: load the head twin of factoryItem.getTwin() via TwinService.loadHead,
     //           then resolve the field from the head twin's DB fields via getTwinFieldValue(headTwin, fieldId).
     //           Missing on head -> ServiceException(FACTORY_PIPELINE_STEP_ERROR).
     //           Source: ONLY the head twin's DB fields.
@@ -50,18 +50,18 @@ class FieldLookuperFromContextTwinHeadTwinDbFieldsTest extends BaseUnitTest {
             var headTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
 
-            // loadHeadForTwin must populate twin.headTwin as a side effect.
+            // loadHead must populate twin.headTwin as a side effect.
             doAnswer(inv -> {
                 twin.setHeadTwin(headTwin);
                 return headTwin;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
             var expected = fieldValue(fieldId, "head-db-val");
             when(twinService.getTwinFieldValue(headTwin, fieldId)).thenReturn(expected);
 
             var result = lookuper.lookupFieldValue(factoryItem, fieldId);
 
             assertSame(expected, result);
-            verify(twinService).loadHeadForTwin(twin);
+            verify(twinService).loadHead(twin);
             verify(twinService).getTwinFieldValue(headTwin, fieldId);
             // Must NOT consult the twin itself for the field (source isolation).
             verify(twinService, never()).getTwinFieldValue(twin, fieldId);
@@ -77,7 +77,7 @@ class FieldLookuperFromContextTwinHeadTwinDbFieldsTest extends BaseUnitTest {
             doAnswer(inv -> {
                 twin.setHeadTwin(headTwin);
                 return headTwin;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
             when(twinService.getTwinFieldValue(headTwin, fieldId)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,

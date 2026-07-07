@@ -40,7 +40,7 @@ class PointerOnHeadTest extends BaseUnitTest {
                 TwinEntity entity = invocation.getArgument(0);
                 entity.setHeadTwin(headTwin);
                 return null;
-            }).when(twinService).loadHeadForTwin(srcTwin);
+            }).when(twinService).loadHead(srcTwin);
 
             var result = pointer.point(new Properties(), srcTwin);
 

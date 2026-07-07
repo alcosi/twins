@@ -19,6 +19,7 @@ import org.twins.core.featurer.factory.multiplier.MultiplierIsolatedCopyWithDept
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -42,11 +43,14 @@ class MultiplierIsolatedCopyWithDepthTest extends BaseUnitTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private TwinService twinService;
+
     private MultiplierIsolatedCopyWithDepth multiplier;
 
     @BeforeEach
     void setUp() throws Exception {
-        multiplier = new MultiplierIsolatedCopyWithDepth(twinSearchService, twinLinkService);
+        multiplier = new MultiplierIsolatedCopyWithDepth(twinSearchService, twinLinkService, twinService);
         setField(multiplier, "authService", authService);
     }
 

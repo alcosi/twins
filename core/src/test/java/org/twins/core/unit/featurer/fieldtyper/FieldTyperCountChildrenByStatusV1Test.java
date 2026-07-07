@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -26,17 +26,17 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 class FieldTyperCountChildrenByStatusV1Test extends BaseUnitTest {
 
     @Mock
-    private TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private TwinRepository twinRepository;
 
     private FieldTyperCountChildrenByStatusV1 fieldTyper;
 
     @BeforeEach
     void setUp() throws Exception {
         fieldTyper = new FieldTyperCountChildrenByStatusV1();
-        setField(fieldTyper, "twinFieldSimpleRepository", twinFieldSimpleRepository);
+        setField(fieldTyper, "twinRepository", twinRepository);
     }
 
-    // V1 is field-injected (@Autowired TwinFieldSimpleRepository), so reflect-in the mock.
+    // V1 is field-injected (@Autowired TwinRepository), so reflect-in the mock.
     // The autowired field lives on the concrete class itself (not a base), but findField walks up anyway.
     private void setField(Object target, String fieldName, Object value) throws Exception {
         var field = findField(target.getClass(), fieldName);

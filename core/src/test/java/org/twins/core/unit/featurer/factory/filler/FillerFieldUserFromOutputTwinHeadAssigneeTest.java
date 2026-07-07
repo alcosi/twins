@@ -67,7 +67,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
     }
 
     private FactoryItem buildFactoryItem(TwinEntity factoryItemTwin) {
-        // getTwin() for a TwinCreate returns output.getTwinEntity(); set that twin so loadHeadForTwin receives it.
+        // getTwin() for a TwinCreate returns output.getTwinEntity(); set that twin so loadHead receives it.
         var output = new TwinCreate();
         output.setTwinEntity(factoryItemTwin);
         return new FactoryItem().setOutput(output);
@@ -85,7 +85,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             var headTwin = new TwinEntity()
                     .setAssignerUser(assignee)
                     .setAssignerUserId(assignee.getId());
-            when(twinService.loadHeadForTwin(factoryItemTwin)).thenReturn(headTwin);
+            when(twinService.loadHead(factoryItemTwin)).thenReturn(headTwin);
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(new TwinClassFieldEntity().setId(FIELD_ID));
 
             filler.fill(props(), factoryItem, null);
@@ -99,7 +99,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
         void fill_noHeadTwin_throwsStepError() throws ServiceException {
             var factoryItemTwin = new TwinEntity();
             var factoryItem = buildFactoryItem(factoryItemTwin);
-            when(twinService.loadHeadForTwin(factoryItemTwin)).thenReturn(null);
+            when(twinService.loadHead(factoryItemTwin)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
@@ -111,7 +111,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             var factoryItemTwin = new TwinEntity();
             var factoryItem = buildFactoryItem(factoryItemTwin);
             var headTwin = new TwinEntity(); // assignerUserId == null
-            when(twinService.loadHeadForTwin(factoryItemTwin)).thenReturn(headTwin);
+            when(twinService.loadHead(factoryItemTwin)).thenReturn(headTwin);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));

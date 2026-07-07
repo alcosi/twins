@@ -57,7 +57,7 @@ class FillerBasicsAssigneeFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
         // getTwin() returns output.getTwinEntity() for a TwinCreate; mirror that here.
         var factoryItem = new FactoryItem().setOutput(output);
         // To control factoryItem.getTwin() we rely on TwinCreate path: getTwin() == output.getTwinEntity().
-        // Replace output's twin with the prepared twin so loadHeadForTwin receives it.
+        // Replace output's twin with the prepared twin so loadHead receives it.
         output.setTwinEntity(factoryItemTwin);
         return factoryItem;
     }
@@ -75,7 +75,7 @@ class FillerBasicsAssigneeFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             var headTwin = new TwinEntity()
                     .setAssignerUser(assignee)
                     .setAssignerUserId(assigneeId);
-            when(twinService.loadHeadForTwin(factoryItemTwin)).thenReturn(headTwin);
+            when(twinService.loadHead(factoryItemTwin)).thenReturn(headTwin);
 
             filler.fill(new Properties(), factoryItem, null);
 
@@ -83,14 +83,14 @@ class FillerBasicsAssigneeFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             // NAME promises: assignee FROM own head twin's assignee (lazily loaded).
             assertSame(assignee, outputTwin.getAssignerUser());
             assertEquals(assigneeId, outputTwin.getAssignerUserId());
-            verify(twinService).loadHeadForTwin(factoryItemTwin);
+            verify(twinService).loadHead(factoryItemTwin);
         }
 
         @Test
         void fill_noHeadTwin_throwsStepError() throws ServiceException {
             var factoryItemTwin = new TwinEntity();
             var factoryItem = buildFactoryItem(factoryItemTwin);
-            when(twinService.loadHeadForTwin(factoryItemTwin)).thenReturn(null);
+            when(twinService.loadHead(factoryItemTwin)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(new Properties(), factoryItem, null));

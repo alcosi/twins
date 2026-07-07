@@ -3,10 +3,12 @@ package org.twins.core.featurer.notificator.context;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -19,12 +21,16 @@ class ContextCollectorHistoryActorUserTest extends BaseUnitTest {
 
     private final ContextCollectorHistoryActorUser collector = new ContextCollectorHistoryActorUser();
 
+    @Mock
+    private TwinService twinService;
+
     private UUID actorUserId;
     private UserEntity actorUser;
     private HistoryEntity history;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
+        setField(collector, "twinService", twinService);
         actorUserId = UUID.randomUUID();
         actorUser = new UserEntity();
         actorUser.setId(actorUserId);
@@ -214,5 +220,20 @@ class ContextCollectorHistoryActorUserTest extends BaseUnitTest {
             assertEquals("actor@test.com", result.get("USER_EMAIL"));
             assertEquals("http://avatar.url/actor.png", result.get("USER_AVATAR"));
         }
+    }
+
+    private static void setField(Object target, String name, Object value) throws Exception {
+        Class<?> clazz = target.getClass();
+        while (clazz != null) {
+            try {
+                var field = clazz.getDeclaredField(name);
+                field.setAccessible(true);
+                field.set(target, value);
+                return;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(name);
     }
 }

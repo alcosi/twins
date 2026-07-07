@@ -11,6 +11,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampRepository;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,12 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
 
     @Mock
     private TwinFieldTimestampRepository twinFieldTimestampRepository;
+    @Mock
+    private TwinService twinService;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
 
     private UUID fieldId;
 
@@ -35,6 +44,7 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
     private TwinEntity twin(UUID id) {
         var t = new TwinEntity();
         t.setId(id);
+        t.setTwinClass(new TwinClassEntity().setTwinClassFieldKit(Kit.EMPTY));
         return t;
     }
 
@@ -46,16 +56,42 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
         return e;
     }
 
+    private TwinFieldStorageTimestamp loadableStorage() {
+        var storage = new TwinFieldStorageTimestamp(twinFieldTimestampRepository);
+        setBaseField(storage, "twinService", twinService);
+        setBaseField(storage, "twinClassFieldService", twinClassFieldService);
+        return storage;
+    }
+
+    private static void setBaseField(Object target, String name, Object value) {
+        try {
+            Class<?> clazz = target.getClass();
+            while (clazz != null) {
+                try {
+                    var field = clazz.getDeclaredField(name);
+                    field.setAccessible(true);
+                    field.set(target, value);
+                    return;
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            throw new NoSuchFieldException(name);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Nested
     class Load {
 
         @Test
-        void load_groupsByTwinIdAndPopulatesPerTwinTimestampKit() {
-            var storage = new TwinFieldStorageTimestamp(twinFieldTimestampRepository);
+        void load_groupsByTwinIdAndPopulatesPerTwinTimestampKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
-            when(twinFieldTimestampRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldTimestampRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of(field(t1.getId(), fieldId)));
 
             storage.load(kit);
@@ -65,12 +101,12 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
         }
 
         @Test
-        void load_absentTwin_isInitialisedWithEmptyKit() {
-            var storage = new TwinFieldStorageTimestamp(twinFieldTimestampRepository);
+        void load_absentTwin_isInitialisedWithEmptyKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
-            when(twinFieldTimestampRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldTimestampRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of());
 
             storage.load(kit);
@@ -87,7 +123,7 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
             var f = UUID.randomUUID();
             when(twinFieldTimestampRepository.existsByTwinClassFieldId(f)).thenReturn(true);
 
-            assertTrue(new TwinFieldStorageTimestamp(twinFieldTimestampRepository).hasStrictValues(f));
+            assertTrue(loadableStorage().hasStrictValues(f));
         }
     }
 
@@ -96,7 +132,7 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
 
         @Test
         void isLoaded_reflectsTimestampKitPresence() {
-            var storage = new TwinFieldStorageTimestamp(twinFieldTimestampRepository);
+            var storage = loadableStorage();
             var t = twin(UUID.randomUUID());
 
             assertFalse(storage.isLoaded(t));
@@ -119,12 +155,12 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
                     .thenReturn(used);
 
             assertEquals(used,
-                    new TwinFieldStorageTimestamp(twinFieldTimestampRepository).findUsedFields(classId, fields));
+                    loadableStorage().findUsedFields(classId, fields));
         }
 
         @Test
         void replaceTwinClassFieldForTwinsOfClass_delegatesToRepository() {
-            var storage = new TwinFieldStorageTimestamp(twinFieldTimestampRepository);
+            var storage = loadableStorage();
             var classId = UUID.randomUUID();
             var from = UUID.randomUUID();
             var to = UUID.randomUUID();
@@ -136,7 +172,7 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
 
         @Test
         void deleteTwinFieldsForTwins_delegatesPerEntry() {
-            var storage = new TwinFieldStorageTimestamp(twinFieldTimestampRepository);
+            var storage = loadableStorage();
             var twinId = UUID.randomUUID();
             var fields = Set.<UUID>of(UUID.randomUUID());
 
@@ -152,13 +188,13 @@ class TwinFieldStorageTimestampTest extends BaseUnitTest {
         @Test
         void equals_twoInstancesOfSameClass_isTrue() {
             assertEquals(
-                    new TwinFieldStorageTimestamp(twinFieldTimestampRepository),
-                    new TwinFieldStorageTimestamp(twinFieldTimestampRepository));
+                    loadableStorage(),
+                    loadableStorage());
         }
 
         @Test
         void equals_differentStorageClass_isFalse() {
-            assertNotEquals(new TwinFieldStorageTimestamp(twinFieldTimestampRepository), new TwinFieldStorageSpirit());
+            assertNotEquals(loadableStorage(), new TwinFieldStorageSpirit());
         }
     }
 }

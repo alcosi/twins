@@ -12,6 +12,7 @@ import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.scheduler.tasks.HistoryNotificationTask;
+import org.twins.core.service.history.HistoryService;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -31,11 +32,14 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
     @Mock
     private ApplicationContext applicationContext;
 
+    @Mock
+    private HistoryService historyService;
+
     private SchedulerHistoryNotificationTaskRunner runner;
 
     @BeforeEach
     void setUp() throws Exception {
-        runner = new SchedulerHistoryNotificationTaskRunner(taskExecutor, historyNotificationTaskRepository);
+        runner = new SchedulerHistoryNotificationTaskRunner(taskExecutor, historyNotificationTaskRepository, historyService);
         setField(runner, "applicationContext", applicationContext);
     }
 

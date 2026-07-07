@@ -59,9 +59,9 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
         when(userEntity.getId()).thenReturn(UUID.randomUUID());
         when(userService.checkId(any(), any())).thenReturn(null);
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(any(), any())).thenReturn(Collections.emptyList());
-        when(attachmentCreateRestDTOReverseMapper.convertCollection(any())).thenReturn(Collections.emptyList());
-        when(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(any())).thenReturn(Collections.emptyList());
-        when(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(any())).thenReturn(Collections.emptyList());
+        when(attachmentCreateRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
+        when(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
+        when(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
     }
 
     @Nested

@@ -189,8 +189,8 @@ class StoragerAlcosiFileHandlerTest extends BaseUnitTest {
             var methodCaptor = ArgumentCaptor.forClass(HttpMethod.class);
             verify(restTemplate).exchange(urlCaptor.capture(), methodCaptor.capture(), any(), eq(Void.class));
 
-            assertEquals("http://localhost:8011/api/delete/synced", urlCaptor.getValue());
-            assertEquals(HttpMethod.POST, methodCaptor.getValue());
+            assertEquals("http://localhost:8011/api/delete", urlCaptor.getValue());
+            assertEquals(HttpMethod.DELETE, methodCaptor.getValue());
         }
 
         @Test
@@ -216,8 +216,8 @@ class StoragerAlcosiFileHandlerTest extends BaseUnitTest {
             var methodCaptor = ArgumentCaptor.forClass(HttpMethod.class);
             verify(restTemplate).exchange(urlCaptor.capture(), methodCaptor.capture(), any(), eq(Void.class));
 
-            assertEquals("http://localhost:8011/api/delete/synced", urlCaptor.getValue());
-            assertEquals(HttpMethod.POST, methodCaptor.getValue());
+            assertEquals("http://localhost:8011/api/delete", urlCaptor.getValue());
+            assertEquals(HttpMethod.DELETE, methodCaptor.getValue());
         }
 
         @Test
@@ -243,8 +243,8 @@ class StoragerAlcosiFileHandlerTest extends BaseUnitTest {
             var methodCaptor = ArgumentCaptor.forClass(HttpMethod.class);
             verify(restTemplate).exchange(urlCaptor.capture(), methodCaptor.capture(), any(), eq(Void.class));
 
-            assertEquals("http://localhost:8011/api/delete/synced", urlCaptor.getValue());
-            assertEquals(HttpMethod.POST, methodCaptor.getValue());
+            assertEquals("http://localhost:8011/api/delete", urlCaptor.getValue());
+            assertEquals(HttpMethod.DELETE, methodCaptor.getValue());
         }
     }
 

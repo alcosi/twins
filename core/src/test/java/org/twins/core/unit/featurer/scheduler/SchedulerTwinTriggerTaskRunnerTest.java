@@ -12,14 +12,15 @@ import org.springframework.data.domain.Pageable;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.featurer.scheduler.tasks.TwinTriggerTask;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class SchedulerTwinTriggerTaskRunnerTest extends BaseUnitTest {

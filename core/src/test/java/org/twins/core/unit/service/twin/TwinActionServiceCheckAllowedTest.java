@@ -98,7 +98,7 @@ class TwinActionServiceCheckAllowedTest extends BaseUnitTest {
                     () -> twinActionService.checkAllowed(twinEntity, TwinAction.DELETE));
 
             assertTrue(ex.getMessage().contains("DELETE"));
-            assertTrue(ex.getMessage().contains(twinEntity.logNormal()));
+            assertTrue(ex.getMessage().contains(twinEntity.logShort()));
         }
     }
 
@@ -141,7 +141,7 @@ class TwinActionServiceCheckAllowedTest extends BaseUnitTest {
             var ex = assertThrows(ServiceException.class,
                     () -> twinActionService.checkAllowed(List.of(twin1, twin2, twin3), TwinAction.DELETE));
 
-            assertTrue(ex.getMessage().contains(twin3.logNormal()));
+            assertTrue(ex.getMessage().contains(twin3.logShort()));
         }
 
         @Test

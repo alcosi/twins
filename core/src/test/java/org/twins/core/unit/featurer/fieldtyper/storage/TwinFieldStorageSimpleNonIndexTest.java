@@ -11,6 +11,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedRepository;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimpleNonIndex;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,12 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
 
     @Mock
     private TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
+    @Mock
+    private TwinService twinService;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
 
     private UUID fieldId;
 
@@ -35,6 +44,7 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
     private TwinEntity twin(UUID id) {
         var t = new TwinEntity();
         t.setId(id);
+        t.setTwinClass(new TwinClassEntity().setTwinClassFieldKit(Kit.EMPTY));
         return t;
     }
 
@@ -46,16 +56,42 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
         return e;
     }
 
+    private TwinFieldStorageSimpleNonIndex loadableStorage() {
+        var storage = new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository);
+        setBaseField(storage, "twinService", twinService);
+        setBaseField(storage, "twinClassFieldService", twinClassFieldService);
+        return storage;
+    }
+
+    private static void setBaseField(Object target, String name, Object value) {
+        try {
+            Class<?> clazz = target.getClass();
+            while (clazz != null) {
+                try {
+                    var field = clazz.getDeclaredField(name);
+                    field.setAccessible(true);
+                    field.set(target, value);
+                    return;
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            throw new NoSuchFieldException(name);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Nested
     class Load {
 
         @Test
-        void load_groupsByTwinIdAndPopulatesPerTwinNonIndexedKit() {
-            var storage = new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository);
+        void load_groupsByTwinIdAndPopulatesPerTwinNonIndexedKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
-            when(twinFieldSimpleNonIndexedRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldSimpleNonIndexedRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of(field(t1.getId(), fieldId)));
 
             storage.load(kit);
@@ -65,12 +101,12 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
         }
 
         @Test
-        void load_absentTwin_isInitialisedWithEmptyKit() {
-            var storage = new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository);
+        void load_absentTwin_isInitialisedWithEmptyKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
-            when(twinFieldSimpleNonIndexedRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldSimpleNonIndexedRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of());
 
             storage.load(kit);
@@ -87,7 +123,7 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
             var f = UUID.randomUUID();
             when(twinFieldSimpleNonIndexedRepository.existsByTwinClassFieldId(f)).thenReturn(true);
 
-            assertTrue(new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository).hasStrictValues(f));
+            assertTrue(loadableStorage().hasStrictValues(f));
         }
     }
 
@@ -96,7 +132,7 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
 
         @Test
         void isLoaded_reflectsNonIndexedKitPresence() {
-            var storage = new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository);
+            var storage = loadableStorage();
             var t = twin(UUID.randomUUID());
 
             assertFalse(storage.isLoaded(t));
@@ -119,12 +155,12 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
                     .thenReturn(used);
 
             assertEquals(used,
-                    new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository).findUsedFields(classId, fields));
+                    loadableStorage().findUsedFields(classId, fields));
         }
 
         @Test
         void replaceTwinClassFieldForTwinsOfClass_delegatesToRepository() {
-            var storage = new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository);
+            var storage = loadableStorage();
             var classId = UUID.randomUUID();
             var from = UUID.randomUUID();
             var to = UUID.randomUUID();
@@ -136,7 +172,7 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
 
         @Test
         void deleteTwinFieldsForTwins_delegatesPerEntry() {
-            var storage = new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository);
+            var storage = loadableStorage();
             var twinId = UUID.randomUUID();
             var fields = Set.<UUID>of(UUID.randomUUID());
 
@@ -152,14 +188,14 @@ class TwinFieldStorageSimpleNonIndexTest extends BaseUnitTest {
         @Test
         void equals_twoInstancesOfSameClass_isTrue() {
             assertEquals(
-                    new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository),
-                    new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository));
+                    loadableStorage(),
+                    loadableStorage());
         }
 
         @Test
         void equals_differentStorageClass_isFalse() {
             assertNotEquals(
-                    new TwinFieldStorageSimpleNonIndex(twinFieldSimpleNonIndexedRepository),
+                    loadableStorage(),
                     new TwinFieldStorageSpirit());
         }
     }

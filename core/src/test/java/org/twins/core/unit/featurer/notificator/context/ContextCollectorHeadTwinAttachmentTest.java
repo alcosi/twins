@@ -74,7 +74,7 @@ class ContextCollectorHeadTwinAttachmentTest extends BaseUnitTest {
             var result = collector.collectData(history, context, props());
 
             assertEquals("http://storage/head-file.png", result.get("HEAD_TWIN_ATTACHMENT_URL"));
-            verify(twinService).loadHeadForTwin(twin);
+            verify(twinService).loadHead(twin);
         }
 
         @Test

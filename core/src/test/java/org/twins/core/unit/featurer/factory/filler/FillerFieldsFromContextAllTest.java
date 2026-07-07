@@ -16,7 +16,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldsFromContextAll;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -30,14 +30,14 @@ import static org.mockito.Mockito.*;
 class FillerFieldsFromContextAllTest extends BaseUnitTest {
 
     @Mock
-    private TwinClassService twinClassService;
+    private TwinClassFieldService twinClassFieldService;
 
     private FillerFieldsFromContextAll filler;
 
     @BeforeEach
     void setUp() throws Exception {
         filler = new FillerFieldsFromContextAll();
-        inject(filler, "twinClassService", twinClassService);
+        inject(filler, "twinClassFieldService", twinClassFieldService);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -94,7 +94,7 @@ class FillerFieldsFromContextAllTest extends BaseUnitTest {
             contextFields.put(fieldId, srcValue);
             var outputClass = new TwinClassEntity().setId(UUID.randomUUID());
             var factoryItem = buildFactoryItem(outputClass, contextFields);
-            when(twinClassService.isInstanceOf(eq(outputClass), any(UUID.class))).thenReturn(true);
+            when(twinClassFieldService.isValidForClass(eq(outputClass), any(org.twins.core.dao.twinclass.TwinClassFieldEntity.class))).thenReturn(true);
 
             filler.fill(new Properties(), factoryItem, null);
 
@@ -128,7 +128,7 @@ class FillerFieldsFromContextAllTest extends BaseUnitTest {
             contextFields.put(fieldId, srcValue);
             var outputClass = new TwinClassEntity().setId(UUID.randomUUID());
             var factoryItem = buildFactoryItem(outputClass, contextFields);
-            when(twinClassService.isInstanceOf(eq(outputClass), any(UUID.class))).thenReturn(false);
+            when(twinClassFieldService.isValidForClass(eq(outputClass), any(org.twins.core.dao.twinclass.TwinClassFieldEntity.class))).thenReturn(false);
 
             filler.fill(new Properties(), factoryItem, null);
 

@@ -160,7 +160,7 @@ class SluggerDomainScopeDomainManageTest extends BaseUnitTest {
             var mapEntity = new UserGroupMapEntity();
             mapEntity.setId(mapEntityId);
 
-            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_DomainId(
+            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_DomainId(
                     userId, groupId, domainId))
                     .thenReturn(mapEntity);
 
@@ -182,7 +182,7 @@ class SluggerDomainScopeDomainManageTest extends BaseUnitTest {
             when(apiUser.getDomainId()).thenReturn(domainId);
             when(authService.getApiUser()).thenReturn(apiUser);
 
-            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_DomainId(
+            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_DomainId(
                     userId, groupId, domainId))
                     .thenReturn(null);
 

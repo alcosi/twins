@@ -145,11 +145,11 @@ class FieldTyperCalcMultiplicationTest extends BaseUnitTest {
 
         @Test
         void deserializeValue_nullOperand_replaceDisabled_treatedAsZero() throws ServiceException {
-            // null is coerced to ZERO (regardless of replaceZeroWithOne, which only swaps explicit zeros).
+            // With replace disabled, null is coerced to ZERO (no swap to ONE) -> 0 * 7 = 0.00.
             var twin = new TwinEntity();
             var classField = new TwinClassFieldEntity();
             classField.setId(UUID.randomUUID());
-            var props = properties(true);
+            var props = properties(false);
 
             // first operand resolves to null -> prepare() coerces to ZERO; 0 * 7 = 0.00
             when(twinClassFieldService.getDecimalValue(twin, firstFieldId, BigDecimal.ZERO))

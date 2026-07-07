@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.stream.StreamSupport;
 
 @Service
 @Featurer(
@@ -71,7 +70,7 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
     }
 
     @Override
-    protected List<HistoryNotificationTaskEntity> collectAll() throws ServiceException {
+    protected List<HistoryNotificationTaskEntity> collectAll() {
         var historyTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
         if (CollectionUtils.isEmpty(historyTasks)) {
             return Collections.emptyList();

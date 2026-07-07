@@ -10,7 +10,10 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageBoolean;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +28,12 @@ class TwinFieldStorageBooleanTest extends BaseUnitTest {
     @Mock
     private TwinFieldBooleanRepository twinFieldBooleanRepository;
 
+    @Mock
+    private TwinService twinService;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private UUID fieldId;
 
     @BeforeEach
@@ -32,9 +41,37 @@ class TwinFieldStorageBooleanTest extends BaseUnitTest {
         fieldId = UUID.randomUUID();
     }
 
+    // TwinFieldStorageMater.load() uses @Autowired twinService/twinClassFieldService — inject them for load tests.
+    private TwinFieldStorageBoolean loadableStorage() {
+        var storage = new TwinFieldStorageBoolean(twinFieldBooleanRepository);
+        setBaseField(storage, "twinService", twinService);
+        setBaseField(storage, "twinClassFieldService", twinClassFieldService);
+        return storage;
+    }
+
+    private static void setBaseField(Object target, String name, Object value) {
+        try {
+            Class<?> clazz = target.getClass();
+            while (clazz != null) {
+                try {
+                    var field = clazz.getDeclaredField(name);
+                    field.setAccessible(true);
+                    field.set(target, value);
+                    return;
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            throw new NoSuchFieldException(name);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private TwinEntity twin(UUID id) {
         var t = new TwinEntity();
         t.setId(id);
+        t.setTwinClass(new TwinClassEntity().setTwinClassFieldKit(Kit.EMPTY));
         return t;
     }
 
@@ -50,13 +87,13 @@ class TwinFieldStorageBooleanTest extends BaseUnitTest {
     class Load {
 
         @Test
-        void load_groupsByTwinIdAndPopulatesPerTwinKit() {
-            var storage = new TwinFieldStorageBoolean(twinFieldBooleanRepository);
+        void load_groupsByTwinIdAndPopulatesPerTwinKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var t2 = twin(UUID.randomUUID());
             var kit = new Kit<>(java.util.Arrays.asList(t1, t2), TwinEntity::getId);
 
-            when(twinFieldBooleanRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldBooleanRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of(
                             field(t1.getId(), fieldId),
                             field(t2.getId(), UUID.randomUUID())));
@@ -70,13 +107,13 @@ class TwinFieldStorageBooleanTest extends BaseUnitTest {
         }
 
         @Test
-        void load_twinWithoutRows_isInitialisedEmptyViaInitEmpty() {
-            var storage = new TwinFieldStorageBoolean(twinFieldBooleanRepository);
+        void load_twinWithoutRows_isInitialisedEmptyViaInitEmpty() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var present = twin(UUID.randomUUID());
             var absent = twin(UUID.randomUUID());
             var kit = new Kit<>(java.util.Arrays.asList(present, absent), TwinEntity::getId);
 
-            when(twinFieldBooleanRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldBooleanRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of(field(present.getId(), fieldId)));
 
             storage.load(kit);

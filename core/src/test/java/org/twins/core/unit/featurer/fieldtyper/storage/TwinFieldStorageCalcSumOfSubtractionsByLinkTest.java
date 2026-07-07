@@ -28,7 +28,7 @@ class TwinFieldStorageCalcSumOfSubtractionsByLinkTest extends BaseUnitTest {
     private UUID fieldId;
     private UUID firstFieldId;
     private UUID secondFieldId;
-    private UUID linkId;
+    private Set<UUID> linkIds;
     private Set<UUID> linkedInStatusIds;
     private Set<UUID> linkedOfClassIds;
 
@@ -37,14 +37,14 @@ class TwinFieldStorageCalcSumOfSubtractionsByLinkTest extends BaseUnitTest {
         fieldId = UUID.randomUUID();
         firstFieldId = UUID.randomUUID();
         secondFieldId = UUID.randomUUID();
-        linkId = UUID.randomUUID();
+        linkIds = Set.of(UUID.randomUUID());
         linkedInStatusIds = Set.of(UUID.randomUUID());
         linkedOfClassIds = Set.of(UUID.randomUUID());
     }
 
     private TwinFieldStorageCalcSumOfSubtractionsByLink newStorage(boolean srcElseDst, boolean statusExclude) {
         return new TwinFieldStorageCalcSumOfSubtractionsByLink(
-                fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, linkId,
+                fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, linkIds,
                 srcElseDst, linkedInStatusIds, linkedOfClassIds, statusExclude);
     }
 
@@ -66,7 +66,7 @@ class TwinFieldStorageCalcSumOfSubtractionsByLinkTest extends BaseUnitTest {
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesOfSubtractionsByLink(
                     eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds), eq(linkedOfClassIds),
-                    eq(firstFieldId), eq(secondFieldId), eq(false)))
+                    eq(firstFieldId), eq(secondFieldId), eq(linkIds), eq(false)))
                     .thenReturn(List.of(
                             new TwinFieldCalcProjection(dst1.getId(), new BigDecimal("2")),
                             new TwinFieldCalcProjection(dst2.getId(), new BigDecimal("0"))));
@@ -75,9 +75,9 @@ class TwinFieldStorageCalcSumOfSubtractionsByLinkTest extends BaseUnitTest {
 
             verify(twinFieldDecimalRepository).sumLinkedTwinFieldValuesOfSubtractionsByLink(
                     eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds), eq(linkedOfClassIds),
-                    eq(firstFieldId), eq(secondFieldId), eq(false));
+                    eq(firstFieldId), eq(secondFieldId), eq(linkIds), eq(false));
             verify(twinFieldDecimalRepository, never()).sumLinkedTwinFieldValuesOfDivisionsByLink(
-                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean(), anyBoolean());
+                    any(), anyBoolean(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean());
             assertEquals(new BigDecimal("2"), dst1.getTwinFieldCalculated().get(fieldId));
             assertEquals(new BigDecimal("0"), dst2.getTwinFieldCalculated().get(fieldId));
         }
@@ -90,7 +90,7 @@ class TwinFieldStorageCalcSumOfSubtractionsByLinkTest extends BaseUnitTest {
             var kit = new Kit<>(java.util.Arrays.asList(dst1, dst2), TwinEntity::getId);
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesOfSubtractionsByLink(
-                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean()))
+                    any(), anyBoolean(), any(), any(), any(), any(), any(), anyBoolean()))
                     .thenReturn(List.of(new TwinFieldCalcProjection(dst1.getId(), new BigDecimal("13"))));
 
             storage.load(kit);
@@ -112,7 +112,7 @@ class TwinFieldStorageCalcSumOfSubtractionsByLinkTest extends BaseUnitTest {
         void equals_differentLinkId_isFalse() throws ServiceException {
             var a = newStorage(true, false);
             var b = new TwinFieldStorageCalcSumOfSubtractionsByLink(
-                    fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, UUID.randomUUID(),
+                    fieldId, twinFieldDecimalRepository, firstFieldId, secondFieldId, Set.of(UUID.randomUUID()),
                     true, linkedInStatusIds, linkedOfClassIds, false);
             assertNotEquals(a, b);
         }

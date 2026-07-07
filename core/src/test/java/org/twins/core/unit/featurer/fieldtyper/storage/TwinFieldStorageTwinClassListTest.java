@@ -12,6 +12,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTwinClassEntity;
 import org.twins.core.dao.twin.TwinFieldTwinClassListRepository;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClassList;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +28,12 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
 
     @Mock
     private TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
+    @Mock
+    private TwinService twinService;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
 
     private UUID fieldId;
 
@@ -36,6 +45,7 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
     private TwinEntity twin(UUID id) {
         var t = new TwinEntity();
         t.setId(id);
+        t.setTwinClass(new TwinClassEntity().setTwinClassFieldKit(Kit.EMPTY));
         return t;
     }
 
@@ -47,16 +57,42 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
         return e;
     }
 
+    private TwinFieldStorageTwinClassList loadableStorage() {
+        var storage = new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository);
+        setBaseField(storage, "twinService", twinService);
+        setBaseField(storage, "twinClassFieldService", twinClassFieldService);
+        return storage;
+    }
+
+    private static void setBaseField(Object target, String name, Object value) {
+        try {
+            Class<?> clazz = target.getClass();
+            while (clazz != null) {
+                try {
+                    var field = clazz.getDeclaredField(name);
+                    field.setAccessible(true);
+                    field.set(target, value);
+                    return;
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            throw new NoSuchFieldException(name);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Nested
     class Load {
 
         @Test
-        void load_groupsByTwinIdAndPopulatesPerTwinTwinClassKit() {
-            var storage = new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository);
+        void load_groupsByTwinIdAndPopulatesPerTwinTwinClassKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
-            when(twinFieldTwinClassListRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldTwinClassListRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of(field(t1.getId(), fieldId)));
 
             storage.load(kit);
@@ -66,12 +102,12 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
         }
 
         @Test
-        void load_absentTwin_isInitialisedWithEmptyKit() {
-            var storage = new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository);
+        void load_absentTwin_isInitialisedWithEmptyKit() throws org.cambium.common.exception.ServiceException {
+            var storage = loadableStorage();
             var t1 = twin(UUID.randomUUID());
             var kit = new Kit<>(List.of(t1), TwinEntity::getId);
 
-            when(twinFieldTwinClassListRepository.findByTwinIdIn(kit.getIdSet()))
+            when(twinFieldTwinClassListRepository.findByTwinIdIn(anyCollection()))
                     .thenReturn(List.of());
 
             storage.load(kit);
@@ -88,7 +124,7 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
             var f = UUID.randomUUID();
             when(twinFieldTwinClassListRepository.existsByTwinClassFieldId(f)).thenReturn(true);
 
-            assertTrue(new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository).hasStrictValues(f));
+            assertTrue(loadableStorage().hasStrictValues(f));
         }
     }
 
@@ -97,7 +133,7 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
 
         @Test
         void isLoaded_reflectsTwinClassKitPresence() {
-            var storage = new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository);
+            var storage = loadableStorage();
             var t = twin(UUID.randomUUID());
 
             assertFalse(storage.isLoaded(t));
@@ -120,12 +156,12 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
                     .thenReturn(used);
 
             assertEquals(used,
-                    new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository).findUsedFields(classId, fields));
+                    loadableStorage().findUsedFields(classId, fields));
         }
 
         @Test
         void replaceTwinClassFieldForTwinsOfClass_delegatesToRepository() {
-            var storage = new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository);
+            var storage = loadableStorage();
             var classId = UUID.randomUUID();
             var from = UUID.randomUUID();
             var to = UUID.randomUUID();
@@ -137,7 +173,7 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
 
         @Test
         void deleteTwinFieldsForTwins_delegatesPerEntry() {
-            var storage = new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository);
+            var storage = loadableStorage();
             var twinId = UUID.randomUUID();
             var fields = Set.<UUID>of(UUID.randomUUID());
 
@@ -153,14 +189,14 @@ class TwinFieldStorageTwinClassListTest extends BaseUnitTest {
         @Test
         void equals_twoInstancesOfSameClass_isTrue() {
             assertEquals(
-                    new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository),
-                    new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository));
+                    loadableStorage(),
+                    loadableStorage());
         }
 
         @Test
         void equals_differentStorageClass_isFalse() {
             assertNotEquals(
-                    new TwinFieldStorageTwinClassList(twinFieldTwinClassListRepository),
+                    loadableStorage(),
                     new TwinFieldStorageSpirit());
         }
     }

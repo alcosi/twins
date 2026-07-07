@@ -202,7 +202,7 @@ class SluggerDomainAndBusinessAccountScopeBusinessAccountManageTest extends Base
             var mapEntity = new UserGroupMapEntity();
             mapEntity.setId(mapEntityId);
 
-            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountIdAndUserGroup_DomainId(
+            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountIdAndUserGroupSpecOnly_DomainId(
                     userId, groupId, businessAccountId, domainId))
                     .thenReturn(mapEntity);
 
@@ -226,7 +226,7 @@ class SluggerDomainAndBusinessAccountScopeBusinessAccountManageTest extends Base
             when(apiUser.getDomainId()).thenReturn(domainId);
             when(authService.getApiUser()).thenReturn(apiUser);
 
-            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountIdAndUserGroup_DomainId(
+            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountIdAndUserGroupSpecOnly_DomainId(
                     userId, groupId, businessAccountId, domainId))
                     .thenReturn(null);
 

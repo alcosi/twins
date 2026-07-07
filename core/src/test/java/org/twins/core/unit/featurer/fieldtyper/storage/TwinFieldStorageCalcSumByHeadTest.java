@@ -79,7 +79,7 @@ class TwinFieldStorageCalcSumByHeadTest extends BaseUnitTest {
             verify(twinFieldDecimalRepository).sumChildrenTwinFieldValuesByHead(
                     eq(kit.getIdSet()), eq(childFieldIds), eq(childStatusIds), eq(true), eq(childOfClassIds));
             verify(twinFieldDecimalRepository, never()).sumLinkedTwinFieldValuesByLink(
-                    any(), anyBoolean(), any(), any(), any(), anyBoolean());
+                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean());
             assertEquals(sum1, head1.getTwinFieldCalculated().get(fieldId));
             assertEquals(sum2, head2.getTwinFieldCalculated().get(fieldId));
         }

@@ -161,7 +161,7 @@ class SluggerBusinessAccountScopeBusinessAccountManageTest extends BaseUnitTest 
             var mapEntity = new UserGroupMapEntity();
             mapEntity.setId(mapEntityId);
 
-            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountId(
+            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountId(
                     userId, groupId, businessAccountId))
                     .thenReturn(mapEntity);
 
@@ -183,7 +183,7 @@ class SluggerBusinessAccountScopeBusinessAccountManageTest extends BaseUnitTest 
             when(apiUser.getBusinessAccountId()).thenReturn(businessAccountId);
             when(authService.getApiUser()).thenReturn(apiUser);
 
-            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountId(
+            when(userGroupMapRepository.findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountId(
                     userId, groupId, businessAccountId))
                     .thenReturn(null);
 

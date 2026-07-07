@@ -112,7 +112,7 @@ class FieldFinderByIdExcludeHeadMatchedTest extends BaseUnitTest {
                 TwinEntity t = invocation.getArgument(0);
                 t.setHeadTwin(headTwin);
                 return null;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, namedParams());
@@ -150,7 +150,7 @@ class FieldFinderByIdExcludeHeadMatchedTest extends BaseUnitTest {
                 TwinEntity t = invocation.getArgument(0);
                 t.setHeadTwin(headTwin);
                 return null;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, namedParams());
@@ -186,7 +186,7 @@ class FieldFinderByIdExcludeHeadMatchedTest extends BaseUnitTest {
                 TwinEntity t = invocation.getArgument(0);
                 t.setHeadTwin(headTwin);
                 return null;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, namedParams());
@@ -223,7 +223,7 @@ class FieldFinderByIdExcludeHeadMatchedTest extends BaseUnitTest {
                 TwinEntity t = invocation.getArgument(0);
                 t.setHeadTwin(headTwin);
                 return null;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, namedParams());
@@ -280,7 +280,7 @@ class FieldFinderByIdExcludeHeadMatchedTest extends BaseUnitTest {
                 TwinEntity t = invocation.getArgument(0);
                 t.setHeadTwin(null);
                 return null;
-            }).when(twinService).loadHeadForTwin(twin);
+            }).when(twinService).loadHead(twin);
 
             var search = new TwinClassFieldSearch();
 
