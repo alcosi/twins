@@ -664,42 +664,260 @@ public void reconciliationJob() {
 
 ### 5.1. Сущности (DAO)
 
+Все три entity пишутся по `docs/entity_code_convention.md`: `@Getter @Setter` (НЕ `@Data`), `@Accessors(chain = true)`, `@FieldNameConstants`, `@PrePersist` для авто-генерации UUID, `implements EasyLoggable, Identifiable`. Для каждого FK — тройка: raw UUID id + `SpecOnly` `@ManyToOne(LAZY)` для Specifications + `@Transient` runtime поле для bulk-loaded entity. SpecOnly-поля имеют `@Getter(AccessLevel.NONE)` чтобы компилятор запрещал случайную навигацию.
+
 ```java
 package org.twins.core.dao.fieldlistener;
 
-@Data @Entity @Accessors(chain = true)
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.twin.TwinPointerEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.domain.Identifiable;
+
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@Accessors(chain = true)
 @Table(name = "field_listener_on_field")
-public class FieldListenerOnFieldEntity {
-    @Id private UUID id;
-    @Column(name = "subscriber_twin_pointer_id")     private UUID subscriberTwinPointerId;
-    @Column(name = "subscriber_twin_class_field_id") private UUID subscriberTwinClassFieldId;
-    @Column(name = "publisher_twin_class_field_id")  private UUID publisherTwinClassFieldId;
-    @Column(name = "async")                          private boolean async;
-    @Column(name = "domain_id")                      private UUID domainId;
-}
+@FieldNameConstants
+public class FieldListenerOnFieldEntity implements EasyLoggable, Identifiable {
 
-@Data @Entity @Accessors(chain = true)
-@Table(name = "field_listener_on_action")
-public class FieldListenerOnActionEntity {
-    @Id private UUID id;
-    @Column(name = "subscriber_twin_pointer_id")     private UUID subscriberTwinPointerId;
-    @Column(name = "subscriber_twin_class_field_id") private UUID subscriberTwinClassFieldId;
-    @Column(name = "publisher_twin_class_id")        private UUID publisherTwinClassId;
-    @Column(name = "publisher_twin_action_id")       @Enumerated(EnumType.STRING) private TwinAction publisherTwinAction;
-    @Column(name = "async")                          private boolean async;
-    @Column(name = "domain_id")                      private UUID domainId;
-}
+    @Id
+    @Column(name = "id")
+    private UUID id;
 
-@Data @Entity @Accessors(chain = true)
-@Table(name = "field_listener_on_action_validator_rule")
-public class FieldListenerOnActionValidatorRuleEntity {
-    @Id private UUID id;
-    @Column(name = "field_listener_on_action_id")          private UUID listenerOnActionId;
-    @Column(name = "order")                          private Integer order;
-    @Column(name = "active")                         private boolean active;
-    @Column(name = "twin_validator_set_id")          private UUID twinValidatorSetId;
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
+
+    @Column(name = "subscriber_twin_pointer_id", nullable = false)
+    private UUID subscriberTwinPointerId;
+
+    @Column(name = "subscriber_twin_class_field_id", nullable = false)
+    private UUID subscriberTwinClassFieldId;
+
+    @Column(name = "publisher_twin_class_field_id", nullable = false)
+    private UUID publisherTwinClassFieldId;
+
+    @Column(name = "async", nullable = false)
+    private boolean async;
+
+    @Column(name = "domain_id", nullable = false)
+    private UUID domainId;
+
+    // --- subscriberTwinPointer: SpecOnly + runtime ---
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscriber_twin_pointer_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity subscriberTwinPointerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity subscriberTwinPointer;
+
+    // --- subscriberTwinClassField: SpecOnly + runtime ---
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscriber_twin_class_field_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFieldEntity subscriberTwinClassFieldSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFieldEntity subscriberTwinClassField;
+
+    // --- publisherTwinClassField: SpecOnly + runtime ---
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "publisher_twin_class_field_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFieldEntity publisherTwinClassFieldSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFieldEntity publisherTwinClassField;
+
+    // --- domain: SpecOnly only (runtime не нужен — домен извлекается из ApiUser) ---
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private org.twins.core.dao.domain.DomainEntity domainSpecOnly;
+
+    @Override
+    public String logShort() {
+        return "fieldListenerOnField[" + id + "]";
+    }
+
+    @Override
+    public String logNormal() {
+        return "fieldListenerOnField[id:" + id + ", subscriberField:" + subscriberTwinClassFieldId
+                + ", publisherField:" + publisherTwinClassFieldId + "]";
+    }
+
+    @Override
+    public UUID getId() {
+        return id;
+    }
 }
 ```
+
+```java
+@Entity
+@Getter
+@Setter
+@Accessors(chain = true)
+@Table(name = "field_listener_on_action")
+@FieldNameConstants
+public class FieldListenerOnActionEntity implements EasyLoggable, Identifiable {
+
+    @Id
+    @Column(name = "id")
+    private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
+
+    @Column(name = "subscriber_twin_pointer_id", nullable = false)
+    private UUID subscriberTwinPointerId;
+
+    @Column(name = "subscriber_twin_class_field_id", nullable = false)
+    private UUID subscriberTwinClassFieldId;
+
+    @Column(name = "publisher_twin_class_id", nullable = false)
+    private UUID publisherTwinClassId;
+
+    @Column(name = "publisher_twin_action_id", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private TwinAction publisherTwinAction;
+
+    @Column(name = "async", nullable = false)
+    private boolean async;
+
+    @Column(name = "domain_id", nullable = false)
+    private UUID domainId;
+
+    // SpecOnly + runtime для subscriber_twin_pointer / subscriber_twin_class_field / publisher_twin_class / domain
+    // — аналогично FieldListenerOnFieldEntity выше (опущено для краткости, см. полную реализацию)
+
+    @Deprecated @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscriber_twin_pointer_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinPointerEntity subscriberTwinPointerSpecOnly;
+    @Transient @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinPointerEntity subscriberTwinPointer;
+
+    @Deprecated @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscriber_twin_class_field_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinClassFieldEntity subscriberTwinClassFieldSpecOnly;
+    @Transient @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinClassFieldEntity subscriberTwinClassField;
+
+    @Deprecated @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "publisher_twin_class_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinClassEntity publisherTwinClassSpecOnly;
+    @Transient @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinClassEntity publisherTwinClass;
+
+    @Deprecated @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private org.twins.core.dao.domain.DomainEntity domainSpecOnly;
+
+    @Override public String logShort() { return "fieldListenerOnAction[" + id + "]"; }
+    @Override public String logNormal() {
+        return "fieldListenerOnAction[id:" + id + ", publisherClass:" + publisherTwinClassId
+                + ", action:" + publisherTwinAction + "]";
+    }
+    @Override public UUID getId() { return id; }
+}
+```
+
+```java
+@Entity
+@Getter
+@Setter
+@Accessors(chain = true)
+@Table(name = "field_listener_on_action_validator_rule")
+@FieldNameConstants
+public class FieldListenerOnActionValidatorRuleEntity implements EasyLoggable, Identifiable {
+
+    @Id
+    @Column(name = "id")
+    private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
+
+    @Column(name = "field_listener_on_action_id", nullable = false)
+    private UUID fieldListenerOnActionId;
+
+    @Column(name = "`order`")
+    private Integer order;
+
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
+
+    @Column(name = "twin_validator_set_id")
+    private UUID twinValidatorSetId;
+
+    @Deprecated @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "field_listener_on_action_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private FieldListenerOnActionEntity fieldListenerOnActionSpecOnly;
+    @Transient @EqualsAndHashCode.Exclude @ToString.Exclude
+    private FieldListenerOnActionEntity fieldListenerOnAction;
+
+    @Deprecated @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinValidatorSetEntity twinValidatorSetSpecOnly;
+    @Transient @EqualsAndHashCode.Exclude @ToString.Exclude
+    private TwinValidatorSetEntity twinValidatorSet;
+
+    @Override public String logShort() { return "validatorRule[" + id + "]"; }
+    @Override public String logNormal() {
+        return "validatorRule[id:" + id + ", listener:" + fieldListenerOnActionId + ", order:" + order + "]";
+    }
+    @Override public UUID getId() { return id; }
+}
+```
+
+**Bulk-loading runtime-полей** (по `load_method_pattern.md`, см. `core/.../service/loader/`): `FieldListenerOnFieldService`/`FieldListenerOnActionService` предоставляют методы `loadSubscriberTwinPointer(Collection<...Entity>)`, `loadSubscriberTwinClassField(...)`, и т.п., которые одним batch-SQL заполняют `@Transient` runtime-поля для всей коллекции. Это устраняет N+1 при чтении listener-конфигов в mappers/admin UI. FieldListenerService (orchestrator) использует только raw UUID id-ы и сам контролирует batch-loading — ему runtime-entity не нужны, кроме `subscriberTwinClassField` (для извлечения `fieldTyperFeaturerId`) и `subscriberTwinPointer` (для извлечения `pointerFeaturerId` + `pointerParams`); эти два грузятся в `batchResolveSubscribers` одним batch-ем.
 
 ### 5.2. Сервис trigger-а
 
@@ -777,10 +995,11 @@ public class FieldListenerOnActionValidatorRuleService
    - Для каждого сработавшего listener-а:
      - `pointer.point(publisher)` → subscriber twin (0 или 1, см. §2.1)
      - Validator check (для OnAction, опционально)
-     - **Группировка**: кладёт `PublisherRef` в `Map<GroupKey, List<PublisherRef>>`, где `GroupKey = (subscriberTwinId, subscriberFieldId)`
+     - **Группировка**: кладёт `PublisherRef` (sealed: `PublisherByField` или `PublisherByAction`) в `Group` с уже загруженными Entity — `Map<SubscriberKey, Group>`, где `SubscriberKey = (subscriberTwinId, subscriberFieldId)` (UUID-pair для HashMap key; TwinEntity нельзя в key из-за JPA hashCode). Внутри Group — `subscriberTwin: TwinEntity`, `subscriberField: TwinClassFieldEntity`, `publishers: List<PublisherRef>`
 3. После сбора всех групп — для каждой группы один вызов `subscriber.notify(event, collector)`:
-   - `FieldListenerService` находит `FieldTyper` для `subscriberFieldId`, кастует к `FieldListenerSubscriber`
+   - `FieldListenerService` находит `FieldTyper` для `group.subscriberField()` (по `fieldTyperFeaturerId`), кастует к `FieldListenerSubscriber`
    - FieldTyper внутри `notify` сам решает: full recompute через `serializeValue` (MVP) / delta-increment (future) / skip
+   - Event содержит уже загруженные Entity — никаких `findById` внутри `notify`
 4. Каскад: FieldTyper через `serializeValue` положил изменение subscriber-поля в тот же collector → FieldListenerService recurses (visited-set + max-depth cap)
 
 **Ключевой момент про publisher-state в sync flow.** На момент вызова `notify` publishers **уже изменены в collector, но ещё не в БД** (publisher-tx ещё не закоммичена). Это значит:
@@ -819,7 +1038,7 @@ public class FieldListenerService {
         triggerAffected(collector, new HashSet<>(), 0);
     }
 
-    private void triggerAffected(TwinChangesCollector collector, Set<GroupKey> visited, int depth) throws ServiceException {
+    private void triggerAffected(TwinChangesCollector collector, Set<SubscriberKey> visited, int depth) throws ServiceException {
         if (depth > maxDepth) {
             log.warn("FieldListener cascade depth {} exceeded max {}, skipping remaining", depth, maxDepth);
             return;
@@ -833,21 +1052,21 @@ public class FieldListenerService {
         }
 
         // Группировка publisher-ов по (subscriberTwin, subscriberField) — duplicates merged.
-        // Если у двух listener-ов одинаковый GroupKey (например, Mater = A + B, A и B оба изменились,
+        // Если у двух listener-ов одинаковый SubscriberKey (например, Mater = A + B, A и B оба изменились,
         // оба listener-а резолвятся в один и тот же (subscriber twin, subscriber field)) —
         // в groups попадёт ОДНА запись с двумя PublisherRef, notify вызовется один раз.
-        Map<GroupKey, List<PublisherRef>> groups = new LinkedHashMap<>();
+        Map<SubscriberKey, Group> groups = new LinkedHashMap<>();
         collectOnFieldGroups(snapshot, groups, visited);
         collectOnActionGroups(snapshot, groups, visited);
 
-        for (var entry : groups.entrySet()) {
-            if (!visited.add(entry.getKey())) continue;  // cycle protection
-            dispatchNotify(entry.getKey(), entry.getValue(), collector, visited, depth);
+        for (Group group : groups.values()) {
+            if (!visited.add(group.key())) continue;  // cycle protection
+            dispatchNotify(group, collector, visited, depth);
         }
     }
 
     private void collectOnFieldGroups(AffectedSnapshot snapshot,
-                                      Map<GroupKey, List<PublisherRef>> groups, Set<GroupKey> visited) throws ServiceException {
+                                      Map<SubscriberKey, Group> groups, Set<SubscriberKey> visited) throws ServiceException {
         Map<UUID, List<FieldListenerOnFieldEntity>> listenersByField =
                 listenerCache.findOnFieldListeners(snapshot.changedFieldClassIds(), snapshot.domainId());
 
@@ -867,7 +1086,7 @@ public class FieldListenerService {
     }
 
     private void collectOnActionGroups(AffectedSnapshot snapshot,
-                                       Map<GroupKey, List<PublisherRef>> groups, Set<GroupKey> visited) throws ServiceException {
+                                       Map<SubscriberKey, Group> groups, Set<SubscriberKey> visited) throws ServiceException {
         Map<ActionKey, List<FieldListenerOnActionEntity>> listenersByAction =
                 listenerCache.findOnActionListeners(snapshot.twinActionsByKey(), snapshot.domainId());
 
@@ -887,80 +1106,100 @@ public class FieldListenerService {
     }
 
     /**
-     * Для каждого pointerId: один batch-load (см. §4.3.1) всех publisher-ов → Map<publisherTwinId, subscriber>.
-     * Затем распределяем результаты по группам. Один SQL на pointer, не N — устраняет N+1 в bulk.
+     * Для каждого pointerId: один batch-load (см. §4.3.1) всех publisher-ов → Map<publisherTwinId, subscriberTwin>.
+     * Batch-load TwinClassFieldEntity для subscriber-полей и changed-полей (для OnField).
+     * Затем распределяет результаты по Group-ам. Один SQL на pointer + один SQL на field-batch — не N.
      */
     private void resolveAndDistribute(Map<UUID, List<PendingResolve>> pendingByPointer,
-                                      Map<GroupKey, List<PublisherRef>> groups,
-                                      Set<GroupKey> visited, boolean isAction) throws ServiceException {
+                                      Map<SubscriberKey, Group> groups,
+                                      Set<SubscriberKey> visited, boolean isAction) throws ServiceException {
         for (var e : pendingByPointer.entrySet()) {
             UUID pointerId = e.getKey();
             List<PendingResolve> pendings = e.getValue();
-            // Загружаем publisher-ы одним батчем. Map<publisherTwinId, subscriber>, без null-ов.
-            Map<UUID, TwinEntity> subscriberByPublisher;
+
+            ResolvedBatch resolved;
             try {
-                subscriberByPublisher = batchResolveSubscribers(pointerId, pendings);
+                resolved = batchResolve(pointerId, pendings, isAction);
             } catch (ServiceException ex) {
                 if (ex.getErrorCode() == ErrorCodeTwins.POINTER_NON_SINGLE) {
                     log.warn("Pointer {} batch returned NON_SINGLE for {} publishers, skipping batch",
                             pointerId, pendings.size());
                     meterRegistry.counter("field_listener_pointer_non_single.total",
                             Tags.of("batch", "true")).increment();
-                    continue;  // skip весь batch для этого pointer-а — partial-retry см. §7
+                    continue;  // skip весь batch — partial-retry см. §7
                 }
                 throw ex;
             }
 
             for (PendingResolve p : pendings) {
-                TwinEntity subscriber = subscriberByPublisher.get(p.publisherTwinId());
+                TwinEntity subscriber = resolved.subscriberByPublisher.get(p.publisherTwinId());
                 if (subscriber == null) {
                     meterRegistry.counter("field_listener_no_subscriber.total").increment();
                     continue;
                 }
                 UUID subscriberFieldId = p.listenerSubscriberFieldId();
-                GroupKey key = new GroupKey(subscriber.getId(), subscriberFieldId);
+                SubscriberKey key = new SubscriberKey(subscriber.getId(), subscriberFieldId);
                 if (visited.contains(key)) continue;
-                PublisherRef ref = new PublisherRef(
-                        p.publisherTwinId(),
-                        isAction ? null : p.changedFieldId(),
-                        isAction ? p.action() : null,
-                        p.listenerAsync());
-                groups.computeIfAbsent(key, k -> new ArrayList<>()).add(ref);
+
+                TwinEntity publisherTwin = resolved.publisherTwinById.get(p.publisherTwinId());
+                TwinClassFieldEntity subscriberField = resolved.subscriberFieldById.get(subscriberFieldId);
+
+                PublisherRef ref = isAction
+                        ? new PublisherByAction(publisherTwin, p.action(), p.listenerAsync())
+                        : new PublisherByField(publisherTwin,
+                            resolved.changedFieldById.get(p.changedFieldId()), p.listenerAsync());
+
+                Group group = groups.computeIfAbsent(key, k ->
+                        new Group(key, subscriber, subscriberField, new ArrayList<>()));
+                group.publishers().add(ref);
             }
         }
     }
 
-    /** Один pointer → один batch-load через Pointer.load(). Кэш на publisher-entity работает автоматически. */
-    private Map<UUID, TwinEntity> batchResolveSubscribers(UUID pointerId, List<PendingResolve> pendings) throws ServiceException {
+    /** Один pointer → один Pointer.load() + один batch-load TwinClassFieldEntity для всех нужных полей. */
+    private ResolvedBatch batchResolve(UUID pointerId, List<PendingResolve> pendings, boolean isAction) throws ServiceException {
         TwinPointerEntity pointer = twinPointerService.findById(pointerId);  // Caffeine L1 (см. §4.3.2)
         List<UUID> publisherIds = pendings.stream().map(PendingResolve::publisherTwinId).distinct().toList();
         Collection<TwinEntity> publisherTwins = twinService.findByIds(publisherIds);
         Pointer pointerFeaturer = featurerService.getFeaturer(pointer.getPointerFeaturerId(), Pointer.class);
-        // Pointer.load сам фильтрует cache-miss и делает один SQL через load (см. §4.3.1).
-        return pointerFeaturer.load(pointer, publisherTwins);
+        Map<UUID, TwinEntity> subscriberByPublisher = pointerFeaturer.load(pointer, publisherTwins);  // см. §4.3.1
+
+        Map<UUID, TwinEntity> publisherTwinById = publisherTwins.stream()
+                .collect(Collectors.toMap(TwinEntity::getId, Function.identity()));
+
+        // Batch-load TwinClassFieldEntity: subscriber-поля для всех pendings, changed-поля для OnField
+        Set<UUID> fieldIds = new HashSet<>();
+        for (PendingResolve p : pendings) {
+            fieldIds.add(p.listenerSubscriberFieldId());
+            if (!isAction && p.changedFieldId() != null) fieldIds.add(p.changedFieldId());
+        }
+        Map<UUID, TwinClassFieldEntity> fieldById = twinClassFieldService.findByIds(fieldIds).stream()
+                .collect(Collectors.toMap(TwinClassFieldEntity::getId, Function.identity()));
+
+        return new ResolvedBatch(subscriberByPublisher, publisherTwinById, fieldById);
     }
 
-    private void dispatchNotify(GroupKey key, List<PublisherRef> publishers, TwinChangesCollector collector,
-                                Set<GroupKey> visited, int depth) throws ServiceException {
+    private void dispatchNotify(Group group, TwinChangesCollector collector,
+                                Set<SubscriberKey> visited, int depth) throws ServiceException {
         // Если хотя бы один publisher помечен async → вся группа идёт async (atomicity по группе).
-        boolean anyAsync = publishers.stream().anyMatch(PublisherRef::async);
+        boolean anyAsync = group.publishers().stream().anyMatch(PublisherRef::async);
         FieldListenerEvent event = new FieldListenerEvent(
-                key.subscriberTwinId(), key.subscriberFieldId(), List.copyOf(publishers));
+                group.subscriberTwin(), group.subscriberField(), List.copyOf(group.publishers()));
         if (anyAsync) {
             scheduleAsyncNotify(event, collector);
             return;
         }
 
-        TwinClassFieldEntity field = twinClassFieldService.findById(key.subscriberFieldId());
-        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
+        FieldTyper fieldTyper = featurerService.getFeaturer(
+                group.subscriberField().getFieldTyperFeaturerId(), FieldTyper.class);
         if (!(fieldTyper instanceof FieldListenerSubscriber subscriber)) {
             log.warn("FieldTyper {} for field {} is not a FieldListenerSubscriber, skipping",
-                    fieldTyper.getClass().getSimpleName(), key.subscriberFieldId());
+                    fieldTyper.getClass().getSimpleName(), group.key().subscriberFieldId());
             meterRegistry.counter("field_listener_not_subscriber.total").increment();
             return;
         }
 
-        // Один вызов notify на группу. FieldTyper внутри сам решает full recompute / delta / skip.
+        // Один вызов notify на группу. event уже содержит Entity — без дополнительных findById в FieldTyper.
         // sync flow: serializeValue внутри notify читает operands из collector-pending-state (publishers ещё не в БД).
         subscriber.notify(event, collector);
 
@@ -990,6 +1229,8 @@ public class FieldListenerService {
         // Сериализовать event в JSON, положить в TwinChangeTaskEntity (NEED_START) через collector — outbox.
         // Worker-pool после commit publisher-tx прочитает, десериализует, вызовет subscriber.notify в новой tx.
         // Здесь publishers уже в БД — поэтому serializeValue / SQL aggregate работают.
+        // ВНИМАНИЕ: TwinEntity / TwinClassFieldEntity в event не сериализуются напрямую; worker
+        // должен по UUID из event'а загрузить их заново в своей tx (см. §7 open question про async event payload).
         collector.addPostponedFieldListenerNotify(event);
     }
 
@@ -999,8 +1240,23 @@ public class FieldListenerService {
 
     // === Group/event DTOs ===
 
-    record GroupKey(UUID subscriberTwinId, UUID subscriberFieldId) {}
-    record PublisherRef(UUID twinId, UUID twinClassFieldId, TwinAction action, boolean async) {}
+    /** Ключ дедупликации групп: UUID-pair (TwinEntity не подходит для HashMap key — hashCode/toString конфликтуют с JPA). */
+    record SubscriberKey(UUID subscriberTwinId, UUID subscriberFieldId) {}
+
+    /** Группа с уже загруженными Entity для dispatchNotify. */
+    record Group(
+            SubscriberKey key,
+            TwinEntity subscriberTwin,
+            TwinClassFieldEntity subscriberField,
+            List<PublisherRef> publishers
+    ) {}
+
+    /** Внутренний batch-result: всё, что.loaded для одной группы pendings. */
+    record ResolvedBatch(
+            Map<UUID, TwinEntity> subscriberByPublisher,        // from Pointer.load
+            Map<UUID, TwinEntity> publisherTwinById,            // publisher TwinEntity по id
+            Map<UUID, TwinClassFieldEntity> subscriberFieldById // для subscriber-полей И changed-полей
+    ) {}
 
     /** Вспомогательная запись: один pending resolve subscriber-а в batch-режиме. */
     record PendingResolve(
@@ -1046,31 +1302,59 @@ package org.twins.core.service.fieldlistener;
 public interface FieldListenerSubscriber {
 
     /**
-     * @param event     full context: кто подписчик, какое поле, кто publisher-ы (≥1, может быть bulk)
+     * @param event     full context: subscriber TwinEntity + TwinClassFieldEntity (уже загружены),
+     *                  publishers с готовыми Entity (без дополнительных lookup-ов в FieldTyper)
      * @param collector accumulate-точка для изменений Mater-поля; та же tx что и у publisher (sync) или worker (async)
      */
     void notify(FieldListenerEvent event, TwinChangesCollector collector) throws ServiceException;
 }
 
 /**
- * Событие «обнови Mater-поле subscriber.subscriberFieldId учитывая publishers».
+ * Событие «обнови Mater-поле subscriber.subscriberField учитывая publishers».
  * Один event = одна группа (один subscriber twin + одно subscriber field), publishers ≥1.
+ *
+ * Все Entity уже загружены FieldListenerService.batchResolveSubscribers + единый findById
+ * для subscriberField — FieldTyper не должен делать дополнительных lookup-ов в БД.
  */
 record FieldListenerEvent(
-        UUID subscriberTwinId,
-        UUID subscriberFieldId,
+        TwinEntity subscriberTwin,
+        TwinClassFieldEntity subscriberField,
         List<PublisherRef> publishers
 ) {}
 
 /**
- * Один publisher в группе. Для OnAction: action ∈ {CREATE, EDIT, DELETE}, twinClassFieldId=null.
- * Для OnField: action=null, twinClassFieldId=operand publisher-а.
+ * Marker для двух вариантов publisher-а. Sealed interface → exhaustive switch в FieldTyper.
+ * Все publishers в одном event-е всегда одного типа (группировка идёт отдельно для OnField
+ * и OnAction listener-ов, mixed не смешиваются).
+ */
+sealed interface PublisherRef permits PublisherByField, PublisherByAction {
+    TwinEntity twin();
+    boolean async();
+}
+
+/**
+ * Publisher для OnField listener-а: у twin-а изменилось поле twinClassField (operand).
+ * Обе Entity уже загружены, никаких дополнительных lookup-ов не требуется.
  *
  * ВАЖНО: на момент notify в sync flow publisher-twin уже изменён в TwinChangesCollector,
- * но ещё не закоммичен в БД. Старые значения НЕ передаём — FieldTyper при необходимости
- * берёт их сам из collector-pending-state (для delta) или делает full recompute (MVP default).
+ * но ещё не закоммичен в БД. serializeValue внутри FieldTyper читает operands через
+ * twinClassFieldService.getDecimalValue() — он умеет ходить в TwinChangesCollector поверх БД.
  */
-record PublisherRef(UUID twinId, UUID twinClassFieldId, TwinAction action, boolean async) {}
+record PublisherByField(
+        TwinEntity twin,
+        TwinClassFieldEntity twinClassField,
+        boolean async
+) implements PublisherRef {}
+
+/**
+ * Publisher для OnAction listener-а: над twin-ом выполнена TwinAction (CREATE/EDIT/DELETE).
+ * TwinAction — enum, не Entity; twin Entity уже загружено.
+ */
+record PublisherByAction(
+        TwinEntity twin,
+        TwinAction action,
+        boolean async
+) implements PublisherRef {}
 ```
 
 **Default-реализация на FieldTyperCalcBinaryMater:**
@@ -1082,21 +1366,17 @@ public abstract class FieldTyperCalcBinaryMater
         extends FieldTyperDecimalBase<Numeric, Text, Numeric>
         implements FieldTyperCalcBinary, FieldTyperCalcMater, FieldListenerSubscriber {
 
-    private final TwinService twinService;
-    private final TwinClassFieldService twinClassFieldService;
-
     /**
      * MVP default: full recompute через serializeValue.
+     * subscriberTwin и subscriberField уже приходят в event — никаких лишних findById.
      * serializeValue читает operands через twinClassFieldService.getDecimalValue(),
      * который умеет ходить в TwinChangesCollector (pending state) — поэтому работает
      * даже если publishers ещё не в БД (sync flow).
      */
     @Override
     public void notify(FieldListenerEvent event, TwinChangesCollector collector) throws ServiceException {
-        TwinEntity subscriberTwin = twinService.findById(event.subscriberTwinId());
-        TwinClassFieldEntity field = twinClassFieldService.findById(event.subscriberFieldId());
-        FieldValue fieldValue = tryToInitializeValue(subscriberTwin, field);
-        serializeValue(subscriberTwin, fieldValue, collector);  // переиспользуем существующую логику
+        FieldValue fieldValue = tryToInitializeValue(event.subscriberTwin(), event.subscriberField());
+        serializeValue(event.subscriberTwin(), fieldValue, collector);  // переиспользуем существующую логику
     }
 }
 ```
@@ -1206,6 +1486,15 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
     **Рекомендация:** MVP — вариант (а), цикл `reconciliation cron` покрывает loss. Если метрика `field_listener_pointer_non_single.total{batch=true}` окажется значимой на проде — переходить на (б).
 
 14. **`Pointer.load` контракт на null subscribers.** Если для какого-то src twin подписчик не найден (например, `PointerOnHead` для root twin-а), `load` возвращает map без записи для этого srcId. Базовый класс `Pointer.load` после `load` обходит `misses`, и для отсутствующих в loaded map берёт `null`. Это работает, но есть альтернатива: явный marker-key `Map.put(srcId, null)`. Решение: возвращать map без ключа (как в коде) — проще; null-handling делается в `load`. Зафиксировано в §4.3.1.
+
+15. 🔴 **Async event payload serialization.** `FieldListenerEvent` теперь содержит `TwinEntity subscriberTwin` и `TwinClassFieldEntity subscriberField`, плюс `List<PublisherRef>` с `TwinEntity twin`. При `anyAsync=true` event попадает в `TwinChangeTaskEntity` (через `collector.addPostponedFieldListenerNotify`) и должен сериализоваться в JSON для worker-pool. JPA Entity напрямую не сериализуется (proxy, lazy-load, cyclic refs). Варианты:
+    - (а) **DTO-projection**: при `addPostponedFieldListenerNotify` конвертировать event в serializable DTO (`SubscriberTwinId`, `SubscriberFieldId`, `List<PublisherTwinId>`); worker в своей tx делает batch-load entity и reconstructs event. Самый чистый, но дублирование DTO.
+    - (б) **Только UUID в event**: вернуться к UUID-based event (откатить §5.2.3), всё entity-loading переложить на FieldTyper внутри notify. Потеря convenience для sync flow.
+    - (в) **Dual event**: sync event содержит Entity, async event — UUID-only. FieldListenerService сам выбирает по `anyAsync`. Поддержка двух record-ов с одним интерфейсом.
+    
+    **Рекомендация:** вариант (а). Sync flow — Entity (быстро, без lookup-ов в FieldTyper). Async flow — DTO projection → worker reconstruct. Код прост: один метод `event.toAsyncPayload()` в FieldListenerEvent, и метод `fromAsyncPayload(payload, tx)` в worker.
+
+16. **Cascading reload Entity на каждой cascade wave.** После `subscriber.notify()` FieldListenerService recurses (`triggerAffected(collector, visited, depth+1)`). Новый snapshot из collector → новый batch → новая batch-load TwinEntity/TwinClassFieldEntity для subscriber-полей. На глубоких cascade (depth=5) это 5 batch-load циклов. Caffeine на TwinClassFieldEntity metadata (см. §4.3.2) смягчает — но TwinEntity subscriber каждый раз грузится заново. Возможные оптимизации: (i) кэш TwinEntity по id в tx scope (аналог pointerResultCache, но на fieldListener level), (ii) инкрементальный snapshot. Не в MVP.
 
 ---
 
