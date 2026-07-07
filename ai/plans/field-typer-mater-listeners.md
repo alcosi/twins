@@ -248,10 +248,14 @@ public TwinEntity point(HashMap<String, String> linkerParams, TwinEntity srcTwin
 
 **Runtime-флоу при срабатывании listener-а:**
 
-1. Грузим `TwinPointerEntity` по `subscriber_twin_pointer_id` (c Caffeine-кешем по pointer_id)
-2. `Pointer.point(pointer.params, srcTwinEntity=publisherTwin)` → один subscriber-twin (или null)
-3. Если null → listener пропускается, метрика `mater_listener_no_subscriber_total`
+1. Грузим `TwinPointerEntity` по `subscriber_twin_pointer_id` (TwinPointerService)
+2. `Pointer.point(pointer, srcTwinEntity=publisherTwin)`:
+   - Сначала проверяет `srcTwinEntity.pointers.get(pointer.id)` — если уже резолвили в этой tx, возвращает кэшированный результат (включая null — важно не звать pointer повторно)
+   - Иначе выполняет реальную работу (SQL/TwinLink lookup/etc.), кладёт результат в `srcTwinEntity.pointers` и возвращает
+3. Если результат null → listener пропускается, метрика `mater_listener_no_subscriber_total`
 4. Если не null → пересчитываем `subscriber_twin_class_field_id` у найденного подписчика
+
+**Кэш pointer-результатов** живёт на `TwinEntity` как `@Transient Map<UUID, TwinEntity> pointers`. Это даёт несколько важных свойств (см. §4.3 для деталей): автоматическая инвалидация по tx, один SQL на publisher-а на pointer в рамках tx, защита от повторных дорогих lookups когда несколько listener-ов используют тот же pointer от одного publisher-а.
 
 ### 2.2. Точка вызова в TwinService
 
@@ -466,13 +470,72 @@ v1 (см. `field-typer-mater-listeners.md`) содержал критичные 
 
 **Для sync listeners bulk-detection форсирует async** — даже если listener.async=false, при bulk синхронно нельзя.
 
-### 4.3. Caffeine cache
+### 4.3. Кэширование: два уровня
 
-Hot path: lookup listeners не должен ходить в БД на каждый twin update. Cache по ключу:
-- `OnField`: key=`(domain_id, publisher_twin_class_field_id)`, value=`List<FieldListenerOnFieldEntity>`
-- `OnAction`: key=`(domain_id, publisher_twin_class_id, publisher_twin_action_id)`, value=`List<FieldListenerOnActionEntity>`
+Hot path listener-системы делает несколько lookups, и каждый должен быть кэширован. Используем **два независимых уровня** с разной семантикой.
 
-TTL 5 min + invalidation по `TwinClassField`/`TwinClass` update.
+#### 4.3.1. Pointer-result cache — на `TwinEntity` через `@Transient Map`
+
+Результат `Pointer.point(pointer, publisherTwin)` для конкретного publisher-а в рамках tx. Зачем нужен: в одном `triggerAffected` от одного publisher-а может срабатывать несколько listener-ов с одним и тем же `subscriber_twin_pointer_id` (например, parent-class Mater слушает одновременно `fieldA` и `fieldB` ребёнка — оба listener-а резолвят одного и того же parent-а через тот же pointer). Без кэша — двойной SQL/lookup.
+
+**Реализация:**
+
+```java
+// TwinEntity.java
+@Transient
+@EqualsAndHashCode.Exclude
+@ToString.Exclude
+private Map<UUID, Optional<TwinEntity>> pointers;
+
+public TwinEntity getPointer(UUID pointerId) {
+    return pointers == null ? null : pointers.getOrDefault(pointerId, Optional.empty()).orElse(null);
+}
+
+/** true если pointer уже резолвили (включая null-результат) — чтобы не звать point() повторно. */
+public boolean hasPointer(UUID pointerId) {
+    return pointers != null && pointers.containsKey(pointerId);
+}
+
+public void addPointer(UUID pointerId, TwinEntity pointedTwin) {
+    if (pointers == null) pointers = new HashMap<>();
+    pointers.put(pointerId, Optional.ofNullable(pointedTwin));
+}
+```
+
+`Optional<TwinEntity>` as value — чтобы отличить «ещё не вычислено» (key отсутствует) от «вычислено, результат null» (key присутствует с empty Optional). Это критично для pointer-ов типа `PointerOnHead` у корневого twin-а: первый вызов вернёт null, и без sentinel мы бы делали реальную работу на каждом последующем listener-е.
+
+**Заполнение — в `Pointer.point()` (базовый класс):**
+
+```java
+// Pointer.java
+public TwinEntity point(TwinPointerEntity pointer, TwinEntity srcTwinEntity) throws ServiceException {
+    if (srcTwinEntity.hasPointer(pointer.getId())) {
+        return srcTwinEntity.getPointer(pointer.getId());
+    }
+    Properties properties = featurerService.extractProperties(this, pointer.getPointerParams());
+    TwinEntity result = point(properties, srcTwinEntity);
+    srcTwinEntity.addPointer(pointer.getId(), result);
+    return result;
+}
+```
+
+API меняется: теперь `point` принимает `TwinPointerEntity` (а не `HashMap<String,String>`), чтобы знать свой `pointerId` как cache-key. Старый `point(linkerParams, srcTwinEntity)` — делегирует в новый с wrapping-ом (для обратной совместимости external callers).
+
+**Инвалидация:** автоматически — `TwinEntity.resetTransientState()` (строка ~677 в `TwinEntity.java`) уже чистит `headTwin`, `twinFieldCalculated` и подобные @Transient-поля; туда же добавить `pointers = null`. Это вызывается на entity detach / clear persistence context — то есть кэш умирает вместе с tx. Никакого TTL, никакой явной инвалидации.
+
+#### 4.3.2. Listener-config + pointer metadata cache — Caffeine
+
+Сюда идёт то, что **между tx** и **между publisher-ами**: metadata-таблицы, которые меняются редко (только при config change).
+
+| Cache | Key | Value | TTL | Invalidation |
+|-------|-----|-------|-----|--------------|
+| `TwinPointerEntity` metadata | `pointerId` | `TwinPointerEntity` | 30 min | По `TwinPointer` save/delete |
+| `FieldListenerOnFieldEntity` list | `(domainId, publisherFieldId)` | `List<FieldListenerOnFieldEntity>` | 5 min | По `TwinClassField` update + listener-config change |
+| `FieldListenerOnActionEntity` list | `(domainId, publisherClassId, action)` | `List<FieldListenerOnActionEntity>` | 5 min | По `TwinClass` update + listener-config change |
+
+**Почему не @Transient для listener-config:** listener-config — это глобальная metadata, не привязанная к конкретному publisher-twin. Её читают для всех publisher-ов; Caffeine cache у FrameEvent L1 у service-а — естественное место.
+
+**Почему не Caffeine для pointer-result:** результат point() привязан к конкретному publisher-twin в конкретный момент; Caffeine потребовал бы ключ `(pointerId, publisherTwinId, publisherTxVersion)` — слишком сложный и risk stale data. @Transient-поле на publisher-entity — ровно правильный scope.
 
 ### 4.4. `is_derived` flag (MVP CQRS)
 
@@ -771,10 +834,12 @@ public class FieldListenerService {
     }
 
     private UUID resolveSubscriberTwin(UUID pointerId, UUID publisherTwinId) throws ServiceException {
-        TwinPointerEntity pointer = twinPointerService.findById(pointerId);
+        TwinPointerEntity pointer = twinPointerService.findById(pointerId);  // Caffeine L1 (см. §4.3.2)
         TwinEntity publisherTwin = twinService.findById(publisherTwinId);
         TwinEntity subscriber;
         try {
+            // Pointer.point сам читает/пишет publisherTwin.pointers (см. §4.3.1).
+            // Повторные вызовы с тем же pointerId от того же publisherTwin — instant, без SQL.
             subscriber = pointerFeaturerService.point(pointer, publisherTwin);
         } catch (ServiceException e) {
             if (e.getErrorCode() == ErrorCodeTwins.POINTER_NON_SINGLE) {
