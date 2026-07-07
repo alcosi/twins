@@ -605,19 +605,21 @@ protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntit
 
 **Batch-resolve в FieldListenerService.** `collectOnFieldGroups` / `collectOnActionGroups` (см. §5.2.2) собирают все `(pointerId, [publisherTwinIds])` пары, группируют по `pointerId`, и для каждой группы вызывают `pointer.load(pointer, twinCollection)` — один SQL на группу, не N. Это устраняет N+1 в bulk scenarios (100 publisher-ов с одним pointer-ом → 1 SQL, не 100).
 
-#### 4.3.2. Listener-config + pointer metadata cache — Caffeine
+#### 4.3.2. Listener-config + pointer metadata — Spring `@Cacheable` (Caffeine backend)
 
-Сюда идёт то, что **между tx** и **между publisher-ами**: metadata-таблицы, которые меняются редко (только при config change).
+Сюда идёт то, что **между tx** и **между publisher-ами**: metadata-таблицы, которые меняются редко (только при config change). Кэшированные методы живут **на secure-find сервисах** (`FieldListenerOnFieldService`, `FieldListenerOnActionService`, `TwinPointerService`) через Spring `@Cacheable` — backing implementation Caffeine. Никаких отдельных «cache-классов» — кэш рядом с сервисом-владельцем entity (SRP), имена cache как константы на сервисе для `@CacheEvict`.
 
-| Cache | Key | Value | TTL | Invalidation |
-|-------|-----|-------|-----|--------------|
-| `TwinPointerEntity` metadata | `pointerId` | `TwinPointerEntity` | 30 min | По `TwinPointer` save/delete |
-| `FieldListenerOnFieldEntity` list | `(domainId, publisherFieldId)` | `List<FieldListenerOnFieldEntity>` | 5 min | По `TwinClassField` update + listener-config change |
-| `FieldListenerOnActionEntity` list | `(domainId, publisherClassId, action)` | `List<FieldListenerOnActionEntity>` | 5 min | По `TwinClass` update + listener-config change |
+| Cache name (константа на сервисе) | На методе | Key (SpEL) | TTL | Evict |
+|-------|-----|-------|-----|------|
+| `FieldListenerOnField.byPublisherField` | `FieldListenerOnFieldService.findOnFieldListeners(Set<UUID>)` | `CollectionUtils.generateUniqueKey(#publisherFieldIds)` | 5 min | `@CacheEvict(allEntries=true)` на `save()` / `delete()` того же сервиса |
+| `FieldListenerOnAction.byPublisherClassAction` | `FieldListenerOnActionService.findOnActionListeners(UUID, TwinAction)` | `CollectionUtils.generateUniqueKey(#twinClassId, #action)` | 5 min | `@CacheEvict(allEntries=true)` на `save()` / `delete()` |
+| `TwinPointer.byId` (на `TwinPointerService`) | `findById(UUID)` | `#pointerId` (default) | 30 min | По `TwinPointer` save/delete |
 
-**Почему не @Transient для listener-config:** listener-config — это глобальная metadata, не привязанная к конкретному publisher-twin. Её читают для всех publisher-ов; Caffeine cache у FrameEvent L1 у service-а — естественное место.
+Конфигурация TTL — в `application-*.properties` (через `spring.cache.cache-names` + Caffeine spec per cache).
 
-**Почему не Caffeine для pointer-result:** результат point() привязан к конкретному publisher-twin в конкретный момент; Caffeine потребовал бы ключ `(pointerId, publisherTwinId, publisherTxVersion)` — слишком сложный и risk stale data. @Transient-поле на publisher-entity — ровно правильный scope.
+**Почему не @Transient для listener-config:** listener-config — это глобальная metadata, не привязанная к конкретному publisher-twin. Её читают для всех publisher-ов; `@Cacheable` на secure-find сервисе — естественное место.
+
+**Почему не `@Cacheable` для pointer-result:** результат `point()` привязан к конкретному publisher-twin в конкретный момент; `@Cacheable` потребовал бы ключ `(pointerId, publisherTwinId, publisherTxVersion)` — слишком сложный и risk stale data. @Transient-поле на publisher-entity (см. §4.3.1) — ровно правильный scope.
 
 ### 4.4. `is_derived` flag (MVP CQRS)
 
@@ -955,33 +957,83 @@ public interface FieldListenerOnActionValidatorRuleRepository
 ```java
 package org.twins.core.service.fieldlistener;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.cambium.common.util.CollectionUtils;
+
 @Service
 @RequiredArgsConstructor
 public class FieldListenerOnFieldService
         extends TwinsEntitySecureFindService<FieldListenerOnFieldEntity> {
+
+    public static final String CACHE_BY_PUBLISHER_FIELD = "FieldListenerOnField.byPublisherField";
+    public static final String CACHE_BY_DOMAIN          = "FieldListenerOnField.byDomain";
+
     private final FieldListenerOnFieldRepository repository;
+
     @Override public CrudRepository<FieldListenerOnFieldEntity, UUID> entityRepository() { return repository; }
     @Override public Function<FieldListenerOnFieldEntity, UUID> entityGetIdFunction() { return FieldListenerOnFieldEntity::getId; }
     @Override public boolean isEntityReadDenied(FieldListenerOnFieldEntity e) { return false; }
     @Override public void validateEntity(FieldListenerOnFieldEntity e) { /* checks */ }
+
+    /** Hot path: FieldListenerService.triggerAffected вызывает на каждый изменённый publisher-field. */
+    @Cacheable(value = CACHE_BY_PUBLISHER_FIELD,
+               key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#publisherFieldIds)")
+    public List<FieldListenerOnFieldEntity> findOnFieldListeners(Set<UUID> publisherFieldIds) {
+        return repository.findByPublisherTwinClassFieldIdIn(publisherFieldIds);
+    }
+
+    /** Инвалидация при config change (create/update/delete listener). Делегируется в CRUD-методы сервиса. */
+    @CacheEvict(value = {CACHE_BY_PUBLISHER_FIELD, CACHE_BY_DOMAIN}, allEntries = true)
+    @Transactional(rollbackFor = Throwable.class)
+    public FieldListenerOnFieldEntity save(FieldListenerOnFieldEntity e) throws ServiceException {
+        return super.save(e);
+    }
+
+    @CacheEvict(value = {CACHE_BY_PUBLISHER_FIELD, CACHE_BY_DOMAIN}, allEntries = true)
+    @Transactional(rollbackFor = Throwable.class)
+    public void delete(UUID id) throws ServiceException { super.delete(id); }
 }
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class FieldListenerOnActionService
         extends TwinsEntitySecureFindService<FieldListenerOnActionEntity> {
+
+    public static final String CACHE_BY_PUBLISHER_CLASS_ACTION = "FieldListenerOnAction.byPublisherClassAction";
+
     private final FieldListenerOnActionRepository repository;
     /* overrides аналогично */
+
+    @Cacheable(value = CACHE_BY_PUBLISHER_CLASS_ACTION,
+               key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassId, #action)")
+    public List<FieldListenerOnActionEntity> findOnActionListeners(UUID twinClassId, TwinAction action) {
+        return repository.findByPublisherTwinClassIdAndPublisherTwinAction(twinClassId, action);
+    }
+
+    @CacheEvict(value = CACHE_BY_PUBLISHER_CLASS_ACTION, allEntries = true)
+    @Transactional(rollbackFor = Throwable.class)
+    public FieldListenerOnActionEntity save(FieldListenerOnActionEntity e) throws ServiceException {
+        return super.save(e);
+    }
+
+    @CacheEvict(value = CACHE_BY_PUBLISHER_CLASS_ACTION, allEntries = true)
+    @Transactional(rollbackFor = Throwable.class)
+    public void delete(UUID id) throws ServiceException { super.delete(id); }
 }
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class FieldListenerOnActionValidatorRuleService
         extends TwinsEntitySecureFindService<FieldListenerOnActionValidatorRuleEntity> {
     private final FieldListenerOnActionValidatorRuleRepository repository;
-    /* overrides аналогично */
+    /* overrides + save/delete с @CacheEvict для валидатор-рулесов, если они станут hot */
 }
 ```
 
-Эти три сервиса отвечают за административный CRUD (будущий UI для управления listeners). Сам trigger/recompute — отдельный сервис ниже, он работает поверх репозиториев и не наследует `TwinsEntitySecureFindService`, т.к. не является CRUD-сервисом entity.
+Эти три сервиса отвечают за административный CRUD (будущий UI) **и** предоставляют кэшированные lookup-методы для hot path. Имена cache (константы `CACHE_*`) используются в `@CacheEvict` для инвалидации при config change. Backing implementation — Caffeine (через Spring Cache abstraction), конфигурация TTL в `application-*.properties` для каждого cache-имени. Это устраняет отдельный класс `CaffeineListenerCache` — кэш живёт рядом с сервисом, который владеет entity (SRP).
+
+Сам trigger/recompute — отдельный сервис `FieldListenerService` ниже, он работает поверх `FieldListenerOnFieldService` / `FieldListenerOnActionService` (не поверх репозиториев напрямую) и не наследует `TwinsEntitySecureFindService`, т.к. не является CRUD-сервисом entity.
 
 #### 5.2.2. Оркестратор trigger-а и recompute
 
@@ -1015,9 +1067,10 @@ package org.twins.core.service.fieldlistener;
 @Slf4j
 public class FieldListenerService {
 
-    private final FieldListenerOnFieldRepository listenerOnFieldRepository;
-    private final FieldListenerOnActionRepository listenerOnActionRepository;
-    private final FieldListenerOnActionValidatorRuleRepository validatorRuleRepository;
+    // Lookup-методы с @Cacheable живут на этих сервисах — FieldListenerService дёргает их напрямую.
+    private final FieldListenerOnFieldService listenerOnFieldService;
+    private final FieldListenerOnActionService listenerOnActionService;
+    private final FieldListenerOnActionValidatorRuleService validatorRuleService;
     private final PointerFeaturerService pointerFeaturerService;
     private final TwinPointerService twinPointerService;
     private final TwinClassFieldService twinClassFieldService;
@@ -1025,7 +1078,6 @@ public class FieldListenerService {
     private final FeaturerService featurerService;
     private final TwinChangeTaskService twinChangeTaskService;
     private final ValidatorService validatorService;
-    private final CaffeineListenerCache listenerCache;
     private final MeterRegistry meterRegistry;
 
     @Value("${twins.mater.max-depth:5}")          private int maxDepth;
@@ -1067,19 +1119,20 @@ public class FieldListenerService {
 
     private void collectOnFieldGroups(AffectedSnapshot snapshot,
                                       Map<SubscriberKey, Group> groups, Set<SubscriberKey> visited) throws ServiceException {
-        Map<UUID, List<FieldListenerOnFieldEntity>> listenersByField =
-                listenerCache.findOnFieldListeners(snapshot.changedFieldClassIds(), snapshot.domainId());
+        // @Cacheable на FieldListenerOnFieldService.findOnFieldListeners(...) — Caffeine под капотом.
+        // Cache key — composite через CollectionUtils.generateUniqueKey(#publisherFieldIds).
+        List<FieldListenerOnFieldEntity> listeners = listenerOnFieldService
+                .findOnFieldListeners(snapshot.changedFieldClassIds());
 
         // Собираем все (pointerId, publisherTwinId, listener) тройки, потом batch-resolve по pointerId.
         Map<UUID, List<PendingResolve>> pendingByPointer = new HashMap<>();
-        for (var entry : listenersByField.entrySet()) {
-            UUID changedFieldId = entry.getKey();
+        for (FieldListenerOnFieldEntity listener : listeners) {
+            UUID changedFieldId = listener.getPublisherTwinClassFieldId();
+            if (!snapshot.changedFieldClassIds().contains(changedFieldId)) continue;
             for (UUID publisherTwinId : snapshot.twinsByChangedField(changedFieldId)) {
-                for (FieldListenerOnFieldEntity listener : entry.getValue()) {
-                    pendingByPointer
-                            .computeIfAbsent(listener.getSubscriberTwinPointerId(), k -> new ArrayList<>())
-                            .add(PendingResolve.forField(publisherTwinId, changedFieldId, listener));
-                }
+                pendingByPointer
+                        .computeIfAbsent(listener.getSubscriberTwinPointerId(), k -> new ArrayList<>())
+                        .add(PendingResolve.forField(publisherTwinId, changedFieldId, listener));
             }
         }
         resolveAndDistribute(pendingByPointer, groups, visited, false);
@@ -1087,14 +1140,13 @@ public class FieldListenerService {
 
     private void collectOnActionGroups(AffectedSnapshot snapshot,
                                        Map<SubscriberKey, Group> groups, Set<SubscriberKey> visited) throws ServiceException {
-        Map<ActionKey, List<FieldListenerOnActionEntity>> listenersByAction =
-                listenerCache.findOnActionListeners(snapshot.twinActionsByKey(), snapshot.domainId());
-
         Map<UUID, List<PendingResolve>> pendingByPointer = new HashMap<>();
-        for (var entry : listenersByAction.entrySet()) {
-            ActionKey actionKey = entry.getKey();
+        for (ActionKey actionKey : snapshot.twinActionsByKey()) {
+            // @Cacheable lookup per (publisherClassId, action) — Caffeine под капотом.
+            List<FieldListenerOnActionEntity> listeners = listenerOnActionService
+                    .findOnActionListeners(actionKey.twinClassId(), actionKey.action());
             for (UUID publisherTwinId : snapshot.twinIdsByAction(actionKey)) {
-                for (FieldListenerOnActionEntity listener : entry.getValue()) {
+                for (FieldListenerOnActionEntity listener : listeners) {
                     if (!shouldFireByValidators(listener, publisherTwinId)) continue;
                     pendingByPointer
                             .computeIfAbsent(listener.getSubscriberTwinPointerId(), k -> new ArrayList<>())
