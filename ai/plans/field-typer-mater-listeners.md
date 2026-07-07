@@ -504,24 +504,106 @@ public void addPointer(UUID pointerId, TwinEntity pointedTwin) {
 
 `Optional<TwinEntity>` as value — чтобы отличить «ещё не вычислено» (key отсутствует) от «вычислено, результат null» (key присутствует с empty Optional). Это критично для pointer-ов типа `PointerOnHead` у корневого twin-а: первый вызов вернёт null, и без sentinel мы бы делали реальную работу на каждом последующем listener-е.
 
-**Заполнение — в `Pointer.point()` (базовый класс):**
+**Заполнение — в `Pointer` (базовый класс), два уровня API:**
 
 ```java
 // Pointer.java
-public TwinEntity point(TwinPointerEntity pointer, TwinEntity srcTwinEntity) throws ServiceException {
-    if (srcTwinEntity.hasPointer(pointer.getId())) {
+public abstract class Pointer extends FeaturerTwins {
+
+    /**
+     * Single-twin API. Читает кэш на srcTwinEntity; при cache miss дергает load([srcTwinEntity]).
+     * Сохраняет семантику ровно одного subscriber-а — если load нашёл несколько, бросает POINTER_NON_SINGLE.
+     */
+    public TwinEntity point(TwinPointerEntity pointer, TwinEntity srcTwinEntity) throws ServiceException {
+        if (!srcTwinEntity.hasPointer(pointer.getId())) {
+            load(pointer, List.of(srcTwinEntity));
+        }
         return srcTwinEntity.getPointer(pointer.getId());
     }
-    Properties properties = featurerService.extractProperties(this, pointer.getPointerParams());
-    TwinEntity result = point(properties, srcTwinEntity);
-    srcTwinEntity.addPointer(pointer.getId(), result);
-    return result;
+
+    /**
+     * Batch API. Главный инструмент устранения N+1: для N publisher-ов с одним pointer-ом
+     * делает ОДИН запрос/lookup, не N. Сам занимается кэшем:
+     *   1. Фильтрует srcTwins, оставляя только cache-miss (hasPointer == false)
+     *   2. Если miss-ов 0 — сразу return того, что уже в кэше
+     *   3. Иначе вызывает abstract load(properties, missTwins) — реализация в subclass
+     *   4. Кэширует результат (включая null) на каждом src twin-е
+     */
+    public void load(TwinPointerEntity pointer, Collection<TwinEntity> srcTwins) throws ServiceException {
+        if (srcTwins.isEmpty()) return Map.of();
+        UUID pointerId = pointer.getId();
+
+        List<TwinEntity> misses = new ArrayList<>();
+        for (TwinEntity src : srcTwins) {
+            if (src.hasPointer(pointerId)) {
+                TwinEntity cached = src.getPointer(pointerId);
+                if (cached != null) result.put(src.getId(), cached);
+            } else {
+                misses.add(src);
+            }
+        }
+        if (misses.isEmpty()) return result;
+
+        Properties properties = featurerService.extractProperties(this, pointer.getPointerParams());
+        Map<UUID, TwinEntity> loaded = load(properties, misses);  // subclass impl: один batch SQL/lookup
+
+        for (TwinEntity src : misses) {
+            TwinEntity target = loaded.get(src.getId());  // null — валидный результат
+            src.addPointer(pointerId, target);
+        }
+    }
+
+    /**
+     * Subclass реализует. Должен быть batch — один SQL/lookup для всей коллекции,
+     * не N. Возвращает map {srcTwinId -> subscriber}, где отсутствие ключа = null subscriber
+     * (subscriber не найден). POINTER_NON_SINGLE — exception если для какого-то src
+     * pointer резолвится в несколько кандидатов.
+     */
+    protected abstract Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException;
 }
 ```
 
-API меняется: теперь `point` принимает `TwinPointerEntity` (а не `HashMap<String,String>`), чтобы знать свой `pointerId` как cache-key. Старый `point(linkerParams, srcTwinEntity)` — делегирует в новый с wrapping-ом (для обратной совместимости external callers).
+**Примеры `load` в subclass-ах (один SQL на batch):**
+
+```java
+// PointerOnSelf
+@Override
+protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) {
+    return srcTwins.stream().collect(Collectors.toMap(TwinEntity::getId, Function.identity()));
+}
+
+// PointerOnHead — один SELECT ... WHERE id IN (:srcIds) JOIN для head
+@Override
+protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    twinService.loadHead(srcTwins);
+    return srcTwins.stream().map(TwinEntity::getId, TwinEntity::getHeadTwin).toMap();
+}
+
+// PointerOnLinkedTwin — один SELECT twinlink WHERE src_id IN (:srcIds) AND link_id = :linkId
+@Override
+protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    UUID linkIdValue = linkId.extract(properties);
+    return twinLinkService.loadSingleDstTwinsBySrcIdsAndLinkId(
+            srcTwins.stream().map(TwinEntity::getId).toList(), linkIdValue);
+    // внутри: SELECT tl.src_id, tl.dst_id FROM twin_link tl WHERE tl.src_id IN (?) AND tl.link_id = ?
+    //         + POINTER_NON_SINGLE если для src_id > 1 строка
+}
+
+// PointerOnSingleChild — один SELECT twin WHERE head_twin_id IN (:srcIds) AND twin_class_id = :classId
+@Override
+protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    UUID childClassId = twinClassId.extract(properties);
+    return twinService.loadSingleChildrenByHeadIdsAndClass(
+            srcTwins.stream().map(TwinEntity::getId).toList(), childClassId);
+    // внутри: GROUP BY head_twin_id HAVING count = 1; если count > 1 для какого-то head → POINTER_NON_SINGLE
+}
+```
+
+**API меняется:** `point` теперь принимает `TwinPointerEntity` (а не `HashMap<String,String>`), чтобы знать `pointerId` как cache-key. Старый `point(linkerParams, srcTwinEntity)` — делегирует в новый с wrapping-ом (для обратной совместимости external callers), но без кэш-семантики (caller должен сам передать TwinPointerEntity если хочет кэш).
 
 **Инвалидация:** автоматически — `TwinEntity.resetTransientState()` (строка ~677 в `TwinEntity.java`) уже чистит `headTwin`, `twinFieldCalculated` и подобные @Transient-поля; туда же добавить `pointers = null`. Это вызывается на entity detach / clear persistence context — то есть кэш умирает вместе с tx. Никакого TTL, никакой явной инвалидации.
+
+**Batch-resolve в FieldListenerService.** `collectOnFieldGroups` / `collectOnActionGroups` (см. §5.2.2) собирают все `(pointerId, [publisherTwinIds])` пары, группируют по `pointerId`, и для каждой группы вызывают `pointer.load(pointer, twinCollection)` — один SQL на группу, не N. Это устраняет N+1 в bulk scenarios (100 publisher-ов с одним pointer-ом → 1 SQL, не 100).
 
 #### 4.3.2. Listener-config + pointer metadata cache — Caffeine
 
@@ -768,39 +850,94 @@ public class FieldListenerService {
                                       Map<GroupKey, List<PublisherRef>> groups, Set<GroupKey> visited) throws ServiceException {
         Map<UUID, List<FieldListenerOnFieldEntity>> listenersByField =
                 listenerCache.findOnFieldListeners(snapshot.changedFieldClassIds(), snapshot.domainId());
+
+        // Собираем все (pointerId, publisherTwinId, listener) тройки, потом batch-resolve по pointerId.
+        Map<UUID, List<PendingResolve>> pendingByPointer = new HashMap<>();
         for (var entry : listenersByField.entrySet()) {
             UUID changedFieldId = entry.getKey();
             for (UUID publisherTwinId : snapshot.twinsByChangedField(changedFieldId)) {
                 for (FieldListenerOnFieldEntity listener : entry.getValue()) {
-                    UUID subscriberTwinId = resolveSubscriberTwin(listener.getSubscriberTwinPointerId(), publisherTwinId);
-                    if (subscriberTwinId == null) continue;
-                    GroupKey key = new GroupKey(subscriberTwinId, listener.getSubscriberTwinClassFieldId());
-                    if (visited.contains(key)) continue;
-                    groups.computeIfAbsent(key, k -> new ArrayList<>())
-                          .add(new PublisherRef(publisherTwinId, changedFieldId, null, listener.isAsync()));
+                    pendingByPointer
+                            .computeIfAbsent(listener.getSubscriberTwinPointerId(), k -> new ArrayList<>())
+                            .add(PendingResolve.forField(publisherTwinId, changedFieldId, listener));
                 }
             }
         }
+        resolveAndDistribute(pendingByPointer, groups, visited, false);
     }
 
     private void collectOnActionGroups(AffectedSnapshot snapshot,
                                        Map<GroupKey, List<PublisherRef>> groups, Set<GroupKey> visited) throws ServiceException {
         Map<ActionKey, List<FieldListenerOnActionEntity>> listenersByAction =
                 listenerCache.findOnActionListeners(snapshot.twinActionsByKey(), snapshot.domainId());
+
+        Map<UUID, List<PendingResolve>> pendingByPointer = new HashMap<>();
         for (var entry : listenersByAction.entrySet()) {
             ActionKey actionKey = entry.getKey();
             for (UUID publisherTwinId : snapshot.twinIdsByAction(actionKey)) {
                 for (FieldListenerOnActionEntity listener : entry.getValue()) {
                     if (!shouldFireByValidators(listener, publisherTwinId)) continue;
-                    UUID subscriberTwinId = resolveSubscriberTwin(listener.getSubscriberTwinPointerId(), publisherTwinId);
-                    if (subscriberTwinId == null) continue;
-                    GroupKey key = new GroupKey(subscriberTwinId, listener.getSubscriberTwinClassFieldId());
-                    if (visited.contains(key)) continue;
-                    groups.computeIfAbsent(key, k -> new ArrayList<>())
-                          .add(new PublisherRef(publisherTwinId, null, actionKey.action(), listener.isAsync()));
+                    pendingByPointer
+                            .computeIfAbsent(listener.getSubscriberTwinPointerId(), k -> new ArrayList<>())
+                            .add(PendingResolve.forAction(publisherTwinId, actionKey.action(), listener));
                 }
             }
         }
+        resolveAndDistribute(pendingByPointer, groups, visited, true);
+    }
+
+    /**
+     * Для каждого pointerId: один batch-load (см. §4.3.1) всех publisher-ов → Map<publisherTwinId, subscriber>.
+     * Затем распределяем результаты по группам. Один SQL на pointer, не N — устраняет N+1 в bulk.
+     */
+    private void resolveAndDistribute(Map<UUID, List<PendingResolve>> pendingByPointer,
+                                      Map<GroupKey, List<PublisherRef>> groups,
+                                      Set<GroupKey> visited, boolean isAction) throws ServiceException {
+        for (var e : pendingByPointer.entrySet()) {
+            UUID pointerId = e.getKey();
+            List<PendingResolve> pendings = e.getValue();
+            // Загружаем publisher-ы одним батчем. Map<publisherTwinId, subscriber>, без null-ов.
+            Map<UUID, TwinEntity> subscriberByPublisher;
+            try {
+                subscriberByPublisher = batchResolveSubscribers(pointerId, pendings);
+            } catch (ServiceException ex) {
+                if (ex.getErrorCode() == ErrorCodeTwins.POINTER_NON_SINGLE) {
+                    log.warn("Pointer {} batch returned NON_SINGLE for {} publishers, skipping batch",
+                            pointerId, pendings.size());
+                    meterRegistry.counter("field_listener_pointer_non_single.total",
+                            Tags.of("batch", "true")).increment();
+                    continue;  // skip весь batch для этого pointer-а — partial-retry см. §7
+                }
+                throw ex;
+            }
+
+            for (PendingResolve p : pendings) {
+                TwinEntity subscriber = subscriberByPublisher.get(p.publisherTwinId());
+                if (subscriber == null) {
+                    meterRegistry.counter("field_listener_no_subscriber.total").increment();
+                    continue;
+                }
+                UUID subscriberFieldId = p.listenerSubscriberFieldId();
+                GroupKey key = new GroupKey(subscriber.getId(), subscriberFieldId);
+                if (visited.contains(key)) continue;
+                PublisherRef ref = new PublisherRef(
+                        p.publisherTwinId(),
+                        isAction ? null : p.changedFieldId(),
+                        isAction ? p.action() : null,
+                        p.listenerAsync());
+                groups.computeIfAbsent(key, k -> new ArrayList<>()).add(ref);
+            }
+        }
+    }
+
+    /** Один pointer → один batch-load через Pointer.load(). Кэш на publisher-entity работает автоматически. */
+    private Map<UUID, TwinEntity> batchResolveSubscribers(UUID pointerId, List<PendingResolve> pendings) throws ServiceException {
+        TwinPointerEntity pointer = twinPointerService.findById(pointerId);  // Caffeine L1 (см. §4.3.2)
+        List<UUID> publisherIds = pendings.stream().map(PendingResolve::publisherTwinId).distinct().toList();
+        Collection<TwinEntity> publisherTwins = twinService.findByIds(publisherIds);
+        Pointer pointerFeaturer = featurerService.getFeaturer(pointer.getPointerFeaturerId(), Pointer.class);
+        // Pointer.load сам фильтрует cache-miss и делает один SQL через load (см. §4.3.1).
+        return pointerFeaturer.load(pointer, publisherTwins);
     }
 
     private void dispatchNotify(GroupKey key, List<PublisherRef> publishers, TwinChangesCollector collector,
@@ -831,30 +968,6 @@ public class FieldListenerService {
         // Recurses с тем же visited-set + depth+1 — новый snapshot обнаружит изменение subscriber-поля
         // (если оно operand для другого Mater) и trigger-ит новые группы.
         triggerAffected(collector, visited, depth + 1);
-    }
-
-    private UUID resolveSubscriberTwin(UUID pointerId, UUID publisherTwinId) throws ServiceException {
-        TwinPointerEntity pointer = twinPointerService.findById(pointerId);  // Caffeine L1 (см. §4.3.2)
-        TwinEntity publisherTwin = twinService.findById(publisherTwinId);
-        TwinEntity subscriber;
-        try {
-            // Pointer.point сам читает/пишет publisherTwin.pointers (см. §4.3.1).
-            // Повторные вызовы с тем же pointerId от того же publisherTwin — instant, без SQL.
-            subscriber = pointerFeaturerService.point(pointer, publisherTwin);
-        } catch (ServiceException e) {
-            if (e.getErrorCode() == ErrorCodeTwins.POINTER_NON_SINGLE) {
-                log.warn("Pointer {} returned multiple candidates for publisher {}, skipping",
-                        pointerId, publisherTwinId);
-                meterRegistry.counter("field_listener_pointer_non_single.total").increment();
-                return null;
-            }
-            throw e;
-        }
-        if (subscriber == null) {
-            meterRegistry.counter("field_listener_no_subscriber.total").increment();
-            return null;
-        }
-        return subscriber.getId();
     }
 
     private boolean shouldFireByValidators(FieldListenerOnActionEntity listener, UUID publisherTwinId) throws ServiceException {
@@ -888,8 +1001,28 @@ public class FieldListenerService {
 
     record GroupKey(UUID subscriberTwinId, UUID subscriberFieldId) {}
     record PublisherRef(UUID twinId, UUID twinClassFieldId, TwinAction action, boolean async) {}
+
+    /** Вспомогательная запись: один pending resolve subscriber-а в batch-режиме. */
+    record PendingResolve(
+            UUID publisherTwinId,
+            UUID changedFieldId,        // для OnField
+            TwinAction action,           // для OnAction
+            boolean listenerAsync,
+            UUID listenerSubscriberFieldId
+    ) {
+        static PendingResolve forField(UUID publisherTwinId, UUID changedFieldId, FieldListenerOnFieldEntity l) {
+            return new PendingResolve(publisherTwinId, changedFieldId, null, l.isAsync(), l.getSubscriberTwinClassFieldId());
+        }
+        static PendingResolve forAction(UUID publisherTwinId, TwinAction action, FieldListenerOnActionEntity l) {
+            return new PendingResolve(publisherTwinId, null, action, l.isAsync(), l.getSubscriberTwinClassFieldId());
+        }
+    }
 }
 ```
+
+**Удалённый метод `resolveSubscriberTwin(UUID, UUID)`**: заменён на `batchResolveSubscribers(pointerId, pendings)`. Single-twin API `Pointer.point()` остаётся доступным для external callers (например, business logic, не FieldListener), но FieldListenerService использует только batch API `Pointer.load()`.
+
+**Почему batch важен.** Bulk update 100 Task → без batch было бы 100 SQL в `PointerOnHead.load` (по одному на parent lookup). С batch — один SQL `SELECT id, head_twin_id FROM twin WHERE id IN (100 UUIDs)`. На 10k bulk — экономия 10k → 1 SQL на pointer group. Это критично для performance SLA p95 ≤30s.
 
 #### 5.2.3. Интерфейс FieldListenerSubscriber
 
@@ -1064,6 +1197,15 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
     - Один и тот же subscriber-field может быть operand для нескольких других Mater-полей — все они должны быть в одной cascade-волне. Текущая рекурсия ловит это через новый snapshot.
     - Cycle protection через visited-set: если A → B → A, второе срабатывание A пропустится через visited. Но深度 cap (default 5) — единственная защита от очень длинных цепочек. Если в domain будет 6+ уровней Mater-цепочек — поднять cap через конфиг.
     - Performance: каждая cascade-волна = новый full snapshot extract. Для глубоких цепочек (depth=5) это 5 snapshots. На больших collector-ах может быть дорого. Альтернатива: incremental snapshot (только новые изменения с прошлого snapshot). Не в MVP.
+
+13. **Partial failure в `Pointer.load` batch-е.** Если для одного из publisher-ов в batch-е pointer резолвится в несколько кандидатов (`POINTER_NON_SINGLE`), сейчас весь batch для этого pointer-а skip-ается (см. `resolveAndDistribute` try-catch). Это потеря валидных notify для других publisher-ов того же batch-а. Возможные варианты:
+    - (а) **Оставить как в MVP** (skip весь batch). Просто, но теряет часть notify на bulk CUD если один publisher сконфигурирован криво (например, у одного TwinLink два dst, остальные норм). Reconciliation cron (§4.6) подстрахует.
+    - (б) **Partial retry**: при POINTER_NON_SINGLE — сплит batch пополам, retry каждой половины; где падает — ещё сплит, пока не останется один problematic publisher, который skip-аем individually. Правильно, но усложняет код.
+    - (в) **Изменить контракт load**: вернуть `Map<UUID srcId, Either<TwinEntity, ServiceException>>` — partial success на уровне API. Самый гибкий, но усложняет все реализации subclass-ов.
+    
+    **Рекомендация:** MVP — вариант (а), цикл `reconciliation cron` покрывает loss. Если метрика `field_listener_pointer_non_single.total{batch=true}` окажется значимой на проде — переходить на (б).
+
+14. **`Pointer.load` контракт на null subscribers.** Если для какого-то src twin подписчик не найден (например, `PointerOnHead` для root twin-а), `load` возвращает map без записи для этого srcId. Базовый класс `Pointer.load` после `load` обходит `misses`, и для отсутствующих в loaded map берёт `null`. Это работает, но есть альтернатива: явный marker-key `Map.put(srcId, null)`. Решение: возвращать map без ключа (как в коде) — проще; null-handling делается в `load`. Зафиксировано в §4.3.1.
 
 ---
 
