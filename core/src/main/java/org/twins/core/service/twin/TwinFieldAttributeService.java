@@ -9,7 +9,6 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -18,23 +17,24 @@ import org.twins.core.dao.specifications.twin.TwinFieldAttributeSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeRepository;
+import org.twins.core.dao.twin.TwinFieldBaseEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twinclass.TwinClassFieldAttributeService;
+import org.twins.core.service.twinfield.TwinFieldServiceBase;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 
 @Service
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinFieldAttributeEntity> {
+public class TwinFieldAttributeService extends TwinFieldServiceBase<TwinFieldAttributeEntity> {
     private final TwinFieldAttributeRepository twinFieldAttributeRepository;
     @Lazy
     private final PermissionService permissionService;
@@ -47,11 +47,6 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
     @Override
     public CrudRepository<TwinFieldAttributeEntity, UUID> entityRepository() {
         return twinFieldAttributeRepository;
-    }
-
-    @Override
-    public Function<TwinFieldAttributeEntity, UUID> entityGetIdFunction() {
-        return TwinFieldAttributeEntity::getId;
     }
 
     @Override
@@ -202,11 +197,11 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
             if (updatePermissionId != null && !permissionService.currentUserHasPermission(updatePermissionId)) {
                 throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot update % without permission[%]", dbAttributeEntity.getTwinClassFieldAttribute(), updatePermissionId.toString());
             }
-            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinId, dbAttributeEntity.getTwinId(), attributeEntity.getTwinId())) {
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldBaseEntity.Fields.twinId, dbAttributeEntity.getTwinId(), attributeEntity.getTwinId())) {
                 throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin id for twin field attribute[" + dbAttributeEntity.getId() + "]");
             }
 
-            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldId, dbAttributeEntity.getTwinClassFieldId(), attributeEntity.getTwinClassFieldId())) {
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldBaseEntity.Fields.twinClassFieldId, dbAttributeEntity.getTwinClassFieldId(), attributeEntity.getTwinClassFieldId())) {
                 throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin class field id for twin field attribute[" + dbAttributeEntity.getId() + "]");
             }
             if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldAttributeId, dbAttributeEntity.getTwinClassFieldAttributeId(), attributeEntity.getTwinClassFieldAttributeId())) {

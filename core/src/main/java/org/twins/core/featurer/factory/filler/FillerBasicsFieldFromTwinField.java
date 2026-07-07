@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
@@ -16,7 +17,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.SystemEntityService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -53,10 +53,10 @@ public class FillerBasicsFieldFromTwinField extends Filler {
     }
 
     private String handleTextField(UUID sourceFieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
-        if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME)) {
+        if (sourceFieldId.equals(SystemIds.TwinClassField.Base.NAME)) {
             outputTwinEntity.setName(fieldValueText.getValue());
             return TwinEntity.Fields.name;
-        } else if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION)) {
+        } else if (sourceFieldId.equals(SystemIds.TwinClassField.Base.DESCRIPTION)) {
             outputTwinEntity.setDescription(fieldValueText.getValue());
             return TwinEntity.Fields.description;
         }
@@ -70,12 +70,12 @@ public class FillerBasicsFieldFromTwinField extends Filler {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
         } else {
             UserEntity user = fieldValueUser.getItems().getFirst();
-            if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID)) {
+            if (sourceFieldId.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)) {
                 outputTwinEntity
                         .setAssignerUser(user)
                         .setAssignerUserId(user.getId());
                 return TwinEntity.Fields.assignerUserId;
-            } else if (sourceFieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID)) {
+            } else if (sourceFieldId.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID)) {
                 outputTwinEntity
                         .setCreatedByUser(user)
                         .setCreatedByUserId(user.getId());

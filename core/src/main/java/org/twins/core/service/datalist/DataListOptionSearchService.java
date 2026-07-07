@@ -19,6 +19,7 @@ import org.twins.core.dao.datalist.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.sort.DataListOptionGroupField;
 import org.twins.core.enums.sort.DataListOptionSortField;
@@ -29,7 +30,6 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.service.EntitySearchService;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -85,7 +85,7 @@ public class DataListOptionSearchService extends EntitySearchService
     }
 
     public PaginationResult<DataListOptionEntity> findDataListOptions(UUID searchId, Map<String, String> namedParamsMap, DataListOptionSearch narrowSearch, SimplePagination pagination) throws ServiceException {
-        if (SystemEntityService.DATA_LIST_OPTION_SEARCH_UNLIMITED.equals(searchId)) {
+        if (SystemIds.DataListOptionSearch.UNLIMITED.equals(searchId)) {
             return search(narrowSearch, pagination);
         }
 
@@ -118,7 +118,7 @@ public class DataListOptionSearchService extends EntitySearchService
         ApiUser apiUser = authService.getApiUser();
         limitSearchByValidForTwinClassFieldIdList(search);
         return Specification.allOf(
-                checkFieldUuid(domainId, DataListOptionEntity.Fields.dataList, DataListEntity.Fields.domainId),
+                checkFieldUuid(domainId, DataListOptionEntity.Fields.dataListSpecOnly, DataListEntity.Fields.domainId),
                 createBusinessAccountSpecification(apiUser, search),
                 checkUuidIn(search.getIdList(), false, false, DataListOptionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListOptionEntity.Fields.id),
@@ -191,9 +191,9 @@ public class DataListOptionSearchService extends EntitySearchService
             case optionName ->
                     toSortSpecificationDirect(ascending, locale, DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly);
             case dataListKey ->
-                    toSortSpecification(ascending, DataListOptionEntity.Fields.dataList, DataListEntity.Fields.key);
+                    toSortSpecification(ascending, DataListOptionEntity.Fields.dataListSpecOnly, DataListEntity.Fields.key);
             case dataListName ->
-                    toSortSpecificationDirect(ascending, locale, DataListOptionEntity.Fields.dataList, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, DataListOptionEntity.Fields.dataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
         };
     }
 

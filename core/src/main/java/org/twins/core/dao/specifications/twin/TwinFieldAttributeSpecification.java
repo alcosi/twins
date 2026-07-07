@@ -3,6 +3,7 @@ package org.twins.core.dao.specifications.twin;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
+import org.twins.core.dao.twin.TwinFieldBaseEntity;
 
 import java.util.*;
 
@@ -19,10 +20,10 @@ public class TwinFieldAttributeSpecification {
                     continue;
                 }
                 Predicate twinPredicate = cb.equal(
-                        root.get(TwinFieldAttributeEntity.Fields.twinId),
+                        root.get(TwinFieldBaseEntity.Fields.twinId),
                         twinId
                 );
-                Predicate fieldPredicate = root.get(TwinFieldAttributeEntity.Fields.twinClassFieldId)
+                Predicate fieldPredicate = root.get(TwinFieldBaseEntity.Fields.twinClassFieldId)
                         .in(fieldIds);
                 orPredicates.add(
                         cb.and(twinPredicate, fieldPredicate)

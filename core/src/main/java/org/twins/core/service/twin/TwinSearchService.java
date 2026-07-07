@@ -31,11 +31,11 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.domain.search.TwinSort;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.detector.SearchDetector;
 import org.twins.core.featurer.twin.finder.TwinFinder;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
@@ -231,7 +231,7 @@ public class TwinSearchService {
     }
 
     public PaginationResult<TwinEntity> findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
-        if (SystemEntityService.TWIN_SEARCH_UNLIMITED.equals(searchId)) {
+        if (SystemIds.TwinSearch.UNLIMITED.equals(searchId)) {
             return findTwins(searchNarrow, pagination);
         }
         return findTwins(entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);

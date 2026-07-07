@@ -11,6 +11,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
@@ -46,11 +47,24 @@ public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, 
     @Override
     protected FieldValue deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         var headTwinClassField = getHeadTwinClassFieldSafe(properties);
-        var headTwinFieldValue = twinField.getTwin().getHeadTwin().getFieldValuesKit().get(headTwinClassField.getId());
+        FieldValue headTwinFieldValue = null;
+        var headTwin = twinField.getTwin().getHeadTwin();
+        if (headTwin.getFieldValuesKit() != null) {
+            headTwinFieldValue = headTwin.getFieldValuesKit().get(headTwinClassField.getId());
+        } else { //more balanced way, not all fields should be loaded
+            headTwinFieldValue = twinService.getTwinFieldValue(twinService.wrapField(headTwin, headTwinClassField));
+        }
         return headTwinFieldValue != null ? headTwinFieldValue.clone(twinField.getTwinClassField()) : twinService.createFieldValue(twinField.getTwinClassField());
     }
 
     protected TwinClassFieldEntity getHeadTwinClassFieldSafe(Properties properties) throws ServiceException {
         return twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
+    }
+
+    @Override
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var headTwinClassField = getHeadTwinClassFieldSafe(properties);
+        var headFieldTyper = featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        return new TwinFieldStoragePointedHead(twinService, headFieldTyper.getStorage(headTwinClassField));
     }
 }

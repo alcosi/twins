@@ -22,11 +22,21 @@ public class TwinActionEntity {
     @Column(name = "name_i18n_id")
     private UUID nameI18nId;
 
-    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — see TwinClassFieldEntity.nameI18nTranslationsSpecOnly for explanation
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
 }

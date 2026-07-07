@@ -73,7 +73,6 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
     }
 
     private TwinFieldDecimalEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        twinService.loadTwinFields(twinEntity);
         return twinEntity.getTwinFieldDecimalKit().get(twinClassFieldEntity.getId());
     }
 

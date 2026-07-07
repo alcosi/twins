@@ -8,9 +8,9 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.enums.link.LinkType;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -30,6 +30,8 @@ public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinBackwardLinks(contextTwin.getId());
+        twinLinkService.loadTwin(contextTwinLinksList);
+        twinLinkService.loadLink(contextTwinLinksList);
         if (CollectionUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No backward links for contextTwin " + contextTwin.logShort());
         TwinOperation outputTwin = factoryItem.getOutput();

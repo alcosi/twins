@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -26,7 +27,9 @@ public abstract class FillerLinks extends Filler {
     @Autowired
     LinkService linkService;
 
-    protected void addLinks(FactoryItem factoryItem, Collection<TwinLinkEntity> twinLinkList) {
+    protected void addLinks(FactoryItem factoryItem, Collection<TwinLinkEntity> twinLinkList) throws ServiceException {
+        twinLinkService.loadDstTwin(twinLinkList);
+        twinLinkService.loadLink(twinLinkList);
         TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : twinLinkList) {

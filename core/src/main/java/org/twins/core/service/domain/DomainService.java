@@ -24,6 +24,7 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.domain.DomainStatus;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -33,7 +34,6 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.storage.StorageService;
-import org.twins.core.service.usergroup.UserGroup;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
@@ -61,6 +61,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final DomainLocaleService domainLocaleService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
 
 
     @Override
@@ -113,7 +114,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // welcome to new domain!
         domainLocaleService.addDomainLocale(domainEntity.getId(), apiUser.getLocale());
         domainUserService.addUser(apiUser.getUser(), false);
-        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
+        userGroupService.enterGroup(SystemIds.UserGroup.DOMAIN_ADMIN);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
 
@@ -274,16 +275,11 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!apiUser.isBusinessAccountSpecified())
-            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
-        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
-        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
-        attachmentQuotas
-                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
-                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
-                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
-                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
-        return attachmentQuotas;
+        return switch (apiUser.getDomain().getDomainType()) {
+            case b2b -> domainBusinessAccountService.getTierQuotas();
+            case basic -> getDomainQuotas();
+            default -> throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
+        };
     }
 
     public AttachmentQuotas getDomainQuotas() throws ServiceException {

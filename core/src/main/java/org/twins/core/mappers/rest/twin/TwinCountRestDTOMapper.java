@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.CountResult;
 import org.twins.core.dto.rest.twin.TwinCountDTOv1;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
@@ -15,7 +16,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Collection;
@@ -48,34 +48,34 @@ public class TwinCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Twin
         }
         Set<UUID> groupFields = src.getGroupFields();
         if (groupFields != null) {
-            if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID))
+            if (groupFields.contains(SystemIds.TwinClassField.Base.TWIN_CLASS_ID))
                 dst.setTwinClassId(entity.getTwinClassId());
-            if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS_ID))
+            if (groupFields.contains(SystemIds.TwinClassField.Base.STATUS_ID))
                 dst.setTwinStatusId(entity.getTwinStatusId());
-            if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID))
+            if (groupFields.contains(SystemIds.TwinClassField.Base.OWNER_USER_ID))
                 dst.setOwnerUserId(entity.getOwnerUserId());
-            if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID))
+            if (groupFields.contains(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID))
                 dst.setAssignerUserId(entity.getAssignerUserId());
-            if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID))
+            if (groupFields.contains(SystemIds.TwinClassField.Base.CREATOR_USER_ID))
                 dst.setCreatedByUserId(entity.getCreatedByUserId());
-            if (groupFields.contains(SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID))
+            if (groupFields.contains(SystemIds.TwinClassField.Base.HEAD_ID))
                 dst.setHeadTwinId(entity.getHeadTwinId());
         }
         dst.setCount(src.getCount());
 
-        if (needLoad(mapperContext, StatusMode.Twin2StatusMode.HIDE, src, SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS_ID)) {
+        if (needLoad(mapperContext, StatusMode.Twin2StatusMode.HIDE, src, SystemIds.TwinClassField.Base.STATUS_ID)) {
             twinService.loadStatus(entity);
             twinStatusRestDTOMapper.postpone(entity.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT));
         }
-        if (needLoad(mapperContext, TwinClassMode.Twin2TwinClassMode.HIDE, src, SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID)) {
+        if (needLoad(mapperContext, TwinClassMode.Twin2TwinClassMode.HIDE, src, SystemIds.TwinClassField.Base.TWIN_CLASS_ID)) {
             twinService.loadClass(entity);
             twinClassRestDTOMapper.postpone(entity.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.Twin2TwinClassMode.SHORT));
         }
-        if (needLoad(mapperContext, TwinMode.HIDE, src, SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID)) {
+        if (needLoad(mapperContext, TwinMode.HIDE, src, SystemIds.TwinClassField.Base.HEAD_ID)) {
             twinService.loadHead(entity);
             twinBaseRestDTOMapper.postpone(entity.getHeadTwin(), mapperContext);
         }
-        if (needLoad(mapperContext, UserMode.Twin2UserMode.HIDE, src, SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID, SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID)) {
+        if (needLoad(mapperContext, UserMode.Twin2UserMode.HIDE, src, SystemIds.TwinClassField.Base.OWNER_USER_ID, SystemIds.TwinClassField.Base.CREATOR_USER_ID, SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)) {
             twinService.loadUser(entity);
             userDTOMapper.convertOrPostpone(entity.getOwnerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
             userDTOMapper.convertOrPostpone(entity.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
@@ -87,13 +87,13 @@ public class TwinCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Twin
     public void beforeCollectionConversion(Collection<CountResult<TwinEntity, UUID>> srcCollection, MapperContext mapperContext) throws Exception {
         var entities = srcCollection.stream().map(CountResult::getEntity).toList();
         var someCount = srcCollection.iterator().next();
-        if (needLoad(mapperContext, StatusMode.Twin2StatusMode.HIDE, someCount, SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS_ID))
+        if (needLoad(mapperContext, StatusMode.Twin2StatusMode.HIDE, someCount, SystemIds.TwinClassField.Base.STATUS_ID))
             twinService.loadStatus(entities);
-        if (needLoad(mapperContext, TwinClassMode.Twin2TwinClassMode.HIDE, someCount, SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID))
+        if (needLoad(mapperContext, TwinClassMode.Twin2TwinClassMode.HIDE, someCount, SystemIds.TwinClassField.Base.TWIN_CLASS_ID))
             twinService.loadClass(entities);
-        if (needLoad(mapperContext, TwinMode.HIDE, someCount, SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD_ID))
+        if (needLoad(mapperContext, TwinMode.HIDE, someCount, SystemIds.TwinClassField.Base.HEAD_ID))
             twinService.loadHead(entities);
-        if (needLoad(mapperContext, UserMode.Twin2UserMode.HIDE, someCount, SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER_ID, SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER_ID, SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER_ID))
+        if (needLoad(mapperContext, UserMode.Twin2UserMode.HIDE, someCount, SystemIds.TwinClassField.Base.OWNER_USER_ID, SystemIds.TwinClassField.Base.CREATOR_USER_ID, SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID))
             twinService.loadUser(entities);
     }
 }

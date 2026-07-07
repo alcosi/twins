@@ -5,12 +5,13 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class TwinClassSnapshot {
+public class TwinClassSnapshot implements Serializable {
     private UUID id;
     private String key;
 

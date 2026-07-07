@@ -118,10 +118,10 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             if (!TwinLinkService.equalsInSrcTwinIdAndDstTwinId(newLink, storedLink)) {
                 newLink.setId(storedLink.getId());
                 if (linkDirection == LinkService.LinkDirection.forward) {
-                    log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and dstTwin will be updated to " + newLink.getDstTwinId());
+                    log.info("{} is already exists and dstTwin will be updated to {}", storedLink.logShort(), newLink.getDstTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getDstTwin(), true));
                 } else {
-                    log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and srcTwin will be updated to " + newLink.getSrcTwinId());
+                    log.info("{} is already exists and srcTwin will be updated to {}", storedLink.logShort(), newLink.getSrcTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getSrcTwin(), false));
                 }
                 twinChangesCollector.add(newLink);
@@ -190,5 +190,14 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         ret.setItems(twinLinkEntityList);
         ret.setForwardLink(linkDirection == LinkService.LinkDirection.forward);
         return ret;
+    }
+
+    public UUID getLinkId(HashMap<String, String> fieldTyperParams) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams);
+        return getLinkId(properties);
+    }
+
+    public UUID getLinkId(Properties properties) throws ServiceException {
+        return linkUUID.extract(properties);
     }
 }

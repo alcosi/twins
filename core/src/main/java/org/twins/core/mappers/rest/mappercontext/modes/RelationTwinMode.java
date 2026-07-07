@@ -58,6 +58,21 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinFieldCollectionFilterEmptyMode.ONLY_NOT,
             DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
             AttachmentMode.HIDE,
+            TwinActionMode.SHOW,
+            StatusMode.TwinClass2StatusMode.HIDE,
+            DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
+            TwinLinkMode.Twin2TwinLinkMode.HIDE,
+            LinkMode.TwinLink2LinkMode.HIDE,
+            TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE),
+    @FieldNameConstants.Include DARK_GREEN(1,
+            TwinMode.SHORT,
+            TwinFieldCollectionMode.SHOW,
+            TwinFieldCollectionFilterEmptyMode.ONLY_NOT,
+            DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinField2DataListOptionMode.DETAILED,
+            AttachmentMode.HIDE,
+            TwinActionMode.SHOW,
             StatusMode.TwinClass2StatusMode.HIDE,
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
@@ -240,6 +255,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             UserMode.TwinField2UserMode.DETAILED,
             TwinByFieldMode.YELLOW_LIGHT,
             AttachmentMode.HIDE,
+            TwinActionMode.SHOW,
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
             TwinClassMode.Twin2TwinClassMode.HIDE,
             StatusMode.TwinClass2StatusMode.HIDE,
@@ -269,6 +285,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include GREEN(1),
         @FieldNameConstants.Include FOREST_GREEN(1),
         @FieldNameConstants.Include LIGHT_GREEN(1),
+        @FieldNameConstants.Include DARK_GREEN(1),
         @FieldNameConstants.Include YELLOW(2),
         @FieldNameConstants.Include YELLOW_LIGHT(2),
         @FieldNameConstants.Include BLUE(3),
@@ -289,6 +306,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case GREEN -> RelationTwinMode.GREEN;
                 case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
                 case LIGHT_GREEN -> RelationTwinMode.LIGHT_GREEN;
+                case DARK_GREEN -> RelationTwinMode.DARK_GREEN;
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case YELLOW_LIGHT -> RelationTwinMode.YELLOW_LIGHT;
                 case BLUE -> RelationTwinMode.BLUE;
@@ -312,6 +330,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include GREEN(1),
         @FieldNameConstants.Include FOREST_GREEN(1),
         @FieldNameConstants.Include LIGHT_GREEN(1),
+        @FieldNameConstants.Include DARK_GREEN(1),
         @FieldNameConstants.Include YELLOW(2),
         @FieldNameConstants.Include YELLOW_LIGHT(2),
         @FieldNameConstants.Include BLUE(3),
@@ -332,6 +351,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case GREEN -> RelationTwinMode.GREEN;
                 case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
                 case LIGHT_GREEN -> RelationTwinMode.LIGHT_GREEN;
+                case DARK_GREEN -> RelationTwinMode.DARK_GREEN;
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case YELLOW_LIGHT -> RelationTwinMode.YELLOW_LIGHT;
                 case BLUE -> RelationTwinMode.BLUE;
@@ -355,6 +375,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include GREEN(1),
         @FieldNameConstants.Include FOREST_GREEN(1),
         @FieldNameConstants.Include LIGHT_GREEN(1),
+        @FieldNameConstants.Include DARK_GREEN(1),
         @FieldNameConstants.Include YELLOW(2),
         @FieldNameConstants.Include YELLOW_LIGHT(2),
         @FieldNameConstants.Include BLUE(3),
@@ -375,6 +396,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case GREEN -> RelationTwinMode.GREEN;
                 case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
                 case LIGHT_GREEN -> RelationTwinMode.LIGHT_GREEN;
+                case DARK_GREEN -> RelationTwinMode.DARK_GREEN;
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case YELLOW_LIGHT -> RelationTwinMode.YELLOW_LIGHT;
                 case BLUE -> RelationTwinMode.BLUE;

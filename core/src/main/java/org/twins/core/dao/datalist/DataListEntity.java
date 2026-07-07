@@ -78,59 +78,120 @@ public class DataListEntity implements EasyLoggable {
     @Column(name = "default_data_list_option_id")
     private UUID defaultDataListOptionId;
 
-    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — see TwinClassFieldEntity.nameI18nTranslationsSpecOnly for explanation
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_1_name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> attribute1nameI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getAttribute1nameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setAttribute1nameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_2_name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> attribute2nameI18nTranslationsSpecOnly;
 
-    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
-    @Deprecated //for specification only
-    @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_3_name_i18n_id", insertable = false, updatable = false)
-    private List<I18nTranslationEntity> attribute3nameI18nTranslationsSpecOnly;
+    public List<I18nTranslationEntity> getAttribute2nameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setAttribute2nameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_3_name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> attribute3nameI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getAttribute3nameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setAttribute3nameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "attribute_4_name_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> attribute4nameI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getAttribute4nameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setAttribute4nameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -139,7 +200,7 @@ public class DataListEntity implements EasyLoggable {
 
     //needed for specification
     @Deprecated
-    @OneToMany(mappedBy = "dataList", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = DataListOptionEntity.Fields.dataListSpecOnly, fetch = FetchType.LAZY)
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

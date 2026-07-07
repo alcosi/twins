@@ -9,12 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
@@ -38,6 +40,10 @@ public class FillerFieldAsContextFieldHead extends Filler {
     @Autowired
     TwinService twinService;
 
+    @Lazy
+    @Autowired
+    TwinLinkService twinLinkService;
+
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
@@ -47,7 +53,9 @@ public class FillerFieldAsContextFieldHead extends Filler {
         if (srcFieldValue instanceof FieldValueLink fieldValueLink) {
             if(fieldValueLink.isEmpty())
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not filled");
-            TwinEntity dstTwin = fieldValueLink.getItems().getFirst().getDstTwin();
+            TwinLinkEntity firstLink = fieldValueLink.getItems().getFirst();
+            twinLinkService.loadDstTwin(firstLink);
+            var dstTwin = firstLink.getDstTwin();
             detectedHeadId = dstTwin.getHeadTwinId();
             if(null == detectedHeadId)
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + dstTwin.logDetailed());

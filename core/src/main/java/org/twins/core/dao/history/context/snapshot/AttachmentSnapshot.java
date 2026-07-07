@@ -7,11 +7,12 @@ import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 
+import java.io.Serializable;
 import java.util.*;
 
 @Data
 @Accessors(chain = true)
-public class AttachmentSnapshot {
+public class AttachmentSnapshot implements Serializable {
     private UUID id;
     private String storageFileKey;
     private Map<String, String> modifications;

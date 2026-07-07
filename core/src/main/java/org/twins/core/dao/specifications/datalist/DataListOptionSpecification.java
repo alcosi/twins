@@ -55,7 +55,7 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
 
     public static Join<DataListOptionEntity, ?> getOrCreateJoin(Root<DataListOptionEntity> root) {
         return root.getJoins().stream()
-                .filter(j -> j.getAttribute().getName().equals(DataListOptionEntity.Fields.dataList))
+                .filter(j -> j.getAttribute().getName().equals(DataListOptionEntity.Fields.dataListSpecOnly))
                 .findFirst()
                 .orElseGet(() -> root.join(DataListEntity.Fields.key, JoinType.LEFT));
     }

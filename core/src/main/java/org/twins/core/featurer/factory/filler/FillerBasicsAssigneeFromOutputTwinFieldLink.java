@@ -5,6 +5,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -15,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.link.TwinLinkService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -32,6 +35,10 @@ public class FillerBasicsAssigneeFromOutputTwinFieldLink extends Filler {
     @FeaturerParam(name = "link id", description = "", order = 2)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
+    @Lazy
+    @Autowired
+    TwinLinkService twinLinkService;
+
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
@@ -46,6 +53,7 @@ public class FillerBasicsAssigneeFromOutputTwinFieldLink extends Filler {
             }
             boolean isLink = false;
             UUID extractedLinkId = linkId.extract(properties);
+            twinLinkService.loadDstTwin(itemOutputFieldLink.getItems());
             for (TwinLinkEntity twinLink : itemOutputFieldLink.getItems()) {
                 if (twinLink.getLinkId().equals(extractedLinkId)) {
                     TwinEntity dstTwin = twinLink.getDstTwin();

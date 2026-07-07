@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
@@ -39,7 +38,8 @@ public class UserGroupManagerImpl extends UserGroupManager {
             groupsToLoad.addAll(userGroupExitList);
         if (CollectionUtils.isEmpty(groupsToLoad))
             return;
-        Kit<UserGroupEntity, UUID> userGroupsKit = new Kit<>(userGroupRepository.findByIdIn(groupsToLoad), UserGroupEntity::getId);
+        var userGroupsKit = userGroupService.findEntitiesSafe(groupsToLoad);
+        userGroupService.loadUserGroupType(userGroupsKit.getCollection());
         if (CollectionUtils.isNotEmpty(userGroupEnterList)) {
             for (UUID enterUserGroupId : userGroupEnterList) {
                 UserGroupEntity userGroup = userGroupsKit.get(enterUserGroupId);

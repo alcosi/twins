@@ -24,6 +24,8 @@ public class TwinField {
     @Setter
     private Boolean editable;
     @Setter
+    private Boolean viewable;
+    @Setter
     private KitGrouped<TwinFieldAttributeEntity, UUID, UUID> attributes;
 
     public UUID getTwinId() {

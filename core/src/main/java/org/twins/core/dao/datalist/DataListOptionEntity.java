@@ -84,18 +84,31 @@ public class DataListOptionEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DataListEntity dataList;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
+    private DataListEntity dataListSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
-    private BusinessAccountEntity businessAccount;
+    private BusinessAccountEntity businessAccountSpecOnly;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListEntity dataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private BusinessAccountEntity businessAccount;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
@@ -118,7 +131,7 @@ public class DataListOptionEntity implements EasyLoggable {
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = DataListSubsetOptionEntity.Fields.dataListOption, fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptionsSpecOnly;
 
     public String easyLog(Level level) {

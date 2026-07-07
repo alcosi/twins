@@ -138,7 +138,6 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
     }
 
     private TwinFieldTimestampEntity convertToTwinFieldTimestampEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        twinService.loadTwinFields(twinEntity);
         return twinEntity.getTwinFieldTimestampKit().get(twinClassFieldEntity.getId());
     }
 }

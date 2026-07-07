@@ -27,14 +27,23 @@ public class Kit<E, K> implements Iterable<E> {
     protected final Function<? super K, ? extends K> functionFormatKey;
     @Getter
     protected final DuplicateKeyMode duplicateKeyMode;
+    @Getter
+    protected boolean frozen;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Kit EMPTY = new Kit(Collections.emptyList(), e -> null) {
         @Override public boolean add(Object e) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
         @Override public boolean addAll(Collection c) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
         @Override public boolean remove(Object o) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
+        @Override public Object removeByKey(Object key) { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
         @Override public void clear() { throw new UnsupportedOperationException("Kit.EMPTY is immutable"); }
+        @Override public Kit freeze() { return this; }
     };
+
+    public static <E, K> Kit<E, K> singleton(E element,
+                                             Function<? super E, ? extends K> functionGetKey) {
+        return new SingletonKit<>(element, functionGetKey);
+    }
 
     public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetKey) {
         this(collection, functionGetKey, DuplicateKeyMode.THROW);
@@ -79,6 +88,16 @@ public class Kit<E, K> implements Iterable<E> {
         return kit;
     }
 
+    protected void checkFrozen() {
+        if (frozen)
+            throw new UnsupportedOperationException("Kit is frozen");
+    }
+
+    public Kit<E, K> freeze() {
+        frozen = true;
+        return this;
+    }
+
     public Collection<E> getCollection() {
         if (map == null || map.isEmpty())
             return Collections.emptyList();
@@ -92,6 +111,7 @@ public class Kit<E, K> implements Iterable<E> {
     }
 
     public boolean add(E e) {
+        checkFrozen();
         if (map == null) {
             map = new LinkedHashMap<>();
         }
@@ -134,6 +154,7 @@ public class Kit<E, K> implements Iterable<E> {
     }
 
     public boolean addAll(Collection<? extends E> c) {
+        checkFrozen();
         boolean modified = false;
         for (E e : c) {
             if (add(e))
@@ -187,12 +208,14 @@ public class Kit<E, K> implements Iterable<E> {
     }
 
     public E removeByKey(K key) {
+        checkFrozen();
         if (map == null)
             return null;
         return map.remove(formatKey(key));
     }
 
     public boolean remove(Object o) {
+        checkFrozen();
         if (map == null)
             return false;
         try {
@@ -209,6 +232,7 @@ public class Kit<E, K> implements Iterable<E> {
     }
 
     public void clear() {
+        checkFrozen();
         if (map != null)
             map.clear();
     }
@@ -227,7 +251,11 @@ public class Kit<E, K> implements Iterable<E> {
 
     @Override
     public Iterator<E> iterator() {
-        return map != null ? map.values().iterator() : Collections.emptyIterator();
+        if (map == null)
+            return Collections.emptyIterator();
+        return frozen
+                ? Collections.unmodifiableCollection(map.values()).iterator()
+                : map.values().iterator();
     }
 
     public Object[] toArray() {
@@ -241,5 +269,4 @@ public class Kit<E, K> implements Iterable<E> {
             a[0] = null;
         return a;
     }
-
 }

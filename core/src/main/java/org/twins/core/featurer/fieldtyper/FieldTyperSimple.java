@@ -26,7 +26,6 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
     }
 
     public TwinFieldSimpleEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        twinService.loadTwinFields(twinEntity); // loading field kits,  in case of new twin fields serialization this will create one more dummy query to DB
         return twinEntity.getTwinFieldSimpleKit().get(twinClassFieldEntity.getId());
     }
 

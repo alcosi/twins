@@ -21,8 +21,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.attachment.AttachmentQuotasRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentQuotasRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.domain.TierService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.permission.Permissions;
 
 
@@ -34,9 +33,7 @@ import org.twins.core.service.permission.Permissions;
 public class AttachmentDomainBusinessAccountQuotasController extends ApiController {
 
     private final AttachmentQuotasRestDTOMapper attachmentQuotasRestDTOMapper;
-
-    private final TierService tierService;
-    private final DomainService domainService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentDomainBusinessAccountQuotasV1", summary = "Get info about storage quotas(count files/disk space usage) for BA")
@@ -50,10 +47,8 @@ public class AttachmentDomainBusinessAccountQuotasController extends ApiControll
             @MapperContextBinding(roots = AttachmentQuotasRestDTOMapper.class, response = AttachmentQuotasRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         AttachmentQuotasRsDTOv1 rs = new AttachmentQuotasRsDTOv1();
         try {
-            rs.setQuotas(
-                    attachmentQuotasRestDTOMapper.convert(
-                            domainService.getTierQuotas(), mapperContext
-                    ));
+            rs.setQuotas(attachmentQuotasRestDTOMapper.convert(
+                    domainBusinessAccountService.getTierQuotas(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
