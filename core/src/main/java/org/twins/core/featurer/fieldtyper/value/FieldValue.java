@@ -13,7 +13,13 @@ import java.util.UUID;
  * we need to have values out of twin (for example, in a transition context)
  */
 
-// todo maybe do smth with equals and hashCode? because all children have @EqualsAndHashCode(callSuper = true)
+/* TODO
+    All children use @EqualsAndHashCode(callSuper = true), but FieldValue / FieldValueStated /
+    FieldValueCollection have NO @EqualsAndHashCode, so the chain bottoms out at Object.equals (identity):
+    no two distinct instances are ever equal. Hence clone() (newInstance + copyValueTo) never equals its
+    original — see the @Disabled clone_* tests. Related: copyValueTo itself is value-only at the typed level,
+    state is applied by copyValueTo(FieldValue) — see the TODO on FieldValueStated.copyValueTo(FieldValueStated).
+*/
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
     @Getter
