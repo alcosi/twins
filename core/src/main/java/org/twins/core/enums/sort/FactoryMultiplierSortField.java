@@ -4,5 +4,6 @@ public enum FactoryMultiplierSortField {
     active,
     description,
     inputTwinClassName,
-    factoryName
+    factoryName,
+    multiplierFeaturerName
 }

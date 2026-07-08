@@ -4,12 +4,14 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
@@ -61,6 +63,14 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity inputTwinClass;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "multiplier_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity multiplierFeaturerSpecOnly;
 
     @Transient
     private Integer factoryMultiplierFiltersCount;

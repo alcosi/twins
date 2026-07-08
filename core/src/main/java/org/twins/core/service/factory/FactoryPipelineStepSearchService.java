@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
@@ -92,6 +93,8 @@ public class FactoryPipelineStepSearchService extends EntitySearchService
                     toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert);
             case factoryConditionSetName ->
                     toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSet, TwinFactoryConditionSetEntity.Fields.name);
+            case fillerFeaturerName ->
+                    toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.fillerFeaturerSpecOnly, FeaturerEntity.Fields.name);
         };
     }
 

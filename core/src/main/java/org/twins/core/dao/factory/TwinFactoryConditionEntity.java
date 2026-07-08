@@ -4,11 +4,13 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.domain.Identifiable;
 
@@ -53,6 +55,14 @@ public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
     private TwinFactoryConditionSetEntity conditionSet;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conditioner_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity conditionerFeaturerSpecOnly;
 
     public String easyLog(Level level) {
         return switch (level) {

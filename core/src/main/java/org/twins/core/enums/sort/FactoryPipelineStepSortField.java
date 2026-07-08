@@ -6,5 +6,6 @@ public enum FactoryPipelineStepSortField {
     description,
     optional,
     factoryConditionInvert,
-    factoryConditionSetName
+    factoryConditionSetName,
+    fillerFeaturerName
 }

@@ -4,5 +4,6 @@ public enum FactoryConditionSortField {
     active,
     description,
     invert,
-    factoryConditionSetName
+    factoryConditionSetName,
+    conditionerFeaturerName
 }
