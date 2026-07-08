@@ -57,6 +57,24 @@ public class KitGroupedObj<E, K, GK, GE> extends KitGrouped<E, K, GK> {
         return super.add(e);
     }
 
+    @Override
+    public boolean addAll(Collection<? extends E> c) {
+        groupingObjectMap = null;
+        return super.addAll(c);
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        groupingObjectMap = null;
+        return super.remove(o);
+    }
+
+    @Override
+    public void clear() {
+        groupingObjectMap = null;
+        super.clear();
+    }
+
     public Map<GK, GE> getGroupingObjectMap() {
         if (groupingObjectMap != null)
             return groupingObjectMap;

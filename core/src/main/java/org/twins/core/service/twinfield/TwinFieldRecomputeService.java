@@ -3,16 +3,22 @@ package org.twins.core.service.twinfield;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclassfieldrecompute.TwinClassFieldRecomputeOnActionEntity;
-import org.twins.core.dao.twinclassfieldrecompute.TwinClassFieldRecomputeOnFieldEntity;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
 import org.twins.core.domain.EntityKey;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
@@ -20,8 +26,8 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperRecomputed;
 import org.twins.core.featurer.pointer.Pointer;
 import org.twins.core.service.twin.TwinPointerService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.recompute.*;
 
 import java.util.*;
@@ -34,12 +40,17 @@ import java.util.*;
  *
  * <p>Flow:
  * <ol>
- *   <li>{@link #extractAffected} — read changed fields and twin actions out of the collector</li>
- *   <li>{@link #preloadEntities} — one batch SQL for TwinClassFieldEntity metadata</li>
- *   <li>{@link #collectOnFieldRecomputes} / {@link #collectOnActionRecomputes} — build pending
- *       {@code (subscriberField, trigger)} pairs grouped by pointerId</li>
- *   <li>{@link #resolveToRequests} — for each pointerId one {@link Pointer#load} batch, then
- *       group by {@code (subscriberTwin, subscriberField)} → one {@link FieldRecomputeRequest} with N triggers</li>
+ *   <li>Walk collector: changed publisher fields + twin actions + referenced TwinClassField IDs</li>
+ *   <li>Batch-load TwinClassFieldEntity for changed IDs, populate
+ *       {@link TwinClassFieldEntity#getRecomputeOnField()} via
+ *       {@link TwinClassFieldService#loadRecomputeOnField(Collection)} — cached lookup</li>
+ *   <li>Batch-load TwinClassEntity for touched publisher classes, populate
+ *       {@link TwinClassEntity#getRecomputeOnAction()} via
+ *       {@link TwinClassService#loadRecomputeOnAction(Collection)} — cached lookup</li>
+ *   <li>Batch-load TwinClassFieldEntity for subscriber side</li>
+ *   <li>Build {@code (subscriberField, trigger)} pairs grouped by pointerId</li>
+ *   <li>{@link #resolveToRequests} — one {@link Pointer#load} batch per pointerId, group by
+ *       {@code (subscriberTwin, subscriberField)} → one {@link FieldRecomputeRequest} with N triggers</li>
  *   <li>{@link #dispatchRecompute} — locate FieldTyper, call {@link FieldTyperRecomputed#recompute}</li>
  * </ol>
  *
@@ -56,13 +67,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinFieldRecomputeService {
 
-    private final TwinClassFieldRecomputeOnFieldService recomputeOnFieldService;
-    private final TwinClassFieldRecomputeOnActionService recomputeOnActionService;
-    private final TwinClassFieldRecomputeOnActionValidatorRuleService validatorRuleService;
     private final TwinPointerService twinPointerService;
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinService twinService;
+    private final TwinClassService twinClassService;
     private final FeaturerService featurerService;
+    private final TwinFieldDecimalService twinFieldDecimalService;
+    private final TwinClassFieldRecomputeOnFieldService twinClassFieldRecomputeOnFieldService;
 
     @Value("${twins.mater.max-depth:5}")
     private int maxDepth;
@@ -73,184 +83,176 @@ public class TwinFieldRecomputeService {
 
     private void triggerAffected(TwinChangesCollector collector, Set<SubscriberKey> visited, int depth) throws ServiceException {
         if (depth > maxDepth) {
-            log.warn("TwinClassFieldRecompute cascade depth {} exceeded max {}, skipping remaining", depth, maxDepth);
+            log.warn("TwinFieldRecompute cascade depth {} exceeded max {}, skipping remaining", depth, maxDepth);
             return;
         }
-        AffectedSnapshot snapshot = extractAffected(collector);
-        if (snapshot.isEmpty()) return;
+        var decimalFieldKit = collectFieldWithRecompute(collector);
+        Map<ActionKey, Set<TwinEntity>> twinsByAction = collectTwinActions(collector);
 
-        // TODO TWINS-868 §4.2: bulk detection — if snapshot.touchedTwinCount() > bulkThreshold,
+        if (decimalFieldKit.isEmpty() && twinsByAction.isEmpty()) return;
+
+        // TODO TWINS-868 §4.2: bulk detection — if total touched twins > bulkThreshold,
         //   schedule consolidated async TwinChangeTaskEntity and return. Sync recompute on >50 twins
         //   risks tx timeout / pool exhaustion.
 
-        PreloadedEntities preloaded = preloadEntities(snapshot);
-        if (preloaded == null) return;
 
-        // Step 1: collect pending (subscriberField, trigger) by pointerId.
-        // One pointer may serve both OnField and OnAction rules — merging under one pointerId
-        // means Pointer.load runs once for all of them.
+        // === Batch-load TwinClassEntity for touched publisher classes + populate recomputeOnAction kits ===
+        Set<UUID> publisherClassIds = new HashSet<>();
+        for (ActionKey ak : twinsByAction.keySet()) publisherClassIds.add(ak.twinClassId());
+        Map<UUID, TwinClassEntity> publisherClassById = new HashMap<>();
+        if (!publisherClassIds.isEmpty()) {
+            for (TwinClassEntity c : twinClassService.findEntitiesSafe(publisherClassIds)) {
+                publisherClassById.put(c.getId(), c);
+            }
+            twinClassService.loadRecomputeOnAction(publisherClassById.values());
+        }
+
+        if (changedFieldById.values().stream().noneMatch(this::hasOnFieldRules)
+                && publisherClassById.values().stream().noneMatch(this::hasOnActionRules)) return;
+
+        // === Batch-load TwinClassFieldEntity for subscriber side ===
+        Set<UUID> subscriberFieldIds = new HashSet<>();
+        for (TwinClassFieldEntity field : changedFieldById.values()) {
+            if (field.getRecomputeOnField() == null) continue;
+            for (TwinClassFieldRecomputeOnFieldEntity rule : field.getRecomputeOnField()) {
+                subscriberFieldIds.add(rule.getSubscriberTwinClassFieldId());
+            }
+        }
+        for (TwinClassEntity c : publisherClassById.values()) {
+            if (c.getRecomputeOnAction() == null) continue;
+            for (TwinClassFieldRecomputeOnActionEntity rule : c.getRecomputeOnAction()) {
+                subscriberFieldIds.add(rule.getSubscriberTwinClassFieldId());
+            }
+        }
+        Kit<TwinClassFieldEntity, UUID> subscriberFieldById = twinClassFieldService.findEntitiesSafe(subscriberFieldIds);
+
+        // === Build pending (subscriberField, trigger) by pointerId ===
         Map<UUID, List<PendingPointerResolve>> pendingByPointer = new HashMap<>();
-        collectOnFieldRecomputes(snapshot, preloaded, pendingByPointer);
-        collectOnActionRecomputes(snapshot, preloaded, pendingByPointer);
+        collectOnFieldRecomputes(changedFieldById, publishersByChangedField, subscriberFieldById, pendingByPointer);
+        collectOnActionRecomputes(publisherClassById, twinsByAction, subscriberFieldById, pendingByPointer);
         if (pendingByPointer.isEmpty()) return;
 
-        // Step 2: resolve pointers (one batch SQL per pointerId), group by subscriber → requests.
+        // === Resolve pointers → build requests → dispatch ===
         List<FieldRecomputeRequest> requests = resolveToRequests(pendingByPointer, visited);
-        if (requests.isEmpty()) return;
-
-        // Step 3: dispatch one recompute per request. Cascade via recursion: subscriber writes
-        // land in the same collector → the next wave picks up operand changes for chained Mater fields.
         for (FieldRecomputeRequest request : requests) {
             dispatchRecompute(request, collector, visited, depth);
         }
     }
 
+    @NotNull
+    private KitGroupedObj<TwinFieldDecimalEntity, UUID, UUID, TwinClassFieldEntity> collectFieldWithRecompute(TwinChangesCollector collector) throws ServiceException {
+        var decimalFields = new ArrayList<TwinFieldDecimalEntity>();
+        decimalFields.addAll(collector.getSaveEntities(TwinFieldDecimalEntity.class));
+        decimalFields.addAll(collector.getDeletes(TwinFieldDecimalEntity.class));
+        twinFieldDecimalService.loadTwinClassField(decimalFields);
+        twinFieldDecimalService.loadTwin(decimalFields);
+        var decimalFieldsKit = new KitGroupedObj<>(
+                decimalFields,
+                TwinFieldDecimalEntity::getId,
+                TwinFieldDecimalEntity::getTwinClassFieldId,
+                TwinFieldDecimalEntity::getTwinClassField);
+        twinClassFieldService.loadRecomputeOnField(decimalFieldsKit.getGroupingObjectMap().values());
+        List<TwinFieldDecimalEntity> hasRecomputes = null;
+        List<TwinClassFieldRecomputeOnFieldEntity> recomputeOnFields = null;
+        for (var groupedField : decimalFieldsKit.getGroupedList()) {
+            var twinClassField = groupedField.left;
+            var twinFieldsDecimal = groupedField.right;
+            if (KitUtils.isNotEmpty(twinClassField.getRecomputeOnField())) {
+                hasRecomputes = CollectionUtils.safeAdd(hasRecomputes, twinFieldsDecimal);
+                recomputeOnFields = CollectionUtils.safeAdd(recomputeOnFields, twinClassField.getRecomputeOnField().getCollection());
+            }
+        }
+        decimalFieldsKit.clear();
+        if (hasRecomputes != null) {
+            decimalFieldsKit.addAll(hasRecomputes);
+            twinClassFieldRecomputeOnFieldService.loadSubscriberTwinPointer(recomputeOnFields);
+            twinClassFieldRecomputeOnFieldService.loadSubscriberTwinClassField(recomputeOnFields);
+        }
+        return decimalFieldsKit;
+    }
+
+    private void registerChangedField(TwinFieldDecimalEntity field,
+                                      Map<UUID, Set<TwinEntity>> publishersByChangedField,
+                                      Set<UUID> changedFieldIds) {
+        TwinEntity twin = field.getTwin();
+        UUID fieldId = field.getTwinClassFieldId();
+        if (twin == null || fieldId == null) return;
+        changedFieldIds.add(fieldId);
+        publishersByChangedField.computeIfAbsent(fieldId, k -> new HashSet<>()).add(twin);
+    }
+
+    private boolean hasOnFieldRules(TwinClassFieldEntity field) {
+        return field.getRecomputeOnField() != null && !field.getRecomputeOnField().isEmpty();
+    }
+
+    private boolean hasOnActionRules(TwinClassEntity twinClass) {
+        return twinClass.getRecomputeOnAction() != null && !twinClass.getRecomputeOnAction().isEmpty();
+    }
+
     /**
-     * Read publisher-side signals out of the collector:
-     * - modified/deleted {@link TwinFieldDecimalEntity} → changed publisher fields (OnField source)
-     * - saved {@link TwinEntity} → CREATE (ChangesHelper empty) or EDIT (ChangesHelper has changes)
-     * - deleted {@link TwinEntity} → DELETE
+     * Walks TwinEntity saves/deletes and groups them by {@code (twinClassId, action)}.
      * <p>
-     * Heuristic for CREATE-vs-EDIT: in current TwinService flow, brand-new twins are added via
-     * {@code collector.add(entity)} with no field-level changes; updates go through
-     * {@code collector.add(entity, field, old, new)}. So an empty ChangesHelper in the save map
-     * means CREATE. This is fragile if a future caller adds field changes during create — flag
-     * for follow-up.
-     * <p>
-     * TwinEntity publishers are taken directly from the collector — they are already in the
-     * persistence context (managed), so no extra SQL is needed for them in {@link #preloadEntities}.
+     * CREATE-vs-EDIT heuristic: brand-new twins are added via {@code collector.add(entity)} with no
+     * field-level changes; updates go through {@code collector.add(entity, field, old, new)}. So an
+     * empty {@link ChangesHelper} in the save map means CREATE. Fragile if a future caller adds field
+     * changes during create — flagged for follow-up.
      */
-    private AffectedSnapshot extractAffected(TwinChangesCollector collector) {
-        Set<UUID> changedFieldClassIds = new HashSet<>();
-        Map<UUID, Map<UUID, TwinEntity>> twinsByChangedField = new HashMap<>();
-        Map<UUID, TwinEntity> publisherTwinById = new HashMap<>();
-
-        for (TwinFieldDecimalEntity field : collector.getSaveEntities(TwinFieldDecimalEntity.class)) {
-            registerChangedField(field, changedFieldClassIds, twinsByChangedField, publisherTwinById);
-        }
-
-        for (TwinFieldDecimalEntity field : collector.getDeletes(TwinFieldDecimalEntity.class)) {
-            registerChangedField(field, changedFieldClassIds, twinsByChangedField, publisherTwinById);
-        }
-
-        Map<ActionKey, Map<UUID, TwinEntity>> twinsByAction = new HashMap<>();
-
+    private Map<ActionKey, Set<TwinEntity>> collectTwinActions(TwinChangesCollector collector) {
+        Map<ActionKey, Set<TwinEntity>> twinsByAction = new HashMap<>();
         Map<EntityKey, ChangesHelper> twinSaveHelpers = collector.getSaveEntityMap().get(TwinEntity.class);
         if (twinSaveHelpers != null) {
             for (Map.Entry<EntityKey, ChangesHelper> entry : twinSaveHelpers.entrySet()) {
-                if (!(entry.getKey().entity() instanceof TwinEntity twin) || twin.getTwinClassId() == null) {
-                    continue;
-                }
-
-                TwinAction action = entry.getValue() != null && entry.getValue().hasChanges()
-                        ? TwinAction.EDIT
-                        : TwinAction.CREATE;
-
-                twinsByAction
-                        .computeIfAbsent(new ActionKey(twin.getTwinClassId(), action), k -> new HashMap<>())
-                        .put(twin.getId(), twin);
-
-                publisherTwinById.put(twin.getId(), twin);
+                if (!(entry.getKey().entity() instanceof TwinEntity twin)) continue;
+                if (twin.getTwinClassId() == null) continue;
+                ChangesHelper helper = entry.getValue();
+                TwinAction action = (helper != null && helper.hasChanges()) ? TwinAction.EDIT : TwinAction.CREATE;
+                twinsByAction.computeIfAbsent(new ActionKey(twin.getTwinClassId(), action), k -> new HashSet<>()).add(twin);
             }
         }
-
         for (TwinEntity twin : collector.getDeletes(TwinEntity.class)) {
-            if (twin.getTwinClassId() == null) {
-                continue;
-            }
-
-            twinsByAction
-                    .computeIfAbsent(new ActionKey(twin.getTwinClassId(), TwinAction.DELETE), k -> new HashMap<>())
-                    .put(twin.getId(), twin);
-
-            publisherTwinById.put(twin.getId(), twin);
+            if (twin.getTwinClassId() == null) continue;
+            twinsByAction.computeIfAbsent(new ActionKey(twin.getTwinClassId(), TwinAction.DELETE), k -> new HashSet<>()).add(twin);
         }
-
-        return new AffectedSnapshot(
-                changedFieldClassIds,
-                twinsByChangedField,
-                twinsByAction,
-                publisherTwinById
-        );
+        return twinsByAction;
     }
 
-    private void registerChangedField(TwinFieldDecimalEntity field, Set<UUID> changedFieldClassIds, Map<UUID, Map<UUID, TwinEntity>> twinsByChangedField, Map<UUID, TwinEntity> publisherTwinById) {
-        TwinEntity twin = field.getTwin();
-        UUID fieldId = field.getTwinClassFieldId();
-        if (twin == null || fieldId == null) {
-            return;
-        }
-
-        changedFieldClassIds.add(fieldId);
-        twinsByChangedField
-                .computeIfAbsent(fieldId, k -> new HashMap<>())
-                .put(twin.getId(), twin);
-        publisherTwinById.put(twin.getId(), twin);
-    }
-
-    /**
-     * TwinEntity publishers are already in {@link AffectedSnapshot#publisherTwinById()} — managed
-     * by the persistence context, no extra SQL. Here we only batch-load {@link TwinClassFieldEntity}
-     * metadata for every field referenced by matched recompute rules (subscriber + operand side),
-     * plus look up the recompute rules themselves via the cached services.
-     */
-    private PreloadedEntities preloadEntities(AffectedSnapshot snapshot) {
-        List<TwinClassFieldRecomputeOnFieldEntity> onFieldRules =
-                recomputeOnFieldService.findByPublisherTwinClassFieldIdIn(snapshot.changedFieldClassIds());
-
-        Set<UUID> fieldIds = new HashSet<>();
-        for (var rule : onFieldRules) {
-            fieldIds.add(rule.getSubscriberTwinClassFieldId());
-            fieldIds.add(rule.getPublisherTwinClassFieldId());
-        }
-        Map<ActionKey, List<TwinClassFieldRecomputeOnActionEntity>> onActionRulesByKey = new HashMap<>();
-        for (ActionKey ak : snapshot.twinsByAction().keySet()) {
-            List<TwinClassFieldRecomputeOnActionEntity> rules =
-                    recomputeOnActionService.findByPublisherTwinClassIdAndPublisherTwinAction(ak.twinClassId(), ak.action());
-            if (rules.isEmpty()) continue;
-            onActionRulesByKey.put(ak, rules);
-            for (var rule : rules) fieldIds.add(rule.getSubscriberTwinClassFieldId());
-        }
-
-        if (onFieldRules.isEmpty() && onActionRulesByKey.isEmpty()) return null;
-
-        Map<UUID, TwinClassFieldEntity> fieldById = new HashMap<>();
-        for (TwinClassFieldEntity field : twinClassFieldService.findTwinClassFields(fieldIds)) {
-            fieldById.put(field.getId(), field);
-        }
-
-        return new PreloadedEntities(snapshot.publisherTwinById(), fieldById, onFieldRules, onActionRulesByKey);
-    }
-
-    private void collectOnFieldRecomputes(AffectedSnapshot snapshot, PreloadedEntities preloaded,
+    private void collectOnFieldRecomputes(Map<UUID, TwinClassFieldEntity> changedFieldById,
+                                          Map<UUID, Set<TwinEntity>> publishersByChangedField,
+                                          Map<UUID, TwinClassFieldEntity> subscriberFieldById,
                                           Map<UUID, List<PendingPointerResolve>> pendingByPointer) {
-        for (TwinClassFieldRecomputeOnFieldEntity rule : preloaded.onFieldRules()) {
-            UUID changedFieldId = rule.getPublisherTwinClassFieldId();
-            if (!snapshot.changedFieldClassIds().contains(changedFieldId)) continue;
-            Map<UUID, TwinEntity> publishersForField = snapshot.twinsByChangedField().get(changedFieldId);
-            if (publishersForField == null || publishersForField.isEmpty()) continue;
-            TwinClassFieldEntity changedField = preloaded.fieldById().get(changedFieldId);
-            TwinClassFieldEntity subscriberField = preloaded.fieldById().get(rule.getSubscriberTwinClassFieldId());
-            for (TwinEntity publisherTwin : publishersForField.values()) {
-                RecomputeTriggerOnField trigger = new RecomputeTriggerOnField(publisherTwin, changedField, rule.isAsync());
-                pendingByPointer
-                        .computeIfAbsent(rule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
-                        .add(new PendingPointerResolve(subscriberField, trigger));
+        for (TwinClassFieldEntity changedField : changedFieldById.values()) {
+            if (!hasOnFieldRules(changedField)) continue;
+            Set<TwinEntity> publishers = publishersByChangedField.get(changedField.getId());
+            if (publishers == null || publishers.isEmpty()) continue;
+            for (TwinClassFieldRecomputeOnFieldEntity rule : changedField.getRecomputeOnField()) {
+                TwinClassFieldEntity subscriberField = subscriberFieldById.get(rule.getSubscriberTwinClassFieldId());
+                for (TwinEntity publisher : publishers) {
+                    RecomputeTriggerOnField trigger = new RecomputeTriggerOnField(publisher, changedField, rule.isAsync());
+                    pendingByPointer
+                            .computeIfAbsent(rule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
+                            .add(new PendingPointerResolve(subscriberField, trigger));
+                }
             }
         }
     }
 
-    private void collectOnActionRecomputes(AffectedSnapshot snapshot, PreloadedEntities preloaded,
+    private void collectOnActionRecomputes(Map<UUID, TwinClassEntity> publisherClassById,
+                                           Map<ActionKey, Set<TwinEntity>> twinsByAction,
+                                           Map<UUID, TwinClassFieldEntity> subscriberFieldById,
                                            Map<UUID, List<PendingPointerResolve>> pendingByPointer) throws ServiceException {
-        for (Map.Entry<ActionKey, List<TwinClassFieldRecomputeOnActionEntity>> entry : preloaded.onActionRulesByKey().entrySet()) {
+        for (Map.Entry<ActionKey, Set<TwinEntity>> entry : twinsByAction.entrySet()) {
             ActionKey actionKey = entry.getKey();
-            Map<UUID, TwinEntity> publishers = snapshot.twinsByAction().get(actionKey);
+            TwinClassEntity publisherClass = publisherClassById.get(actionKey.twinClassId());
+            if (publisherClass == null || !hasOnActionRules(publisherClass)) continue;
+            List<TwinClassFieldRecomputeOnActionEntity> rules = publisherClass.getRecomputeOnAction().getGrouped(actionKey.action());
+            if (rules == null || rules.isEmpty()) continue;
+            Set<TwinEntity> publishers = entry.getValue();
             if (publishers == null || publishers.isEmpty()) continue;
-            for (TwinClassFieldRecomputeOnActionEntity rule : entry.getValue()) {
-                if (!shouldFireByValidators(rule, publishers.values())) continue;
-                TwinClassFieldEntity subscriberField = preloaded.fieldById().get(rule.getSubscriberTwinClassFieldId());
-                for (TwinEntity publisherTwin : publishers.values()) {
-                    RecomputeTriggerOnAction trigger = new RecomputeTriggerOnAction(publisherTwin, actionKey.action(), rule.isAsync());
+            for (TwinClassFieldRecomputeOnActionEntity rule : rules) {
+                if (!shouldFireByValidators(rule, publishers)) continue;
+                TwinClassFieldEntity subscriberField = subscriberFieldById.get(rule.getSubscriberTwinClassFieldId());
+                for (TwinEntity publisher : publishers) {
+                    RecomputeTriggerOnAction trigger = new RecomputeTriggerOnAction(publisher, actionKey.action(), rule.isAsync());
                     pendingByPointer
                             .computeIfAbsent(rule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
                             .add(new PendingPointerResolve(subscriberField, trigger));
@@ -287,8 +289,7 @@ public class TwinFieldRecomputeService {
 
             for (PendingPointerResolve p : pendings) {
                 TwinEntity subscriber = subscriberByPublisher.get(p.trigger().publisherTwin().getId());
-                if (subscriber == null) continue;
-                if (p.subscriberField() == null) continue;
+                if (subscriber == null || p.subscriberField() == null) continue;
                 SubscriberKey key = new SubscriberKey(subscriber.getId(), p.subscriberField().getId(), subscriber, p.subscriberField());
                 if (visited.contains(key)) continue;
                 grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(p.trigger());
@@ -341,7 +342,7 @@ public class TwinFieldRecomputeService {
      * Validator gate for OnAction rules. MVP returns true always — wiring the actual
      * {@code TwinValidatorSetService.isValid(...)} requires ContainsTwinValidatorSet plumbing
      * on the validator-rule entity (kit field + EAGER set), see ai/plans/field-typer-mater-listeners.md §3.4.
-     * <p>
+     *
      * TODO TWINS-868: implement. For each active validator rule on this recompute rule, validate
      * the publisher twin; skip recompute if any rule rejects (e.g. child with status=DRAFT excluded
      * from parent's sum).
@@ -353,37 +354,8 @@ public class TwinFieldRecomputeService {
 
     // === Inner data carriers ===
 
-    /**
-     * Publisher-side state extracted from the collector. Carries TwinEntity instances directly — no re-lookup needed.
-     */
-    private record AffectedSnapshot(
-            Set<UUID> changedFieldClassIds,                                  // publisher field IDs touched
-            Map<UUID, Map<UUID, TwinEntity>> twinsByChangedField,            // publisher twins per changed field
-            Map<ActionKey, Map<UUID, TwinEntity>> twinsByAction,             // publisher twins per (class, action)
-            Map<UUID, TwinEntity> publisherTwinById                          // union — used for pointer resolution
-    ) {
-        boolean isEmpty() {
-            return changedFieldClassIds.isEmpty() && twinsByAction.isEmpty();
-        }
-    }
-
-    /**
-     * (twinClassId, TwinAction) identity for grouping OnAction lookups.
-     */
-    private record ActionKey(UUID twinClassId, TwinAction action) {
-    }
-
-    /**
-     * Pre-loaded TwinEntity publishers + TwinClassFieldEntity metadata + matched recompute rules.
-     * Filled once per {@link #triggerAffected} wave; reused by both collect methods.
-     */
-    private record PreloadedEntities(
-            Map<UUID, TwinEntity> publisherTwinById,
-            Map<UUID, TwinClassFieldEntity> fieldById,
-            List<TwinClassFieldRecomputeOnFieldEntity> onFieldRules,
-            Map<ActionKey, List<TwinClassFieldRecomputeOnActionEntity>> onActionRulesByKey
-    ) {
-    }
+    /** (twinClassId, TwinAction) identity for grouping OnAction lookups. */
+    private record ActionKey(UUID twinClassId, TwinAction action) {}
 
     /**
      * One pending trigger before pointer resolution: which subscriber field to recompute,
@@ -392,8 +364,7 @@ public class TwinFieldRecomputeService {
     private record PendingPointerResolve(
             TwinClassFieldEntity subscriberField,
             RecomputeTrigger trigger
-    ) {
-    }
+    ) {}
 
     /**
      * Cycle-protection key + cargo entities. equals/hashCode on UUID pair only — JPA entity

@@ -16,6 +16,7 @@ public interface TwinClassFieldRecomputeOnActionRepository
                 JpaSpecificationExecutor<TwinClassFieldRecomputeOnActionEntity> {
 
     String CACHE_BY_PUBLISHER_CLASS_ACTION = "TwinClassFieldRecomputeOnActionRepository.findByPublisherTwinClassIdAndPublisherTwinAction";
+    String CACHE_BY_PUBLISHER_CLASS_IN = "TwinClassFieldRecomputeOnActionRepository.findByPublisherTwinClassIdIn";
 
     /**
      * Hot path: called by TwinClassFieldRecomputeService once per (publisher twin class, action) pair
@@ -25,6 +26,15 @@ public interface TwinClassFieldRecomputeOnActionRepository
             key = "#publisherTwinClassId + '' + #action.name()")
     List<TwinClassFieldRecomputeOnActionEntity> findByPublisherTwinClassIdAndPublisherTwinAction(
             UUID publisherTwinClassId, TwinAction action);
+
+    /**
+     * Hot path: called by {@code TwinClassService.loadRecomputeOnAction(Collection<TwinClassEntity>)} to
+     * populate {@link TwinClassEntity#getRecomputeOnAction()} kits in one batch.
+     */
+    @Cacheable(value = CACHE_BY_PUBLISHER_CLASS_IN,
+            key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#publisherTwinClassIds)")
+    List<TwinClassFieldRecomputeOnActionEntity> findByPublisherTwinClassIdIn(
+            Collection<UUID> publisherTwinClassIds);
 
     List<TwinClassFieldRecomputeOnActionEntity> findByPublisherTwinClassIdInAndPublisherTwinAction(
             Collection<UUID> publisherTwinClassIds, TwinAction action);
