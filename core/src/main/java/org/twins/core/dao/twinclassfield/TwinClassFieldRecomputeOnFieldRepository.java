@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinclassfieldrecompute;
+package org.twins.core.dao.twinclassfield;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;

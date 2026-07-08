@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinclassfieldrecompute;
+package org.twins.core.dao.twinclassfield;
 
 import jakarta.persistence.*;
 import lombok.*;

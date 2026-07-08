@@ -9,8 +9,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinclassfieldrecompute.TwinClassFieldRecomputeOnActionValidatorRuleEntity;
-import org.twins.core.dao.twinclassfieldrecompute.TwinClassFieldRecomputeOnActionValidatorRuleRepository;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionValidatorRuleEntity;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionValidatorRuleRepository;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
