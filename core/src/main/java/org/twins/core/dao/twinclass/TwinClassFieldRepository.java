@@ -57,7 +57,7 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
 
     String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY = "TwinClassFieldRepository.findByTwinClassIdAndParentKey";
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY, key = "#twinClassId + '' + #key")
-    @Query(value = "from TwinClassFieldEntity field, TwinClassEntity  class " +
+    @Query(value = "select field from TwinClassFieldEntity field, TwinClassEntity  class " +
             "where field.key = :key " +
             "and field.twinClassId = class.extendsTwinClassId and class.id = :twinClassId")
     TwinClassFieldEntity findByTwinClassIdAndParentKey(@Param("twinClassId") UUID twinClassId, @Param("key") String key);
