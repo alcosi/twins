@@ -65,7 +65,7 @@ public class FactoryEraserSearchController extends ApiController {
         FactoryEraserSearchRsDTOv1 rs = new FactoryEraserSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryEraserEntity> eraserList = factoryEraserSearchService
-                    .findFactoryEraser(factoryEraserSearchDTOReverseMapper.convert(request), pagination);
+                    .search(factoryEraserSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setErasers(factoryEraserRestDTOMapper.convertCollection(eraserList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(eraserList))

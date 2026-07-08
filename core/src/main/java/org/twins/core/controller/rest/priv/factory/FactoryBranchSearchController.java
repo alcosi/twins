@@ -48,6 +48,7 @@ public class FactoryBranchSearchController extends ApiController {
     private final FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
     private final FactoryBranchSearchService factoryBranchSearchService;
     private final FactoryBranchService factoryBranchService;
+
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryBranchSearchV1", summary = "Factory branch search")
     @ApiResponses(value = {
@@ -63,7 +64,7 @@ public class FactoryBranchSearchController extends ApiController {
         FactoryBranchSearchRsDTOv1 rs = new FactoryBranchSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryBranchEntity> branchList = factoryBranchSearchService
-                    .findFactoryBranches(factoryBranchSearchDTOReverseMapper.convert(request), pagination);
+                    .search(factoryBranchSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setBranches(factoryBranchRestDTOMapper.convertCollection(branchList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(branchList))
@@ -86,7 +87,7 @@ public class FactoryBranchSearchController extends ApiController {
     @GetMapping(value = "/private/factory_branch/{factoryBranchId}/v1")
     public ResponseEntity<?> factoryBranchViewV1(
             @MapperContextBinding(roots = FactoryBranchRestDTOMapper.class, response = FactoryBranchViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.FACTORY_BRANCH_ID) @PathVariable("factoryBranchId")UUID factoryBranchId) {
+            @Parameter(example = DTOExamples.FACTORY_BRANCH_ID) @PathVariable("factoryBranchId") UUID factoryBranchId) {
         FactoryBranchViewRsDTOv1 rs = new FactoryBranchViewRsDTOv1();
         try {
             TwinFactoryBranchEntity branch = factoryBranchService.findEntitySafe(factoryBranchId);

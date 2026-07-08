@@ -26,7 +26,7 @@ import org.twins.core.dto.rest.factory.FactoryMultiplierSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierViewRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryMultiplierSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -47,7 +47,7 @@ public class FactoryMultiplierSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryMultiplierSearchService factoryMultiplierSearchService;
     private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
-    private final FactoryMultiplierSearchRqDTOReverseMapper factoryMultiplierSearchRqDTOReverseMapper;
+    private final FactoryMultiplierSearchDTOReverseMapper factoryMultiplierSearchDTOReverseMapper;
     private final FactoryMultiplierService factoryMultiplierService;
 
     @ParametersApiUserHeaders
@@ -65,7 +65,7 @@ public class FactoryMultiplierSearchController extends ApiController {
         FactoryMultiplierSearchRsDTOv1 rs = new FactoryMultiplierSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryMultiplierEntity> multipliers = factoryMultiplierSearchService
-                    .findFactoryMultipliers(factoryMultiplierSearchRqDTOReverseMapper.convert(request), pagination);
+                    .search(factoryMultiplierSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setMultipliers(factoryMultiplierRestDTOMapper.convertCollection(multipliers.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(multipliers))

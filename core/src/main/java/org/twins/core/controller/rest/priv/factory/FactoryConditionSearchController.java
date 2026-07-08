@@ -26,7 +26,7 @@ import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dto.rest.factory.FactoryConditionSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSearchRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryConditionRestDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryConditionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -42,7 +42,7 @@ public class FactoryConditionSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final FactoryConditionSearchRqDTOReverseMapper factoryConditionSearchRqDTOReverseMapper;
+    private final FactoryConditionSearchDTOReverseMapper factoryConditionSearchDTOReverseMapper;
     private final FactoryConditionRestDTOMapper factoryConditionRestDTOMapper;
     private final FactoryConditionSearchService factoryConditionSearchService;
 
@@ -63,7 +63,7 @@ public class FactoryConditionSearchController extends ApiController {
         FactoryConditionSearchRsDTOv1 rs = new FactoryConditionSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryConditionEntity> conditionList = factoryConditionSearchService
-                    .findFactoryConditions(factoryConditionSearchRqDTOReverseMapper.convert(request), pagination);
+                    .search(factoryConditionSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(conditionList))
                     .setConditions(factoryConditionRestDTOMapper.convertCollection(conditionList.getList(), mapperContext))
@@ -74,6 +74,5 @@ public class FactoryConditionSearchController extends ApiController {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
-
     }
 }

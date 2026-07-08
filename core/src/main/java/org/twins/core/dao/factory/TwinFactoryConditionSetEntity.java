@@ -51,9 +51,6 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable, Identifiable
     @Column(name = "cachable")
     private Boolean cachable;
 
-    @Transient
-    private TwinFactoryEntity twinFactory;
-
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
@@ -61,6 +58,19 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable, Identifiable
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUserSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactorySpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity twinFactory;
 
     @Transient
     @EqualsAndHashCode.Exclude

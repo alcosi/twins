@@ -3,16 +3,16 @@ package org.twins.core.mappers.rest.factory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.FactoryMultiplierFilterSearch;
-import org.twins.core.dto.rest.factory.FactoryMultiplierFilterSearchRqDTOv1;
+import org.twins.core.dto.rest.factory.FactoryMultiplierFilterSearchDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class FactoryMultiplierFilerSearchDTOReverseMapper extends RestSimpleDTOMapper<FactoryMultiplierFilterSearchRqDTOv1, FactoryMultiplierFilterSearch> {
+public class FactoryMultiplierFilterSearchDTOReverseMapper extends RestSimpleDTOMapper<FactoryMultiplierFilterSearchDTOv1, FactoryMultiplierFilterSearch> {
 
     @Override
-    public void map(FactoryMultiplierFilterSearchRqDTOv1 src, FactoryMultiplierFilterSearch dst, MapperContext mapperContext) {
+    public void map(FactoryMultiplierFilterSearchDTOv1 src, FactoryMultiplierFilterSearch dst, MapperContext mapperContext) {
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())

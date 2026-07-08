@@ -35,6 +35,8 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     private final AuthService authService;
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
+    @Lazy
+    private final TwinFactoryService twinFactoryService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
@@ -138,5 +140,27 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
                 TwinFactoryBranchEntity::getConditionSet,
                 TwinFactoryBranchEntity::setConditionSet);
+    }
+
+    public void loadFactory(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadFactory(Collections.singleton(branch));
+    }
+
+    public void loadFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        twinFactoryService.load(branches,
+                TwinFactoryBranchEntity::getTwinFactoryId,
+                TwinFactoryBranchEntity::getFactory,
+                TwinFactoryBranchEntity::setFactory);
+    }
+
+    public void loadNextFactory(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadNextFactory(Collections.singleton(branch));
+    }
+
+    public void loadNextFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        twinFactoryService.load(branches,
+                TwinFactoryBranchEntity::getNextTwinFactoryId,
+                TwinFactoryBranchEntity::getNextFactory,
+                TwinFactoryBranchEntity::setNextFactory);
     }
 }

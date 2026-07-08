@@ -56,6 +56,27 @@ Even then, prefer the SpecOnly + `@Transient` runtime split (see §5).
 - `@ManyToOne` without explicit `fetch = FetchType.LAZY`
 - `EAGER` outside truly aggregate-defining relationships (rare; document each case)
 - Using the relation field for runtime navigation in mappers, serializers, business logic, validation, DTO conversion
+- **`@ManyToOne` (or any JPA relation) to `org.cambium.featurer.dao.FeaturerEntity`** — see §3.4
+
+### 3.4 Featurer relations — not reconmended on Twins entities
+
+Not recommended:
+
+```java
+// ❌ useless
+@ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "multiplier_featurer_id", insertable = false, updatable = false)
+private FeaturerEntity multiplierFeaturerSpecOnly;
+```
+
+This applies regardless of the FK column type — `UUID`, `Integer`, anything. The column itself (`multiplierFeaturerId: Integer`) is fine; the relation is not.
+
+**Implications:**
+- **No JOIN-based sort** by `featurer.name` in `createSortSpecification`. Drop the enum value (`multiplierFeaturerName`, `fillerFeaturerName`, `conditionerFeaturerName`, etc.) from `*SortField`.
+- **Enrichment still possible** via `FeaturerRestDTOMapper.postpone(Integer featurerId, MapperContext)` — it calls `featurerService.getFeaturerEntity(featurerId)` internally and resolves the entity by ID (no JPA relation on the Twins entity). Use this in count/search mappers when you need the featurer DTO in related objects.
+- Group/count by `featurerId` itself still works — `GROUP BY` operates on the column, not on a relation.
+
+If a true JOIN to `FeaturerEntity` is ever required (very rare), it must be done with a manual Criteria API `Join<>` constructed in the Specification — never by declaring a persistent relation on the entity.
 
 ### 3.3 Risk
 
@@ -396,6 +417,7 @@ where the field is loaded via bulk loading (see `load_method_pattern.md`).
 - Calling the removed legacy methods (`joinAndSearchByI18NField`, `doubleJoinAndSearchByI18NField`, `toSortSpecification`) — only `*Direct` variants exist
 - Using `@Data` on entities
 - Omitting `fetch = LAZY` on a relation
+- Declaring a JPA relation (`@ManyToOne`/`@OneToMany`) to `org.cambium.featurer.dao.FeaturerEntity` from a Twins entity — see §3.4
 
 ---
 
