@@ -972,13 +972,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         // let's override with updates
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            for (var fieldValue : twinUpdate.getFields().values()) {
-                var existingFieldValue = mergedValuesKit.get(fieldValue.getTwinClassFieldId());
-                if (existingFieldValue != null) {
-                    mergedValuesKit.remove(existingFieldValue);
-                }
-                mergedValuesKit.add(fieldValue); //todo refactor this
-            }
+            mergedValuesKit.addAll(twinUpdate.getFields().values());
         }
         return twinFieldRuleExecutionService.checkAllRequired(mergedValuesKit, mergedTwinEntity);
     }

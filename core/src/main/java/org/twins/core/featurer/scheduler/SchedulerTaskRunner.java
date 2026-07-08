@@ -3,11 +3,11 @@ package org.twins.core.featurer.scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
@@ -50,22 +50,25 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
             var savedEntities = setStatusAndSave(collectedEntities);
 
             log.info("{} tasks need to be done", savedEntities.size());
+
+            var failed = new ArrayList<E>();
             for (var entity : savedEntities) {
                 try {
                     log.info("Running {}", entity.logNormal());
                     var task = applicationContext.getBean(getTaskClass(), entity);
                     taskExecutor.execute(task);
                 } catch (Exception e) {
-                    log.error("Exception ex: {}", e.getMessage(), e);
+                    log.error("Task {} submission rejected, will be reverted", entity.logNormal(), e);
+                    failed.add(entity);
+                }
+            }
 
-                    // entity is already saved as IN_PROGRESS, but the task was never submitted
-                    // (bean creation or executor.submit failed) — revert so it is not stuck forever
-                    try {
-                        revertStatusAndSave(entity);
-                        log.warn(">> TASK WAS NOT STARTED — STATUS REVERTED, ENTITY WILL BE RECOLLECTED: [{}] <<", entity.logNormal());
-                    } catch (Exception revertEx) {
-                        log.error("Failed to revert status for {}", entity.logNormal(), revertEx);
-                    }
+            if (!failed.isEmpty()) {
+                try {
+                    revertStatusAndSave(failed);
+                    log.warn("{} task(s) submission failed — status reverted, they will be recollected", failed.size());
+                } catch (Exception revertEx) {
+                    log.error("Failed to revert status for {} task(s)", failed.size(), revertEx);
                 }
             }
 
@@ -79,7 +82,7 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         }
     }
 
-    private List<E> collectTasks(Integer batchSize) throws ServiceException {
+    private List<E> collectTasks(Integer batchSize) {
         log.debug("Loading tasks from database");
 
         if (batchSize == null) {
@@ -93,5 +96,5 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
     protected abstract Collection<E> setStatusAndSave(Collection<E> collectedEntities);
     protected abstract List<E> collectAll();
     protected abstract List<E> collectBatch(int batchSize);
-    protected abstract void revertStatusAndSave(E entity);
+    protected abstract void revertStatusAndSave(Collection<E> entities);
 }

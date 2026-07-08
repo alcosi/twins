@@ -18,7 +18,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
@@ -161,17 +162,17 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
-    class RevertStatusAndSave {
+    class RevertStatusBatch {
 
         @Test
-        void revertStatusAndSave_revertsToNeedStartAndSaves() {
+        void revertStatusBatch_revertsToNeedStartAndSaves() {
             var entity = buildEntity();
             entity.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS);
 
-            runner.revertStatusAndSave(entity);
+            runner.revertStatusAndSave(List.of(entity));
 
             assertEquals(HistoryNotificationTaskStatus.NEED_START, entity.getStatusId());
-            verify(historyNotificationTaskRepository).save(entity);
+            verify(historyNotificationTaskRepository).saveAll(List.of(entity));
         }
     }
 

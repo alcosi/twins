@@ -17,7 +17,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class SchedulerTwinChangeTaskRunnerTest extends BaseUnitTest {
@@ -157,17 +158,17 @@ class SchedulerTwinChangeTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
-    class RevertStatusAndSave {
+    class RevertStatusBatch {
 
         @Test
-        void revertStatusAndSave_revertsToNeedStartAndSaves() {
+        void revertStatusBatch_revertsToNeedStartAndSaves() {
             var entity = buildEntity();
             entity.setStatusId(TwinChangeTaskStatus.IN_PROGRESS);
 
-            runner.revertStatusAndSave(entity);
+            runner.revertStatusAndSave(List.of(entity));
 
             assertEquals(TwinChangeTaskStatus.NEED_START, entity.getStatusId());
-            verify(twinChangeTaskRepository).save(entity);
+            verify(twinChangeTaskRepository).saveAll(List.of(entity));
         }
     }
 

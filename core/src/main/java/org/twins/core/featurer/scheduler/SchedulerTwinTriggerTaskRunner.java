@@ -43,9 +43,9 @@ public class SchedulerTwinTriggerTaskRunner extends SchedulerTaskRunner<TwinTrig
     }
 
     @Override
-    protected void revertStatusAndSave(TwinTriggerTaskEntity entity) {
-        entity.setStatusId(TwinTriggerTaskStatus.NEED_START);
-        twinTriggerTaskRepository.save(entity);
+    protected void revertStatusAndSave(Collection<TwinTriggerTaskEntity> entities) {
+        entities.forEach(entity -> entity.setStatusId(TwinTriggerTaskStatus.NEED_START));
+        twinTriggerTaskRepository.saveAll(entities);
     }
 
     @Override

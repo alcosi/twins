@@ -42,10 +42,9 @@ public class SchedulerDraftCommitTaskRunner extends SchedulerTaskRunner<DraftCom
     }
 
     @Override
-    protected void revertStatusAndSave(DraftEntity entity) {
-        // collectTasks picks UNCOMMITED + autoCommit, so revert to UNCOMMITED (COMMIT_NEED_START is never collected)
-        entity.setStatus(DraftStatus.UNCOMMITED);
-        draftRepository.save(entity);
+    protected void revertStatusAndSave(Collection<DraftEntity> entities) {
+        entities.forEach(entity -> entity.setStatus(DraftStatus.UNCOMMITED));
+        draftRepository.saveAll(entities);
     }
 
     @Override

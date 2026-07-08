@@ -27,8 +27,7 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
         KitGrouped<SpaceRoleUserEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 spaceRoleUserRepository.findByTwinIdIn(spaceSet), SpaceRoleUserEntity::getId, SpaceRoleUserEntity::getTwinId);
         for (var twinEntity : twinsKit) {
-            // TODO maybe containsGroupedKey need to be with getPermissionSchemaSpaceId like in line 30?
-            if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
+            if (allTwinsFieldGrouped.containsGroupedKey((twinEntity.getPermissionSchemaSpaceId()))) {
                 twinEntity.setTwinFieldSpaceUserKit(new KitGrouped<>(
                         allTwinsFieldGrouped.getGrouped(twinEntity.getPermissionSchemaSpaceId()),
                         SpaceRoleUserEntity::getId,

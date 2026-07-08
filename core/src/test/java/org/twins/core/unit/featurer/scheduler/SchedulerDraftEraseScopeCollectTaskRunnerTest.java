@@ -17,7 +17,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class SchedulerDraftEraseScopeCollectTaskRunnerTest extends BaseUnitTest {
@@ -157,17 +158,17 @@ class SchedulerDraftEraseScopeCollectTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
-    class RevertStatusAndSave {
+    class RevertStatusBatch {
 
         @Test
-        void revertStatusAndSave_revertsToEraseScopeCollectNeedStartAndSaves() {
+        void revertStatusBatch_revertsToEraseScopeCollectNeedStartAndSaves() {
             var entity = buildEntity();
             entity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS);
 
-            runner.revertStatusAndSave(entity);
+            runner.revertStatusAndSave(List.of(entity));
 
             assertEquals(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START, entity.getStatus());
-            verify(draftRepository).save(entity);
+            verify(draftRepository).saveAll(List.of(entity));
         }
     }
 

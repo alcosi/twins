@@ -71,21 +71,21 @@ class IdentityProviderStubTest extends BaseUnitTest {
     class ResolveAuthTokenMetaData {
 
         @Test
-        void resolveAuthTokenMetaData_withSingleElementToken_parsesBusinessAccountId() throws ServiceException {
-            var businessAccountId = UUID.randomUUID();
-            var token = businessAccountId.toString();
+        void resolveAuthTokenMetaData_withSingleElementToken_parsesUserId() throws ServiceException {
+            var userId = UUID.randomUUID();
+            var token = userId.toString();
 
             var result = identityProviderStub.resolveAuthTokenMetaData(new Properties(), token);
 
-            assertEquals(businessAccountId, result.getBusinessAccountId());
-            assertNull(result.getUserId());
+            assertEquals(userId, result.getUserId());
+            assertNull(result.getBusinessAccountId());
         }
 
         @Test
-        void resolveAuthTokenMetaData_withBusinessAccountIdAndUserId_parsesBoth() throws ServiceException {
+        void resolveAuthTokenMetaData_withUserIdAndBusinessAccountId_parsesBoth() throws ServiceException {
             var businessAccountId = UUID.randomUUID();
             var userId = UUID.randomUUID();
-            var token = businessAccountId + "," + userId;
+            var token = userId + "," + businessAccountId;
 
             var result = identityProviderStub.resolveAuthTokenMetaData(new Properties(), token);
 

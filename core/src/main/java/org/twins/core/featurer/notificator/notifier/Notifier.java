@@ -35,11 +35,11 @@ public abstract class Notifier extends FeaturerTwins {
             }
         }
 
-        for (var key : nullKeys) {
-            if (throwExceptionOnNullValues) {
-                throw new ServiceException(ErrorCodeTwins.NOTIFICATION_CONTEXT_COLLECTOR_ERROR, "Entry in contect with key[" + key + "] has null value");
-            }
+        if (throwExceptionOnNullValues && !nullKeys.isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.NOTIFICATION_CONTEXT_COLLECTOR_ERROR, "Entries with keys " + nullKeys + " have null values");
+        }
 
+        for (var key : nullKeys) {
             context.remove(key);
         }
     }

@@ -46,15 +46,15 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     @Override
     protected TokenMetaData resolveAuthTokenMetaData(Properties properties, String token) {
         if (StringUtils.isEmpty(token)) {
-            token = httpRequestService.getBusinessAccountIdFromRequest() + "," + httpRequestService.getUserIdFromRequest();
+            token = httpRequestService.getUserIdFromRequest() + "," + httpRequestService.getBusinessAccountIdFromRequest();
         }
         
         String[] tokenData = token.split(",");
         TokenMetaData ret = new TokenMetaData()
-                .setBusinessAccountId(UUID.fromString(tokenData[0].trim()));
+                .setUserId(UUID.fromString(tokenData[0].trim()));
         
         if (tokenData.length > 1) {
-            ret.setUserId(UUID.fromString(tokenData[1].trim()));
+            ret.setBusinessAccountId(UUID.fromString(tokenData[1].trim()));
         }
 
         return ret;

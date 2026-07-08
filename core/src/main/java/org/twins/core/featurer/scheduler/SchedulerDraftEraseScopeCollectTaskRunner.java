@@ -42,9 +42,9 @@ public class SchedulerDraftEraseScopeCollectTaskRunner extends SchedulerTaskRunn
     }
 
     @Override
-    protected void revertStatusAndSave(DraftEntity entity) {
-        entity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START);
-        draftRepository.save(entity);
+    protected void revertStatusAndSave(Collection<DraftEntity> entities) {
+        entities.forEach(entity -> entity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START));
+        draftRepository.saveAll(entities);
     }
 
     @Override

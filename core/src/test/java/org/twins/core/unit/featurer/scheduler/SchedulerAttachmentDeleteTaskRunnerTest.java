@@ -18,7 +18,8 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class SchedulerAttachmentDeleteTaskRunnerTest extends BaseUnitTest {
@@ -159,17 +160,17 @@ class SchedulerAttachmentDeleteTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
-    class RevertStatusAndSave {
+    class RevertStatusBatch {
 
         @Test
-        void revertStatusAndSave_revertsToNeedStartAndSaves() {
+        void revertStatusBatch_revertsToNeedStartAndSaves() {
             var entity = buildEntity(UUID.randomUUID());
             entity.setStatus(AttachmentDeleteTaskStatus.IN_PROGRESS);
 
-            runner.revertStatusAndSave(entity);
+            runner.revertStatusAndSave(List.of(entity));
 
             assertEquals(AttachmentDeleteTaskStatus.NEED_START, entity.getStatus());
-            verify(attachmentDeleteTaskRepository).save(entity);
+            verify(attachmentDeleteTaskRepository).saveAll(List.of(entity));
         }
     }
 
@@ -254,7 +255,7 @@ class SchedulerAttachmentDeleteTaskRunnerTest extends BaseUnitTest {
 
             assertEquals("1 task(s) from db was processed", result);
             assertEquals(AttachmentDeleteTaskStatus.NEED_START, entity.getStatus());
-            verify(attachmentDeleteTaskRepository).save(entity);
+            verify(attachmentDeleteTaskRepository, times(2)).saveAll(List.of(entity));
         }
 
         @Test
@@ -269,17 +270,20 @@ class SchedulerAttachmentDeleteTaskRunnerTest extends BaseUnitTest {
 
             when(attachmentDeleteTaskRepository.findByStatusIn(List.of(AttachmentDeleteTaskStatus.NEED_START)))
                     .thenReturn(entities);
-            when(attachmentDeleteTaskRepository.saveAll(entities)).thenReturn(entities);
+            // setStatusAndSave's saveAll returns the entities; the revert's saveAll (second call) throws
+            when(attachmentDeleteTaskRepository.saveAll(entities))
+                    .thenReturn(entities)
+                    .thenThrow(new RuntimeException("db down"));
             when(applicationContext.getBean(AttachmentDeleteTask.class, entity1)).thenReturn(task1);
             when(applicationContext.getBean(AttachmentDeleteTask.class, entity2)).thenReturn(task2);
             doThrow(new RejectedExecutionException("pool full")).when(taskExecutor).execute(task1);
-            doThrow(new RuntimeException("db down")).when(attachmentDeleteTaskRepository).save(entity1);
+            doThrow(new RejectedExecutionException("pool full")).when(taskExecutor).execute(task2);
 
             var result = runner.processTask(new Properties());
 
             assertEquals("2 task(s) from db was processed", result);
             verify(taskExecutor).execute(task2);
-            verify(attachmentDeleteTaskRepository).save(entity1);
+            verify(attachmentDeleteTaskRepository, times(2)).saveAll(entities);
         }
     }
 }

@@ -119,10 +119,13 @@ class SchedulerTwinArchiveCleanerTest extends BaseUnitTest {
         }
 
         @Test
-        void processTask_exception_propagates() {
+        void processTask_exception_returnsErrorMessage() {
             when(twinArchiveRepository.count()).thenThrow(new RuntimeException("test error"));
 
-            assertThrows(RuntimeException.class, () -> cleaner.processTask(new Properties()));
+            var result = cleaner.processTask(new Properties());
+
+            assertTrue(result.contains("Processing tasks failed with exception"));
+            assertTrue(result.contains("test error"));
         }
     }
 }

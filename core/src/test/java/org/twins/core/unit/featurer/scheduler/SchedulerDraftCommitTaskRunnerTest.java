@@ -17,7 +17,8 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class SchedulerDraftCommitTaskRunnerTest extends BaseUnitTest {
@@ -157,17 +158,17 @@ class SchedulerDraftCommitTaskRunnerTest extends BaseUnitTest {
     }
 
     @Nested
-    class RevertStatusAndSave {
+    class RevertStatusBatch {
 
         @Test
-        void revertStatusAndSave_revertsToUncommitedAndSaves() {
+        void revertStatusBatch_revertsToUncommitedAndSaves() {
             var entity = buildEntity();
             entity.setStatus(DraftStatus.COMMIT_IN_PROGRESS);
 
-            runner.revertStatusAndSave(entity);
+            runner.revertStatusAndSave(List.of(entity));
 
             assertEquals(DraftStatus.UNCOMMITED, entity.getStatus());
-            verify(draftRepository).save(entity);
+            verify(draftRepository).saveAll(List.of(entity));
         }
     }
 

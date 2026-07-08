@@ -25,14 +25,10 @@ public class ContextCollectorHeadTwin extends ContextCollectorTwinBase {
 
     @Override
     protected TwinEntity resolveTwin(HistoryEntity history) throws ServiceException {
-        TwinEntity headTwin = null;
-        TwinEntity twin = history.getTwin();
+        TwinEntity headTwin = history.getTwin().getHeadTwin();
 
-        if (twin != null) { //todo logic if null
-            headTwin = twin.getHeadTwin();
-            if (headTwin == null && twin.getHeadTwinId() != null) {
-                headTwin = twinService.findEntitySafe(twin.getHeadTwinId());
-            }
+        if (headTwin == null) {
+            headTwin = twinService.findEntitySafe(history.getTwin().getHeadTwinId());
         }
 
         return headTwin;
