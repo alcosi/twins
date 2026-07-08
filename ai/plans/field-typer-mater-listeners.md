@@ -1044,7 +1044,7 @@ public class TwinClassFieldRecomputeOnActionValidatorRuleService
    - Извлекает `AffectedSnapshot` (какие поля у каких твинов изменились, какие actions выполнялись)
    - Bulk detection: если >50 twins → consolidated async task, return
    - **Шаг 1 (pre-load Entity)**: `preloadEntities` одним batch достаёт `TwinEntity publisherTwins` (уже в persistence context, без SQL — publishers modified в tx) + `TwinClassFieldEntity` (один `findByIds` по всем fieldId из recompute metadata: subscriber-поля + changed-поля)
-   - **Шаг 2 (collect)**: `collectOnFieldRecomputes` и `collectOnActionRecomputes` создают **готовые `DependencyTrigger`** (с Entity из preloaded) + `PendingPointerResolve(subscriberField, trigger)`, складывают в `Map<UUID pointerId, List<PendingPointerResolve>>`. Validator check для OnAction здесь (publisher-specific). Если один pointer использован в OnField и OnAction recompute rule-ах — их pending-и сливаются под одним pointerId → `Pointer.load` отработает один раз
+   - **Шаг 2 (collect)**: `collectOnFieldRecomputes` и `collectOnActionRecomputes` создают **готовые `RecomputeTrigger`** (с Entity из preloaded) + `PendingPointerResolve(subscriberField, trigger)`, складывают в `Map<UUID pointerId, List<PendingPointerResolve>>`. Validator check для OnAction здесь (publisher-specific). Если один pointer использован в OnField и OnAction recompute rule-ах — их pending-и сливаются под одним pointerId → `Pointer.load` отработает один раз
    - **Шаг 3 (pointer resolution)**: `resolveToRequests` итерирует по `pendingByPointer` — для каждого `pointerId` один `Pointer.load([allPublisherTwins])` (см. §4.3.1) → `Map<publisherTwinId, subscriberTwin>`. Группировка по `(subscriberTwin, subscriberField)` → ОДИН `FieldRecomputeRequest` на группу с несколькими triggers. Возвращает `List<FieldRecomputeRequest>`. `SubscriberKey = (subscriberTwinId, subscriberFieldId, subscriberTwin, subscriberField)` — UUID-pair как identity для HashMap (override equals/hashCode), Entity как cargo
 3. Dispatch — для каждого `FieldRecomputeRequest` один вызов `subscriber.recompute(request, collector)`:
    - `TwinClassFieldRecomputeService` находит `FieldTyper` для `request.subscriberField()` (по `fieldTyperFeaturerId`), кастует к `TwinClassFieldRecomputeSubscriber`
@@ -1106,7 +1106,7 @@ public class TwinClassFieldRecomputeService {
         PreloadedEntities preloaded = preloadEntities(snapshot);
 
         // === Шаг 2. Collect PendingPointerResolve по pointerId ===
-        // Collect-методы создают ГОТОВЫЕ DependencyTrigger (с Entity), складывают по pointerId.
+        // Collect-методы создают ГОТОВЫЕ RecomputeTrigger (с Entity), складывают по pointerId.
         // Map key — UUID pointerId (не TwinPointerEntity; instance hashCode не стабилен).
         // Под одним pointerId могут быть смешаны OnField и OnAction pending-и — Pointer.load отработает один раз.
         Map<UUID, List<PendingPointerResolve>> pendingByPointer = new HashMap<>();
@@ -1157,7 +1157,7 @@ public class TwinClassFieldRecomputeService {
     }
 
     /**
-     * Collect OnField pending-ов: для каждого сработавшего recompute rule-а создаём FieldTrigger
+     * Collect OnField pending-ов: для каждого сработавшего recompute rule-а создаём RecomputeTriggerOnField
      * (готовый, с Entity) + PendingPointerResolve, складываем по pointerId.
      */
     private void collectOnFieldRecomputes(AffectedSnapshot snapshot, PreloadedEntities preloaded,
@@ -1169,7 +1169,7 @@ public class TwinClassFieldRecomputeService {
             TwinClassFieldEntity subscriberField = preloaded.fieldById().get(recomputeRule.getSubscriberTwinClassFieldId());
             for (UUID publisherTwinId : snapshot.twinsByChangedField(changedFieldId)) {
                 TwinEntity publisherTwin = preloaded.publisherTwinById().get(publisherTwinId);
-                FieldTrigger trigger = new FieldTrigger(publisherTwin, changedField, recomputeRule.isAsync());
+                RecomputeTriggerOnField trigger = new RecomputeTriggerOnField(publisherTwin, changedField, recomputeRule.isAsync());
                 pendingByPointer
                         .computeIfAbsent(recomputeRule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
                         .add(new PendingPointerResolve(subscriberField, trigger));
@@ -1179,7 +1179,7 @@ public class TwinClassFieldRecomputeService {
 
     /**
      * Collect OnAction pending-ов: для каждого (actionKey, publisherTwinId, recomputeRule) создаём
-     * ActionTrigger + PendingPointerResolve. Validator check здесь, т.к. publisher-specific.
+     * RecomputeTriggerOnAction + PendingPointerResolve. Validator check здесь, т.к. publisher-specific.
      */
     private void collectOnActionRecomputes(AffectedSnapshot snapshot, PreloadedEntities preloaded,
                                           Map<UUID, List<PendingPointerResolve>> pendingByPointer) throws ServiceException {
@@ -1191,7 +1191,7 @@ public class TwinClassFieldRecomputeService {
                     if (!shouldFireByValidators(recomputeRule, publisherTwinId)) continue;
                     TwinEntity publisherTwin = preloaded.publisherTwinById().get(publisherTwinId);
                     TwinClassFieldEntity subscriberField = preloaded.fieldById().get(recomputeRule.getSubscriberTwinClassFieldId());
-                    ActionTrigger trigger = new ActionTrigger(publisherTwin, actionKey.action(), recomputeRule.isAsync());
+                    RecomputeTriggerOnAction trigger = new RecomputeTriggerOnAction(publisherTwin, actionKey.action(), recomputeRule.isAsync());
                     pendingByPointer
                             .computeIfAbsent(recomputeRule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
                             .add(new PendingPointerResolve(subscriberField, trigger));
@@ -1209,7 +1209,7 @@ public class TwinClassFieldRecomputeService {
     private List<FieldRecomputeRequest> resolveToRequests(Map<UUID, List<PendingPointerResolve>> pendingByPointer,
                                                      Set<SubscriberKey> visited) throws ServiceException {
         // Локальная группировка — отделена от внешнего visited-set, чтобы cycle protection сработала на dispatch.
-        Map<SubscriberKey, List<DependencyTrigger>> grouped = new LinkedHashMap<>();
+        Map<SubscriberKey, List<RecomputeTrigger>> grouped = new LinkedHashMap<>();
         for (var e : pendingByPointer.entrySet()) {
             UUID pointerId = e.getKey();
             List<PendingPointerResolve> pendings = e.getValue();
@@ -1268,7 +1268,7 @@ public class TwinClassFieldRecomputeService {
         if (!visited.add(key)) return;
 
         // Если хотя бы один trigger помечен async → весь request идёт async.
-        boolean anyAsync = request.triggers().stream().anyMatch(DependencyTrigger::async);
+        boolean anyAsync = request.triggers().stream().anyMatch(RecomputeTrigger::async);
         if (anyAsync) {
             scheduleAsyncRequest(request, collector);
             return;
@@ -1347,10 +1347,10 @@ public class TwinClassFieldRecomputeService {
         }
     }
 
-    /** Контейнер для одного pending recompute до pointer resolution: подписчик-поле + готовый DependencyTrigger. */
+    /** Контейнер для одного pending recompute до pointer resolution: подписчик-поле + готовый RecomputeTrigger. */
     record PendingPointerResolve(
             TwinClassFieldEntity subscriberField,
-            DependencyTrigger trigger                // sealed: FieldTrigger или ActionTrigger
+            RecomputeTrigger trigger                // sealed: RecomputeTriggerOnField или RecomputeTriggerOnAction
     ) {}
 
     /** Pre-loaded Entity для всей волны triggerAffected. Заполняется в preloadEntities одним batch-load-ом. */
@@ -1405,7 +1405,7 @@ public interface TwinClassFieldRecomputeSubscriber {
 record FieldRecomputeRequest(
         TwinEntity subscriberTwin,
         TwinClassFieldEntity subscriberField,
-        List<DependencyTrigger> triggers
+        List<RecomputeTrigger> triggers
 ) {}
 
 /**
@@ -1419,7 +1419,7 @@ record FieldRecomputeRequest(
  * намеренно расширяема: будущие `LinkTrigger`, `TagTrigger`, `MarkerTrigger` добавляются
  * без изменения границы между resolver-ом и executor-ом.
  */
-sealed interface DependencyTrigger permits FieldTrigger, ActionTrigger {
+sealed interface RecomputeTrigger permits RecomputeTriggerOnField, RecomputeTriggerOnAction {
     TwinEntity publisherTwin();
     boolean async();
 }
@@ -1432,21 +1432,21 @@ sealed interface DependencyTrigger permits FieldTrigger, ActionTrigger {
  * но ещё не закоммичен в БД. serializeValue внутри FieldTyper читает operands через
  * twinClassFieldService.getDecimalValue() — он умеет ходить в TwinChangesCollector поверх БД.
  */
-record FieldTrigger(
+record RecomputeTriggerOnField(
         TwinEntity publisherTwin,
         TwinClassFieldEntity publisherField,
         boolean async
-) implements DependencyTrigger {}
+) implements RecomputeTrigger {}
 
 /**
  * Trigger для OnAction recompute rule-а: над publisherTwin-ом выполнена TwinAction (CREATE/EDIT/DELETE).
  * TwinAction — enum, не Entity; twin Entity уже загружено.
  */
-record ActionTrigger(
+record RecomputeTriggerOnAction(
         TwinEntity publisherTwin,
         TwinAction action,
         boolean async
-) implements DependencyTrigger {}
+) implements RecomputeTrigger {}
 ```
 
 **Default-реализация на FieldTyperCalcBinaryMater:**
@@ -1579,7 +1579,7 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
 
 14. **`Pointer.load` контракт на null subscribers.** Если для какого-то src twin подписчик не найден (например, `PointerOnHead` для root twin-а), `load` возвращает map без записи для этого srcId. Базовый класс `Pointer.load` после `load` обходит `misses`, и для отсутствующих в loaded map берёт `null`. Это работает, но есть альтернатива: явный marker-key `Map.put(srcId, null)`. Решение: возвращать map без ключа (как в коде) — проще; null-handling делается в `load`. Зафиксировано в §4.3.1.
 
-15. 🔴 **Async request payload serialization.** `FieldRecomputeRequest` теперь содержит `TwinEntity subscriberTwin` и `TwinClassFieldEntity subscriberField`, плюс `List<DependencyTrigger>` с `TwinEntity publisherTwin`. При `anyAsync=true` request попадает в `TwinChangeTaskEntity` (через `collector.addPostponedTwinClassFieldRecomputeNotify`) и должен сериализоваться в JSON для worker-pool. JPA Entity напрямую не сериализуется (proxy, lazy-load, cyclic refs). Варианты:
+15. 🔴 **Async request payload serialization.** `FieldRecomputeRequest` теперь содержит `TwinEntity subscriberTwin` и `TwinClassFieldEntity subscriberField`, плюс `List<RecomputeTrigger>` с `TwinEntity publisherTwin`. При `anyAsync=true` request попадает в `TwinChangeTaskEntity` (через `collector.addPostponedTwinClassFieldRecomputeNotify`) и должен сериализоваться в JSON для worker-pool. JPA Entity напрямую не сериализуется (proxy, lazy-load, cyclic refs). Варианты:
     - (а) **DTO-projection**: при `addPostponedTwinClassFieldRecomputeNotify` конвертировать request в serializable DTO (`SubscriberTwinId`, `SubscriberFieldId`, `List<PublisherTwinId>`); worker в своей tx делает batch-load entity и reconstructs request. Самый чистый, но дублирование DTO.
     - (б) **Только UUID в request**: вернуться к UUID-based request (откатить §5.2.3), всё entity-loading переложить на FieldTyper внутри recompute. Потеря convenience для sync flow.
     - (в) **Dual request**: sync request содержит Entity, async request — UUID-only. TwinClassFieldRecomputeService сам выбирает по `anyAsync`. Поддержка двух record-ов с одним интерфейсом.
