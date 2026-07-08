@@ -23,7 +23,7 @@ import java.util.UUID;
 @Component
 @Featurer(id = FeaturerTwins.ID_2448,
         name = "Output twin has forward link",
-        description = "True if the output twin has at least one forward link of the given link id (e.g. portion is linked to a task)")
+        description = "True if the output twin has at least one forward link of the given link id")
 @Slf4j
 public class ConditionerOutputTwinHasForwardLink extends Conditioner {
 
@@ -41,8 +41,10 @@ public class ConditionerOutputTwinHasForwardLink extends Conditioner {
             return false;
         }
         UUID link = linkId.extract(properties);
-        twinLinkService.loadTwinLinks(outputTwin);
-        Collection<TwinLinkEntity> links = outputTwin.getTwinLinks().getForwardLinks().getGrouped(link);
-        return CollectionUtils.isNotEmpty(links);
+        if (outputTwin.getTwinLinks() != null) {
+            Collection<TwinLinkEntity> links = outputTwin.getTwinLinks().getForwardLinks().getGrouped(link);
+            return CollectionUtils.isNotEmpty(links);
+        }
+        return twinLinkService.hasLink(outputTwin, link);
     }
 }
