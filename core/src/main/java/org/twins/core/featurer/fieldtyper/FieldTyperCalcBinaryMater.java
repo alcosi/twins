@@ -9,14 +9,13 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.service.twinclassfield.recompute.TwinClassFieldRecomputeEvent;
-import org.twins.core.service.twinclassfield.recompute.TwinClassFieldRecomputeSubscriber;
+import org.twins.core.service.twinclassfield.recompute.FieldRecomputeRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater, TwinClassFieldRecomputeSubscriber {
+public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater, FieldTyperRecomputed {
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -51,9 +50,9 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
      * delta-increment overrides are a future optimization (see ai/plans/field-typer-mater-listeners.md §7.11).
      */
     @Override
-    public void recompute(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, event.subscriberField().getFieldTyperParams());
-        FieldValueText value = new FieldValueText(event.subscriberField());
-        serializeValue(properties, event.subscriberTwin(), value, collector);
+    public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, request.subscriberField().getFieldTyperParams());
+        FieldValueText value = new FieldValueText(request.subscriberField());
+        serializeValue(properties, request.subscriberTwin(), value, collector);
     }
 }

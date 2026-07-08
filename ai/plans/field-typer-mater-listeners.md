@@ -1044,15 +1044,15 @@ public class TwinClassFieldRecomputeOnActionValidatorRuleService
    - Извлекает `AffectedSnapshot` (какие поля у каких твинов изменились, какие actions выполнялись)
    - Bulk detection: если >50 twins → consolidated async task, return
    - **Шаг 1 (pre-load Entity)**: `preloadEntities` одним batch достаёт `TwinEntity publisherTwins` (уже в persistence context, без SQL — publishers modified в tx) + `TwinClassFieldEntity` (один `findByIds` по всем fieldId из recompute metadata: subscriber-поля + changed-поля)
-   - **Шаг 2 (collect)**: `collectOnFieldRecomputes` и `collectOnActionRecomputes` создают **готовые `PublisherRef`** (с Entity из preloaded) + `PendingPointerResolve(subscriberField, publisherRef)`, складывают в `Map<UUID pointerId, List<PendingPointerResolve>>`. Validator check для OnAction здесь (publisher-specific). Если один pointer использован в OnField и OnAction recompute rule-ах — их pending-и сливаются под одним pointerId → `Pointer.load` отработает один раз
-   - **Шаг 3 (pointer resolution)**: `resolveToEvents` итерирует по `pendingByPointer` — для каждого `pointerId` один `Pointer.load([allPublisherTwins])` (см. §4.3.1) → `Map<publisherTwinId, subscriberTwin>`. Группировка по `(subscriberTwin, subscriberField)` → ОДИН `TwinClassFieldRecomputeEvent` на группу. Возвращает `List<TwinClassFieldRecomputeEvent>`. `SubscriberKey = (subscriberTwinId, subscriberFieldId, subscriberTwin, subscriberField)` — UUID-pair как identity для HashMap (override equals/hashCode), Entity как cargo
-3. Dispatch — для каждого `TwinClassFieldRecomputeEvent` один вызов `subscriber.notify(event, collector)`:
-   - `TwinClassFieldRecomputeService` находит `FieldTyper` для `event.subscriberField()` (по `fieldTyperFeaturerId`), кастует к `TwinClassFieldRecomputeSubscriber`
-   - FieldTyper внутри `notify` сам решает: full recompute через `serializeValue` (MVP) / delta-increment (future) / skip
-   - Event содержит уже загруженные Entity — никаких `findById` внутри `notify`
+   - **Шаг 2 (collect)**: `collectOnFieldRecomputes` и `collectOnActionRecomputes` создают **готовые `DependencyTrigger`** (с Entity из preloaded) + `PendingPointerResolve(subscriberField, trigger)`, складывают в `Map<UUID pointerId, List<PendingPointerResolve>>`. Validator check для OnAction здесь (publisher-specific). Если один pointer использован в OnField и OnAction recompute rule-ах — их pending-и сливаются под одним pointerId → `Pointer.load` отработает один раз
+   - **Шаг 3 (pointer resolution)**: `resolveToRequests` итерирует по `pendingByPointer` — для каждого `pointerId` один `Pointer.load([allPublisherTwins])` (см. §4.3.1) → `Map<publisherTwinId, subscriberTwin>`. Группировка по `(subscriberTwin, subscriberField)` → ОДИН `FieldRecomputeRequest` на группу с несколькими triggers. Возвращает `List<FieldRecomputeRequest>`. `SubscriberKey = (subscriberTwinId, subscriberFieldId, subscriberTwin, subscriberField)` — UUID-pair как identity для HashMap (override equals/hashCode), Entity как cargo
+3. Dispatch — для каждого `FieldRecomputeRequest` один вызов `subscriber.recompute(request, collector)`:
+   - `TwinClassFieldRecomputeService` находит `FieldTyper` для `request.subscriberField()` (по `fieldTyperFeaturerId`), кастует к `TwinClassFieldRecomputeSubscriber`
+   - FieldTyper внутри `recompute` сам решает: full recompute через `serializeValue` (MVP) / delta-increment (future) / skip
+   - Request содержит уже загруженные Entity — никаких `findById` внутри `recompute`
 4. Каскад: FieldTyper через `serializeValue` положил изменение subscriber-поля в тот же collector → TwinClassFieldRecomputeService recurses (visited-set + max-depth cap)
 
-**Ключевой момент про publisher-state в sync flow.** На момент вызова `notify` publishers **уже изменены в collector, но ещё не в БД** (publisher-tx ещё не закоммичена). Это значит:
+**Ключевой момент про publisher-state в sync flow.** На момент вызова `recompute` publishers **уже изменены в collector, но ещё не в БД** (publisher-tx ещё не закоммичена). Это значит:
 - `serializeValue` работает — он читает pending values через `twinClassFieldService.getDecimalValue()`, который ходит в `TwinChangesCollector` поверх БД
 - SQL aggregate на БД (`SELECT SUM(value) FROM twin_field WHERE twin_id IN (publishers)`) **НЕ работает** — данных там ещё нет
 - Delta-increment требует либо (а) чтения pending oldValue из collector, либо (б) откладывания delta до async worker-а (после commit). См. §7 open questions
@@ -1083,7 +1083,7 @@ public class TwinClassFieldRecomputeService {
     /** Главный hook — вызывается из TwinService.createTwin / updateTwin между validateAndCollect и applyChanges. */
     public void triggerAffected(TwinChangesCollector collector) throws ServiceException {
         // Каскадная рекурсия использует тот же visited-set по (subscriber twin, field),
-        // чтобы не запускать notify дважды для одной пары и защититься от циклов.
+        // чтобы не запускать recompute дважды для одной пары и защититься от циклов.
         triggerAffected(collector, new HashSet<>(), 0);
     }
 
@@ -1106,21 +1106,21 @@ public class TwinClassFieldRecomputeService {
         PreloadedEntities preloaded = preloadEntities(snapshot);
 
         // === Шаг 2. Collect PendingPointerResolve по pointerId ===
-        // Collect-методы создают ГОТОВЫЕ PublisherRef (с Entity), складывают по pointerId.
+        // Collect-методы создают ГОТОВЫЕ DependencyTrigger (с Entity), складывают по pointerId.
         // Map key — UUID pointerId (не TwinPointerEntity; instance hashCode не стабилен).
         // Под одним pointerId могут быть смешаны OnField и OnAction pending-и — Pointer.load отработает один раз.
         Map<UUID, List<PendingPointerResolve>> pendingByPointer = new HashMap<>();
         collectOnFieldRecomputes(snapshot, preloaded, pendingByPointer);
         collectOnActionRecomputes(snapshot, preloaded, pendingByPointer);
 
-        // === Шаг 3. Pointer resolution → List<TwinClassFieldRecomputeEvent> ===
+        // === Шаг 3. Pointer resolution → List<FieldRecomputeRequest> ===
         // Для каждого pointerId: один Pointer.load батчем по всем publisherTwins → subscriberTwins.
-        // Группировка по (subscriberTwin, subscriberField) → ОДИН TwinClassFieldRecomputeEvent на группу.
-        List<TwinClassFieldRecomputeEvent> events = resolveToEvents(pendingByPointer, visited);
+        // Группировка по (subscriberTwin, subscriberField) → ОДИН FieldRecomputeRequest на группу с несколькими triggers.
+        List<FieldRecomputeRequest> requests = resolveToRequests(pendingByPointer, visited);
 
-        // === Шаг 4. Dispatch — один notify на event ===
-        for (TwinClassFieldRecomputeEvent event : events) {
-            dispatchNotify(event, collector, visited, depth);
+        // === Шаг 4. Dispatch — один recompute на request ===
+        for (FieldRecomputeRequest request : requests) {
+            dispatchRecompute(request, collector, visited, depth);
         }
     }
 
@@ -1157,7 +1157,7 @@ public class TwinClassFieldRecomputeService {
     }
 
     /**
-     * Collect OnField pending-ов: для каждого сработавшего recompute rule-а создаём PublisherByField
+     * Collect OnField pending-ов: для каждого сработавшего recompute rule-а создаём FieldTrigger
      * (готовый, с Entity) + PendingPointerResolve, складываем по pointerId.
      */
     private void collectOnFieldRecomputes(AffectedSnapshot snapshot, PreloadedEntities preloaded,
@@ -1169,17 +1169,17 @@ public class TwinClassFieldRecomputeService {
             TwinClassFieldEntity subscriberField = preloaded.fieldById().get(recomputeRule.getSubscriberTwinClassFieldId());
             for (UUID publisherTwinId : snapshot.twinsByChangedField(changedFieldId)) {
                 TwinEntity publisherTwin = preloaded.publisherTwinById().get(publisherTwinId);
-                PublisherByField ref = new PublisherByField(publisherTwin, changedField, recomputeRule.isAsync());
+                FieldTrigger trigger = new FieldTrigger(publisherTwin, changedField, recomputeRule.isAsync());
                 pendingByPointer
                         .computeIfAbsent(recomputeRule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
-                        .add(new PendingPointerResolve(subscriberField, ref));
+                        .add(new PendingPointerResolve(subscriberField, trigger));
             }
         }
     }
 
     /**
      * Collect OnAction pending-ов: для каждого (actionKey, publisherTwinId, recomputeRule) создаём
-     * PublisherByAction + PendingPointerResolve. Validator check здесь, т.к. publisher-specific.
+     * ActionTrigger + PendingPointerResolve. Validator check здесь, т.к. publisher-specific.
      */
     private void collectOnActionRecomputes(AffectedSnapshot snapshot, PreloadedEntities preloaded,
                                           Map<UUID, List<PendingPointerResolve>> pendingByPointer) throws ServiceException {
@@ -1191,25 +1191,25 @@ public class TwinClassFieldRecomputeService {
                     if (!shouldFireByValidators(recomputeRule, publisherTwinId)) continue;
                     TwinEntity publisherTwin = preloaded.publisherTwinById().get(publisherTwinId);
                     TwinClassFieldEntity subscriberField = preloaded.fieldById().get(recomputeRule.getSubscriberTwinClassFieldId());
-                    PublisherByAction ref = new PublisherByAction(publisherTwin, actionKey.action(), recomputeRule.isAsync());
+                    ActionTrigger trigger = new ActionTrigger(publisherTwin, actionKey.action(), recomputeRule.isAsync());
                     pendingByPointer
                             .computeIfAbsent(recomputeRule.getSubscriberTwinPointerId(), k -> new ArrayList<>())
-                            .add(new PendingPointerResolve(subscriberField, ref));
+                            .add(new PendingPointerResolve(subscriberField, trigger));
                 }
             }
         }
     }
 
     /**
-     * Pointer resolution → List<TwinClassFieldRecomputeEvent>. Для каждого pointerId:
+     * Pointer resolution → List<FieldRecomputeRequest>. Для каждого pointerId:
      *   1. TwinPointerEntity lookup (Caffeine)
      *   2. Pointer.load([allPublisherTwins]) → Map<UUID publisherTwinId, TwinEntity subscriberTwin>
-     *   3. Group by (subscriberTwin, subscriberField) → один TwinClassFieldRecomputeEvent на группу
+     *   3. Group by (subscriberTwin, subscriberField) → один FieldRecomputeRequest на группу с несколькими triggers
      */
-    private List<TwinClassFieldRecomputeEvent> resolveToEvents(Map<UUID, List<PendingPointerResolve>> pendingByPointer,
+    private List<FieldRecomputeRequest> resolveToRequests(Map<UUID, List<PendingPointerResolve>> pendingByPointer,
                                                      Set<SubscriberKey> visited) throws ServiceException {
         // Локальная группировка — отделена от внешнего visited-set, чтобы cycle protection сработала на dispatch.
-        Map<SubscriberKey, List<PublisherRef>> grouped = new LinkedHashMap<>();
+        Map<SubscriberKey, List<DependencyTrigger>> grouped = new LinkedHashMap<>();
         for (var e : pendingByPointer.entrySet()) {
             UUID pointerId = e.getKey();
             List<PendingPointerResolve> pendings = e.getValue();
@@ -1218,7 +1218,7 @@ public class TwinClassFieldRecomputeService {
             Pointer pointerFeaturer = featurerService.getFeaturer(pointer.getPointerFeaturerId(), Pointer.class);
             // Уникальные publisherTwins для этого pointer-а (могут быть общие между OnField/OnAction pending-ами).
             Collection<TwinEntity> publisherTwins = pendings.stream()
-                    .map(p -> p.publisherRef().twin())
+                    .map(p -> p.trigger().publisherTwin())
                     .distinct().toList();
             Map<UUID, TwinEntity> subscriberByPublisher;
             try {
@@ -1235,7 +1235,7 @@ public class TwinClassFieldRecomputeService {
             }
 
             for (PendingPointerResolve p : pendings) {
-                TwinEntity subscriber = subscriberByPublisher.get(p.publisherRef().twin().getId());
+                TwinEntity subscriber = subscriberByPublisher.get(p.trigger().publisherTwin().getId());
                 if (subscriber == null) {
                     meterRegistry.counter("twin_class_field_recompute_no_subscriber.total").increment();
                     continue;
@@ -1243,49 +1243,49 @@ public class TwinClassFieldRecomputeService {
                 SubscriberKey key = new SubscriberKey(
                         subscriber.getId(), p.subscriberField().getId(), subscriber, p.subscriberField());
                 if (visited.contains(key)) continue;
-                grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(p.publisherRef());
+                grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(p.trigger());
             }
         }
 
-        List<TwinClassFieldRecomputeEvent> events = new ArrayList<>(grouped.size());
+        List<FieldRecomputeRequest> requests = new ArrayList<>(grouped.size());
         for (var g : grouped.entrySet()) {
-            events.add(new TwinClassFieldRecomputeEvent(
+            requests.add(new FieldRecomputeRequest(
                     g.getKey().subscriberTwin(),
                     g.getKey().subscriberField(),
                     List.copyOf(g.getValue())));
         }
-        return events;
+        return requests;
     }
 
-    private void dispatchNotify(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector,
+    private void dispatchRecompute(FieldRecomputeRequest request, TwinChangesCollector collector,
                                 Set<SubscriberKey> visited, int depth) throws ServiceException {
         // Cycle protection: subscriber-pair уже был обработан в этой cascade-ветке?
         SubscriberKey key = new SubscriberKey(
-                event.subscriberTwin().getId(),
-                event.subscriberField().getId(),
-                event.subscriberTwin(),
-                event.subscriberField());
+                request.subscriberTwin().getId(),
+                request.subscriberField().getId(),
+                request.subscriberTwin(),
+                request.subscriberField());
         if (!visited.add(key)) return;
 
-        // Если хотя бы один publisher помечен async → весь event идёт async.
-        boolean anyAsync = event.publishers().stream().anyMatch(PublisherRef::async);
+        // Если хотя бы один trigger помечен async → весь request идёт async.
+        boolean anyAsync = request.triggers().stream().anyMatch(DependencyTrigger::async);
         if (anyAsync) {
-            scheduleAsyncNotify(event, collector);
+            scheduleAsyncRequest(request, collector);
             return;
         }
 
         FieldTyper fieldTyper = featurerService.getFeaturer(
-                event.subscriberField().getFieldTyperFeaturerId(), FieldTyper.class);
+                request.subscriberField().getFieldTyperFeaturerId(), FieldTyper.class);
         if (!(fieldTyper instanceof TwinClassFieldRecomputeSubscriber subscriber)) {
             log.warn("FieldTyper {} for field {} is not a TwinClassFieldRecomputeSubscriber, skipping",
-                    fieldTyper.getClass().getSimpleName(), event.subscriberField().getId());
+                    fieldTyper.getClass().getSimpleName(), request.subscriberField().getId());
             meterRegistry.counter("twin_class_field_recompute_not_subscriber.total").increment();
             return;
         }
 
-        // Один вызов notify на event. event уже содержит Entity — без дополнительных findById в FieldTyper.
-        // sync flow: serializeValue внутри notify читает operands из collector-pending-state (publishers ещё не в БД).
-        subscriber.notify(event, collector);
+        // Один вызов recompute на request. request уже содержит Entity — без дополнительных findById в FieldTyper.
+        // sync flow: serializeValue внутри recompute читает operands из collector-pending-state (publishers ещё не в БД).
+        subscriber.recompute(request, collector);
 
         // Каскад: serializeValue положил изменение subscriber-поля в тот же collector.
         // Recurses с тем же visited-set + depth+1 — новый snapshot обнаружит изменение subscriber-поля
@@ -1309,13 +1309,13 @@ public class TwinClassFieldRecomputeService {
         return true;
     }
 
-    private void scheduleAsyncNotify(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector) {
-        // Сериализовать event в JSON, положить в TwinChangeTaskEntity (NEED_START) через collector — outbox.
-        // Worker-pool после commit publisher-tx прочитает, десериализует, вызовет subscriber.notify в новой tx.
+    private void scheduleAsyncRequest(FieldRecomputeRequest request, TwinChangesCollector collector) {
+        // Сериализовать request в JSON, положить в TwinChangeTaskEntity (NEED_START) через collector — outbox.
+        // Worker-pool после commit publisher-tx прочитает, десериализует, вызовет subscriber.recompute в новой tx.
         // Здесь publishers уже в БД — поэтому serializeValue / SQL aggregate работают.
-        // ВНИМАНИЕ: TwinEntity / TwinClassFieldEntity в event не сериализуются напрямую; worker
-        // должен по UUID из event'а загрузить их заново в своей tx (см. §7 open question про async event payload).
-        collector.addPostponedTwinClassFieldRecomputeNotify(event);
+        // ВНИМАНИЕ: TwinEntity / TwinClassFieldEntity в request не сериализуются напрямую; worker
+        // должен по UUID из request-а загрузить их заново в своей tx (см. §7 open question про async request payload).
+        collector.addPostponedTwinClassFieldRecomputeNotify(request);
     }
 
     private void scheduleConsolidatedBulkTask(AffectedSnapshot snapshot, TwinChangesCollector collector) {
@@ -1326,8 +1326,8 @@ public class TwinClassFieldRecomputeService {
 
     /**
      * Ключ группы + cargo Entity. equals/hashCode только по UUID-pair (TwinEntity нельзя в
-     * identity HashMap key — JPA hashCode нестабилен). Entity-поля — cargo для dispatchNotify,
-     * чтобы не делать findById повторно. Заполняется в resolveToEvents после Pointer.load.
+     * identity HashMap key — JPA hashCode нестабилен). Entity-поля — cargo для dispatchRecompute,
+     * чтобы не делать findById повторно. Заполняется в resolveToRequests после Pointer.load.
      */
     record SubscriberKey(
             UUID subscriberTwinId,
@@ -1347,10 +1347,10 @@ public class TwinClassFieldRecomputeService {
         }
     }
 
-    /** Контейнер для одного pending notify до pointer resolution: подписчик-поле + готовый PublisherRef. */
+    /** Контейнер для одного pending recompute до pointer resolution: подписчик-поле + готовый DependencyTrigger. */
     record PendingPointerResolve(
             TwinClassFieldEntity subscriberField,
-            PublisherRef publisherRef           // sealed: PublisherByField или PublisherByAction
+            DependencyTrigger trigger                // sealed: FieldTrigger или ActionTrigger
     ) {}
 
     /** Pre-loaded Entity для всей волны triggerAffected. Заполняется в preloadEntities одним batch-load-ом. */
@@ -1368,13 +1368,13 @@ public class TwinClassFieldRecomputeService {
 
 #### 5.2.3. Интерфейс TwinClassFieldRecomputeSubscriber
 
-Реализуется на тех `FieldTyper`, которые могут быть Mater-подписчиками (в первую очередь — `FieldTyperCalcBinaryMater` и его наследники). Конкретные наследники могут override-ить `notify` для оптимизаций (delta-increment для Sum-вариантов и т.п.).
+Реализуется на тех `FieldTyper`, которые могут быть Mater-подписчиками (в первую очередь — `FieldTyperCalcBinaryMater` и его наследники). Конкретные наследники могут override-ить `recompute` для оптимизаций (delta-increment для Sum-вариантов и т.п.).
 
 ```java
 package org.twins.core.service.twinclassfield.recompute;
 
 /**
- * Контракт: FieldTyper как получатель уведомления от TwinClassFieldRecomputeService.
+ * Контракт: FieldTyper как получатель запроса на пересчёт от TwinClassFieldRecomputeService.
  *
  * Реализация сама решает, как именно обновить Mater-поле:
  *  - full recompute через serializeValue (default в FieldTyperCalcBinaryMater)
@@ -1388,59 +1388,65 @@ package org.twins.core.service.twinclassfield.recompute;
 public interface TwinClassFieldRecomputeSubscriber {
 
     /**
-     * @param event     full context: subscriber TwinEntity + TwinClassFieldEntity (уже загружены),
-     *                  publishers с готовыми Entity (без дополнительных lookup-ов в FieldTyper)
+     * @param request   full context: subscriber TwinEntity + TwinClassFieldEntity (уже загружены),
+     *                  triggers с готовыми Entity (без дополнительных lookup-ов в FieldTyper)
      * @param collector accumulate-точка для изменений Mater-поля; та же tx что и у publisher (sync) или worker (async)
      */
-    void notify(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector) throws ServiceException;
+    void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException;
 }
 
 /**
- * Событие «обнови Mater-поле subscriber.subscriberField учитывая publishers».
- * Один event = одна группа (один subscriber twin + одно subscriber field), publishers ≥1.
+ * Запрос «обнови Mater-поле subscriber.subscriberField учитывая triggers».
+ * Один request = одна группа (один subscriber twin + одно subscriber field), triggers ≥1.
  *
  * Все Entity уже загружены TwinClassFieldRecomputeService.batchResolveSubscribers + единый findById
  * для subscriberField — FieldTyper не должен делать дополнительных lookup-ов в БД.
  */
-record TwinClassFieldRecomputeEvent(
+record FieldRecomputeRequest(
         TwinEntity subscriberTwin,
         TwinClassFieldEntity subscriberField,
-        List<PublisherRef> publishers
+        List<DependencyTrigger> triggers
 ) {}
 
 /**
- * Marker для двух вариантов publisher-а. Sealed interface → exhaustive switch в FieldTyper.
- * Все publishers в одном event-е всегда одного типа (группировка идёт отдельно для OnField
+ * Источник инициации пересчёта. Sealed interface → exhaustive switch в FieldTyper.
+ * Все triggers в одном request-е всегда одного типа (группировка идёт отдельно для OnField
  * и OnAction recompute rule-ов, mixed не смешиваются).
+ *
+ * Название «trigger» (а не «publisher ref») выбрано сознательно: именно эта абстракция
+ * объясняет будущему delta-алгоритму, **почему** затребован пересчёт — без знания trigger-а
+ * delta невозможна (нужно знать, какой publisher внёс вклад). Запечатанная иерархия
+ * намеренно расширяема: будущие `LinkTrigger`, `TagTrigger`, `MarkerTrigger` добавляются
+ * без изменения границы между resolver-ом и executor-ом.
  */
-sealed interface PublisherRef permits PublisherByField, PublisherByAction {
-    TwinEntity twin();
+sealed interface DependencyTrigger permits FieldTrigger, ActionTrigger {
+    TwinEntity publisherTwin();
     boolean async();
 }
 
 /**
- * Publisher для OnField recompute rule-а: у twin-а изменилось поле twinClassField (operand).
+ * Trigger для OnField recompute rule-а: у publisherTwin-а изменилось поле publisherField (operand).
  * Обе Entity уже загружены, никаких дополнительных lookup-ов не требуется.
  *
- * ВАЖНО: на момент notify в sync flow publisher-twin уже изменён в TwinChangesCollector,
+ * ВАЖНО: на момент recompute в sync flow publisher-twin уже изменён в TwinChangesCollector,
  * но ещё не закоммичен в БД. serializeValue внутри FieldTyper читает operands через
  * twinClassFieldService.getDecimalValue() — он умеет ходить в TwinChangesCollector поверх БД.
  */
-record PublisherByField(
-        TwinEntity twin,
-        TwinClassFieldEntity twinClassField,
+record FieldTrigger(
+        TwinEntity publisherTwin,
+        TwinClassFieldEntity publisherField,
         boolean async
-) implements PublisherRef {}
+) implements DependencyTrigger {}
 
 /**
- * Publisher для OnAction recompute rule-а: над twin-ом выполнена TwinAction (CREATE/EDIT/DELETE).
+ * Trigger для OnAction recompute rule-а: над publisherTwin-ом выполнена TwinAction (CREATE/EDIT/DELETE).
  * TwinAction — enum, не Entity; twin Entity уже загружено.
  */
-record PublisherByAction(
-        TwinEntity twin,
+record ActionTrigger(
+        TwinEntity publisherTwin,
         TwinAction action,
         boolean async
-) implements PublisherRef {}
+) implements DependencyTrigger {}
 ```
 
 **Default-реализация на FieldTyperCalcBinaryMater:**
@@ -1454,15 +1460,15 @@ public abstract class FieldTyperCalcBinaryMater
 
     /**
      * MVP default: full recompute через serializeValue.
-     * subscriberTwin и subscriberField уже приходят в event — никаких лишних findById.
+     * subscriberTwin и subscriberField уже приходят в request — никаких лишних findById.
      * serializeValue читает operands через twinClassFieldService.getDecimalValue(),
      * который умеет ходить в TwinChangesCollector (pending state) — поэтому работает
      * даже если publishers ещё не в БД (sync flow).
      */
     @Override
-    public void notify(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector) throws ServiceException {
-        FieldValue fieldValue = tryToInitializeValue(event.subscriberTwin(), event.subscriberField());
-        serializeValue(event.subscriberTwin(), fieldValue, collector);  // переиспользуем существующую логику
+    public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+        FieldValue fieldValue = tryToInitializeValue(request.subscriberTwin(), request.subscriberField());
+        serializeValue(request.subscriberTwin(), fieldValue, collector);  // переиспользуем существующую логику
     }
 }
 ```
@@ -1479,19 +1485,19 @@ public class FieldTyperCalcSumMater extends FieldTyperCalcBinaryMater {
      * delta класть в collector как increment (как applyDecimalIncrements).
      * В async flow: publishers уже в БД, но oldValue нужно из twin_change_history.
      *
-     * MVP: просто fallback на super.notify (full recompute).
+     * MVP: просто fallback на super.recompute (full recompute).
      * Optimization — отдельная итерация, см. §7.
      */
     @Override
-    public void notify(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector) throws ServiceException {
-        super.notify(event, collector);
+    public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+        super.recompute(request, collector);
     }
 }
 ```
 
 **Почему `FieldTyper` реализует интерфейс напрямую (а не отдельный класс-подписчик).**
 
-- **Тесная связь с params и serializeValue.** `notify` нужен доступ к `firstFieldId`, `secondFieldId` из `featurerParams`, и к существующему `serializeValue` — всё это уже на FieldTyper. Отдельный subscriber-класс потребовал бы дублирования или делегирования.
+- **Тесная связь с params и serializeValue.** `recompute` нужен доступ к `firstFieldId`, `secondFieldId` из `featurerParams`, и к существующему `serializeValue` — всё это уже на FieldTyper. Отдельный subscriber-класс потребовал бы дублирования или делегирования.
 - **Будущая авто-регистрация recompute rules из FieldTyper.** На втором этапе (см. §5.4) при `TwinClassFieldService.saveField()` нужно извлекать operand-fields из params и регистрировать recompute rules. Наличие `TwinClassFieldRecomputeSubscriber` на самом FieldTyper даёт единый self-describing контракт: FieldTyper сам знает, на какие поля ему подписываться — это пригодится для авто-регистрации.
 - **Проверка «может ли FieldTyper быть Mater-подписчиком» = `instanceof TwinClassFieldRecomputeSubscriber`.** Простой, без реестра featurer_id → subscriber-class.
 
@@ -1559,13 +1565,13 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
     
     **Рекомендация:** не реализовывать delta в MVP. Сначала baseline-замеры (`pg_stat_statements` + `@Timed`) — если SUM Mater на bulk-CUD не упрётся в latency, full recompute достаточно. Если упрётся — приоритизировать sync flow (вариант а) как более дешёвый.
 
-12. **Каскадная рекурсия через `triggerAffected(collector, visited, depth+1)` после `subscriber.notify`.** Сейчас TwinClassFieldRecomputeService recursing-ет после каждого notify, рассчитывая, что новый snapshot из collector поймает изменения subscriber-поля (если оно operand для другого Mater). Возможные проблемы:
+12. **Каскадная рекурсия через `triggerAffected(collector, visited, depth+1)` после `subscriber.recompute`.** Сейчас TwinClassFieldRecomputeService recursing-ет после каждого recompute, рассчитывая, что новый snapshot из collector поймает изменения subscriber-поля (если оно operand для другого Mater). Возможные проблемы:
     - Один и тот же subscriber-field может быть operand для нескольких других Mater-полей — все они должны быть в одной cascade-волне. Текущая рекурсия ловит это через новый snapshot.
-    - Cycle protection через visited-set: если A → B → A, второе срабатывание A пропустится через visited. Но深度 cap (default 5) — единственная защита от очень длинных цепочек. Если в domain будет 6+ уровней Mater-цепочек — поднять cap через конфиг.
+    - Cycle protection через visited-set: если A → B → A, второе срабатывание A пропустится через visited. Но depth cap (default 5) — единственная защита от очень длинных цепочек. Если в domain будет 6+ уровней Mater-цепочек — поднять cap через конфиг.
     - Performance: каждая cascade-волна = новый full snapshot extract. Для глубоких цепочек (depth=5) это 5 snapshots. На больших collector-ах может быть дорого. Альтернатива: incremental snapshot (только новые изменения с прошлого snapshot). Не в MVP.
 
-13. **Partial failure в `Pointer.load` batch-е.** Если для одного из publisher-ов в batch-е pointer резолвится в несколько кандидатов (`POINTER_NON_SINGLE`), сейчас весь batch для этого pointer-а skip-ается (см. `resolveAndDistribute` try-catch). Это потеря валидных notify для других publisher-ов того же batch-а. Возможные варианты:
-    - (а) **Оставить как в MVP** (skip весь batch). Просто, но теряет часть notify на bulk CUD если один publisher сконфигурирован криво (например, у одного TwinLink два dst, остальные норм). Reconciliation cron (§4.6) подстрахует.
+13. **Partial failure в `Pointer.load` batch-е.** Если для одного из publisher-ов в batch-е pointer резолвится в несколько кандидатов (`POINTER_NON_SINGLE`), сейчас весь batch для этого pointer-а skip-ается (см. `resolveToRequests` try-catch). Это потеря валидных recompute для других publisher-ов того же batch-а. Возможные варианты:
+    - (а) **Оставить как в MVP** (skip весь batch). Просто, но теряет часть recompute на bulk CUD если один publisher сконфигурирован криво (например, у одного TwinLink два dst, остальные норм). Reconciliation cron (§4.6) подстрахует.
     - (б) **Partial retry**: при POINTER_NON_SINGLE — сплит batch пополам, retry каждой половины; где падает — ещё сплит, пока не останется один problematic publisher, который skip-аем individually. Правильно, но усложняет код.
     - (в) **Изменить контракт load**: вернуть `Map<UUID srcId, Either<TwinEntity, ServiceException>>` — partial success на уровне API. Самый гибкий, но усложняет все реализации subclass-ов.
     
@@ -1573,14 +1579,14 @@ public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCo
 
 14. **`Pointer.load` контракт на null subscribers.** Если для какого-то src twin подписчик не найден (например, `PointerOnHead` для root twin-а), `load` возвращает map без записи для этого srcId. Базовый класс `Pointer.load` после `load` обходит `misses`, и для отсутствующих в loaded map берёт `null`. Это работает, но есть альтернатива: явный marker-key `Map.put(srcId, null)`. Решение: возвращать map без ключа (как в коде) — проще; null-handling делается в `load`. Зафиксировано в §4.3.1.
 
-15. 🔴 **Async event payload serialization.** `TwinClassFieldRecomputeEvent` теперь содержит `TwinEntity subscriberTwin` и `TwinClassFieldEntity subscriberField`, плюс `List<PublisherRef>` с `TwinEntity twin`. При `anyAsync=true` event попадает в `TwinChangeTaskEntity` (через `collector.addPostponedTwinClassFieldRecomputeNotify`) и должен сериализоваться в JSON для worker-pool. JPA Entity напрямую не сериализуется (proxy, lazy-load, cyclic refs). Варианты:
-    - (а) **DTO-projection**: при `addPostponedTwinClassFieldRecomputeNotify` конвертировать event в serializable DTO (`SubscriberTwinId`, `SubscriberFieldId`, `List<PublisherTwinId>`); worker в своей tx делает batch-load entity и reconstructs event. Самый чистый, но дублирование DTO.
-    - (б) **Только UUID в event**: вернуться к UUID-based event (откатить §5.2.3), всё entity-loading переложить на FieldTyper внутри notify. Потеря convenience для sync flow.
-    - (в) **Dual event**: sync event содержит Entity, async event — UUID-only. TwinClassFieldRecomputeService сам выбирает по `anyAsync`. Поддержка двух record-ов с одним интерфейсом.
+15. 🔴 **Async request payload serialization.** `FieldRecomputeRequest` теперь содержит `TwinEntity subscriberTwin` и `TwinClassFieldEntity subscriberField`, плюс `List<DependencyTrigger>` с `TwinEntity publisherTwin`. При `anyAsync=true` request попадает в `TwinChangeTaskEntity` (через `collector.addPostponedTwinClassFieldRecomputeNotify`) и должен сериализоваться в JSON для worker-pool. JPA Entity напрямую не сериализуется (proxy, lazy-load, cyclic refs). Варианты:
+    - (а) **DTO-projection**: при `addPostponedTwinClassFieldRecomputeNotify` конвертировать request в serializable DTO (`SubscriberTwinId`, `SubscriberFieldId`, `List<PublisherTwinId>`); worker в своей tx делает batch-load entity и reconstructs request. Самый чистый, но дублирование DTO.
+    - (б) **Только UUID в request**: вернуться к UUID-based request (откатить §5.2.3), всё entity-loading переложить на FieldTyper внутри recompute. Потеря convenience для sync flow.
+    - (в) **Dual request**: sync request содержит Entity, async request — UUID-only. TwinClassFieldRecomputeService сам выбирает по `anyAsync`. Поддержка двух record-ов с одним интерфейсом.
     
-    **Рекомендация:** вариант (а). Sync flow — Entity (быстро, без lookup-ов в FieldTyper). Async flow — DTO projection → worker reconstruct. Код прост: один метод `event.toAsyncPayload()` в TwinClassFieldRecomputeEvent, и метод `fromAsyncPayload(payload, tx)` в worker.
+    **Рекомендация:** вариант (а). Sync flow — Entity (быстро, без lookup-ов в FieldTyper). Async flow — DTO projection → worker reconstruct. Код прост: один метод `request.toAsyncPayload()` в FieldRecomputeRequest, и метод `fromAsyncPayload(payload, tx)` в worker.
 
-16. **Cascading reload Entity на каждой cascade wave.** После `subscriber.notify()` TwinClassFieldRecomputeService recurses (`triggerAffected(collector, visited, depth+1)`). Новый snapshot из collector → новый batch → новая batch-load TwinEntity/TwinClassFieldEntity для subscriber-полей. На глубоких cascade (depth=5) это 5 batch-load циклов. Caffeine на TwinClassFieldEntity metadata (см. §4.3.2) смягчает — но TwinEntity subscriber каждый раз грузится заново. Возможные оптимизации: (i) кэш TwinEntity по id в tx scope (аналог pointerResultCache, но на twinClassFieldRecompute level), (ii) инкрементальный snapshot. Не в MVP.
+16. **Cascading reload Entity на каждой cascade wave.** После `subscriber.recompute()` TwinClassFieldRecomputeService recurses (`triggerAffected(collector, visited, depth+1)`). Новый snapshot из collector → новый batch → новая batch-load TwinEntity/TwinClassFieldEntity для subscriber-полей. На глубоких cascade (depth=5) это 5 batch-load циклов. Caffeine на TwinClassFieldEntity metadata (см. §4.3.2) смягчает — но TwinEntity subscriber каждый раз грузится заново. Возможные оптимизации: (i) кэш TwinEntity по id в tx scope (аналог pointerResultCache, но на twinClassFieldRecompute level), (ii) инкрементальный snapshot. Не в MVP.
 
 ---
 
