@@ -17,6 +17,9 @@ import org.twins.core.dao.twin.TwinPointerRepository;
 import org.twins.core.featurer.pointer.Pointer;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -57,6 +60,20 @@ public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerE
     public TwinEntity getPointer(TwinEntity currentTwin, UUID twinPointerId) throws ServiceException {
         TwinPointerEntity twinPointer = findEntitySafe(twinPointerId);
         Pointer pointer = featurerService.getFeaturer(twinPointer.getPointerFeaturerId(), Pointer.class);
-        return pointer.point(twinPointer.getPointerParams(), currentTwin);
+        return pointer.point(twinPointer, currentTwin);
+    }
+
+    public Map<UUID, TwinEntity> getPointers(Collection<TwinEntity> publishers, UUID twinPointerId) throws ServiceException {
+        TwinPointerEntity twinPointer = findEntitySafe(twinPointerId);
+        Pointer pointer = featurerService.getFeaturer(twinPointer.getPointerFeaturerId(), Pointer.class);
+        pointer.load(twinPointer, publishers);
+        Map<UUID, TwinEntity> result = new HashMap<>();
+        for (TwinEntity src : publishers) {
+            TwinEntity pointed = src.getPointer(twinPointerId);
+            if (pointed != null) {
+                result.put(src.getId(), pointed);
+            }
+        }
+        return result;
     }
 }

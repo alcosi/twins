@@ -12,7 +12,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinId;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -28,7 +28,15 @@ public class PointerOnGivenTwin extends Pointer {
     private final TwinService twinService;
 
     @Override
-    protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        return twinService.findEntitySafe(twinId.extract(properties));
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        TwinEntity target = twinService.findEntitySafe(twinId.extract(properties));
+        if (target == null) {
+            return Map.of();
+        }
+        Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
+        for (TwinEntity src : srcTwins) {
+            result.put(src.getId(), target);
+        }
+        return result;
     }
 }

@@ -9,12 +9,14 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.twinclassfield.recompute.TwinClassFieldRecomputeEvent;
+import org.twins.core.service.twinclassfield.recompute.TwinClassFieldRecomputeSubscriber;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater {
+public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater, TwinClassFieldRecomputeSubscriber {
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -40,5 +42,18 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) throws ServiceException {
         return deserializeValueBase(properties, twinField, twinFieldEntity);
+    }
+
+    /**
+     * Mater-subscriber entry point. Reuses {@link #serializeValue(Properties, TwinEntity, FieldValueText, TwinChangesCollector)}
+     * which reads operands through {@code twinClassFieldService.getDecimalValue(...)} — this works in the sync flow
+     * where the publisher twin is still pending in the collector and not yet in the DB. MVP implementation; per-type
+     * delta-increment overrides are a future optimization (see ai/plans/field-typer-mater-listeners.md §7.11).
+     */
+    @Override
+    public void recompute(TwinClassFieldRecomputeEvent event, TwinChangesCollector collector) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, event.subscriberField().getFieldTyperParams());
+        FieldValueText value = new FieldValueText(event.subscriberField());
+        serializeValue(properties, event.subscriberTwin(), value, collector);
     }
 }
