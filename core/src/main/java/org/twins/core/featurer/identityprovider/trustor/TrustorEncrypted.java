@@ -1,6 +1,5 @@
 package org.twins.core.featurer.identityprovider.trustor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -14,6 +13,8 @@ import org.twins.core.domain.auth.CryptKey;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -79,7 +80,7 @@ public class TrustorEncrypted extends Trustor {
         return domainKey;
     }
 
-    public ObjectMapper objectMapper = new ObjectMapper();
+    public ObjectMapper objectMapper = JsonMapper.builder().build();
 
     public static final String ACT_AS_USER_USER_ID = "userId";
     public static final String ACT_AS_USER_BUSINESS_ACCOUNT_ID = "businessAccountId";
