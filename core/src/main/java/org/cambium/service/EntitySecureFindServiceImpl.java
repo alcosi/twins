@@ -442,6 +442,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (CollectionUtils.isEmpty(srcCollection)) {
             return;
         }
+        if (srcCollection.size() == 1 && functionGetGroupingEntity.apply(srcCollection.iterator().next()) != null) {
+            return; //shortcut
+        }
         List<E> needLoad = null;
         Set<UUID> groupingIds = null;
         for (var item : srcCollection) {
