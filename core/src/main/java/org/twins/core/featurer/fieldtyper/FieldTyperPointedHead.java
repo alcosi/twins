@@ -65,6 +65,6 @@ public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, 
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         var headTwinClassField = getHeadTwinClassFieldSafe(properties);
         var headFieldTyper = featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-        return new TwinFieldStoragePointedHead(twinService, twinClassFieldService, headFieldTyper.getStorage(headTwinClassField));
+        return new TwinFieldStoragePointedHead(twinService, headFieldTyper.getStorage(headTwinClassField));
     }
 }
