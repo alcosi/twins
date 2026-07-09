@@ -51,6 +51,7 @@ public class FactoryPipelineStepCountRestDTOMapper extends RestSimpleDTOMapper<C
                 .setFactoryConditionInvert(entity.getTwinFactoryConditionInvert())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE, src, FactoryPipelineStepGroupField.factoryPipelineId)) {
+            factoryPipelineStepService.loadPipeline(entity);
             factoryPipelineRestDTOMapper.convertOrPostpone(entity.getTwinFactoryPipeline(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.SHORT)));
         }
         if (needLoad(mapperContext, FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE, src, FactoryPipelineStepGroupField.fillerFeaturerId)) {
@@ -72,6 +73,9 @@ public class FactoryPipelineStepCountRestDTOMapper extends RestSimpleDTOMapper<C
             return;
         }
         var someCount = srcCollection.iterator().next();
+        if (needLoad(mapperContext, FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE, someCount, FactoryPipelineStepGroupField.factoryPipelineId)) {
+            factoryPipelineStepService.loadPipeline(entityCollection);
+        }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.HIDE, someCount, FactoryPipelineStepGroupField.factoryConditionSetId)) {
             factoryPipelineStepService.loadConditionSet(entityCollection);
         }

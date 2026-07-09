@@ -88,9 +88,9 @@ public class FactoryMultiplierFilterSearchService extends EntitySearchService
             case factoryConditionSetInvert ->
                     toSortSpecification(ascending, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionInvert);
             case inputTwinClassName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryMultiplierFilterEntity.Fields.inputTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryConditionSetName ->
-                    toSortSpecification(ascending, TwinFactoryMultiplierFilterEntity.Fields.conditionSet, TwinFactoryConditionSetEntity.Fields.name);
+                    toSortSpecification(ascending, TwinFactoryMultiplierFilterEntity.Fields.conditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.name);
         };
     }
 

@@ -13,6 +13,6 @@ import java.util.UUID;
 public class FactoryMultiplierSpecification extends CommonSpecification<TwinFactoryMultiplierEntity> {
 
     public static Specification<TwinFactoryMultiplierEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryMultiplierEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryMultiplierEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId);
     }
 }

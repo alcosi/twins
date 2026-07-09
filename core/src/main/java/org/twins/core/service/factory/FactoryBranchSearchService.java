@@ -84,11 +84,11 @@ public class FactoryBranchSearchService extends EntitySearchService
             case factoryConditionSetInvert ->
                     toSortSpecification(ascending, TwinFactoryBranchEntity.Fields.twinFactoryConditionInvert);
             case factoryName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryBranchEntity.Fields.factory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryBranchEntity.Fields.factorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
             case nextFactoryName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryBranchEntity.Fields.nextFactory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryBranchEntity.Fields.nextFactorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryConditionName ->
-                    toSortSpecification(ascending, TwinFactoryBranchEntity.Fields.conditionSet, TwinFactoryConditionSetEntity.Fields.name);
+                    toSortSpecification(ascending, TwinFactoryBranchEntity.Fields.conditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.name);
         };
     }
 

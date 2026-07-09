@@ -47,6 +47,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
@@ -77,6 +78,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final FactoryEraserService factoryEraserService;
     final FactoryTriggerService factoryTriggerService;
     final TwinService twinService;
+    final TwinStatusService twinStatusService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final FactoryConditionSetService factoryConditionSetService;
@@ -280,6 +282,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(factoryPipelineEntityKit)) {
             return;
         }
+        factoryPipelineService.loadTemplateTwin(factoryPipelineEntityKit.getCollection());
+        factoryPipelineService.loadOutputTwinStatus(factoryPipelineEntityKit.getCollection());
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityKit) {
             if (!Boolean.TRUE.equals(factoryPipelineEntity.getActive())) {
@@ -354,6 +358,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         Kit<TwinFactoryPipelineStepEntity, UUID> pipelineStepEntityKit = factoryPipelineEntity.getTwinFactoryPipelineStepKit();
         LoggerUtils.traceTreeLevelDown();
         List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = pipelineStepEntityKit.getList();
+        factoryPipelineService.loadTemplateTwin(factoryPipelineEntity);
+        factoryPipelineService.loadOutputTwinStatus(factoryPipelineEntity);
         for (FactoryItem pipelineInput : pipelineInputList) {
             log.info("Processing {}", pipelineInput.logDetailed());
             pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers

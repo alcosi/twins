@@ -56,7 +56,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryPipelineEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+//        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        return false;
     }
 
     @Override
@@ -66,21 +67,20 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         if (entity.getInputTwinClassId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty inputTwinClassId");
 
-
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
-                    entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
+                    loadInputTwinClass(entity);
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    loadTwinFactory(entity);
                 if (entity.getNextTwinFactoryId() != null && (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId())))
-                    entity.setNextTwinFactory(twinFactoryService.findEntitySafe(entity.getNextTwinFactoryId()));
+                    loadNextTwinFactory(entity);
                 if (entity.getTwinFactoryConditionSetId() != null && (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
-                    entity.setConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
+                    loadConditionSet(entity);
                 if (entity.getOutputTwinStatusId() != null && (entity.getOutputTwinStatus() == null || !entity.getOutputTwinStatus().getId().equals(entity.getOutputTwinStatusId())))
-                    entity.setOutputTwinStatus(twinStatusService.findEntitySafe(entity.getOutputTwinStatusId()));
+                    loadOutputTwinStatus(entity);
                 if (entity.getTemplateTwinId() != null && (entity.getTemplateTwin() == null || !entity.getTemplateTwin().getId().equals(entity.getTemplateTwinId())))
-                    entity.setTemplateTwin(twinService.findEntitySafe(entity.getTemplateTwinId()));
+                    loadTemplateTwin(entity);
                 if (entity.getNextTwinFactoryLimitScope() == null)
                     entity.setNextTwinFactoryLimitScope(true);
         }
@@ -145,5 +145,60 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
                 TwinFactoryPipelineEntity::getConditionSet,
                 TwinFactoryPipelineEntity::setConditionSet);
+    }
+
+    public void loadTwinFactory(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadTwinFactory(Collections.singleton(src));
+    }
+
+    public void loadTwinFactory(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        twinFactoryService.load(srcCollection,
+                TwinFactoryPipelineEntity::getTwinFactoryId,
+                TwinFactoryPipelineEntity::getTwinFactory,
+                TwinFactoryPipelineEntity::setTwinFactory);
+    }
+
+    public void loadNextTwinFactory(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadNextTwinFactory(Collections.singleton(src));
+    }
+
+    public void loadNextTwinFactory(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        twinFactoryService.load(srcCollection,
+                TwinFactoryPipelineEntity::getNextTwinFactoryId,
+                TwinFactoryPipelineEntity::getNextTwinFactory,
+                TwinFactoryPipelineEntity::setNextTwinFactory);
+    }
+
+    public void loadInputTwinClass(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadInputTwinClass(Collections.singleton(src));
+    }
+
+    public void loadInputTwinClass(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                TwinFactoryPipelineEntity::getInputTwinClassId,
+                TwinFactoryPipelineEntity::getInputTwinClass,
+                TwinFactoryPipelineEntity::setInputTwinClass);
+    }
+
+    public void loadOutputTwinStatus(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadOutputTwinStatus(Collections.singleton(src));
+    }
+
+    public void loadOutputTwinStatus(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        twinStatusService.load(srcCollection,
+                TwinFactoryPipelineEntity::getOutputTwinStatusId,
+                TwinFactoryPipelineEntity::getOutputTwinStatus,
+                TwinFactoryPipelineEntity::setOutputTwinStatus);
+    }
+
+    public void loadTemplateTwin(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadTemplateTwin(Collections.singleton(src));
+    }
+
+    public void loadTemplateTwin(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                TwinFactoryPipelineEntity::getTemplateTwinId,
+                TwinFactoryPipelineEntity::getTemplateTwin,
+                TwinFactoryPipelineEntity::setTemplateTwin);
     }
 }

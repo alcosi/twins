@@ -11,6 +11,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryBranchMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
+import org.twins.core.service.factory.FactoryBranchService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -23,35 +26,53 @@ public class FactoryBranchRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryB
     @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.class)
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
+    private final FactoryBranchService factoryBranchService;
+
     @Override
     public void map(TwinFactoryBranchEntity src, FactoryBranchDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryBranchMode.DETAILED)) {
             case DETAILED ->
-                dst
-                        .setId(src.getId())
-                        .setFactoryId(src.getTwinFactoryId())
-                        .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
-                        .setFactoryConditionSetInvert(src.getTwinFactoryConditionInvert())
-                        .setNextFactoryId(src.getNextTwinFactoryId())
-                        .setDescription(src.getDescription())
-                        .setActive(src.getActive());
+                    dst
+                            .setId(src.getId())
+                            .setFactoryId(src.getTwinFactoryId())
+                            .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                            .setFactoryConditionSetInvert(src.getTwinFactoryConditionInvert())
+                            .setNextFactoryId(src.getNextTwinFactoryId())
+                            .setDescription(src.getDescription())
+                            .setActive(src.getActive());
             case SHORT ->
-                dst
-                        .setId(src.getId())
-                        .setFactoryId(src.getTwinFactoryId());
+                    dst
+                            .setId(src.getId())
+                            .setFactoryId(src.getTwinFactoryId());
 
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryBranch2FactoryMode.HIDE)) {
             dst
                     .setFactoryId(src.getTwinFactoryId())
                     .setNextFactoryId(src.getNextTwinFactoryId());
+            factoryBranchService.loadFactory(src);
+            factoryBranchService.loadNextFactory(src);
             factoryRestDTOMapper.postpone(src.getFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryBranch2FactoryMode.SHORT));
             factoryRestDTOMapper.postpone(src.getNextFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryBranch2FactoryMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.HIDE)) {
             dst
                     .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            if (src.getConditionSet() == null) factoryBranchService.loadConditionSet(src);
             factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinFactoryBranchEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryBranch2FactoryMode.HIDE)) {
+            factoryBranchService.loadFactory(srcCollection);
+            factoryBranchService.loadNextFactory(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.HIDE)) {
+            factoryBranchService.loadConditionSet(srcCollection);
         }
     }
 }

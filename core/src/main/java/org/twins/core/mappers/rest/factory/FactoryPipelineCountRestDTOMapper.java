@@ -58,15 +58,19 @@ public class FactoryPipelineCountRestDTOMapper extends RestSimpleDTOMapper<Count
                 .setFactoryConditionSetInvert(entity.getTwinFactoryConditionInvert())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, FactoryMode.FactoryPipeline2FactoryMode.HIDE, src, FactoryPipelineGroupField.factoryId)) {
+            factoryPipelineService.loadTwinFactory(entity);
             factoryRestDTOMapper.convertOrPostpone(entity.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.FactoryPipeline2FactoryMode.SHORT)));
         }
         if (needLoad(mapperContext, FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.HIDE, src, FactoryPipelineGroupField.nextFactoryId)) {
+            factoryPipelineService.loadNextTwinFactory(entity);
             factoryRestDTOMapper.convertOrPostpone(entity.getNextTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.SHORT)));
         }
         if (needLoad(mapperContext, TwinClassMode.FactoryPipeline2TwinClassMode.HIDE, src, FactoryPipelineGroupField.inputTwinClassId)) {
+            factoryPipelineService.loadInputTwinClass(entity);
             twinClassRestDTOMapper.convertOrPostpone(entity.getInputTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.FactoryPipeline2TwinClassMode.SHORT)));
         }
         if (needLoad(mapperContext, StatusMode.FactoryPipelineOutputTwinStatus2StatusMode.HIDE, src, FactoryPipelineGroupField.outputTwinStatusId)) {
+            factoryPipelineService.loadOutputTwinStatus(entity);
             twinStatusRestDTOMapper.convertOrPostpone(entity.getOutputTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.FactoryPipelineOutputTwinStatus2StatusMode.SHORT)));
         }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.HIDE, src, FactoryPipelineGroupField.factoryConditionSetId)) {
@@ -85,6 +89,18 @@ public class FactoryPipelineCountRestDTOMapper extends RestSimpleDTOMapper<Count
             return;
         }
         var someCount = srcCollection.iterator().next();
+        if (needLoad(mapperContext, FactoryMode.FactoryPipeline2FactoryMode.HIDE, someCount, FactoryPipelineGroupField.factoryId)) {
+            factoryPipelineService.loadTwinFactory(entityCollection);
+        }
+        if (needLoad(mapperContext, FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.HIDE, someCount, FactoryPipelineGroupField.nextFactoryId)) {
+            factoryPipelineService.loadNextTwinFactory(entityCollection);
+        }
+        if (needLoad(mapperContext, TwinClassMode.FactoryPipeline2TwinClassMode.HIDE, someCount, FactoryPipelineGroupField.inputTwinClassId)) {
+            factoryPipelineService.loadInputTwinClass(entityCollection);
+        }
+        if (needLoad(mapperContext, StatusMode.FactoryPipelineOutputTwinStatus2StatusMode.HIDE, someCount, FactoryPipelineGroupField.outputTwinStatusId)) {
+            factoryPipelineService.loadOutputTwinStatus(entityCollection);
+        }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.HIDE, someCount, FactoryPipelineGroupField.factoryConditionSetId)) {
             factoryPipelineService.loadConditionSet(entityCollection);
         }

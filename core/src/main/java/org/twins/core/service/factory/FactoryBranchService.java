@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
@@ -99,12 +98,13 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryBranchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getFactory().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
-        }
-        return readDenied;
+//        DomainEntity domain = authService.getApiUser().getDomain();
+//        boolean readDenied = !entity.getFactory().getDomainId().equals(domain.getId());
+//        if (readDenied) {
+//            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
+//        }
+//        return readDenied;
+        return false;
     }
 
     @Override

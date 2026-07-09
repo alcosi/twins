@@ -93,15 +93,15 @@ public class FactoryPipelineSearchService extends EntitySearchService
             case nextFactoryLimitScope ->
                     toSortSpecification(ascending, TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope);
             case inputTwinClassName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.inputTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.inputTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case outputTwinStatusName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.outputTwinStatus, TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.outputTwinStatusSpecOnly, TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.twinFactory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
             case nextFactoryName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.nextTwinFactory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryPipelineEntity.Fields.nextTwinFactorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryConditionSetName ->
-                    toSortSpecification(ascending, TwinFactoryPipelineEntity.Fields.conditionSet, TwinFactoryConditionSetEntity.Fields.name);
+                    toSortSpecification(ascending, TwinFactoryPipelineEntity.Fields.conditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.name);
         };
     }
 

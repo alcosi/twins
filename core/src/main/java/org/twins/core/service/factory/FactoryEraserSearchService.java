@@ -91,11 +91,11 @@ public class FactoryEraserSearchService extends EntitySearchService
             case action ->
                     toSortSpecification(ascending, TwinFactoryEraserEntity.Fields.eraserAction);
             case inputTwinClassName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryEraserEntity.Fields.inputTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryEraserEntity.Fields.inputTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryEraserEntity.Fields.twinFactory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryEraserEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryConditionSetName ->
-                    toSortSpecification(ascending, TwinFactoryEraserEntity.Fields.conditionSet, TwinFactoryConditionSetEntity.Fields.name);
+                    toSortSpecification(ascending, TwinFactoryEraserEntity.Fields.conditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.name);
         };
     }
 

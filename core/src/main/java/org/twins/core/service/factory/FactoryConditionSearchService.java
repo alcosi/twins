@@ -80,7 +80,7 @@ public class FactoryConditionSearchService extends EntitySearchService
             case invert ->
                     toSortSpecification(ascending, TwinFactoryConditionEntity.Fields.invert);
             case factoryConditionSetName ->
-                    toSortSpecification(ascending, TwinFactoryConditionEntity.Fields.conditionSet, TwinFactoryConditionSetEntity.Fields.name);
+                    toSortSpecification(ascending, TwinFactoryConditionEntity.Fields.conditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.name);
             case conditionerFeaturerName ->
                     toSortSpecification(ascending, TwinFactoryConditionEntity.Fields.conditionerFeaturerSpecOnly, FeaturerEntity.Fields.name);
         };

@@ -83,9 +83,9 @@ public class FactoryMultiplierSearchService extends EntitySearchService
             case description ->
                     toSortSpecification(ascending, TwinFactoryMultiplierEntity.Fields.description);
             case inputTwinClassName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryMultiplierEntity.Fields.inputTwinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryMultiplierEntity.Fields.inputTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case factoryName ->
-                    toSortSpecificationDirect(ascending, locale, TwinFactoryMultiplierEntity.Fields.twinFactory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+                    toSortSpecificationDirect(ascending, locale, TwinFactoryMultiplierEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
             case multiplierFeaturerName ->
                     toSortSpecification(ascending, TwinFactoryMultiplierEntity.Fields.multiplierFeaturerSpecOnly, FeaturerEntity.Fields.name);
         };

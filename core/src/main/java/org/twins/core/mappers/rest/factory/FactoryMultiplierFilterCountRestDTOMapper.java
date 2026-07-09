@@ -14,8 +14,10 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMultiplierMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.factory.FactoryMultiplierFilterService;
 
 import java.util.Collection;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -30,6 +32,8 @@ public class FactoryMultiplierFilterCountRestDTOMapper extends RestSimpleDTOMapp
 
     @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.class)
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
+
+    private final FactoryMultiplierFilterService factoryMultiplierFilterService;
 
     @Override
     public void map(CountResult<TwinFactoryMultiplierFilterEntity, FactoryMultiplierFilterGroupField> src, FactoryMultiplierFilterCountDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -46,18 +50,37 @@ public class FactoryMultiplierFilterCountRestDTOMapper extends RestSimpleDTOMapp
                 .setFactoryConditionSetInvert(entity.isTwinFactoryConditionInvert())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, FactoryMultiplierMode.FactoryMultiplierFilter2FactoryMultiplierMode.HIDE, src, FactoryMultiplierFilterGroupField.factoryMultiplierId)) {
+            factoryMultiplierFilterService.loadMultiplier(src.getEntity());
             factoryMultiplierRestDTOMapper.convertOrPostpone(entity.getMultiplier(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMultiplierMode.FactoryMultiplierFilter2FactoryMultiplierMode.SHORT)));
         }
         if (needLoad(mapperContext, TwinClassMode.FactoryMultiplierFilter2TwinClassMode.HIDE, src, FactoryMultiplierFilterGroupField.inputTwinClassId)) {
+            factoryMultiplierFilterService.loadInputTwinClass(src.getEntity());
             twinClassRestDTOMapper.convertOrPostpone(entity.getInputTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.FactoryMultiplierFilter2TwinClassMode.SHORT)));
         }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.HIDE, src, FactoryMultiplierFilterGroupField.factoryConditionSetId)) {
+            factoryMultiplierFilterService.loadConditionSet(src.getEntity());
             factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.SHORT)));
         }
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<CountResult<TwinFactoryMultiplierFilterEntity, FactoryMultiplierFilterGroupField>> srcCollection, MapperContext mapperContext) {
-        // No batch-load for related objects in factory_multiplier_filter count (loaded lazily per entity)
+    public void beforeCollectionConversion(Collection<CountResult<TwinFactoryMultiplierFilterEntity, FactoryMultiplierFilterGroupField>> srcCollection, MapperContext mapperContext) throws Exception {
+        if (srcCollection.isEmpty()) {
+            return;
+        }
+        var entityCollection = srcCollection.stream().map(CountResult::getEntity).filter(Objects::nonNull).toList();
+        if (entityCollection.isEmpty()) {
+            return;
+        }
+        var someCount = srcCollection.iterator().next();
+        if (needLoad(mapperContext, FactoryMultiplierMode.FactoryMultiplierFilter2FactoryMultiplierMode.HIDE, someCount, FactoryMultiplierFilterGroupField.factoryMultiplierId)) {
+            factoryMultiplierFilterService.loadMultiplier(entityCollection);
+        }
+        if (needLoad(mapperContext, TwinClassMode.FactoryMultiplierFilter2TwinClassMode.HIDE, someCount, FactoryMultiplierFilterGroupField.inputTwinClassId)) {
+            factoryMultiplierFilterService.loadInputTwinClass(entityCollection);
+        }
+        if (needLoad(mapperContext, FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.HIDE, someCount, FactoryMultiplierFilterGroupField.factoryConditionSetId)) {
+            factoryMultiplierFilterService.loadConditionSet(entityCollection);
+        }
     }
 }

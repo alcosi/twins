@@ -2,10 +2,7 @@ package org.twins.core.dao.factory;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -50,11 +47,13 @@ public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable {
     @Column(name = "conditioner_params", columnDefinition = "hstore")
     private HashMap<String, String> conditionerParams;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity conditionSetSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -63,6 +62,11 @@ public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conditioner_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity conditionerFeaturerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity conditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

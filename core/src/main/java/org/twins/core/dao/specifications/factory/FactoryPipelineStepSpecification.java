@@ -18,7 +18,7 @@ import java.util.UUID;
 public class FactoryPipelineStepSpecification extends CommonSpecification<TwinFactoryPipelineStepEntity> {
 
     public static Specification<TwinFactoryPipelineStepEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipeline, TwinFactoryPipelineEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineSpecOnly, TwinFactoryPipelineEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId);
     }
 
     public static Specification<TwinFactoryPipelineStepEntity> checkFactoryIdIn(Collection<UUID> search, boolean not) {
@@ -28,7 +28,7 @@ public class FactoryPipelineStepSpecification extends CommonSpecification<TwinFa
 
             query.distinct(true);
 
-            Join<TwinFactoryPipelineStepEntity, TwinFactoryPipelineEntity> join = root.join(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipeline, JoinType.INNER);
+            Join<TwinFactoryPipelineStepEntity, TwinFactoryPipelineEntity> join = root.join(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineSpecOnly, JoinType.INNER);
 
             Predicate predicate = join.get(TwinFactoryPipelineEntity.Fields.twinFactoryId).in(search);
             if (not) predicate = cb.not(predicate);

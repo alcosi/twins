@@ -13,6 +13,6 @@ import java.util.UUID;
 public class FactoryEraserSpecification extends CommonSpecification<TwinFactoryEraserEntity> {
 
     public static Specification<TwinFactoryEraserEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryEraserEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryEraserEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId);
     }
 }

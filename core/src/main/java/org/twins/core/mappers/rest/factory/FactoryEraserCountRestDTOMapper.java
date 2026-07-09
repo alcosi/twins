@@ -51,9 +51,11 @@ public class FactoryEraserCountRestDTOMapper extends RestSimpleDTOMapper<CountRe
                 .setAction(entity.getEraserAction())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, FactoryMode.FactoryEraser2FactoryMode.HIDE, src, FactoryEraserGroupField.factoryId)) {
+            factoryEraserService.loadTwinFactory(entity);
             factoryRestDTOMapper.convertOrPostpone(entity.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.FactoryEraser2FactoryMode.SHORT)));
         }
         if (needLoad(mapperContext, TwinClassMode.FactoryEraser2TwinClassMode.HIDE, src, FactoryEraserGroupField.inputTwinClassId)) {
+            factoryEraserService.loadInputTwinClass(entity);
             twinClassRestDTOMapper.convertOrPostpone(entity.getInputTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.FactoryEraser2TwinClassMode.SHORT)));
         }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.HIDE, src, FactoryEraserGroupField.factoryConditionSetId)) {
@@ -72,6 +74,12 @@ public class FactoryEraserCountRestDTOMapper extends RestSimpleDTOMapper<CountRe
             return;
         }
         var someCount = srcCollection.iterator().next();
+        if (needLoad(mapperContext, FactoryMode.FactoryEraser2FactoryMode.HIDE, someCount, FactoryEraserGroupField.factoryId)) {
+            factoryEraserService.loadTwinFactory(entityCollection);
+        }
+        if (needLoad(mapperContext, TwinClassMode.FactoryEraser2TwinClassMode.HIDE, someCount, FactoryEraserGroupField.inputTwinClassId)) {
+            factoryEraserService.loadInputTwinClass(entityCollection);
+        }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.HIDE, someCount, FactoryEraserGroupField.factoryConditionSetId)) {
             factoryEraserService.loadConditionSet(entityCollection);
         }

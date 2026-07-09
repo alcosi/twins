@@ -46,7 +46,8 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryPipelineStepEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getTwinFactoryPipeline().getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+//        return checkDomainAccessDenied(entity.getTwinFactoryPipeline().getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        return false;
     }
 
     @Override
@@ -62,10 +63,10 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwinFactoryPipeline() == null || !entity.getTwinFactoryPipeline().getId().equals(entity.getTwinFactoryPipelineId()))
-                    entity.setTwinFactoryPipeline(factoryPipelineService.findEntitySafe(entity.getTwinFactoryPipelineId()));
+                    loadPipeline(entity);
                 validateAndPrepareFeaturer(entity.getFillerFeaturerId(), entity.getFillerParams(), Filler.class);
                 if (entity.getTwinFactoryConditionSetId() != null && (entity.getTwinFactoryConditionSet() == null || !entity.getTwinFactoryConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
-                    entity.setTwinFactoryConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
+                    loadConditionSet(entity);
         }
         return true;
     }

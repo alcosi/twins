@@ -92,7 +92,7 @@ public class FactoryPipelineStepSearchService extends EntitySearchService
             case factoryConditionInvert ->
                     toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert);
             case factoryConditionSetName ->
-                    toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSet, TwinFactoryConditionSetEntity.Fields.name);
+                    toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.name);
             case fillerFeaturerName ->
                     toSortSpecification(ascending, TwinFactoryPipelineStepEntity.Fields.fillerFeaturerSpecOnly, FeaturerEntity.Fields.name);
         };

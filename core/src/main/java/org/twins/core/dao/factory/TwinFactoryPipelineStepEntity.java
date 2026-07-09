@@ -2,10 +2,7 @@ package org.twins.core.dao.factory;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -60,16 +57,30 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable, Identifiable
     @Column(name = "filler_params", columnDefinition = "hstore")
     private HashMap<String, String> fillerParams;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_pipeline_id", insertable = false, updatable = false)
-    private TwinFactoryPipelineEntity twinFactoryPipeline;
+    private TwinFactoryPipelineEntity twinFactoryPipelineSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity twinFactoryConditionSetSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryPipelineEntity twinFactoryPipeline;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     @Deprecated //for specification only

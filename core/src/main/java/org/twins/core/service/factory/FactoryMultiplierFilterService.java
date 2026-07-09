@@ -17,6 +17,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +38,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     private final FactoryConditionSetService factoryConditionSetService;
     @Lazy
     private final FactoryMultiplierService factoryMultiplierService;
+    @Lazy
+    private final TwinClassService twinClassService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierFilterEntity, UUID> entityRepository() {
@@ -68,6 +71,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     }
 
     public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        if (multiplier.getTwinFactoryMultiplierFilterKit() != null)
+            return;
         loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
     }
 
@@ -102,5 +107,16 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
                 TwinFactoryMultiplierFilterEntity::getMultiplier,
                 TwinFactoryMultiplierFilterEntity::setMultiplier);
+    }
+
+    public void loadInputTwinClass(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
+        loadInputTwinClass(Collections.singleton(filter));
+    }
+
+    public void loadInputTwinClass(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+        twinClassService.load(filters,
+                TwinFactoryMultiplierFilterEntity::getInputTwinClassId,
+                TwinFactoryMultiplierFilterEntity::getInputTwinClass,
+                TwinFactoryMultiplierFilterEntity::setInputTwinClass);
     }
 }
