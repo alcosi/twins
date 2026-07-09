@@ -117,6 +117,13 @@ public class KitBiGroupedObj<E, K, GK1, GK2, GE1, GE2> extends KitBiGrouped<E, K
         super.clear();
     }
 
+    @Override
+    public E removeByKey(K key) {
+        groupingObject1Map = null;
+        groupingObject2Map = null;
+        return super.removeByKey(key);
+    }
+
     public Map<GK1, GE1> getGroupingObject1Map() {
         if (groupingObject1Map != null)
             return groupingObject1Map;

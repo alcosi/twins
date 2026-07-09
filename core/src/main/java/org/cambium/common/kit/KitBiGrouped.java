@@ -90,6 +90,12 @@ public class KitBiGrouped<E, K, GK1, GK2> extends KitGrouped<E, K, GK1> {
         super.clear();
     }
 
+    @Override
+    public E removeByKey(K key) {
+        groupedMap2 = null;
+        return super.removeByKey(key);
+    }
+
     public Map<GK2, List<E>> getGroupedMap2() {
         if (groupedMap2 != null)
             return groupedMap2;

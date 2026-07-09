@@ -314,7 +314,19 @@ public enum TwinAction {
 2. В БД добавить:
 
 ```sql
-INSERT INTO twin_action (id) VALUES ('CREATE') ON CONFLICT DO NOTHING;
+-- twin_action.name_i18n_id is NOT NULL since V1.3.401.03 — every action needs an i18n entry.
+-- UUID follows the twin.actions.* block (...00000000004X); 047 is the next free slot.
+INSERT INTO i18n (id, name, key, i18n_type_id, domain_id)
+VALUES ('00000000-0000-0000-0012-000000000047', 'Create', 'twin.actions.create', 'twinAction', null)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO i18n_translation (i18n_id, locale, translation, usage_counter)
+VALUES ('00000000-0000-0000-0012-000000000047', 'en', 'Create', 0)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO twin_action (id, name_i18n_id)
+VALUES ('CREATE', '00000000-0000-0000-0012-000000000047')
+ON CONFLICT DO NOTHING;
 ```
 
 3. Завести системные TwinPointer-ы для базовых сценариев (если ещё нет):

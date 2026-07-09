@@ -2,7 +2,20 @@
 -- Registers new TwinAction.CREATE and creates three recompute metadata tables
 -- described in ai/plans/field-typer-mater-listeners.md (§1.5).
 
-INSERT INTO twin_action (id) VALUES ('CREATE') ON CONFLICT DO NOTHING;
+-- i18n entry + English translation for the CREATE action label.
+-- UUID follows the twin.actions.* block (00000000-0000-0000-0012-0000000000XX) — 047 is the next
+-- free slot after HISTORY_VIEW (046). See V1.3.401.03__TWINS-443_ec1_tw006.sql for the pattern.
+INSERT INTO i18n (id, name, key, i18n_type_id, domain_id)
+VALUES ('00000000-0000-0000-0012-000000000047', 'Create', 'twin.actions.create', 'twinAction', null)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO i18n_translation (i18n_id, locale, translation, usage_counter)
+VALUES ('00000000-0000-0000-0012-000000000047', 'en', 'Create', 0)
+ON CONFLICT DO NOTHING;
+
+INSERT INTO twin_action (id, name_i18n_id)
+VALUES ('CREATE', '00000000-0000-0000-0012-000000000047')
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- twin_class_field_recompute_on_field: fires when the value of publisher_twin_class_field_id
