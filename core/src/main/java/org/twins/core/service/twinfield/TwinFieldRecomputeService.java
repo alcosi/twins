@@ -9,7 +9,6 @@ import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -212,7 +211,7 @@ public class TwinFieldRecomputeService {
     }
 
     private static String toKey(UUID twinId, UUID twinClassFieldId) {
-        return twinId + ":" + twinClassFieldId);
+        return twinId + ":" + twinClassFieldId;
     }
 
     @Data
@@ -244,11 +243,18 @@ public class TwinFieldRecomputeService {
                 processedSubscribers = new HashSet<>();
                 processedPublishers = new HashSet<>();
             }
+            getLoop().init();
+        }
+
+        public RecomputePlanLoop getLoop() {
+            if (currentLoop == 0)
+                startLoop();
+            return loops.get(currentLoop);
         }
 
         public void add(TwinFieldDecimalEntity triggerField, TwinClassFieldRecomputeOnFieldEntity recomputeOnField) {
             init();
-            if (!processedPublishers.add(toKey(triggerField))))
+            if (!processedPublishers.add(toKey(triggerField)))
                 return;
             subscriberTwinPointerIds.add(recomputeOnField.getSubscriberTwinPointerId());
             subscriberTwinClassFieldIds.add(recomputeOnField.getSubscriberTwinClassFieldId());
@@ -259,7 +265,7 @@ public class TwinFieldRecomputeService {
                     .computeIfAbsent(recomputeOnField.getSubscriberTwinPointerId(), _ -> new ArrayList<>())
                     .add(triggerField.getTwin());
             var unresolvedPointer = new UnresolvedPointer(triggerField.getTwinId(), recomputeOnField.getSubscriberTwinPointerId());
-            recomputeTriggersByUnresolvedPointer
+            getLoop().recomputeTriggersByUnresolvedPointer
                     .computeIfAbsent(unresolvedPointer, _ -> new HashMap<>())
                     .computeIfAbsent(recomputeOnField.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
                     .add(new RecomputeTriggerOnField(triggerField.getTwin(), triggerField.getTwinClassField(), recomputeOnField.isAsync()));
@@ -276,14 +282,14 @@ public class TwinFieldRecomputeService {
                     .computeIfAbsent(recomputeOnAction.getSubscriberTwinPointerId(), _ -> new ArrayList<>())
                     .add(twin);
             var unresolvedPointer = new UnresolvedPointer(twin.getId(), recomputeOnAction.getSubscriberTwinPointerId());
-            recomputeTriggersByUnresolvedPointer
+            getLoop().recomputeTriggersByUnresolvedPointer
                     .computeIfAbsent(unresolvedPointer, _ -> new HashMap<>())
                     .computeIfAbsent(recomputeOnAction.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
                     .add(new RecomputeTriggerOnAction(twin, twinAction, recomputeOnAction.isAsync()));
         }
 
         public void collectResolvedPointers() {
-            for (var unresolvedPointer : recomputeTriggersByUnresolvedPointer.keySet()) {
+            for (var unresolvedPointer : getLoop().recomputeTriggersByUnresolvedPointer.keySet()) {
                 var subscriberTwin = publisherTwinsKit.get(unresolvedPointer.publisherTwinId).getPointer(unresolvedPointer.twinPointerId);
                 subscriberTwinByUnresolvedPointer.put(unresolvedPointer, subscriberTwin);
                 subscriberTwinsKit.add(subscriberTwin);
@@ -291,14 +297,14 @@ public class TwinFieldRecomputeService {
         }
 
         public void collectResolvedPointersTriggers() {
-            for (var entry : recomputeTriggersByUnresolvedPointer.entrySet()) {
+            for (var entry : getLoop().recomputeTriggersByUnresolvedPointer.entrySet()) {
                 var unresolvePointer = entry.getKey();
                 var fieldTriggersMap = entry.getValue();
                 var subscriberTwinId = subscriberTwinByUnresolvedPointer.get(unresolvePointer).getId();
                 for (var fieldTrigger : fieldTriggersMap.entrySet()) {
                     var subscriberFieldId = fieldTrigger.getKey();
                     var triggers = fieldTrigger.getValue();
-                    recomputeTriggersBySubscriberTwinId
+                    getLoop().recomputeTriggersBySubscriberTwinId
                             .computeIfAbsent(subscriberTwinId, _ -> new HashMap<>())
                             .computeIfAbsent(subscriberFieldId, _ -> new ArrayList<>())
                             .addAll(triggers);
@@ -329,9 +335,15 @@ public class TwinFieldRecomputeService {
         private record UnresolvedPointer(UUID publisherTwinId, UUID twinPointerId) {
         }
 
+        @Data
         private static class RecomputePlanLoop {
             private Map<UnresolvedPointer, Map<UUID, List<RecomputeTrigger>>> recomputeTriggersByUnresolvedPointer;
             private Map<UUID, Map<UUID, List<RecomputeTrigger>>> recomputeTriggersBySubscriberTwinId;
+
+            public void init() {
+                recomputeTriggersByUnresolvedPointer = new HashMap<>();
+                recomputeTriggersBySubscriberTwinId = new HashMap<>();
+            }
         }
     }
 
@@ -349,7 +361,7 @@ public class TwinFieldRecomputeService {
 
     private List<FieldRecomputeRequest> buildRecomputeRequests(RecomputePlan recomputePlan) throws ServiceException {
         List<FieldRecomputeRequest> requests = new ArrayList<>();
-        for (var entry : recomputePlan.getRecomputeTriggersBySubscriberTwinId().entrySet()) {
+        for (var entry : recomputePlan.getLoop().getRecomputeTriggersBySubscriberTwinId().entrySet()) {
             var subscriberTwinId = entry.getKey();
             var subscriberFieldTriggers = entry.getValue();
 
@@ -384,16 +396,5 @@ public class TwinFieldRecomputeService {
             return;
         }
         subscriber.recompute(request, collector);
-    }
-
-    /**
-     * Cycle-protection key
-     */
-    private record TwinFieldKey(UUID subscriberTwinId, UUID subscriberFieldId) {
-        @NotNull
-        @Override
-        public String toString() {
-            return "subscriber[twinId:" + subscriberTwinId + ", fieldId:" + subscriberFieldId + "]";
-        }
     }
 }
