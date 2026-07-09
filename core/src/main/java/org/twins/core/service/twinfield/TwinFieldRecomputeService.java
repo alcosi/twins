@@ -116,13 +116,13 @@ public class TwinFieldRecomputeService {
             return;
         var unprocessedDecimalFields = new ArrayList<TwinFieldDecimalEntity>();
         for (var decimalField : collector.getSaveEntities(TwinFieldDecimalEntity.class)) {
-            if (recomputePlan.getProcessedPublishers().contains(toKey(decimalField))) {
+            if (recomputePlan.getVisitedPublishers().contains(toKey(decimalField))) {
                 continue; //circle protection
             }
             unprocessedDecimalFields.add(decimalField);
         }
         for (var decimalField : collector.getDeletes(TwinFieldDecimalEntity.class)) {
-            if (recomputePlan.getProcessedPublishers().contains(toKey(decimalField))) {
+            if (recomputePlan.getVisitedPublishers().contains(toKey(decimalField))) {
                 continue; //circle protection
             }
             unprocessedDecimalFields.add(decimalField);
@@ -225,8 +225,8 @@ public class TwinFieldRecomputeService {
         private Map<UUID, List<TwinEntity>> publisherTwinsByPointerId;
         private Map<UnresolvedPointer, TwinEntity> subscriberTwinByUnresolvedPointer;
         private int currentLoop = 0;
-        private Set<String> processedSubscribers;
-        private Set<String> processedPublishers;
+        private Set<String> visitedSubscribers;
+        private Set<String> visitedPublishers;
         private List<RecomputePlanLoop> loops;
 
         private void init() {
@@ -240,8 +240,9 @@ public class TwinFieldRecomputeService {
                 subscriberTwinByUnresolvedPointer = new HashMap<>();
                 publisherTwinsByPointerId = new HashMap<>();
                 subscriberTwinByUnresolvedPointer = new HashMap<>();
-                processedSubscribers = new HashSet<>();
-                processedPublishers = new HashSet<>();
+                visitedSubscribers = new HashSet<>();
+                visitedPublishers = new HashSet<>();
+                loops = new ArrayList<>();
             }
             getLoop().init();
         }
@@ -249,12 +250,12 @@ public class TwinFieldRecomputeService {
         public RecomputePlanLoop getLoop() {
             if (currentLoop == 0)
                 startLoop();
-            return loops.get(currentLoop);
+            return loops.get(currentLoop - 1);
         }
 
         public void add(TwinFieldDecimalEntity triggerField, TwinClassFieldRecomputeOnFieldEntity recomputeOnField) {
             init();
-            if (!processedPublishers.add(toKey(triggerField)))
+            if (!visitedPublishers.add(toKey(triggerField)))
                 return;
             subscriberTwinPointerIds.add(recomputeOnField.getSubscriberTwinPointerId());
             subscriberTwinClassFieldIds.add(recomputeOnField.getSubscriberTwinClassFieldId());
@@ -288,7 +289,7 @@ public class TwinFieldRecomputeService {
                     .add(new RecomputeTriggerOnAction(twin, twinAction, recomputeOnAction.isAsync()));
         }
 
-        public void collectResolvedPointers() {
+        public void resolveSubscriberTwins() {
             for (var unresolvedPointer : getLoop().recomputeTriggersByUnresolvedPointer.keySet()) {
                 var subscriberTwin = publisherTwinsKit.get(unresolvedPointer.publisherTwinId).getPointer(unresolvedPointer.twinPointerId);
                 subscriberTwinByUnresolvedPointer.put(unresolvedPointer, subscriberTwin);
@@ -296,7 +297,7 @@ public class TwinFieldRecomputeService {
             }
         }
 
-        public void collectResolvedPointersTriggers() {
+        public void groupTriggersBySubscriber() {
             for (var entry : getLoop().recomputeTriggersByUnresolvedPointer.entrySet()) {
                 var unresolvePointer = entry.getKey();
                 var fieldTriggersMap = entry.getValue();
@@ -322,12 +323,12 @@ public class TwinFieldRecomputeService {
         }
 
         public boolean hasRecomputedFields(TwinChangesCollector collector) {
-            if (processedPublishers == null)
+            if (visitedPublishers == null)
                 return true;
             int collectedDecimalFieldsCount = collector.getSaveEntities(TwinFieldDecimalEntity.class).size() + collector.getDeletes(TwinFieldDecimalEntity.class).size();
             if (collectedDecimalFieldsCount == 0)
                 return false;
-            if (collectedDecimalFieldsCount != processedPublishers.size()) //some new fields were added
+            if (collectedDecimalFieldsCount != visitedPublishers.size()) //some new fields were added
                 return true;
             return false;
         }
@@ -354,8 +355,8 @@ public class TwinFieldRecomputeService {
             var twinPointer = recomputePlan.getSubscriberTwinPointerKit().get(pointerId);
             twinPointerService.loadPointer(publisherTwins, twinPointer); //todo support pointers merge
         }
-        recomputePlan.collectResolvedPointers();
-        recomputePlan.collectResolvedPointersTriggers();
+        recomputePlan.resolveSubscriberTwins();
+        recomputePlan.groupTriggersBySubscriber();
     }
 
 
@@ -368,7 +369,7 @@ public class TwinFieldRecomputeService {
             for (var fieldTriggers : subscriberFieldTriggers.entrySet()) {
                 var subscriberFieldId = fieldTriggers.getKey();
                 var triggers = fieldTriggers.getValue();
-                if (!recomputePlan.getProcessedSubscribers().add(toKey(subscriberTwinId, subscriberFieldId))) {
+                if (!recomputePlan.getVisitedSubscribers().add(toKey(subscriberTwinId, subscriberFieldId))) {
                     log.warn("subscriber[twinId:{}, twinClassFieldId:{}] is already visited", subscriberTwinId, subscriberFieldId);
                     continue;
                 }
