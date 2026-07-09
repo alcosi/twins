@@ -19,7 +19,6 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.*;
 
 @Component
@@ -28,9 +27,9 @@ import java.util.*;
         description = "Statistic for parent without self percent (child and grandchild)")
 @RequiredArgsConstructor
 public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisticProgressPercent> {
-    @FeaturerParam(name = "Head twin class field id", description = "", order = 1)
+    @FeaturerParam(name = "Child twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID childTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("childTwinClassFieldId");
-    @FeaturerParam(name = "Child twin class field id", description = "", order = 2)
+    @FeaturerParam(name = "Grand child twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID grandChildTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("grandChildTwinClassFieldId");
     @FeaturerParam(name = "Twin class ids", description = "", order = 6)
     public static final FeaturerParamUUIDSet ofChildTwinClassIds = new FeaturerParamUUIDSetTwinsClassId("ofChildTwinClassIds");

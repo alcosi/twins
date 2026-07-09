@@ -29,7 +29,7 @@ public class TwinPointerEntity implements EasyLoggable {
     private Integer pointerFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "pointer_params")
+    @Column(name = "pointer_params", columnDefinition = "hstore")
     private HashMap<String, String> pointerParams;
 
     @Column(name = "name")

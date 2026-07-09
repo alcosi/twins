@@ -12,6 +12,14 @@ import java.util.UUID;
  * FieldValue class is not combined with TwinField class, because in some cases
  * we need to have values out of twin (for example, in a transition context)
  */
+
+/* TODO
+    All children use @EqualsAndHashCode(callSuper = true), but FieldValue / FieldValueStated /
+    FieldValueCollection have NO @EqualsAndHashCode, so the chain bottoms out at Object.equals (identity):
+    no two distinct instances are ever equal. Hence clone() (newInstance + copyValueTo) never equals its
+    original — see the @Disabled clone_* tests. Related: copyValueTo itself is value-only at the typed level,
+    state is applied by copyValueTo(FieldValue) — see the TODO on FieldValueStated.copyValueTo(FieldValueStated).
+*/
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
     @Getter

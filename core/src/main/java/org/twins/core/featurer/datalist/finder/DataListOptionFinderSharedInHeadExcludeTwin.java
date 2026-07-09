@@ -45,9 +45,8 @@ public class DataListOptionFinderSharedInHeadExcludeTwin extends DataListOptionF
         if (fieldTyper.getStorageType() != TwinFieldStorageDatalist.class) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.logNormal() + " does not have data list oriented fieldTyper");
         }
-        FieldTyperList fieldTyperList = (FieldTyperList) fieldTyper;
         Properties fieldTyperProperties = fieldTyper.extractProperties(twinClassFieldEntity.getFieldTyperParams());
-        UUID listId = fieldTyperList.getDataListId(fieldTyperProperties);
+        UUID listId = FieldTyperList.getDataListId(fieldTyperProperties);
 
         Set<UUID> optionIds = dataListService.findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(listId, twinClassFieldId, twinEntity.getHeadTwinId(), twinEntity.getId());
 

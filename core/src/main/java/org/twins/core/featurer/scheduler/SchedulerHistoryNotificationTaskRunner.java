@@ -64,7 +64,13 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
     }
 
     @Override
-    protected List<HistoryNotificationTaskEntity> collectAll() throws ServiceException {
+    protected void revertStatusAndSave(Collection<HistoryNotificationTaskEntity> entities) {
+        entities.forEach(entity -> entity.setStatusId(HistoryNotificationTaskStatus.NEED_START));
+        historyNotificationTaskRepository.saveAll(entities);
+    }
+
+    @Override
+    protected List<HistoryNotificationTaskEntity> collectAll() {
         var historyTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
         if (CollectionUtils.isEmpty(historyTasks)) {
             return Collections.emptyList();

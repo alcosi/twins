@@ -28,11 +28,14 @@ public abstract class Notifier extends FeaturerTwins {
     }
 
     protected void validateContext(Map<String, String> context, boolean throwExceptionOnNullValues) throws ServiceException {
-        for (Map.Entry<String, String> entry : context.entrySet()) {
+        var it = context.entrySet().iterator();
+        while (it.hasNext()) {
+            var entry = it.next();
             if (entry.getValue() == null) {
-                if (throwExceptionOnNullValues)
-                    throw new ServiceException(ErrorCodeTwins.NOTIFICATION_CONTEXT_COLLECTOR_ERROR, "Entry in contect with key[" + entry.getKey() + "] has null value");
-                context.remove(entry.getKey());
+                if (throwExceptionOnNullValues) {
+                    throw new ServiceException(ErrorCodeTwins.NOTIFICATION_CONTEXT_COLLECTOR_ERROR, "Entry with key " + entry.getKey() + " has null value");
+                }
+                it.remove();
             }
         }
     }
