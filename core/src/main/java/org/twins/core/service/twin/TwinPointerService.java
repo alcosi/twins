@@ -63,12 +63,22 @@ public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerE
         return pointer.point(twinPointer, currentTwin);
     }
 
-    public Map<UUID, TwinEntity> getPointers(Collection<TwinEntity> publishers, UUID twinPointerId) throws ServiceException {
+
+    public void loadPointer(Collection<TwinEntity> srcTwins, UUID twinPointerId) throws ServiceException {
+        loadPointer(srcTwins, findEntitySafe(twinPointerId));
+    }
+
+    public void loadPointer(Collection<TwinEntity> srcTwins, TwinPointerEntity twinPointer) throws ServiceException {
+        Pointer pointer = featurerService.getFeaturer(twinPointer.getPointerFeaturerId(), Pointer.class);
+        pointer.load(twinPointer, srcTwins);
+    }
+
+    public Map<UUID, TwinEntity> getPointers(Collection<TwinEntity> srcTwins, UUID twinPointerId) throws ServiceException {
         TwinPointerEntity twinPointer = findEntitySafe(twinPointerId);
         Pointer pointer = featurerService.getFeaturer(twinPointer.getPointerFeaturerId(), Pointer.class);
-        pointer.load(twinPointer, publishers);
+        pointer.load(twinPointer, srcTwins);
         Map<UUID, TwinEntity> result = new HashMap<>();
-        for (TwinEntity src : publishers) {
+        for (TwinEntity src : srcTwins) {
             TwinEntity pointed = src.getPointer(twinPointerId);
             if (pointed != null) {
                 result.put(src.getId(), pointed);
