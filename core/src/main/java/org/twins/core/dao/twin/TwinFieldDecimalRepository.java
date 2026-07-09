@@ -38,8 +38,14 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             select coalesce(sum(field.value), 0)
             from TwinFieldDecimalEntity field inner join TwinEntity twin on field.twinId = twin.id
             where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList
+              and function('permission_check_mater', twin.permissionSchemaId, twin.viewPermissionId, twin.permissionSchemaSpaceId, :userId, :userGroupFootprintId, twin.twinClassId, twin.createdByUserId = :userId, twin.assignerUserId = :userId) = true
             """)
-    BigDecimal sumChildrenTwinFieldValuesWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+    BigDecimal sumChildrenTwinFieldValuesWithStatusIn(
+            @Param("headTwinId") UUID headTwinId,
+            @Param("twinClassFieldId") UUID twinClassFieldId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
 //    @Query(value = """
 //            select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, cast(coalesce(sum(field.value), 0) as bigdecimal))
@@ -81,8 +87,14 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             select coalesce(sum(field.value), 0)
             from TwinFieldDecimalEntity field inner join TwinEntity twin on field.twinId = twin.id
             where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
+              and function('permission_check_mater', twin.permissionSchemaId, twin.viewPermissionId, twin.permissionSchemaSpaceId, :userId, :userGroupFootprintId, twin.twinClassId, twin.createdByUserId = :userId, twin.assignerUserId = :userId) = true
             """)
-    BigDecimal sumChildrenTwinFieldValuesWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+    BigDecimal sumChildrenTwinFieldValuesWithStatusNotIn(
+            @Param("headTwinId") UUID headTwinId,
+            @Param("twinClassFieldId") UUID twinClassFieldId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
 //    @Query(value = """
 //            select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId,  cast(coalesce(sum(field.value), 0) as bigdecimal))
@@ -102,7 +114,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 string_to_array(:twinClassFieldIdsStr, ',')::uuid[],
                 string_to_array(:childrenTwinStatusIdListStr, ',')::uuid[],
                 :excludeStatus,
-                string_to_array(:childrenTwinOfClassIdListStr, ',')::uuid[]
+                string_to_array(:childrenTwinOfClassIdListStr, ',')::uuid[],
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumChildrenTwinFieldValuesByHead(
@@ -110,7 +124,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr,
             @Param("childrenTwinStatusIdListStr") String childrenTwinStatusIdListStr,
             @Param("excludeStatus") boolean exclude,
-            @Param("childrenTwinOfClassIdListStr") String childrenTwinOfClassIdListStr);
+            @Param("childrenTwinOfClassIdListStr") String childrenTwinOfClassIdListStr,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_divisions_by_head(
@@ -120,7 +136,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
                 :excludeStatus,
-                :throwOnDivisionByZero
+                :throwOnDivisionByZero,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumChildrenTwinFieldValuesOfDivisionsByHead(
@@ -130,7 +148,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
             @Param("excludeStatus") boolean excludeStatus,
-            @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero);
+            @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_multiplications_by_head(
@@ -139,7 +159,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
-                :excludeStatus
+                :excludeStatus,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumChildrenTwinFieldValuesOfMultiplicationsByHead(
@@ -148,7 +170,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
-            @Param("excludeStatus") boolean exclude);
+            @Param("excludeStatus") boolean exclude,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_subtractions_by_head(
@@ -157,7 +181,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
-                :excludeStatus
+                :excludeStatus,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumChildrenTwinFieldValuesOfSubtractionsByHead(
@@ -166,7 +192,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
-            @Param("excludeStatus") boolean exclude);
+            @Param("excludeStatus") boolean exclude,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_by_link(
@@ -176,7 +204,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 string_to_array(:twinClassFieldIdsStr, ',')::uuid[],
                 string_to_array(:linkIdsStr, ',')::uuid[],
-                :statusExclude
+                :statusExclude,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesByLink(
@@ -186,7 +216,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr,
             @Param("linkIdsStr") String linkIdsStr,
-            @Param("statusExclude") boolean statusExclude);
+            @Param("statusExclude") boolean statusExclude,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_divisions_by_link(
@@ -198,7 +230,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 :secondTwinClassFieldId,
                 string_to_array(:linkIdsStr, ',')::uuid[],
                 :statusExclude,
-                :throwOnDivisionByZero
+                :throwOnDivisionByZero,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesOfDivisionsByLink(
@@ -210,7 +244,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
             @Param("linkIdsStr") String linkIdsStr,
             @Param("statusExclude") boolean statusExclude,
-            @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero);
+            @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_multiplications_by_link(
@@ -221,7 +257,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
                 string_to_array(:linkIdsStr, ',')::uuid[],
-                :statusExclude
+                :statusExclude,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesOfMultiplicationsByLink(
@@ -232,7 +270,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
             @Param("linkIdsStr") String linkIdsStr,
-            @Param("statusExclude") boolean statusExclude);
+            @Param("statusExclude") boolean statusExclude,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_subtractions_by_link(
@@ -243,7 +283,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
                 string_to_array(:linkIdsStr, ',')::uuid[],
-                :statusExclude
+                :statusExclude,
+                :userId,
+                :userGroupFootprintId
             )
             """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesOfSubtractionsByLink(
@@ -254,7 +296,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
             @Param("linkIdsStr") String linkIdsStr,
-            @Param("statusExclude") boolean statusExclude);
+            @Param("statusExclude") boolean statusExclude,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_by_link_with_twin_flavor(
@@ -283,7 +327,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             Collection<UUID> twinClassFieldIds,
             Collection<UUID> childrenTwinStatusIdList,
             boolean exclude,
-            Collection<UUID> childrenTwinOfClassIdList) {
+            Collection<UUID> childrenTwinOfClassIdList,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String headStr = StringUtils.collectionToString(headTwinIdList);
         String fieldsStr = StringUtils.collectionToString(twinClassFieldIds);
@@ -291,7 +337,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
         String classStr = StringUtils.collectionToString(childrenTwinOfClassIdList);
 
         List<Object[]> results = _sumChildrenTwinFieldValuesByHead(
-                headStr, fieldsStr, statusStr, exclude, classStr
+                headStr, fieldsStr, statusStr, exclude, classStr, userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -303,7 +349,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
             boolean exclude,
-            boolean throwOnDivisionByZero) {
+            boolean throwOnDivisionByZero,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String headStr = StringUtils.collectionToString(headTwinIds);
         String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
@@ -312,7 +360,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
         List<Object[]> results = _sumChildrenTwinFieldValuesOfDivisionsByHead(
                 headStr, statusStr, classStr,
                 firstTwinClassFieldId, secondTwinClassFieldId,
-                exclude, throwOnDivisionByZero
+                exclude, throwOnDivisionByZero, userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -323,7 +371,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             Collection<UUID> childrenOfTwinClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
-            boolean exclude) {
+            boolean exclude,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String headStr = StringUtils.collectionToString(headTwinIds);
         String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
@@ -331,7 +381,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
 
         List<Object[]> results = _sumChildrenTwinFieldValuesOfMultiplicationsByHead(
                 headStr, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, exclude
+                firstTwinClassFieldId, secondTwinClassFieldId, exclude, userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -342,7 +392,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             Collection<UUID> childrenOfTwinClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
-            boolean exclude) {
+            boolean exclude,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String headStr = StringUtils.collectionToString(headTwinIds);
         String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
@@ -350,7 +402,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
 
         List<Object[]> results = _sumChildrenTwinFieldValuesOfSubtractionsByHead(
                 headStr, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, exclude
+                firstTwinClassFieldId, secondTwinClassFieldId, exclude, userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -362,7 +414,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             Collection<UUID> linkedTwinOfClassIds,
             Collection<UUID> twinClassFieldIds,
             Collection<UUID> linkIds,
-            boolean statusExclude) {
+            boolean statusExclude,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
@@ -371,7 +425,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
         String linkIdsStr = StringUtils.collectionToString(linkIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesByLink(
-                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, linkIdsStr, statusExclude
+                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, linkIdsStr, statusExclude,
+                userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -385,7 +440,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             UUID secondTwinClassFieldId,
             Collection<UUID> linkIds,
             boolean statusExclude,
-            boolean throwOnDivisionByZero) {
+            boolean throwOnDivisionByZero,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
@@ -395,7 +452,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
         List<Object[]> results = _sumLinkedTwinFieldValuesOfDivisionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
                 firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr,
-                statusExclude, throwOnDivisionByZero
+                statusExclude, throwOnDivisionByZero, userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -408,7 +465,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
             Collection<UUID> linkIds,
-            boolean statusExclude) {
+            boolean statusExclude,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
@@ -417,7 +476,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfMultiplicationsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr, statusExclude
+                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr, statusExclude,
+                userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }
@@ -430,7 +490,9 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
             Collection<UUID> linkIds,
-            boolean statusExclude) {
+            boolean statusExclude,
+            UUID userId,
+            UUID userGroupFootprintId) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
@@ -439,7 +501,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfSubtractionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr, statusExclude
+                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr, statusExclude,
+                userId, userGroupFootprintId
         );
         return mapNativeQueryResults(results);
     }

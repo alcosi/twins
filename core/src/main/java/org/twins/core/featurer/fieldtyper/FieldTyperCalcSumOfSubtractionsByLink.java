@@ -47,7 +47,8 @@ public class FieldTyperCalcSumOfSubtractionsByLink extends FieldTyperCalcBinaryB
     }
 
     @Override
-    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var permissionContext = calcPermissionContext();
         return new TwinFieldStorageCalcSumOfSubtractionsByLink(
                 twinClassFieldEntity.getId(),
                 twinFieldDecimalRepository,
@@ -57,7 +58,9 @@ public class FieldTyperCalcSumOfSubtractionsByLink extends FieldTyperCalcBinaryB
                 srcElseDst.extract(properties),
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),
-                statusExclude.extract(properties)
+                statusExclude.extract(properties),
+                permissionContext.userId(),
+                permissionContext.userGroupFootprintId()
         );
     }
 }

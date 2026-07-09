@@ -20,18 +20,31 @@ public interface TwinFieldSimpleRepository extends TwinFieldRepository<TwinField
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
-    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinClassId in :twinClassIdList")
-    long countChildrenTwinsOfTwinClassIdIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassIdList") Collection<UUID> twinClassIds);
+    @Query(value = """
+            select count(child) from TwinEntity child
+            where child.headTwinId=:headTwinId
+              and child.twinClassId in :twinClassIdList
+              and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
+            """)
+    long countChildrenTwinsOfTwinClassIdIn(
+            @Param("headTwinId") UUID headTwinId,
+            @Param("twinClassIdList") Collection<UUID> twinClassIds,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as BigDecimal))
-        from TwinEntity child 
-        where child.headTwinId in :headTwinIdList and child.twinClassId in :twinClassIdList
-        group by child.headTwinId
-        """)
+            select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as BigDecimal))
+            from TwinEntity child
+            where child.headTwinId in :headTwinIdList
+              and child.twinClassId in :twinClassIdList
+              and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
+            group by child.headTwinId
+            """)
     List<TwinFieldCalcProjection> countChildrenTwinsOfTwinClassIdIn(
             @Param("headTwinIdList") Collection<UUID> headTwinIdList,
-            @Param("twinClassIdList") Collection<UUID> childrenTwinStatusIdList);
+            @Param("twinClassIdList") Collection<UUID> childrenTwinStatusIdList,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 
     List<TwinFieldSimpleEntity> findByTwinId(UUID twinId);
 
@@ -98,9 +111,12 @@ public interface TwinFieldSimpleRepository extends TwinFieldRepository<TwinField
         join child.twinClass tc
         where child.headTwinId in :headTwinIdList
           and function('hierarchy_check_lquery', tc.extendsHierarchyTree, :lquery) = true
+          and function('permission_check_mater', child.permissionSchemaId, child.viewPermissionId, child.permissionSchemaSpaceId, :userId, :userGroupFootprintId, child.twinClassId, child.createdByUserId = :userId, child.assignerUserId = :userId) = true
         group by child.headTwinId
         """)
     List<TwinFieldCalcProjection> countChildrenTwinsByExtendsHierarchy(
             @Param("headTwinIdList") Collection<UUID> headTwinIdList,
-            @Param("lquery") String lquery);
+            @Param("lquery") String lquery,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
 }
