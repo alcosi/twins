@@ -438,6 +438,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkRepository.existsByDstTwinIdAndLinkId(twinEntity.getId(), linkId);
     }
 
+    public List<TwinLinkEntity> findTwinLinksBySrcTwinAndLinkId(TwinEntity twinEntity, UUID linkId) {
+        if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getBackwardLinks() != null)
+            return twinEntity.getTwinLinks().getForwardLinks().getGrouped(linkId);
+        return twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkId, TwinLinkEntity.class);
+    }
+
     public boolean isLinkDstTwinStatusIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {
         loadTwinLinks(twin);
         List<TwinLinkEntity> twinLinkEntityList = twin.getTwinLinks().getForwardLinks().getGrouped(linkId);
