@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
@@ -13,10 +14,12 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 @Slf4j
 @Getter
@@ -42,68 +45,103 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
 
     @Override
     protected ChangesHelper detectChangesHelper(Identifiable entity) {
-        markForInvalidate(entity);
+        syncRelations(entity, true);
         return super.detectChangesHelper(entity);
     }
 
     @Override
     public void delete(Identifiable entity) {
-        markForInvalidate(entity);
+        syncRelations(entity, false);
         super.delete(entity);
     }
 
-    private void markForInvalidate(Identifiable entity) {
+    private void syncRelations(Identifiable entity, boolean saveElseDelete) {
         Set<TwinInvalidate> invalidates;
         if (entity instanceof TwinMarkerEntity twinMarkerEntity) {
-            invalidationMap.computeIfAbsent(twinMarkerEntity.getTwin(), k -> ConcurrentHashMap.newKeySet())
-                    .add(TwinInvalidate.markersKit);
+            invalidateTwin(twinMarkerEntity.getTwin(), TwinInvalidate.markersKit);
         } else if (entity instanceof TwinTagEntity twinTagEntity) {
-            invalidationMap.computeIfAbsent(twinTagEntity.getTwin(), k -> ConcurrentHashMap.newKeySet())
-                    .add(TwinInvalidate.tagsKit);
+            invalidateTwin(twinTagEntity.getTwin(), TwinInvalidate.tagsKit);
         } else if (entity instanceof TwinLinkEntity twinLinkEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinLinkEntity.getSrcTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinLinks);
-            invalidates.add(TwinInvalidate.fieldValuesKit);
-            invalidates = invalidationMap.computeIfAbsent(twinLinkEntity.getDstTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinLinks);
-            invalidates.add(TwinInvalidate.fieldValuesKit);
-        } else if (entity instanceof TwinFieldSimpleEntity twinFieldSimpleEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldSimpleEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
-        } else if (entity instanceof TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldSimpleNonIndexedEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
-        } else if (entity instanceof TwinFieldDataListEntity twinFieldDataListEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldDataListEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
-        } else if (entity instanceof TwinFieldUserEntity twinFieldUserEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldUserEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
+            invalidateTwin(twinLinkEntity.getSrcTwin(), TwinInvalidate.twinLinks, TwinInvalidate.fieldValuesKit);
+            invalidateTwin(twinLinkEntity.getDstTwin(), TwinInvalidate.twinLinks, TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinAttachmentEntity twinAttachmentEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinAttachmentEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinAttachments);;
-        } else if (entity instanceof TwinFieldI18nEntity twinFieldI18nEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldI18nEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
+            invalidateTwin(twinAttachmentEntity.getTwin(), TwinInvalidate.twinAttachments);
         } else if (entity instanceof TwinAttachmentModificationEntity twinAttachmentModificationEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinAttachmentModificationEntity.getTwinAttachment(), k -> ConcurrentHashMap.newKeySet());
             invalidates.add(TwinInvalidate.twinAttachmentModifications);
-        } else if (entity instanceof TwinFieldBooleanEntity twinFieldBooleanEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldBooleanEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
-        } else if (entity instanceof TwinFieldTwinClassEntity twinFieldTwinClassEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldTwinClassEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldAttributeEntity twinFieldAttributeEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldAttributeEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldAttributeKit);
+            invalidateTwin(twinFieldAttributeEntity.getTwin(), TwinInvalidate.twinFieldAttributeKit);
+        } else if (entity instanceof TwinFieldSimpleEntity twinFieldSimpleEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldSimpleEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldSimpleKit);
+        } else if (entity instanceof TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldSimpleNonIndexedEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldSimpleNonIndexedKit);
+        } else if (entity instanceof TwinFieldDataListEntity twinFieldDataListEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldDataListEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldDatalistKit);
+        } else if (entity instanceof TwinFieldUserEntity twinFieldUserEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldUserEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldUserKit);
+        } else if (entity instanceof TwinFieldI18nEntity twinFieldI18nEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldI18nEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldI18nKit);
+        } else if (entity instanceof TwinFieldBooleanEntity twinFieldBooleanEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldBooleanEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldBooleanKit);
+        } else if (entity instanceof TwinFieldTwinClassEntity twinFieldTwinClassEntity) {
+            syncFieldKitAndInvalidate(
+                    twinFieldTwinClassEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldTwinClassKit);
         } else if (entity instanceof TwinFieldDecimalEntity twinFieldDecimalEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldDecimalEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.fieldValuesKit);
+            syncFieldKitAndInvalidate(
+                    twinFieldDecimalEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldDecimalKit);
         } else if (entity instanceof TwinFieldTimestampEntity twinFieldTimestampEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinFieldTimestampEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldTimestampKit);
+            syncFieldKitAndInvalidate(
+                    twinFieldTimestampEntity,
+                    saveElseDelete,
+                    TwinEntity::getTwinFieldTimestampKit);
         }
+    }
+
+    /**
+     * Marks the given twin for cache/kit invalidation with the supplied {@link TwinInvalidate} flags.
+     * Replaces the repeated {@code invalidationMap.computeIfAbsent(...).add(...)} boilerplate.
+     */
+    private void invalidateTwin(TwinEntity twin, TwinInvalidate... invalidations) {
+        Set<TwinInvalidate> set = invalidationMap.computeIfAbsent(twin, k -> ConcurrentHashMap.newKeySet());
+        Collections.addAll(set, invalidations);
+    }
+
+    /**
+     * Keeps a twin's field kit in sync on save/delete and registers the matching invalidation.
+     * Common to every {@link TwinFieldBaseEntity} subclass whose twin exposes a typed kit accessor.
+     */
+    private <T extends TwinFieldBaseEntity> void syncFieldKitAndInvalidate(
+            T field, boolean saveElseDelete, Function<TwinEntity, Kit<T, UUID>> kitExtractor) {
+        TwinEntity twin = field.getTwin();
+        Kit<T, UUID> kit = kitExtractor.apply(twin);
+        if (saveElseDelete) {
+            kit.add(field);
+        } else {
+            kit.removeByKey(field.getId());
+        }
+        invalidateTwin(twin, TwinInvalidate.fieldValuesKit);
     }
 
     public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId, FactoryLauncher factoryLauncher) throws ServiceException {

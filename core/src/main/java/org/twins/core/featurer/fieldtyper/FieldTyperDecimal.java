@@ -50,16 +50,13 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
         if (twinFieldDecimalEntity == null && value.isNotEmpty()) {
             // create
             twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
-            twin.getTwinFieldDecimalKit().add(twinFieldDecimalEntity);
             detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
         } else if (twinFieldDecimalEntity != null && value.isCleared()) {
             // delete
             twinChangesCollector.delete(twinFieldDecimalEntity);
-            twin.getTwinFieldDecimalKit().removeByKey(twinFieldDecimalEntity.getId());
             addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, null);
         } else if (twinFieldDecimalEntity != null && value.isNotEmpty()) {
             // update
-            twinChangesCollector.add(twinFieldDecimalEntity);
             detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
         }
     }

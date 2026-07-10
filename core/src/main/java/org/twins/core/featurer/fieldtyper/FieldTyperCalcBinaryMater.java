@@ -15,7 +15,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater, FieldTyperRecomputed {
+public abstract class FieldTyperCalcBinaryMater
+        extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric>
+        implements FieldTyperCalcBinary, FieldTyperCalcMater, FieldTyperRecomputed {
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -36,7 +38,6 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
         var firstValue = twinClassFieldService.getDecimalValue(twin, firstFieldId.extract(properties), BigDecimal.ZERO);
         var secondValue = twinClassFieldService.getDecimalValue(twin, secondFieldId.extract(properties), BigDecimal.ZERO);
         detectValueChange(twinFieldEntity, twinChangesCollector, calculate(firstValue, secondValue, properties));
-        twin.getTwinFieldDecimalKit().add(twinFieldEntity);
     }
 
     @Override

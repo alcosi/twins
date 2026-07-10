@@ -34,7 +34,6 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
         var twinFieldEntity = resolveTwinFieldEntity(twin, value.getTwinClassField());
         if (twinFieldEntity == null) {
             twinFieldEntity = twinService.createTwinFieldEntity(twin, value.getTwinClassField(), null);
-            twin.getTwinFieldSimpleKit().add(twinFieldEntity);
         }
         serializeValue(properties, twinFieldEntity, value, twinChangesCollector);
     }
