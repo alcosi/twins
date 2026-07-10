@@ -18,22 +18,29 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2444,
-        name = "Twin exists by head and context field link dst",
+@Featurer(id = FeaturerTwins.ID_2449,
+        name = "Twin exists by head of head and context field link dst",
         description = "True if twin exists with same head twin and link dst twin resolved from context field.")
 @Slf4j
-public class ConditionerTwinExistsByHeadAndContextFieldLinkDst extends ConditionerTwinExistsByHeadAndLinkDstBase {
+public class ConditionerTwinExistsContextFieldLinkDst extends ConditionerTwinExistsByHeadAndLinkDstBase {
 
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 3)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
-    public ConditionerTwinExistsByHeadAndContextFieldLinkDst(TwinSearchServiceV2 twinSearchService, TwinService twinService) {
+    public ConditionerTwinExistsContextFieldLinkDst(TwinSearchServiceV2 twinSearchService, TwinService twinService) {
         super(twinSearchService, twinService);
     }
 
     @Override
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin) {
-        return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException {
+        if (contextTwin.getHeadTwinId() != null) {
+            TwinEntity headTwin = twinService.loadHead(contextTwin);
+            if (headTwin != null && headTwin.getHeadTwinId() != null) {
+                return headTwin.getHeadTwinId();
+            }
+            return null;
+        }
+        return null;
     }
 
     @Override
@@ -41,12 +48,17 @@ public class ConditionerTwinExistsByHeadAndContextFieldLinkDst extends Condition
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                 .lookupFieldValue(factoryItem, dstFieldId);
-        TwinEntity dstTwin = extractTwinFromFieldValue(dstFieldValue);
-        if (dstTwin == null) {
+        TwinEntity childTwin = extractTwinFromFieldValue(dstFieldValue);
+
+        if (childTwin == null) {
             log.debug("Link dst twin id is not resolved from context field [{}]", dstFieldId);
             return null;
         }
+        UUID headTwinId = childTwin.getHeadTwinId();
+        if (headTwinId == null) {
+            log.debug("Head twin id is not resolved for twin [{}] from context field [{}]", childTwin.getId(), dstFieldId);
+        }
 
-        return dstTwin.getId();
+        return headTwinId;
     }
 }

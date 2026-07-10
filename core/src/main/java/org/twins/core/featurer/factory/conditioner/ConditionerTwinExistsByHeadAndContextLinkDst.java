@@ -10,6 +10,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -24,6 +26,15 @@ public class ConditionerTwinExistsByHeadAndContextLinkDst extends ConditionerTwi
     @Lazy
     @Autowired
     private TwinLinkService twinLinkService;
+
+    public ConditionerTwinExistsByHeadAndContextLinkDst(TwinSearchServiceV2 twinSearchService, TwinService twinService) {
+        super(twinSearchService, twinService);
+    }
+
+    @Override
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) {
+        return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+    }
 
     @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
