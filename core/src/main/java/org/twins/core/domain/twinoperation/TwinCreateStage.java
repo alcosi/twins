@@ -5,6 +5,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGroupedObj;
+import org.cambium.common.util.UuidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -40,7 +41,7 @@ public class TwinCreateStage implements Iterable<TwinCreate> {
         }
         var entity = twinCreate.getTwinEntity();
         if (entity.getId() == null) {
-            entity.setId(UUID.randomUUID());
+            entity.setId(UuidUtils.generate());
         }
         map.put(entity.getId(), twinCreate);
         entities.add(entity);

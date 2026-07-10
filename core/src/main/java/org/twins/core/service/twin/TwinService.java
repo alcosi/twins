@@ -424,6 +424,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             validateAndCollect(twinEntity, twinChangesCollector);
         }
         saveTwinFields(twinCreateStage, twinChangesCollector);
+        twinFieldRecomputeService.triggerAffected(twinChangesCollector);
         for (TwinCreate twinCreate : twinCreateStage) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -454,7 +455,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (var twinCreate : twinCreateList) {
             var entity = twinCreate.getTwinEntity();
             if (entity.getId() == null) {
-                entity.setId(UUID.randomUUID());
+                entity.setId(UuidUtils.generate());
             }
             twinEntities.add(entity);
         }
