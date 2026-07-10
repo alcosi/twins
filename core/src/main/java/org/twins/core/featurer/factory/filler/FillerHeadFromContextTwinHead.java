@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.filler;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -14,7 +15,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -53,33 +53,7 @@ public class FillerHeadFromContextTwinHead extends Filler {
     }
 
     private UUID resolveHeadTwinId(TwinEntity twin, int depth) {
-        Set<UUID> headTwinsIdSet = twin.getHeadTwinsIdSet();
-        if (headTwinsIdSet != null) {
-            if (headTwinsIdSet.size() <= depth) {
-                return null; // hierarchy is shorter than depth + 1 -> no head at this depth
-            }
-            int index = 0;
-            for (UUID id : headTwinsIdSet) { // LinkedHashSet keeps leaf-first order
-                if (index == depth) {
-                    return id;
-                }
-                index++;
-            }
-            return null;
-        }
-        // hierarchyTree is not loaded -> walk the head links as a fallback
-        TwinEntity current = twin;
-        for (int i = 0; i < depth; i++) {
-            if (current == null) {
-                return null;
-            }
-            TwinEntity head = current.getHeadTwin();
-            if (head == null && current.getHeadTwinId() != null) {
-                head = twinService.findHeadTwin(current.getHeadTwinId());
-            }
-            current = head;
-        }
-        return current == null ? null : current.getId();
+        return LTreeUtils.uuidByIndex(twin.getHierarchyTree(), true, depth);
     }
 
     @Override

@@ -126,7 +126,7 @@ public abstract class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends 
         if (matchAssignee.extract(properties)) {
             UUID assigneeUserId = resolveAssigneeUserIdFromDstTwin(dstTwinId);
             if (assigneeUserId != null) {
-                search.addAssigneeUserId(assigneeUserId, true);
+                search.addAssigneeUserId(assigneeUserId, false);
             } else {
                 log.info("Dst twin [{}] has no assignee, assignee ignored in unique twin search", dstTwinId);
             }

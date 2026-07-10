@@ -32,12 +32,9 @@ public class ConditionerTwinExistsContextFieldLinkDst extends ConditionerTwinExi
     }
 
     @Override
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin) {
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException {
         if (contextTwin.getHeadTwinId() != null) {
-            TwinEntity headTwin = contextTwin.getHeadTwin();
-            if (headTwin == null) {
-                headTwin = twinService.findHeadTwin(contextTwin.getHeadTwinId());
-            }
+            TwinEntity headTwin = twinService.loadHead(contextTwin);
             if (headTwin != null && headTwin.getHeadTwinId() != null) {
                 return headTwin.getHeadTwinId();
             }

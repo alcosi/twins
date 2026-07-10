@@ -52,7 +52,7 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         return twinSearchService.exists(search);
     }
 
-    protected abstract UUID resolveHeadTwinId(TwinEntity contextTwin);
+    protected abstract UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException;
 
     protected abstract UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
 
