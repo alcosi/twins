@@ -32,6 +32,6 @@ public class TwinFieldStorageDecimal extends TwinFieldStorageMater<TwinFieldDeci
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldDecimalKit(Kit.EMPTY);
+        twinEntity.setTwinFieldDecimalKit(new Kit<>(TwinFieldDecimalEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
     }
 }

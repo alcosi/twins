@@ -25,16 +25,16 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
         }
     }
 
-    public TwinFieldSimpleEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        return twinEntity.getTwinFieldSimpleKit().get(twinClassFieldEntity.getId());
+    public TwinFieldSimpleEntity resolveTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        return twin.getTwinFieldSimpleKit().get(twinClassFieldEntity.getId());
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        TwinFieldSimpleEntity twinFieldEntity = convertToTwinFieldEntity(twin, value.getTwinClassField());
+        var twinFieldEntity = resolveTwinFieldEntity(twin, value.getTwinClassField());
         if (twinFieldEntity == null) {
             twinFieldEntity = twinService.createTwinFieldEntity(twin, value.getTwinClassField(), null);
-            twinChangesCollector.add(twinFieldEntity);
+            twin.getTwinFieldSimpleKit().add(twinFieldEntity);
         }
         serializeValue(properties, twinFieldEntity, value, twinChangesCollector);
     }
@@ -43,7 +43,7 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
 
     @Override
     protected T deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        TwinFieldSimpleEntity twinFieldEntity = convertToTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+        TwinFieldSimpleEntity twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
         return deserializeValue(properties, twinField, twinFieldEntity);
     }
 

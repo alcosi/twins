@@ -69,41 +69,37 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
             invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldSimpleEntity twinFieldSimpleEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldSimpleEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldSimpleKit);
             invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldSimpleNonIndexedEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldSimpleNonIndexedKit);
             invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldDataListEntity twinFieldDataListEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldDataListEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldDatalistKit);
             invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldUserEntity twinFieldUserEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldUserEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldUserKit);
             invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinAttachmentEntity twinAttachmentEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinAttachmentEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
             invalidates.add(TwinInvalidate.twinAttachments);;
         } else if (entity instanceof TwinFieldI18nEntity twinFieldI18nEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldI18nEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldI18nKit);
+            invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinAttachmentModificationEntity twinAttachmentModificationEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinAttachmentModificationEntity.getTwinAttachment(), k -> ConcurrentHashMap.newKeySet());
             invalidates.add(TwinInvalidate.twinAttachmentModifications);
         } else if (entity instanceof TwinFieldBooleanEntity twinFieldBooleanEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldBooleanEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldBooleanKit);
+            invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldTwinClassEntity twinFieldTwinClassEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldTwinClassEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldTwinClassKit);
+            invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldAttributeEntity twinFieldAttributeEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldAttributeEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
             invalidates.add(TwinInvalidate.twinFieldAttributeKit);
         } else if (entity instanceof TwinFieldDecimalEntity twinFieldDecimalEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldDecimalEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
-            invalidates.add(TwinInvalidate.twinFieldDecimalKit);
+            invalidates.add(TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldTimestampEntity twinFieldTimestampEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldTimestampEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
             invalidates.add(TwinInvalidate.twinFieldTimestampKit);

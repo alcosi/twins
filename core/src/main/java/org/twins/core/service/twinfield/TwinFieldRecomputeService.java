@@ -10,14 +10,12 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
@@ -25,7 +23,6 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperRecomputed;
-import org.twins.core.featurer.pointer.Pointer;
 import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -34,35 +31,6 @@ import org.twins.core.service.twinclassfield.recompute.*;
 
 import java.util.*;
 
-/**
- * Orchestrates Mater-field recomputes triggered by changes flowing through a {@link TwinChangesCollector}.
- *
- * <p>Hook point: called between {@code TwinService.validateAndCollect} and {@code TwinService.applyChanges}
- * so that recompute writes land in the same collector — atomicity with the publisher tx (sync flow).
- *
- * <p>Flow:
- * <ol>
- *   <li>Walk collector: changed publisher fields + twin actions + referenced TwinClassField IDs</li>
- *   <li>Batch-load TwinClassFieldEntity for changed IDs, populate
- *       {@link TwinClassFieldEntity#getRecomputeOnField()} via
- *       {@link TwinClassFieldService#loadRecomputeOnField(Collection)} — cached lookup</li>
- *   <li>Batch-load TwinClassEntity for touched publisher classes, populate
- *       {@link TwinClassEntity#getRecomputeOnAction()} via
- *       {@link TwinClassService#loadRecomputeOnAction(Collection)} — cached lookup</li>
- *   <li>Batch-load TwinClassFieldEntity for subscriber side</li>
- *   <li>Build {@code (subscriberTwinClassField, trigger)} pairs grouped by pointerId</li>
- *   <li>{@link #buildRecomputeRequests} — one {@link Pointer#load} batch per pointerId, group by
- *       {@code (subscriberTwin, subscriberTwinClassField)} → one {@link FieldRecomputeRequest} with N triggers</li>
- *   <li>{@link #dispatchRecompute} — locate FieldTyper, call {@link FieldTyperRecomputed#recompute}</li>
- * </ol>
- *
- * <p>Cycle protection via {@link TwinFieldKey} visited-set; cascade via recursive
- * {@link #triggerAffected(TwinChangesCollector, Set, int)} after each dispatch — subscriber changes
- * land in the same collector and trigger a new wave up to {@code twins.mater.max-depth}.
- *
- * <p>MVP gaps (see ai/plans/field-typer-mater-listeners.md §7): validator rules, async outbox,
- * consolidated bulk task. All marked with {@code TODO} inline.
- */
 @Lazy
 @Slf4j
 @Service
@@ -241,7 +209,6 @@ public class TwinFieldRecomputeService {
                 subscriberTwinsKit = new Kit<>(TwinEntity::getId);
                 subscriberTwinByUnresolvedPointer = new HashMap<>();
                 publisherTwinsByPointerId = new HashMap<>();
-                subscriberTwinByUnresolvedPointer = new HashMap<>();
                 visitedSubscribers = new HashSet<>();
                 visitedPublishers = new HashSet<>();
             }
@@ -354,7 +321,6 @@ public class TwinFieldRecomputeService {
         }
 
         private record UnresolvedPointer(UUID publisherTwinId, UUID twinPointerId) {
-            @NotNull
             @Override
             public String toString() {
                 return "pointer[fromTwinId:" + publisherTwinId + ", twinPointerId:" + twinPointerId + "]";

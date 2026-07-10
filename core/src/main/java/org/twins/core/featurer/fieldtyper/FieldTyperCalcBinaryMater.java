@@ -36,6 +36,7 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
         var firstValue = twinClassFieldService.getDecimalValue(twin, firstFieldId.extract(properties), BigDecimal.ZERO);
         var secondValue = twinClassFieldService.getDecimalValue(twin, secondFieldId.extract(properties), BigDecimal.ZERO);
         detectValueChange(twinFieldEntity, twinChangesCollector, calculate(firstValue, secondValue, properties));
+        twin.getTwinFieldDecimalKit().add(twinFieldEntity);
     }
 
     @Override
