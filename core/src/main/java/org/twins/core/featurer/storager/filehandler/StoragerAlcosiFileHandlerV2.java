@@ -139,8 +139,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
             }
-        } catch (Throwable t) {
-            log.info("Unable to delete files in file-handler service: {}", t.getMessage(), t);
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.info("Unable to delete files in file-handler service: {}", e.getMessage(), e);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to delete files in file-handler service");
         }
     }
@@ -211,8 +213,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
                 return new AddedFileKey(originalUrl, fileSize, modifications);
             }
-        } catch (Throwable t) {
-            log.info("Unable to save file in file-handler service: {}", t.getMessage(), t);
+        } catch (ServiceException e) {
+            throw e;
+        } catch (Exception e) {
+            log.info("Unable to save file in file-handler service: {}", e.getMessage(), e);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to save file in file-handler service");
         }
     }

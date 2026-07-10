@@ -3,7 +3,6 @@ package org.twins.core.featurer.twin.validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -41,32 +40,6 @@ public class TwinValidatorTwinChildrenFieldSumInStatusesPositive extends TwinVal
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     private final TwinLinkRepository twinLinkRepository;
-
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        Set<UUID> extractedStatusIds = statusIds.extract(properties);
-        UUID extractedLinkId = linkId.extract(properties);
-        UUID extractedTwinClassFieldId = twinClassFieldId.extract(properties);
-        if (twinEntity.getId() == null || extractedStatusIds == null || extractedStatusIds.isEmpty()) {
-            return buildResult(
-                    false,
-                    invert,
-                    twinEntity.logShort() + " has no id or empty statuses set",
-                    twinEntity.logShort() + " has no id or empty statuses set"
-            );
-        }
-        boolean isValid = twinLinkRepository.existsDstTwinLinkedFromSrcWithStatusAndPositiveDecimalField(
-                twinEntity.getId(),
-                extractedLinkId,
-                extractedStatusIds,
-                extractedTwinClassFieldId
-        );
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " has no linked src twins by link[" + extractedLinkId + "] with field[" + extractedTwinClassFieldId + "] > 0 in statuses[" + StringUtils.join(extractedStatusIds, ",") + "]",
-                twinEntity.logShort() + " has linked src twins by link[" + extractedLinkId + "] with field[" + extractedTwinClassFieldId + "] > 0 in statuses[" + StringUtils.join(extractedStatusIds, ",") + "]"
-        );
-    }
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {

@@ -43,6 +43,12 @@ public class SchedulerTwinChangeTaskRunner extends SchedulerTaskRunner<TwinChang
     }
 
     @Override
+    protected void revertStatusAndSave(Collection<TwinChangeTaskEntity> entities) {
+        entities.forEach(entity -> entity.setStatusId(TwinChangeTaskStatus.NEED_START));
+        twinChangeTaskRepository.saveAll(entities);
+    }
+
+    @Override
     protected List<TwinChangeTaskEntity> collectAll() {
         return twinChangeTaskRepository.findByStatusIdIn(List.of(TwinChangeTaskStatus.NEED_START));
     }

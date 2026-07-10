@@ -13,7 +13,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinId;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
@@ -28,8 +27,6 @@ import java.util.UUID;
 public class TwinTriggerDuplicateTwin extends TwinTrigger {
     @Lazy
     final TwinService twinService;
-    @Lazy
-    final AuthService authService;
 
     @FeaturerParam(name = "Twin id", description = "", order = 1)
     public static final FeaturerParamUUID twinId = new FeaturerParamUUIDTwinsTwinId("twinId");
@@ -41,7 +38,7 @@ public class TwinTriggerDuplicateTwin extends TwinTrigger {
             log.error("Can not access twin by id[{}]. Please check database config", twinId.extract(properties));
             return;
         }
-        log.info("{} will be cloned", twinEntity.logNormal());
+        log.info("{} will be cloned", srcTwin.logNormal());
         twinService.duplicateTwin(srcTwin, null);
     }
 }

@@ -44,14 +44,19 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     }
 
     @Override
-    protected TokenMetaData resolveAuthTokenMetaData(Properties properties, String token) throws ServiceException {
-        if (StringUtils.isEmpty(token))
-            token = httpRequestService.getBusinessAccountIdFromRequest() + "," + httpRequestService.getUserIdFromRequest();
+    protected TokenMetaData resolveAuthTokenMetaData(Properties properties, String token) {
+        if (StringUtils.isEmpty(token)) {
+            token = httpRequestService.getUserIdFromRequest() + "," + httpRequestService.getBusinessAccountIdFromRequest();
+        }
+        
         String[] tokenData = token.split(",");
         TokenMetaData ret = new TokenMetaData()
                 .setUserId(UUID.fromString(tokenData[0].trim()));
-        if (tokenData.length > 1)
+        
+        if (tokenData.length > 1) {
             ret.setBusinessAccountId(UUID.fromString(tokenData[1].trim()));
+        }
+
         return ret;
     }
 
