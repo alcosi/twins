@@ -30,6 +30,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.recompute.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
@@ -195,7 +196,7 @@ public class TwinFieldRecomputeService {
         private Map<UUID, List<TwinEntity>> publisherTwinsByPointerId;
         private Map<UnresolvedPointer, TwinEntity> subscriberTwinByUnresolvedPointer;
         private int currentLoop = 0;
-        private Set<String> visitedSubscribers;
+        private Map<String, Set<String>> appliedPublishersBySubscriber; // subKey -> publisher keys already applied
         private Set<String> visitedPublishers;
         private List<RecomputePlanLoop> loops;
 
@@ -209,7 +210,7 @@ public class TwinFieldRecomputeService {
                 subscriberTwinsKit = new Kit<>(TwinEntity::getId);
                 subscriberTwinByUnresolvedPointer = new HashMap<>();
                 publisherTwinsByPointerId = new HashMap<>();
-                visitedSubscribers = new HashSet<>();
+                appliedPublishersBySubscriber = new HashMap<>();
                 visitedPublishers = new HashSet<>();
             }
             getLoop().init();
@@ -292,10 +293,11 @@ public class TwinFieldRecomputeService {
             return visitedPublishers != null && visitedPublishers.contains(key);
         }
 
-        public boolean addVisitedSubscriber(String key) {
-            if (visitedSubscribers == null)
-                visitedSubscribers = new HashSet<>();
-            return visitedSubscribers.add(key);
+        /** true если среди publisherKeys есть хотя бы один новый для этого подписчика (и тогда все они фиксируются). */
+        public boolean markAppliedPublishers(String subKey, Set<String> publisherKeys) {
+            return appliedPublishersBySubscriber
+                    .computeIfAbsent(subKey, k -> new HashSet<>())
+                    .addAll(publisherKeys);
         }
 
         public boolean isEmpty() {
@@ -366,9 +368,11 @@ public class TwinFieldRecomputeService {
             for (var fieldTriggers : subscriberFieldTriggers.entrySet()) {
                 var subscriberFieldId = fieldTriggers.getKey();
                 var triggers = fieldTriggers.getValue();
-                if (!recomputePlan.addVisitedSubscriber(toKey(subscriberTwinId, subscriberFieldId))) {
-                    log.warn("subscriber[twinId:{}, twinClassFieldId:{}] is already visited", subscriberTwinId, subscriberFieldId);
-                    continue;
+                Set<String> publisherKeys = triggers.stream()
+                        .map(RecomputeTrigger::publisherKey)
+                        .collect(Collectors.toSet());
+                if (!recomputePlan.markAppliedPublishers(toKey(subscriberTwinId, subscriberFieldId), publisherKeys)) {
+                    continue; // все publisher-ы уже применены — дубль, пропускаем
                 }
                 requests.add(new FieldRecomputeRequest(
                         recomputePlan.getSubscriberTwinsKit().get(subscriberTwinId),

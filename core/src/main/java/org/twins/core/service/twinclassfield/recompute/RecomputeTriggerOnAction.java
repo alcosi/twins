@@ -11,4 +11,10 @@ public record RecomputeTriggerOnAction(
         TwinEntity publisherTwin,
         TwinAction action,
         boolean async
-) implements RecomputeTrigger {}
+) implements RecomputeTrigger {
+
+    @Override
+    public String publisherKey() {
+        return "action:" + publisherTwin.getId() + ":" + action.name();
+    }
+}

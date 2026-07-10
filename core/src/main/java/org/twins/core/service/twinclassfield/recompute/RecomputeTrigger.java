@@ -21,4 +21,12 @@ public sealed interface RecomputeTrigger permits RecomputeTriggerOnField, Recomp
     TwinEntity publisherTwin();
 
     boolean async();
+
+    /**
+     * Stable identity of the publisher that initiated this recompute, used by the orchestrator's
+     * applied-publisher tracking: a subscriber is re-dispatched only when at least one of its
+     * triggers carries a publisher key not yet applied to it. The distinct prefix per concrete
+     * type keeps OnField and OnAction sources from colliding when a subscriber listens to both.
+     */
+    String publisherKey();
 }

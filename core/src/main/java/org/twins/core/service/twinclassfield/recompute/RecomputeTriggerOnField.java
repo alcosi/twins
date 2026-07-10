@@ -17,4 +17,10 @@ public record RecomputeTriggerOnField(
         TwinEntity publisherTwin,
         TwinClassFieldEntity publisherField,
         boolean async
-) implements RecomputeTrigger {}
+) implements RecomputeTrigger {
+
+    @Override
+    public String publisherKey() {
+        return "field:" + publisherTwin.getId() + ":" + publisherField.getId();
+    }
+}
