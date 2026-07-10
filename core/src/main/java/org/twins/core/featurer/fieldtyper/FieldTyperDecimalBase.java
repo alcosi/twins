@@ -62,17 +62,17 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        var twinFieldDecimalEntity = convertToTwinFieldEntity(twin, value.getTwinClassField());
-        serializeValue(properties, twin, twinFieldDecimalEntity, value, twinChangesCollector);
+        var twinFieldEntity = resolveTwinFieldEntity(twin, value.getTwinClassField());
+        serializeValue(properties, twin, twinFieldEntity, value, twinChangesCollector);
     }
 
     @Override
     protected T deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldDecimalEntity = convertToTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+        var twinFieldDecimalEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
         return deserializeValue(properties, twinField, twinFieldDecimalEntity);
     }
 
-    private TwinFieldDecimalEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+    private TwinFieldDecimalEntity resolveTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         return twinEntity.getTwinFieldDecimalKit().get(twinClassFieldEntity.getId());
     }
 

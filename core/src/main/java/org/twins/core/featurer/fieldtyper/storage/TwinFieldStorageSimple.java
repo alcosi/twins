@@ -31,6 +31,6 @@ public class TwinFieldStorageSimple extends TwinFieldStorageMater<TwinFieldSimpl
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldSimpleKit(Kit.EMPTY);
+        twinEntity.setTwinFieldSimpleKit(new Kit<>(TwinFieldSimpleEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
     }
 }

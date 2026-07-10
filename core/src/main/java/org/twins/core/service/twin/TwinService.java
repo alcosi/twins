@@ -64,6 +64,7 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinfield.TwinFieldRecomputeService;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
@@ -156,6 +157,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private TwinFieldRuleExecutionService twinFieldRuleExecutionService;
     @Autowired
     private TwinActionService twinActionService;
+    @Autowired
+    private TwinFieldRecomputeService twinFieldRecomputeService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -421,6 +424,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             validateAndCollect(twinEntity, twinChangesCollector);
         }
         saveTwinFields(twinCreateStage, twinChangesCollector);
+        twinFieldRecomputeService.triggerAffected(twinChangesCollector);
         for (TwinCreate twinCreate : twinCreateStage) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -451,7 +455,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (var twinCreate : twinCreateList) {
             var entity = twinCreate.getTwinEntity();
             if (entity.getId() == null) {
-                entity.setId(UUID.randomUUID());
+                entity.setId(UuidUtils.generate());
             }
             twinEntities.add(entity);
         }
@@ -907,6 +911,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (batchFieldValidationException != null) {
             throw batchFieldValidationException;
         }
+        twinFieldRecomputeService.triggerAffected(twinChangesCollector);
         twinChangesService.applyChanges(twinChangesCollector);
 
         return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).map(TwinEntity::resetCalculatedFields).toList();
@@ -1313,6 +1318,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldSimpleEntity createTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
         return new TwinFieldSimpleEntity()
+                        .setId(UuidUtils.generate())
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
@@ -1322,6 +1328,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldBooleanEntity createTwinFieldBooleanEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, Boolean value) {
         return new TwinFieldBooleanEntity()
+                .setId(UuidUtils.generate())
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
@@ -1340,6 +1347,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldDecimalEntity createTwinFieldDecimalEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, BigDecimal value) {
         return new TwinFieldDecimalEntity()
+                .setId(UuidUtils.generate())
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
@@ -1349,6 +1357,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldSimpleNonIndexedEntity createTwinFieldNonIndexedEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
         return new TwinFieldSimpleNonIndexedEntity()
+                .setId(UuidUtils.generate())
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)

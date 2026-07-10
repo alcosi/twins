@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -16,7 +16,11 @@ import java.util.Properties;
         description = "")
 public class PointerOnSelf extends Pointer {
     @Override
-    protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        return srcTwinEntity;
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
+        for (TwinEntity src : srcTwins) {
+            result.put(src.getId(), src);
+        }
+        return result;
     }
 }

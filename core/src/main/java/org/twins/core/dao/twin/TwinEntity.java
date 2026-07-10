@@ -42,10 +42,7 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 /**
@@ -580,6 +577,27 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Set<UUID> headTwinsIdSet;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Optional<TwinEntity>> pointers;
+
+    public TwinEntity getPointer(UUID pointerId) {
+        if (pointers == null) return null;
+        Optional<TwinEntity> cached = pointers.get(pointerId);
+        return cached != null ? cached.orElse(null) : null;
+    }
+
+    public boolean hasPointer(UUID pointerId) {
+        return pointers != null && pointers.containsKey(pointerId);
+    }
+
+    public TwinEntity addPointer(UUID pointerId, TwinEntity pointedTwin) {
+        if (pointers == null) pointers = new HashMap<>();
+        pointers.put(pointerId, Optional.ofNullable(pointedTwin));
+        return this;
+    }
+
     public boolean isSketch() {
         return SystemIds.TwinStatus.SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
     }
@@ -735,6 +753,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // rules
         fieldRulesApplyResult = null;
+
+        // Pointer-featurer results cache (see Pointer.point / Pointer.load)
+        pointers = null;
         return this;
     }
 

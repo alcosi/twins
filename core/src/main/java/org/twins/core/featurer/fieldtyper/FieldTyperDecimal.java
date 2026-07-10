@@ -50,7 +50,6 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
         if (twinFieldDecimalEntity == null && value.isNotEmpty()) {
             // create
             twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
-            twinChangesCollector.add(twinFieldDecimalEntity);
             detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
         } else if (twinFieldDecimalEntity != null && value.isCleared()) {
             // delete
@@ -58,7 +57,6 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
             addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, null);
         } else if (twinFieldDecimalEntity != null && value.isNotEmpty()) {
             // update
-            twinChangesCollector.add(twinFieldDecimalEntity);
             detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
         }
     }

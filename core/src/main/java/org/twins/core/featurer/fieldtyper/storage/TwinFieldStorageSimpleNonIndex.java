@@ -31,6 +31,6 @@ public class TwinFieldStorageSimpleNonIndex extends TwinFieldStorageMater<TwinFi
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldSimpleNonIndexedKit(Kit.EMPTY);
+        twinEntity.setTwinFieldSimpleNonIndexedKit(new Kit<>(TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
     }
 }

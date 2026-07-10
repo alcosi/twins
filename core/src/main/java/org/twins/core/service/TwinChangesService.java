@@ -23,12 +23,12 @@ import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.*;
-import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.EntityKey;
+import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
@@ -173,14 +173,15 @@ public class TwinChangesService {
                         case twinFieldSimpleNonIndexedKit -> twinEntity.setTwinFieldSimpleNonIndexedKit(null);
                         case twinFieldUserKit -> twinEntity.setTwinFieldUserKit(null);
                         case twinFieldDatalistKit -> twinEntity.setTwinFieldDatalistKit(null);
-                        case twinLinks -> twinEntity.setTwinLinks(null);
-                        case fieldValuesKit -> twinEntity.setFieldValuesKit(null);
-                        case twinAttachments -> twinEntity.setAttachmentKit(null);
+                        case twinFieldDecimalKit -> twinEntity.setTwinFieldDecimalKit(null);
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
                         case twinFieldAttributeKit -> twinEntity.setTwinFieldAttributeKit(null);
                         case twinFieldTimestampKit -> twinEntity.setTwinFieldTimestampKit(null);
+                        case twinLinks -> twinEntity.setTwinLinks(null);
+                        case fieldValuesKit -> twinEntity.setFieldValuesKit(null);
+                        case twinAttachments -> twinEntity.setAttachmentKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {

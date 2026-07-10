@@ -13,6 +13,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
@@ -243,6 +244,16 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private KitGrouped<TwinClassFieldActionValidatorRuleEntity, UUID, TwinClassFieldAction> twinClassFieldActionValidationRules;
+
+    /**
+     * OnField recompute rules where this field is the publisher (operand).
+     * Loaded via {@code TwinClassFieldService.loadRecomputeOnField(...)}; null until loaded.
+     * Empty kit means "no rules listen to this field" — distinct from null "not loaded yet".
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldRecomputeOnFieldEntity, UUID> recomputeOnField;
 
     public String easyLog(Level level) {
         return switch (level) {

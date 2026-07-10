@@ -287,6 +287,11 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
         return this;
     }
 
+    public TwinSearch addHierarchyTreeContainsId(Collection<UUID> twinIds) {
+        hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinIds);
+        return this;
+    }
+
     public TwinSearch addTwinClassExtendsHierarchyContainsId(UUID twinClassId) {
         twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, twinClassId);
         return this;

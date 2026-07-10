@@ -16,9 +16,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.link.TwinLinkService;
 
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -34,17 +32,30 @@ public class PointerOnLinkedTwin extends Pointer {
     private final TwinLinkService twinLinkService;
 
     @Override
-    protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        twinLinkService.loadTwinLinks(srcTwinEntity);
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        twinLinkService.loadTwinLinks(srcTwins);
         UUID linkIdValue = linkId.extract(properties);
-        List<TwinLinkEntity> forwardLinks = srcTwinEntity.getTwinLinks().getForwardLinks().getGrouped(linkIdValue);
-        if (CollectionUtils.isEmpty(forwardLinks))
-            return null;
-        else if (forwardLinks.size() > 1)
-            throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE, srcTwinEntity.logShort() + " has " + forwardLinks.size() + " linked twins by link[" + linkIdValue + "]");
-        else {
-            twinLinkService.loadDstTwin(forwardLinks);
-            return forwardLinks.getFirst().getDstTwin();
+        Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
+        var links = new ArrayList<TwinLinkEntity>(srcTwins.size());
+        for (var twin : srcTwins) {
+            List<TwinLinkEntity> forwardLinks = twin.getTwinLinks().getForwardLinks().getGrouped(linkIdValue);
+            if (CollectionUtils.isEmpty(forwardLinks)) {
+                continue;
+            }
+            if (forwardLinks.size() > 1) {
+                throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
+                        twin.logShort() + " has " + forwardLinks.size() + " linked twins by link[" + linkIdValue + "]");
+            }
+            TwinLinkEntity link = forwardLinks.getFirst();
+            links.add(link);
         }
+        if (links.isEmpty()) {
+            return Map.of();
+        }
+        twinLinkService.loadDstTwin(links);
+        for (var link : links) {
+            result.put(link.getSrcTwinId(), link.getDstTwin());
+        }
+        return result;
     }
 }

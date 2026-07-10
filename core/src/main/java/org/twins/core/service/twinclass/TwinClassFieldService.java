@@ -27,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldRepository;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
@@ -55,7 +57,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-
 @Slf4j
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -82,6 +83,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final TwinValidatorSetService twinValidatorSetService;
     @Lazy
     private final PermissionService permissionService;
+    @Lazy
+    private final TwinClassFieldRecomputeOnFieldRepository twinClassFieldRecomputeOnFieldRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -201,6 +204,18 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         for (TwinSort twinSort : twinSorts)
             if (twinSort.getTwinClassField() == null)
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
+    }
+
+    public void loadRecomputeOnField(Collection<TwinClassFieldEntity> fields) {
+        loadKit(
+                fields,
+                TwinClassFieldEntity::getId,
+                TwinClassFieldEntity::getRecomputeOnField,
+                TwinClassFieldEntity::setRecomputeOnField,
+                twinClassFieldRecomputeOnFieldRepository::findByPublisherTwinClassFieldIdIn,
+                TwinClassFieldRecomputeOnFieldEntity::getId,
+                TwinClassFieldRecomputeOnFieldEntity::getPublisherTwinClassFieldId
+        );
     }
 
     public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
