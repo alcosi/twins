@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryService;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -25,7 +25,7 @@ public class FactoryCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<T
     @MapperModePointerBinding(modes = UserMode.Factory2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     @Override
     public void map(CountResult<TwinFactoryEntity, FactoryGroupField> src, FactoryCountDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -39,7 +39,7 @@ public class FactoryCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<T
                 .setDomainId(entity.getDomainId())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, UserMode.Factory2UserMode.HIDE, src, FactoryGroupField.createdByUserId)) {
-            twinFactoryService.loadCreatedByUser(entity);
+            factoryService.loadCreatedByUser(entity);
             userRestDTOMapper.convertOrPostpone(entity.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Factory2UserMode.SHORT)));
         }
     }
@@ -55,7 +55,7 @@ public class FactoryCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<T
         }
         var someCount = srcCollection.iterator().next();
         if (needLoad(mapperContext, UserMode.Factory2UserMode.HIDE, someCount, FactoryGroupField.createdByUserId)) {
-            twinFactoryService.loadCreatedByUser(entityCollection);
+            factoryService.loadCreatedByUser(entityCollection);
         }
     }
 }

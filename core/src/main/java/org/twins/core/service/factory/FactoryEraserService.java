@@ -135,7 +135,7 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     public void loadTwinFactory(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
-        twinFactoryService.load(erasers,
+        factoryService.load(erasers,
                 TwinFactoryEraserEntity::getTwinFactoryId,
                 TwinFactoryEraserEntity::getTwinFactory,
                 TwinFactoryEraserEntity::setTwinFactory);

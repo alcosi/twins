@@ -35,7 +35,7 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
@@ -147,7 +147,7 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     public void loadFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
-        twinFactoryService.load(branches,
+        factoryService.load(branches,
                 TwinFactoryBranchEntity::getTwinFactoryId,
                 TwinFactoryBranchEntity::getFactory,
                 TwinFactoryBranchEntity::setFactory);
@@ -158,7 +158,7 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     public void loadNextFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
-        twinFactoryService.load(branches,
+        factoryService.load(branches,
                 TwinFactoryBranchEntity::getNextTwinFactoryId,
                 TwinFactoryBranchEntity::getNextFactory,
                 TwinFactoryBranchEntity::setNextFactory);
