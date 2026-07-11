@@ -17,10 +17,7 @@ import org.twins.core.domain.factory.FactoryEraserDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -89,7 +86,7 @@ public class FactoryEraserDuplicateService extends EntityDuplicateService<Factor
         var src = duplicate.getOriginalEntity();
         UUID targetFactoryId = duplicate.getNewParentEntity().getId();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
-        if (newConditionSetId != null && src.getTwinFactoryId() != targetFactoryId) {
+        if (newConditionSetId != null && !Objects.equals(src.getTwinFactoryId(), targetFactoryId)) {
             newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
         }
         return new TwinFactoryEraserEntity()

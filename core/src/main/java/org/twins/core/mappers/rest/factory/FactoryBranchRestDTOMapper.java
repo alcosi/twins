@@ -56,9 +56,8 @@ public class FactoryBranchRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryB
             factoryRestDTOMapper.postpone(src.getNextFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryBranch2FactoryMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.HIDE)) {
-            dst
-                    .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
-            if (src.getConditionSet() == null) factoryBranchService.loadConditionSet(src);
+            dst.setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            factoryBranchService.loadConditionSet(src);
             factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.SHORT));
         }
     }

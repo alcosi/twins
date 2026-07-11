@@ -17,10 +17,7 @@ import org.twins.core.domain.factory.FactoryPipelineStepDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -98,7 +95,7 @@ public class FactoryPipelineStepDuplicateService extends EntityDuplicateService<
         var srcPipeLine = duplicate.getOriginalEntity().getTwinFactoryPipeline();
         var dstPipeline = duplicate.getNewParentEntity();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
-        if (src.getTwinFactoryConditionSetId() != null && !srcPipeLine.getTwinFactoryId().equals(dstPipeline.getTwinFactoryId())) {
+        if (src.getTwinFactoryConditionSetId() != null && !Objects.equals(srcPipeLine.getTwinFactoryId(), dstPipeline.getTwinFactoryId())) {
             newConditionSetId = conditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), dstPipeline.getTwinFactoryId(), duplicateCollector);
         }
         return new TwinFactoryPipelineStepEntity()
