@@ -135,7 +135,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         loadPipeline(Collections.singletonList(src));
     }
 
-    public void loadPipeline(List<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
+    public void loadPipeline(Collection<TwinFactoryPipelineStepEntity> srcCollection) throws ServiceException {
         factoryPipelineService.load(srcCollection,
                 TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,
                 TwinFactoryPipelineStepEntity::getTwinFactoryPipeline,

@@ -102,7 +102,7 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
         loadMultiplier(Collections.singletonList(src));
     }
 
-    public void loadMultiplier(List<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
+    public void loadMultiplier(Collection<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
         factoryMultiplierService.load(srcCollection,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
                 TwinFactoryMultiplierFilterEntity::getMultiplier,
