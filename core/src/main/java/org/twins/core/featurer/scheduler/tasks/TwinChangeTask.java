@@ -16,7 +16,7 @@ import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -29,7 +29,7 @@ public class TwinChangeTask implements Runnable {
     private final TwinChangeTaskEntity twinChangeTaskEntity;
 
     @Autowired
-    private TwinFactoryService twinFactoryService;
+    private FactoryExecutionService twinFactoryService;
     @Autowired
     private TwinChangeTaskRepository twinChangeTaskRepository;
     @Autowired

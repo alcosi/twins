@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.factory.FactoryConditionSetService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.util.Collection;
 
@@ -34,7 +34,7 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     @MapperModePointerBinding(modes = FactoryMode.FactoryConditionSet2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapper;
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     private final FactoryConditionSetService factoryConditionSetService;
 

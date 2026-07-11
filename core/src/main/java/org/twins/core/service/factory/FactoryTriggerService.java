@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
     private final FactoryConditionSetService factoryConditionSetService;

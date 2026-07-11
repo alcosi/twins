@@ -11,8 +11,8 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.factory.FactoryMultiplierService;
-import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
 
@@ -21,7 +21,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = {FactoryMultiplierMode.class, FactoryMultiplierFiltersCountMode.class})
 public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryMultiplierEntity, FactoryMultiplierDTOv1> {
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     @MapperModePointerBinding(modes = FactoryMode.FactoryMultiplier2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapper;

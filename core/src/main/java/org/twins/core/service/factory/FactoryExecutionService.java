@@ -62,7 +62,7 @@ import static org.cambium.common.util.RowUtils.mapUuidInt;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
+public class FactoryExecutionService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
     final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
     final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
     final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
@@ -491,7 +491,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             DraftEntity draftEntity = draftService.draftFactoryResult(factoryResultUncommited);
             draftCommitService.commitNowOrInQueue(draftEntity);
             return new FactoryResultCommitedMajor().setCommitedDraftEntity(draftEntity);
-        } else { //we can save result without drafting
+        } else { //we can save a result without drafting
             FactoryResultCommitedMinor factoryResultCommited = new FactoryResultCommitedMinor();
             for (TwinCreate twinCreate : factoryResultUncommited.getCreates()) {
                 TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(twinCreate);

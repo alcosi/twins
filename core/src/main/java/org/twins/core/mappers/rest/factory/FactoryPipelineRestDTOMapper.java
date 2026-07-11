@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.util.Collection;
 
@@ -20,7 +20,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = FactoryPipelineMode.class)
 public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryPipelineEntity, FactoryPipelineDTOv1> {
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     @MapperModePointerBinding(modes = {
             FactoryMode.FactoryPipeline2FactoryMode.class,

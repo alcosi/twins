@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.factory.FactoryUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
@@ -41,7 +41,7 @@ public class FactoryUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryUpdateDTOReverseMapper factoryUpdateDTOReverseMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders

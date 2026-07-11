@@ -42,7 +42,7 @@ import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.eraseflow.EraseflowService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
@@ -83,7 +83,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     @Lazy
     private final TwinService twinService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
     @Lazy
     private final HistoryService historyService;
     @Lazy

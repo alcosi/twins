@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
@@ -28,7 +28,7 @@ import java.util.Collection;
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
 
     private final I18nService i18nService;
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     @MapperModePointerBinding(modes = UserMode.Factory2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;

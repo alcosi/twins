@@ -12,19 +12,19 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromContextTwinOfClassAssignee;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTest {
 
     @Mock
-    private TwinFactoryService twinFactoryService;
+    private FactoryExecutionService twinFactoryService;
 
     private FillerBasicsAssigneeFromContextTwinOfClassAssignee filler;
 

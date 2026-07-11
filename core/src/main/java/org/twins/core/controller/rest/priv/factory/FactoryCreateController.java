@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
@@ -41,7 +41,7 @@ public class FactoryCreateController extends ApiController {
     private final FactoryCreateDTOReverseMapper factoryCreateDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryCreateV1", summary = "Factory add")

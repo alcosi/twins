@@ -12,6 +12,7 @@ import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -25,16 +26,17 @@ import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryResultUncommited;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinCreateStage;
 import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.factory.FactoryLauncher;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
+import org.twins.core.service.twin.TwinService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -47,10 +49,14 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
     private final TwinflowService twinflowService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
+    @Lazy
+    private final TwinService twinService;
     private final TwinflowFactoryRepository repository;
     private final TwinflowFactoryRepository twinflowFactoryRepository;
     private final AuthService authService;
+    @Value("${twins.onsave.factory.cascade.max-depth:5}")
+    private int maxCascadeDepth;
 
     @Override
     public CrudRepository<TwinflowFactoryEntity, UUID> entityRepository() {
@@ -168,24 +174,69 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         }
     }
 
-    public void runFactoryOn(TwinSave twinSave, FactoryLauncher factoryLauncher) throws ServiceException {
+    public void runFactoryOn(TwinSave twinSave, FactoryLauncher factoryLauncher, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = detectTwinEntity(twinSave);
         twinflowService.loadTwinflow(twinEntity);
         loadFactories(twinEntity.getTwinflow());
         TwinflowFactoryEntity twinflowFactory = twinEntity.getTwinflow().getFactoriesKit().get(factoryLauncher);
-        runFactoryOn(twinSave, twinflowFactory);
+        runFactoryOn(twinSave, twinflowFactory, twinChangesCollector);
     }
 
-    public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory) throws ServiceException {
+    public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinflowFactory == null)
             return;
         FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
         factoryContext.setRequestId(authService.getApiUser().getRequestId());
         factoryContext.add(new FactoryItem().setOutput(twinSave).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
-        if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {
-            log.warn("During [{}] operation, some extra twins where modified, but they won't be saved. " +
-                    "Only current twin modification will make sense", twinflowFactory);
+        cascadeApplyExtras(twinSave, result, twinflowFactory, twinChangesCollector);
+    }
+
+    // The on-create/on-update factory may produce extra create/update/delete operations beyond the
+    // input twin. These are applied recursively via twinService.createTwin/updateTwin, each of which
+    // re-triggers the on-factory of its own twinflow (see runFactoryOnCreate/runFactoryOnUpdate guards),
+    // so this is a true cascade bounded by cascadeDepth. Deletes are not supported in a cascade run
+    // (they would require drafting) and fail the whole operation.
+    private void cascadeApplyExtras(TwinSave inputTwin,
+                                    FactoryResultUncommited result,
+                                    TwinflowFactoryEntity twinflowFactory,
+                                    TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (!result.getDeletes().isEmpty()) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT,
+                    "Factory {} produced deletes during a cascade run on {}, but deletes are not supported in a cascade",
+                    twinflowFactory.logNormal(), inputTwin.getTwinEntity().logNormal());
+        }
+        UUID inputTwinId = inputTwin.getTwinId();
+        // the remaining cascade budget for the input: explicit (a cascade extra) or the configured max (a direct top-level twin)
+        int budget = inputTwin.getCascadeDepth() != null ? inputTwin.getCascadeDepth() : maxCascadeDepth;
+        int childDepth = budget - 1;
+        if (KitUtils.isNotEmpty(result.getCreates())) {
+            var extraTwinCreates = new TwinCreateStage(result.getCreates().size());
+            for (TwinCreate extra : result.getCreates()) {
+                if (extra.getTwinId().equals(inputTwinId)) {
+                    continue; // the input twin itself is owned by the calling create/update flow
+                }
+                // after-operation factories are disabled for cascade extras so the cascade has a single
+                // (synchronous, depth-bounded) channel and does not fan out via async TwinChangeTask jobs
+                extra
+                        .setCanTriggerAfterOperationFactory(false)
+                        .setCascadeDepth(childDepth);
+                extraTwinCreates.add(extra);
+            }
+            twinService.createTwins(extraTwinCreates, twinChangesCollector);
+        }
+        if (KitUtils.isNotEmpty(result.getUpdates())) {
+            var extraTwinUpdates = new ArrayList<TwinUpdate>(result.getUpdates().size());
+            for (TwinUpdate extra : result.getUpdates()) {
+                if (extra.getTwinId().equals(inputTwinId)) {
+                    continue;
+                }
+                extra
+                        .setCanTriggerAfterOperationFactory(false)
+                        .setCascadeDepth(childDepth);
+                extraTwinUpdates.add(extra);
+            }
+            twinService.updateTwin(extraTwinUpdates, twinChangesCollector, false);
         }
     }
 

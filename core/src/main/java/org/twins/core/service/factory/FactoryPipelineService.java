@@ -39,7 +39,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final AuthService authService;
     private final TwinClassService twinClassService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
     private final TwinService twinService;

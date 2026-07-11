@@ -30,6 +30,13 @@ public class TwinCreateStage implements Iterable<TwinCreate> {
         return ret;
     }
 
+    @SneakyThrows
+    public static TwinCreateStage of(Collection<TwinCreate> twinCreateList) {
+        var ret = new TwinCreateStage(twinCreateList.size());
+        ret.addAll(twinCreateList);
+        return ret;
+    }
+
     public TwinCreateStage add(TwinCreate twinCreate) throws ServiceException {
         if (frozen)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "TwinCreate stage is already freezed");
@@ -45,6 +52,13 @@ public class TwinCreateStage implements Iterable<TwinCreate> {
         }
         map.put(entity.getId(), twinCreate);
         entities.add(entity);
+        return this;
+    }
+
+    public TwinCreateStage addAll(Collection<TwinCreate> twinCreateList) throws ServiceException {
+        for (TwinCreate twinCreate : twinCreateList) {
+            add(twinCreate);
+        }
         return this;
     }
 

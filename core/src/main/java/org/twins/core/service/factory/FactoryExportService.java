@@ -16,7 +16,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FactoryExportService extends EntityExportService<TwinFactoryEntity> {
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     private final FactoryBranchExportService branchExportService;
     private final FactoryMultiplierExportService multiplierExportService;

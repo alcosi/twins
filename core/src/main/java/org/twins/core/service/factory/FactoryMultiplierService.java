@@ -20,11 +20,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -37,7 +33,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService twinFactoryService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierEntity, UUID> entityRepository() {

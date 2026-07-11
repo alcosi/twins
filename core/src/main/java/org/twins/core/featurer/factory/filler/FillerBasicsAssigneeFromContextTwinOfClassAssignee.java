@@ -13,7 +13,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -29,7 +29,7 @@ public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
 
     @Lazy
     @Autowired
-    TwinFactoryService twinFactoryService;
+    FactoryExecutionService twinFactoryService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
