@@ -89,7 +89,6 @@ public class FactorySearchService extends EntitySearchService
     public String convertToEntityField(FactoryGroupField groupField) {
         return switch (groupField) {
             case createdByUserId -> TwinFactoryEntity.Fields.createdByUserId;
-            case domainId -> TwinFactoryEntity.Fields.domainId;
         };
     }
 
@@ -97,7 +96,6 @@ public class FactorySearchService extends EntitySearchService
     public void mapGroupedField(TwinFactoryEntity entity, FactoryGroupField field, Object o) {
         switch (field) {
             case createdByUserId -> entity.setCreatedByUserId((UUID) o);
-            case domainId -> entity.setDomainId((UUID) o);
         }
     }
 }
