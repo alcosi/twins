@@ -39,7 +39,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final AuthService authService;
     private final TwinClassService twinClassService;
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
     private final TwinService twinService;
@@ -72,9 +72,9 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
                 if (entity.getNextTwinFactoryId() != null && (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId())))
-                    entity.setNextTwinFactory(twinFactoryService.findEntitySafe(entity.getNextTwinFactoryId()));
+                    entity.setNextTwinFactory(factoryService.findEntitySafe(entity.getNextTwinFactoryId()));
                 if (entity.getTwinFactoryConditionSetId() != null && (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
                     entity.setConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
                 if (entity.getOutputTwinStatusId() != null && (entity.getOutputTwinStatus() == null || !entity.getOutputTwinStatus().getId().equals(entity.getOutputTwinStatusId())))

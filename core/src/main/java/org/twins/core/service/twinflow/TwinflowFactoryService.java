@@ -34,6 +34,7 @@ import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.FactoryExecutionService;
+import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
@@ -49,7 +50,9 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
     private final TwinflowService twinflowService;
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryExecutionService factoryExecutionService;
+    @Lazy
+    private final FactoryService factoryService;
     @Lazy
     private final TwinService twinService;
     private final TwinflowFactoryRepository repository;
@@ -71,7 +74,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     @Override
     public boolean isEntityReadDenied(TwinflowFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return twinflowService.isEntityReadDenied(entity.getTwinflow(), readPermissionCheckMode)
-                || twinFactoryService.isEntityReadDenied(entity.getTwinFactory(), readPermissionCheckMode);
+                || factoryService.isEntityReadDenied(entity.getTwinFactory(), readPermissionCheckMode);
     }
 
     @Override
@@ -110,7 +113,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId())) {
                     try {
-                        entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                        entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
                     } catch (ServiceException e) {
                         return logErrorAndReturnFalse("TwinFactory with id[" + entity.getTwinFactoryId() + "] does not exist");
                     }
@@ -133,7 +136,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         }
 
         try {
-            Kit<TwinFactoryEntity, UUID> twinFactoryKit = twinFactoryService.findEntitiesSafe(entities.stream().map(TwinflowFactoryEntity::getTwinFactoryId).toList());
+            Kit<TwinFactoryEntity, UUID> twinFactoryKit = factoryService.findEntitiesSafe(entities.stream().map(TwinflowFactoryEntity::getTwinFactoryId).toList());
 
             for (var entity : entities) {
                 entity.setTwinFactory(twinFactoryKit.get(entity.getTwinFactoryId()));
@@ -188,7 +191,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
         factoryContext.setRequestId(authService.getApiUser().getRequestId());
         factoryContext.add(new FactoryItem().setOutput(twinSave).setFactoryContext(factoryContext));
-        FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
+        FactoryResultUncommited result = factoryExecutionService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
         cascadeApplyExtras(twinSave, result, twinflowFactory, twinChangesCollector);
     }
 

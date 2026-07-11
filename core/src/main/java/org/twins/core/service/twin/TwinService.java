@@ -573,10 +573,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (var twin : twins) {
                 if (twinClass.getHeadTwinClassId() != null && twin.getHeadTwinId() == null) {
                     throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "head twin is required for " + twinClass.logShort());
-                } else if (twinClass.getHeadTwinClassId() != null) {
-                    twinToCheck.add(twin);
                 } else if (twin.getHeadTwin() != null) {
                     continue;
+                } else if (twinClass.getHeadTwinClassId() != null) {
+                    twinToCheck.add(twin);
                 } else {
                     twin.setPermissionSchemaId(authService.getApiUser().getUser().getDetectedPermissionSchemaId());
                 }
@@ -1033,14 +1033,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private static boolean isReachedCascadeDepth(TwinSave twinUpdate) {
+    private static boolean isReachedCascadeDepth(TwinSave twinSave) {
         // factory fires for direct operations (the cascade origin) and for cascade
         // extras that still have a budget (cascadeDepth > 0). Non-direct operations without a budget
         // are skipped, which stops the cascade.
-        if (twinUpdate.getLauncher() == TwinOperation.Launcher.direct)
+        if (twinSave.getLauncher() == TwinOperation.Launcher.direct)
             return false;
-        else if (twinUpdate.getCascadeDepth() == null || twinUpdate.getCascadeDepth() <= 0) {
-            log.warn("Factory not fired for on create/update {} because of reached cascade depth limit", twinUpdate.getTwinEntity().logNormal());
+        else if (twinSave.getCascadeDepth() == null || twinSave.getCascadeDepth() <= 0) {
+            log.warn("Factory not fired for on create/update {} because of reached cascade depth limit", twinSave.getTwinEntity().logNormal());
             return true;
         }
         return false;

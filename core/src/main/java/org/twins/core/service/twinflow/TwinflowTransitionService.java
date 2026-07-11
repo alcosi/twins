@@ -91,7 +91,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Lazy
     private final TwinTriggerTaskService twinTriggerTaskService;
     private final TwinClassService twinClassService;
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryExecutionService factoryExecutionService;
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
     @Lazy
@@ -721,7 +721,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey());
             entry.setValue(factoryResultUncommited); //filling result
-            if (twinFactoryService.mustBeDrafted(factoryResultUncommited))
+            if (factoryExecutionService.mustBeDrafted(factoryResultUncommited))
                 transitionContextBatch.setMustBeDrafted(true); //this is batch decision for all results
         }
     }
@@ -746,7 +746,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         LoggerUtils.traceTreeStart();
         FactoryResultUncommited factoryResultUncommited;
         try {
-            factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(inbuiltTwinFactoryId, factoryContext);
+            factoryResultUncommited = factoryExecutionService.runFactoryAndCollectResult(inbuiltTwinFactoryId, factoryContext);
         } finally {
             LoggerUtils.traceTreeEnd();
         }
@@ -780,7 +780,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Transactional
     public TransitionResult commitFactoryResult(TransitionContext transitionContext, FactoryResultUncommited factoryResultUncommited) throws ServiceException {
-        FactoryResultCommited factoryResultCommited = twinFactoryService.commitResult(factoryResultUncommited);
+        FactoryResultCommited factoryResultCommited = factoryExecutionService.commitResult(factoryResultUncommited);
         if (factoryResultCommited instanceof FactoryResultCommitedMinor factoryResultCommitedMinor) {
             TransitionResultMinor transitionResultMinor = new TransitionResultMinor();
             transitionResultMinor.addProcessedTwins(factoryResultCommitedMinor.getCreatedTwinList());
@@ -802,7 +802,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void commitFactoriesResult(Map<TransitionContext, FactoryResultUncommited> factoryTransitions, TransitionResultMinor transitionResultMinor) throws ServiceException {
         for (var entry : factoryTransitions.entrySet()) {
             TransitionContext transitionContext = entry.getKey();
-            FactoryResultCommited factoryResultCommited = twinFactoryService.commitResult(entry.getValue());
+            FactoryResultCommited factoryResultCommited = factoryExecutionService.commitResult(entry.getValue());
             if (factoryResultCommited instanceof FactoryResultCommitedMinor factoryResultCommitedMinor) {
                 transitionResultMinor.addProcessedTwins(factoryResultCommitedMinor.getCreatedTwinList());
                 for (TwinEntity twinUpdated : factoryResultCommitedMinor.getUpdatedTwinList()) {

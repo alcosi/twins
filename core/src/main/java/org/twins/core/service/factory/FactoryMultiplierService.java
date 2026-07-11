@@ -33,7 +33,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierEntity, UUID> entityRepository() {
@@ -64,7 +64,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
                 validateAndPrepareFeaturer(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class);
         }
         return true;

@@ -83,7 +83,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     @Lazy
     private final TwinService twinService;
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryExecutionService factoryExecutionService;
     @Lazy
     private final HistoryService historyService;
     @Lazy
@@ -240,7 +240,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         FactoryContext factoryContext = new FactoryContext(factoryLauncher, FactoryBranchId.root(eraseFactoryId))
                 .setRequestId(authService.getApiUser().getRequestId())
                 .addInputTwin(eraseEntity.getTwin());
-        FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
+        FactoryResultUncommited factoryResultUncommited = factoryExecutionService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
         TwinDelete twinDelete;
         switch (factoryLauncher) {
             case targetDeletion:

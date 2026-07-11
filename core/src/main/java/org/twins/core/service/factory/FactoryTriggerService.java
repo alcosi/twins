@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
     private final FactoryConditionSetService factoryConditionSetService;
@@ -67,9 +67,9 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
             return logErrorAndReturnFalse(entity.logDetailed() + " twinTriggerId is not specified");
         }
         if (entity.getTwinFactory() == null) {
-            entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+            entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
         }
-        if (twinFactoryService.isEntityReadDenied(entity.getTwinFactory(), EntitySmartService.ReadPermissionCheckMode.none)) {
+        if (factoryService.isEntityReadDenied(entity.getTwinFactory(), EntitySmartService.ReadPermissionCheckMode.none)) {
             return logErrorAndReturnFalse(entity.logDetailed() + " factory domain check failed");
         }
         return true;
@@ -132,7 +132,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
     }
 
     public void loadFactories(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
-        twinFactoryService.load(srcCollection,
+        factoryService.load(srcCollection,
                 TwinFactoryTriggerEntity::getTwinFactoryId,
                 TwinFactoryTriggerEntity::getTwinFactory,
                 TwinFactoryTriggerEntity::setTwinFactory);

@@ -28,7 +28,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FactoryDuplicateService extends EntityDuplicateService<FactoryDuplicate, TwinFactoryEntity, Void> {
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
     @Lazy
     private final FactoryBranchDuplicateService factoryBranchDuplicateService;
     @Lazy
@@ -46,7 +46,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityService() {
-        return twinFactoryService;
+        return factoryService;
     }
 
     @Override

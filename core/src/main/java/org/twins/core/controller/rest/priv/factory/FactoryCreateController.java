@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryExecutionService;
+import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
@@ -41,7 +41,7 @@ public class FactoryCreateController extends ApiController {
     private final FactoryCreateDTOReverseMapper factoryCreateDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryCreateV1", summary = "Factory add")
@@ -58,7 +58,7 @@ public class FactoryCreateController extends ApiController {
         try {
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n(), mapperContext);
             I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n(), mapperContext);
-            TwinFactoryEntity factoryEntity = twinFactoryService.createFactory(factoryCreateDTOReverseMapper.convert(request), nameI18n, descriptionI18n);
+            TwinFactoryEntity factoryEntity = factoryService.createFactory(factoryCreateDTOReverseMapper.convert(request), nameI18n, descriptionI18n);
             rs
                     .setFactory(factoryRestDTOMapper.convert(factoryEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

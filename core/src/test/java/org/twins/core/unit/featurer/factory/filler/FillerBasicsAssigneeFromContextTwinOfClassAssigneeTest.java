@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTest {
 
     @Mock
-    private FactoryExecutionService twinFactoryService;
+    private FactoryExecutionService factoryExecutionService;
 
     private FillerBasicsAssigneeFromContextTwinOfClassAssignee filler;
 
@@ -33,7 +33,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
     @BeforeEach
     void setUp() throws Exception {
         filler = new FillerBasicsAssigneeFromContextTwinOfClassAssignee();
-        inject(filler, "twinFactoryService", twinFactoryService);
+        inject(filler, "factoryExecutionService", factoryExecutionService);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -76,7 +76,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
             var contextTwin = new TwinEntity()
                     .setAssignerUser(assignee)
                     .setAssignerUserId(assigneeId);
-            when(twinFactoryService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
+            when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
 
             filler.fill(props(), factoryItem, null);
 
@@ -89,7 +89,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
         @Test
         void fill_noTwinOfClassFound_throwsStepError() {
             var factoryItem = buildFactoryItem();
-            when(twinFactoryService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(null);
+            when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
@@ -100,7 +100,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
         void fill_foundTwinWithNullAssignee_setsNull() throws ServiceException {
             var factoryItem = buildFactoryItem();
             var contextTwin = new TwinEntity(); // assignee null
-            when(twinFactoryService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
+            when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
 
             filler.fill(props(), factoryItem, null);
 

@@ -29,13 +29,13 @@ public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
 
     @Lazy
     @Autowired
-    FactoryExecutionService twinFactoryService;
+    FactoryExecutionService factoryExecutionService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID id = twinClassId.extract(properties);
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        TwinEntity contextTwin = twinFactoryService.lookupTwinOfClass(factoryItem, id, 0);
+        TwinEntity contextTwin = factoryExecutionService.lookupTwinOfClass(factoryItem, id, 0);
         if(null != contextTwin)
         outputTwinEntity
                 .setAssignerUser(contextTwin.getAssignerUser())

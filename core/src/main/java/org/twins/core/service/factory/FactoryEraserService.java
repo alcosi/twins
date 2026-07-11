@@ -34,7 +34,7 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Getter
     private final TwinFactoryEraserRepository repository;
     @Lazy
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
     private final TwinClassService twinClassService;
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
@@ -63,7 +63,7 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
         }

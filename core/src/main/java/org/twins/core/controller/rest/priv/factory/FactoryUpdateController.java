@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.factory.FactoryUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryExecutionService;
+import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
@@ -41,7 +41,7 @@ public class FactoryUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryUpdateDTOReverseMapper factoryUpdateDTOReverseMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
-    private final FactoryExecutionService twinFactoryService;
+    private final FactoryService factoryService;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
@@ -62,7 +62,7 @@ public class FactoryUpdateController extends ApiController {
             factoryEntity.setId(factoryId);
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            factoryEntity = twinFactoryService.updateFactory(factoryEntity, nameI18n, descriptionI18n);
+            factoryEntity = factoryService.updateFactory(factoryEntity, nameI18n, descriptionI18n);
             rs
                     .setFactory(factoryRestDTOMapper.convert(factoryEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
