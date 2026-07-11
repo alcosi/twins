@@ -94,8 +94,7 @@ public class FieldTyperTimestamp extends FieldTyperSingleValue<
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldTimestampEntity twinFieldEntity) throws ServiceException {
         var fieldValueDate = new FieldValueDate(twinField.getTwinClassField(), pattern.extract(properties));
         if (twinFieldEntity != null && twinFieldEntity.getValue() != null) {
             fieldValueDate.setDate(twinFieldEntity.getValue().toLocalDateTime());

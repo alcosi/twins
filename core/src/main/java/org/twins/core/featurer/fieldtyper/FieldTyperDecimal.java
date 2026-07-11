@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -68,13 +67,7 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
 
     @Override
     protected TwinFieldDecimalEntity createTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassField) {
-        return new TwinFieldDecimalEntity()
-                .setId(UuidUtils.generate())
-                .setTwinClassField(twinClassField)
-                .setTwinClassFieldId(twinClassField.getId())
-                .setTwin(twin)
-                .setTwinId(twin.getId())
-                .setValue(null);
+        return TwinFieldDecimalEntity.of(twin, twinClassField);
     }
 
     @Override

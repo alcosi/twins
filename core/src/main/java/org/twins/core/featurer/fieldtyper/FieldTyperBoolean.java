@@ -1,6 +1,5 @@
 package org.twins.core.featurer.fieldtyper;
 
-import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
@@ -29,7 +28,6 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_1306,
         name = "Boolean",
         description = "")
-@RequiredArgsConstructor
 public class FieldTyperBoolean extends FieldTyperSingleValue<
         FieldDescriptorBoolean,
         FieldValueBoolean,

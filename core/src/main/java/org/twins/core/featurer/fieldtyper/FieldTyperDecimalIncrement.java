@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
@@ -28,7 +27,6 @@ import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_1350,
         name = "Decimal Increment",
