@@ -48,6 +48,7 @@ public class FactoryExecutionService {
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final FactoryConditionSetService factoryConditionSetService;
+    final FactoryPipelineService factoryPipelineService;
     @Lazy
     final FeaturerService featurerService;
     @Lazy
@@ -171,6 +172,8 @@ public class FactoryExecutionService {
         if (KitUtils.isEmpty(factoryPipelineEntityKit)) {
             return;
         }
+        factoryPipelineService.loadTemplateTwin(factoryPipelineEntityKit.getCollection());
+        factoryPipelineService.loadOutputTwinStatus(factoryPipelineEntityKit.getCollection());
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityKit) {
             if (!Boolean.TRUE.equals(factoryPipelineEntity.getActive())) {
@@ -245,6 +248,8 @@ public class FactoryExecutionService {
         Kit<TwinFactoryPipelineStepEntity, UUID> pipelineStepEntityKit = factoryPipelineEntity.getTwinFactoryPipelineStepKit();
         LoggerUtils.traceTreeLevelDown();
         List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = pipelineStepEntityKit.getList();
+        factoryPipelineService.loadTemplateTwin(factoryPipelineEntity);
+        factoryPipelineService.loadOutputTwinStatus(factoryPipelineEntity);
         for (FactoryItem pipelineInput : pipelineInputList) {
             log.info("Processing {}", pipelineInput.logDetailed());
             pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers

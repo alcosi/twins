@@ -26,7 +26,7 @@ import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetViewRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -44,7 +44,7 @@ import java.util.UUID;
 public class FactoryConditionSetSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final FactoryConditionSetSearchRqDTOReverseMapper factoryConditionSetSearchRqDTOReverseMapper;
+    private final FactoryConditionSetSearchDTOReverseMapper factoryConditionSetSearchDTOReverseMapper;
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
     private final FactoryConditionSetSearchService factoryConditionSetSearchService;
     private final FactoryConditionSetService factoryConditionSetService;
@@ -64,7 +64,7 @@ public class FactoryConditionSetSearchController extends ApiController {
         FactoryConditionSetSearchRsDTOv1 rs = new FactoryConditionSetSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryConditionSetEntity> conditionSetList = factoryConditionSetSearchService
-                    .findFactoryConditionSets(factoryConditionSetSearchRqDTOReverseMapper.convert(request), pagination);
+                    .search(factoryConditionSetSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(conditionSetList))
                     .setConditionSets(factoryConditionSetRestDTOMapper.convertCollection(conditionSetList.getList(), mapperContext))

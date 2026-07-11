@@ -64,7 +64,7 @@ public class FactorySearchController extends ApiController {
         FactorySearchRsDTOv1 rs = new FactorySearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryEntity> factoryList = factorySearchService
-                    .findFactoriesInDomain(factorySearchDTOReverseMapper.convert(request), pagination);
+                    .search(factorySearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setFactories(factoryRestDTOMapper.convertCollection(factoryList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(factoryList))

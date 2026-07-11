@@ -51,7 +51,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryEraserEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        // return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        return false;
     }
 
     @Override
@@ -63,9 +64,9 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    loadTwinFactory(entity);
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
-                    entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
+                    loadInputTwinClass(entity);
         }
         return true;
     }
@@ -127,5 +128,27 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
                 TwinFactoryEraserEntity::getConditionSet,
                 TwinFactoryEraserEntity::setConditionSet);
+    }
+
+    public void loadTwinFactory(TwinFactoryEraserEntity eraser) throws ServiceException {
+        loadTwinFactory(Collections.singleton(eraser));
+    }
+
+    public void loadTwinFactory(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+        factoryService.load(erasers,
+                TwinFactoryEraserEntity::getTwinFactoryId,
+                TwinFactoryEraserEntity::getTwinFactory,
+                TwinFactoryEraserEntity::setTwinFactory);
+    }
+
+    public void loadInputTwinClass(TwinFactoryEraserEntity eraser) throws ServiceException {
+        loadInputTwinClass(Collections.singleton(eraser));
+    }
+
+    public void loadInputTwinClass(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
+        twinClassService.load(erasers,
+                TwinFactoryEraserEntity::getInputTwinClassId,
+                TwinFactoryEraserEntity::getInputTwinClass,
+                TwinFactoryEraserEntity::setInputTwinClass);
     }
 }

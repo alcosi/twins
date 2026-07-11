@@ -1,20 +1,16 @@
 package org.twins.core.domain.search;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class FactoryMultiplierSearch {
+public class FactoryMultiplierSearch extends EntitySearch<TwinFactoryMultiplierEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> factoryIdList;

@@ -1,9 +1,7 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -45,23 +43,44 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifi
     @Column(name = "description")
     private String description;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_multiplier_id", insertable = false, updatable = false)
-    private TwinFactoryMultiplierEntity multiplier;
+    private TwinFactoryMultiplierEntity multiplierSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity conditionSetSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryMultiplierEntity multiplier;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity inputTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity conditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

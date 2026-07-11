@@ -37,6 +37,8 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
 
     private final TwinFactoryConditionRepository repository;
     private final FeaturerService featurerService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public Function<TwinFactoryConditionEntity, UUID> entityGetIdFunction() {
@@ -150,5 +152,16 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
                 repository::findByTwinFactoryConditionSetIdIn,
                 TwinFactoryConditionEntity::getId,
                 TwinFactoryConditionEntity::getTwinFactoryConditionSetId);
+    }
+
+    public void loadConditionSet(TwinFactoryConditionEntity condition) throws ServiceException {
+        loadConditionSet(Collections.singleton(condition));
+    }
+
+    public void loadConditionSet(Collection<TwinFactoryConditionEntity> conditions) throws ServiceException {
+        factoryConditionSetService.load(conditions,
+                TwinFactoryConditionEntity::getTwinFactoryConditionSetId,
+                TwinFactoryConditionEntity::getConditionSet,
+                TwinFactoryConditionEntity::setConditionSet);
     }
 }

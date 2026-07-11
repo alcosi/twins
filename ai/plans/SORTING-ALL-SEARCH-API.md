@@ -5,29 +5,84 @@
 Пилот реализован на `DomainBusinessAccountUserSearchController` (TWINS-831). Паттерн основан на JPA Specification вместо Pageable-сортировки (причина: [Spring Data JPA #2253](https://github.com/spring-projects/spring-data-jpa/issues/2253) — дублирующий JOIN при Specification + Pageable.getSort()). Подробная архитектура: `docs/api_sorting_architecture.md`.
 
 ## Связанные документы
-docs/api_counting_architecture.md
-docs/api_sorting_architecture.md
+
+* `docs/api_sorting_architecture.md` — полная архитектура сортировки
+* `docs/api_counting_architecture.md` — полная архитектура count API с группировкой
+
 ## Паттерн (на примере DomainBusinessAccountUser)
 
-Для каждой сущности нужно выполнить **7 изменений**:
+Для каждой сущности нужно выполнить **8 изменений** (search + count делаются вместе):
 
 1. **SortField enum** (новый файл) → `enums.sort/{Entity}SortField.java` — простой enum без fieldPath, чистый список имён. Swagger автоматически показывает dropdown.
-2. **GroupField enum** (новый файл) → `enums.sort/{Entity}GroupField.java` — enum с прямыми полями Entity (без JOIN). Только низкокардинальные поля (UUID FK, enum, boolean). **НЕ добавлять** Timestamp/Date поля — высокая кардинальность, GROUP BY бессмысленен.
-3. **SearchRqDTO** (изменить) → добавить `sortField` + `sortDirection` inline на уровне RqDTO (НЕ внутри SearchDTO). Jackson десериализует enum из JSON, невалидное значение → 400.
-4. **SearchService** (изменить) → **ОБЯЗАТЕЛЬНО** extends `EntitySearchService<S, E, SF, GF>`. Реализовать ВСЕ абстрактные методы: `createFilterSpecification()`, `createSortSpecification()`, `convertToEntityField()`, `mapGroupedField()`, `jpaSpecificationExecutor()`, `emptySearch()`, `entityClass()`, `newEntity()`. Sort-поля передаются как параметры в `search()`, а не хранятся в search object. Service **НЕ** может наследовать другой класс (Java не поддерживает множественное наследование) — если текущий сервис наследует EntitySecureFindServiceImpl, CRUD нужно вынести в отдельный ConfigService.
-5. **Domain Search Object** (изменить) → extends `EntitySearch<E>` (маркерный базовый класс).
-6. **Count DTOs** (новые файлы) → `{Entity}CountRqDTOv1` (search + groupFields), `{Entity}CountDTOv1 extends CountDTOv1` (поля группировки + count), `{Entity}CountRsDTOv1 extends ResponseCountDTOv1` (список counts).
-7. **Count Mapper** (новый файл) → `{Entity}CountRestDTOMapper extends RestSimpleDTOMapper<CountResult<E>, CountDTO>` — маппит CountResult → CountDTO. При наличии related objects — batch-load в `beforeCollectionConversion()`.
-8. **Контроллер** (изменить) → search endpoint вызывает `service.search(search, pagination, sortField, sortDirection)`. Добавить count endpoint: `service.countByGroupFields(search, groupFields)` → mapper → response.
+2. **GroupField enum** (новый файл) → `enums.sort/{Entity}GroupField.java` — enum с **прямыми** полями Entity (без JOIN). Только низкокардинальные: UUID FK, enum, boolean, Integer FK к Featurer. **НЕ добавлять** Timestamp/Date/String поля — высокая кардинальность, GROUP BY бессмысленен (см. правила ниже).
+3. **SearchRqDTO** (изменить) → добавить `sortField` + `sortDirection` inline на уровне RqDTO (НЕ внутри SearchDTO). Jackson десериализует enum из JSON, невалидное значение → 400. SearchDTO остаётся чистым (критерии поиска без sort) — переиспользуется в count API.
+4. **Domain Search Object** (изменить) → extends `EntitySearch<E>` (маркерный базовый класс). Sort-поля в него **НЕ добавляются**.
+5. **SearchService** (изменить) → **ОБЯЗАТЕЛЬНО** extends `EntitySearchService<S, E, SF, GF>`. Реализовать ВСЕ абстрактные методы: `createFilterSpecification()`, `createSortSpecification()`, `convertToEntityField()`, `mapGroupedField()`, `jpaSpecificationExecutor()`, `emptySearch()`, `entityClass()`, `newEntity()`. Sort-поля передаются как параметры в `search()`, а не хранятся в search object. Service **НЕ** может наследовать другой класс (Java не поддерживает множественное наследование) — если текущий сервис наследует EntitySecureFindServiceImpl, CRUD нужно вынести в отдельный ConfigService.
+6. **Count DTOs** (новые файлы):
+    * `{Entity}CountRqDTOv1` — `search` (тот же SearchDTO, что и в search) + `Set<{Entity}GroupField> groupFields`
+    * `{Entity}CountDTOv1 extends CountDTOv1` — явно объявленные groupable-поля + унаследованный `count`
+    * `{Entity}CountRsDTOv1 extends ResponseCountDTOv1` — `List<{Entity}CountDTOv1> counts` (+ унаследованные `pagination`, `relatedObjects`)
+7. **Count Mapper** (новый файл) → `{Entity}CountRestDTOMapper extends RestSimpleDTOMapper<CountResult<E, GF>, {Entity}CountDTOv1>`. Conditional loading через `needLoad(mapperContext, mode, src, groupField)` — related object грузится только если соответствующее поле запрошено в `groupFields`. Batch-load в `beforeCollectionConversion()` только для тех group fields, которые реально присутствуют в результате.
+8. **Контроллер** (изменить):
+    * **search endpoint**: `service.search(search, pagination, sortField, sortDirection)`
+    * **count endpoint** (новый): `@SimplePaginationParams SimplePagination pagination` + `service.countByGroupFields(search, groupFields, pagination)` → `PaginationResult<CountResult<E, GF>>` → mapper → response. Pagination тут — пагинация групп (total = число уникальных групп), а не записей.
+
+### Сигнатуры из api_counting_architecture.md (кратко)
+
+```java
+// EntitySearchService — что даёт базовый класс
+public PaginationResult<E> search(S search, SimplePagination pagination, SF sortField, SortDirection sortDirection);
+public List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields);                                  // без пагинации
+public PaginationResult<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields, SimplePagination pagination); // с пагинацией
+
+// CountResult — typed-обёртка над Object[]
+public class CountResult<E, GF> {
+    private E entity;            // частично заполнен — только group-поля
+    private Long count;
+    private Set<GF> groupFields; // какие поля реально запрошены — для conditional loading в mapper
+}
+
+// CountQueryExecutor — группировка через Criteria API (обходит ограничения Specification + GROUP BY)
+public <E> List<Object[]> executeGroupedCount(Class<E> entityClass, Specification<E> filterSpec, List<String> groupFieldNames);
+public <E> Page<Object[]> executeGroupedCountPaginated(Class<E> entityClass, Specification<E> filterSpec, List<String> groupFieldNames, SimplePagination pagination);
+```
+
+### Типовой контроллер count endpoint
+
+```java
+@PostMapping(value = "/private/{entity}/count/v1")
+public ResponseEntity<?> entityCountV1(
+        @MapperContextBinding(...) MapperContext mapperContext,
+        @SimplePaginationParams SimplePagination pagination,
+        @RequestBody {Entity}CountRqDTOv1 request) {
+    {Entity}CountRsDTOv1 rs = new {Entity}CountRsDTOv1();
+    try {
+        var results = searchService.countByGroupFields(
+                searchDTOReverseMapper.convert(request.getSearch(), mapperContext),
+                request.getGroupFields(), pagination);
+        rs.setCounts(countRestDTOMapper.convertCollection(results.getList(), mapperContext))
+          .setPagination(paginationMapper.convert(results))
+          .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+    } catch (ServiceException se) { return createErrorRs(se, rs); }
+      catch (Exception e)        { return createErrorRs(e, rs); }
+    return new ResponseEntity<>(rs, HttpStatus.OK);
+}
+```
 
 **КРИТИЧЕСКИ ВАЖНО:**
 - **SearchService ОБЯЗАТЕЛЬНО наследует EntitySearchService** — это обеспечивает единый `search()` и `countByGroupFields()`. Никаких самодельных методов `findXxx()`.
 - **Domain Search Object ОБЯЗАТЕЛЬНО наследует EntitySearch<EntityType>** — требование generic-параметра `S extends EntitySearch<E>` в EntitySearchService.
 - **Если текущий сервис наследует EntitySecureFindServiceImpl** — вынести его CRUD в отдельный ConfigService, а search-сервис переписать на EntitySearchService.
+- **SearchDTO общий для search и count** — sort поля остаются на уровне RqDTO, поэтому SearchDTO чистый и подходит для count без изменений.
+- **CountResult<E, GF>** (не `CountResult<E>`) — generic-параметр `GF` нужен для conditional loading в mapper.
+- **Pagination в count** — по умолчанию используем paginated overload (он же отдаёт total = число групп). Unpaginated overload — только для внутренних вызовов (валидаторы и т.п.).
+- **NULL группируется в отдельную группу** — стандартное поведение PostgreSQL `GROUP BY`.
 
 **Что НЕ нужно делать:**
 - Sort-поля **НЕ добавляются** в Domain Search Object — они передаются напрямую из `SearchRqDTO` как параметры `sortField`/`sortDirection` в `EntitySearchService.search()`
 - `SortDTOReverseMapper` **НЕ нужен** — Jackson уже десериализует enum из JSON
+- GroupField enum **НЕ содержит fieldPath** — маппинг имени → колонка делается в `convertToEntityField()` switch в SearchService (как и для SortField)
+- Count DTO **НЕ наследует** Domain Entity DTOv1 — он наследует `CountDTOv1` и явно объявляет только groupable-поля (никаких лишних null-ов от unrelated entity полей)
 
 ### `POST /private/twin_class/search/v2` — DONE (search + sort + count)
 
@@ -98,11 +153,11 @@ docs/api_sorting_architecture.md
 
 ---
 
-## Реестр API и полей сортировки
+## Реестр API и полей сортировки/группировки
 
-Формат: **API endpoint** → **DTO ответа** → **Entity** → поля сортировки.
+Формат: **API endpoint** → **DTO ответа** → **Entity** → `SortField values` + `GroupField values`.
 
-Поля сортировки определяются по **колонкам Entity** и разбиты на категории:
+Поля **сортировки** определяются по **колонкам Entity** и разбиты на категории:
 
 1. **Прямые поля** — скалярные колонки Entity (Timestamp, String, Integer/Long, Boolean, Enum).
    Исключаются: `id`, UUID FK, Integer FK к Featurer, Map/hstore, Set/List, URL, длинный текст.
@@ -114,7 +169,34 @@ docs/api_sorting_architecture.md
 3. **Join-поля** `(join)` — FK (UUID @ManyToOne или Integer FK к Featurer) к сущности с `name`.
    Если целевая сущность использует I18n — помечаются `(i18n-join)` — трёхуровневый JOIN через I18nTranslation.
 
-Первый элемент в списке полей — default.
+Первый элемент в списке полей сортировки — default.
+
+### Правила вывода GroupField values
+
+GroupField — это список полей, по которым имеет смысл делать **GROUP BY** (count API). Главное правило: **только низкокардинальные прямые поля Entity** (без JOIN).
+
+**✅ Включать:**
+- **UUID FK** (`userId`, `businessAccountId`, `twinClassId`, `permissionSchemaId`, ...) — типичный use case: «посчитать записи по бизнес-аккаунту/классу/пользователю»
+- **Integer FK к Featurer** (`fieldTyperFeaturerId`, `triggerFeaturerId`, ...) — featurer-ов ограниченное количество
+- **Enum** (`type`, `status`, `key` если это enum-колонка, `logicOperator`, `nextFactoryLimitScope`, ...)
+- **Boolean** (`active`, `required`, `inheritable`, `system`, `custom`, `optional`, `cachable`, `invert`, `async`, `logEnabled`, `exclude`, ...)
+
+**❌ Исключать:**
+- **Timestamp/Date** (`createdAt`, `updatedAt`, `lastActivityAt`, `addedAt`, `grantedAt`, `doneAt`, `changedAt`, `executionTime`) — высокая кардинальность, каждый GROUP = отдельная запись
+- **String** (`name`, `key`, `description`, `title`, `externalId`, `cron`, `backgroundColor`, `fontColor`, ...) — слишком много уникальных значений; плюс для name/key/description обычно есть i18n/JOIN-вариант, который для GROUP BY не подходит
+- **Числовые scalar** (`order`, `size`, `twinCounter`, `fixedRate`, `attachmentsStorageQuotaCount`, ...) — обычно business-value от группировки по ним низкое
+- **JOIN-поля и i18n-поля** — `xxxName`, `xxxName(i18n)` — GROUP BY через JOIN не поддерживается архитектурой (только прямые поля Entity)
+
+**Практический алгоритм для каждой сущности:**
+1. Взять SortField values.
+2. Убрать все скалярные строки/timestamp/имена через JOIN.
+3. Убрать числовые scalar (order, size и т.п.) — кроме случаев, где это явный enum.
+4. Если в SortField не оказалось UUID FK (потому что они там не нужны для сортировки) — вывести их из **полей фильтрации** (например, фильтр `userIdList` → group field `userId`).
+5. Проверить, что для каждого group field в Entity есть прямая колонка (не SpecOnly collection, не Map).
+
+**Дополнительно:** если в фильтре есть `xxxIdList`, это сильный сигнал, что `xxxId` — нужный group field (клиенты хотят знать распределение по этому измерению).
+
+**Composite indexes для частых combo.** Если есть частый бизнес-сценарий «count по паре полей» (например, `userId + businessAccountId`), добавить composite-индекс под этот случай. Для каждого такого комбо — отдельная строка в секции индексов у соответствующего API.
 
 ---
 
@@ -138,6 +220,14 @@ docs/api_sorting_architecture.md
     * `twinflowTransitionName`(i18n-join: twinflowTransition → TwinflowTransition.nameI18n → I18nTranslation.translation)
     * `viewPermissionName`(i18n-join: viewPermission → Permission.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `twinId`
+    * `twinflowTransitionId`
+    * `commentId`
+    * `twinClassFieldId`
+    * `viewPermissionId`
+    * `createdByUserId`
+
 * **Пропущенные поля фильтрации:**
     * `commentIdList` → пропущено: у TwinCommentEntity нет осмысленного поля `name` для сортировки
     * `storageLinkLikeList` → пропущено: сортировка по URL не имеет практического смысла
@@ -155,6 +245,10 @@ docs/api_sorting_architecture.md
     * `authorUserName`(join: createdByUser → User.name)
     * `twinName`(join: twin → Twin.name)
 
+* **GroupField values**:
+    * `twinId`
+    * `createdByUserId`
+
 * **Пропущенные поля фильтрации:**
     * `textLikeList` → пропущено: сортировка по тексту комментария не имеет практического смысла
 
@@ -170,6 +264,10 @@ docs/api_sorting_architecture.md
     * `translation`
     * `usageCounter`
 
+* **GroupField values**:
+    * `locale` (низкая кардинальность — ограниченный набор языков)
+    * `i18nId`
+
 ### `POST /private/permission_group/search/v1` ✅ reviewed
 
 * **DTO**: `PermissionGroupDTOv1`
@@ -183,6 +281,9 @@ docs/api_sorting_architecture.md
     * `description`
     * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `twinClassId`
+
 ### `POST /private/permission/search/v1` ✅ reviewed
 
 * **DTO**: `PermissionDTOv1`
@@ -195,6 +296,9 @@ docs/api_sorting_architecture.md
     * `name`(i18n)
     * `description`(i18n)
     * `groupName`(join: permissionGroup → PermissionGroup.name)
+
+* **GroupField values**:
+    * `groupId`
 
 ### `POST /private/permission_schema/search/v1` ✅ reviewed
 
@@ -210,6 +314,10 @@ docs/api_sorting_architecture.md
     * `createdByUserName`(join: createdByUser → User.name)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
+* **GroupField values**:
+    * `businessAccountId`
+    * `createdByUserId`
+
 ### `POST /private/permission_grant/user/search/v1` ✅ reviewed
 
 * **DTO**: `PermissionGrantUserDTOv1`
@@ -224,6 +332,13 @@ docs/api_sorting_architecture.md
     * `userName`(join: user → User.name)
     * `grantedByUserName`(join: grantedByUser → User.name)
 
+* **GroupField values**:
+    * `permissionId`
+    * `permissionSchemaId`
+    * `userId`
+    * `grantedByUserId`
+* **Composite index:** `(permissionSchemaId, userId)` — частый кейс «сколько грантов у user в схеме»
+
 ### `POST /private/permission_grant/user_group/search/v1` ✅ reviewed
 
 * **DTO**: `PermissionGrantUserGroupDTOv1`
@@ -237,6 +352,12 @@ docs/api_sorting_architecture.md
     * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
     * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
     * `grantedByUserName`(join: grantedByUser → User.name)
+
+* **GroupField values**:
+    * `permissionId`
+    * `permissionSchemaId`
+    * `userGroupId`
+    * `grantedByUserId`
 
 ### `POST /private/permission_grant/twin_role/search/v1` ✅ reviewed
 
@@ -256,6 +377,16 @@ docs/api_sorting_architecture.md
     * `grantedToSpaceCreator`
     * `grantedByUserName`(join: grantedByUser → User.name)
 
+* **GroupField values**:
+    * `permissionId`
+    * `permissionSchemaId`
+    * `twinClassId`
+    * `grantedToAssignee`
+    * `grantedToSpaceAssignee`
+    * `grantedToCreator`
+    * `grantedToSpaceCreator`
+    * `grantedByUserId`
+
 ### `POST /private/permission_grant/space_role/search/v1` ✅ reviewed
 
 * **DTO**: `PermissionGrantSpaceRoleDTOv1`
@@ -269,6 +400,12 @@ docs/api_sorting_architecture.md
     * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
     * `grantedByUserName`(join: grantedByUser → User.name)
     * `spaceRoleName`(i18n-join: spaceRole → SpaceRole.nameI18n → I18nTranslation.translation)
+
+* **GroupField values**:
+    * `permissionId`
+    * `permissionSchemaId`
+    * `spaceRoleId`
+    * `grantedByUserId`
 
 ### `POST /private/projection/search/v1` ✅ reviewed
 
@@ -285,6 +422,14 @@ docs/api_sorting_architecture.md
     * `projectionTypeName`(join: projectionType → ProjectionType.name)
     * `fieldProjectorFeaturerName`(join: fieldProjectorFeaturer → Featurer.name)
 
+* **GroupField values**:
+    * `srcTwinClassFieldId`
+    * `dstTwinClassId`
+    * `dstTwinClassFieldId`
+    * `projectionTypeId`
+    * `fieldProjectorFeaturerId`
+    * `active`
+
 * **Пропущенные поля фильтрации:**
     * `srcTwinPointerIdList` → пропущено: TwinPointer не имеет осмысленного name для сортировки
 
@@ -300,6 +445,10 @@ docs/api_sorting_architecture.md
     * `name`
     * `projectionTypeGroupName`(join: projectionTypeGroup → ProjectionTypeGroup.key)
     * `membershipTwinClassName`(i18n-join: membershipTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
+
+* **GroupField values**:
+    * `projectionTypeGroupId`
+    * `membershipTwinClassId`
 
 ### `POST /private/scheduler/search/v1` ✅ reviewed
 
@@ -320,6 +469,12 @@ docs/api_sorting_architecture.md
     * `fixedRate`
     * `schedulerFeaturerName`(join: schedulerFeaturer → Featurer.name)
 
+* **GroupField values**:
+    * `schedulerFeaturerId`
+    * `domainId`
+    * `active`
+    * `logEnabled`
+
 ### `POST /private/scheduler_log/search/v1` ✅ reviewed
 
 * **TODO:** зависит от добавления `name` в `SchedulerEntity` (см. scheduler/search)
@@ -333,6 +488,10 @@ docs/api_sorting_architecture.md
     * `executionTime`
     * `result`
     * `schedulerName`(join: scheduler → Scheduler.name)
+
+* **GroupField values**:
+    * `schedulerId`
+    * `result` (если enum-like: success/failure/timeout — низкая кардинальность)
 
 ### `POST /private/tier/search/v1` ✅ reviewed
 
@@ -354,6 +513,12 @@ docs/api_sorting_architecture.md
     * `twinflowSchemaName`(join: twinflowSchema → TwinflowSchema.name)
     * `twinClassSchemaName`(join: twinClassSchema → TwinClassSchema.name)
 
+* **GroupField values**:
+    * `permissionSchemaId`
+    * `twinflowSchemaId`
+    * `twinClassSchemaId`
+    * `custom`
+
 ### `POST /private/transition_trigger/search/v1` ✅ reviewed
 
 * **DTO**: `TransitionTriggerDTOv1`
@@ -367,6 +532,12 @@ docs/api_sorting_architecture.md
     * `async`
     * `twinflowTransitionName`(i18n-join: twinflowTransition → TwinflowTransition.nameI18n → I18nTranslation.translation)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
+
+* **GroupField values**:
+    * `twinflowTransitionId`
+    * `twinTriggerId`
+    * `active`
+    * `async`
 
 ### `POST /private/twin_class_fields/search/v1` — DONE (search + sort + count)
 
@@ -395,6 +566,21 @@ docs/api_sorting_architecture.md
     * `viewPermissionName`(i18n-join: viewPermission → Permission.nameI18n → I18nTranslation.translation)
     * `editPermissionName`(i18n-join: editPermission → Permission.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `twinClassId`
+    * `fieldTyperFeaturerId`
+    * `fieldInitializerFeaturerId`
+    * `twinSorterFeaturerId`
+    * `viewPermissionId`
+    * `editPermissionId`
+    * `required`
+    * `inheritable`
+    * `system`
+    * `dependentField`
+    * `hasDependentFields`
+    * `projectionField`
+    * `hasProjectedFields`
+
 * **Пропущенные поля фильтрации:**
     * `feValidationErrorI18nLikeList` → пропущено: текст ошибки валидации, не имеет смысла для сортировки
     * `beValidationErrorI18nLikeList` → пропущено: текст ошибки валидации, не имеет смысла для сортировки
@@ -412,6 +598,11 @@ docs/api_sorting_architecture.md
     * `twinClassFieldName`(i18n-join: twinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `fieldOverwriterFeaturerName`(join: fieldOverwriterFeaturer → Featurer.name)
 
+* **GroupField values**:
+    * `twinClassFieldId`
+    * `fieldOverwriterFeaturerId`
+    * `overwrittenRequired`
+
 ### `POST /private/twin_class_field_condition/search/v1` ✅ reviewed
 
 * **DTO**: `TwinClassFieldConditionDTOv1`
@@ -424,6 +615,13 @@ docs/api_sorting_architecture.md
     * `baseTwinClassFieldName`(i18n-join: baseTwinClassField → TwinClassField.nameI18n → I18nTranslation.translation)
     * `conditionEvaluatorFeaturerName`(join: conditionEvaluatorFeaturer → Featurer.name)
     * `logicOperator`
+
+* **GroupField values**:
+    * `twinClassFieldRuleId`
+    * `baseTwinClassFieldId`
+    * `parentTwinClassFieldConditionId`
+    * `logicOperatorId`
+    * `conditionEvaluatorFeaturerId`
 
 * **Пропущенные поля фильтрации:**
     * `twinClassFieldRuleIdList` → пропущено: у TwinClassFieldRuleEntity нет осмысленного name для сортировки
@@ -442,6 +640,9 @@ docs/api_sorting_architecture.md
     * `description`
     * `createdByUserName`(join: createdByUser → User.name)
 
+* **GroupField values**:
+    * `createdByUserId`
+
 ### `POST /private/twin_class_dynamic_marker/search/v1` ✅ reviewed
 
 * **DTO**: `TwinClassDynamicMarkerDTOv1`
@@ -455,6 +656,12 @@ docs/api_sorting_architecture.md
     * `twinValidatorSetName`(join: twinValidatorSet → TwinValidatorSet.name)
     * `markerName`(join: markerDataListOption → DataListOption.option)
 
+* **GroupField values**:
+    * `twinClassId`
+    * `inheritable`
+    * `twinValidatorSetId`
+    * `markerDataListOptionId`
+
 ### `POST /private/twin_class_freeze/search/v1` ✅ reviewed
 
 * **DTO**: `TwinClassFreezeDTOv1`
@@ -467,6 +674,9 @@ docs/api_sorting_architecture.md
     * `name`(i18n)
     * `description`(i18n)
     * `statusName`(i18n-join: twinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
+
+* **GroupField values**:
+    * `statusId`
 
 ### `POST /private/twinflow_schema/search/v1` ✅ reviewed
 
@@ -482,6 +692,10 @@ docs/api_sorting_architecture.md
     * `createdByUserName`(join: createdByUser → User.name)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
+* **GroupField values**:
+    * `businessAccountId`
+    * `createdByUserId`
+
 ### `POST /private/twinflow/factory/search/v1` ✅ reviewed
 
 * **DTO**: `TwinflowFactoryDTOv1`
@@ -493,6 +707,11 @@ docs/api_sorting_architecture.md
     * `twinFactoryLauncherId` (enum)
     * `twinflowName`(i18n-join: twinflow → Twinflow.nameI18n → I18nTranslation.translation)
     * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
+
+* **GroupField values**:
+    * `twinflowId`
+    * `factoryId`
+    * `twinFactoryLauncherId`
 
 ### `POST /private/twin_factory/trigger/search/v1` ✅ reviewed
 
@@ -511,6 +730,14 @@ docs/api_sorting_architecture.md
     * `twinFactoryConditionSetName`(join: twinFactoryConditionSet → FactoryConditionSet.name)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
 
+* **GroupField values**:
+    * `twinFactoryId`
+    * `inputTwinClassId`
+    * `twinTriggerId`
+    * `active`
+    * `async`
+    * `twinFactoryConditionInvert`
+
 ### `POST /private/twin_status/search/v1` ✅ reviewed
 
 * **DTO**: `TwinStatusDTOv1`
@@ -528,6 +755,11 @@ docs/api_sorting_architecture.md
     * `type`
     * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `twinClassId`
+    * `inheritable`
+    * `type`
+
 ### `POST /private/twin_status/trigger/search/v1` ✅ reviewed
 
 * **DTO**: `TwinStatusTriggerDTOv1`
@@ -543,6 +775,13 @@ docs/api_sorting_architecture.md
     * `twinStatusName`(i18n-join: twinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
     * `twinTriggerName`(join: twinTrigger → TwinTrigger.name)
 
+* **GroupField values**:
+    * `twinStatusId`
+    * `twinTriggerId`
+    * `active`
+    * `async`
+    * `incomingElseOutgoing`
+
 ### `POST /private/twin_trigger/search/v1` ✅ reviewed
 
 * **DTO**: `TwinTriggerDTOv1`
@@ -556,6 +795,11 @@ docs/api_sorting_architecture.md
     * `active`
     * `jobTwinClassName`(i18n-join: jobTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `triggerFeaturerName`(join: triggerFeaturer → Featurer.name)
+
+* **GroupField values**:
+    * `triggerFeaturerId`
+    * `active`
+    * `jobTwinClassId`
 
 ### `POST /private/twin_trigger_task/search/v1` ✅ reviewed
 
@@ -575,6 +819,14 @@ docs/api_sorting_architecture.md
     * `previousTwinStatusName`(i18n-join: previousTwinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
+* **GroupField values**:
+    * `twinId`
+    * `twinTriggerId`
+    * `previousTwinStatusId`
+    * `createdByUserId`
+    * `businessAccountId`
+    * `statusId`
+
 ### `POST /private/factory/search/v1` ✅ reviewed
 
 * **DTO**: `FactoryDTOv1`
@@ -588,6 +840,9 @@ docs/api_sorting_architecture.md
     * `createdAt`
     * `description`(i18n)
     * `createdByUserName`(join: createdByUser → User.name)
+
+* **GroupField values**:
+    * `createdByUserId`
 
 ### `POST /private/factory_branch/search/v1` ✅ reviewed
 
@@ -604,6 +859,13 @@ docs/api_sorting_architecture.md
     * `nextFactoryName`(i18n-join: nextFactory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `factoryConditionName`(join: factoryCondition → FactoryConditionSet.name)
 
+* **GroupField values**:
+    * `factoryId`
+    * `factoryConditionSetId`
+    * `nextFactoryId`
+    * `active`
+    * `factoryConditionSetInvert`
+
 ### `POST /private/factory_condition/search/v1` ✅ reviewed
 
 * **DTO**: `FactoryConditionDTOv1`
@@ -617,6 +879,12 @@ docs/api_sorting_architecture.md
     * `invert`
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
     * `conditionerFeaturerName`(join: conditionerFeaturer → Featurer.name)
+
+* **GroupField values**:
+    * `factoryConditionSetId`
+    * `conditionerFeaturerId`
+    * `invert`
+    * `active`
 
 ### `POST /private/factory_condition_set/search/v1` ✅ reviewed
 
@@ -634,6 +902,11 @@ docs/api_sorting_architecture.md
     * `createdByUserName`(join: createdByUser → User.name)
     * `twinFactoryName`(i18n-join: twinFactory → TwinFactory.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `twinFactoryId`
+    * `cachable`
+    * `createdByUserId`
+
 ### `POST /private/factory_eraser/search/v1` ✅ reviewed
 
 * **DTO**: `FactoryEraserDTOv1`
@@ -650,6 +923,14 @@ docs/api_sorting_architecture.md
     * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
 
+* **GroupField values**:
+    * `factoryId`
+    * `inputTwinClassId`
+    * `factoryConditionSetId`
+    * `factoryConditionSetInvert`
+    * `active`
+    * `action`
+
 ### `POST /private/factory_multiplier/search/v1` ✅ reviewed
 
 * **DTO**: `FactoryMultiplierDTOv1`
@@ -664,6 +945,12 @@ docs/api_sorting_architecture.md
     * `factoryName`(i18n-join: factory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `multiplierFeaturerName`(join: multiplierFeaturer → Featurer.name)
 
+* **GroupField values**:
+    * `factoryId`
+    * `inputTwinClassId`
+    * `multiplierFeaturerId`
+    * `active`
+
 ### `POST /private/factory_multiplier_filter/search/v1` ✅ reviewed
 
 * **DTO**: `FactoryMultiplierFilterDTOv1`
@@ -677,6 +964,13 @@ docs/api_sorting_architecture.md
     * `factoryConditionSetInvert`
     * `inputTwinClassName`(i18n-join: inputTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
+
+* **GroupField values**:
+    * `factoryMultiplierId`
+    * `inputTwinClassId`
+    * `factoryConditionSetId`
+    * `active`
+    * `factoryConditionSetInvert`
 
 * **Пропущенные поля фильтрации:**
     * `factoryIdList` → пропущено: косвенная связь через multiplier, нет прямой FK в Entity
@@ -700,6 +994,16 @@ docs/api_sorting_architecture.md
     * `nextFactoryName`(i18n-join: nextFactory → TwinFactory.nameI18n → I18nTranslation.translation)
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
 
+* **GroupField values**:
+    * `factoryId`
+    * `inputTwinClassId`
+    * `factoryConditionSetId`
+    * `outputTwinStatusId`
+    * `nextFactoryId`
+    * `active`
+    * `nextFactoryLimitScope`
+    * `factoryConditionSetInvert`
+
 ### `POST /private/factory_pipeline_step/search/v1` ✅ reviewed
 
 * **DTO**: `FactoryPipelineStepDTOv1`
@@ -715,6 +1019,14 @@ docs/api_sorting_architecture.md
     * `factoryConditionInvert`
     * `factoryConditionSetName`(join: factoryConditionSet → FactoryConditionSet.name)
     * `fillerFeaturerName`(join: fillerFeaturer → Featurer.name)
+
+* **GroupField values**:
+    * `factoryPipelineId`
+    * `factoryConditionSetId`
+    * `fillerFeaturerId`
+    * `active`
+    * `optional`
+    * `factoryConditionInvert`
 
 * **Пропущенные поля фильтрации:**
     * `factoryIdList` → пропущено: косвенная связь через pipeline, нет прямой FK в Entity
@@ -733,6 +1045,9 @@ docs/api_sorting_architecture.md
     * `description`(i18n)
     * `createdByUserName`(join: createdByUser → User.name)
 
+* **GroupField values**:
+    * `createdByUserId`
+
 ### `POST /private/history_notification/search/v1` ✅ reviewed
 
 * **DTO**: `HistoryNotificationDTOv1`
@@ -749,6 +1064,17 @@ docs/api_sorting_architecture.md
     * `notificationSchemaName`(i18n-join: notificationSchema → NotificationSchema.nameI18n → I18nTranslation.translation)
     * `historyNotificationRecipientName`(i18n-join: historyNotificationRecipient → HistoryNotificationRecipient.nameI18n → I18nTranslation.translation)
     * `createdByUserName`(join: createdByUser → User.name)
+
+* **GroupField values**:
+    * `historyTypeId`
+    * `twinClassId`
+    * `twinClassFieldId`
+    * `twinValidatorSetId`
+    * `twinValidatorSetInvert`
+    * `notificationSchemaId`
+    * `historyNotificationRecipientId`
+    * `notificationChannelEventId`
+    * `createdByUserId`
 
 * **Пропущенные поля фильтрации:**
     * `historyTypeIdList` → пропущено: у HistoryTypeEntity нет осмысленного name для сортировки
@@ -767,6 +1093,9 @@ docs/api_sorting_architecture.md
     * `description`(i18n)
     * `createdByUserName`(join: createdByUser → User.name)
 
+* **GroupField values**:
+    * `createdByUserId`
+
 ### `POST /private/history_notification_recipient_collector/search/v1` ✅ reviewed
 
 * **DTO**: `HistoryNotificationRecipientCollectorDTOv1`
@@ -778,6 +1107,11 @@ docs/api_sorting_architecture.md
     * `exclude`
     * `recipientName`(i18n-join: recipient → HistoryNotificationRecipient.nameI18n → I18nTranslation.translation)
     * `recipientResolverFeaturerName`(join: recipientResolverFeaturer → Featurer.name)
+
+* **GroupField values**:
+    * `recipientId`
+    * `recipientResolverFeaturerId`
+    * `exclude`
 
 ### `POST /private/space_role/search/v1` ✅ reviewed
 
@@ -793,6 +1127,10 @@ docs/api_sorting_architecture.md
     * `twinClassName`(i18n-join: twinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
 
+* **GroupField values**:
+    * `twinClassId`
+    * `businessAccountId`
+
 ### `POST /private/user_group/search/v1` ✅ reviewed
 
 * **DTO**: `UserGroupDTOv2`
@@ -803,6 +1141,9 @@ docs/api_sorting_architecture.md
 
     * `name`(i18n)
     * `description`(i18n)
+    * `type`
+
+* **GroupField values**:
     * `type`
 
 ### `POST /private/user_group/involve_assignee/search/v1` ✅ reviewed
@@ -820,6 +1161,11 @@ docs/api_sorting_architecture.md
     * `propagationTwinClassName`(i18n-join: propagationTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `propagationTwinStatusName`(i18n-join: propagationTwinStatus → TwinStatus.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `userGroupId`
+    * `propagationTwinClassId`
+    * `propagationTwinStatusId`
+
 ### `POST /private/user_group/involve_act_as_user/search/v1` ✅ reviewed
 
 * **DTO**: `UserGroupInvolveActAsUserDTOv1`
@@ -832,6 +1178,10 @@ docs/api_sorting_architecture.md
     * `machineUserName`(join: machineUser → User.name)
     * `addedByUserName`(join: addedByUser → User.name)
     * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
+
+* **GroupField values**:
+    * `machineUserId`
+    * `userGroupId`
 
 ### `POST /private/user/search/v1` ✅ reviewed
 
@@ -847,6 +1197,10 @@ docs/api_sorting_architecture.md
     * `status`
     * `userGroupName`(i18n-join: userGroup → UserGroup.nameI18n → I18nTranslation.translation)
 
+* **GroupField values**:
+    * `statusId`
+    * `userGroupId`
+
 ### `POST /private/domain/user/search/v1` ✅ reviewed
 
 * **DTO**: `DomainUserDTOv1`
@@ -859,6 +1213,12 @@ docs/api_sorting_architecture.md
     * `lastActivityAt`
     * `userName`(join: user → User.name)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name)
+
+* **GroupField values**:
+    * `userId`
+    * `statusId`
+    * `businessAccountId`
+* **Composite index:** `(userId, businessAccountId)` — частый кейс «пользователь в нескольких BA»
 
 ### `POST /private/domain/business_account_user/search/v1` — УЖЕ РЕАЛИЗОВАНО (пропустить)
 
@@ -874,6 +1234,10 @@ docs/api_sorting_architecture.md
     * `description`
     * `deprecated` (уже есть sortField в @SimplePaginationParams — мигрировать)
 
+* **GroupField values**:
+    * `typeId`
+    * `deprecated`
+
 ### `POST /private/data_list/search/v1` ✅ reviewed
 
 * **DTO**: `DataListDTOv1`
@@ -888,6 +1252,9 @@ docs/api_sorting_architecture.md
     * `createdAt`
     * `updatedAt`
     * `externalId`
+
+* **GroupField values**:
+    * `defaultOptionId`
 
 ### `POST /private/data_list_option/search/v1` ✅ reviewed
 
@@ -908,6 +1275,12 @@ docs/api_sorting_architecture.md
     * `dataListName`(i18n-join: dataList → DataList.nameI18n → I18nTranslation.translation)
     * `businessAccountName`(join: businessAccount → BusinessAccount.name) (уже есть sortField в @SimplePaginationParams — мигрировать)
 
+* **GroupField values**:
+    * `dataListId`
+    * `businessAccountId`
+    * `statusId`
+    * `custom`
+
 ### `POST /private/data_list_option_projection/search/v1` ✅ reviewed
 
 * **DTO**: `DataListOptionProjectionDTOv1`
@@ -922,6 +1295,12 @@ docs/api_sorting_architecture.md
     * `srcDataListOptionName`(join: srcDataListOption → DataListOption.option)
     * `dstDataListOptionName`(join: dstDataListOption → DataListOption.option)
 
+* **GroupField values**:
+    * `projectionTypeId`
+    * `srcDataListOptionId`
+    * `dstDataListOptionId`
+    * `savedByUserId`
+
 ### `POST /private/twin_validator_set/search/v1` ✅ reviewed
 
 * **DTO**: `TwinValidatorSetDTOv1`
@@ -932,6 +1311,9 @@ docs/api_sorting_architecture.md
 
     * `name`
     * `description`
+    * `invert`
+
+* **GroupField values**:
     * `invert`
 
 ### `POST /private/link/search/v1` ✅ reviewed
@@ -953,6 +1335,14 @@ docs/api_sorting_architecture.md
     * `dstTwinClassName`(i18n-join: dstTwinClass → TwinClass.nameI18n → I18nTranslation.translation)
     * `createdByUserName`(join: createdByUser → User.name)
 
+* **GroupField values**:
+    * `srcTwinClassId`
+    * `dstTwinClassId`
+    * `srcTwinClassInheritable`
+    * `dstTwinClassInheritable`
+    * `type`
+    * `createdByUserId`
+
 ### `POST /private/action_restriction_reason/search/v1` ✅ reviewed
 
 * **DTO**: `ActionRestrictionReasonDTOv1`
@@ -964,21 +1354,35 @@ docs/api_sorting_architecture.md
     * `type`
     * `description`
 
+* **GroupField values**:
+    * `type`
+
 ---
 
 ## Порядок реализации
 
-По пакетам, один за другим:
+По пакетам, один за другим. Для каждого API делаем **search + count вместе** (общие SortField/GroupField enum, общий SearchService):
 
 1. attachment → comment → i18n
 2. permission (7 сущностей)
 3. projection → scheduler → tier → transition
-4. twinclass (7 сущностей)
+4. twinclass (twin_class_fields уже DONE, остальные 6)
 5. twinflow → twinstatus → trigger
 6. factory (9 сущностей)
 7. notification (4 сущности)
 8. space → usergroup → user → domain
 9. system → datalist → validator → link → action
+
+**Шаги на каждый API:**
+1. Создать `{Entity}SortField` enum
+2. Создать `{Entity}GroupField` enum
+3. Подготовить Domain Search Object: extends `EntitySearch<EntityType>`
+4. Переписать SearchService на `EntitySearchService<S, E, SF, GF>` (если наследовал `EntitySecureFindServiceImpl` — вынести CRUD в `{Entity}ConfigService`)
+5. Добавить `sortField`/`sortDirection` в `{Entity}SearchRqDTOv1`
+6. Создать `{Entity}CountRqDTOv1` / `{Entity}CountDTOv1` / `{Entity}CountRsDTOv1`
+7. Создать `{Entity}CountRestDTOMapper` с conditional loading
+8. Изменить search контроллер + добавить count контроллер (`POST /private/{entity}/count/v1` с `@SimplePaginationParams`)
+9. Проверить индексы под SortField + GroupField (см. ниже)
 
 ## Важные замечания
 
@@ -989,24 +1393,67 @@ docs/api_sorting_architecture.md
 * **LEFT JOIN** — `CommonSpecification.toSortSpecification()` использует LEFT, не INNER — чтобы не отсекать записи с NULL-связями
 * **getResultType() guard** — обязателен в `toSortSpecification()`, count-запрос не должен содержать ORDER BY
 * **Не трогать TwinSorter** — featurer-based механизм сортировки Twin решает другую задачу
-* **EntitySearchService** — все новые search services должны extends `EntitySearchService<S, E, SF, GF>` и реализовать абстрактные методы, включая `createSortSpecification()`
+* **EntitySearchService** — все новые search services должны extends `EntitySearchService<S, E, SF, GF>` и реализовать ВСЕ абстрактные методы: `createSortSpecification()`, `convertToEntityField()`, `mapGroupedField()`, и т.д.
+* **SearchDTO общий для search и count** — не дублируем критерии. Count берёт тот же SearchDTO через Composition в `{Entity}CountRqDTOv1`.
+* **CountResult<E, GF>** — generic-параметр `GF` обязателен (для conditional loading в mapper). НЕ `CountResult<E>`.
+* **Conditional loading в Count Mapper** — related object грузится только если соответствующее поле есть в `src.getGroupFields()`. Иначе генерируются лишние запросы к БД.
+* **Pagination в count** — `total` = число уникальных групп (не записей). Это часто неожиданное поведение для клиентов — задокументировать в Swagger description.
 
 ## Индексы БД
 
-Для каждого SortField нужно убедиться, что в PostgreSQL есть индекс по соответствующему столбцу. Сортировка по неиндексированному столбцу вызывает full table scan + filesort, что неприемлемо на больших таблицах (O(N log N) деградация, см. `docs/api_sorting_architecture.md` — performance оценка).
+### Для сортировки (SortField)
 
-**Порядок действий для каждой сущности:**
+Сортировка по неиндексированному столбцу вызывает full table scan + filesort, что неприемлемо на больших таблицах (O(N log N) деградация, см. `docs/api_sorting_architecture.md` — performance оценка).
 
 1. Проверить наличие индексов через `\d+ <table_name>` или `pg_indexes`
 2. Если индекс отсутствует — создать миграцию `V1.xxx.y__TWINS-sort_index_<entity>.sql` с `CREATE INDEX IF NOT EXISTS`
 3. Для полей, которые сортируют через JOIN (например `userName` → join к `UserEntity.name`), индекс нужен на стороне присоединяемой таблицы
 4. Для JOIN lookup (опционально) — составной индекс по FK+domain_id ускоряет Nested Loop
 
+### Для группировки (GroupField) — МЕНЕЕ КРИТИЧНО, но желательно
+
+GROUP BY без индекса тоже вызывает Sort. Но GROUP BY обычно на низкокардинальных полях (UUID FK / enum / boolean), и PostgreSQL может использовать Hash Aggregate без sort — это приемлемо.
+
+1. Проверить, есть ли уже индекс по FK-колонке (обычно есть — миграции создания FK автоматически создают индекс)
+2. Для boolean/enum полей индекс не нужен — низкая селективность, planner всё равно сделает seq scan
+3. **Composite indexes** — только для частых combo (обозначены в плане как `**Composite index:**` для конкретных API). Пример:
+    ```sql
+    CREATE INDEX IF NOT EXISTS idx_dba_user_ba
+        ON domain_business_account_user(user_id, business_account_id);
+    ```
+
+### Шаблон миграции
+
+```sql
+-- V1.xxx.y__TWINS-sort_count_index_<entity>.sql
+CREATE INDEX IF NOT EXISTS idx_<entity>_<sort_field> ON <entity_table>(<sort_field>);
+-- Для часто используемых combo (если указано в плане):
+CREATE INDEX IF NOT EXISTS idx_<entity>_<field1>_<field2> ON <entity_table>(<field1>, <field2>);
+```
+
 ## Верификация
 
+### Сборка
 1. `./gradlew build` — сборка без ошибок
-2. Проверить что все SearchRqDTO содержат inline `sortField` (enum) + `sortDirection`
-3. Проверить что все search services extends `EntitySearchService` и реализуют `createSortSpecification()` со switch по enum
-4. Проверить что sort-поля НЕ хранятся в Domain Search Object, а передаются как параметры в `EntitySearchService.search()`
-5. Проверить что для каждого SortField есть соответствующий индекс в БД
-6. Проверить что Swagger показывает dropdown для sortField (enum-тип)
+2. `./gradlew test` — тесты проходят
+
+### Search API
+3. Все `{Entity}SearchRqDTOv1` содержат inline `sortField` (enum) + `sortDirection`
+4. Все search services `extends EntitySearchService<S, E, SF, GF>` и реализуют `createSortSpecification()` со switch по enum
+5. Sort-поля НЕ хранятся в Domain Search Object, передаются как параметры в `EntitySearchService.search()`
+6. Для каждого SortField есть индекс в БД
+7. Swagger показывает dropdown для `sortField`
+
+### Count API
+8. Все `{Entity}CountRqDTOv1` содержат `search` (тот же SearchDTO) + `Set<{Entity}GroupField> groupFields`
+9. Все `{Entity}CountDTOv1` наследуют `CountDTOv1` и явно объявляют groupable-поля с `@RelatedObject` где уместно
+10. Все `{Entity}CountRsDTOv1` наследуют `ResponseCountDTOv1` (включает `pagination` + `relatedObjects`)
+11. Все `{Entity}CountRestDTOMapper` реализуют conditional loading через `needLoad(mapperContext, mode, src, groupField)` + batch-load в `beforeCollectionConversion()`
+12. Каждый count endpoint принимает `@SimplePaginationParams` и возвращает `pagination.total` = число уникальных групп
+13. Для каждого GroupField есть индекс в БД (для FK — обычно уже есть; composite — для помеченных combo)
+14. Swagger показывает dropdown для `groupFields` (Set<enum>)
+
+### Sanity checks (запросы)
+15. Отправить `groupFields: []` → ожидаем 1 строку с общим `count`
+16. Отправить `groupFields: ["xxxId"]` → ожидаем по строке на каждое уникальное значение `xxxId`, `pagination.total` = число уникальных значений
+17. Отправить невалидное имя в `groupFields` → ожидаем 400 от Jackson

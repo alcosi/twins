@@ -64,7 +64,7 @@ public class FactoryPipelineStepSearchController extends ApiController {
         FactoryPipelineStepSearchRsDTOv1 rs = new FactoryPipelineStepSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryPipelineStepEntity> pipelineSteps = factoryPipelineStepSearchService
-                    .findFactoryPipelineSteps(factoryPipelineStepSearchDTOReverseMapper.convert(request), pagination);
+                    .search(factoryPipelineStepSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setSteps(factoryPipelineStepRestDTOMapper.convertCollection(pipelineSteps.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(pipelineSteps))

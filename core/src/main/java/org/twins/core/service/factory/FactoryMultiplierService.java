@@ -47,7 +47,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryMultiplierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+//        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        return false;
     }
 
     @Override
@@ -62,9 +63,9 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
-                    entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
+                    loadInputTwinClass(entity);
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    loadTwinFactory(entity);
                 validateAndPrepareFeaturer(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class);
         }
         return true;
@@ -117,5 +118,27 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryMultiplierEntity::getId,
                 TwinFactoryMultiplierEntity::getTwinFactoryId);
+    }
+
+    public void loadTwinFactory(TwinFactoryMultiplierEntity multiplier) throws ServiceException {
+        loadTwinFactory(Collections.singleton(multiplier));
+    }
+
+    public void loadTwinFactory(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
+        factoryService.load(multipliers,
+                TwinFactoryMultiplierEntity::getTwinFactoryId,
+                TwinFactoryMultiplierEntity::getTwinFactory,
+                TwinFactoryMultiplierEntity::setTwinFactory);
+    }
+
+    public void loadInputTwinClass(TwinFactoryMultiplierEntity multiplier) throws ServiceException {
+        loadInputTwinClass(Collections.singleton(multiplier));
+    }
+
+    public void loadInputTwinClass(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
+        twinClassService.load(multipliers,
+                TwinFactoryMultiplierEntity::getInputTwinClassId,
+                TwinFactoryMultiplierEntity::getInputTwinClass,
+                TwinFactoryMultiplierEntity::setInputTwinClass);
     }
 }

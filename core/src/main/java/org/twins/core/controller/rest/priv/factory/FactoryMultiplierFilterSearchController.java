@@ -25,8 +25,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryMultiplierFilterSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierFilterSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierFilterViewRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierFilerSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.factory.FactoryMultiplierFilterRestDTOMapper;
+import org.twins.core.mappers.rest.factory.FactoryMultiplierFilterSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -47,7 +47,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryMultiplierFilterSearchService factoryMultiplierFilterSearchService;
     private final FactoryMultiplierFilterRestDTOMapper factoryMultiplierFilterRestDTOMapper;
-    private final FactoryMultiplierFilerSearchDTOReverseMapper factoryMultiplierFilerSearchDTOReverseMapper;
+    private final FactoryMultiplierFilterSearchDTOReverseMapper factoryMultiplierFilterSearchDTOReverseMapper;
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
 
     @ParametersApiUserHeaders
@@ -65,7 +65,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
         FactoryMultiplierFilterSearchRsDTOv1 rs = new FactoryMultiplierFilterSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryMultiplierFilterEntity> multiplierFilter = factoryMultiplierFilterSearchService
-                    .findFactoryMultiplierFilters(factoryMultiplierFilerSearchDTOReverseMapper.convert(request), pagination);
+                    .search(factoryMultiplierFilterSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(multiplierFilter))
                     .setMultiplierFilters(factoryMultiplierFilterRestDTOMapper.convertCollection(multiplierFilter.getList(), mapperContext))
@@ -79,7 +79,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "factoryMultiplierFilterViewV1", summary = "Factory multiplier filter search")
+    @Operation(operationId = "factoryMultiplierFilterViewV1", summary = "Factory multiplier filter view")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Factory multiplier filter data", content = {
                     @Content(mediaType = "application/json", schema =

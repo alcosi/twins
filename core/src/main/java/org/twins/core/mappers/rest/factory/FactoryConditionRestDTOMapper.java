@@ -14,6 +14,8 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.service.factory.FactoryConditionService;
 
+import java.util.Collection;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = FactoryConditionMode.class)
@@ -45,12 +47,22 @@ public class FactoryConditionRestDTOMapper extends RestSimpleDTOMapper<TwinFacto
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.HIDE)) {
             dst
                     .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            factoryConditionService.loadConditionSet(src);
             factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryCondition2FeaturerMode.HIDE)) {
             dst
                     .setConditionerFeaturerId(src.getConditionerFeaturerId());
             featurerRestDTOMapper.postpone(src.getConditionerFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.FactoryCondition2FeaturerMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinFactoryConditionEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.HIDE)) {
+            factoryConditionService.loadConditionSet(srcCollection);
         }
     }
 }

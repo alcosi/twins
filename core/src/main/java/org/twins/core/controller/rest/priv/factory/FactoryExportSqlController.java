@@ -19,8 +19,8 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.factory.FactoryExportSqlRqDTOv1;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.factory.FactoryExportService;
+import org.twins.core.service.permission.Permissions;
 
 import java.nio.charset.StandardCharsets;
 
@@ -43,6 +43,7 @@ public class FactoryExportSqlController extends ApiController {
             @RequestBody FactoryExportSqlRqDTOv1 request) throws ServiceException {
         String sql = factoryExportService.exportToSql(
                 request.getTwinFactoryIds(),
+                request.isIncludeConditionSets(),
                 request.isIncludeBranches(),
                 request.isIncludeMultipliers(),
                 request.isIncludePipelines(),

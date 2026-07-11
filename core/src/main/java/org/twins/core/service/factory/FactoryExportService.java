@@ -23,22 +23,45 @@ public class FactoryExportService extends EntityExportService<TwinFactoryEntity>
     private final FactoryPipelineExportService pipelineExportService;
     private final FactoryEraserExportService eraserExportService;
     private final FactoryTriggerExportService triggerExportService;
+    private final FactoryConditionSetExportService factoryConditionSetExportService;
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public String exportCollectionToSql(Collection<TwinFactoryEntity> factories) throws ServiceException {
-        return exportToSql(factories, true, true, true, true, true, true);
+        return exportToSql(factories, true, true, true, true, true, true, true);
     }
 
-    public String exportToSql(UUID factoryId, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
-        return exportToSql(Collections.singleton(factoryId), includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
+    public String exportToSql(UUID factoryId,
+                              boolean includeConditionSets,
+                              boolean includeBranches,
+                              boolean includeMultipliers,
+                              boolean includePipelines,
+                              boolean includePipelineSteps,
+                              boolean includeErasers,
+                              boolean includeTriggers) throws ServiceException {
+        return exportToSql(Collections.singleton(factoryId), includeConditionSets, includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
     }
 
-    public String exportToSql(Set<UUID> twinFactoryIds, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
+    public String exportToSql(Set<UUID> twinFactoryIds,
+                              boolean includeConditionSets,
+                              boolean includeBranches,
+                              boolean includeMultipliers,
+                              boolean includePipelines,
+                              boolean includePipelineSteps,
+                              boolean includeErasers,
+                              boolean includeTriggers) throws ServiceException {
         var factories = factoryService.findEntitiesSafe(twinFactoryIds);
-        return exportToSql(factories.getCollection(), includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
+        return exportToSql(factories.getCollection(), includeConditionSets, includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
     }
 
-    public String exportToSql(Collection<TwinFactoryEntity> factories, boolean includeBranches, boolean includeMultipliers, boolean includePipelines, boolean includePipelineSteps, boolean includeErasers, boolean includeTriggers) throws ServiceException {
+    public String exportToSql(Collection<TwinFactoryEntity> factories,
+                              boolean includeConditionSets,
+                              boolean includeBranches,
+                              boolean includeMultipliers,
+                              boolean includePipelines,
+                              boolean includePipelineSteps,
+                              boolean includeErasers,
+                              boolean includeTriggers) throws ServiceException {
         if (CollectionUtils.isEmpty(factories)) return "";
 
         var sqlParts = new StringList();
@@ -54,6 +77,14 @@ public class FactoryExportService extends EntityExportService<TwinFactoryEntity>
         sqlParts.addNotBlank(sqlBuilder.buildInserts(factories));
 
         factoryService.loadFactoryElements(factories);
+        factoryConditionSetService.loadFactoryConditionSets(factories);
+
+        exportChildrenKit(
+                includeConditionSets,
+                factories,
+                TwinFactoryEntity::getTwinFactoryConditionSetKit,
+                factoryConditionSetExportService::exportCollectionToSql,
+                sqlParts);
 
         exportChildrenKit(
                 includeBranches,

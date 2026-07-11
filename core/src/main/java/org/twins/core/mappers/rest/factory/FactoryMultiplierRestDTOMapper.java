@@ -55,10 +55,12 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
             dst.setFactoryId(src.getTwinFactoryId());
+            factoryMultiplierService.loadTwinFactory(src);
             factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryMultiplier2FactoryMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryMultiplier2TwinClassMode.HIDE)) {
             dst.setInputTwinClassId(src.getInputTwinClassId());
+            factoryMultiplierService.loadInputTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryMultiplier2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
@@ -72,6 +74,13 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(FactoryMultiplierFiltersCountMode.SHOW)) {
             factoryService.countFactoryMultiplierFilters(srcCollection);
+        }
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
+            factoryMultiplierService.loadTwinFactory(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.FactoryMultiplier2TwinClassMode.HIDE)) {
+            factoryMultiplierService.loadInputTwinClass(srcCollection);
         }
     }
 }

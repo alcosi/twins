@@ -17,6 +17,9 @@ public class FactoryExportSqlRqDTOv1 extends Request {
     @Schema(description = "twin factory ids to export SQL for")
     public Set<UUID> twinFactoryIds;
 
+    @Schema(description = "include condition sets")
+    public boolean includeConditionSets = false;
+
     @Schema(description = "include branches with condition sets and conditions")
     public boolean includeBranches = false;
 

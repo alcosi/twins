@@ -14,6 +14,6 @@ import java.util.UUID;
 public class FactoryPipelineSpecification extends CommonSpecification<TwinFactoryPipelineEntity> {
 
     public static Specification<TwinFactoryPipelineEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryPipelineEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryPipelineEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId);
     }
 }

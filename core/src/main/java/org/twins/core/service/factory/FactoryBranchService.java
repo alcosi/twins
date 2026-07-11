@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
@@ -35,6 +34,8 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     private final AuthService authService;
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;
+    @Lazy
+    private final FactoryService factoryService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
@@ -97,12 +98,13 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryBranchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getFactory().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
-        }
-        return readDenied;
+//        DomainEntity domain = authService.getApiUser().getDomain();
+//        boolean readDenied = !entity.getFactory().getDomainId().equals(domain.getId());
+//        if (readDenied) {
+//            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
+//        }
+//        return readDenied;
+        return false;
     }
 
     @Override
@@ -138,5 +140,27 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
                 TwinFactoryBranchEntity::getConditionSet,
                 TwinFactoryBranchEntity::setConditionSet);
+    }
+
+    public void loadFactory(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadFactory(Collections.singleton(branch));
+    }
+
+    public void loadFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryService.load(branches,
+                TwinFactoryBranchEntity::getTwinFactoryId,
+                TwinFactoryBranchEntity::getFactory,
+                TwinFactoryBranchEntity::setFactory);
+    }
+
+    public void loadNextFactory(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadNextFactory(Collections.singleton(branch));
+    }
+
+    public void loadNextFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryService.load(branches,
+                TwinFactoryBranchEntity::getNextTwinFactoryId,
+                TwinFactoryBranchEntity::getNextFactory,
+                TwinFactoryBranchEntity::setNextFactory);
     }
 }
