@@ -112,10 +112,9 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     }
 
     @Override
-    protected FieldValueBoolean deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldBooleanEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueBoolean deserializeValue(Properties properties, TwinField twinField, TwinFieldBooleanEntity twinFieldEntity) {
         return new FieldValueBoolean(twinField.getTwinClassField())
-                .setValue(twinFieldBooleanEntity != null ? twinFieldBooleanEntity.getValue() : defaultValue.extract(properties));
+                .setValue(twinFieldEntity != null ? twinFieldEntity.getValue() : defaultValue.extract(properties));
     }
 
     @Override

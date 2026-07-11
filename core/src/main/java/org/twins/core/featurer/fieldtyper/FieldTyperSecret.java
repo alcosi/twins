@@ -56,14 +56,11 @@ public class FieldTyperSecret
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldSimpleNonIndexedEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleNonIndexedEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(
-                        twinFieldSimpleNonIndexedEntity != null
-                                ? secretEncryptor.decrypt(twinFieldSimpleNonIndexedEntity.getValue())
-                                : null
-                );
+                .setValue(twinFieldEntity != null
+                        ? secretEncryptor.decrypt(twinFieldEntity.getValue())
+                        : null);
     }
 
     @Override

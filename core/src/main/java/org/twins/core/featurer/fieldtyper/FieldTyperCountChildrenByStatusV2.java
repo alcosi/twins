@@ -37,8 +37,7 @@ public class FieldTyperCountChildrenByStatusV2 extends FieldTyperSimple<FieldDes
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(parseTwinFieldValue(twinFieldEntity).toString());
     }

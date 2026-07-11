@@ -6,6 +6,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBaseEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageMater;
@@ -81,4 +82,12 @@ public abstract class FieldTyperSingleValue<
         twinChangesCollector.delete(twinFieldEntity);
         addHistoryContext(twinChangesCollector, twinFieldEntity, null);
     }
+
+    @Override
+    protected T deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
+        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+        return deserializeValue(properties, twinField, twinFieldEntity);
+    }
+
+    protected abstract T deserializeValue(Properties properties, TwinField twinField, E twinFieldEntity) throws ServiceException;
 }

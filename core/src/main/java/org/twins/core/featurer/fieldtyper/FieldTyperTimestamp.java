@@ -95,7 +95,7 @@ public class FieldTyperTimestamp extends FieldTyperSingleValue<
 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldEntity = convertToTwinFieldTimestampEntity(twinField.getTwin(), twinField.getTwinClassField());
+        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
         var fieldValueDate = new FieldValueDate(twinField.getTwinClassField(), pattern.extract(properties));
         if (twinFieldEntity != null && twinFieldEntity.getValue() != null) {
             fieldValueDate.setDate(twinFieldEntity.getValue().toLocalDateTime());
@@ -133,11 +133,5 @@ public class FieldTyperTimestamp extends FieldTyperSingleValue<
             result = new ValidationResult(false, i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId()));
         }
         return result;
-    }
-
-
-
-    private TwinFieldTimestampEntity convertToTwinFieldTimestampEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        return twinEntity.getTwinFieldTimestampKit().get(twinClassFieldEntity.getId());
     }
 }

@@ -35,8 +35,7 @@ public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColor
     }
 
     @Override
-    protected FieldValueColorHEX deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueColorHEX deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueColorHEX(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
     }

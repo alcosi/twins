@@ -44,8 +44,7 @@ public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<Fi
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleNonIndexedEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
                         twinFieldEntity.getValue() : null);

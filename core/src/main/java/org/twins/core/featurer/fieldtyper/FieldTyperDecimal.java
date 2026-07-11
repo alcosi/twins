@@ -92,8 +92,7 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) throws ServiceException {
         return deserializeValueBase(properties, twinField, twinFieldEntity);
     }
 
