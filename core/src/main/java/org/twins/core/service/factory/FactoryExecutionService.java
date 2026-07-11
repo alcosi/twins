@@ -34,7 +34,6 @@ import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -46,10 +45,10 @@ import java.util.*;
 @RequiredArgsConstructor
 public class FactoryExecutionService {
     final TwinService twinService;
-    final TwinStatusService twinStatusService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final FactoryConditionSetService factoryConditionSetService;
+    final FactoryPipelineService factoryPipelineService;
     @Lazy
     final FeaturerService featurerService;
     @Lazy
