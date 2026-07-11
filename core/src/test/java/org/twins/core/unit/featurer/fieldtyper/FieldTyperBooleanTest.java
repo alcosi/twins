@@ -135,6 +135,36 @@ class FieldTyperBooleanTest extends BaseUnitTest {
             assertEquals(true, firstInKit(twin).getValue());
             assertFalse(collector.hasChanges());
         }
+
+        @Test
+        void serializeValue_clearedValueWithRow_substitutesDefaultValue() throws ServiceException {
+            // Intended: a clear on an existing boolean row keeps the row and resets its value to the
+            // configured default (not delete / not null) — keeps a concrete value.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithKit(classField, true);
+            var value = new FieldValueBoolean(classField).setValue(null); // state CLEARED
+            var collector = new TwinChangesCollector(false);
+
+            fieldTyper.serializeValue(properties(), twin, value, collector);
+
+            assertEquals(false, firstInKit(twin).getValue());
+            assertTrue(collector.hasChanges());
+        }
+
+        @Test
+        void serializeValue_clearedValueWithoutRow_materializesDefaultValue() throws ServiceException {
+            // Former behavior preserved: a clear on a phantom boolean (no stored row) materializes a row
+            // with the configured default value, keeping the "boolean always has a concrete value" invariant.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithKit(classField, null); // no stored row (phantom)
+            var value = new FieldValueBoolean(classField).setValue(null); // state CLEARED
+            var collector = new TwinChangesCollector(false);
+
+            fieldTyper.serializeValue(properties(), twin, value, collector);
+
+            assertEquals(false, firstInKit(twin).getValue());
+            assertTrue(collector.hasChanges());
+        }
     }
 
     @Nested

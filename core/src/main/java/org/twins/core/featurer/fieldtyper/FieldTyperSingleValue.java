@@ -49,6 +49,9 @@ public abstract class FieldTyperSingleValue<
         } else if (twinFieldEntity != null && value.isNotEmpty()) {
             // update
             detectValueChange(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
+        } else if (twinFieldEntity == null && value.isCleared()) {
+            // no stored row to clear — default no-op; override onClearedNoRow to materialize a row
+            onClearedNoRow(properties, twin, value.getTwinClassField(), twinChangesCollector);
         }
     }
 
@@ -81,6 +84,17 @@ public abstract class FieldTyperSingleValue<
     protected void onCleared(Properties properties, E twinFieldEntity, TwinChangesCollector twinChangesCollector) {
         twinChangesCollector.delete(twinFieldEntity);
         addHistoryContext(twinChangesCollector, twinFieldEntity, null);
+    }
+
+    /**
+     * Persisting strategy for a cleared (explicitly nulled) value when no stored row exists yet.
+     * Default: no-op (nothing to clear) — matches the former {@link FieldTyperTimestamp} /
+     * {@link FieldTyperDecimal} / {@link FieldTyperSimple} behavior. Override to materialize a row:
+     * {@link FieldTyperBoolean} keeps a concrete default value, so a clear on a phantom boolean
+     * creates a default-value row.
+     */
+    protected void onClearedNoRow(Properties properties, TwinEntity twin, TwinClassFieldEntity twinClassField, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        // no-op by default
     }
 
     @Override

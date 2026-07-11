@@ -102,6 +102,15 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     }
 
     @Override
+    protected void onClearedNoRow(Properties properties, TwinEntity twin, TwinClassFieldEntity twinClassField, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        // A clear on a phantom boolean (no stored row) materializes a row with the default value,
+        // preserving the "boolean always has a concrete value" invariant — same as the former
+        // FieldTyperBooleanV1 behavior (create + collector.add + detectValueChange(defaultValue)).
+        TwinFieldBooleanEntity twinFieldBooleanEntity = createTwinFieldEntity(twin, twinClassField);
+        detectValueChange(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
+    }
+
+    @Override
     protected HistoryItem<?> createHistoryItem(TwinFieldBooleanEntity twinFieldBooleanEntity, Boolean newValue) {
         return historyService.fieldChangeSimple(
                 twinFieldBooleanEntity.getTwinClassField(),
