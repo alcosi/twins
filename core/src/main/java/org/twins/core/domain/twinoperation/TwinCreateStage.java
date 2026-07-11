@@ -5,6 +5,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGroupedObj;
+import org.cambium.common.util.UuidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -29,6 +30,13 @@ public class TwinCreateStage implements Iterable<TwinCreate> {
         return ret;
     }
 
+    @SneakyThrows
+    public static TwinCreateStage of(Collection<TwinCreate> twinCreateList) {
+        var ret = new TwinCreateStage(twinCreateList.size());
+        ret.addAll(twinCreateList);
+        return ret;
+    }
+
     public TwinCreateStage add(TwinCreate twinCreate) throws ServiceException {
         if (frozen)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "TwinCreate stage is already freezed");
@@ -40,10 +48,17 @@ public class TwinCreateStage implements Iterable<TwinCreate> {
         }
         var entity = twinCreate.getTwinEntity();
         if (entity.getId() == null) {
-            entity.setId(UUID.randomUUID());
+            entity.setId(UuidUtils.generate());
         }
         map.put(entity.getId(), twinCreate);
         entities.add(entity);
+        return this;
+    }
+
+    public TwinCreateStage addAll(Collection<TwinCreate> twinCreateList) throws ServiceException {
+        for (TwinCreate twinCreate : twinCreateList) {
+            add(twinCreate);
+        }
         return this;
     }
 

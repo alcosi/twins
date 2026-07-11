@@ -39,7 +39,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final AuthService authService;
     private final TwinClassService twinClassService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
     private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
     private final TwinService twinService;
@@ -152,7 +152,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     }
 
     public void loadTwinFactory(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
-        twinFactoryService.load(srcCollection,
+        factoryService.load(srcCollection,
                 TwinFactoryPipelineEntity::getTwinFactoryId,
                 TwinFactoryPipelineEntity::getTwinFactory,
                 TwinFactoryPipelineEntity::setTwinFactory);
@@ -163,7 +163,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     }
 
     public void loadNextTwinFactory(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
-        twinFactoryService.load(srcCollection,
+        factoryService.load(srcCollection,
                 TwinFactoryPipelineEntity::getNextTwinFactoryId,
                 TwinFactoryPipelineEntity::getNextTwinFactory,
                 TwinFactoryPipelineEntity::setNextTwinFactory);

@@ -12,7 +12,7 @@ import java.util.Properties;
         id = "STRING:TWINS:TWIN_CONDITION_OPERATOR_TYPE",
         description = "twin condition operator type",
         regexp = FeaturerParamStringTwinsCreateStrategy.TWIN_CREATE_STRATEGY_REGEXP,
-        example = "eq")
+        example = "SKETCH")
 public class FeaturerParamStringTwinsCreateStrategy extends FeaturerParam<TwinCreateStrategy> {
     public static final String TWIN_CREATE_STRATEGY_REGEXP = "SKETCH|STRICT|AUTO";
 
@@ -24,7 +24,7 @@ public class FeaturerParamStringTwinsCreateStrategy extends FeaturerParam<TwinCr
     public TwinCreateStrategy extract(Properties properties) {
         String value = (String) properties.get(key);
         return value != null ?
-                TwinCreateStrategy.valueOf(value.toLowerCase()) :
+                TwinCreateStrategy.valueOf(value.toUpperCase()) :
                 TwinCreateStrategy.STRICT;
     }
 

@@ -16,7 +16,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FactoryExportService extends EntityExportService<TwinFactoryEntity> {
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     private final FactoryBranchExportService branchExportService;
     private final FactoryMultiplierExportService multiplierExportService;
@@ -50,7 +50,7 @@ public class FactoryExportService extends EntityExportService<TwinFactoryEntity>
                               boolean includePipelineSteps,
                               boolean includeErasers,
                               boolean includeTriggers) throws ServiceException {
-        var factories = twinFactoryService.findEntitiesSafe(twinFactoryIds);
+        var factories = factoryService.findEntitiesSafe(twinFactoryIds);
         return exportToSql(factories.getCollection(), includeConditionSets, includeBranches, includeMultipliers, includePipelines, includePipelineSteps, includeErasers, includeTriggers);
     }
 
@@ -76,7 +76,7 @@ public class FactoryExportService extends EntityExportService<TwinFactoryEntity>
 
         sqlParts.addNotBlank(sqlBuilder.buildInserts(factories));
 
-        twinFactoryService.loadFactoryElements(factories);
+        factoryService.loadFactoryElements(factories);
         factoryConditionSetService.loadFactoryConditionSets(factories);
 
         exportChildrenKit(

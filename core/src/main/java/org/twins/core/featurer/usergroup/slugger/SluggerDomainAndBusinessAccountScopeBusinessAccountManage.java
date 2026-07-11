@@ -44,7 +44,7 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
             return null;
         }
         var apiUser = authService.getApiUser();
-        return new UserGroupMapEntity()
+        UserGroupMapEntity ret = new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
                 .setUserId(user.getId())
@@ -52,6 +52,9 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
+        userGroupMapRepository.save(ret);
+
+        return ret;
     }
 
     @Override

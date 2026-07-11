@@ -61,7 +61,6 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
         if (twinFieldTimestampEntity == null && value.isNotEmpty()) {
             // create field
             twinFieldTimestampEntity = twinService.createTwinFieldTimestampEntity(twin, value.getTwinClassField(), null);
-            twinChangesCollector.add(twinFieldTimestampEntity);
             detectValueChange(twinFieldTimestampEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
         } else if (twinFieldTimestampEntity != null && value.isCleared()) {
             // delete field
@@ -69,7 +68,6 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
             addHistoryContext(twinChangesCollector,  twinFieldTimestampEntity, null);
         } else if (twinFieldTimestampEntity != null && value.isNotEmpty()) {
             // update field
-            twinChangesCollector.add(twinFieldTimestampEntity);
             detectValueChange(twinFieldTimestampEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
         }
     }

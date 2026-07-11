@@ -33,7 +33,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierEntity, UUID> entityRepository() {
@@ -125,7 +125,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     }
 
     public void loadTwinFactory(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
-        twinFactoryService.load(multipliers,
+        factoryService.load(multipliers,
                 TwinFactoryMultiplierEntity::getTwinFactoryId,
                 TwinFactoryMultiplierEntity::getTwinFactory,
                 TwinFactoryMultiplierEntity::setTwinFactory);

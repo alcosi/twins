@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
@@ -28,7 +28,7 @@ import java.util.Collection;
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
 
     private final I18nService i18nService;
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     @MapperModePointerBinding(modes = UserMode.Factory2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -53,28 +53,28 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
                 break;
         }
         if (showFactoryUsagesCount(mapperContext)) {
-            twinFactoryService.countFactoryUsages(src);
+            factoryService.countFactoryUsages(src);
             dst.setId(src.getId()).setFactoryUsagesCount(src.getFactoryUsagesCount());
         }
         if (showFactoryPipelinesCount(mapperContext)) {
-            twinFactoryService.countFactoryPipelines(src);
+            factoryService.countFactoryPipelines(src);
             dst.setId(src.getId()).setFactoryPipelinesCount(src.getFactoryPipelinesCount());
         }
         if (showFactoryMultipliersCount(mapperContext)) {
-            twinFactoryService.countFactoryMultipliers(src);
+            factoryService.countFactoryMultipliers(src);
             dst.setId(src.getId()).setFactoryMultipliersCount(src.getFactoryMultipliersCount());
         }
         if (showFactoryBranchesCount(mapperContext)) {
-            twinFactoryService.countFactoryBranches(src);
+            factoryService.countFactoryBranches(src);
             dst.setId(src.getId()).setFactoryBranchesCount(src.getFactoryBranchesCount());
         }
         if (showFactoryErasersCount(mapperContext)) {
-            twinFactoryService.countFactoryErasers(src);
+            factoryService.countFactoryErasers(src);
             dst.setId(src.getId()).setFactoryErasersCount(src.getFactoryErasersCount());
         }
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
-            twinFactoryService.loadCreatedByUser(src);
+            factoryService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
         }
     }
@@ -103,16 +103,16 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
     public void beforeCollectionConversion(Collection<TwinFactoryEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (showFactoryUsagesCount(mapperContext))
-            twinFactoryService.countFactoryUsages(srcCollection);
+            factoryService.countFactoryUsages(srcCollection);
         if (showFactoryPipelinesCount(mapperContext))
-            twinFactoryService.countFactoryPipelines(srcCollection);
+            factoryService.countFactoryPipelines(srcCollection);
         if (showFactoryMultipliersCount(mapperContext))
-            twinFactoryService.countFactoryMultipliers(srcCollection);
+            factoryService.countFactoryMultipliers(srcCollection);
         if (showFactoryBranchesCount(mapperContext))
-            twinFactoryService.countFactoryBranches(srcCollection);
+            factoryService.countFactoryBranches(srcCollection);
         if (showFactoryErasersCount(mapperContext))
-            twinFactoryService.countFactoryErasers(srcCollection);
+            factoryService.countFactoryErasers(srcCollection);
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE))
-            twinFactoryService.loadCreatedByUser(srcCollection);
+            factoryService.loadCreatedByUser(srcCollection);
     }
 }

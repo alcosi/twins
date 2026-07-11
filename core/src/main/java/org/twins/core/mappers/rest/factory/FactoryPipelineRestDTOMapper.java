@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.factory.FactoryPipelineService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryService;
 
 import java.util.Collection;
 
@@ -21,7 +21,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = FactoryPipelineMode.class)
 public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryPipelineEntity, FactoryPipelineDTOv1> {
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
     private final FactoryPipelineService factoryPipelineService;
 
     @MapperModePointerBinding(modes = {
@@ -42,7 +42,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
     public void map(TwinFactoryPipelineEntity src, FactoryPipelineDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryPipelineMode.DETAILED)) {
             case DETAILED:
-                twinFactoryService.countFactoryPipelineSteps(src);
+                factoryService.countFactoryPipelineSteps(src);
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
@@ -94,7 +94,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
     public void beforeCollectionConversion(Collection<TwinFactoryPipelineEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(FactoryPipelineMode.DETAILED)) {
-            twinFactoryService.countFactoryPipelineSteps(srcCollection);
+            factoryService.countFactoryPipelineSteps(srcCollection);
         }
         if (srcCollection.isEmpty()) return;
         if (mapperContext.hasModeButNot(FactoryMode.FactoryPipeline2FactoryMode.HIDE)) {

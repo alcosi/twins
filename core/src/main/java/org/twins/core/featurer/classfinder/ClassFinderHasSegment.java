@@ -25,6 +25,6 @@ public class ClassFinderHasSegment extends ClassFinder {
     @Override
     protected void concatSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
         Ternary ternaryValue = exclude.extract(properties) ? Ternary.ONLY_NOT : Ternary.ONLY;
-        classSearch.setAbstractt(ternaryValue);
+        classSearch.setHasSegments(ternaryValue);
     }
 }

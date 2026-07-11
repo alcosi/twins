@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.factory.FactoryMultiplierService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryService;
 
 import java.util.Collection;
 
@@ -21,7 +21,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = {FactoryMultiplierMode.class, FactoryMultiplierFiltersCountMode.class})
 public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryMultiplierEntity, FactoryMultiplierDTOv1> {
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     @MapperModePointerBinding(modes = FactoryMode.FactoryMultiplier2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapper;
@@ -50,7 +50,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
                     .setInputTwinClassId(src.getInputTwinClassId());
         }
         if (mapperContext.hasModeButNot(FactoryMultiplierFiltersCountMode.HIDE)) {
-            twinFactoryService.countFactoryMultiplierFilters(src);
+            factoryService.countFactoryMultiplierFilters(src);
             dst.setFactoryMultiplierFiltersCount(src.getFactoryMultiplierFiltersCount());
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
@@ -73,7 +73,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
     public void beforeCollectionConversion(Collection<TwinFactoryMultiplierEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(FactoryMultiplierFiltersCountMode.SHOW)) {
-            twinFactoryService.countFactoryMultiplierFilters(srcCollection);
+            factoryService.countFactoryMultiplierFilters(srcCollection);
         }
         if (srcCollection.isEmpty()) return;
         if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {

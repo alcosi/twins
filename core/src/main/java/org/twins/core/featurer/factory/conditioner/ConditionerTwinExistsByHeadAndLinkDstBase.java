@@ -1,12 +1,11 @@
 package org.twins.core.featurer.factory.conditioner;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -17,6 +16,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
 import java.util.Properties;
@@ -25,6 +25,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
 public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditioner {
 
     @FeaturerParam(name = "Twin class id", description = "Twin class to search", order = 1)
@@ -39,9 +40,8 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
     @FeaturerParam(name = "Match factory item output twin", description = "If true, checks that factory item output twin matches search (for multiplier filter on TwinUpdate)", order = 11, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean matchFactoryItemOutputTwin = new FeaturerParamBoolean("matchFactoryItemOutputTwin");
 
-    @Lazy
-    @Autowired
-    private TwinSearchServiceV2 twinSearchService;
+    protected final TwinSearchServiceV2 twinSearchService;
+    protected final TwinService twinService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -52,11 +52,13 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         return twinSearchService.exists(search);
     }
 
+    protected abstract UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException;
+
     protected abstract UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
 
     private BasicSearch buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        UUID headTwinId = contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+        UUID headTwinId = resolveHeadTwinId(contextTwin);
         if (headTwinId == null) {
             log.debug("Context twin has no head, twin exists by head and link dst search skipped");
             return null;
@@ -98,13 +100,13 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         return search;
     }
 
-    protected UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {
+    protected TwinEntity extractTwinFromFieldValue(FieldValue fieldValue) {
         if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue().getId();
+            return linkSingle.getValue();
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
-            return linkEntity.getDstTwinId();
+            return linkEntity.getDstTwin();
         }
         return null;
     }

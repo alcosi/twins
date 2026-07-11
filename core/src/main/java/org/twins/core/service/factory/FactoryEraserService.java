@@ -34,7 +34,7 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Getter
     private final TwinFactoryEraserRepository repository;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
     private final TwinClassService twinClassService;
     @Lazy
     private final FactoryConditionSetService factoryConditionSetService;

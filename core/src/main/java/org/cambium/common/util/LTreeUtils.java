@@ -1,6 +1,7 @@
 package org.cambium.common.util;
 
 import org.apache.commons.lang3.Range;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -78,5 +79,15 @@ public class LTreeUtils {
                 ret.add(UUID.fromString(id));
         }
         return ret;
+    }
+
+    public static UUID uuidByIndex(String uuidLTreeFormat, boolean reverse, int index) {
+        if (StringUtils.isBlank(uuidLTreeFormat) || index < 0)
+            return null;
+        String[] idsStr = uuidLTreeFormat.replace("_", "-").split("\\.");
+        if (index >= idsStr.length)
+            return null;
+        int targetIndex = reverse ? idsStr.length - 1 - index : index;
+        return UUID.fromString(idsStr[targetIndex]);
     }
 }

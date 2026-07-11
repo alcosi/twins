@@ -11,6 +11,8 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -25,15 +27,26 @@ public class ConditionerTwinExistsByHeadAndContextFieldLinkDst extends Condition
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 3)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
+    public ConditionerTwinExistsByHeadAndContextFieldLinkDst(TwinSearchServiceV2 twinSearchService, TwinService twinService) {
+        super(twinSearchService, twinService);
+    }
+
+    @Override
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) {
+        return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+    }
+
     @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                 .lookupFieldValue(factoryItem, dstFieldId);
-        UUID dstTwinId = extractTwinIdFromFieldValue(dstFieldValue);
-        if (dstTwinId == null) {
+        TwinEntity dstTwin = extractTwinFromFieldValue(dstFieldValue);
+        if (dstTwin == null) {
             log.debug("Link dst twin id is not resolved from context field [{}]", dstFieldId);
+            return null;
         }
-        return dstTwinId;
+
+        return dstTwin.getId();
     }
 }

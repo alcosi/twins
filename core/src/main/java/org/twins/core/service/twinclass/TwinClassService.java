@@ -106,6 +106,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private CacheManager cacheManager;
     @Lazy
     private final FaceService faceService;
+    @Lazy
+    private final org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionRepository twinClassFieldRecomputeOnActionRepository;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -738,6 +740,36 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 TwinClassEntity::getTwinClassFreezeId,
                 TwinClassEntity::getTwinClassFreeze,
                 TwinClassEntity::setTwinClassFreeze);
+    }
+
+    /**
+     * Populates {@link TwinClassEntity#getRecomputeOnAction()} — OnAction recompute rules where
+     * each source class is the publisher, grouped by {@link org.twins.core.enums.action.TwinAction}.
+     * One batch SQL via the cached
+     * {@link org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionRepository#findByPublisherTwinClassIdIn(Collection)}.
+     */
+    public void loadRecomputeOnAction(Collection<TwinClassEntity> classes) {
+        if (classes == null || classes.isEmpty()) return;
+        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
+        for (TwinClassEntity c : classes) {
+            if (c.getRecomputeOnAction() == null) {
+                needLoad.add(c);
+            }
+        }
+        if (needLoad.isEmpty()) return;
+
+        KitGrouped<org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
+                twinClassFieldRecomputeOnActionRepository.findByPublisherTwinClassIdIn(needLoad.getIdSet()),
+                org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getId,
+                org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getPublisherTwinClassId);
+
+        for (TwinClassEntity c : needLoad) {
+            List<org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
+            c.setRecomputeOnAction(new KitGrouped<>(
+                    classRules,
+                    org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getId,
+                    org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getPublisherTwinAction));
+        }
     }
 
     public void loadSegments(TwinClassEntity src) {

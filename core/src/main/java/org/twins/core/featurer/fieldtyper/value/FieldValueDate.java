@@ -24,7 +24,7 @@ public class FieldValueDate extends FieldValueStated {
     }
 
     public String getDateStr() {
-        return DateUtils.formatDate(date, pattern);
+        return date == null ? null : DateUtils.formatDate(date, pattern);
     }
 
     public FieldValueDate setDate(String dateStr) throws ServiceException {

@@ -178,6 +178,11 @@ public class ApplicationConfig {
         return Executors.newVirtualThreadPerTaskExecutor();
     }
 
+    @Bean(name = "logoutTaskExecutor")
+    public Executor logoutTaskExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
     @Bean(name = "virtualThreadTaskScheduler")
     public TaskScheduler virtualThreadTaskScheduler(List<Scheduler> schedulerList) {
         var taskScheduler = new SimpleAsyncTaskScheduler();

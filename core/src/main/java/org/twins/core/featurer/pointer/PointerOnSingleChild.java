@@ -16,8 +16,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -33,17 +33,28 @@ public class PointerOnSingleChild extends Pointer {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        BasicSearch basicSearch = new BasicSearch();
-        basicSearch
-                .addHeadTwinId(srcTwinEntity.getId())
-                .addTwinClassExtendsHierarchyContainsId(twinClassId.extract(properties));
-        List<TwinEntity> childTwins = twinSearchService.findTwins(basicSearch);
-        if (CollectionUtils.isEmpty(childTwins))
-            return null;
-        else if (childTwins.size() > 1)
-            throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE, srcTwinEntity.logShort() + " has " + childTwins.size() + " child twins of class[" + twinClassId.extract(properties) + "]");
-        else
-            return childTwins.getFirst();
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        if (srcTwins.isEmpty()) return Map.of();
+        UUID childClassId = twinClassId.extract(properties);
+        BasicSearch batchSearch = new BasicSearch();
+        batchSearch
+                .addHeadTwinId(srcTwins.stream().map(TwinEntity::getId).collect(Collectors.toList()))
+                .addTwinClassExtendsHierarchyContainsId(childClassId);
+        List<TwinEntity> allChildren = twinSearchService.findTwins(batchSearch);
+        Map<UUID, List<TwinEntity>> byHead = allChildren.stream()
+                .collect(Collectors.groupingBy(TwinEntity::getHeadTwinId));
+        Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
+        for (TwinEntity src : srcTwins) {
+            List<TwinEntity> children = byHead.get(src.getId());
+            if (CollectionUtils.isEmpty(children)) {
+                continue;
+            }
+            if (children.size() > 1) {
+                throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
+                        src.logShort() + " has " + children.size() + " child twins of class[" + childClassId + "]");
+            }
+            result.put(src.getId(), children.getFirst());
+        }
+        return result;
     }
 }

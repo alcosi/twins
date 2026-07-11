@@ -10,7 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.Properties;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -23,8 +23,15 @@ public class PointerOnHead extends Pointer {
     private final TwinService twinService;
 
     @Override
-    protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        twinService.loadHead(srcTwinEntity);
-        return srcTwinEntity.getHeadTwin();
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        twinService.loadHead(srcTwins);
+        Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
+        for (TwinEntity src : srcTwins) {
+            TwinEntity head = src.getHeadTwin();
+            if (head != null) {
+                result.put(src.getId(), head);
+            }
+        }
+        return result;
     }
 }

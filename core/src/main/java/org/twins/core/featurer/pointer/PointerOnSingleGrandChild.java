@@ -33,21 +33,47 @@ public class PointerOnSingleGrandChild extends Pointer {
     @Lazy
     private final TwinSearchService twinSearchService;
 
-    @Override
-    protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        BasicSearch childSearch = new BasicSearch();
-        childSearch
-                .addHierarchyTreeContainsId(srcTwinEntity.getId())
-                .addTwinClassExtendsHierarchyContainsId(twinClassId.extract(properties));
-
-        List<TwinEntity> grandchildren = twinSearchService.findTwins(childSearch);
-
-        if (CollectionUtils.isEmpty(grandchildren)) {
-            return null;
-        } else if (grandchildren.size() > 1) {
-            throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE, srcTwinEntity.logShort() + " has " + grandchildren.size() + " grandchild twins of class[" + twinClassId.extract(properties) + "]");
-        } else {
-            return grandchildren.getFirst();
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        if (srcTwins.isEmpty()) return Map.of();
+        UUID grandChildClassId = twinClassId.extract(properties);
+        List<UUID> srcTwinIds = srcTwins.stream().map(TwinEntity::getId).collect(Collectors.toList());
+        BasicSearch batchSearch = new BasicSearch();
+        batchSearch
+                .addHierarchyTreeContainsId(srcTwinIds)
+                .addTwinClassExtendsHierarchyContainsId(grandChildClassId);
+        List<TwinEntity> allGrandchildren = twinSearchService.findTwins(batchSearch);
+        if (CollectionUtils.isEmpty(allGrandchildren)) {
+            return Map.of();
         }
+        // A grandchild's hierarchy_tree lists every ancestor; attribute each grandchild to every
+        // src twin whose id appears in its ancestor set. The same grandchild may legitimately be
+        // attributed to multiple src twins when their subtrees overlap (src1 < src2 in the
+        // hierarchy), but each individual src must still resolve to at most one.
+        Set<UUID> srcTwinIdSet = new HashSet<>(srcTwinIds);
+        Map<UUID, List<TwinEntity>> bySrc = new HashMap<>();
+        for (TwinEntity grandchild : allGrandchildren) {
+            Set<UUID> ancestors = grandchild.getHeadTwinsIdSet();
+            if (ancestors == null) {
+                continue;
+            }
+            for (UUID srcId : srcTwinIdSet) {
+                if (ancestors.contains(srcId)) {
+                    bySrc.computeIfAbsent(srcId, k -> new ArrayList<>()).add(grandchild);
+                }
+            }
+        }
+        Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
+        for (TwinEntity src : srcTwins) {
+            List<TwinEntity> grandchildren = bySrc.get(src.getId());
+            if (CollectionUtils.isEmpty(grandchildren)) {
+                continue;
+            }
+            if (grandchildren.size() > 1) {
+                throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
+                        src.logShort() + " has " + grandchildren.size() + " grandchild twins of class[" + grandChildClassId + "]");
+            }
+            result.put(src.getId(), grandchildren.getFirst());
+        }
+        return result;
     }
 }
