@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -17,11 +18,13 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorSecret;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class FieldTyperSecretTest extends BaseUnitTest {
 
@@ -64,12 +67,25 @@ class FieldTyperSecretTest extends BaseUnitTest {
         return props;
     }
 
-    private TwinFieldSimpleNonIndexedEntity dbEntity(TwinClassFieldEntity classField, String value) {
-        return new TwinFieldSimpleNonIndexedEntity()
+    private TwinEntity twinWithKit(TwinClassFieldEntity classField, String value) {
+        var twin = new TwinEntity().setId(UUID.randomUUID());
+        var dbEntity = new TwinFieldSimpleNonIndexedEntity()
                 .setTwinClassField(classField)
                 .setTwinClassFieldId(classField.getId())
-                .setValue(value)
-                .setTwin(new TwinEntity().setId(UUID.randomUUID()));
+                .setTwin(twin)
+                .setValue(value);
+        twin.setTwinFieldSimpleNonIndexedKit(new Kit<>(List.of(dbEntity), TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
+        return twin;
+    }
+
+    private TwinEntity twinWithoutEntity(TwinClassFieldEntity classField) {
+        var twin = new TwinEntity().setId(UUID.randomUUID());
+        twin.setTwinFieldSimpleNonIndexedKit(new Kit<>(List.of(), TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
+        return twin;
+    }
+
+    private TwinFieldSimpleNonIndexedEntity firstInKit(TwinEntity twin) {
+        return twin.getTwinFieldSimpleNonIndexedKit().iterator().next();
     }
 
     @Nested
@@ -79,14 +95,14 @@ class FieldTyperSecretTest extends BaseUnitTest {
         void serializeValue_matchingValue_encryptsAndPersists() throws ServiceException {
             // Intended: plaintext is validated against regexp, encrypted, then the ciphertext is stored.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, null);
+            var twin = twinWithKit(classField, null);
             var value = new FieldValueText(classField).setValue("p@ssw0rd");
             var collector = new TwinChangesCollector(false);
             when(secretEncryptor.encrypt("p@ssw0rd")).thenReturn("ENC:CIPHER");
 
-            fieldTyper.serializeValue(properties(), dbEntity, value, collector);
+            fieldTyper.serializeValue(properties(), twin, value, collector);
 
-            assertEquals("ENC:CIPHER", dbEntity.getValue());
+            assertEquals("ENC:CIPHER", firstInKit(twin).getValue());
             assertTrue(collector.hasChanges());
         }
 
@@ -94,14 +110,14 @@ class FieldTyperSecretTest extends BaseUnitTest {
         void serializeValue_valueViolatingRegexp_throws() {
             // Intended: validation happens BEFORE encryption; mismatched value never reaches the encryptor.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, null);
+            var twin = twinWithKit(classField, null);
             var value = new FieldValueText(classField).setValue("short");
             var collector = new TwinChangesCollector(false);
             var props = properties();
             props.setProperty("regexp", "^.{8,}$"); // at least 8 chars
 
             var ex = assertThrows(ServiceException.class,
-                    () -> fieldTyper.serializeValue(props, dbEntity, value, collector));
+                    () -> fieldTyper.serializeValue(props, twin, value, collector));
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(secretEncryptor);
@@ -111,14 +127,14 @@ class FieldTyperSecretTest extends BaseUnitTest {
         void serializeValue_sameCiphertext_doesNotMutateEntity() throws ServiceException {
             // Intended: when the encrypted form equals the already-stored value, no change is recorded.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, "ENC:SAME");
+            var twin = twinWithKit(classField, "ENC:SAME");
             var value = new FieldValueText(classField).setValue("plain");
             var collector = new TwinChangesCollector(false);
             when(secretEncryptor.encrypt("plain")).thenReturn("ENC:SAME");
 
-            fieldTyper.serializeValue(properties(), dbEntity, value, collector);
+            fieldTyper.serializeValue(properties(), twin, value, collector);
 
-            assertEquals("ENC:SAME", dbEntity.getValue());
+            assertEquals("ENC:SAME", firstInKit(twin).getValue());
             assertFalse(collector.hasChanges());
         }
     }
@@ -130,11 +146,10 @@ class FieldTyperSecretTest extends BaseUnitTest {
         void deserializeValue_dbEntityPresent_decryptsValue() throws ServiceException {
             // Intended: stored ciphertext is decrypted back to plaintext.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, "ENC:CIPHER");
+            var twin = twinWithKit(classField, "ENC:CIPHER");
             when(secretEncryptor.decrypt("ENC:CIPHER")).thenReturn("p@ssw0rd");
 
-            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField), dbEntity);
+            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField));
 
             assertEquals("p@ssw0rd", result.getValue());
         }
@@ -143,9 +158,9 @@ class FieldTyperSecretTest extends BaseUnitTest {
         void deserializeValue_nullDbEntity_returnsNullValue() throws ServiceException {
             // Intended: no stored secret -> plaintext value is null.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID());
+            var twin = twinWithoutEntity(classField);
 
-            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField), null);
+            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField));
 
             assertNull(result.getValue());
             verifyNoInteractions(secretEncryptor);

@@ -10,7 +10,6 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -23,7 +22,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.lenient;
 
 class FieldTyperDecimalTest extends BaseUnitTest {
@@ -63,7 +62,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
     }
 
     private Properties properties() {
-        // Defaults mirror @FeaturerParam defaultValue annotations on FieldTyperDecimalBase.
+        // Defaults mirror @FeaturerParam defaultValue annotations on FieldTyperNumeric.
         var props = new Properties();
         props.setProperty("min", "-2147483648");
         props.setProperty("max", "2147483647");

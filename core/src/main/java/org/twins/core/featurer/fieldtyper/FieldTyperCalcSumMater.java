@@ -41,7 +41,7 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
             return;
         }
         if (twinFieldEntity == null) {
-            twinFieldEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, calcSum(properties, twin));

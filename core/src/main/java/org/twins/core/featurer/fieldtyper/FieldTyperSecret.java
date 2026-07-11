@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -36,8 +35,8 @@ public class FieldTyperSecret
     private StandardPBEStringEncryptor secretEncryptor;
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,
-                                  FieldValueText value, TwinChangesCollector twinChangesCollector)
+    protected String processValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,
+                                  FieldValueText value)
             throws ServiceException {
         String pattern = regexp.extract(properties);
 
@@ -53,12 +52,12 @@ public class FieldTyperSecret
         }
 
         value.setValue(secretEncryptor.encrypt(value.getValue()));
-        detectValueChange(twinFieldSimpleNonIndexedEntity, twinChangesCollector, value.getValue());
+        return value.getValue();
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField,
-                                              TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity) throws ServiceException {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
+        var twinFieldSimpleNonIndexedEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(
                         twinFieldSimpleNonIndexedEntity != null

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
@@ -32,12 +31,14 @@ public class FieldTyperCountChildrenByStatusV2 extends FieldTyperSimple<FieldDes
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, getCountResult(properties, twinFieldEntity.getTwin(), twinRepository).toString());
+    protected String processValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) throws ServiceException {
+        // Count fields ignore the incoming value — the stored value is computed from children.
+        return getCountResult(properties, twinFieldEntity.getTwin(), twinRepository).toString();
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
+        var twinFieldEntity = resolveTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(parseTwinFieldValue(twinFieldEntity).toString());
     }

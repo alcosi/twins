@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.twins.core.enums.twinclass.FieldTextEditorType;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -39,13 +41,25 @@ class FieldTyperTextNonIndexedFieldTest extends BaseUnitTest {
         return props;
     }
 
-    private TwinFieldSimpleNonIndexedEntity dbEntity(TwinClassFieldEntity classField, String value) {
-        // twin non-null required: markForInvalidate keys by TwinFieldSimpleNonIndexedEntity.getTwin().
-        return new TwinFieldSimpleNonIndexedEntity()
+    private TwinEntity twinWithKit(TwinClassFieldEntity classField, String value) {
+        var twin = new TwinEntity().setId(UUID.randomUUID());
+        var dbEntity = new TwinFieldSimpleNonIndexedEntity()
                 .setTwinClassField(classField)
                 .setTwinClassFieldId(classField.getId())
-                .setValue(value)
-                .setTwin(new TwinEntity().setId(UUID.randomUUID()));
+                .setTwin(twin)
+                .setValue(value);
+        twin.setTwinFieldSimpleNonIndexedKit(new Kit<>(List.of(dbEntity), TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
+        return twin;
+    }
+
+    private TwinEntity twinWithoutEntity(TwinClassFieldEntity classField) {
+        var twin = new TwinEntity().setId(UUID.randomUUID());
+        twin.setTwinFieldSimpleNonIndexedKit(new Kit<>(List.of(), TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
+        return twin;
+    }
+
+    private TwinFieldSimpleNonIndexedEntity firstInKit(TwinEntity twin) {
+        return twin.getTwinFieldSimpleNonIndexedKit().iterator().next();
     }
 
     @Nested
@@ -54,10 +68,9 @@ class FieldTyperTextNonIndexedFieldTest extends BaseUnitTest {
         @Test
         void deserializeValue_dbEntityWithValue_returnsValue() throws ServiceException {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, "long body text");
+            var twin = twinWithKit(classField, "long body text");
 
-            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField), dbEntity);
+            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField));
 
             assertEquals("long body text", result.getValue());
         }
@@ -65,9 +78,9 @@ class FieldTyperTextNonIndexedFieldTest extends BaseUnitTest {
         @Test
         void deserializeValue_nullDbEntity_returnsNullValue() throws ServiceException {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID());
+            var twin = twinWithoutEntity(classField);
 
-            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField), null);
+            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField));
 
             assertNull(result.getValue());
         }
@@ -79,24 +92,24 @@ class FieldTyperTextNonIndexedFieldTest extends BaseUnitTest {
         @Test
         void serializeValue_newValue_writesValueToEntity() throws ServiceException {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, "old");
+            var twin = twinWithKit(classField, "old");
             var value = new FieldValueText(classField).setValue("new");
             var collector = new TwinChangesCollector(false);
 
-            fieldTyper.serializeValue(properties(), dbEntity, value, collector);
+            fieldTyper.serializeValue(properties(), twin, value, collector);
 
-            assertEquals("new", dbEntity.getValue());
+            assertEquals("new", firstInKit(twin).getValue());
             assertTrue(collector.hasChanges());
         }
 
         @Test
         void serializeValue_sameValue_doesNotMutateEntity() throws ServiceException {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var dbEntity = dbEntity(classField, "same");
+            var twin = twinWithKit(classField, "same");
             var value = new FieldValueText(classField).setValue("same");
             var collector = new TwinChangesCollector(false);
 
-            fieldTyper.serializeValue(properties(), dbEntity, value, collector);
+            fieldTyper.serializeValue(properties(), twin, value, collector);
 
             assertFalse(collector.hasChanges());
         }
