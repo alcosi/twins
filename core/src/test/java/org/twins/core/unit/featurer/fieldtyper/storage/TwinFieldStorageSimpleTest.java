@@ -1,5 +1,4 @@
 package org.twins.core.unit.featurer.fieldtyper.storage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 
 import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,8 +9,9 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -99,8 +99,9 @@ class TwinFieldStorageSimpleTest extends BaseUnitTest {
 
             assertNotNull(t1.getTwinFieldSimpleKit());
             assertNotNull(t1.getTwinFieldSimpleKit().get(fieldId));
-            // t2 had no rows -> initEmpty set Kit.EMPTY
-            assertEquals(Kit.EMPTY, t2.getTwinFieldSimpleKit());
+            // t2 had no rows -> initEmpty set a mutable empty Kit (not the immutable Kit.EMPTY singleton)
+            assertNotNull(t2.getTwinFieldSimpleKit());
+            assertTrue(t2.getTwinFieldSimpleKit().isEmpty());
         }
     }
 

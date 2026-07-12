@@ -1,8 +1,6 @@
 package org.twins.core.unit.featurer.fieldtyper.storage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,8 +9,9 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDataListRepository;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -113,7 +112,9 @@ class TwinFieldStorageDatalistTest extends BaseUnitTest {
 
             storage.load(kit);
 
-            assertEquals(KitGrouped.EMPTY, t1.getTwinFieldDatalistKit());
+            // initEmpty now sets a mutable empty KitGrouped (not the immutable KitGrouped.EMPTY singleton) so field serialization can add to it.
+            assertNotNull(t1.getTwinFieldDatalistKit());
+            assertTrue(t1.getTwinFieldDatalistKit().isEmpty());
         }
     }
 

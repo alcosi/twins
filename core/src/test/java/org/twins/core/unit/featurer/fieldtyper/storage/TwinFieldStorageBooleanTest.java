@@ -1,5 +1,4 @@
 package org.twins.core.unit.featurer.fieldtyper.storage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 
 import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +11,7 @@ import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageBoolean;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -118,9 +118,10 @@ class TwinFieldStorageBooleanTest extends BaseUnitTest {
 
             storage.load(kit);
 
-            // Absent twin must still be marked loaded (initEmpty sets Kit.EMPTY).
+            // Absent twin must still be marked loaded (initEmpty sets a mutable empty Kit, not the immutable Kit.EMPTY singleton).
             assertNotNull(present.getTwinFieldBooleanKit());
-            assertEquals(Kit.EMPTY, absent.getTwinFieldBooleanKit());
+            assertNotNull(absent.getTwinFieldBooleanKit());
+            assertTrue(absent.getTwinFieldBooleanKit().isEmpty());
         }
     }
 
@@ -159,7 +160,9 @@ class TwinFieldStorageBooleanTest extends BaseUnitTest {
             storage.initEmpty(t);
 
             assertTrue(storage.isLoaded(t));
-            assertEquals(Kit.EMPTY, t.getTwinFieldBooleanKit());
+            // initEmpty sets a mutable empty Kit (not the immutable Kit.EMPTY singleton)
+            assertNotNull(t.getTwinFieldBooleanKit());
+            assertTrue(t.getTwinFieldBooleanKit().isEmpty());
         }
     }
 

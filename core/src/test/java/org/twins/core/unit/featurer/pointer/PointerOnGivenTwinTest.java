@@ -7,14 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.featurer.pointer.PointerOnGivenTwin;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.*;
 
 class PointerOnGivenTwinTest extends BaseUnitTest {
 
@@ -35,21 +36,22 @@ class PointerOnGivenTwinTest extends BaseUnitTest {
     }
 
     @Nested
-    class Point {
+    class Load {
 
         @Test
-        void point_returnsGivenTwin() throws ServiceException {
+        void load_resolvesGivenTwinForEverySrcTwin() throws ServiceException {
+            // Intended: load() looks up the configured target twin once and maps every src twin id to it.
+            // Calls the protected subclass load(Properties, Collection) directly — the public point(...)
+            // entry point now needs a TwinPointerEntity + featurerService, which is out of unit-test scope.
             var targetTwinId = UUID.randomUUID();
             var targetTwin = new TwinEntity();
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
 
             when(twinService.findEntitySafe(targetTwinId)).thenReturn(targetTwin);
 
-            var result = pointer.point(
-                    props(targetTwinId.toString()),
-                    new TwinEntity()
-            );
+            Map<UUID, TwinEntity> result = pointer.load(props(targetTwinId.toString()), List.of(srcTwin));
 
-            assertSame(targetTwin, result);
+            assertSame(targetTwin, result.get(srcTwin.getId()));
         }
     }
 }

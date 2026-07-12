@@ -8,13 +8,9 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.pointer.PointerOnSingleChild;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -41,38 +37,43 @@ class PointerOnSingleChildTest extends BaseUnitTest {
     }
 
     @Nested
-    class Point {
+    class Load {
 
         @Test
-        void point_noChildren_returnsNull() throws ServiceException {
-            var srcTwin = new TwinEntity();
+        void load_noChildren_returnsEmptyMapping() throws ServiceException {
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
             when(twinSearchService.findTwins(org.mockito.ArgumentMatchers.any())).thenReturn(Collections.emptyList());
 
-            var result = pointer.point(props(), srcTwin);
+            Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
-            assertNull(result);
+            assertNull(result.get(srcTwin.getId()));
         }
 
         @Test
-        void point_singleChild_returnsChild() throws ServiceException {
+        void load_singleChild_returnsChild() throws ServiceException {
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
             var childTwin = new TwinEntity();
-            var srcTwin = new TwinEntity();
+            childTwin.setHeadTwinId(srcTwin.getId()); // batch grouping keys children by headTwinId
             when(twinSearchService.findTwins(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(childTwin));
 
-            var result = pointer.point(props(), srcTwin);
+            Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
-            assertSame(childTwin, result);
+            assertSame(childTwin, result.get(srcTwin.getId()));
         }
 
         @Test
-        void point_multipleChildren_throwsPointerNonSingle() throws ServiceException {
-            var srcTwin = new TwinEntity();
+        void load_multipleChildren_throwsPointerNonSingle() throws ServiceException {
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
+            var child1 = new TwinEntity();
+            child1.setHeadTwinId(srcTwin.getId());
+            var child2 = new TwinEntity();
+            child2.setHeadTwinId(srcTwin.getId());
             when(twinSearchService.findTwins(org.mockito.ArgumentMatchers.any()))
-                    .thenReturn(List.of(new TwinEntity(), new TwinEntity()));
+                    .thenReturn(List.of(child1, child2));
 
             var ex = assertThrows(
                     ServiceException.class,
-                    () -> pointer.point(props(), srcTwin)
+                    () -> pointer.load(props(), List.of(srcTwin))
             );
             assertEquals(ErrorCodeTwins.POINTER_NON_SINGLE.getCode(), ex.getErrorCode());
         }

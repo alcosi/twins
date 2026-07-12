@@ -1,5 +1,4 @@
 package org.twins.core.unit.featurer.fieldtyper.storage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 
 import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,8 +9,9 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalRepository;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -111,7 +111,9 @@ class TwinFieldStorageDecimalTest extends BaseUnitTest {
 
             storage.load(kit);
 
-            assertEquals(Kit.EMPTY, t1.getTwinFieldDecimalKit());
+            // initEmpty now sets a mutable empty Kit (not the immutable Kit.EMPTY singleton) so field serialization can add to it.
+            assertNotNull(t1.getTwinFieldDecimalKit());
+            assertTrue(t1.getTwinFieldDecimalKit().isEmpty());
         }
     }
 

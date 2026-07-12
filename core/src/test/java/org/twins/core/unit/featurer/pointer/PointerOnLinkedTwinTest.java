@@ -9,13 +9,12 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.pointer.PointerOnLinkedTwin;
 import org.twins.core.service.link.TwinLinkService;
 
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.doAnswer;
 
 class PointerOnLinkedTwinTest extends BaseUnitTest {
@@ -39,73 +38,78 @@ class PointerOnLinkedTwinTest extends BaseUnitTest {
         return props;
     }
 
-    private TwinLinkEntity linkEntity(UUID linkId, TwinEntity dstTwin) {
+    private TwinLinkEntity linkEntity(UUID linkId, TwinEntity srcTwin, TwinEntity dstTwin) {
         var link = new TwinLinkEntity();
         link.setId(UUID.randomUUID());
         link.setLinkId(linkId);
+        link.setSrcTwinId(srcTwin.getId());
         link.setDstTwin(dstTwin);
         return link;
     }
 
     private void setupTwinLinks(TwinEntity srcTwin, TwinLinkEntity... links) throws ServiceException {
+        // load() now calls the batch overload loadTwinLinks(Collection); populate every twin with the links.
         doAnswer(invocation -> {
-            TwinEntity entity = invocation.getArgument(0);
-            var result = new TwinLinkService.FindTwinLinksResult();
-            for (var link : links)
-                result.getForwardLinks().add(link);
-            entity.setTwinLinks(result);
+            Collection<TwinEntity> twins = invocation.getArgument(0);
+            for (TwinEntity entity : twins) {
+                var result = new TwinLinkService.FindTwinLinksResult();
+                for (var link : links) {
+                    result.getForwardLinks().add(link);
+                }
+                entity.setTwinLinks(result);
+            }
             return null;
-        }).when(twinLinkService).loadTwinLinks(srcTwin);
+        }).when(twinLinkService).loadTwinLinks(anyCollection());
     }
 
     @Nested
-    class Point {
+    class Load {
 
         @Test
-        void point_noForwardLinks_returnsNull() throws ServiceException {
-            var srcTwin = new TwinEntity();
+        void load_noForwardLinks_returnsEmptyMapping() throws ServiceException {
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
             setupTwinLinks(srcTwin);
 
-            var result = pointer.point(props(), srcTwin);
+            Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
-            assertNull(result);
+            assertNull(result.get(srcTwin.getId()));
         }
 
         @Test
-        void point_singleForwardLink_returnsDstTwin() throws ServiceException {
+        void load_singleForwardLink_returnsDstTwin() throws ServiceException {
             var dstTwin = new TwinEntity();
-            var srcTwin = new TwinEntity();
-            setupTwinLinks(srcTwin, linkEntity(linkIdValue, dstTwin));
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
+            setupTwinLinks(srcTwin, linkEntity(linkIdValue, srcTwin, dstTwin));
 
-            var result = pointer.point(props(), srcTwin);
+            Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
-            assertSame(dstTwin, result);
+            assertSame(dstTwin, result.get(srcTwin.getId()));
         }
 
         @Test
-        void point_multipleForwardLinks_throwsPointerNonSingle() throws ServiceException {
-            var srcTwin = new TwinEntity();
+        void load_multipleForwardLinks_throwsPointerNonSingle() throws ServiceException {
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
             setupTwinLinks(
                     srcTwin,
-                    linkEntity(linkIdValue, new TwinEntity()),
-                    linkEntity(linkIdValue, new TwinEntity())
+                    linkEntity(linkIdValue, srcTwin, new TwinEntity()),
+                    linkEntity(linkIdValue, srcTwin, new TwinEntity())
             );
 
             var ex = assertThrows(
                     ServiceException.class,
-                    () -> pointer.point(props(), srcTwin)
+                    () -> pointer.load(props(), List.of(srcTwin))
             );
             assertEquals(ErrorCodeTwins.POINTER_NON_SINGLE.getCode(), ex.getErrorCode());
         }
 
         @Test
-        void point_linksOfDifferentType_notReturned() throws ServiceException {
-            var srcTwin = new TwinEntity();
-            setupTwinLinks(srcTwin, linkEntity(UUID.randomUUID(), new TwinEntity()));
+        void load_linksOfDifferentType_notReturned() throws ServiceException {
+            var srcTwin = new TwinEntity().setId(UUID.randomUUID());
+            setupTwinLinks(srcTwin, linkEntity(UUID.randomUUID(), srcTwin, new TwinEntity()));
 
-            var result = pointer.point(props(), srcTwin);
+            Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
-            assertNull(result);
+            assertNull(result.get(srcTwin.getId()));
         }
     }
 }
