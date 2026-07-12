@@ -71,6 +71,8 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
             invalidates.add(TwinInvalidate.twinAttachmentModifications);
         } else if (entity instanceof TwinFieldAttributeEntity twinFieldAttributeEntity) {
             invalidateTwin(twinFieldAttributeEntity.getTwin(), TwinInvalidate.twinFieldAttributeKit);
+        } else if (entity instanceof TwinFieldDecimalIncrement twinFieldDecimalIncrement) {
+            invalidateTwin(twinFieldDecimalIncrement.getTwin(), TwinInvalidate.twinFieldDecimalKit, TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldSimpleEntity twinFieldSimpleEntity) {
             syncFieldKitAndInvalidate(
                     twinFieldSimpleEntity,

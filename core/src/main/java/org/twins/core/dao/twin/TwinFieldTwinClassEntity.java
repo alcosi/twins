@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -63,6 +64,16 @@ public class TwinFieldTwinClassEntity extends TwinFieldBaseEntity {
     @Override
     public String easyLog(EasyLoggable.Level level) {
         return "twinFieldTwinClass[id:" + getId() + "]";
+    }
+
+    public static TwinFieldTwinClassEntity of(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) {
+        return new TwinFieldTwinClassEntity()
+                .setId(UuidUtils.generate())
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setTwinClassId(null);
     }
 
     public TwinFieldTwinClassEntity cloneFor(TwinEntity dstTwinEntity) {

@@ -58,14 +58,8 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
 
         String rawValue = value.getValue();
         BigDecimal delta = parseIncrement(rawValue, value.getTwinClassField());
-
-        TwinFieldDecimalIncrement increment = new TwinFieldDecimalIncrement(
-                twin.getId(),
-                value.getTwinClassFieldId(),
-                delta
-        );
-
-        twinChangesCollector.add(increment);
+        twinChangesCollector.add(TwinFieldDecimalIncrement.of(twin, value.getTwinClassField())
+                .setDelta(delta));
     }
 
     @Override
