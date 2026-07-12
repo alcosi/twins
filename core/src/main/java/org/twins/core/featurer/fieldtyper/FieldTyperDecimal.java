@@ -1,8 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -10,24 +10,31 @@ import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.history.HistoryItem;
 
 import java.math.BigDecimal;
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_1317,
         name = "Decimal",
         description = "Decimal field with dedicated table storage"
 )
-public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
+public class FieldTyperDecimal extends FieldTyperSingleValue<
+        FieldDescriptorNumeric,
+        FieldValueText,
+        TwinFieldDecimalEntity,
+        BigDecimal,
+        TwinFieldStorageDecimal,
+        TwinFieldValueSearchNumeric> implements FieldTyperNumeric {
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -44,27 +51,42 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldDecimalEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.isUndefined())
-            return;
-        if (twinFieldDecimalEntity == null && value.isNotEmpty()) {
-            // create
-            twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
-            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
-        } else if (twinFieldDecimalEntity != null && value.isCleared()) {
-            // delete
-            twinChangesCollector.delete(twinFieldDecimalEntity);
-            addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, null);
-        } else if (twinFieldDecimalEntity != null && value.isNotEmpty()) {
-            // update
-            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
-        }
+    protected void setEntityValue(TwinFieldDecimalEntity twinFieldEntity, BigDecimal newValue) {
+        twinFieldEntity.setValue(newValue);
     }
 
+    @Override
+    protected BigDecimal getEntityValue(TwinFieldDecimalEntity twinFieldEntity) {
+        return twinFieldEntity.getValue();
+    }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException {
-        return deserializeValueBase(properties, twinField, twinFieldDecimalEntity);
+    protected Kit<TwinFieldDecimalEntity, UUID> getFieldKit(TwinEntity twinEntity) {
+        return twinEntity.getTwinFieldDecimalKit();
+    }
+
+    @Override
+    protected TwinFieldDecimalEntity createTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassField) {
+        return TwinFieldDecimalEntity.of(twin, twinClassField);
+    }
+
+    @Override
+    protected BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value) throws ServiceException {
+        return new BigDecimal(processAndFormatValue(properties, value));
+    }
+
+    @Override
+    protected HistoryItem<?> createHistoryItem(TwinFieldDecimalEntity twinFieldEntity, BigDecimal newValue) {
+        return historyService.fieldChangeDecimal(
+                twinFieldEntity.getTwinClassField(),
+                twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null,
+                newValue
+        );
+    }
+
+    @Override
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) throws ServiceException {
+        return deserializeValueBase(properties, twinField, twinFieldEntity);
     }
 
     @Override
@@ -82,9 +104,5 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
         }
 
         return ret;
-    }
-
-    private BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldDecimal, FieldValueText value) throws ServiceException {
-        return new BigDecimal(processAndFormatValue(properties, value));
     }
 }

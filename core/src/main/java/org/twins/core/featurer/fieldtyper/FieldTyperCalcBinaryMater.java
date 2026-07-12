@@ -32,7 +32,7 @@ public abstract class FieldTyperCalcBinaryMater
             return;
         }
         if (twinFieldEntity == null) {
-            twinFieldEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
         }
         var firstValue = twinClassFieldService.getDecimalValue(twin, firstFieldId.extract(properties), BigDecimal.ZERO);

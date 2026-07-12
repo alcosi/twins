@@ -27,7 +27,7 @@ public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase {
             return divisionByZeroResult.extract(properties);
         }
 
-        var scale = decimalPlaces.extract(properties) == null ? 10 : decimalPlaces.extract(properties);
+        var scale = decimalPlaces.extract(properties);
         var roundingModeValue = roundingMode.extract(properties) == null ? RoundingMode.HALF_UP : roundingMode.extract(properties);
 
         var result = scaleAndRound(

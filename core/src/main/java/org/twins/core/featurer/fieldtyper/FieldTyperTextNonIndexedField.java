@@ -9,7 +9,6 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
@@ -40,12 +39,12 @@ public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<Fi
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
+    protected String processValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldEntity, FieldValueText value) {
+        return value.getValue();
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleNonIndexedEntity twinFieldEntity) {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleNonIndexedEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
                         twinFieldEntity.getValue() : null);

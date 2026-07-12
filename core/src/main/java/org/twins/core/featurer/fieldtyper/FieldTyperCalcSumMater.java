@@ -25,7 +25,7 @@ import java.util.UUID;
         name = "Sum fields (materialization)",
         description = "Save sum of twin fields on serializeValue, and return saved total from database"
 )
-public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperScalable, FieldTyperCalcMater {
+public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcMater {
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
@@ -41,7 +41,7 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
             return;
         }
         if (twinFieldEntity == null) {
-            twinFieldEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, calcSum(properties, twin));
