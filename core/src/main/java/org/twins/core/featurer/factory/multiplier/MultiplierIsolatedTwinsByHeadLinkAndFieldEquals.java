@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -61,6 +62,9 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     @FeaturerParam(name = "Equals twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
+    @FeaturerParam(name = "Match assignee", description = "If true, add link dst twin assigneeUserId to search when set; ignore assignee when dst twin has none", order = 4, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean matchAssignee = new FeaturerParamBoolean("matchAssignee");
+
     @FeaturerParam(name = "Flavor data list option id", description = "Optional twin flavor for location-specific filtering", order = 8, optional = true)
     public static final FeaturerParamUUID flavorDataListOptionId = new FeaturerParamUUIDTwinsDataListOptionId("flavorDataListOptionId");
 
@@ -112,9 +116,13 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
                             .addClause(new TwinFieldClause()
                                     .addCondition(buildNumericFieldEquals(equalsFieldId, equalsValue))));
 
-            UUID assigneeUserId = contextTwin.getAssignerUserId();
-            if (assigneeUserId != null) {
-                search.addAssigneeUserId(assigneeUserId, false);
+            if (matchAssignee.extract(properties)) {
+                UUID assigneeUserId = twinService.findEntitySafe(dstTwinId).getAssignerUserId();
+                if (assigneeUserId != null) {
+                    search.addAssigneeUserId(assigneeUserId, false);
+                } else {
+                    log.info("Dst twin [{}] has no assignee, assignee ignored in unique twin search", dstTwinId);
+                }
             }
 
             UUID flavorId = flavorDataListOptionId.extract(properties);
