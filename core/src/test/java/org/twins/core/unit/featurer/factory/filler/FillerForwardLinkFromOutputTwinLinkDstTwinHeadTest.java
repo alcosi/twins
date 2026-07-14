@@ -24,7 +24,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
 
@@ -103,7 +103,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var newLinkEntity = new LinkEntity().setId(NEW_LINK_ID);
             when(linkService.findEntitySafe(NEW_LINK_ID)).thenReturn(newLinkEntity);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -119,7 +119,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -129,7 +129,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(otherLink);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -146,7 +146,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

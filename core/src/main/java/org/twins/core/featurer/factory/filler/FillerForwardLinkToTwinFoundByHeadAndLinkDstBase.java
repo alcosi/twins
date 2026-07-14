@@ -22,12 +22,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,25 +42,31 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
     private TwinSearchServiceV2 twinSearchService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        // the link to create is step-constant (same newLinksId for every item) -> resolve it once per batch
+        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            try {
+                fillItem(properties, factoryItem, link);
+            } catch (Exception ex) {
+                if (optional && canBeOptional()) {
+                    log.warn("Optional filler step failed for {}, skipping: {}", factoryItem.logShort(), (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()));
+                } else {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    private void fillItem(Properties properties, FactoryItem factoryItem, LinkEntity link) throws ServiceException {
         TwinEntity outputTwin = factoryItem.getTwin();
         if (outputTwin == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output twin is empty");
         }
-
         TwinEntity foundTwin = findTwin(properties, factoryItem)
                 .orElseThrow(() -> new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
                         "Twin of class[" + twinClassId.extract(properties) + "] not found by head and link dst"));
-
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setSrcTwinId(outputTwin.getId())
-                .setSrcTwin(outputTwin)
-                .setDstTwin(foundTwin)
-                .setDstTwinId(foundTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), TwinLinkEntity.of(link, outputTwin, foundTwin));
     }
 
     private Optional<TwinEntity> findTwin(Properties properties, FactoryItem factoryItem) throws ServiceException {

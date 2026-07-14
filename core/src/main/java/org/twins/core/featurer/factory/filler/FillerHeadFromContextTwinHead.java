@@ -14,6 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -31,7 +32,12 @@ public class FillerHeadFromContextTwinHead extends Filler {
     public static final FeaturerParamInt depthHeadTwin = new FeaturerParamInt("depth");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         int depth = depthHeadTwin.extract(properties);
         if (depth < 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "head depth must be >= 1, got: " + depth);

@@ -15,6 +15,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.Properties;
 
 @Component
@@ -33,7 +34,12 @@ public class FillerFieldFromParams extends Filler {
     private TwinService twinService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         FieldValue fieldValue = twinService.createFieldValue(twinClassFieldId.extract(properties), value.extract(properties));
         factoryItem.getOutput().addField(fieldValue);
     }

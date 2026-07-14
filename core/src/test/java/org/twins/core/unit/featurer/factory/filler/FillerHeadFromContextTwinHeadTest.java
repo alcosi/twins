@@ -16,6 +16,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -90,7 +91,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(LTreeUtils.convertToChainLTreeFormat(headId, contextTwinId));
             when(twinService.findHeadTwin(headId)).thenReturn(headTwin);
 
-            filler.fill(props(1), factoryItem, null);
+            filler.fill(props(1), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(headTwin, outputTwin.getHeadTwin());
@@ -103,7 +104,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
             // context twin with no hierarchy -> nothing resolved -> output head null, no DB lookup.
             var factoryItem = buildFactoryItem((String) null);
 
-            filler.fill(props(1), factoryItem, null);
+            filler.fill(props(1), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertNull(outputTwin.getHeadTwin());
@@ -122,7 +123,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(LTreeUtils.convertToChainLTreeFormat(headId, midId, contextTwinId));
             when(twinService.findHeadTwin(headId)).thenReturn(headTwin);
 
-            filler.fill(props(2), factoryItem, null);
+            filler.fill(props(2), List.of(factoryItem), null, false);
 
             assertEquals(headId, factoryItem.getOutput().getTwinEntity().getHeadTwinId());
             verify(twinService).findHeadTwin(headId);
@@ -137,7 +138,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
                     LTreeUtils.convertToChainLTreeFormat(headId, UUID.randomUUID()));
             when(twinService.findHeadTwin(headId)).thenReturn(headTwin);
 
-            filler.fill(props(1), factoryItem, null);
+            filler.fill(props(1), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertEquals(headId, outputTwin.getHeadTwinId());
@@ -152,7 +153,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
                     LTreeUtils.convertToChainLTreeFormat(headId1, UUID.randomUUID()),
                     LTreeUtils.convertToChainLTreeFormat(headId2, UUID.randomUUID()));
 
-            var ex = assertThrows(ServiceException.class, () -> filler.fill(props(1), factoryItem, null));
+            var ex = assertThrows(ServiceException.class, () -> filler.fill(props(1), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -162,7 +163,7 @@ class FillerHeadFromContextTwinHeadTest extends BaseUnitTest {
             var headId = UUID.randomUUID();
             var factoryItem = buildFactoryItem(LTreeUtils.convertToChainLTreeFormat(headId, UUID.randomUUID()));
 
-            var ex = assertThrows(ServiceException.class, () -> filler.fill(props(0), factoryItem, null));
+            var ex = assertThrows(ServiceException.class, () -> filler.fill(props(0), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }

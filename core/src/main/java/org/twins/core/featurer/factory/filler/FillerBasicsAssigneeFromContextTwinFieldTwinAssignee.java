@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -19,9 +18,7 @@ import java.util.UUID;
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinFieldTwinAssignee extends FillerBasicsAssigneeFromContextFieldTwinAssignee {
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        UUID assigneeFieldId = linkField.extract(properties);
-        FieldValue assigneeField = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, assigneeFieldId);
-        fill(properties, factoryItem, templateTwin, assigneeField, assigneeFieldId);
+    protected FieldValue getAssigneeField(Properties properties, FactoryItem factoryItem, UUID assigneeFieldId) throws ServiceException {
+        return fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, assigneeFieldId);
     }
 }

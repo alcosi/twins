@@ -19,6 +19,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -44,11 +45,11 @@ public class FillerFieldAsFoundTwinOfClass extends Filler {
     TwinService twinService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        BasicSearch search = new BasicSearch();
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        // the search depends only on the step-constant twinClassId (not on the item) -> run it ONCE for the whole batch
         UUID extractedTwinClassId = twinClassId.extract(properties);
-        search
-                .addTwinClassId(extractedTwinClassId, false);
+        BasicSearch search = new BasicSearch();
+        search.addTwinClassId(extractedTwinClassId, false);
         var entityList = twinSearchService.findTwins(search);
         if (entityList.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are no twins of class[" + extractedTwinClassId + "] found.");
@@ -56,8 +57,11 @@ public class FillerFieldAsFoundTwinOfClass extends Filler {
         if (entityList.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are more than one twin of class[" + extractedTwinClassId + "] found.");
         }
-        var twinEntity = entityList.getFirst();
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twinEntity.getId().toString());
-        factoryItem.getOutput().addField(fieldValue);
+        UUID fieldLinkId = twinClassFieldLinkId.extract(properties);
+        String foundTwinIdStr = entityList.getFirst().getId().toString();
+        for (FactoryItem factoryItem : factoryItems) {
+            FieldValue fieldValue = twinService.createFieldValue(fieldLinkId, foundTwinIdStr);
+            factoryItem.getOutput().addField(fieldValue);
+        }
     }
 }

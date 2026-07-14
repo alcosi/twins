@@ -21,11 +21,13 @@ import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
 
@@ -104,7 +106,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             var createdHeadLink = new FieldValueLink(field(DST_FIELD_ID));
             when(twinService.createFieldValue(DST_FIELD_ID, headId.toString())).thenReturn(createdHeadLink);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             assertSame(createdHeadLink, factoryItem.getOutput().getField(DST_FIELD_ID));
         }
@@ -116,7 +118,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
                     .thenReturn(new FieldValueText(field(SRC_FIELD_ID)).setValue("v"));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -128,7 +130,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(new FieldValueLink(field(SRC_FIELD_ID)));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -142,7 +144,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }

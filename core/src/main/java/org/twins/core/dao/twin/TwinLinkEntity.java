@@ -107,6 +107,16 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
     @Transient
     private boolean uniqForSrcRelink = true;
 
+    public static TwinLinkEntity of(LinkEntity link, TwinEntity srcTwin, TwinEntity dstTwin) {
+        return new TwinLinkEntity()
+                .setLink(link)
+                .setLinkId(link.getId())
+                .setSrcTwinId(srcTwin.getId())
+                .setSrcTwin(srcTwin)
+                .setDstTwin(dstTwin)
+                .setDstTwinId(dstTwin.getId());
+    }
+
     public TwinLinkEntity clone() {
         return new TwinLinkEntity()
                 .setDstTwinId(dstTwinId)

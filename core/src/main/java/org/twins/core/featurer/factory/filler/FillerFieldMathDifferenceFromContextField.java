@@ -23,6 +23,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -49,6 +50,13 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
     @Lazy
     private final TwinService twinService;
 
+    @Override
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fieldLookupers.preloadContextTwinsFields(factoryItems);
+        fieldLookupers.preloadOutputTwinsFields(factoryItems);
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
     /**
      * Populates specified properties and fields for a given factory item and template twin entity.
      * This method determines the subtraction result of two field values (minuend and subtrahend),
@@ -62,7 +70,7 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
      * @throws ServiceException If an error occurs during field value extraction, type conversion, or constraint validation.
      */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
         FieldValue subtrahendFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId);

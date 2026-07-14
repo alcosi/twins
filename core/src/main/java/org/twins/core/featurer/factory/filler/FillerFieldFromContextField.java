@@ -4,11 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-
-import java.util.Properties;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2312,
@@ -17,7 +14,7 @@ import java.util.Properties;
 @Slf4j
 public class FillerFieldFromContextField extends FillerFieldFromContext {
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFields());
+    public FieldLookuperNearest getLookuper() throws ServiceException {
+        return fieldLookupers.getFromContextFields();
     }
 }

@@ -15,11 +15,13 @@ import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromOutputTwin
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
 
@@ -77,7 +79,7 @@ class FillerBasicsAssigneeFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
                     .setAssignerUserId(assigneeId);
             when(twinService.loadHead(factoryItemTwin)).thenReturn(headTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee FROM own head twin's assignee (lazily loaded).
@@ -93,7 +95,7 @@ class FillerBasicsAssigneeFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             when(twinService.loadHead(factoryItemTwin)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

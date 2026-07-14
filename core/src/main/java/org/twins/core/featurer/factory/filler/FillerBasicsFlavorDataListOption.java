@@ -15,6 +15,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListOptionId;
 import org.twins.core.service.datalist.DataListOptionService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -35,7 +36,12 @@ public class FillerBasicsFlavorDataListOption extends Filler {
     DataListOptionService dataListOptionService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID optionId = dataListOptionId.extract(properties);
         DataListOptionEntity option = dataListOptionService.findEntitySafe(optionId);
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();

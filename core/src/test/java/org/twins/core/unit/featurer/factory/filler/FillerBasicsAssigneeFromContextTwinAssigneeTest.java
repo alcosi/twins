@@ -47,7 +47,7 @@ class FillerBasicsAssigneeFromContextTwinAssigneeTest extends BaseUnitTest {
                     .setAssignerUserId(assigneeId);
             var factoryItem = buildFactoryItem(contextTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee copied FROM the context twin's assignee (assigner).
@@ -60,7 +60,7 @@ class FillerBasicsAssigneeFromContextTwinAssigneeTest extends BaseUnitTest {
             var contextTwin = new TwinEntity(); // assigner user/id both null
             var factoryItem = buildFactoryItem(contextTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertNull(outputTwin.getAssignerUser());

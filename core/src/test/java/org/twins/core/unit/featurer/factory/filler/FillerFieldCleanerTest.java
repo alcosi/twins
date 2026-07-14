@@ -17,11 +17,13 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 class FillerFieldCleanerTest extends BaseUnitTest {
 
@@ -83,7 +85,7 @@ class FillerFieldCleanerTest extends BaseUnitTest {
             var fieldValue = new FieldValueText(fieldEntity).setValue("v");
             when(lookuper.lookupFieldValue(factoryItem, FIELD_ID)).thenReturn(fieldValue);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             FieldValue stored = factoryItem.getOutput().getField(FIELD_ID);
             assertSame(fieldValue, stored);
@@ -99,7 +101,7 @@ class FillerFieldCleanerTest extends BaseUnitTest {
             var fieldValue = new FieldValueText(fieldEntity); // undefined/empty
             when(lookuper.lookupFieldValue(factoryItem, FIELD_ID)).thenReturn(fieldValue);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var stored = factoryItem.getOutput().getField(FIELD_ID);
             assertSame(fieldValue, stored);

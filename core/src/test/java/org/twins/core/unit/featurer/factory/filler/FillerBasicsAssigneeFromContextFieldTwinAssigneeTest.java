@@ -21,14 +21,11 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest {
 
@@ -98,7 +95,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var assignee = new UserEntity().setId(UUID.randomUUID());
             when(twinService.getTwinAssignee(dstTwinId)).thenReturn(assignee);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee FROM the linked twin's assignee (looked up by dst twin id).
@@ -111,7 +108,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(new HashMap<>()); // no field for LINK_FIELD_ID
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -122,7 +119,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -136,7 +133,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             when(twinService.getTwinAssignee(dstTwinId)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -146,7 +143,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }

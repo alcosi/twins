@@ -22,7 +22,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyCollection;
+import static org.mockito.Mockito.when;
 
 class FillerTwinBasicFieldsFromContextBasicsTest extends BaseUnitTest {
 
@@ -81,7 +82,7 @@ class FillerTwinBasicFieldsFromContextBasicsTest extends BaseUnitTest {
             basics.setDescription("d");
             var factoryItem = buildFactoryItem(basics);
 
-            filler.fill(props(TwinBasicFields.Basics.name, TwinBasicFields.Basics.description), factoryItem, null);
+            filler.fill(props(TwinBasicFields.Basics.name, TwinBasicFields.Basics.description), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertEquals("n", outputTwin.getName());
@@ -101,7 +102,7 @@ class FillerTwinBasicFieldsFromContextBasicsTest extends BaseUnitTest {
             when(userService.findEntitiesSafe(anyCollection()))
                     .thenReturn(new Kit<>(List.of(assignee, creator), UserEntity::getId));
 
-            filler.fill(props(TwinBasicFields.Basics.assigneeUserId, TwinBasicFields.Basics.createdByUserId), factoryItem, null);
+            filler.fill(props(TwinBasicFields.Basics.assigneeUserId, TwinBasicFields.Basics.createdByUserId), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertEquals(assigneeId, outputTwin.getAssignerUserId());
@@ -118,7 +119,7 @@ class FillerTwinBasicFieldsFromContextBasicsTest extends BaseUnitTest {
             var ctx = new FactoryContext(null, null);
             var factoryItem = new FactoryItem().setOutput(output).setFactoryContext(ctx);
 
-            filler.fill(props(TwinBasicFields.Basics.name), factoryItem, null);
+            filler.fill(props(TwinBasicFields.Basics.name), List.of(factoryItem), null, false);
 
             assertNull(factoryItem.getOutput().getTwinEntity().getName());
         }

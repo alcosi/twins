@@ -27,7 +27,12 @@ public class FillerFieldsFromContextAll extends Filler {
     TwinClassFieldService twinClassFieldService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         Map<UUID, FieldValue> contextFields = factoryItem.getFactoryContext().getFields();
         if (CollectionUtils.isEmpty(contextFields))

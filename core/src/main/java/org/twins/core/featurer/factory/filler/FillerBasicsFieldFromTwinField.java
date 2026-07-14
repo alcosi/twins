@@ -12,12 +12,12 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -31,14 +31,16 @@ public class FillerBasicsFieldFromTwinField extends Filler {
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextTwinDbFields());
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fieldLookupers.preloadContextTwinsFields(factoryItems);
+        fillEach(properties, factoryItems, templateTwin, optional);
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         UUID sourceFieldId = fieldId.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, sourceFieldId);
+        FieldValue fieldValue = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, sourceFieldId);
         String fieldName;
         switch (fieldValue) {
             case FieldValueText fieldValueText -> fieldName = handleTextField(sourceFieldId, fieldValueText, outputTwinEntity);

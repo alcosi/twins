@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 class FillerBasicsAssigneeFromContextTwinFieldTest extends BaseUnitTest {
@@ -96,7 +97,7 @@ class FillerBasicsAssigneeFromContextTwinFieldTest extends BaseUnitTest {
             var fieldValue = new FieldValueUser(buildField()).add(user);
             when(fromContextTwinDbFields.lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID)).thenReturn(fieldValue);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(user, outputTwin.getAssignerUser());

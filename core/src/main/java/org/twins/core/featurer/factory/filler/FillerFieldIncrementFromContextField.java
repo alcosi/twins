@@ -20,6 +20,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -41,7 +42,12 @@ public class FillerFieldIncrementFromContextField extends Filler {
     private final TwinClassFieldService twinClassFieldService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramTwinClassFieldId = twinClassFieldId.extract(properties);
 
         FieldValue contextFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, paramTwinClassFieldId);

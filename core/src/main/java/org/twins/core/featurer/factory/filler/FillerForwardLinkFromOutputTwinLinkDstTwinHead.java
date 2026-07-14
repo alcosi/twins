@@ -18,6 +18,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -42,7 +43,12 @@ public class FillerForwardLinkFromOutputTwinLinkDstTwinHead extends FillerLinks 
     public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwin = factoryItem.getTwin();
         List<TwinLinkEntity> contextTwinLinksList = ((TwinCreate) factoryItem.getOutput()).getLinksEntityList();
         UUID headFromLinkId = headFromLink.extract(properties);

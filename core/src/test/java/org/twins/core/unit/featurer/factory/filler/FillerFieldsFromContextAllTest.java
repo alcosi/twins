@@ -19,10 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -96,7 +93,7 @@ class FillerFieldsFromContextAllTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(outputClass, contextFields);
             when(twinClassFieldService.isValidForClass(eq(outputClass), any(org.twins.core.dao.twinclass.TwinClassFieldEntity.class))).thenReturn(true);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var cloned = factoryItem.getOutput().getField(fieldId);
             assertNotNull(cloned);
@@ -116,7 +113,7 @@ class FillerFieldsFromContextAllTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output).setFactoryContext(new FactoryContext(null, null));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -130,7 +127,7 @@ class FillerFieldsFromContextAllTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(outputClass, contextFields);
             when(twinClassFieldService.isValidForClass(eq(outputClass), any(org.twins.core.dao.twinclass.TwinClassFieldEntity.class))).thenReturn(false);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             assertNull(factoryItem.getOutput().getField(fieldId));
         }

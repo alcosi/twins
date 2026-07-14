@@ -17,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -30,19 +31,25 @@ public class FillerBasicsAssigneeFromContext extends Filler {
     public static final FeaturerParamUUID assigneeField = new FeaturerParamUUIDTwinsTwinClassFieldId("assigneeField");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFieldsAndContextTwinDbFields());
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         UUID assigneeFieldId = assigneeField.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, assigneeFieldId);
+        var lookuper = getLookuper();
+        var fieldValue = lookuper.lookupFieldValue(factoryItem, assigneeFieldId);
         UserEntity assignee = extractSingleUserOrThrow(fieldValue);
-        log.info(outputTwinEntity.logShort() + " [assignee] will be filled from " + fieldValue.getTwinClassField().logShort());
+        log.info("{} [assignee] will be filled from {}", outputTwinEntity.logShort(), fieldValue.getTwinClassField().logShort());
         outputTwinEntity
                 .setAssignerUser(assignee)
                 .setAssignerUserId(assignee.getId());
+    }
+
+    public FieldLookuperNearest getLookuper() throws ServiceException {
+        return fieldLookupers.getFromContextFieldsAndContextTwinDbFields();
     }
 
     protected static UserEntity extractSingleUserOrThrow(FieldValue fieldValue) throws ServiceException {

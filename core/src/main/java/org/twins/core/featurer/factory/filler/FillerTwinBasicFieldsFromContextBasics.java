@@ -35,7 +35,12 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
     private UserService userService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         TwinBasicFields basics = factoryItem.getFactoryContext().getBasics();
         Set<TwinBasicFields.Basics> fieldsString = fields.extract(properties);

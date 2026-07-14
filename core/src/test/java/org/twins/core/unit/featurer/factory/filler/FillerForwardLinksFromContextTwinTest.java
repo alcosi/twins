@@ -23,7 +23,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 class FillerForwardLinksFromContextTwinTest extends BaseUnitTest {
 
@@ -97,7 +98,7 @@ class FillerForwardLinksFromContextTwinTest extends BaseUnitTest {
             when(twinLinkService.findTwinForwardLinks(eq(contextTwin), eq(Set.of(LINK_ID))))
                     .thenReturn(List.of(link(LINK_ID, DST_TWIN_ID)));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -115,7 +116,7 @@ class FillerForwardLinksFromContextTwinTest extends BaseUnitTest {
                     .thenReturn(List.of());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

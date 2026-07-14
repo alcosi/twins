@@ -89,7 +89,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
             var createdLink = new FieldValueLink(new TwinClassFieldEntity().setId(LINK_FIELD_ID));
             when(twinService.createFieldValue(LINK_FIELD_ID, foundTwinId.toString())).thenReturn(createdLink);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             assertSame(createdLink, factoryItem.getOutput().getField(LINK_FIELD_ID));
         }
@@ -100,7 +100,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
             when(twinSearchService.findTwins(any(BasicSearch.class))).thenReturn(Collections.emptyList());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -113,7 +113,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
                     new TwinEntity().setId(UUID.randomUUID())));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }

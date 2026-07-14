@@ -18,11 +18,13 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class FillerFieldUserFromApiUserTest extends BaseUnitTest {
 
@@ -86,7 +88,7 @@ class FillerFieldUserFromApiUserTest extends BaseUnitTest {
             when(authService.getApiUser()).thenReturn(apiUser);
 
             var factoryItem = buildFactoryItem();
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             FieldValueUser stored = (FieldValueUser) factoryItem.getOutput().getField(FIELD_ID);
             assertNotNull(stored);

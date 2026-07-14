@@ -19,11 +19,12 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerCommentTest extends BaseUnitTest {
 
@@ -87,7 +88,7 @@ class FillerCommentTest extends BaseUnitTest {
             FieldValue value = new FieldValueText(field()).setValue("hello world");
             when(lookuper.lookupFieldValue(factoryItem, FIELD_ID)).thenReturn(value);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getCommentsAdd());
@@ -101,7 +102,7 @@ class FillerCommentTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, FIELD_ID)).thenReturn(value);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

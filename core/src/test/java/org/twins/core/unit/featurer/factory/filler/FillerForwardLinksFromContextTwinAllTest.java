@@ -23,7 +23,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerForwardLinksFromContextTwinAllTest extends BaseUnitTest {
 
@@ -98,7 +98,7 @@ class FillerForwardLinksFromContextTwinAllTest extends BaseUnitTest {
             when(twinLinkService.findTwinForwardLinks(contextTwin))
                     .thenReturn(kitOf(link(LINK_ID, DST_TWIN_ID)));
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -114,7 +114,7 @@ class FillerForwardLinksFromContextTwinAllTest extends BaseUnitTest {
                     .thenReturn(new KitGrouped<>(List.of(), TwinLinkEntity::getLinkId, TwinLinkEntity::getLinkId));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -133,7 +133,7 @@ class FillerForwardLinksFromContextTwinAllTest extends BaseUnitTest {
             when(twinLinkService.findTwinForwardLinks(contextTwin))
                     .thenReturn(kitOf(link(LINK_ID, DST_TWIN_ID)));
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             assertNotNull(update.getTwinLinkCUD());
             assertNotNull(update.getTwinLinkCUD().getCreateList());

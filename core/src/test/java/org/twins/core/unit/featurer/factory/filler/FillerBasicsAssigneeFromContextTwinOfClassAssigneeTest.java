@@ -15,6 +15,7 @@ import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromContextTwi
 import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -78,7 +79,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
                     .setAssignerUserId(assigneeId);
             when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee FROM the context twin of the given class.
@@ -92,7 +93,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
             when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -102,7 +103,7 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
             var contextTwin = new TwinEntity(); // assignee null
             when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertNull(outputTwin.getAssignerUser());

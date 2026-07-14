@@ -11,7 +11,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldFromItemOutputHeadTwinLinkedTwinField;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputHeadTwinLinkedTwinFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
@@ -20,10 +19,11 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 class FillerFieldFromItemOutputHeadTwinLinkedTwinFieldTest extends BaseUnitTest {
@@ -106,7 +106,7 @@ class FillerFieldFromItemOutputHeadTwinLinkedTwinFieldTest extends BaseUnitTest 
             when(twinClassFieldService.isInvalidForClass(any(TwinClassEntity.class), eq(dstClone.getTwinClassField())))
                     .thenReturn(false);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             verify(fieldLookupers).getFromItemOutputHeadTwinLinkedTwinFields();
             assertSame(dstClone, factoryItem.getOutput().getField(DST_FIELD_ID));

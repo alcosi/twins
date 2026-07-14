@@ -11,10 +11,12 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeNull;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class FillerBasicsAssigneeNullTest extends BaseUnitTest {
 
@@ -44,7 +46,7 @@ class FillerBasicsAssigneeNullTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem();
             var outputTwin = factoryItem.getOutput().getTwinEntity();
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             assertNull(outputTwin.getAssignerUser());
             assertNull(outputTwin.getAssignerUserId());
@@ -56,7 +58,7 @@ class FillerBasicsAssigneeNullTest extends BaseUnitTest {
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertNotNull(outputTwin.getAssignerUserId());
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             assertNull(outputTwin.getAssignerUserId());
         }

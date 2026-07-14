@@ -7,12 +7,12 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.enums.status.StatusType;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerAttachmentCUDFromContext;
 
@@ -57,7 +57,7 @@ class FillerAttachmentCUDFromContextTest extends BaseUnitTest {
             var att = new TwinAttachmentEntity();
             var factoryItem = buildCreateItem(cudWithCreate(att));
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getAttachmentEntityList());
@@ -71,7 +71,7 @@ class FillerAttachmentCUDFromContextTest extends BaseUnitTest {
             var att = new TwinAttachmentEntity();
             var factoryItem = buildUpdateItem(cudWithCreate(att));
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var update = (TwinUpdate) factoryItem.getOutput();
             assertNotNull(update.getAttachmentCUD());
@@ -88,7 +88,7 @@ class FillerAttachmentCUDFromContextTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output).setFactoryContext(ctx);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

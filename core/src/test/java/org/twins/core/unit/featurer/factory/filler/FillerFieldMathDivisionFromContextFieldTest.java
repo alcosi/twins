@@ -21,11 +21,13 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
 
@@ -103,7 +105,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var target = new FieldValueText(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, divisor, target);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(TARGET_FIELD_ID);
             // 10 / 4 = 2.50 (HALF_UP, scale 2)
@@ -120,7 +122,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             when(dbLookuper.lookupFieldValue(factoryItem, DIVISOR_FIELD_ID)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -132,7 +134,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(dividend, divisor, target);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -145,7 +147,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(dividend, nonTextDivisor, target);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -158,7 +160,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(dividend, divisor, nonTextTarget);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

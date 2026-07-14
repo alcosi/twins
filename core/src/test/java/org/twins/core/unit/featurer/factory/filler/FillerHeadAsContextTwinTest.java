@@ -38,7 +38,7 @@ class FillerHeadAsContextTwinTest extends BaseUnitTest {
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = buildFactoryItem(contextTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(contextTwin, outputTwin.getHeadTwin());
@@ -53,7 +53,7 @@ class FillerHeadAsContextTwinTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -70,7 +70,7 @@ class FillerHeadAsContextTwinTest extends BaseUnitTest {
                             new FactoryItem().setOutput(new TwinCreate())));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

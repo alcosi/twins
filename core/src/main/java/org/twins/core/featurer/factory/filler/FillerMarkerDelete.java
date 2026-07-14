@@ -13,6 +13,7 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsMarkerId;
 
+import java.util.Collection;
 import java.util.Properties;
 
 @Component
@@ -30,7 +31,12 @@ public class FillerMarkerDelete extends Filler {
 
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate) {
             boolean soft = softDelete.extract(properties);
             if (soft)

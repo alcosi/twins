@@ -18,11 +18,12 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
 
@@ -88,7 +89,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             when(twinService.loadHead(factoryItemTwin)).thenReturn(headTwin);
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(new TwinClassFieldEntity().setId(FIELD_ID));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             FieldValueUser stored = (FieldValueUser) factoryItem.getOutput().getField(FIELD_ID);
             assertEquals(1, stored.size());
@@ -102,7 +103,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             when(twinService.loadHead(factoryItemTwin)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -114,7 +115,7 @@ class FillerFieldUserFromOutputTwinHeadAssigneeTest extends BaseUnitTest {
             when(twinService.loadHead(factoryItemTwin)).thenReturn(headTwin);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

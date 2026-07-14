@@ -15,11 +15,13 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FillerFieldFromParamsTest extends BaseUnitTest {
 
@@ -77,7 +79,7 @@ class FillerFieldFromParamsTest extends BaseUnitTest {
             var created = new FieldValueText(new TwinClassFieldEntity().setId(FIELD_ID)).setValue(VALUE);
             when(twinService.createFieldValue(FIELD_ID, VALUE)).thenReturn(created);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             assertSame(created, factoryItem.getOutput().getField(FIELD_ID));
             verify(twinService).createFieldValue(FIELD_ID, VALUE);

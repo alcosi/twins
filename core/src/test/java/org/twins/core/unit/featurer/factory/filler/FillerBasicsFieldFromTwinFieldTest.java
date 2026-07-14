@@ -11,13 +11,13 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerBasicsFieldFromTwinField;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
-import org.twins.core.enums.consts.SystemIds;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
 
@@ -93,7 +93,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             var fieldValue = new FieldValueText(buildField()).setValue("my name");
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
 
-            filler.fill(props(fieldId), factoryItem, null);
+            filler.fill(props(fieldId), List.of(factoryItem), null, false);
 
             assertEquals("my name", factoryItem.getOutput().getTwinEntity().getName());
         }
@@ -105,7 +105,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             var fieldValue = new FieldValueText(buildField()).setValue("a description");
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
 
-            filler.fill(props(fieldId), factoryItem, null);
+            filler.fill(props(fieldId), List.of(factoryItem), null, false);
 
             assertEquals("a description", factoryItem.getOutput().getTwinEntity().getDescription());
         }
@@ -118,7 +118,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             var fieldValue = new FieldValueUser(buildField()).add(user);
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
 
-            filler.fill(props(fieldId), factoryItem, null);
+            filler.fill(props(fieldId), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(user, outputTwin.getAssignerUser());
@@ -133,7 +133,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             var fieldValue = new FieldValueUser(buildField()).add(user);
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
 
-            filler.fill(props(fieldId), factoryItem, null);
+            filler.fill(props(fieldId), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME/contract: creator user maps to createdBy on the output twin.
@@ -149,7 +149,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, fieldId)).thenReturn(fieldValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(fieldId), factoryItem, null));
+                    () -> filler.fill(props(fieldId), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED.getCode(), ex.getErrorCode());
         }
     }

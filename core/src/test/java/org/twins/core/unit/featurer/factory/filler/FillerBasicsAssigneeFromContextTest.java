@@ -24,7 +24,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
 
@@ -94,7 +94,7 @@ class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
             var fieldValue = new FieldValueUser(buildField()).add(user);
             when(lookuper.lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID)).thenReturn(fieldValue);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(user, outputTwin.getAssignerUser());
@@ -108,7 +108,7 @@ class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID)).thenReturn(fieldValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED.getCode(), ex.getErrorCode());
         }
 
@@ -121,7 +121,7 @@ class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID)).thenReturn(fieldValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED.getCode(), ex.getErrorCode());
         }
 
@@ -132,7 +132,7 @@ class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID)).thenReturn(fieldValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE.getCode(), ex.getErrorCode());
         }
     }

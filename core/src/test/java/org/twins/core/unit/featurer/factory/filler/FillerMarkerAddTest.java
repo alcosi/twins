@@ -6,12 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.enums.status.StatusType;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.featurer.factory.filler.FillerMarkerAdd;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -53,7 +54,7 @@ class FillerMarkerAddTest extends BaseUnitTest {
             // NAME promises: add marker to output twin.
             var factoryItem = buildCreateItem();
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getMarkersAdd());
@@ -67,7 +68,7 @@ class FillerMarkerAddTest extends BaseUnitTest {
             var update = (TwinUpdate) factoryItem.getOutput();
             update.setMarkersDelete(new java.util.HashSet<>(Set.of(MARKER_ID)));
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), List.of(factoryItem), null, false);
 
             assertNotNull(update.getMarkersAdd());
             assertTrue(update.getMarkersAdd().contains(MARKER_ID));
@@ -80,7 +81,7 @@ class FillerMarkerAddTest extends BaseUnitTest {
             var update = (TwinUpdate) factoryItem.getOutput();
             update.setMarkersDelete(new java.util.HashSet<>(Set.of(MARKER_ID)));
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), List.of(factoryItem), null, false);
 
             assertTrue(update.getMarkersAdd().contains(MARKER_ID));
             // not hardAdd -> markersDelete still contains the marker (both add+delete recorded)
@@ -93,7 +94,7 @@ class FillerMarkerAddTest extends BaseUnitTest {
             var update = (TwinUpdate) factoryItem.getOutput();
             assertNull(update.getMarkersDelete());
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), List.of(factoryItem), null, false);
 
             assertTrue(update.getMarkersAdd().contains(MARKER_ID));
             assertNull(update.getMarkersDelete());

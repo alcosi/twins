@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -23,7 +22,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerBackwardLinksAsContextTwinTest extends BaseUnitTest {
 
@@ -90,7 +89,7 @@ class FillerBackwardLinksAsContextTwinTest extends BaseUnitTest {
             var link = new LinkEntity().setId(LINK_ID);
             when(linkService.findLinks(contextClass, outputClass)).thenReturn(List.of(link));
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -111,7 +110,7 @@ class FillerBackwardLinksAsContextTwinTest extends BaseUnitTest {
             when(linkService.findLinks(contextClass, outputClass)).thenReturn(List.of());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

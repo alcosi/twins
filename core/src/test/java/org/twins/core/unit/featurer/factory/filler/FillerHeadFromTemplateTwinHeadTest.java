@@ -10,6 +10,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerHeadFromTemplateTwinHead;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ class FillerHeadFromTemplateTwinHeadTest extends BaseUnitTest {
             var templateTwin = new TwinEntity().setHeadTwin(headTwin).setHeadTwinId(headId);
             var factoryItem = buildFactoryItem();
 
-            filler.fill(new Properties(), factoryItem, templateTwin);
+            filler.fill(new Properties(), List.of(factoryItem), templateTwin, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(headTwin, outputTwin.getHeadTwin());
@@ -48,7 +49,7 @@ class FillerHeadFromTemplateTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, null));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -58,7 +59,7 @@ class FillerHeadFromTemplateTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, templateTwin));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), templateTwin, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

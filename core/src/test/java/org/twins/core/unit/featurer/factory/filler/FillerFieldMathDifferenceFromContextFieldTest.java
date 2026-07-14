@@ -20,11 +20,13 @@ import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
 
@@ -100,7 +102,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
             var subtrahend = new FieldValueText(field(SUBTRAHEND_FIELD_ID)).setValue("3");
             when(lookuper.lookupFieldValue(factoryItem, SUBTRAHEND_FIELD_ID)).thenReturn(subtrahend);
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), List.of(factoryItem), null, false);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(MINUEND_FIELD_ID);
             assertEquals(new BigDecimal("7"), new BigDecimal(result.getValue()));
@@ -114,7 +116,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, SUBTRAHEND_FIELD_ID)).thenReturn(subtrahend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -125,7 +127,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
             var subtrahend = new FieldValueText(field(SUBTRAHEND_FIELD_ID)).setValue("10");
             when(lookuper.lookupFieldValue(factoryItem, SUBTRAHEND_FIELD_ID)).thenReturn(subtrahend);
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), List.of(factoryItem), null, false);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(MINUEND_FIELD_ID);
             assertEquals(new BigDecimal("-7"), new BigDecimal(result.getValue()));
@@ -139,7 +141,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, SUBTRAHEND_FIELD_ID)).thenReturn(nonText);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -150,7 +152,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, SUBTRAHEND_FIELD_ID)).thenReturn(subtrahend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -163,7 +165,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, SUBTRAHEND_FIELD_ID)).thenReturn(subtrahend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

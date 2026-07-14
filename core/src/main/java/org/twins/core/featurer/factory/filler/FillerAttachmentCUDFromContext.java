@@ -10,6 +10,7 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
+import java.util.Collection;
 import java.util.Properties;
 
 @Component
@@ -18,7 +19,12 @@ import java.util.Properties;
         description = "")
 public class FillerAttachmentCUDFromContext extends Filler {
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         if (factoryItem.getFactoryContext().getAttachmentCUD() == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Not attachments in context");
         if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)

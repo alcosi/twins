@@ -14,6 +14,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.util.Collection;
 import java.util.Properties;
 
 @Component
@@ -27,7 +28,13 @@ public class FillerComment extends Filler {
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fieldLookupers.preloadContextTwinsFields(factoryItems);
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         FieldValue commentField = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, fieldId.extract(properties));
         if (commentField instanceof FieldValueText fieldValueText) {
             factoryItem.getOutput().addComment(fieldValueText.getValue());

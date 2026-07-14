@@ -19,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -36,13 +37,14 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
     TwinService twinService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        UUID assigneeFieldId = linkField.extract(properties);
-        FieldValue assigneeField = factoryItem.getFactoryContext().getFields().get(assigneeFieldId);
-        fill(properties, factoryItem, templateTwin, assigneeField, assigneeFieldId);
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue assigneeField, UUID assigneeFieldId) throws ServiceException {
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+        UUID assigneeFieldId = linkField.extract(properties);
+        FieldValue assigneeField = getAssigneeField(properties, factoryItem, assigneeFieldId);
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         if (assigneeField == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + assigneeFieldId + "] is not present in context ");
@@ -63,5 +65,13 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
             }
         } else
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " has unexpected type");
+    }
+
+    /**
+     * Resolves the assignee-carrying field value. Base reads it from the factory context fields;
+     * subclasses may override to resolve it differently (e.g. from the context twin DB field).
+     */
+    protected FieldValue getAssigneeField(Properties properties, FactoryItem factoryItem, UUID assigneeFieldId) throws ServiceException {
+        return factoryItem.getFactoryContext().getFields().get(assigneeFieldId);
     }
 }

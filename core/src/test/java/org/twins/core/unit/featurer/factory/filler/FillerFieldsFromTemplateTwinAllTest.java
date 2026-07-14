@@ -14,7 +14,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldsFromTemplateTwinAll;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -26,7 +25,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
 
 class FillerFieldsFromTemplateTwinAllTest extends BaseUnitTest {
 
@@ -93,7 +93,7 @@ class FillerFieldsFromTemplateTwinAllTest extends BaseUnitTest {
             var value = new FieldValueText(srcField).setValue("v");
             when(twinService.getTwinFieldValue(templateTwin, srcField)).thenReturn(value);
 
-            filler.fill(new Properties(), factoryItem, templateTwin);
+            filler.fill(new Properties(), List.of(factoryItem), templateTwin, false);
 
             var cloned = factoryItem.getOutput().getField(fieldId);
             assertNotNull(cloned);
@@ -111,7 +111,7 @@ class FillerFieldsFromTemplateTwinAllTest extends BaseUnitTest {
             when(twinClassService.isInstanceOf(eq(outputClass), eq(templateTwin.getTwinClassId()))).thenReturn(false);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, templateTwin));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), templateTwin, false));
             assertEquals(ErrorCodeTwins.FACTORY_INCORRECT.getCode(), ex.getErrorCode());
         }
 
@@ -125,7 +125,7 @@ class FillerFieldsFromTemplateTwinAllTest extends BaseUnitTest {
             when(twinClassService.isInstanceOf(eq(outputClass), eq(templateTwin.getTwinClassId()))).thenReturn(true);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(new Properties(), factoryItem, templateTwin));
+                    () -> filler.fill(new Properties(), List.of(factoryItem), templateTwin, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -143,7 +143,7 @@ class FillerFieldsFromTemplateTwinAllTest extends BaseUnitTest {
             var value = new FieldValueText(srcField);
             when(twinService.getTwinFieldValue(templateTwin, srcField)).thenReturn(value);
 
-            filler.fill(new Properties(), factoryItem, templateTwin);
+            filler.fill(new Properties(), List.of(factoryItem), templateTwin, false);
 
             assertNull(factoryItem.getOutput().getField(fieldId));
         }

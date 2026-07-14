@@ -20,6 +20,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -106,7 +107,7 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
             when(twinClassFieldService.isInvalidForClass(any(TwinClassEntity.class), eq(dstClone.getTwinClassField())))
                     .thenReturn(false);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             // Lookuper is invoked with both the context-twin field id and the src field id — order matters.
             verify(lookuper).lookupFieldValue(factoryItem, CONTEXT_TWIN_FIELD_ID, SRC_FIELD_ID);
@@ -124,7 +125,7 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
                     .thenReturn(true);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

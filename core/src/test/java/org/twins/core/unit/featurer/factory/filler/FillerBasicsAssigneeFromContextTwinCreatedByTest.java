@@ -51,7 +51,7 @@ class FillerBasicsAssigneeFromContextTwinCreatedByTest extends BaseUnitTest {
                     .setAssignerUserId(assignee.getId());
             var factoryItem = buildFactoryItem(contextTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee comes FROM createdBy, NOT from assignee.
@@ -68,7 +68,7 @@ class FillerBasicsAssigneeFromContextTwinCreatedByTest extends BaseUnitTest {
             contextTwin.setAssignerUserId(UUID.randomUUID());
             var factoryItem = buildFactoryItem(contextTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertEquals(creatorId, outputTwin.getAssignerUserId());
@@ -80,7 +80,7 @@ class FillerBasicsAssigneeFromContextTwinCreatedByTest extends BaseUnitTest {
             var contextTwin = new TwinEntity(); // createdBy null
             var factoryItem = buildFactoryItem(contextTwin);
 
-            filler.fill(new Properties(), factoryItem, null);
+            filler.fill(new Properties(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertNull(outputTwin.getAssignerUser());

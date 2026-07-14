@@ -24,7 +24,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
 
@@ -95,7 +95,7 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(contextTwin);
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(fieldEntity());
 
-            filler.fill(props(TwinBasicFields.Basics.assigneeUserId), factoryItem, null);
+            filler.fill(props(TwinBasicFields.Basics.assigneeUserId), List.of(factoryItem), null, false);
 
             FieldValueUser stored = (FieldValueUser) factoryItem.getOutput().getField(FIELD_ID);
             assertEquals(1, stored.size());
@@ -111,7 +111,7 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(contextTwin);
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(fieldEntity());
 
-            filler.fill(props(TwinBasicFields.Basics.createdByUserId), factoryItem, null);
+            filler.fill(props(TwinBasicFields.Basics.createdByUserId), List.of(factoryItem), null, false);
 
             FieldValueUser stored = (FieldValueUser) factoryItem.getOutput().getField(FIELD_ID);
             assertEquals(1, stored.size());
@@ -125,7 +125,7 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(fieldEntity());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(TwinBasicFields.Basics.assigneeUserId), factoryItem, null));
+                    () -> filler.fill(props(TwinBasicFields.Basics.assigneeUserId), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -136,7 +136,7 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(fieldEntity());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(TwinBasicFields.Basics.createdByUserId), factoryItem, null));
+                    () -> filler.fill(props(TwinBasicFields.Basics.createdByUserId), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -148,7 +148,7 @@ class FillerFieldUserFromContextTwinBasicFieldTest extends BaseUnitTest {
             when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(fieldEntity());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(TwinBasicFields.Basics.name), factoryItem, null));
+                    () -> filler.fill(props(TwinBasicFields.Basics.name), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_BASIC_FIELD_UNKNOWN.getCode(), ex.getErrorCode());
         }
     }

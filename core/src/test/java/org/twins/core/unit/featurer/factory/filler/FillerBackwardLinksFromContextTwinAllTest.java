@@ -9,9 +9,9 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.enums.link.LinkType;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerBackwardLinksFromContextTwinAll;
 import org.twins.core.service.link.LinkService;
@@ -23,7 +23,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class FillerBackwardLinksFromContextTwinAllTest extends BaseUnitTest {
 
@@ -99,7 +99,7 @@ class FillerBackwardLinksFromContextTwinAllTest extends BaseUnitTest {
                     .thenReturn(List.of(backwardLink(LINK_ID, SRC_TWIN_ID, LinkType.ManyToMany)));
 
             // uniq=false; should still be added because the link is ManyToMany
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -118,7 +118,7 @@ class FillerBackwardLinksFromContextTwinAllTest extends BaseUnitTest {
             when(twinLinkService.findTwinBackwardLinks(CONTEXT_TWIN_ID))
                     .thenReturn(List.of(backwardLink(LINK_ID, SRC_TWIN_ID, LinkType.ManyToOne)));
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertTrue(create.getLinksEntityList() == null || create.getLinksEntityList().isEmpty());
@@ -132,7 +132,7 @@ class FillerBackwardLinksFromContextTwinAllTest extends BaseUnitTest {
             when(twinLinkService.findTwinBackwardLinks(CONTEXT_TWIN_ID))
                     .thenReturn(List.of(backwardLink(LINK_ID, SRC_TWIN_ID, LinkType.ManyToOne)));
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), List.of(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -146,7 +146,7 @@ class FillerBackwardLinksFromContextTwinAllTest extends BaseUnitTest {
             when(twinLinkService.findTwinBackwardLinks(CONTEXT_TWIN_ID)).thenReturn(List.of());
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

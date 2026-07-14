@@ -3,11 +3,8 @@ package org.twins.core.featurer.factory.filler;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-
-import java.util.Properties;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 
 /**
  * Like {@link FillerBasicsAssigneeFromContext} (2324), but resolves {@code assigneeField} on the
@@ -23,7 +20,7 @@ import java.util.Properties;
 public class FillerBasicsAssigneeFromItemOutput extends FillerBasicsAssigneeFromContext {
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromItemOutputFields());
+    public FieldLookuperNearest getLookuper() throws ServiceException {
+        return fieldLookupers.getFromItemOutputFields();
     }
 }

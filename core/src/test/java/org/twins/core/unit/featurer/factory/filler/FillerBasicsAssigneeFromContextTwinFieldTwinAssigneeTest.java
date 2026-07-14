@@ -23,8 +23,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitTest {
 
@@ -102,7 +104,7 @@ class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitT
             var assignee = new UserEntity().setId(UUID.randomUUID());
             when(twinService.getTwinAssignee(dstTwinId)).thenReturn(assignee);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: field resolved from the CONTEXT TWIN (db fields), assignee from linked twin.

@@ -15,6 +15,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.factory.FactoryExecutionService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -32,7 +33,12 @@ public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
     FactoryExecutionService factoryExecutionService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID id = twinClassId.extract(properties);
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         TwinEntity contextTwin = factoryExecutionService.lookupTwinOfClass(factoryItem, id, 0);

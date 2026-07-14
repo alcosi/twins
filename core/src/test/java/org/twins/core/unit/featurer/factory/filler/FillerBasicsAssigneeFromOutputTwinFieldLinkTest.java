@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
-import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -17,12 +16,13 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromOutputTwinFieldLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.link.TwinLinkService;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
 
@@ -93,7 +93,7 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
             fieldValue.add(twinLink);
             var factoryItem = buildFactoryItem(fieldValue);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee FROM the output twin's linked dst twin (matched by linkId).
@@ -108,7 +108,7 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output); // field not added
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -117,7 +117,7 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(new FieldValueLink(buildField())); // undefined
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -131,7 +131,7 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(fieldValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -143,7 +143,7 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output);
 
             // field present but not a FieldValueLink -> silently skips (no throw, no set).
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), List.of(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertNull(outputTwin.getAssignerUser());

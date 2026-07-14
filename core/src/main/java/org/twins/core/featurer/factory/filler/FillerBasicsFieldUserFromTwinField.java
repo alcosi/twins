@@ -18,6 +18,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 import org.twins.core.featurer.params.FeaturerParamBasicsTwinBasicField;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -34,7 +35,13 @@ public class FillerBasicsFieldUserFromTwinField extends Filler {
     public static final FeaturerParamBasicsTwinBasicField dstBasicsUserFiledName = new FeaturerParamBasicsTwinBasicField("dstBasicsUserFiledName");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fieldLookupers.preloadContextTwinsFields(factoryItems);
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         UUID sourceFieldId = fieldId.extract(properties);
         TwinBasicFields.Basics dstUserBasic = dstBasicsUserFiledName.extract(properties);

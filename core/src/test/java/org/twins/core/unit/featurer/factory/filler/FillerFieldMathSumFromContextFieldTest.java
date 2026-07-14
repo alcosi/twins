@@ -20,11 +20,13 @@ import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
 
@@ -101,7 +103,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
             when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), List.of(factoryItem), null, false);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(AUGEND_FIELD_ID);
             assertEquals(new BigDecimal("15"), new BigDecimal(result.getValue()));
@@ -115,7 +117,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -126,7 +128,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
             when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), List.of(factoryItem), null, false);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(AUGEND_FIELD_ID);
             assertEquals(new BigDecimal("-5"), new BigDecimal(result.getValue()));
@@ -145,7 +147,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(nonText);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -157,7 +159,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -172,7 +174,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), List.of(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

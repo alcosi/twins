@@ -19,6 +19,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.link.TwinLinkService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -40,7 +41,12 @@ public class FillerBasicsAssigneeFromOutputTwinFieldLink extends Filler {
     TwinLinkService twinLinkService;
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        fillEach(properties, factoryItems, templateTwin, optional);
+    }
+
+    @Override
+    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
 
         FieldValue field = factoryItem.getOutput().getField(twinClassFieldId.extract(properties));
