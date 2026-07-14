@@ -260,6 +260,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public FieldValue getTwinFieldValue(TwinField twinField) throws ServiceException {
         if (twinField == null)
             return null;
+        if (twinField.getTwin().getFieldValuesKit() != null) {
+            var value = twinField.getTwin().getFieldValuesKit().get(twinField.getTwinClassFieldId());
+            if (value != null)
+                return value;
+        }
+        return deserializeValue(twinField);
+    }
+
+    public FieldValue deserializeValue(TwinField twinField) throws ServiceException {
+        if (twinField == null)
+            return null;
         FieldTyper fieldTyper = featurerService.getFeaturer(twinField.getTwinClassField().getFieldTyperFeaturerId(), FieldTyper.class);
         return fieldTyper.deserializeValue(twinField);
     }
@@ -1398,7 +1409,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return; // just empty kit
         FieldValue fieldValue;
         for (TwinClassFieldEntity twinClassFieldEntity : src.getTwinClass().getTwinClassFieldKit().getCollection()) {
-            fieldValue = getTwinFieldValue(wrapField(src, twinClassFieldEntity));
+            fieldValue = deserializeValue(wrapField(src, twinClassFieldEntity));
             src.getFieldValuesKit().add(fieldValue);
         }
     }
