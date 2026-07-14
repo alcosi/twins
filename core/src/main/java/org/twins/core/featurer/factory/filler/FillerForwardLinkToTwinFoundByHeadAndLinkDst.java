@@ -21,12 +21,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -45,6 +40,9 @@ public class FillerForwardLinkToTwinFoundByHeadAndLinkDst extends FillerLinks {
 
     @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 3, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeFactoryInputTwin = new FeaturerParamBoolean("excludeFactoryInputTwin");
+
+    @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 4, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
 
     private final TwinSearchServiceV2 twinSearchService;
 
@@ -74,15 +72,20 @@ public class FillerForwardLinkToTwinFoundByHeadAndLinkDst extends FillerLinks {
     }
 
     private Optional<TwinEntity> findTwin(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        UUID headTwinId = contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+        TwinEntity rootTwin;
+        if (factoryItemElseContext.extract(properties)) {
+            rootTwin = factoryItem.getTwin();
+        } else {
+            rootTwin = factoryItem.checkSingleContextTwin();
+        }
+        UUID headTwinId = rootTwin.getHeadTwinId() != null ? rootTwin.getHeadTwinId() : rootTwin.getId();
         if (headTwinId == null) {
             log.info("Context twin has no head, twin found by head search skipped");
             return Optional.empty();
         }
 
         UUID extractedTwinClassId = twinClassId.extract(properties);
-        Set<UUID> excludeIds = buildExcludeIds(properties, factoryItem, contextTwin);
+        Set<UUID> excludeIds = buildExcludeIds(properties, factoryItem, rootTwin);
 
         List<TwinEntity> uncommittedMatches = findUncommittedMatchesByHead(factoryItem, extractedTwinClassId, headTwinId, excludeIds);
         if (uncommittedMatches.size() > 1) {
