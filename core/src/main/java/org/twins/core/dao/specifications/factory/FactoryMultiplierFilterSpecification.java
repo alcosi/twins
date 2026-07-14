@@ -18,7 +18,7 @@ import java.util.UUID;
 public class FactoryMultiplierFilterSpecification extends CommonSpecification<TwinFactoryMultiplierFilterEntity> {
 
     public static Specification<TwinFactoryMultiplierFilterEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryMultiplierFilterEntity.Fields.multiplier, TwinFactoryMultiplierEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryMultiplierFilterEntity.Fields.multiplierSpecOnly, TwinFactoryMultiplierEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId);
     }
 
     public static Specification<TwinFactoryMultiplierFilterEntity> checkFactoryIdIn(Collection<UUID> search, boolean not) {
@@ -28,7 +28,7 @@ public class FactoryMultiplierFilterSpecification extends CommonSpecification<Tw
 
             query.distinct(true);
 
-            Join<TwinFactoryMultiplierFilterEntity, TwinFactoryMultiplierEntity> join = root.join(TwinFactoryMultiplierFilterEntity.Fields.multiplier, JoinType.INNER);
+            Join<TwinFactoryMultiplierFilterEntity, TwinFactoryMultiplierEntity> join = root.join(TwinFactoryMultiplierFilterEntity.Fields.multiplierSpecOnly, JoinType.INNER);
 
             Predicate predicate = join.get(TwinFactoryMultiplierEntity.Fields.twinFactoryId).in(search);
             if (not) predicate = cb.not(predicate);
