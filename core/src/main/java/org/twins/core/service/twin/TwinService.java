@@ -587,6 +587,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     twin
                             .setHeadTwinId(headTwin.getId())
                             .setHeadTwin(headTwin)
+                            .setHierarchyTree(headTwin.getHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twin.getId()))
                             .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin))
                             .setPermissionSchemaId(headTwin.getPermissionSchemaId());
                 }
