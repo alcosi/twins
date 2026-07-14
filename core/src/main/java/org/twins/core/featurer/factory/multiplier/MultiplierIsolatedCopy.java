@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.multiplier;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -36,6 +37,7 @@ public class MultiplierIsolatedCopy extends Multiplier {
 
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity newTwin = new TwinEntity()
+                    .setId(UuidUtils.generate())
                     .setName("")
                     .setTwinClass(inputItem.getTwin().getTwinClass())
                     .setTwinClassId(inputItem.getTwin().getTwinClassId())

@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.multiplier;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,7 @@ public class MultiplierIsolatedOnContextTwinChildClass extends Multiplier {
             }
 
             TwinEntity twinEntity = new TwinEntity()
+                    .setId(UuidUtils.generate())
                     .setName("")
                     .setTwinClass(entityList.getFirst())
                     .setTwinClassId(entityList.getFirst().getId())

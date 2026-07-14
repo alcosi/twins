@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.multiplier;
 
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
@@ -50,6 +51,7 @@ public class MultiplierIsolatedOnContextFieldList extends Multiplier {
         List<FactoryItem> ret = new ArrayList<>();
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity newTwin = new TwinEntity()
+                    .setId(UuidUtils.generate())
                     .setName("")
                     .setTwinClass(outputTwinClassEntity)
                     .setTwinClassId(outputTwinClassEntity.getId())
