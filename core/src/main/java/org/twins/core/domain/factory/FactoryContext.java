@@ -94,6 +94,11 @@ public class FactoryContext {
         add(factoryItem);
     }
 
+    public void addInput(FactoryItem factoryItem) throws ServiceException {
+        add(factoryItem);
+        inputTwinList = CollectionUtils.safeAdd(inputTwinList, factoryItem.getTwin());
+    }
+
     public void add(FactoryItem factoryItem) throws ServiceException {
         if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate && factoryItemsUniq.containsKey(twinUpdate.getTwinEntity().getId())) {
             factoryItem = factoryItemsUniq.get(twinUpdate.getTwinEntity().getId()); // we will use already existed factory item, but not new one
