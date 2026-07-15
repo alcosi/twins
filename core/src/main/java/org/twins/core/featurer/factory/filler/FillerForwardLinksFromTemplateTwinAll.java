@@ -22,16 +22,15 @@ import java.util.UUID;
 public class FillerForwardLinksFromTemplateTwinAll extends FillerLinks {
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
-    }
-
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+        // templateTwin is step-constant (same for every item) -> load its forward links ONCE for the whole batch
         if (templateTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template twin");
         Kit<TwinLinkEntity, UUID> templateTwinLinkKit = twinLinkService.findTwinForwardLinks(templateTwin);
         if (KitUtils.isEmpty(templateTwinLinkKit))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No forward links configured from twmplate " + templateTwin.logShort());
-        addLinks(factoryItem, templateTwinLinkKit.getCollection());
+        Collection<TwinLinkEntity> templateLinks = templateTwinLinkKit.getCollection();
+        for (FactoryItem factoryItem : factoryItems) {
+            addLinks(factoryItem, templateLinks); // loadDstTwin/loadLink inside are idempotent (same source links)
+        }
     }
 }

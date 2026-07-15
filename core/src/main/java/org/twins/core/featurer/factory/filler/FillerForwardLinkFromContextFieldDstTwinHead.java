@@ -1,5 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -32,6 +33,7 @@ import java.util.UUID;
                 "Resolves dst twin (by entity or id). " +
                 "Creates new forward link from output twin pointing to dst twin or its head"
 )
+@Slf4j
 public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
 
     @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
@@ -49,11 +51,22 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
 
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
+        // the link to create is step-constant (same newLinksId for every item) -> resolve it once per batch
+        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            try {
+                fillItem(properties, factoryItem, link);
+            } catch (Exception ex) {
+                if (optional && canBeOptional()) {
+                    log.warn("Optional filler step failed for {}, skipping: {}", factoryItem.logShort(), (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()));
+                } else {
+                    throw ex;
+                }
+            }
+        }
     }
 
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    private void fillItem(Properties properties, FactoryItem factoryItem, LinkEntity link) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
         FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
         if (!(srcFieldValue instanceof FieldValueLink fieldValueLink)) {
@@ -62,7 +75,6 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         if (fieldValueLink.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not filled");
         }
-
         TwinEntity dstTwin = resolveDstTwin(fieldValueLink.getItems().getFirst());
         TwinEntity linkDstTwin;
         if (useDstTwinHead.extract(properties)) {
@@ -73,17 +85,8 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         } else {
             linkDstTwin = dstTwin;
         }
-
         TwinEntity outputTwin = factoryItem.getTwin();
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setSrcTwinId(outputTwin.getId())
-                .setSrcTwin(outputTwin)
-                .setDstTwin(linkDstTwin)
-                .setDstTwinId(linkDstTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), TwinLinkEntity.of(link, outputTwin, linkDstTwin));
     }
 
     private TwinEntity resolveDstTwin(TwinLinkEntity matchedLink) throws ServiceException {

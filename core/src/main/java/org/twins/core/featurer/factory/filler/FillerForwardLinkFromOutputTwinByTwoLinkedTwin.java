@@ -1,5 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -32,6 +33,7 @@ import java.util.UUID;
                 "Each hop uses link id when specified, otherwise head twin. " +
                 "Then creates new forward link from output twin to the resolved twin"
 )
+@Slf4j
 public class FillerForwardLinkFromOutputTwinByTwoLinkedTwin extends FillerLinks {
 
     @Lazy
@@ -53,11 +55,22 @@ public class FillerForwardLinkFromOutputTwinByTwoLinkedTwin extends FillerLinks 
 
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
+        // the link to create is step-constant (same newLinkId for every item) -> resolve it once per batch
+        LinkEntity link = linkService.findEntitySafe(newLinkId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            try {
+                fillItem(properties, factoryItem, link);
+            } catch (Exception ex) {
+                if (optional && canBeOptional()) {
+                    log.warn("Optional filler step failed for {}, skipping: {}", factoryItem.logShort(), (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()));
+                } else {
+                    throw ex;
+                }
+            }
+        }
     }
 
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    private void fillItem(Properties properties, FactoryItem factoryItem, LinkEntity link) throws ServiceException {
         TwinEntity outputTwin = factoryItem.getTwin();
         if (outputTwin == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output twin is empty");
@@ -65,25 +78,15 @@ public class FillerForwardLinkFromOutputTwinByTwoLinkedTwin extends FillerLinks 
         if (!(factoryItem.getOutput() instanceof TwinCreate twinCreate)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output is not TwinCreate");
         }
-
         UUID firstHopLink = firstHopLinkId.extract(properties);
         UUID secondHopLink = secondHopLinkId.extract(properties);
-
         TwinEntity firstHopDstTwin = firstHopLink != null
                 ? getDstTwinByFirstLink(firstHopLink, twinCreate, outputTwin)
                 : getHeadTwin(outputTwin);
-
         TwinEntity finalDstTwin = secondHopLink != null
                 ? getDstTwinBySecondLink(secondHopLink, firstHopDstTwin)
                 : getHeadTwin(firstHopDstTwin);
-
-        LinkEntity link = linkService.findEntitySafe(newLinkId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(finalDstTwin)
-                .setDstTwinId(finalDstTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), TwinLinkEntity.of(link, outputTwin, finalDstTwin));
     }
 
     private TwinEntity getHeadTwin(TwinEntity twin) throws ServiceException {

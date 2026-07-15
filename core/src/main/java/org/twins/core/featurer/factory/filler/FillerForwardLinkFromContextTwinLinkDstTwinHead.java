@@ -1,5 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -28,6 +29,7 @@ import java.util.Properties;
                 "Get dst twin for this link. " +
                 "Get head of this dst twin. " +
                 "Create new link of given type from current twin pointing to this head")
+@Slf4j
 public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks {
 
     @Lazy
@@ -42,11 +44,22 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
 
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
+        // the link to create is step-constant (same newLinksId for every item) -> resolve it once per batch
+        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            try {
+                fillItem(properties, factoryItem, link);
+            } catch (Exception ex) {
+                if (optional && canBeOptional()) {
+                    log.warn("Optional filler step failed for {}, skipping: {}", factoryItem.logShort(), (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()));
+                } else {
+                    throw ex;
+                }
+            }
+        }
     }
 
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    private void fillItem(Properties properties, FactoryItem factoryItem, LinkEntity link) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         List<TwinLinkEntity> contextTwinLinksList = lookupLink(properties, factoryItem, 5);
         if (CollectionUtils.isEmpty(contextTwinLinksList))
@@ -57,13 +70,7 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
         var dstTwin = contextTwinLinksList.getFirst().getDstTwin();
         twinService.loadHead(dstTwin);
         var detectedHead = dstTwin.getHeadTwin();
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), TwinLinkEntity.of(link, factoryItem.getTwin(), detectedHead));
     }
 
     //todo optimize with hierarchy
