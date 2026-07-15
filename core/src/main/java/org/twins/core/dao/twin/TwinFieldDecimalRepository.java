@@ -176,7 +176,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 string_to_array(:twinClassFieldIdsStr, ',')::uuid[],
                 string_to_array(:linkIdsStr, ',')::uuid[],
-                :statusExclude
+                :statusExclude,
+                :assigneeUserId
             )
             """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesByLink(
@@ -186,7 +187,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr,
             @Param("linkIdsStr") String linkIdsStr,
-            @Param("statusExclude") boolean statusExclude);
+            @Param("statusExclude") boolean statusExclude,
+            @Param("assigneeUserId") UUID assigneeUserId);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_divisions_by_link(
@@ -265,7 +267,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
                 string_to_array(:linkedTwinInStatusIdsStr, ',')::uuid[],
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 :statusExclude,
-                :skipIfNotFound
+                :skipIfNotFound,
+                :assigneeUserId
             )
             """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesByLinkWithTwinFlavor(
@@ -276,7 +279,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             @Param("linkedTwinInStatusIdsStr") String linkedTwinInStatusIdsStr,
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("statusExclude") boolean statusExclude,
-            @Param("skipIfNotFound") boolean skipIfNotFound);
+            @Param("skipIfNotFound") boolean skipIfNotFound,
+            @Param("assigneeUserId") UUID assigneeUserId);
 
     default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesByHead(
             Collection<UUID> headTwinIdList,
@@ -362,7 +366,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             Collection<UUID> linkedTwinOfClassIds,
             Collection<UUID> twinClassFieldIds,
             Collection<UUID> linkIds,
-            boolean statusExclude) {
+            boolean statusExclude,
+            UUID assigneeUserId) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
@@ -371,7 +376,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
         String linkIdsStr = StringUtils.collectionToString(linkIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesByLink(
-                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, linkIdsStr, statusExclude
+                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, linkIdsStr, statusExclude, assigneeUserId
         );
         return mapNativeQueryResults(results);
     }
@@ -468,7 +473,8 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
             Collection<UUID> linkedTwinInStatusIds,
             Collection<UUID> linkedTwinOfClassIds,
             boolean statusExclude,
-            boolean skipIfNotFound) {
+            boolean skipIfNotFound,
+            UUID assigneeUserId) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String linkIdsStr = StringUtils.collectionToString(linkIds);
@@ -477,7 +483,7 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
 
         List<Object[]> results = _sumLinkedTwinFieldValuesByLinkWithTwinFlavor(
                 linkedToStr, linkIdsStr, fieldIdByTwinFlavor, srcElseDst,
-                statusStr, classStr, statusExclude, skipIfNotFound
+                statusStr, classStr, statusExclude, skipIfNotFound, assigneeUserId
         );
         return mapNativeQueryResults(results);
     }
