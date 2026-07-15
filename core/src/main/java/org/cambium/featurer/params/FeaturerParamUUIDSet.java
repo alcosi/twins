@@ -4,14 +4,16 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.featurer.annotations.FeaturerParamType;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Properties;
+import java.util.UUID;
 
 @FeaturerParamType(
         id = "UUID_SET",
         description = "",
         regexp = FeaturerParamUUIDSet.UUID_SET_REGEXP,
         example = FeaturerParamUUIDSet.UUID_SET_EXAMPLE)
-public class FeaturerParamUUIDSet extends FeaturerParam<Set<UUID>> {
+public class FeaturerParamUUIDSet extends FeaturerParam<LinkedHashSet<UUID>> {
     public static final String UUID_SET_REGEXP = ".*"; //todo
     public static final String UUID_SET_EXAMPLE = "9a3f6075-f175-41cd-a804-934201ec969c, 1b3f6075-f175-41cd-a804-934201ec969c";
     public FeaturerParamUUIDSet(String key) {
@@ -19,8 +21,8 @@ public class FeaturerParamUUIDSet extends FeaturerParam<Set<UUID>> {
     }
 
     @Override
-    public Set<UUID> extract(Properties properties) {
-        Set<UUID> ret = new LinkedHashSet<>();
+    public LinkedHashSet<UUID> extract(Properties properties) {
+        var ret = new LinkedHashSet<UUID>();
         if (ObjectUtils.isNotEmpty(properties.get(key)) && StringUtils.isNotBlank(properties.get(key).toString()))
             for (String uuidString : properties.get(key).toString().split(","))
                 ret.add(UUID.fromString(uuidString.trim()));
