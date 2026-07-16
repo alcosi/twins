@@ -11,6 +11,7 @@ public class FieldLookupers {
     private final FieldLookuperFromContextFields fromContextFields;
     private final FieldLookuperFromContextFieldsAndContextTwinDbFields fromContextFieldsAndContextTwinDbFields;
     private final FieldLookuperFromContextTwinFields fromContextTwinFields;
+    private final FieldLookuperFromContextTwinFieldsOnly fromContextTwinFieldsOnly;
     private final FieldLookuperFromContextTwinDbFields fromContextTwinDbFields;
     private final FieldLookuperFromContextTwinLinkedTwinByLinkDbFields fromContextTwinLinkedByLinkTwinFields;
     private final FieldLookuperFromContextTwinLinkedTwinByFieldDbFields fromContextTwinLinkedByFieldTwinFields;
@@ -28,6 +29,7 @@ public class FieldLookupers {
         fromContextFields,
         fromContextFieldsAndContextTwinDbFields,
         fromContextTwinFields,
+        fromContextTwinFieldsOnly,
         fromContextTwinDbFields,
         fromContextTwinLinkedByLinkTwinFields,
         fromContextTwinLinkedByFieldTwinFields,
@@ -47,6 +49,7 @@ public class FieldLookupers {
             case fromContextFields -> this.fromContextFields;
             case fromContextFieldsAndContextTwinDbFields -> this.fromContextFieldsAndContextTwinDbFields;
             case fromContextTwinFields -> this.fromContextTwinFields;
+            case fromContextTwinFieldsOnly -> this.fromContextTwinFieldsOnly;
             case fromContextTwinDbFields -> this.fromContextTwinDbFields;
             case fromContextTwinLinkedByLinkTwinFields -> this.fromContextTwinLinkedByLinkTwinFields;
             case fromContextTwinLinkedByFieldTwinFields -> this.fromContextTwinLinkedByFieldTwinFields;

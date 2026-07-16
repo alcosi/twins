@@ -64,6 +64,9 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     @FeaturerParam(name = "Equals twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
+    @FeaturerParam(name = "Search twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3)
+    public static final FeaturerParamUUID equalsSearchTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsSearchTwinClassFieldId");
+
     @FeaturerParam(name = "Equals field lookupper", description = "Equals field lookupper", order = 6, optional = true)
     public static final FeaturerParamStringTwinsFactoryFieldLookuper equalsFieldLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("equalsFieldLookupper");
 
@@ -107,6 +110,8 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
                 continue;
             }
 
+            UUID searchFieldId = resolveSearchTwinClassFieldId(equalsFieldId, properties);
+
             double equalsValue;
             try {
                 equalsValue = Double.parseDouble(numericField.getValue());
@@ -122,7 +127,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
                     .addLinkDstTwinsId(dstLink, List.of(dstTwinId), false, true)
                     .setFieldsFilter(new TwinFieldFilter()
                             .addClause(new TwinFieldClause()
-                                    .addCondition(buildNumericFieldEquals(equalsFieldId, equalsValue))));
+                                    .addCondition(buildNumericFieldEquals(searchFieldId, equalsValue))));
 
             if (matchAssignee.extract(properties)) {
                 UUID assigneeUserId = twinService.findEntitySafe(dstTwinId).getAssignerUserId();
@@ -166,14 +171,11 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
             if (current.getHeadTwinId() == null) {
                 return null;
             }
-            if (headTwinClassId.equals(current.getTwinClassId())) {
+            twinService.loadHead(current);
+            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
                 return current.getHeadTwinId();
             }
-            TwinEntity head = current.getHeadTwin() != null ? current.getHeadTwin() : twinService.loadHead(current);
-            if (head == null) {
-                return null;
-            }
-            current = head;
+            current = current.getHeadTwin();
         }
         return null;
     }
@@ -185,6 +187,14 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
         FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
                 .lookupFieldValue(factoryItem, dstFieldId);
         return extractTwinIdFromFieldValue(dstFieldValue);
+    }
+
+    private UUID resolveSearchTwinClassFieldId(UUID equalsFieldId, Properties properties) {
+        UUID searchFieldId = equalsSearchTwinClassFieldId.extract(properties);
+        if (searchFieldId == null) {
+            searchFieldId = equalsFieldId;
+        }
+        return searchFieldId;
     }
 
     private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {

@@ -110,6 +110,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_TASK_INCORRECT(11005, "twin factory run task is incorrect"),
     FACTORY_INPUT_INCORRECT(11006, "incorrect factory input"),
     FACTORY_KEY_ALREADY_IN_USE(11007, "factory key is already in use"),
+    FACTORY_CONDITION_ERROR(11008, "factory condition error"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
     TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED(11102, "twin status class is not specified"),
     TWIN_STATUS_KEY_INCORRECT(11103, "twin status key incorrect"),

@@ -1,12 +1,15 @@
 package org.twins.core.featurer.factory.conditioner;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -17,6 +20,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -34,15 +38,21 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Component
+@Featurer(id = FeaturerTwins.ID_2443,
+        name = "Twin exists by head, link and field equals",
+        description = "True if twin exists with same head, dst link, numeric field value and optional dst twin assignee.")
 @Slf4j
-@RequiredArgsConstructor
-public abstract class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Conditioner {
+public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Conditioner {
 
     @FeaturerParam(name = "Twin class id", description = "Twin class to search", order = 1)
     public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
 
     @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 2)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
+
+    @FeaturerParam(name = "Head of twin class id", description = "Walk up head hierarchy until twin of this class is found; used as search head", order = 1)
+    public static final FeaturerParamUUID headTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("headTwinClassId");
 
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 3, optional = true)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
@@ -65,10 +75,18 @@ public abstract class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends 
     @FeaturerParam(name = "Flavor data list option id", description = "Optional twin flavor for location-specific uniqueness", order = 8, optional = true)
     public static final FeaturerParamUUID flavorDataListOptionId = new FeaturerParamUUIDTwinsDataListOptionId("flavorDataListOptionId");
 
-    protected final TwinSearchServiceV2 twinSearchService;
-    protected final TwinClassFieldService twinClassFieldService;
-    protected final TwinLinkService twinLinkService;
-    protected final TwinService twinService;
+    @Lazy
+    @Autowired
+    private TwinSearchServiceV2 twinSearchService;
+    @Lazy
+    @Autowired
+    private TwinClassFieldService twinClassFieldService;
+    @Lazy
+    @Autowired
+    private TwinLinkService twinLinkService;
+    @Lazy
+    @Autowired
+    private TwinService twinService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -80,28 +98,23 @@ public abstract class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends 
         return twinSearchService.exists(search.get());
     }
 
-    protected abstract UUID resolveHeadTwinId(TwinEntity contextTwin);
-
     private Optional<BasicSearch> buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        UUID headTwinId = resolveHeadTwinId(contextTwin);
+        UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
         if (headTwinId == null) {
-            log.info("Context twin has no head, unique twin search skipped");
-            return Optional.empty();
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
         }
 
         UUID dstTwinId = resolveDstTwinId(properties, factoryItem, contextTwin);
         if (dstTwinId == null) {
-            log.info("Link dst twin id is not resolved, unique twin search skipped");
-            return Optional.empty();
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Dst twin not found");
         }
 
         UUID equalsFieldId = equalsTwinClassFieldId.extract(properties);
         FieldValue equalsFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                 .lookupFieldValue(factoryItem, equalsFieldId);
         if (!(equalsFieldValue instanceof FieldValueText priceField) || priceField.isEmpty()) {
-            log.info("Equals field value is empty, unique twin search skipped");
-            return Optional.empty();
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Twin field not found");
         }
 
         UUID searchFieldId = resolveSearchTwinClassFieldId(equalsFieldId, properties);
@@ -209,6 +222,25 @@ public abstract class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends 
         }
         return null;
     }
+
+    private UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
+        if (headTwinClassId == null) {
+            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+        }
+        TwinEntity current = contextTwin;
+        for (int depth = 0; depth < 10; depth++) {
+            if (current.getHeadTwinId() == null) {
+                return null;
+            }
+            twinService.loadHead(current);
+            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
+                return current.getHeadTwinId();
+            }
+            current = current.getHeadTwin();
+        }
+        return null;
+    }
+
 
     private UUID resolveAssigneeUserIdFromDstTwin(UUID dstTwinId) throws ServiceException {
         return twinService.findEntitySafe(dstTwinId).getAssignerUserId();

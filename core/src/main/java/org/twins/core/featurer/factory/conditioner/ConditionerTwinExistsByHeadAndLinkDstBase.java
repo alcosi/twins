@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
@@ -77,14 +78,12 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         }
         UUID headTwinId = resolveHeadTwinId(rootTwin);
         if (headTwinId == null) {
-            log.debug("Context twin has no head, twin exists by head and link dst search skipped");
-            return null;
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
         }
 
         UUID dstTwinId = resolveDstTwinId(properties, factoryItem, rootTwin);
         if (dstTwinId == null) {
-            log.debug("Link dst twin id is not resolved, twin exists by head and link dst search skipped");
-            return null;
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Dst twin not found");
         }
 
         BasicSearch search = new BasicSearch().setCheckViewPermission(false);

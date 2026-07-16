@@ -24,12 +24,13 @@ public class ConditionerFactoryItemValueExists extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, fieldLookupers.getFromItemOutputFields());
+        return check(properties, factoryItem, fieldLookupers.getFromContextTwinFieldsOnly());
     }
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookuperNearest fieldLookuper) throws ServiceException {
         try {
-            return null != fieldLookuper.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+            var value = fieldLookuper.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+            return value != null && !value.isUndefined();
         } catch (ServiceException e) {
             return false;
         }
