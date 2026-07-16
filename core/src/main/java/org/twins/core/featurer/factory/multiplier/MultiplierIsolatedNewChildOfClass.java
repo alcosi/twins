@@ -14,6 +14,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.twin.TwinHeadService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -38,13 +39,12 @@ public class MultiplierIsolatedNewChildOfClass extends Multiplier {
             TwinEntity newTwin = new TwinEntity()
                     .setId(UuidUtils.generate())
                     .setName("")
-                    .setHeadTwin(inputItem.getTwin())
-                    .setHeadTwinId(inputItem.getTwin().getId())
                     .setTwinClass(outputTwinClassEntity)
                     .setTwinClassId(outputTwinClassEntity.getId())
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
+            TwinHeadService.setHead(newTwin, inputItem.getTwin());
             TwinCreate twinCreate = new TwinCreate();
             twinCreate.setTwinEntity(newTwin);
             ret.add(new FactoryItem()

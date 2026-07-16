@@ -12,6 +12,7 @@ import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -148,5 +149,14 @@ public class TwinHeadService {
             }
             twinEntity.setCreatableChildTwinClasses(creatableChildTwinClasses);
         }
+    }
+
+    public static void setHead(TwinEntity twin, TwinEntity headTwin) {
+        twin
+                .setHeadTwinId(headTwin.getId())
+                .setHeadTwin(headTwin)
+                .setHierarchyTree(headTwin.getHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twin.getId()))
+                .setPermissionSchemaSpaceId(TwinService.getPermissionSchemaSpaceId(headTwin))
+                .setPermissionSchemaId(headTwin.getPermissionSchemaId());
     }
 }

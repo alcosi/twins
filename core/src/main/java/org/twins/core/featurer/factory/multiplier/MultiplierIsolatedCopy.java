@@ -12,6 +12,7 @@ import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.twin.TwinHeadService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -46,9 +47,7 @@ public class MultiplierIsolatedCopy extends Multiplier {
                     .setCreatedByUser(apiUser.getUser());
 
             if (copyHead.extract(properties)) {
-                newTwin
-                        .setHeadTwin(inputItem.getTwin().getHeadTwin())
-                        .setHeadTwinId(inputItem.getTwin().getHeadTwinId());
+                TwinHeadService.setHead(newTwin, inputItem.getTwin().getHeadTwin());
             }
 
             TwinCreate twinCreate = new TwinCreate();

@@ -595,12 +595,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 var validHeads = twinHeadService.checkValidHeadsForClass(twinToCheck.getGroupedKeySet(), twinClass);
                 for (var twin : twinToCheck) {
                     var headTwin = validHeads.get(twin.getHeadTwinId());
-                    twin
-                            .setHeadTwinId(headTwin.getId())
-                            .setHeadTwin(headTwin)
-                            .setHierarchyTree(headTwin.getHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twin.getId()))
-                            .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin))
-                            .setPermissionSchemaId(headTwin.getPermissionSchemaId());
+                    TwinHeadService.setHead(twin, headTwin);
                 }
             }
         }
