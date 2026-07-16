@@ -1,1 +1,0 @@
-INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2339, 23, 'org.twins.core.featurer.factory.filler.FillerFieldMathSumFromContextField', 'Field math difference from context field', null, false) on conflict do nothing ;
