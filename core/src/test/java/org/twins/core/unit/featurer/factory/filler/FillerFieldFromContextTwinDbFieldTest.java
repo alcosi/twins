@@ -12,7 +12,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.factory.filler.FillerFieldFromContextTwinField;
+import org.twins.core.featurer.factory.filler.FillerFieldFromContextTwinDbField;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -26,7 +26,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class FillerFieldFromContextTwinFieldTest extends BaseUnitTest {
+class FillerFieldFromContextTwinDbFieldTest extends BaseUnitTest {
 
     @Mock
     private FieldLookupers fieldLookupers;
@@ -40,14 +40,14 @@ class FillerFieldFromContextTwinFieldTest extends BaseUnitTest {
     @Mock
     private TwinClassFieldService twinClassFieldService;
 
-    private FillerFieldFromContextTwinField filler;
+    private FillerFieldFromContextTwinDbField filler;
 
     private static final UUID SRC_FIELD_ID = UUID.randomUUID();
     private static final UUID DST_FIELD_ID = UUID.randomUUID();
 
     @BeforeEach
     void setUp() throws Exception {
-        filler = new FillerFieldFromContextTwinField();
+        filler = new FillerFieldFromContextTwinDbField();
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
         inject(filler, "twinClassFieldService", twinClassFieldService);

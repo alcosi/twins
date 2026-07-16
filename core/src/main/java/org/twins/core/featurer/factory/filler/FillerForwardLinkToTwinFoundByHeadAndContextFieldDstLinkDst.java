@@ -10,10 +10,12 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
@@ -23,23 +25,26 @@ import java.util.UUID;
 @Component
 @Featurer(
         id = FeaturerTwins.ID_2359,
-        name = "Forward link to twin found by head and context field dst",
-        description = "Finds twin by head and optional link dst; dst twin id from context field. " +
-                "Search link id from optional dst link id param. Creates forward link from output twin."
+        name = "Forward link to twin found by head and field dst",
+        description = "Finds twin by head and optional link dst; dst twin id from field. " +
+                "Search link id from optional dst link id param. Creates forward link from twin."
 )
 @Slf4j
 public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends FillerForwardLinkToTwinFoundByHeadAndLinkDstBase {
 
-    @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 3)
+    @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 5)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
 
-    @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 4)
+    @FeaturerParam(name = "Dst field lookupper", description = "Dst field lookupper", order = 6, optional = true)
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper dstFieldLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("dstFieldLookupper");
+
+    @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 7)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
+        FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
                 .lookupFieldValue(factoryItem, dstFieldId);
         return extractTwinIdFromFieldValue(dstFieldValue);
     }

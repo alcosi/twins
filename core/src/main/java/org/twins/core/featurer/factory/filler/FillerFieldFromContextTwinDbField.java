@@ -11,13 +11,13 @@ import org.twins.core.featurer.FeaturerTwins;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2365,
+@Featurer(id = FeaturerTwins.ID_2311,
         name = "Field from context twin field",
         description = "")
 @Slf4j
-public class FillerFieldFromContextTwinField extends FillerFieldFromContext {
+public class FillerFieldFromContextTwinDbField extends FillerFieldFromContext {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextTwinFields());
+        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextTwinDbFields());
     }
 }

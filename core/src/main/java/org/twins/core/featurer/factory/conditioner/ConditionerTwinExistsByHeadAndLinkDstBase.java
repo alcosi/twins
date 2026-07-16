@@ -6,6 +6,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -15,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
 
@@ -25,7 +28,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditioner {
 
     @FeaturerParam(name = "Twin class id", description = "Twin class to search", order = 1)
@@ -34,17 +36,24 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
     @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 2)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
 
+    @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 9, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
+
     @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 10, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeFactoryInputTwin = new FeaturerParamBoolean("excludeFactoryInputTwin");
 
     @FeaturerParam(name = "Match factory item output twin", description = "If true, checks that factory item output twin matches search (for multiplier filter on TwinUpdate)", order = 11, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean matchFactoryItemOutputTwin = new FeaturerParamBoolean("matchFactoryItemOutputTwin");
 
-    @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 4, optional = true, defaultValue = "false")
-    public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
-
-    protected final TwinSearchServiceV2 twinSearchService;
-    protected final TwinService twinService;
+    @Lazy
+    @Autowired
+    protected TwinSearchServiceV2 twinSearchService;
+    @Lazy
+    @Autowired
+    protected TwinService twinService;
+    @Lazy
+    @Autowired
+    protected TwinLinkService twinLinkService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -108,12 +117,13 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         return search;
     }
 
-    protected TwinEntity extractTwinFromFieldValue(FieldValue fieldValue) {
+    protected TwinEntity extractTwinFromFieldValue(FieldValue fieldValue) throws ServiceException {
         if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
             return linkSingle.getValue();
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
+            twinLinkService.loadDstTwin(linkEntity);
             return linkEntity.getDstTwin();
         }
         return null;

@@ -1,6 +1,5 @@
 package org.twins.core.featurer.factory.multiplier;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -23,16 +22,14 @@ import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListOptionId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.featurer.params.*;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -44,7 +41,6 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_2215,
         name = "Isolated twins by head, link, field equals and current assignee",
         description = "")
@@ -53,8 +49,14 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     @FeaturerParam(name = "Twin class id", description = "Twin class to search", order = 1)
     public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
 
+    @FeaturerParam(name = "Head of twin class id", description = "Walk up head hierarchy until twin of this class is found; used as search head", order = 1)
+    public static final FeaturerParamUUID headTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("headTwinClassId");
+
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field). If not set, dst twin is read from the context twin forward link", order = 2, optional = true)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
+
+    @FeaturerParam(name = "Dst field lookupper", description = "Dst field lookupper", order = 6, optional = true)
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper dstFieldLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("dstFieldLookupper");
 
     @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 2)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
@@ -62,19 +64,25 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     @FeaturerParam(name = "Equals twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
+    @FeaturerParam(name = "Equals field lookupper", description = "Equals field lookupper", order = 6, optional = true)
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper equalsFieldLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("equalsFieldLookupper");
+
     @FeaturerParam(name = "Match assignee", description = "If true, add link dst twin assigneeUserId to search when set; ignore assignee when dst twin has none", order = 4, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean matchAssignee = new FeaturerParamBoolean("matchAssignee");
 
     @FeaturerParam(name = "Flavor data list option id", description = "Optional twin flavor for location-specific filtering", order = 8, optional = true)
     public static final FeaturerParamUUID flavorDataListOptionId = new FeaturerParamUUIDTwinsDataListOptionId("flavorDataListOptionId");
 
-    private final TwinSearchService twinSearchService;
-    private final TwinClassFieldService twinClassFieldService;
     @Lazy
     @Autowired
-    FieldLookupers fieldLookupers;
+    private TwinClassFieldService twinClassFieldService;
+    @Lazy
+    @Autowired
+    private FieldLookupers fieldLookupers;
     @Autowired
     private TwinService twinService;
+    @Autowired
+    private TwinSearchService twinSearchService;
 
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
@@ -85,7 +93,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
 
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity contextTwin = inputItem.checkSingleContextTwin();
-            UUID headTwinId = resolveHeadTwinId(contextTwin);
+            UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
 
             UUID dstTwinId = resolveDstTwinId(properties, inputItem);
             if (dstTwinId == null) {
@@ -93,7 +101,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
                 continue;
             }
 
-            FieldValue equalsFieldValue = fieldLookupers.getFromContextTwinHeadTwinDbFields().lookupFieldValue(inputItem, equalsFieldId);
+            FieldValue equalsFieldValue = resolveEqualsFieldValue(properties, inputItem, equalsFieldId);
             if (!(equalsFieldValue instanceof FieldValueText numericField) || numericField.isEmpty()) {
                 log.info("Equals field value is empty for [{}], multiplier step skipped", contextTwin.logShort());
                 continue;
@@ -144,16 +152,28 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
         return ret;
     }
 
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin) {
-        if (contextTwin.getHeadTwinId() != null) {
-            TwinEntity headTwin = contextTwin.getHeadTwin();
-            if (headTwin == null) {
-                headTwin = twinService.findHeadTwin(contextTwin.getHeadTwinId());
+    private FieldValue resolveEqualsFieldValue(Properties properties, FactoryItem inputItem, UUID equalsFieldId) throws ServiceException {
+        return ((FieldLookuperNearest) fieldLookupers.getByType(equalsFieldLookupper.extract(properties)))
+                .lookupFieldValue(inputItem, equalsFieldId);
+    }
+
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
+        if (headTwinClassId == null) {
+            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+        }
+        TwinEntity current = contextTwin;
+        for (int depth = 0; depth < 10; depth++) {
+            if (current.getHeadTwinId() == null) {
+                return null;
             }
-            if (headTwin != null && headTwin.getHeadTwinId() != null) {
-                return headTwin.getHeadTwinId();
+            if (headTwinClassId.equals(current.getTwinClassId())) {
+                return current.getHeadTwinId();
             }
-            return null;
+            TwinEntity head = current.getHeadTwin() != null ? current.getHeadTwin() : twinService.loadHead(current);
+            if (head == null) {
+                return null;
+            }
+            current = head;
         }
         return null;
     }
@@ -162,7 +182,8 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         if (dstFieldId == null)
             return null;
-        FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, dstFieldId);
+        FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
+                .lookupFieldValue(factoryItem, dstFieldId);
         return extractTwinIdFromFieldValue(dstFieldValue);
     }
 
