@@ -1050,7 +1050,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         // are skipped, which stops the cascade.
         if (twinSave.getLauncher() == TwinOperation.Launcher.direct)
             return false;
-        else if (twinSave.getCascadeDepth() == null || twinSave.getCascadeDepth() <= 0) {
+        if (twinSave.getCascadeDepth() == null)
+            return false;
+        else if (twinSave.getCascadeDepth() <= 0) {
             log.warn("Factory not fired for on create/update {} because of reached cascade depth limit", twinSave.getTwinEntity().logNormal());
             return true;
         }

@@ -5,7 +5,6 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFieldsAndContextTwinDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFieldsAndContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinHeadTwinDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByFieldDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByLinkDbFields;
