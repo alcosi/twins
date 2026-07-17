@@ -414,7 +414,14 @@ public enum Permissions {
     NOTIFICATION_SCHEMA_CREATE(SystemIds.Permission.NotificationSchema.CREATE),
     NOTIFICATION_SCHEMA_VIEW(SystemIds.Permission.NotificationSchema.VIEW),
     NOTIFICATION_SCHEMA_UPDATE(SystemIds.Permission.NotificationSchema.UPDATE),
-    NOTIFICATION_SCHEMA_DELETE(SystemIds.Permission.NotificationSchema.DELETE)
+    NOTIFICATION_SCHEMA_DELETE(SystemIds.Permission.NotificationSchema.DELETE),
+
+    // TWIN POINTER permissions
+    TWIN_POINTER_MANAGE(SystemIds.Permission.TwinPointer.MANAGE),
+    TWIN_POINTER_CREATE(SystemIds.Permission.TwinPointer.CREATE),
+    TWIN_POINTER_VIEW(SystemIds.Permission.TwinPointer.VIEW),
+    TWIN_POINTER_UPDATE(SystemIds.Permission.TwinPointer.UPDATE),
+    TWIN_POINTER_DELETE(SystemIds.Permission.TwinPointer.DELETE)
     ;
 
     private final UUID id;
