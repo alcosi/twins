@@ -2,23 +2,9 @@ package org.twins.core.unit.featurer.factory.lookuper;
 
 import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFieldsAndContextTwinDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinHeadTwinDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByFieldDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByLinkDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinUncommitedFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputHeadTwinFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputHeadTwinLinkedTwinFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputLinkedTwinFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputLinkedTwinHeadTwinFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputUncommitedFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class FieldLookupersTest extends BaseUnitTest {
 
@@ -29,6 +15,8 @@ class FieldLookupersTest extends BaseUnitTest {
     void constructor_wiresEveryLookuperToItsGetter() {
         var fromContextFields = new FieldLookuperFromContextFields();
         var fromContextFieldsAndContextTwinDbFields = new FieldLookuperFromContextFieldsAndContextTwinDbFields();
+        var fromContextTwinFields = new FieldLookuperFromContextTwinFields();
+        var fromContextTwinFieldsOnly = new FieldLookuperFromContextTwinFieldsOnly();
         var fromContextTwinDbFields = new FieldLookuperFromContextTwinDbFields();
         var fromContextTwinLinkedByLinkTwinFields = new FieldLookuperFromContextTwinLinkedTwinByLinkDbFields();
         var fromContextTwinLinkedByFieldTwinFields = new FieldLookuperFromContextTwinLinkedTwinByFieldDbFields();
@@ -45,6 +33,8 @@ class FieldLookupersTest extends BaseUnitTest {
         var registry = new FieldLookupers(
                 fromContextFields,
                 fromContextFieldsAndContextTwinDbFields,
+                fromContextTwinFields,
+                fromContextTwinFieldsOnly,
                 fromContextTwinDbFields,
                 fromContextTwinLinkedByLinkTwinFields,
                 fromContextTwinLinkedByFieldTwinFields,
@@ -60,6 +50,8 @@ class FieldLookupersTest extends BaseUnitTest {
 
         assertSame(fromContextFields, registry.getFromContextFields());
         assertSame(fromContextFieldsAndContextTwinDbFields, registry.getFromContextFieldsAndContextTwinDbFields());
+        assertSame(fromContextTwinFields, registry.getFromContextTwinFields());
+        assertSame(fromContextTwinFieldsOnly, registry.getFromContextTwinFieldsOnly());
         assertSame(fromContextTwinDbFields, registry.getFromContextTwinDbFields());
         assertSame(fromContextTwinLinkedByLinkTwinFields, registry.getFromContextTwinLinkedByLinkTwinFields());
         assertSame(fromContextTwinLinkedByFieldTwinFields, registry.getFromContextTwinLinkedByFieldTwinFields());

@@ -5,7 +5,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.FeaturerService;
@@ -511,7 +510,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     ) {
     }
 
-    public static <S, R, K, RI> void loadKit(
+public static <S, R, K, RI> void loadKit(
             Collection<S> srcCollection,
             Function<S, K> srcGetId,
             Function<S, Kit<R, RI>> srcGetKitField,
@@ -529,16 +528,22 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         if (needLoad == null)
             return;
-        KitGrouped<R, RI, K> grouped = new KitGrouped<>(
-                queryFunction.apply(needLoad.getIdSet()),
-                queryResultGetId,
-                queryResultGetGroupId);
+        // Group query results by groupId manually instead of using KitGrouped: KitGrouped indexes
+        // the whole flat collection by queryResultGetId (e.g. locale) and throws on duplicate keys,
+        // but that key is only unique per group, not globally. See I18nService.loadTranslations.
+        Map<K, List<R>> grouped = new HashMap<>();
+        for (R r : queryFunction.apply(needLoad.getIdSet())) {
+            K groupId = queryResultGetGroupId.apply(r);
+            if (groupId != null) {
+                grouped.computeIfAbsent(groupId, k -> new ArrayList<>()).add(r);
+            }
+        }
         for (S src : needLoad) {
-            K id = srcGetId.apply(src);
-            if (grouped.containsGroupedKey(id))
-                srcSetKitField.accept(src, new Kit<>(grouped.getGrouped(id), queryResultGetId));
-            else
-                srcSetKitField.accept(src, Kit.emptyKit());
+            List<R> items = grouped.get(srcGetId.apply(src));
+            srcSetKitField.accept(src,
+                    items != null && !items.isEmpty()
+                            ? new Kit<>(items, queryResultGetId)
+                            : Kit.emptyKit());
         }
     }
 
@@ -562,18 +567,22 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         if (needLoad == null)
             return;
-        KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
-                queryFunction.apply(needLoad.getIdSet()),
-                queryResultGetId,
-                queryResultGetGroupId);
+        // Group query results by groupId manually instead of using KitGrouped: KitGrouped indexes
+        // the whole flat collection by queryResultGetId and throws on duplicate keys, but that key
+        // is only unique per group, not globally. See the note on the overload above.
+        Map<K, List<Q>> grouped = new HashMap<>();
+        for (Q q : queryFunction.apply(needLoad.getIdSet())) {
+            K groupId = queryResultGetGroupId.apply(q);
+            if (groupId != null) {
+                grouped.computeIfAbsent(groupId, k -> new ArrayList<>()).add(q);
+            }
+        }
         for (S src : needLoad) {
-            K id = srcGetId.apply(src);
-            if (grouped.containsGroupedKey(id))
-                srcSetKitField.accept(src, new Kit<>(
-                        grouped.getGrouped(id).stream().map(transformFunction).toList(),
-                        resultGetId));
-            else
-                srcSetKitField.accept(src, Kit.emptyKit());
+            List<Q> items = grouped.get(srcGetId.apply(src));
+            srcSetKitField.accept(src,
+                    items != null && !items.isEmpty()
+                            ? new Kit<>(items.stream().map(transformFunction).toList(), resultGetId)
+                            : Kit.emptyKit());
         }
     }
 
