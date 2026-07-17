@@ -6,13 +6,13 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.cambium.featurer.params.FeaturerParamUUIDList;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDListTwinsLinkId;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
@@ -40,7 +40,7 @@ public class PointerOnLinkedChained extends Pointer {
     @FeaturerParam(name = "Link ids",
             description = "ordered comma-separated link ids; the HEAD_ID system field token means a head hop",
             order = 1)
-    public static final FeaturerParamUUIDSet linkIds = new FeaturerParamUUIDSetTwinsLinkId("linkIds");
+    public static final FeaturerParamUUIDList linkIds = new FeaturerParamUUIDListTwinsLinkId("linkIds");
 
     @Lazy
     private final TwinLinkService twinLinkService;
@@ -49,8 +49,8 @@ public class PointerOnLinkedChained extends Pointer {
     private final TwinService twinService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
-        LinkedHashSet<UUID> links = linkIds.extract(properties);
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
+        List<UUID> links = linkIds.extract(properties);
         if (links.isEmpty()) {
             return Map.of();
         }
@@ -65,7 +65,7 @@ public class PointerOnLinkedChained extends Pointer {
             }
             iterator = SystemIds.TwinClassField.Base.HEAD_ID.equals(link)
                     ? toHead(twinService, iterator)
-                    : followSingleForwardLink(twinLinkService, iterator, link);
+                    : followSingleForwardLink(twinLinkService, iterator, link, optional);
         }
         return iterator;
     }

@@ -36,8 +36,9 @@ class PointerOnPointerChainedTest extends BaseUnitTest {
     void setUp() throws ServiceException {
         pointer = new PointerOnPointerChained(twinPointerService);
         pointer.featurerService = featurerService; // public field on the Featurer base class
-        // by default every sub-pointer resolves through the shared subFeaturer mock
-        doReturn(subFeaturer).when(featurerService).getFeaturer(anyInt(), eq(Pointer.class));
+        // by default every sub-pointer resolves through the shared subFeaturer mock.
+        // lenient: a few tests throw before reaching a sub-pointer or re-stub this themselves.
+        lenient().doReturn(subFeaturer).when(featurerService).getFeaturer(anyInt(), eq(Pointer.class));
     }
 
     private Properties props(String csv) {

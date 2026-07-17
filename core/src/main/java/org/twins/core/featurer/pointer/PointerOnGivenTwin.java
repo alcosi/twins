@@ -28,7 +28,7 @@ public class PointerOnGivenTwin extends Pointer {
     private final TwinService twinService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         TwinEntity target = twinService.findEntitySafe(twinId.extract(properties));
         if (target == null) {
             return Map.of();

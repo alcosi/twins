@@ -48,7 +48,7 @@ public class PointerOnPointerChained extends Pointer {
     private final TwinPointerService twinPointerService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         LinkedHashSet<UUID> pointers = pointerIds.extract(properties);
         if (pointers.isEmpty()) {
             return Map.of();

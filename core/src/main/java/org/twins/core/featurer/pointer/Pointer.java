@@ -35,11 +35,16 @@ public abstract class Pointer extends FeaturerTwins {
     /**
      * Batch entry point. Resolves the subscriber twin for every src publisher twin in one pass
      * using a single subclass-defined lookup. Filters out already-cached entries, calls
-     * {@link #load(Properties, Collection)} for the misses, then caches results on each src
+     * {@link #load(Properties, Collection, boolean)} for the misses, then caches results on each src
      * twin (null result included, so a second pass for the same pointer is a no-op).
      * <p>
      * This is the primary tool for eliminating N+1 in FieldListenerService: N publishers with
      * one pointer = one SQL/lookup in subclass impl, not N.
+     * <p>
+     * {@link TwinPointerEntity#isOptional()} is delegated to the concrete impl so a per-twin
+     * resolution failure (e.g. {@link ErrorCodeTwins#POINTER_NON_SINGLE} when a twin has more than
+     * one forward link) can skip just that twin instead of poisoning the whole batch. The root never
+     * swallows — if a subclass still throws, it propagates to the caller.
      */
     public void load(TwinPointerEntity pointer, Collection<TwinEntity> srcTwins) throws ServiceException {
         if (srcTwins == null || srcTwins.isEmpty()) return;
@@ -54,14 +59,30 @@ public abstract class Pointer extends FeaturerTwins {
         if (misses.isEmpty()) return;
 
         Properties properties = featurerService.extractProperties(this, pointer.getPointerParams());
-        Map<UUID, TwinEntity> loaded = load(properties, misses);
+        Map<UUID, TwinEntity> loaded = load(properties, misses, pointer.isOptional());
         for (TwinEntity src : misses) {
             TwinEntity target = loaded == null ? null : loaded.get(src.getId());
+            if (target == null && !pointer.isOptional()) {
+                throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "{} is not optional and has no target for {} ", pointer.logShort(), src.logShort());
+            }
             src.addPointer(pointerId, target);
         }
     }
 
-    protected abstract Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException;
+    /**
+     * Strict ({@code optional = false}) convenience overload, used by direct subclass unit tests.
+     */
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+        return load(properties, srcTwins, false);
+    }
+
+    /**
+     * Concrete resolution. {@code optional = true} asks the impl to skip (resolve to null) any single
+     * source twin whose resolution is ambiguous — e.g. more than one forward link — instead of
+     * throwing {@link ErrorCodeTwins#POINTER_NON_SINGLE}; {@code optional = false} (strict) throws
+     * as before.
+     */
+    protected abstract Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException;
 
     // ----------------------------------------------------------------------------------------------
     // Composite-navigation primitives — single-hop helpers shared by the compound pointers
@@ -83,11 +104,14 @@ public abstract class Pointer extends FeaturerTwins {
     /**
      * Follows a single forward {@link TwinLinkEntity} of the given {@code linkId} for every current
      * twin. More than one forward link of the same type for a source yields
-     * {@link ErrorCodeTwins#POINTER_NON_SINGLE}; no link drops the source from the result.
+     * {@link ErrorCodeTwins#POINTER_NON_SINGLE} when {@code optional = false}; with
+     * {@code optional = true} the ambiguous source is skipped (dropped from the result) and the
+     * rest of the batch is still resolved. No link drops the source from the result.
      */
     protected static Map<UUID, TwinEntity> followSingleForwardLink(TwinLinkService twinLinkService,
                                                                    Map<UUID, TwinEntity> srcById,
-                                                                   UUID linkIdValue) throws ServiceException {
+                                                                   UUID linkIdValue,
+                                                                   boolean optional) throws ServiceException {
         if (srcById.isEmpty()) {
             return Map.of();
         }
@@ -101,6 +125,12 @@ public abstract class Pointer extends FeaturerTwins {
                 continue;
             }
             if (forwardLinks.size() > 1) {
+                if (optional) {
+                    // per-twin skip: drop this ambiguous source, keep resolving the rest of the batch
+                    log.warn("Optional pointer: {} has {} forward links by link[{}]; skipping this twin",
+                            src.logShort(), forwardLinks.size(), linkIdValue);
+                    continue;
+                }
                 throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
                         src.logShort() + " has " + forwardLinks.size() + " linked twins by link[" + linkIdValue + "]");
             }

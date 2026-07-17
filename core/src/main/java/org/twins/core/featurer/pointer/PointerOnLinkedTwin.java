@@ -32,7 +32,7 @@ public class PointerOnLinkedTwin extends Pointer {
     private final TwinLinkService twinLinkService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         twinLinkService.loadTwinLinks(srcTwins);
         UUID linkIdValue = linkId.extract(properties);
         Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
@@ -43,6 +43,10 @@ public class PointerOnLinkedTwin extends Pointer {
                 continue;
             }
             if (forwardLinks.size() > 1) {
+                if (optional) {
+                    log.warn("Optional pointer: {} has {} linked twins by link[{}]; skipping this twin", twin.logShort(), forwardLinks.size(), linkIdValue);
+                    continue;
+                }
                 throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
                         twin.logShort() + " has " + forwardLinks.size() + " linked twins by link[" + linkIdValue + "]");
             }

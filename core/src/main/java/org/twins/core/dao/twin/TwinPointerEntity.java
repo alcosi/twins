@@ -35,6 +35,12 @@ public class TwinPointerEntity implements EasyLoggable {
     @Column(name = "name")
     private String name;
 
+    // TWINS-875: when true, a pointer resolution failure (e.g. POINTER_NON_SINGLE) is swallowed
+    // (log.warn + cached null) instead of propagating, so one anomalous twin cannot roll back the
+    // whole recompute batch. Default false = strict fail-fast (previous behaviour).
+    @Column(name = "optional")
+    private boolean optional;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)

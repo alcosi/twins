@@ -36,10 +36,10 @@ public class PointerOnLinkedTwinHead extends Pointer {
     private final TwinService twinService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         UUID linkIdValue = linkId.extract(properties);
         // hop 1: src -> single-linked twin (by link id)
-        Map<UUID, TwinEntity> linked = followSingleForwardLink(twinLinkService, identity(srcTwins), linkIdValue);
+        Map<UUID, TwinEntity> linked = followSingleForwardLink(twinLinkService, identity(srcTwins), linkIdValue, optional);
         // hop 2: linked twin -> its head
         return toHead(twinService, linked);
     }

@@ -30,8 +30,11 @@ public class PointerOnHead extends Pointer {
     private final TwinService twinService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         Integer depthValue = depth.extract(properties);
+        if (depthValue == null) {
+            depthValue = 1; // default per @FeaturerParam(defaultValue = "1")
+        }
 
         Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
         if (depthValue == 1) {
