@@ -64,7 +64,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     @FeaturerParam(name = "Equals twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
-    @FeaturerParam(name = "Search twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3)
+    @FeaturerParam(name = "Search twin class field id", description = "The ID of the numeric field by which the comparison will be performed.", order = 3, optional = true)
     public static final FeaturerParamUUID equalsSearchTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsSearchTwinClassFieldId");
 
     @FeaturerParam(name = "Equals field lookupper", description = "Equals field lookupper", order = 6, optional = true)
