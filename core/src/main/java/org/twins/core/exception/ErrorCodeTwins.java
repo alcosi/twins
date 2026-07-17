@@ -156,6 +156,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED(12504, "multipart file is not presented", HttpStatus.BAD_REQUEST),
     POINTER_NON_SINGLE(12601, "twin pointer is not single"),
     POINTER_ON_NULL(12602, "twin pointer is null"),
+    POINTER_UPDATE_RESTRICTED(12603, "twin pointer can not be updated"),
     IDP_IS_NOT_ACTIVE(12701, "identity provider is not active", HttpStatus.SERVICE_UNAVAILABLE),
     IDP_PASSWORD_LOGIN_NOT_SUPPORTED(12702, "password login is not supported by identity provider connector"),
     IDP_TOKEN_REFRESH_NOT_SUPPORTED(12703, "token is not supported by identity provider connector"),

@@ -4,24 +4,34 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerRepository;
+import org.twins.core.domain.twin.TwinPointerCreate;
+import org.twins.core.domain.twin.TwinPointerUpdate;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.pointer.Pointer;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.user.UserService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,6 +42,8 @@ public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerE
     private final TwinPointerRepository twinPointerRepository;
     private final FeaturerService featurerService;
     private final TwinClassService twinClassService;
+    private final AuthService authService;
+    private final UserService userService;
 
     @Override
     public CrudRepository<TwinPointerEntity, UUID> entityRepository() {
@@ -45,16 +57,97 @@ public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerE
 
     @Override
     public boolean isEntityReadDenied(TwinPointerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return entity.getTwinClassId() != null && twinClassService.isEntityReadDenied(entity.getTwinClass());
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
-    public boolean validateEntity(TwinPointerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) {
+    public boolean validateEntity(TwinPointerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty id");
         if (entity.getPointerFeaturerId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty pointerFeaturerId");
+        // pointerFeaturerId must resolve to a Pointer featurer
+        featurerService.getFeaturer(entity.getPointerFeaturerId(), Pointer.class);
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinPointerEntity> createTwinPointers(List<TwinPointerCreate> createList) throws ServiceException {
+        UUID apiUserId = authService.getApiUser().getUserId();
+        UUID domainId = authService.getApiUser().getDomainId();
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        List<TwinPointerEntity> entities = new ArrayList<>();
+        for (TwinPointerCreate create : createList) {
+            TwinPointerEntity entity = create.getTwinPointer()
+                    .setId(UUID.randomUUID())
+                    .setCreatedAt(now)
+                    .setCreatedByUserId(apiUserId)
+                    .setDomainId(domainId);
+            entities.add(entity);
+        }
+        List<TwinPointerEntity> result = new ArrayList<>();
+        for (TwinPointerEntity saved : saveSafe(entities)) {
+            result.add(saved);
+        }
+        return result;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinPointerEntity> updateTwinPointers(List<TwinPointerUpdate> updateList) throws ServiceException {
+        if (CollectionUtils.isEmpty(updateList)) {
+            return Collections.emptyList();
+        }
+        // bulk load: one SELECT for the whole batch, then in-memory lookup from the kit (avoids N+1)
+        Kit<TwinPointerEntity, UUID> dbEntitiesKit = findEntitiesSafe(
+                updateList.stream()
+                        .map(update -> update.getTwinPointer().getId())
+                        .collect(Collectors.toList())
+        );
+        ChangesHelperMulti<TwinPointerEntity> changes = new ChangesHelperMulti<>();
+        List<TwinPointerEntity> allEntities = dbEntitiesKit.getList();
+        for (TwinPointerUpdate update : updateList) {
+            TwinPointerEntity dbEntity = dbEntitiesKit.get(update.getTwinPointer().getId());
+            // system pointers (domain_id = null) are shared/global: visible to every domain but never editable
+            if (dbEntity.getDomainId() == null) {
+                throw new ServiceException(ErrorCodeTwins.POINTER_UPDATE_RESTRICTED, dbEntity.logNormal() + " is a system pointer and can not be updated");
+            }
+            TwinPointerEntity src = update.getTwinPointer();
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateEntityFieldByEntity(src, dbEntity, TwinPointerEntity::getTwinClassId, TwinPointerEntity::setTwinClassId, TwinPointerEntity.Fields.twinClassId, changesHelper);
+            updateEntityFieldByEntity(src, dbEntity, TwinPointerEntity::getPointerFeaturerId, TwinPointerEntity::setPointerFeaturerId, TwinPointerEntity.Fields.pointerFeaturerId, changesHelper);
+            updateEntityFieldByEntity(src, dbEntity, TwinPointerEntity::getPointerParams, TwinPointerEntity::setPointerParams, TwinPointerEntity.Fields.pointerParams, changesHelper);
+            updateEntityFieldByEntity(src, dbEntity, TwinPointerEntity::getName, TwinPointerEntity::setName, TwinPointerEntity.Fields.name, changesHelper);
+            updateEntityFieldByEntity(src, dbEntity, TwinPointerEntity::getOptional, TwinPointerEntity::setOptional, TwinPointerEntity.Fields.optional, changesHelper);
+            if (changesHelper.hasChanges()) {
+                changes.add(dbEntity, changesHelper);
+            }
+        }
+        if (!changes.entrySet().isEmpty()) {
+            updateSafe(changes);
+        }
+        return allEntities;
+    }
+
+    public void loadTwinClass(TwinPointerEntity pointer) throws ServiceException {
+        loadTwinClass(Collections.singleton(pointer));
+    }
+
+    public void loadTwinClass(Collection<TwinPointerEntity> pointers) throws ServiceException {
+        twinClassService.load(pointers,
+                TwinPointerEntity::getTwinClassId,
+                TwinPointerEntity::getTwinClass,
+                TwinPointerEntity::setTwinClass);
+    }
+
+    public void loadCreatedByUser(TwinPointerEntity pointer) throws ServiceException {
+        loadCreatedByUser(Collections.singleton(pointer));
+    }
+
+    public void loadCreatedByUser(Collection<TwinPointerEntity> pointers) throws ServiceException {
+        userService.load(pointers,
+                TwinPointerEntity::getCreatedByUserId,
+                TwinPointerEntity::getCreatedByUser,
+                TwinPointerEntity::setCreatedByUser);
     }
 
     public TwinEntity getPointer(TwinEntity currentTwin, UUID twinPointerId) throws ServiceException {

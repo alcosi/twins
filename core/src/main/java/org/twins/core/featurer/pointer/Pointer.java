@@ -41,7 +41,7 @@ public abstract class Pointer extends FeaturerTwins {
      * This is the primary tool for eliminating N+1 in FieldListenerService: N publishers with
      * one pointer = one SQL/lookup in subclass impl, not N.
      * <p>
-     * {@link TwinPointerEntity#isOptional()} is delegated to the concrete impl so a per-twin
+     * {@link TwinPointerEntity#getOptional()} is delegated to the concrete impl so a per-twin
      * resolution failure (e.g. {@link ErrorCodeTwins#POINTER_NON_SINGLE} when a twin has more than
      * one forward link) can skip just that twin instead of poisoning the whole batch. The root never
      * swallows — if a subclass still throws, it propagates to the caller.
@@ -49,6 +49,7 @@ public abstract class Pointer extends FeaturerTwins {
     public void load(TwinPointerEntity pointer, Collection<TwinEntity> srcTwins) throws ServiceException {
         if (srcTwins == null || srcTwins.isEmpty()) return;
         UUID pointerId = pointer.getId();
+        boolean optional = Boolean.TRUE.equals(pointer.getOptional());
 
         List<TwinEntity> misses = new ArrayList<>();
         for (TwinEntity src : srcTwins) {
@@ -59,10 +60,10 @@ public abstract class Pointer extends FeaturerTwins {
         if (misses.isEmpty()) return;
 
         Properties properties = featurerService.extractProperties(this, pointer.getPointerParams());
-        Map<UUID, TwinEntity> loaded = load(properties, misses, pointer.isOptional());
+        Map<UUID, TwinEntity> loaded = load(properties, misses, optional);
         for (TwinEntity src : misses) {
             TwinEntity target = loaded == null ? null : loaded.get(src.getId());
-            if (target == null && !pointer.isOptional()) {
+            if (target == null && !optional) {
                 throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "{} is not optional and has no target for {} ", pointer.logShort(), src.logShort());
             }
             src.addPointer(pointerId, target);
