@@ -1032,6 +1032,32 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher, twinChangesCollector);
     }
 
+    private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
+            return;
+        }
+        FactoryLauncher factoryLauncher = twinCreate.getSketchMode() ? FactoryLauncher.afterSketchCreate : FactoryLauncher.afterTwinCreate;
+        twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
+    }
+
+    private void runFactoryOnUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (isReachedCascadeDepth(twinUpdate))
+            return;
+        FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
+            case twinUpdate -> FactoryLauncher.onTwinUpdate;
+            case sketchUpdate -> FactoryLauncher.onSketchUpdate;
+            case sketchFinalize -> FactoryLauncher.onSketchFinalize;
+            default -> null;
+        };
+        if (factoryLauncher == null)
+            return;
+        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher, twinChangesCollector);
+        if (factoryLauncher.equals(FactoryLauncher.onSketchFinalize)
+                && twinUpdate.getTwinEntity().isSketch()) {
+            twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);
+        }
+    }
+
     private void runFactoryOnUpdateAfterRecompute(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (isReachedCascadeDepth(twinUpdate))
             return;
@@ -1069,32 +1095,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         out.setTwinFieldDecimalKit(db.getTwinFieldDecimalKit());
         out.setFieldValuesKit(db.getFieldValuesKit());
         out.setTwinLinks(db.getTwinLinks());
-    }
-
-    private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
-            return;
-        }
-        FactoryLauncher factoryLauncher = twinCreate.getSketchMode() ? FactoryLauncher.afterSketchCreate : FactoryLauncher.afterTwinCreate;
-        twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
-    }
-
-    private void runFactoryOnUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (isReachedCascadeDepth(twinUpdate))
-            return;
-        FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
-            case twinUpdate -> FactoryLauncher.onTwinUpdate;
-            case sketchUpdate -> FactoryLauncher.onSketchUpdate;
-            case sketchFinalize -> FactoryLauncher.onSketchFinalize;
-            default -> null;
-        };
-        if (factoryLauncher == null)
-            return;
-        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher, twinChangesCollector);
-        if (factoryLauncher.equals(FactoryLauncher.onSketchFinalize)
-                && twinUpdate.getTwinEntity().isSketch()) {
-            twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);
-        }
     }
 
     private static boolean isReachedCascadeDepth(TwinSave twinSave) {
