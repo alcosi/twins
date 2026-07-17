@@ -33,7 +33,7 @@ public class PointerOnSingleGrandChild extends Pointer {
     @Lazy
     private final TwinSearchService twinSearchService;
 
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         if (srcTwins.isEmpty()) return Map.of();
         UUID grandChildClassId = twinClassId.extract(properties);
         List<UUID> srcTwinIds = srcTwins.stream().map(TwinEntity::getId).collect(Collectors.toList());
@@ -69,6 +69,10 @@ public class PointerOnSingleGrandChild extends Pointer {
                 continue;
             }
             if (grandchildren.size() > 1) {
+                if (optional) {
+                    log.warn("Optional pointer: {} has {} grandchild twins of class[{}]; skipping this twin", src.logShort(), grandchildren.size(), grandChildClassId);
+                    continue;
+                }
                 throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
                         src.logShort() + " has " + grandchildren.size() + " grandchild twins of class[" + grandChildClassId + "]");
             }

@@ -33,7 +33,7 @@ public class PointerOnSingleChild extends Pointer {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         if (srcTwins.isEmpty()) return Map.of();
         UUID childClassId = twinClassId.extract(properties);
         BasicSearch batchSearch = new BasicSearch();
@@ -50,6 +50,10 @@ public class PointerOnSingleChild extends Pointer {
                 continue;
             }
             if (children.size() > 1) {
+                if (optional) {
+                    log.warn("Optional pointer: {} has {} child twins of class[{}]; skipping this twin", src.logShort(), children.size(), childClassId);
+                    continue;
+                }
                 throw new ServiceException(ErrorCodeTwins.POINTER_NON_SINGLE,
                         src.logShort() + " has " + children.size() + " child twins of class[" + childClassId + "]");
             }

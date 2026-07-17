@@ -16,7 +16,7 @@ import java.util.*;
         description = "")
 public class PointerOnSelf extends Pointer {
     @Override
-    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins) throws ServiceException {
+    protected Map<UUID, TwinEntity> load(Properties properties, Collection<TwinEntity> srcTwins, boolean optional) throws ServiceException {
         Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());
         for (TwinEntity src : srcTwins) {
             result.put(src.getId(), src);
