@@ -29,9 +29,9 @@ declare
     v_keep        uuid;
     v_factory     uuid;
     v_new_set_id  uuid;
-    v_unresolved  uuid[] := array[]::uuid[];
     v_fixed_count int    := 0;
     v_dup_count   int    := 0;
+    v_deleted_count int  := 0;
 begin
     for v_cs in
         select cs.id, cs.twin_factory_id as cur_factory_id,
@@ -73,9 +73,16 @@ begin
 
         if v_candidates is null or array_length(v_candidates, 1) is null then
             -- nobody references the set: if its declared owner is gone we cannot
-            -- infer a real one, otherwise it is a harmless unused valid set
+            -- infer a real one and the set is useless -> delete it (child rows
+            -- first), otherwise it is a harmless unused valid set that we keep
             if not exists (select 1 from twin_factory f where f.id = v_cs.cur_factory_id) then
-                v_unresolved := v_unresolved || v_cs.id;
+                delete from twin_factory_condition
+                    where twin_factory_condition_set_id = v_cs.id;
+                delete from twin_factory_condition_set
+                    where id = v_cs.id;
+                v_deleted_count := v_deleted_count + 1;
+                raise notice 'twin_factory_condition_set %: orphan and unused, deleted (owner % is gone)',
+                    v_cs.id, v_cs.cur_factory_id;
             end if;
             continue;
         end if;
@@ -156,14 +163,8 @@ begin
         end loop;
     end loop;
 
-    raise notice 'reassigned % orphan set(s), created % duplicate set(s)', v_fixed_count, v_dup_count;
-
-    -- orphan sets that nobody references cannot be repaired automatically
-    if array_length(v_unresolved, 1) is not null then
-        raise exception
-            'orphan twin_factory_condition_set rows are not referenced anywhere, cannot infer owner (fix or delete manually): %',
-            v_unresolved;
-    end if;
+    raise notice 'reassigned % orphan set(s), created % duplicate set(s), deleted % unused orphan set(s)',
+        v_fixed_count, v_dup_count, v_deleted_count;
 end;
 $$;
 

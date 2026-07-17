@@ -1,4 +1,4 @@
--- Adds per-table usage counters to twin_factory_condition_set: how many times the
+сет -- Adds per-table usage counters to twin_factory_condition_set: how many times the
 -- set is referenced from each of the 6 factory sub-entity tables. The counters are
 -- seeded from current data by a one-shot procedure and then kept up to date by
 -- AFTER insert/update/delete triggers on every referencing table.
