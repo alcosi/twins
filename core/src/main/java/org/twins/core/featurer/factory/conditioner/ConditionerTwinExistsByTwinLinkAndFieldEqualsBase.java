@@ -51,13 +51,13 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 2)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
 
-    @FeaturerParam(name = "Head of twin class id", description = "Walk up head hierarchy until twin of this class is found; used as search head", order = 1)
+    @FeaturerParam(name = "Head of twin class id", description = "Walk up head hierarchy until twin of this class is found; used as search head", order = 1, optional = true)
     public static final FeaturerParamUUID headTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("headTwinClassId");
 
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 3, optional = true)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
-    @FeaturerParam(name = "Equals twin class field id", description = "Numeric field for equals compare. Used both to read the value from context and as a search filter field when equalsSearchTwinClassFieldId is not set", order = 4)
+    @FeaturerParam(name = "Equals twin class field id", description = "Numeric field for equals compare. Used both to read the value from context and as a search filter field when equalsSearchTwinClassFieldId is not set", order = 4, optional = true)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
     @FeaturerParam(name = "Equals search twin class field id", description = "Numeric field used in the search filter condition", order = 9, optional = true)
@@ -100,6 +100,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
     private Optional<BasicSearch> buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
+
         UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
         if (headTwinId == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
@@ -110,31 +111,35 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
             throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Dst twin not found");
         }
 
-        UUID equalsFieldId = equalsTwinClassFieldId.extract(properties);
-        FieldValue equalsFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
-                .lookupFieldValue(factoryItem, equalsFieldId);
-        if (!(equalsFieldValue instanceof FieldValueText priceField) || priceField.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Twin field not found");
-        }
-
-        UUID searchFieldId = resolveSearchTwinClassFieldId(equalsFieldId, properties);
-
-        double equalsValue;
-        try {
-            equalsValue = Double.parseDouble(priceField.getValue());
-        } catch (NumberFormatException e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT,
-                    "Incorrect numeric value for field [" + equalsFieldId + "]: [" + priceField.getValue() + "]");
-        }
-
         BasicSearch search = new BasicSearch().setCheckViewPermission(false);
         search
                 .addTwinClassId(twinClassId.extract(properties), false)
                 .addHeadTwinId(headTwinId)
-                .addLinkDstTwinsId(dstLinkId.extract(properties), List.of(dstTwinId), false, true)
-                .setFieldsFilter(new TwinFieldFilter()
-                        .addClause(new TwinFieldClause()
-                                .addCondition(buildNumericFieldEquals(searchFieldId, equalsValue))));
+                .addLinkDstTwinsId(dstLinkId.extract(properties), List.of(dstTwinId), false, true);
+
+        UUID equalsFieldId = equalsTwinClassFieldId.extract(properties);
+        if (equalsFieldId != null) {
+            FieldValue equalsFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
+                    .lookupFieldValue(factoryItem, equalsFieldId);
+            if (!(equalsFieldValue instanceof FieldValueText priceField) || priceField.isEmpty()) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Twin field not found");
+            }
+
+            UUID searchFieldId = resolveSearchTwinClassFieldId(equalsFieldId, properties);
+
+            double equalsValue;
+            try {
+                equalsValue = Double.parseDouble(priceField.getValue());
+            } catch (NumberFormatException e) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT,
+                        "Incorrect numeric value for field [" + equalsFieldId + "]: [" + priceField.getValue() + "]");
+            }
+
+            search.setFieldsFilter(new TwinFieldFilter()
+                    .addClause(new TwinFieldClause()
+                            .addCondition(buildNumericFieldEquals(searchFieldId, equalsValue))));
+
+        }
 
         if (matchAssignee.extract(properties)) {
             UUID assigneeUserId = resolveAssigneeUserIdFromDstTwin(dstTwinId);
