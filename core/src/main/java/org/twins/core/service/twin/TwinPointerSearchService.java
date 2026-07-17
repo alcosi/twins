@@ -51,7 +51,9 @@ public class TwinPointerSearchService extends EntitySearchService
     @Override
     public Specification<TwinPointerEntity> createFilterSpecification(TwinPointerSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkFieldUuid(domainId, TwinPointerEntity.Fields.domainId),
+                // domain_id = current domain OR domain_id IS NULL: system/shared pointers (null domain)
+                // are visible to every domain, they are just not editable (see TwinPointerService.updateTwinPointers)
+                checkUuid(domainId, false, true, TwinPointerEntity.Fields.domainId),
                 checkFieldLikeIn(search.getNameLikeList(), false, true, TwinPointerEntity.Fields.name),
                 checkFieldLikeIn(search.getNameNotLikeList(), true, true, TwinPointerEntity.Fields.name),
                 checkUuidIn(search.getIdList(), false, false, TwinPointerEntity.Fields.id),
