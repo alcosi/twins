@@ -1,7 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -12,6 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
@@ -38,7 +38,7 @@ public class FillerHeadFromContextTwinHead extends Filler {
         }
         UUID detectedHeadTwinId = null;
         for (FactoryItem contextItem : factoryItem.getContextFactoryItemList()) { // we will check if all context twins resolve to the same head at the given depth, otherwise exception
-            UUID resolvedHeadTwinId = resolveHeadTwinId(contextItem.getTwin(), depth);
+            UUID resolvedHeadTwinId = TwinHeadService.resolveHeadTwinId(contextItem.getTwin(), depth);
             if (detectedHeadTwinId == null) {
                 detectedHeadTwinId = resolvedHeadTwinId;
             } else if (!detectedHeadTwinId.equals(resolvedHeadTwinId)) {
@@ -50,10 +50,6 @@ public class FillerHeadFromContextTwinHead extends Filler {
         factoryItem.getOutput().getTwinEntity()
                 .setHeadTwin(detectedHeadTwin)
                 .setHeadTwinId(detectedHeadTwinId);
-    }
-
-    private UUID resolveHeadTwinId(TwinEntity twin, int depth) {
-        return LTreeUtils.uuidByIndex(twin.getHierarchyTree(), true, depth);
     }
 
     @Override
