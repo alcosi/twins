@@ -446,14 +446,42 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         List<E> needLoad = null;
         Set<UUID> groupingIds = null;
+        Map<UUID, T> loadedMap = null;
         for (var item : srcCollection) {
-            if (functionGetGroupingEntity.apply(item) == null && functionGetGroupingId.apply(item) != null) {
+            UUID id = functionGetGroupingId.apply(item);
+            T entity = functionGetGroupingEntity.apply(item);
+
+            if (entity != null) {
+                if (loadedMap == null) {
+                    loadedMap = new HashMap<>();
+                }
+
+                T previous = loadedMap.put(id, entity);
+                if (previous != null && previous != entity) {
+                    log.warn(
+                            "Inconsistent grouping entity cache: multiple instances found for id={}, previousIdentity={}, currentIdentity={}",
+                            id,
+                            System.identityHashCode(previous),
+                            System.identityHashCode(entity)
+                    );
+                }
+            }
+        }
+
+        for (var item : srcCollection) {
+            T entity = functionGetGroupingEntity.apply(item);
+            UUID entityId = functionGetGroupingId.apply(item);
+            if (entity == null && entityId != null) {
+                if (loadedMap != null && loadedMap.containsKey(entityId)) {
+                    functionSetGroupingEntity.accept(item, loadedMap.get(entityId));
+                    continue;
+                }
                 if (needLoad == null) {
                     needLoad = new ArrayList<>();
                     groupingIds = new LinkedHashSet<>();
                 }
                 needLoad.add(item);
-                groupingIds.add(functionGetGroupingId.apply(item));
+                groupingIds.add(entityId);
             }
         }
         if (needLoad == null) {
@@ -510,7 +538,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     ) {
     }
 
-public static <S, R, K, RI> void loadKit(
+    public static <S, R, K, RI> void loadKit(
             Collection<S> srcCollection,
             Function<S, K> srcGetId,
             Function<S, Kit<R, RI>> srcGetKitField,
