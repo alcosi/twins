@@ -16,8 +16,13 @@ import java.util.Properties;
  * <p>
  * The default implementation {@link FactoryProcessorImpl} runs the factory steps configured in the
  * database (multipliers, pipelines, branches, erasers, triggers). A custom implementation may
- * override {@link #process(Properties, TwinFactoryEntity, FactoryContext)} to provide any hardcoded
+ * override {@link #doProcess(Properties, TwinFactoryEntity, FactoryContext)} to provide any hardcoded
  * logic while still being assignable per factory via {@code twin_factory.factory_processor_featurer_id}.
+ * <p>
+ * The {@link #process(TwinFactoryEntity, FactoryContext)} template method is final on purpose: it
+ * enforces the recursion guard ({@code FactoryBranchId.alreadyVisited}) and branch level bookkeeping
+ * for every implementation, so a custom processor cannot accidentally bypass them and cause a
+ * stack overflow on cyclic factory configs.
  */
 @FeaturerType(id = FeaturerTwins.TYPE_54,
         name = "FactoryProcessor",
@@ -25,7 +30,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class FactoryProcessor extends FeaturerTwins {
 
-    public void process(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
+    public final void process(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, factoryEntity.getFactoryProcessorParams());
         log.info("Running factoryProcessor[{}] with params: {}", this.getClass().getSimpleName(), properties.toString());
         if (factoryContext.getCurrentFactoryBranchId() == null)   //we are in root factory
@@ -34,8 +39,8 @@ public abstract class FactoryProcessor extends FeaturerTwins {
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "Incorrect factory config: recursion call. Current branch[" + factoryContext.getCurrentFactoryBranchId() + "]");
         else
             factoryContext.currentFactoryBranchLevelDown(factoryEntity.getId()); //branchId must be incremented
-        process(properties, factoryEntity, factoryContext);
+        doProcess(properties, factoryEntity, factoryContext);
     }
 
-    public abstract void process(Properties properties, TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException;
+    protected abstract void doProcess(Properties properties, TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException;
 }

@@ -3,7 +3,7 @@
 -- factory run (multipliers, pipelines, branches, erasers, triggers). factory_processor_params holds
 -- its hstore params. When null, FactoryExecutionService falls back to the default db-driven processor.
 
-ALTER TABLE twin_factory ADD COLUMN IF NOT EXISTS factory_processor_featurer_id integer;
+ALTER TABLE twin_factory ADD COLUMN IF NOT EXISTS factory_processor_featurer_id integer  DEFAULT 5401;
 ALTER TABLE twin_factory ADD COLUMN IF NOT EXISTS factory_processor_params hstore;
 
 -- FactoryProcessor featurer type + default db-driven implementation
@@ -21,6 +21,15 @@ SET factory_processor_featurer_id = 5401
 WHERE factory_processor_featurer_id IS NULL;
 
 ALTER TABLE twin_factory ALTER COLUMN factory_processor_featurer_id SET NOT NULL;
+
+-- Foreign key to featurer(id). Convention: every *_featurer_id column references featurer(id).
+-- ON DELETE RESTRICT: the default processor (5401) must never be deleted, it would break every factory.
+ALTER TABLE twin_factory
+    ADD CONSTRAINT twin_factory_factory_processor_featurer_id_fk
+        FOREIGN KEY (factory_processor_featurer_id)
+        REFERENCES featurer(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT;
 
 -- Index for the featurer reference column
 CREATE INDEX IF NOT EXISTS twin_factory_factory_processor_featurer_id_idx

@@ -65,7 +65,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
     FactoryExecutionService factoryExecutionService;
 
     @Override
-    public void process(Properties properties, TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
+    public void doProcess(Properties properties, TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
         factoryService.loadFactoryElements(factoryEntity);
         runMultipliers(factoryEntity, factoryContext);
         runPipelines(factoryEntity, factoryContext);
@@ -85,7 +85,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityKit) {
             log.info("Checking input for {} **{}**", factoryMultiplierEntity.logNormal(), factoryMultiplierEntity.getDescription());
-            if (!factoryMultiplierEntity.getActive()) {
+            if (!Boolean.TRUE.equals(factoryMultiplierEntity.getActive())) {
                 log.info("Skipping: not active[{}]", factoryMultiplierEntity.getId());
                 continue;
             }
