@@ -1,5 +1,6 @@
 package org.twins.core.dao.factory;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -7,12 +8,15 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +45,21 @@ public class TwinFactoryEntity implements EasyLoggable, Identifiable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
+
+    @Column(name = "factory_processor_featurer_id")
+    private Integer factoryProcessorFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "factory_processor_params", columnDefinition = "hstore")
+    private HashMap<String, String> factoryProcessorParams;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "factory_processor_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity factoryProcessorFeaturerSpecOnly;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
