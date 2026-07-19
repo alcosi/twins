@@ -48,23 +48,22 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         List<FactoryItem> ret = new ArrayList<>();
         UUID extractedTwinClassId = twinClassId.extract(properties);
-        UUID headClassId = headTwinClassId.extract(properties);
 
         for (FactoryItem inputItem : inputFactoryItemList) {
-            TwinEntity inputTwin = inputItem.getTwin();
-            if (inputTwin == null) {
+            TwinEntity contextTwin = inputItem.getTwin();
+            if (contextTwin == null) {
                 log.info("Input twin is empty, multiplier step skipped");
                 continue;
             }
 
-            UUID headId = resolveHeadTwinId(inputTwin, headClassId);
-            UUID assigneeUserId = inputTwin.getAssignerUserId();
-            if (headId == null) {
-                log.info("{} has no head, multiplier step skipped", inputTwin.logShort());
+            UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
+            UUID assigneeUserId = contextTwin.getAssignerUserId();
+            if (headTwinId == null) {
+                log.info("{} has no head, multiplier step skipped", contextTwin.logShort());
                 continue;
             }
             if (assigneeUserId == null) {
-                log.info("{} has no assignee, multiplier step skipped", inputTwin.logShort());
+                log.info("{} has no assignee, multiplier step skipped", contextTwin.logShort());
                 continue;
             }
 
@@ -72,13 +71,13 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
             search
                     .addOwnerBusinessAccountId(factoryContext.getRunLimitedByOwnerBusinessAccount())
                     .addTwinClassId(extractedTwinClassId, false)
-                    .addHeadTwinId(headId)
+                    .addHeadTwinId(headTwinId)
                     .addAssigneeUserId(assigneeUserId, false);
 
             List<TwinEntity> twins = twinSearchService.findTwins(search);
             if (CollectionUtils.isEmpty(twins)) {
                 log.info("{} no twins of class[{}] by head[{}] and assignee[{}]",
-                        inputTwin.logShort(), extractedTwinClassId, headId, assigneeUserId);
+                        contextTwin.logShort(), extractedTwinClassId, headTwinId, assigneeUserId);
                 continue;
             }
 
@@ -95,11 +94,11 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
         return ret;
     }
 
-    private UUID resolveHeadTwinId(TwinEntity inputTwin, UUID headTwinClassId) throws ServiceException {
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
         if (headTwinClassId == null) {
-            return inputTwin.getHeadTwinId() != null ? inputTwin.getHeadTwinId() : inputTwin.getId();
+            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
         }
-        TwinEntity current = inputTwin;
+        TwinEntity current = contextTwin;
         for (int depth = 0; depth < 10; depth++) {
             if (current.getHeadTwinId() == null) {
                 return null;
