@@ -71,4 +71,28 @@ public abstract class EntityExportService<E> {
         }
         sqlParts.addNotBlank(exporter.apply(entities));
     }
+
+    /**
+     * Emits INSERTs for the given entities sorted by their UUID id (nulls first), so SQL exports
+     * are deterministic and diff-able across environments. Use this instead of
+     * {@code sqlBuilder.buildInserts(...)} everywhere export order must be stable.
+     */
+    protected <E> String buildInsertsSorted(Collection<E> entities, Function<E, UUID> idExtractor) {
+        return buildInsertsSorted(sqlBuilder, entities, idExtractor);
+    }
+
+    /**
+     * Static form for services that do not extend {@link EntityExportService}
+     * (e.g. {@code TwinStatusExportService}, {@code TwinflowExportService}).
+     */
+    public static <E> String buildInsertsSorted(
+            SqlBuilder sqlBuilder,
+            Collection<E> entities,
+            Function<E, UUID> idExtractor) {
+        if (entities == null || entities.isEmpty()) {
+            return "";
+        }
+        return sqlBuilder.buildInserts(entities,
+                Comparator.comparing(idExtractor, Comparator.nullsFirst(Comparator.naturalOrder())));
+    }
 }

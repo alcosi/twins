@@ -1,6 +1,7 @@
 package org.cambium.common.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.persistence.Column;
@@ -18,7 +19,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SqlBuilder {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    // ORDER_MAP_ENTRIES_BY_KEYS makes jsonb output deterministic (sorted keys, incl. nested maps),
+    // so exported SQL is diff-stable across runs/environments.
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
     private static final Cache<Class<?>, EntityMetadata> metadataCache = Caffeine.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES)
             .build();
@@ -62,6 +66,19 @@ public class SqlBuilder {
                 .collect(Collectors.joining("\n"));
     }
 
+    /**
+     * Sorts entities by the given comparator before emitting INSERTs, so SQL exports are
+     * deterministic (diff-able across environments). Pass {@code null} to keep insertion order.
+     */
+    public <T> String buildInserts(Collection<T> entities, Comparator<? super T> comparator) {
+        if (comparator == null) {
+            return buildInserts(entities);
+        }
+        List<T> sorted = new ArrayList<>(entities);
+        sorted.sort(comparator);
+        return buildInserts(sorted);
+    }
+
     private String formatValue(Object value) {
         if (value == null) {
             return "NULL";
@@ -78,14 +95,18 @@ public class SqlBuilder {
                 return "''::hstore";
             }
             StringBuilder hstore = new StringBuilder();
-            for (Map.Entry<String, String> entry : hstoreMap.entrySet()) {
-                if (hstore.length() > 0) {
-                    hstore.append(", ");
-                }
-                hstore.append(formatHstoreValue(entry.getKey()))
-                        .append("=>")
-                        .append(formatHstoreValue(entry.getValue()));
-            }
+            // Sorted keys make hstore output deterministic (HashMap entry order is not).
+            hstoreMap.entrySet().stream()
+                    .sorted(Map.Entry.<String, String>comparingByKey(
+                            Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .forEach(entry -> {
+                        if (hstore.length() > 0) {
+                            hstore.append(", ");
+                        }
+                        hstore.append(formatHstoreValue(entry.getKey()))
+                                .append("=>")
+                                .append(formatHstoreValue(entry.getValue()));
+                    });
             return "'" + hstore + "'::hstore";
         }
 
