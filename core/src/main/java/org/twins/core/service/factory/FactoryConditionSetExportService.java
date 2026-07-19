@@ -21,7 +21,7 @@ public class FactoryConditionSetExportService extends EntityExportService<TwinFa
         var sqlParts = new StringList();
 
         // ConditionSets
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(conditionSets));
+        sqlParts.addNotBlank(buildInsertsSorted(conditionSets, TwinFactoryConditionSetEntity::getId));
 
         // Conditions
         factoryConditionService.loadConditions(conditionSets);

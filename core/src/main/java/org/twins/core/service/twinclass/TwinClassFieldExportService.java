@@ -24,7 +24,7 @@ public class TwinClassFieldExportService extends EntityExportService<TwinClassFi
                 TwinClassFieldEntity::getDescriptionI18nId);
         var sqlParts = new StringList();
         sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(fields));
+        sqlParts.addNotBlank(buildInsertsSorted(fields, TwinClassFieldEntity::getId));
 
         return String.join("\n", sqlParts);
     }

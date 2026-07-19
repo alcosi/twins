@@ -119,7 +119,7 @@ public class FactoryExportService extends EntityExportService<TwinFactoryEntity>
         // I18n for factories
         i18nExportService.addExportSafe(i18nIds, sqlParts);
 
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(factories));
+        sqlParts.addNotBlank(buildInsertsSorted(factories, TwinFactoryEntity::getId));
 
         factoryService.loadFactoryElements(factories);
         factoryConditionSetService.loadFactoryConditionSets(factories);
