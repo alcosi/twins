@@ -41,8 +41,8 @@ import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2443,
-        name = "Twin exists by head, link and field equals",
-        description = "True if twin exists with same head, dst link, numeric field value and optional dst twin assignee.")
+        name = "Twin exists by head, dst link, twin assignee and field equals",
+        description = "True if twin exists with same head, dst link, numeric field value (optional) and dst twin assignee (optional).")
 @Slf4j
 public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Conditioner {
 

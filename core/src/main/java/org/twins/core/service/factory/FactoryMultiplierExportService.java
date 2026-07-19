@@ -30,7 +30,7 @@ public class FactoryMultiplierExportService extends EntityExportService<TwinFact
         var sqlParts = new StringList();
 
         // Export Multipliers
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(multipliers));
+        sqlParts.addNotBlank(buildInsertsSorted(multipliers, TwinFactoryMultiplierEntity::getId));
 
         // Load and export MultiplierFilters
         factoryMultiplierFilterService.loadFactoryMultiplierFilters(multipliers);

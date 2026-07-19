@@ -33,7 +33,7 @@ public class FactoryTriggerExportService extends EntityExportService<TwinFactory
                 CollectionUtils.collect(triggers, TwinFactoryTriggerEntity::getTwinFactoryConditionSet)));
 
         // Export Triggers
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(triggers));
+        sqlParts.addNotBlank(buildInsertsSorted(triggers, TwinFactoryTriggerEntity::getId));
 
         return String.join("\n", sqlParts);
     }

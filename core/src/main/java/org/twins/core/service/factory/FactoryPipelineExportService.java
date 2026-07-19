@@ -38,7 +38,7 @@ public class FactoryPipelineExportService extends EntityExportService<TwinFactor
                 CollectionUtils.collect(pipelines, TwinFactoryPipelineEntity::getConditionSet)));
 
         // Export Pipelines
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(pipelines));
+        sqlParts.addNotBlank(buildInsertsSorted(pipelines, TwinFactoryPipelineEntity::getId));
         if (includePipelineSteps) {
             factoryPipelineStepService.loadFactoryPipelineSteps(pipelines);
             exportChildrenKit(

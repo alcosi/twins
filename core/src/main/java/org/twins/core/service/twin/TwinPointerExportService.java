@@ -22,7 +22,7 @@ public class TwinPointerExportService extends EntityExportService<TwinPointerEnt
     @Override
     public String exportCollectionToSql(Collection<TwinPointerEntity> entities) throws ServiceException {
         if (CollectionUtils.isEmpty(entities)) return "";
-        return sqlBuilder.buildInserts(entities);
+        return buildInsertsSorted(entities, TwinPointerEntity::getId);
     }
 
     /**

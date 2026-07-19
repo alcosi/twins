@@ -31,6 +31,10 @@ public abstract class FieldTyperCalcBinaryMater
         if (skipIfEmpty(twin, properties, twinClassFieldService, List.of(firstFieldId.extract(properties), secondFieldId.extract(properties)), value.getTwinClassField())) {
             return;
         }
+        serializeCalculatedValue(properties, twin, twinFieldEntity, value, twinChangesCollector);
+    }
+
+    private void serializeCalculatedValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity == null) {
             twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
@@ -55,6 +59,7 @@ public abstract class FieldTyperCalcBinaryMater
     public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, request.subscriberField().getFieldTyperParams());
         FieldValueText value = new FieldValueText(request.subscriberField());
-        serializeValue(properties, request.subscriberTwin(), value, collector);
+        TwinFieldDecimalEntity twinFieldEntity = request.subscriberTwin().getTwinFieldDecimalKit().get(request.subscriberField().getId());
+        serializeCalculatedValue(properties, request.subscriberTwin(), twinFieldEntity, value, collector);
     }
 }

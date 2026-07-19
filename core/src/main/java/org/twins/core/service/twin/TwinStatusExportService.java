@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.sql.SqlBuilder;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.service.EntityExportService;
 import org.twins.core.service.i18n.I18nExportService;
 import org.twins.core.service.i18n.I18nService;
 
@@ -29,7 +30,7 @@ public class TwinStatusExportService {
                 TwinStatusEntity::getDescriptionI18nId);
         var sqlParts = new StringList();
         sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(statuses));
+        sqlParts.addNotBlank(EntityExportService.buildInsertsSorted(sqlBuilder, statuses, TwinStatusEntity::getId));
         return String.join("\n", sqlParts);
     }
 }

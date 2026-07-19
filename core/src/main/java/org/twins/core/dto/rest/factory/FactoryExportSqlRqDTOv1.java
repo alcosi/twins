@@ -37,4 +37,7 @@ public class FactoryExportSqlRqDTOv1 extends Request {
 
     @Schema(description = "include triggers with condition sets, conditions")
     public boolean includeTriggers = false;
+
+    @Schema(description = "follow nextTwinFactoryId / afterCommitTwinFactoryId links from pipelines and branches and export referenced factories too (cycle-safe; aborts with error on broken or cross-domain factory references)")
+    public boolean cascadeFactory = false;
 }
