@@ -14,6 +14,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
+import org.twins.core.service.twinclassfield.recompute.FieldRecomputeRequest;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -25,7 +26,7 @@ import java.util.UUID;
         name = "Sum fields (materialization)",
         description = "Save sum of twin fields on serializeValue, and return saved total from database"
 )
-public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcMater {
+public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcMater, FieldTyperRecomputed {
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
@@ -40,6 +41,10 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
         if (skipIfEmpty(twin, properties, twinClassFieldService, fieldIds.extract(properties), value.getTwinClassField())) {
             return;
         }
+        serializeCalculatedValue(properties, twin, twinFieldEntity, value, twinChangesCollector);
+    }
+
+    private void serializeCalculatedValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity == null) {
             twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
@@ -50,6 +55,14 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) throws ServiceException {
         return deserializeValueBase(properties, twinField, twinFieldEntity);
+    }
+
+    @Override
+    public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, request.subscriberField().getFieldTyperParams());
+        FieldValueText value = new FieldValueText(request.subscriberField());
+        TwinFieldDecimalEntity twinFieldEntity = request.subscriberTwin().getTwinFieldDecimalKit().get(request.subscriberField().getId());
+        serializeCalculatedValue(properties, request.subscriberTwin(), twinFieldEntity, value, collector);
     }
 
     private BigDecimal calcSum(Properties properties, TwinEntity twin) throws ServiceException {
