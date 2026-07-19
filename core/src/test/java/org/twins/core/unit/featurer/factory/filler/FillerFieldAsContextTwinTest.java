@@ -14,6 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldAsContextTwin;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -29,6 +30,9 @@ class FillerFieldAsContextTwinTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FillerFieldAsContextTwin filler;
 
     private static final UUID LINK_FIELD_ID = UUID.randomUUID();
@@ -37,6 +41,7 @@ class FillerFieldAsContextTwinTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldAsContextTwin();
         inject(filler, "twinService", twinService);
+        inject(filler, "twinClassFieldService", twinClassFieldService);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -82,12 +87,13 @@ class FillerFieldAsContextTwinTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(contextTwin);
             var linkFieldEntity = new TwinClassFieldEntity().setId(LINK_FIELD_ID);
             var createdLink = new FieldValueLink(linkFieldEntity);
-            when(twinService.createFieldValue(LINK_FIELD_ID, contextTwinId.toString())).thenReturn(createdLink);
+            when(twinClassFieldService.findEntitySafe(LINK_FIELD_ID)).thenReturn(linkFieldEntity);
+            when(twinService.createFieldValue(linkFieldEntity, contextTwinId.toString())).thenReturn(createdLink);
 
             filler.fill(props(), List.of(factoryItem), null, false);
 
             assertSame(createdLink, factoryItem.getOutput().getField(LINK_FIELD_ID));
-            verify(twinService).createFieldValue(LINK_FIELD_ID, contextTwinId.toString());
+            verify(twinService).createFieldValue(linkFieldEntity, contextTwinId.toString());
         }
 
         @Test

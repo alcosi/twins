@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -18,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
 import java.util.Properties;
@@ -45,30 +47,36 @@ public class FillerFieldAsContextFieldHead extends Filler {
     @Autowired
     TwinLinkService twinLinkService;
 
-    @Override
-    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
-    }
+    @Lazy
+    @Autowired
+    TwinClassFieldService twinClassFieldService;
 
     @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        // the dst field id is step-constant -> resolve the field entity once (avoids per-item findEntitySafe)
+        TwinClassFieldEntity dstFieldEntity = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            fillItem(properties, factoryItem, dstFieldEntity);
+        }
+    }
+
+    private void fillItem(Properties properties, FactoryItem factoryItem, TwinClassFieldEntity dstFieldEntity) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
         FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
 
         UUID detectedHeadId = null;
         if (srcFieldValue instanceof FieldValueLink fieldValueLink) {
-            if(fieldValueLink.isEmpty())
+            if (fieldValueLink.isEmpty())
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not filled");
             TwinLinkEntity firstLink = fieldValueLink.getItems().getFirst();
             twinLinkService.loadDstTwin(firstLink);
             var dstTwin = firstLink.getDstTwin();
             detectedHeadId = dstTwin.getHeadTwinId();
-            if(null == detectedHeadId)
+            if (null == detectedHeadId)
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + dstTwin.logDetailed());
         } else
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not instance of link field");
 
-        FieldValue dstFieldValue = twinService.createFieldValue(dstTwinClassFieldId.extract(properties), String.valueOf(detectedHeadId));
-        factoryItem.getOutput().addField(dstFieldValue);
+        factoryItem.getOutput().addField(twinService.createFieldValue(dstFieldEntity, String.valueOf(detectedHeadId)));
     }
 }

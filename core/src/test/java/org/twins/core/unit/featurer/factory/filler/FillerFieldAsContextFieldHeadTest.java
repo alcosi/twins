@@ -19,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -43,6 +44,9 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
     @Mock
     private TwinLinkService twinLinkService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FillerFieldAsContextFieldHead filler;
 
     private static final UUID SRC_FIELD_ID = UUID.randomUUID();
@@ -54,6 +58,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
         inject(filler, "twinLinkService", twinLinkService);
+        inject(filler, "twinClassFieldService", twinClassFieldService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 
@@ -103,8 +108,10 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(link);
             var factoryItem = buildFactoryItem();
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
-            var createdHeadLink = new FieldValueLink(field(DST_FIELD_ID));
-            when(twinService.createFieldValue(DST_FIELD_ID, headId.toString())).thenReturn(createdHeadLink);
+            var dstFieldEntity = field(DST_FIELD_ID);
+            var createdHeadLink = new FieldValueLink(dstFieldEntity);
+            when(twinClassFieldService.findEntitySafe(DST_FIELD_ID)).thenReturn(dstFieldEntity);
+            when(twinService.createFieldValue(dstFieldEntity, headId.toString())).thenReturn(createdHeadLink);
 
             filler.fill(props(), List.of(factoryItem), null, false);
 

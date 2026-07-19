@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -41,18 +42,21 @@ public class FillerFieldUserFromOutputTwinHeadAssignee extends Filler {
 
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
+        // the field id is step-constant -> resolve the field entity once (avoids per-item findEntitySafe)
+        TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            fillItem(factoryItem, fieldEntity);
+        }
     }
 
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    private void fillItem(FactoryItem factoryItem, TwinClassFieldEntity fieldEntity) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.getTwin();
         TwinEntity headTwin = twinService.loadHead(factoryItemTwin);
-        if(null == headTwin)
+        if (null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
-        if(null == headTwin.getAssignerUserId())
+        if (null == headTwin.getAssignerUserId())
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for head[" + headTwin.logShort() + "]twin detected for twin: " + factoryItemTwin.logDetailed());
-        FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
+        FieldValueUser fieldValue = new FieldValueUser(fieldEntity);
         fieldValue.add(headTwin.getAssignerUser());
         factoryItem.getOutput().addField(fieldValue);
     }

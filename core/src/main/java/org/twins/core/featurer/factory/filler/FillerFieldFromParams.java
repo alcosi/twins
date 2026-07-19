@@ -7,13 +7,15 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
 import java.util.Properties;
@@ -33,14 +35,17 @@ public class FillerFieldFromParams extends Filler {
     @Autowired
     private TwinService twinService;
 
-    @Override
-    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
-    }
+    @Lazy
+    @Autowired
+    private TwinClassFieldService twinClassFieldService;
 
     @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldId.extract(properties), value.extract(properties));
-        factoryItem.getOutput().addField(fieldValue);
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        // fieldId + value are step-constant -> resolve the field entity once (avoids per-item findEntitySafe)
+        TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
+        String resolvedValue = value.extract(properties);
+        for (FactoryItem factoryItem : factoryItems) {
+            factoryItem.getOutput().addField(twinService.createFieldValue(fieldEntity, resolvedValue));
+        }
     }
 }

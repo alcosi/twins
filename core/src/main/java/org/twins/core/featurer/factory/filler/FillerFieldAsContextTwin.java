@@ -9,11 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
 import java.util.Properties;
@@ -31,15 +32,17 @@ public class FillerFieldAsContextTwin extends Filler {
     @Autowired
     TwinService twinService;
 
-    @Override
-    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
-    }
+    @Lazy
+    @Autowired
+    TwinClassFieldService twinClassFieldService;
 
     @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        var twin = factoryItem.checkSingleContextTwin();
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twin.getId().toString());
-        factoryItem.getOutput().addField(fieldValue);
+    public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
+        // the field id is step-constant -> resolve the field entity once (avoids per-item findEntitySafe)
+        TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldLinkId.extract(properties));
+        for (FactoryItem factoryItem : factoryItems) {
+            var twin = factoryItem.checkSingleContextTwin();
+            factoryItem.getOutput().addField(twinService.createFieldValue(fieldEntity, twin.getId().toString()));
+        }
     }
 }

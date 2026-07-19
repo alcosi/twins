@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -47,14 +48,17 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
 
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
+        // the field id + basic field name are step-constant -> resolve them once (avoids per-item findEntitySafe)
+        TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
+        TwinBasicFields.Basics fieldName = field.extract(properties);
+        for (FactoryItem factoryItem : factoryItems) {
+            fillItem(factoryItem, fieldEntity, fieldName);
+        }
     }
 
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    private void fillItem(FactoryItem factoryItem, TwinClassFieldEntity fieldEntity, TwinBasicFields.Basics fieldName) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.checkSingleContextTwin();
-        TwinBasicFields.Basics fieldName = field.extract(properties);
-        FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
+        FieldValueUser fieldValue = new FieldValueUser(fieldEntity);
         twinService.loadUser(factoryItemTwin);
         switch (fieldName) {
             case createdByUserId -> {

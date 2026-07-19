@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
@@ -40,14 +41,13 @@ public class FillerFieldUserFromApiUser extends Filler {
 
     @Override
     public void fill(Properties properties, Collection<FactoryItem> factoryItems, TwinEntity templateTwin, boolean optional) throws ServiceException {
-        fillEach(properties, factoryItems, templateTwin, optional);
-    }
-
-    @Override
-    protected void fillItem(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+        // fieldId + api user are step-constant -> resolve the field entity + api user once (avoids per-item findEntitySafe)
+        TwinClassFieldEntity fieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
         ApiUser apiUser = authService.getApiUser();
-        FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
-        fieldValue.add(apiUser.getUser());
-        factoryItem.getOutput().addField(fieldValue);
+        for (FactoryItem factoryItem : factoryItems) {
+            FieldValueUser fieldValue = new FieldValueUser(fieldEntity);
+            fieldValue.add(apiUser.getUser());
+            factoryItem.getOutput().addField(fieldValue);
+        }
     }
 }

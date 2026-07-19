@@ -13,6 +13,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerFieldFromParams;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -28,6 +29,9 @@ class FillerFieldFromParamsTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FillerFieldFromParams filler;
 
     private static final UUID FIELD_ID = UUID.randomUUID();
@@ -37,6 +41,7 @@ class FillerFieldFromParamsTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldFromParams();
         inject(filler, "twinService", twinService);
+        inject(filler, "twinClassFieldService", twinClassFieldService);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -76,13 +81,15 @@ class FillerFieldFromParamsTest extends BaseUnitTest {
         void fill_writesParamValueToOutputField() throws ServiceException {
             // NAME promises: write the literal VALUE FROM FEATURER PARAMS into the output field.
             var factoryItem = buildFactoryItem();
-            var created = new FieldValueText(new TwinClassFieldEntity().setId(FIELD_ID)).setValue(VALUE);
-            when(twinService.createFieldValue(FIELD_ID, VALUE)).thenReturn(created);
+            var fieldEntity = new TwinClassFieldEntity().setId(FIELD_ID);
+            var created = new FieldValueText(fieldEntity).setValue(VALUE);
+            when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(fieldEntity);
+            when(twinService.createFieldValue(fieldEntity, VALUE)).thenReturn(created);
 
             filler.fill(props(), List.of(factoryItem), null, false);
 
             assertSame(created, factoryItem.getOutput().getField(FIELD_ID));
-            verify(twinService).createFieldValue(FIELD_ID, VALUE);
+            verify(twinService).createFieldValue(fieldEntity, VALUE);
         }
     }
 }
