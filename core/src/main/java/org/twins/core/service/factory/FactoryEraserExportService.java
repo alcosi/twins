@@ -33,7 +33,7 @@ public class FactoryEraserExportService extends EntityExportService<TwinFactoryE
                 .exportCollectionToSql(CollectionUtils.collect(erasers, TwinFactoryEraserEntity::getConditionSet)));
 
         // Export Erasers
-        sqlParts.addNotBlank(buildInsertsSorted(erasers, TwinFactoryEraserEntity::getId));
+        sqlParts.addNotBlank(buildUpsertsSorted(erasers, TwinFactoryEraserEntity::getId));
         return String.join("\n", sqlParts);
     }
 }

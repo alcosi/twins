@@ -32,7 +32,7 @@ public class FactoryPipelineStepExportService extends EntityExportService<TwinFa
                 CollectionUtils.collect(steps, TwinFactoryPipelineStepEntity::getTwinFactoryConditionSet)));
 
         // Export Pipeline Steps
-        sqlParts.addNotBlank(buildInsertsSorted(steps, TwinFactoryPipelineStepEntity::getId));
+        sqlParts.addNotBlank(buildUpsertsSorted(steps, TwinFactoryPipelineStepEntity::getId));
 
         return String.join("\n", sqlParts);
     }

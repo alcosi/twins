@@ -30,7 +30,7 @@ public class TwinStatusExportService {
                 TwinStatusEntity::getDescriptionI18nId);
         var sqlParts = new StringList();
         sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
-        sqlParts.addNotBlank(EntityExportService.buildInsertsSorted(sqlBuilder, statuses, TwinStatusEntity::getId));
+        sqlParts.addNotBlank(EntityExportService.buildUpsertsSorted(sqlBuilder, statuses, TwinStatusEntity::getId));
         return String.join("\n", sqlParts);
     }
 }

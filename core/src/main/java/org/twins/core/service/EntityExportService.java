@@ -95,4 +95,28 @@ public abstract class EntityExportService<E> {
         return sqlBuilder.buildInserts(entities,
                 Comparator.comparing(idExtractor, Comparator.nullsFirst(Comparator.naturalOrder())));
     }
+
+    /**
+     * Upsert counterpart of {@link #buildInsertsSorted}: emits {@code INSERT ... ON CONFLICT (id)
+     * DO UPDATE SET ...} statements, sorted by id for deterministic output. Use this for export
+     * flows that must refresh existing rows on re-import instead of leaving stale definitions.
+     */
+    protected <E> String buildUpsertsSorted(Collection<E> entities, Function<E, UUID> idExtractor) {
+        return buildUpsertsSorted(sqlBuilder, entities, idExtractor);
+    }
+
+    /**
+     * Static form for services that do not extend {@link EntityExportService}
+     * (e.g. {@code TwinStatusExportService}, {@code TwinflowExportService}).
+     */
+    public static <E> String buildUpsertsSorted(
+            SqlBuilder sqlBuilder,
+            Collection<E> entities,
+            Function<E, UUID> idExtractor) {
+        if (entities == null || entities.isEmpty()) {
+            return "";
+        }
+        return sqlBuilder.buildUpserts(entities,
+                Comparator.comparing(idExtractor, Comparator.nullsFirst(Comparator.naturalOrder())));
+    }
 }

@@ -24,7 +24,7 @@ public class FactoryMultiplierFilterExportService extends EntityExportService<Tw
         sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
                 CollectionUtils.collect(filters, TwinFactoryMultiplierFilterEntity::getConditionSet)));
         // Export MultiplierFilters
-        sqlParts.addNotBlank(buildInsertsSorted(filters, TwinFactoryMultiplierFilterEntity::getId));
+        sqlParts.addNotBlank(buildUpsertsSorted(filters, TwinFactoryMultiplierFilterEntity::getId));
         return String.join("\n", sqlParts);
     }
 }

@@ -50,7 +50,8 @@ public class FactoryExportSqlController extends ApiController {
                 request.isIncludePipelineSteps(),
                 request.isIncludeErasers(),
                 request.isIncludeTriggers(),
-                request.isCascadeFactory()
+                request.isCascadeFactory(),
+                request.isClearElements()
         );
 
         String filename = "twin_factories_" + System.currentTimeMillis() + ".sql";

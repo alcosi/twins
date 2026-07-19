@@ -62,7 +62,7 @@ public class TwinClassExportService extends EntityExportService<TwinClassEntity>
         // i18n for twin classes
         sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
         // twin classes
-        sqlParts.addNotBlank(buildInsertsSorted(twinClasses, TwinClassEntity::getId));
+        sqlParts.addNotBlank(buildUpsertsSorted(twinClasses, TwinClassEntity::getId));
 
         // fields
         if (includeFields) {

@@ -17,7 +17,7 @@ public class FactoryConditionExportService extends EntityExportService<TwinFacto
     public String exportCollectionToSql(Collection<TwinFactoryConditionEntity> conditions) throws ServiceException {
         if (CollectionUtils.isEmpty(conditions)) return "";
         var sqlParts = new StringList();
-        sqlParts.addNotBlank(buildInsertsSorted(conditions, TwinFactoryConditionEntity::getId));
+        sqlParts.addNotBlank(buildUpsertsSorted(conditions, TwinFactoryConditionEntity::getId));
         return String.join("\n", sqlParts);
     }
 }
