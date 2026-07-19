@@ -25,6 +25,8 @@ ALTER TABLE twin_factory ALTER COLUMN factory_processor_featurer_id SET NOT NULL
 -- Foreign key to featurer(id). Convention: every *_featurer_id column references featurer(id).
 -- ON DELETE RESTRICT: the default processor (5401) must never be deleted, it would break every factory.
 ALTER TABLE twin_factory
+    DROP CONSTRAINT IF EXISTS twin_factory_factory_processor_featurer_id_fk;
+ALTER TABLE twin_factory
     ADD CONSTRAINT twin_factory_factory_processor_featurer_id_fk
         FOREIGN KEY (factory_processor_featurer_id)
         REFERENCES featurer(id)
