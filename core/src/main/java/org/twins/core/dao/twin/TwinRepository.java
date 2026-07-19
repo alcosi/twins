@@ -299,5 +299,6 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("linkIds") Collection<UUID> linkIds,
             @Param("linkedTwinStatusIdList") Collection<UUID> linkedTwinStatusIdList);
 
-    UUID getHeadTwinIdOfClass(Set<UUID> id, UUID headTwinClassId);
+    @Query(value = "select id from TwinEntity where id in (:ids) and twinClassId = :headTwinClassId")
+    UUID getHeadTwinIdOfClass(@Param("ids") Set<UUID> ids, @Param("headTwinClassId") UUID headTwinClassId);
 }
