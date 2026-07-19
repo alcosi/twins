@@ -11,6 +11,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.twin.TwinHeadService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -27,14 +28,7 @@ public class ConditionerTwinExistsContextFieldLinkDst extends ConditionerTwinExi
 
     @Override
     protected UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException {
-        if (contextTwin.getHeadTwinId() != null) {
-            TwinEntity headTwin = twinService.loadHead(contextTwin);
-            if (headTwin != null && headTwin.getHeadTwinId() != null) {
-                return headTwin.getHeadTwinId();
-            }
-            return null;
-        }
-        return null;
+        return TwinHeadService.resolveHeadTwinId(contextTwin, 2);
     }
 
     @Override

@@ -26,8 +26,8 @@ public class ConditionerTwinExistsByHeadAndContextFieldLinkDst extends Condition
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Override
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin) {
-        return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException {
+        return twinHeadService.resolveHeadTwinId(contextTwin, null);
     }
 
     @Override

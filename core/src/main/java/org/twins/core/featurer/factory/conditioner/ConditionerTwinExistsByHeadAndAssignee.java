@@ -6,16 +6,16 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -43,7 +43,7 @@ public class ConditionerTwinExistsByHeadAndAssignee extends Conditioner {
 
     @Lazy
     @Autowired
-    private TwinService twinService;
+    private TwinHeadService twinHeadService;
     @Lazy
     @Autowired
     private TwinSearchServiceV2 twinSearchService;
@@ -61,7 +61,7 @@ public class ConditionerTwinExistsByHeadAndAssignee extends Conditioner {
             return false;
         }
 
-        UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
+        UUID headTwinId = twinHeadService.resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
         UUID assigneeUserId = contextTwin.getAssignerUserId();
         if (headTwinId == null) {
             log.debug("Root twin has no head, twin exists by head and assignee skipped");
@@ -91,23 +91,5 @@ public class ConditionerTwinExistsByHeadAndAssignee extends Conditioner {
         }
 
         return twinSearchService.exists(search);
-    }
-
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
-        if (headTwinClassId == null) {
-            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
-        }
-        TwinEntity current = contextTwin;
-        for (int depth = 0; depth < 10; depth++) {
-            if (current.getHeadTwinId() == null) {
-                return null;
-            }
-            twinService.loadHead(current);
-            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
-                return current.getHeadTwinId();
-            }
-            current = current.getHeadTwin();
-        }
-        return null;
     }
 }

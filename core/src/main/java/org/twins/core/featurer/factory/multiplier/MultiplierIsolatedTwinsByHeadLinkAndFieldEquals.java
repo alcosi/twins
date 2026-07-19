@@ -30,6 +30,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.*;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -85,6 +86,8 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     @Autowired
     private TwinService twinService;
     @Autowired
+    private TwinHeadService twinHeadService;
+    @Autowired
     private TwinSearchService twinSearchService;
 
     @Override
@@ -96,7 +99,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
 
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity contextTwin = inputItem.checkSingleContextTwin();
-            UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
+            UUID headTwinId = twinHeadService.resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
 
             UUID dstTwinId = resolveDstTwinId(properties, inputItem);
             if (dstTwinId == null) {
@@ -160,24 +163,6 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     private FieldValue resolveEqualsFieldValue(Properties properties, FactoryItem inputItem, UUID equalsFieldId) throws ServiceException {
         return ((FieldLookuperNearest) fieldLookupers.getByType(equalsFieldLookupper.extract(properties)))
                 .lookupFieldValue(inputItem, equalsFieldId);
-    }
-
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
-        if (headTwinClassId == null) {
-            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
-        }
-        TwinEntity current = contextTwin;
-        for (int depth = 0; depth < 10; depth++) {
-            if (current.getHeadTwinId() == null) {
-                return null;
-            }
-            twinService.loadHead(current);
-            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
-                return current.getHeadTwinId();
-            }
-            current = current.getHeadTwin();
-        }
-        return null;
     }
 
     private UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem) throws ServiceException {

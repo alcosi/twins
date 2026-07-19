@@ -16,8 +16,8 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
 
     @Lazy
     @Autowired
-    private TwinService twinService;
+    private TwinHeadService twinHeadService;
     @Lazy
     @Autowired
     private TwinSearchService twinSearchService;
@@ -56,7 +56,7 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
                 continue;
             }
 
-            UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
+            UUID headTwinId = twinHeadService.resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
             UUID assigneeUserId = contextTwin.getAssignerUserId();
             if (headTwinId == null) {
                 log.info("{} has no head, multiplier step skipped", contextTwin.logShort());
@@ -92,23 +92,5 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
             }
         }
         return ret;
-    }
-
-    protected UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
-        if (headTwinClassId == null) {
-            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
-        }
-        TwinEntity current = contextTwin;
-        for (int depth = 0; depth < 10; depth++) {
-            if (current.getHeadTwinId() == null) {
-                return null;
-            }
-            twinService.loadHead(current);
-            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
-                return current.getHeadTwinId();
-            }
-            current = current.getHeadTwin();
-        }
-        return null;
     }
 }
