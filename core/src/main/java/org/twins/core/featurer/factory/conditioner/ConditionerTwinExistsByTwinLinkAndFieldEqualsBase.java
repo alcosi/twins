@@ -31,6 +31,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -87,6 +88,9 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     @Lazy
     @Autowired
     private TwinService twinService;
+    @Lazy
+    @Autowired
+    private TwinHeadService twinHeadService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -101,7 +105,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     private Optional<BasicSearch> buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
 
-        UUID headTwinId = resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
+        UUID headTwinId = twinHeadService.resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
         if (headTwinId == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
         }
@@ -224,24 +228,6 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
             if (UuidUtils.isUUID(value)) {
                 return UUID.fromString(value);
             }
-        }
-        return null;
-    }
-
-    private UUID resolveHeadTwinId(TwinEntity contextTwin, UUID headTwinClassId) throws ServiceException {
-        if (headTwinClassId == null) {
-            return contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
-        }
-        TwinEntity current = contextTwin;
-        for (int depth = 0; depth < 10; depth++) {
-            if (current.getHeadTwinId() == null) {
-                return null;
-            }
-            twinService.loadHead(current);
-            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
-                return current.getHeadTwinId();
-            }
-            current = current.getHeadTwin();
         }
         return null;
     }

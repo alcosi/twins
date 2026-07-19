@@ -18,6 +18,7 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -42,6 +43,7 @@ public class TwinHeadService {
     private final TwinService twinService;
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
+    private final TwinRepository twinRepository;
 
     public void validHeadsExpandSearch(TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
         twinClassService.loadHeadTwinClass(twinClassEntity);
@@ -158,5 +160,27 @@ public class TwinHeadService {
                 .setHierarchyTree(headTwin.getHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twin.getId()))
                 .setPermissionSchemaSpaceId(TwinService.getPermissionSchemaSpaceId(headTwin))
                 .setPermissionSchemaId(headTwin.getPermissionSchemaId());
+    }
+
+    public static UUID resolveHeadTwinId(TwinEntity twin, int depth) {
+        return LTreeUtils.uuidByIndex(twin.getHierarchyTree(), true, depth);
+    }
+
+    public UUID resolveHeadTwinId(TwinEntity twin, UUID headTwinClassId) throws ServiceException {
+        if (headTwinClassId == null) {
+            return twin.getHeadTwinId() != null ? twin.getHeadTwinId() : twin.getId();
+        }
+        TwinEntity current = twin;
+        //soft loop, no db query
+        for (int depth = 0; depth < 10; depth++) {
+            if (current.getHeadTwin() == null) {
+                break;
+            }
+            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
+                return current.getHeadTwinId();
+            }
+            current = current.getHeadTwin();
+        }
+        return twinRepository.getHeadTwinIdOfClass(twin.getHeadTwinsIdSet(), headTwinClassId);
     }
 }

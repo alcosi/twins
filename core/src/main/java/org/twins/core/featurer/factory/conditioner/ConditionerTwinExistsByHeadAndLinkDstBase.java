@@ -19,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
 
@@ -52,6 +53,9 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
     @Lazy
     @Autowired
     protected TwinService twinService;
+    @Lazy
+    @Autowired
+    protected TwinHeadService twinHeadService;
     @Lazy
     @Autowired
     protected TwinLinkService twinLinkService;
