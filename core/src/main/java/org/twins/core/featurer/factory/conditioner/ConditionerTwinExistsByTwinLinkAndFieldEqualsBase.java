@@ -21,15 +21,13 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListOptionId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.featurer.params.*;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
@@ -63,6 +61,9 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
     @FeaturerParam(name = "Equals search twin class field id", description = "Numeric field used in the search filter condition", order = 9, optional = true)
     public static final FeaturerParamUUID equalsSearchTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsSearchTwinClassFieldId");
+
+    @FeaturerParam(name = "Equals field lookupper", description = "Equals field lookupper", order = 6, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper equalsFieldLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("equalsFieldLookupper");
 
     @FeaturerParam(name = "Match assignee", description = "If true, add dst twin assignerUserId to search when set; ignore assignee when dst twin has none", order = 5, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean matchAssignee = new FeaturerParamBoolean("matchAssignee");
@@ -123,8 +124,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
         UUID equalsFieldId = equalsTwinClassFieldId.extract(properties);
         if (equalsFieldId != null) {
-            FieldValue equalsFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
-                    .lookupFieldValue(factoryItem, equalsFieldId);
+            FieldValue equalsFieldValue = resolveEqualsFieldValue(properties, factoryItem, equalsFieldId);
             if (!(equalsFieldValue instanceof FieldValueText priceField) || priceField.isEmpty()) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Twin field not found");
             }
@@ -234,6 +234,11 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
     private UUID resolveAssigneeUserIdFromDstTwin(UUID dstTwinId) throws ServiceException {
         return twinService.findEntitySafe(dstTwinId).getAssignerUserId();
+    }
+
+    private FieldValue resolveEqualsFieldValue(Properties properties, FactoryItem inputItem, UUID equalsFieldId) throws ServiceException {
+        return ((FieldLookuperNearest) fieldLookupers.getByType(equalsFieldLookupper.extract(properties)))
+                .lookupFieldValue(inputItem, equalsFieldId);
     }
 
     private TwinFieldSearch buildNumericFieldEquals(UUID fieldId, double value) throws ServiceException {
