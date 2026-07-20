@@ -163,7 +163,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             if (v instanceof FieldValueLink valueLink) {
                 if (twinLinks == null)
                     twinLinks = new ArrayList<>();
-                twinLinks.addAll(valueLink.getItems());
+                twinLinks.addAll(valueLink.getItemsOrEmpty());
             }
         }
         twinLinkService.loadTwin(twinLinks);
