@@ -38,7 +38,7 @@ public class I18nExportService {
                     .comparing(I18nTranslationEntity::getI18nId, Comparator.nullsFirst(Comparator.naturalOrder()))
                     .thenComparing(t -> t.getLocale() != null ? t.getLocale().toLanguageTag() : null,
                             Comparator.nullsFirst(Comparator.naturalOrder())));
-            String i18nSql = i18nSqlBuilder.buildI18nInsert(i18n, translations);
+            String i18nSql = i18nSqlBuilder.buildI18nUpsert(i18n, translations);
             if (!i18nSql.isEmpty()) {
                 if (!result.isEmpty()) result.append("\n");
                 result.append(i18nSql);

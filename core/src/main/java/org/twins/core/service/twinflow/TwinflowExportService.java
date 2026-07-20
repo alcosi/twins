@@ -51,7 +51,7 @@ public class TwinflowExportService {
 
         StringBuilder result = new StringBuilder();
         for (TwinflowEntity twinflow : sortedTwinflows) {
-            String twinflowSql = sqlBuilder.buildInsert(twinflow);
+            String twinflowSql = sqlBuilder.buildUpsert(twinflow);
             if (!twinflowSql.isEmpty()) {
                 if (!result.isEmpty()) result.append("\n");
                 result.append(twinflowSql);
@@ -61,7 +61,7 @@ public class TwinflowExportService {
                     .filter(sm -> twinflow.getId().equals(sm.getTwinflowId()))
                     .toList();
             if (CollectionUtils.isNotEmpty(schemaMaps)) {
-                String schemaMapsSql = EntityExportService.buildInsertsSorted(
+                String schemaMapsSql = EntityExportService.buildUpsertsSorted(
                         sqlBuilder, schemaMaps, TwinflowSchemaMapEntity::getId);
                 if (!schemaMapsSql.isEmpty()) {
                     if (!result.isEmpty()) result.append("\n");
