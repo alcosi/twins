@@ -33,4 +33,10 @@ public class FactoryDuplicateDTOv1 {
 
     @Schema(description = "[optional] duplicate condition set with condition sets, conditions")
     public boolean duplicateConditionSets = false;
+
+    @Schema(description = "[optional] recursively duplicate every factory reached via branch/pipeline nextTwinFactoryId (remaps the FK to the clone)")
+    public boolean duplicateNextFactoryCascade = false;
+
+    @Schema(description = "[optional] duplicate the factory reached via pipeline afterCommitTwinFactoryId (remaps the FK to the clone)")
+    public boolean duplicateAfterCommitFactory = false;
 }

@@ -359,10 +359,22 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
                 .setOriginalEntityId(originalId)
                 .setNewParentEntityId(newParentId)
                 .setNewParentEntity(duplicateCollector.getNewEntity(newParentId)); //not null only for new parents
+        customizeCollectedDuplicate(duplicate, duplicateCollector);
         duplicateCollector.registerService(getEntityClass(), this);
         duplicateCollector.register(key, duplicate);
         collect(duplicateCollector, List.of(duplicate));
         return duplicateCollector.getEntry(key).getNewEntity().getId();
+    }
+
+    /**
+     * Hook fired inside {@link #lookupOrCollect} right after a fresh {@code D} is built (via
+     * {@link #createNewDuplicate()}) and its original/parent refs are set, but <b>before</b> it is
+     * registered and collected. Lets the owning service customize a <b>cascaded</b> duplicate —
+     * e.g. flip cascade flags on, supply a generated key — since {@code createNewDuplicate()}
+     * returns a blank descriptor by default. Default: no-op. Top-level duplicates (built directly
+     * by {@link #collect}, not via {@code lookupOrCollect}) do not pass through this hook.
+     */
+    protected void customizeCollectedDuplicate(D duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
     }
 
     // === Commit phase ===

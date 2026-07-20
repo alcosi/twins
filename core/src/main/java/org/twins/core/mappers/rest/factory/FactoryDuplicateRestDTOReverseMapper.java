@@ -22,6 +22,8 @@ public class FactoryDuplicateRestDTOReverseMapper extends RestSimpleDTOMapper<Fa
                 .setDuplicatePipelines(src.isDuplicatePipelines())
                 .setDuplicateErasers(src.isDuplicateErasers())
                 .setDuplicateTriggers(src.isDuplicateTriggers())
-                .setDuplicateConditionSets(src.isDuplicateConditionSets());
+                .setDuplicateConditionSets(src.isDuplicateConditionSets())
+                .setDuplicateNextFactoryCascade(src.isDuplicateNextFactoryCascade())
+                .setDuplicateAfterCommitFactory(src.isDuplicateAfterCommitFactory());
     }
 }

@@ -18,10 +18,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -89,17 +86,67 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         return ErrorCodeTwins.FACTORY_KEY_ALREADY_IN_USE;
     }
 
+    /**
+     * A factory reached through {@code duplicateNextFactoryCascade} / {@code duplicateAfterCommitFactory}
+     * is a cascaded duplicate (built via {@code lookupOrCollect}, not user-supplied). It is cloned
+     * fully and keeps cascading, so the whole reachable factory graph is duplicated as deep as possible.
+     */
+    @Override
+    protected void customizeCollectedDuplicate(FactoryDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        duplicate
+                .setDuplicateBranches(true)
+                .setDuplicateMultipliers(true)
+                .setDuplicatePipelines(true)
+                .setDuplicateErasers(true)
+                .setDuplicateTriggers(true)
+                .setDuplicateConditionSets(true)
+                .setDuplicateNextFactoryCascade(true)
+                .setDuplicateAfterCommitFactory(true);
+    }
+
     @Override
     protected TwinFactoryEntity createNewEntity(FactoryDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var original = duplicate.getOriginalEntity();
         var apiUser = authService.getApiUser();
-        log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
+        String newKey = resolveNewKey(duplicate);
+        log.info("{} will be duplicated with new key[{}]", original.logShort(), newKey);
         return new TwinFactoryEntity()
                 .setId(UuidUtils.generate())
-                .setKey(duplicate.getNewKey())
+                .setKey(newKey)
+                .setDomainId(original.getDomainId())
+                .setFactoryProcessorFeaturerId(original.getFactoryProcessorFeaturerId())
+                .setFactoryProcessorParams(original.getFactoryProcessorParams() != null
+                        ? new HashMap<>(original.getFactoryProcessorParams())
+                        : null)
                 .setCreatedByUserId(apiUser.getUser().getId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
-                .setDomainId(original.getDomainId());
+                .setCreatedAt(Timestamp.from(Instant.now()));
+    }
+
+    /**
+     * Resolves the key for the new factory. Uses the caller-supplied key as-is; for cascaded
+     * factories (no key supplied) generates {@code <originalKey>_copy_<suffix>} that is free under
+     * the {@code twin_factory_domain_id_key_uindex} (domain_id, key) unique constraint. The
+     * generated key is cached back on the duplicate so logs and {@code validateKeyUniqueness} see it.
+     */
+    private String resolveNewKey(FactoryDuplicate duplicate) {
+        String suppliedKey = duplicate.getNewKey();
+        if (suppliedKey != null && !suppliedKey.isBlank()) {
+            return suppliedKey;
+        }
+        var original = duplicate.getOriginalEntity();
+        String base = (original.getKey() != null && !original.getKey().isBlank()) ? original.getKey() : "factory";
+        UUID domainId = original.getDomainId();
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String candidate = base + "_copy_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+            if (factoryService.isKeyFree(candidate, domainId)) {
+                duplicate.setNewKey(candidate);
+                return candidate;
+            }
+        }
+        // Fallback: a full UUID suffix is effectively collision-free.
+        String candidate = base + "_copy_" + UUID.randomUUID();
+        duplicate.setNewKey(candidate);
+        return candidate;
     }
 
     @Override

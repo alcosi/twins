@@ -169,6 +169,17 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::setNextTwinFactory);
     }
 
+    public void loadAfterCommitTwinFactory(TwinFactoryPipelineEntity src) throws ServiceException {
+        loadAfterCommitTwinFactory(Collections.singleton(src));
+    }
+
+    public void loadAfterCommitTwinFactory(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
+        factoryService.load(srcCollection,
+                TwinFactoryPipelineEntity::getAfterCommitTwinFactoryId,
+                TwinFactoryPipelineEntity::getAfterCommitTwinFactory,
+                TwinFactoryPipelineEntity::setAfterCommitTwinFactory);
+    }
+
     public void loadInputTwinClass(TwinFactoryPipelineEntity src) throws ServiceException {
         loadInputTwinClass(Collections.singleton(src));
     }

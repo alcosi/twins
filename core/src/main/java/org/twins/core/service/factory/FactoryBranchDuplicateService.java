@@ -14,6 +14,7 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.domain.EntityDuplicateCollector;
 import org.twins.core.domain.factory.FactoryBranchDuplicate;
+import org.twins.core.domain.factory.FactoryDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
@@ -30,6 +31,8 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     private final FactoryService factoryService;
     @Lazy
     private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
+    @Lazy
+    private final FactoryDuplicateService factoryDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryBranchEntity> entityService() {
@@ -54,6 +57,7 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
     @Override
     protected void loadRequiredRelations(List<TwinFactoryBranchEntity> originalEntities) throws ServiceException {
         factoryBranchService.loadConditionSet(originalEntities);
+        factoryBranchService.loadNextFactory(originalEntities);
     }
 
     @Override
@@ -94,14 +98,35 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
         if (newConditionSetId != null && !Objects.equals(src.getTwinFactoryId(), targetFactoryId)) {
             newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
         }
+        UUID newNextFactoryId = remapNextFactoryId(src, duplicateCollector);
         return new TwinFactoryBranchEntity()
                 .setId(UuidUtils.generate())
                 .setTwinFactoryId(src.getTwinFactoryId())
                 .setTwinFactoryConditionSetId(newConditionSetId)
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setActive(src.getActive())
-                .setNextTwinFactoryId(src.getNextTwinFactoryId())
+                .setNextTwinFactoryId(newNextFactoryId)
                 .setDescription(src.getDescription());
+    }
+
+    /**
+     * When {@code duplicateNextFactoryCascade} is set on the owning factory, the branch's
+     * {@code nextTwinFactoryId} is remapped to the cascade-duplicated factory (created on demand via
+     * {@code lookupOrCollect}); otherwise the original id is copied verbatim. The owning
+     * {@link FactoryDuplicate} is read from the collector registry (it is registered before the
+     * branch cascade runs).
+     */
+    private UUID remapNextFactoryId(TwinFactoryBranchEntity src, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        UUID originalNextId = src.getNextTwinFactoryId();
+        if (originalNextId == null) {
+            return null;
+        }
+        FactoryDuplicate ownerDuplicate = (FactoryDuplicate) duplicateCollector.getEntry(
+                new EntityDuplicateCollector.DuplicateKey(TwinFactoryEntity.class, src.getTwinFactoryId(), null));
+        if (ownerDuplicate == null || !ownerDuplicate.isDuplicateNextFactoryCascade() || src.getNextFactory() == null) {
+            return originalNextId;
+        }
+        return factoryDuplicateService.lookupOrCollect(src.getNextFactory(), null, duplicateCollector);
     }
 
     @Override
