@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 )
 public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
 
-    private static final Pattern INCREMENT_PATTERN = Pattern.compile("^(0|[+-]\\d+(\\.\\d+)?)$");
+    public static final Pattern INCREMENT_PATTERN = Pattern.compile("^(0|[+-]\\d+(\\.\\d+)?)$");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {

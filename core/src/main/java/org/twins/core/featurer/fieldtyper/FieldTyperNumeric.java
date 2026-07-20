@@ -76,73 +76,50 @@ public interface FieldTyperNumeric extends FieldTyperScalable {
         var extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
         var extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
         var decimalPlacesValue = decimalPlaces.extract(properties);
-        var roundValue = round.extract(properties);
         var returnValue = value.getValue();
 
         try {
-            if (Strings.isNotEmpty(returnValue)) {
-                if (returnValue.matches(EXPONENTIAL_FORM_REGEXP)) {
-                    DecimalFormat df = new DecimalFormat("#.############");
-                    returnValue = df.format(Double.parseDouble(returnValue));
-                }
-
-                // Combine main decimal separator with extra ones for counting
-                Set<String> allDecimalSeparators = new HashSet<>();
-                allDecimalSeparators.add(decimalSeparatorValue);
-                allDecimalSeparators.addAll(extraDecimalSeparators);
-
-                int decimalSeparatorCount = 0;
-                for (String decimalSep : allDecimalSeparators) {
-                    decimalSeparatorCount += StringUtils.countMatches(returnValue, decimalSep);
-                }
-                if (decimalSeparatorCount > 1) {
-                    log.error("FieldTyperNumeric: value[{}] has multiple decimal separators", value.getValue());
-                    throw new Exception();
-                }
-
-                // Combine main thousand separator with extra ones for removal
-                Set<String> allThousandSeparators = new HashSet<>();
-                allThousandSeparators.add(thousandSeparatorValue);
-                allThousandSeparators.addAll(extraThousandSeparators);
-
-                // Remove all thousand separators
-                for (String thousandSep : allThousandSeparators) {
-                    returnValue = returnValue.replaceAll(Pattern.quote(thousandSep), "");
-                }
-
-                // Replace all decimal separators with dot
-                for (String decimalSep : allDecimalSeparators) {
-                    returnValue = returnValue.replaceAll(Pattern.quote(decimalSep), ".");
-                }
-
-                String[] parts = returnValue.split("\\.");
-                String integerPart = parts[0];
-                String decimalPart = parts.length > 1 ? parts[1] : "";
-
-                if (decimalPart.length() > decimalPlacesValue) {
-                    if (Boolean.FALSE.equals(roundValue)) {
-                        log.error("FieldTyperNumeric: value[{}] has more decimal places then parametrized", value.getValue());
-                        throw new Exception();
-                    }
-                    decimalPart = decimalPart.substring(0, decimalPlacesValue);
-                } else if (decimalPart.length() < decimalPlacesValue) {
-                    decimalPart = StringUtils.rightPad(decimalPart, decimalPlacesValue, '0');
-                }
-
-                if (decimalPlacesValue > 0) {
-                    returnValue = integerPart + "." + decimalPart;
-                } else {
-                    returnValue = integerPart;
-                }
-
-                double doubleValue = Double.parseDouble(returnValue);
-                if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
-                    log.error("FieldTyperNumeric: value[{}] is out of range", value.getValue());
-                    throw new Exception();
-                }
-            } else {
+            if (Strings.isEmpty(returnValue)) {
                 throw new Exception();
             }
+            if (returnValue.matches(EXPONENTIAL_FORM_REGEXP)) {
+                DecimalFormat df = new DecimalFormat("#.############");
+                returnValue = df.format(Double.parseDouble(returnValue));
+            }
+
+            // Combine main decimal separator with extra ones for counting
+            Set<String> allDecimalSeparators = new HashSet<>();
+            allDecimalSeparators.add(decimalSeparatorValue);
+            allDecimalSeparators.addAll(extraDecimalSeparators);
+
+            int decimalSeparatorCount = 0;
+            for (String decimalSep : allDecimalSeparators) {
+                decimalSeparatorCount += StringUtils.countMatches(returnValue, decimalSep);
+            }
+            if (decimalSeparatorCount > 1) {
+                log.error("FieldTyperNumeric: value[{}] has multiple decimal separators", value.getValue());
+                throw new Exception();
+            }
+
+            // Combine main thousand separator with extra ones for removal
+            Set<String> allThousandSeparators = new HashSet<>();
+            allThousandSeparators.add(thousandSeparatorValue);
+            allThousandSeparators.addAll(extraThousandSeparators);
+
+            // Remove all thousand separators
+            for (String thousandSep : allThousandSeparators) {
+                returnValue = returnValue.replaceAll(Pattern.quote(thousandSep), "");
+            }
+
+            // Replace all decimal separators with dot
+            for (String decimalSep : allDecimalSeparators) {
+                returnValue = returnValue.replaceAll(Pattern.quote(decimalSep), ".");
+            }
+
+            // Numeric checks (decimalPlaces + min/max) — shared with the increment path
+            returnValue = scaleAndCheckRange(properties, twinClassField, new BigDecimal(returnValue)).toPlainString();
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinClassField.easyLog(EasyLoggable.Level.NORMAL) +
@@ -153,6 +130,48 @@ public interface FieldTyperNumeric extends FieldTyperScalable {
         }
 
         return returnValue;
+    }
+
+    /**
+     * Numeric-only tail of {@link #processAndFormatValue}, extracted so callers that already hold a
+     * {@link BigDecimal} — e.g. the increment path in {@link FieldTyperDecimal} — can reuse it
+     * without round-tripping through a {@link FieldValueText} and the text parsing/separator pipeline.
+     * <p>
+     * Scales {@code value} to {@code decimalPlaces} (truncating excess precision when {@code round}
+     * is enabled, rejecting it otherwise — same {@code round} semantics as {@link #processAndFormatValue},
+     * not the {@code roundingMode} of {@link FieldTyperScalable#scaleAndRound}) and enforces the
+     * {@code min}/{@code max} range.
+     */
+    default BigDecimal scaleAndCheckRange(Properties properties, TwinClassFieldEntity twinClassField, BigDecimal value) throws ServiceException {
+        var minValue = min.extract(properties);
+        var maxValue = max.extract(properties);
+        var decimalPlacesValue = decimalPlaces.extract(properties);
+        var roundValue = round.extract(properties);
+        try {
+            if (decimalPlacesValue != null) {
+                int targetScale = decimalPlacesValue;
+                if (value.scale() > targetScale) {
+                    if (Boolean.FALSE.equals(roundValue)) {
+                        log.error("FieldTyperNumeric: value[{}] has more decimal places then parametrized", value);
+                        throw new Exception();
+                    }
+                    value = value.setScale(targetScale, RoundingMode.DOWN);
+                } else if (value.scale() < targetScale) {
+                    value = value.setScale(targetScale, RoundingMode.UNNECESSARY);
+                }
+            }
+            double doubleValue = value.doubleValue();
+            if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
+                log.error("FieldTyperNumeric: value[{}] is out of range", value);
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                    twinClassField.easyLog(EasyLoggable.Level.NORMAL) +
+                            " value[" + value + "] does not match the field settings" +
+                            "[ min:" + minValue + " max:" + maxValue + " decPlaces:" + decimalPlacesValue + " round:" + roundValue + "].");
+        }
+        return value;
     }
 
     /**

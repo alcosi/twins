@@ -4,6 +4,8 @@ import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -35,6 +37,9 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
         BigDecimal,
         TwinFieldStorageDecimal,
         TwinFieldValueSearchNumeric> implements FieldTyperNumeric {
+
+    @FeaturerParam(name = "Allow increment/decrement values (+/-)", order = 3, optional = true, defaultValue = "true")
+    FeaturerParamBoolean allowIncrementValue = new FeaturerParamBoolean("allowIncrementValue");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -72,7 +77,27 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
 
     @Override
     protected BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value) throws ServiceException {
+        var rawValue = value.getValue();
+        if (Boolean.TRUE.equals(allowIncrementValue.extract(properties))
+                && FieldTyperDecimalIncrement.INCREMENT_PATTERN.matcher(rawValue).matches()) {
+            return processIncrementedValue(properties, twinFieldEntity, new BigDecimal(rawValue));
+        }
         return new BigDecimal(processAndFormatValue(properties, value));
+    }
+
+    /**
+     * Unlike {@link FieldTyperDecimalIncrement} (which persists only the {@code delta} and lets the
+     * database apply it atomically), {@code FieldTyperDecimal} stores the final value in
+     * {@link TwinFieldDecimalEntity}. So here we fold the delta into the current value right away:
+     * {@code currentValue + delta}, or just {@code delta} when the field holds no value yet (null),
+     * then run the result through {@link FieldTyperNumeric#scaleAndCheckRange} for the same
+     * {@code decimalPlaces}/{@code round} and {@code min}/{@code max} checks a plain value gets,
+     * before {@link FieldTyperSingleValue#detectValueChange} persists it.
+     */
+    public BigDecimal processIncrementedValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, BigDecimal delta) throws ServiceException {
+        BigDecimal currentValue = twinFieldEntity.getValue();
+        BigDecimal result = currentValue != null ? currentValue.add(delta) : delta;
+        return scaleAndCheckRange(properties, twinFieldEntity.getTwinClassField(), result);
     }
 
     @Override
