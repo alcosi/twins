@@ -38,7 +38,7 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
         TwinFieldStorageDecimal,
         TwinFieldValueSearchNumeric> implements FieldTyperNumeric {
 
-    @FeaturerParam(name = "Allow increment/decrement values (+/-)", order = 3, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Allow increment/decrement values (+/-)", order = 3, optional = true, defaultValue = "false")
     FeaturerParamBoolean allowIncrementValue = new FeaturerParamBoolean("allowIncrementValue");
 
     @Override
@@ -78,26 +78,63 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
     @Override
     protected BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value) throws ServiceException {
         var rawValue = value.getValue();
-        if (Boolean.TRUE.equals(allowIncrementValue.extract(properties))
-                && FieldTyperDecimalIncrement.INCREMENT_PATTERN.matcher(rawValue).matches()) {
+        if (isIncrementInput(properties, rawValue)) {
             return processIncrementedValue(properties, twinFieldEntity, new BigDecimal(rawValue));
         }
         return new BigDecimal(processAndFormatValue(properties, value));
     }
 
     /**
-     * Unlike {@link FieldTyperDecimalIncrement} (which persists only the {@code delta} and lets the
-     * database apply it atomically), {@code FieldTyperDecimal} stores the final value in
-     * {@link TwinFieldDecimalEntity}. So here we fold the delta into the current value right away:
-     * {@code currentValue + delta}, or just {@code delta} when the field holds no value yet (null),
-     * then run the result through {@link FieldTyperNumeric#scaleAndCheckRange} for the same
+     * Folds a {@code +/-} delta into the field's current value in application memory and stores the
+     * final value in {@link TwinFieldDecimalEntity}, as opposed to {@link FieldTyperDecimalIncrement},
+     * which persists only the delta and lets the database apply it atomically
+     * ({@code UPDATE ... SET value = value + ?}).
+     * <p>
+     * <b>Why non-atomic read-modify-write is intentional here.</b> {@code TwinFieldRecomputeService}
+     * and the cascade-recompute pipeline operate on {@link TwinFieldDecimalEntity} in memory: they
+     * need the materialized result ({@code current + delta}) to feed downstream field recalculations
+     * within the same transaction. An atomic DB-side increment cannot supply that without a
+     * read-back, and {@link FieldTyperDecimalIncrement} does not participate in the recompute
+     * pipeline at all. Fields that drive cascades therefore need the value, not the atomicity.
+     * <p>
+     * <b>Trade-off accepted:</b> two concurrent {@code +N} writes to the same field can lose one
+     * increment (classic lost update — no {@code @Version} / row lock on this entity). This is
+     * acceptable for fields whose value feeds cascades and have low write contention; for
+     * high-concurrency counters use {@link FieldTyperDecimalIncrement} instead. Gated by the
+     * {@code allowIncrementValue} param (opt-in, default {@code false}).
+     * <p>
+     * The result runs through {@link FieldTyperNumeric#scaleAndCheckRange} for the same
      * {@code decimalPlaces}/{@code round} and {@code min}/{@code max} checks a plain value gets,
      * before {@link FieldTyperSingleValue#detectValueChange} persists it.
      */
     public BigDecimal processIncrementedValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, BigDecimal delta) throws ServiceException {
-        BigDecimal currentValue = twinFieldEntity.getValue();
+        return foldDelta(properties, twinFieldEntity.getTwinClassField(), twinFieldEntity.getValue(), delta);
+    }
+
+    /**
+     * Shared delta-folding math used by both {@link #processIncrementedValue} and {@link #validate}:
+     * {@code currentValue + delta} (or just {@code delta} when the field holds no value yet), then
+     * scaled and range-checked. {@code currentValue} may be {@code null} — e.g. a new field with no
+     * stored row yet during pre-flight validation.
+     */
+    private BigDecimal foldDelta(Properties properties, TwinClassFieldEntity twinClassField, BigDecimal currentValue, BigDecimal delta) throws ServiceException {
         BigDecimal result = currentValue != null ? currentValue.add(delta) : delta;
-        return scaleAndCheckRange(properties, twinFieldEntity.getTwinClassField(), result);
+        return scaleAndCheckRange(properties, twinClassField, result);
+    }
+
+    /**
+     * True iff {@code rawValue} is a signed {@code +/-} delta to fold into the current value (not an
+     * absolute set). A bare {@code "0"} / {@code "+0"} / {@code "-0"} is <b>not</b> an increment —
+     * zero must zero the field, so it falls through to the absolute path and preserves the legacy
+     * {@code setValue(0)} semantics.
+     */
+    private boolean isIncrementInput(Properties properties, String rawValue) {
+        if (rawValue == null || rawValue.isEmpty()) {
+            return false;
+        }
+        return Boolean.TRUE.equals(allowIncrementValue.extract(properties))
+                && DELTA_PATTERN.matcher(rawValue).matches()
+                && new BigDecimal(rawValue).signum() != 0;
     }
 
     @Override
@@ -123,11 +160,18 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
     protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueText fieldValue) throws ServiceException {
         var ret = new ValidationResult(true);
         try {
-            processAndFormatValue(properties, fieldValue);
+            var rawValue = fieldValue.getValue();
+            if (isIncrementInput(properties, rawValue)) {
+                // Validate the RESULT (current + delta) against range/scale — same path processValue takes.
+                TwinFieldDecimalEntity twinFieldEntity = resolveTwinFieldEntity(twin, fieldValue.getTwinClassField());
+                BigDecimal currentValue = twinFieldEntity != null ? twinFieldEntity.getValue() : null;
+                foldDelta(properties, fieldValue.getTwinClassField(), currentValue, new BigDecimal(rawValue));
+            } else {
+                processAndFormatValue(properties, fieldValue);
+            }
         } catch (ServiceException e) {
             ret.setValid(false).addMessage(e.getMessage());
         }
-
         return ret;
     }
 }

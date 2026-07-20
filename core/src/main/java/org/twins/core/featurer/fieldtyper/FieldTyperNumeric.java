@@ -37,6 +37,15 @@ public interface FieldTyperNumeric extends FieldTyperScalable {
 
     Logger log = LoggerFactory.getLogger(FieldTyperNumeric.class);
 
+    /**
+     * Format contract for a signed increment/decrement delta: {@code "0"}, {@code "+N"}, {@code "-N"}
+     * (with optional fractional part). Single source of truth shared by every numeric typer that
+     * accepts delta-style input — e.g. {@link FieldTyperDecimal} (when {@code allowIncrementValue=true})
+     * and {@link FieldTyperDecimalIncrement}. Kept on the interface so the typer implementations
+     * depend on a common contract, not on each other's internals.
+     */
+    Pattern DELTA_PATTERN = Pattern.compile("^(0|[+-]\\d+(\\.\\d+)?)$");
+
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1, optional = true, defaultValue = "-2147483648")
     FeaturerParamDouble min = new FeaturerParamDouble("min");
 
