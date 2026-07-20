@@ -124,9 +124,11 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
 
     /**
      * Resolves the key for the new factory. Uses the caller-supplied key as-is; for cascaded
-     * factories (no key supplied) generates {@code <originalKey>_copy_<suffix>} that is free under
-     * the {@code twin_factory_domain_id_key_uindex} (domain_id, key) unique constraint. The
-     * generated key is cached back on the duplicate so logs and {@code validateKeyUniqueness} see it.
+     * factories (no key supplied) generates {@code <originalKey>_copy_<uuid>}. A full UUID suffix
+     * gives 122 bits of entropy, so a key collision is astronomically unlikely — no pre-check (and
+     * thus no check-then-insert race / extra round-trips) is needed. The DB unique index
+     * {@code twin_factory_domain_id_key_uindex} remains the final integrity guard. The generated key
+     * is cached back on the duplicate so logs and {@code validateKeyUniqueness} see it.
      */
     private String resolveNewKey(FactoryDuplicate duplicate) {
         String suppliedKey = duplicate.getNewKey();
@@ -135,15 +137,6 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         }
         var original = duplicate.getOriginalEntity();
         String base = (original.getKey() != null && !original.getKey().isBlank()) ? original.getKey() : "factory";
-        UUID domainId = original.getDomainId();
-        for (int attempt = 0; attempt < 10; attempt++) {
-            String candidate = base + "_copy_" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
-            if (factoryService.isKeyFree(candidate, domainId)) {
-                duplicate.setNewKey(candidate);
-                return candidate;
-            }
-        }
-        // Fallback: a full UUID suffix is effectively collision-free.
         String candidate = base + "_copy_" + UUID.randomUUID();
         duplicate.setNewKey(candidate);
         return candidate;

@@ -143,10 +143,6 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
             dbEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
-    public boolean isKeyFree(String key, UUID domainId) {
-        return !repository.existsByKeyAndDomainId(key, domainId);
-    }
-
     public void countFactoryUsages(TwinFactoryEntity twinFactory) {
         countFactoryUsages(Collections.singletonList(twinFactory));
     }
