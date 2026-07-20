@@ -2233,10 +2233,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public List<TwinCreateStage> splitOnStages(Collection<TwinCreate> srcCollection) throws ServiceException {
+        // Keys here are TwinCreate objects, which are mutable (Lombok @Data on TwinOperation -> TwinEntity,
+        // and TwinCreateStage.add() assigns twinEntity.id mid-method). A plain HashMap keys on the
+        // Lombok-generated hashCode, so mutating id (or any @Transient Kit on TwinEntity) between put and
+        // get moves the key to another bucket and get returns null -> NPE. IdentityHashMap keys on
+        // object identity (== / System.identityHashCode) and is unaffected. See TWINS-254 note in TwinSave.
+        // newTwinsWithIds stays a plain HashMap: its keys are immutable UUIDs.
         Map<UUID, TwinCreate> newTwinsWithIds = new HashMap<>();
 
-        Map<TwinCreate, Set<TwinCreate>> reverseGraph = new HashMap<>();
-        Map<TwinCreate, Integer> inDegree = new HashMap<>();
+        Map<TwinCreate, Set<TwinCreate>> reverseGraph = new IdentityHashMap<>();
+        Map<TwinCreate, Integer> inDegree = new IdentityHashMap<>();
 
         for (TwinCreate t : srcCollection) {
             reverseGraph.put(t, new HashSet<>());
