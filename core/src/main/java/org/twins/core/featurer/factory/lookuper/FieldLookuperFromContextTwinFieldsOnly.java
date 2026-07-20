@@ -13,6 +13,10 @@ public class FieldLookuperFromContextTwinFieldsOnly extends FieldLookuperNearest
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException {
         FactoryItem contextItem = factoryItem.checkSingleContextItem();
-        return contextItem.getOutput().getField(lookupTwinClassFieldId);
+        var fieldValue = contextItem.getOutput().getField(lookupTwinClassFieldId);
+        if (fieldValue != null) {
+            return fieldValue;
+        }
+        return getValueFromOutputLinks(lookupTwinClassFieldId, contextItem.getOutput());
     }
 }

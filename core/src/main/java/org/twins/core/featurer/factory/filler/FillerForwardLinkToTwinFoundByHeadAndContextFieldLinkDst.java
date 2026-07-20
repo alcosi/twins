@@ -44,11 +44,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldLinkDst extends Fi
     @Override
     protected UUID getLinkId(Properties properties) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(dstFieldId);
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperLink fieldTyperLink))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not link");
-        return fieldTyperLink.getLinkId(twinClassField.getFieldTyperParams());
+        return twinClassFieldService.getConfiguredLinkSafe(dstFieldId);
     }
 
     @Override

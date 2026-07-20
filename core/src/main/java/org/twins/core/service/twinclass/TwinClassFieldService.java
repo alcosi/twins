@@ -639,6 +639,25 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return true;
     }
 
+    public UUID getConfiguredLink(UUID twinClassFieldId) throws ServiceException {
+        return getConfiguredLink(findEntitySafe(twinClassFieldId));
+    }
+
+    public UUID getConfiguredLinkSafe(UUID twinClassFieldId) throws ServiceException {
+        var linkId = getConfiguredLink(findEntitySafe(twinClassFieldId));
+        if (linkId == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, "twinClassField[{}] is not link");
+        }
+        return linkId;
+    }
+
+    public UUID getConfiguredLink(TwinClassFieldEntity twinClassField) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        if (!(fieldTyper instanceof FieldTyperLink fieldTyperLink))
+            return null;
+        return fieldTyperLink.getLinkId(twinClassField.getFieldTyperParams());
+    }
+
     public boolean notSerializable(TwinClassFieldEntity twinClassField) throws ServiceException {
         var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
         return !fieldTyper.canSerialize(twinClassField);

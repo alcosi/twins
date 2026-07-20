@@ -187,7 +187,11 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         else
             twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
         FieldValueLink ret = new FieldValueLink(twinField.getTwinClassField());
-        ret.setItems(twinLinkEntityList);
+        if (CollectionUtils.isNotEmpty(twinLinkEntityList)) {
+            ret.setItems(twinLinkEntityList);
+        } else {
+            ret.undefine();
+        }
         ret.setForwardLink(linkDirection == LinkService.LinkDirection.forward);
         return ret;
     }
