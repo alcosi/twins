@@ -184,23 +184,15 @@ public interface FieldTyperNumeric extends FieldTyperScalable {
     }
 
     /**
-     * Read a stored {@link TwinFieldDecimalEntity} back into a {@link FieldValueText}, formatting
-     * the {@link BigDecimal} with the configured decimal places (scale). A null entity or null
-     * value yields a null string (treated as absent on read).
+     * Read a stored {@link TwinFieldDecimalEntity} back into a {@link FieldValueText}, scaling
+     * the {@link BigDecimal} to the configured decimal places via {@link #scaleAndRound} (same
+     * rounding as Mater calculation on serialize). A null entity or null value yields a null
+     * string (treated as absent on read).
      */
     default FieldValueText deserializeValueBase(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException {
-        var scale = decimalPlaces.extract(properties);
-        String value;
-
-        if (scale != null) {
-            value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
-                    ? twinFieldDecimalEntity.getValue().setScale(scale, RoundingMode.UNNECESSARY).toPlainString()
-                    : null;
-        } else {
-            value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
-                    ? twinFieldDecimalEntity.getValue().toString()
-                    : null;
-        }
+        String value = twinFieldDecimalEntity != null && twinFieldDecimalEntity.getValue() != null
+                ? scaleAndRound(twinFieldDecimalEntity.getValue(), properties).toPlainString()
+                : null;
 
         return new FieldValueText(twinField.getTwinClassField()).setValue(value);
     }

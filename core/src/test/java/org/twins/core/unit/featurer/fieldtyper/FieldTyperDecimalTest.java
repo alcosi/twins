@@ -70,6 +70,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         props.setProperty("thousandSeparator", " ");
         props.setProperty("decimalSeparator", ".");
         props.setProperty("decimalPlaces", "2");
+        props.setProperty("roundingMode", "HALF_UP");
         props.setProperty("round", "true");
         return props;
     }
@@ -119,6 +120,19 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField));
 
             assertEquals("15.50", result.getValue());
+        }
+
+        @Test
+        void deserializeValue_storedValueWithExcessPrecision_roundsToConfiguredScale() throws ServiceException {
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID());
+            twin.setTwinFieldDecimalKit(new Kit<>(
+                    List.of(decimalEntity(classField, new BigDecimal("114.0171"))),
+                    TwinFieldDecimalEntity::getTwinClassFieldId));
+
+            FieldValueText result = fieldTyper.deserializeValue(properties(), twinField(twin, classField));
+
+            assertEquals("114.02", result.getValue());
         }
 
         @Test
