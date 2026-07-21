@@ -176,6 +176,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryEntity::setTwinFactoryTriggerKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryTriggerEntity::getId,
-                TwinFactoryTriggerEntity::getTwinFactoryId);
+                TwinFactoryTriggerEntity::getTwinFactoryId,
+                TwinFactoryTriggerEntity::setTwinFactory);
     }
 }

@@ -56,7 +56,8 @@ public class FacePG002WidgetService extends FaceVariantsService<FacePG002WidgetE
                 FacePG002TabEntity::setWidgets,
                 facePG002WidgetRepository::findByFacePagePG002TabIdInAndActiveTrue,
                 FacePG002WidgetEntity::getId,
-                FacePG002WidgetEntity::getFacePagePG002TabId);
+                FacePG002WidgetEntity::getFacePagePG002TabId,
+                FacePG002WidgetEntity::setFacePG002Tab);
     }
 
     @Override

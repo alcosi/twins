@@ -385,7 +385,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 TwinEntity::setAttachmentKit,
                 twinAttachmentRepository::findByTwinIdIn,
                 TwinAttachmentEntity::getId,
-                TwinAttachmentEntity::getTwinId
+                TwinAttachmentEntity::getTwinId,
+                TwinAttachmentEntity::setTwin
         );
     }
 

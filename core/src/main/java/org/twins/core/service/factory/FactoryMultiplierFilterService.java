@@ -84,7 +84,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 TwinFactoryMultiplierEntity::setTwinFactoryMultiplierFilterKit,
                 repository::findByTwinFactoryMultiplierIdIn,
                 TwinFactoryMultiplierFilterEntity::getId,
-                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
+                TwinFactoryMultiplierFilterEntity::setMultiplier);
     }
 
     public void loadConditionSet(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {

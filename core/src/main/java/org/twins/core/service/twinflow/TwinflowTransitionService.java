@@ -577,7 +577,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinflowTransitionEntity::setValidatorRulesKit,
                 twinflowTransitionValidatorRuleRepository::findAllByTwinflowTransitionIdInOrderByOrder,
                 TwinflowTransitionValidatorRuleEntity::getId,
-                TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId);
+                TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId,
+                TwinflowTransitionValidatorRuleEntity::setTwinflowTransition);
     }
 
     public Kit<TwinflowTransitionTriggerEntity, UUID> loadTriggers(TwinflowTransitionEntity transition) {
@@ -595,7 +596,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinflowTransitionEntity::setTriggersKit,
                 twinflowTransitionTriggerRepository::findAllByTwinflowTransitionIdInOrderByOrder,
                 TwinflowTransitionTriggerEntity::getId,
-                TwinflowTransitionTriggerEntity::getTwinflowTransitionId);
+                TwinflowTransitionTriggerEntity::getTwinflowTransitionId,
+                TwinflowTransitionTriggerEntity::setTwinflowTransition);
     }
 
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {

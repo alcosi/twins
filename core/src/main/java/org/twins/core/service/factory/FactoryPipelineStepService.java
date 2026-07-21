@@ -128,7 +128,8 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryPipelineEntity::setTwinFactoryPipelineStepKit,
                 repository::findByTwinFactoryPipelineIdInOrderByOrderAsc,
                 TwinFactoryPipelineStepEntity::getId,
-                TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId);
+                TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,
+                TwinFactoryPipelineStepEntity::setTwinFactoryPipeline);
     }
 
     public void loadPipeline(TwinFactoryPipelineStepEntity src) throws ServiceException {

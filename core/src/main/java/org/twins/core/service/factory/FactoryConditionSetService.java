@@ -189,7 +189,8 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryEntity::setTwinFactoryConditionSetKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryConditionSetEntity::getId,
-                TwinFactoryConditionSetEntity::getTwinFactoryId);
+                TwinFactoryConditionSetEntity::getTwinFactoryId,
+                TwinFactoryConditionSetEntity::setTwinFactory);
     }
 
     public void loadElementsConditionSets(Collection<ContainsFactoryConditionSet> elementsWithConditionSets) throws ServiceException {

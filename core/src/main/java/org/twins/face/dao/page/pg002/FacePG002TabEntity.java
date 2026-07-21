@@ -65,6 +65,11 @@ public class FacePG002TabEntity implements EasyLoggable, FaceVariantEntity {
     @ToString.Exclude
     Kit<FacePG002WidgetEntity, UUID> widgets;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FacePG002Entity facePG002;
+
     @Override
     public String easyLog(Level level) {
         switch (level) {

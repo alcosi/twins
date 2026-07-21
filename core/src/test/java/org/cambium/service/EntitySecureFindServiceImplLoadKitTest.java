@@ -49,7 +49,8 @@ public class EntitySecureFindServiceImplLoadKitTest {
                             Src::setItems,
                             query,
                             Result::getKey,       // Kit-key (locale)
-                            Result::getGroupId)); // grouping (i18nId)
+                            Result::getGroupId,   // grouping (i18nId)
+                            Result::setParent));  // parent back-reference
 
             // each source received only its own translation, no cross-group bleed
             assertEquals("to storage", src1.getItems().get("en").getValue());
@@ -66,11 +67,53 @@ public class EntitySecureFindServiceImplLoadKitTest {
                     new Result(i18n1, "ru", "privet")));
             EntitySecureFindServiceImpl.loadKit(List.of(src1),
                     Src::getId, Src::getItems, Src::setItems,
-                    query, Result::getKey, Result::getGroupId);
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
 
             assertEquals(2, src1.getItems().size());
             assertEquals("hello", src1.getItems().get("en").getValue());
             assertEquals("privet", src1.getItems().get("ru").getValue());
+        }
+
+        @Test
+        public void testParentBackReferenceSetOnEachChild() {
+            UUID i18n1 = id();
+            UUID i18n2 = id();
+            var src1 = new Src(i18n1);
+            var src2 = new Src(i18n2);
+            Function<Set<UUID>, Collection<Result>> query = ids -> new ArrayList<>(List.of(
+                    new Result(i18n1, "en", "a"),
+                    new Result(i18n1, "ru", "b"),
+                    new Result(i18n2, "en", "c")));
+            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+                    Src::getId, Src::getItems, Src::setItems,
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
+
+            // each child is linked back to the source entity that owns its kit
+            assertSame(src1, src1.getItems().get("en").getParent());
+            assertSame(src1, src1.getItems().get("ru").getParent());
+            assertSame(src2, src2.getItems().get("en").getParent());
+        }
+
+        @Test
+        public void testParentSetterNotInvokedForPreloadedKit() {
+            // a source whose kit is already loaded is skipped, so its children are left untouched
+            UUID i18n1 = id();
+            UUID i18n2 = id();
+            var src1 = new Src(i18n1);
+            var src2 = new Src(i18n2);
+            Result preloadedChild = new Result(i18n2, "en", "preloaded");
+            Kit<Result, String> preloaded = new Kit<>(Result::getKey);
+            preloaded.add(preloadedChild);
+            src2.setItems(preloaded);
+
+            Function<Set<UUID>, Collection<Result>> query = ids ->
+                    new ArrayList<>(List.of(new Result(i18n1, "en", "loaded")));
+            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+                    Src::getId, Src::getItems, Src::setItems,
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
+
+            assertSame(src1, src1.getItems().get("en").getParent());
+            assertNull(preloadedChild.getParent(), "preloaded kit children must not be relinked");
         }
 
         @Test
@@ -83,7 +126,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                     new ArrayList<>(List.of(new Result(i18n1, "en", "only-for-1")));
             EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
-                    query, Result::getKey, Result::getGroupId);
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
 
             assertEquals("only-for-1", src1.getItems().get("en").getValue());
             assertNotNull(src2.getItems());
@@ -109,7 +152,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
 
             EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
-                    query, Result::getKey, Result::getGroupId);
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
 
             assertTrue(queryCalled[0]);
             assertEquals("loaded", src1.getItems().get("en").getValue());
@@ -126,7 +169,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             assertDoesNotThrow(() ->
                     EntitySecureFindServiceImpl.loadKit(List.of(),
                             Src::getId, Src::getItems, Src::setItems,
-                            query, Result::getKey, Result::getGroupId));
+                            query, Result::getKey, Result::getGroupId, Result::setParent));
             assertFalse(queryCalled[0]);
         }
 
@@ -137,7 +180,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             Function<Set<UUID>, Collection<Result>> query = ids -> new ArrayList<>();
             EntitySecureFindServiceImpl.loadKit(List.of(src1),
                     Src::getId, Src::getItems, Src::setItems,
-                    query, Result::getKey, Result::getGroupId);
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
             assertNotNull(src1.getItems());
             assertTrue(src1.getItems().isEmpty());
         }
@@ -151,7 +194,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                     new Result(null, "en", "orphan")));
             EntitySecureFindServiceImpl.loadKit(List.of(src1),
                     Src::getId, Src::getItems, Src::setItems,
-                    query, Result::getKey, Result::getGroupId);
+                    query, Result::getKey, Result::getGroupId, Result::setParent);
             assertEquals(1, src1.getItems().size());
             assertEquals("ok", src1.getItems().get("en").getValue());
         }
@@ -167,7 +210,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             assertThrows(IllegalStateException.class, () ->
                     EntitySecureFindServiceImpl.loadKit(List.of(src1),
                             Src::getId, Src::getItems, Src::setItems,
-                            query, Result::getKey, Result::getGroupId));
+                            query, Result::getKey, Result::getGroupId, Result::setParent));
         }
     }
 
@@ -246,6 +289,8 @@ public class EntitySecureFindServiceImplLoadKitTest {
         private final UUID groupId;
         private final String key;
         private final String value;
+        // simulates a transient back-reference to the parent entity that owns the kit
+        private Src parent;
 
         Result(UUID groupId, String key, String value) {
             this.groupId = groupId;
@@ -263,6 +308,15 @@ public class EntitySecureFindServiceImplLoadKitTest {
 
         public String getValue() {
             return value;
+        }
+
+        public Src getParent() {
+            return parent;
+        }
+
+        public Result setParent(Src parent) {
+            this.parent = parent;
+            return this;
         }
 
         @Override

@@ -133,7 +133,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryEntity::setTwinFactoryPipelineKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryPipelineEntity::getId,
-                TwinFactoryPipelineEntity::getTwinFactoryId);
+                TwinFactoryPipelineEntity::getTwinFactoryId,
+                TwinFactoryPipelineEntity::setTwinFactory);
     }
 
     public void loadConditionSet(TwinFactoryPipelineEntity src) throws ServiceException {

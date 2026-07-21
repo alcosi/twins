@@ -214,7 +214,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 TwinClassFieldEntity::setRecomputeOnField,
                 twinClassFieldRecomputeOnFieldRepository::findByPublisherTwinClassFieldIdIn,
                 TwinClassFieldRecomputeOnFieldEntity::getId,
-                TwinClassFieldRecomputeOnFieldEntity::getPublisherTwinClassFieldId
+                TwinClassFieldRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
+                TwinClassFieldRecomputeOnFieldEntity::setPublisherTwinClassField
         );
     }
 

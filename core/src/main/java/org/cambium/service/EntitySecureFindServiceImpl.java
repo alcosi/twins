@@ -545,7 +545,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             BiConsumer<S, Kit<R, RI>> srcSetKitField,
             Function<Set<K>, Collection<R>> queryFunction,
             Function<R, RI> queryResultGetId,
-            Function<R, K> queryResultGetGroupId) {
+            Function<R, K> queryResultGetGroupId,
+            BiConsumer<R, S> setResultParent) {
         Kit<S, K> needLoad = null;
         for (S src : srcCollection) {
             if (srcGetKitField.apply(src) == null) {
@@ -568,10 +569,14 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         for (S src : needLoad) {
             List<R> items = grouped.get(srcGetId.apply(src));
-            srcSetKitField.accept(src,
-                    items != null && !items.isEmpty()
-                            ? new Kit<>(items, queryResultGetId)
-                            : Kit.emptyKit());
+            Kit<R, RI> kit = items != null && !items.isEmpty()
+                    ? new Kit<>(items, queryResultGetId)
+                    : Kit.emptyKit();
+            // link every child back to the parent entity that owns this kit
+            for (R r : kit) {
+                setResultParent.accept(r, src);
+            }
+            srcSetKitField.accept(src, kit);
         }
     }
 

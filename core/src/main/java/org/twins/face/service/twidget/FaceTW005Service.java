@@ -65,6 +65,7 @@ public class FaceTW005Service extends FacePointedService<FaceTW005Entity> {
                 FaceTW005Entity::setButtons,
                 faceTW005ButtonRepository::findByFaceTW005IdIn,
                 FaceTW005ButtonEntity::getId,
-                FaceTW005ButtonEntity::getFaceTW005Id);
+                FaceTW005ButtonEntity::getFaceTW005Id,
+                FaceTW005ButtonEntity::setFaceTW005);
     }
 }

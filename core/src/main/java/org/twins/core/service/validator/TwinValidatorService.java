@@ -61,7 +61,8 @@ public class TwinValidatorService extends EntitySecureFindServiceImpl<TwinValida
                 ContainsTwinValidatorSet::setTwinValidatorKit,
                 twinValidatorRepository::findByTwinValidatorSetIdIn,
                 TwinValidatorEntity::getId,
-                TwinValidatorEntity::getTwinValidatorSetId);
+                TwinValidatorEntity::getTwinValidatorSetId,
+                (child, parent) -> {});
     }
 
     public void loadTwinValidatorSet(TwinValidatorEntity src) throws ServiceException {
