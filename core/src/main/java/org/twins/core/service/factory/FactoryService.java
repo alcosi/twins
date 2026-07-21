@@ -23,6 +23,8 @@ import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.factoryprocessor.FactoryProcessor;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
@@ -103,6 +105,13 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
                 .setCreatedByUserId(apiUser.getUserId())
                 .setCreatedByUser(apiUser.getUser())
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        if (factory.getFactoryProcessorFeaturerId() != null) {
+            validateAndPrepareFeaturer(factory.getFactoryProcessorFeaturerId(), factory.getFactoryProcessorParams(), FactoryProcessor.class);
+        } else {
+            factory
+                    .setFactoryProcessorFeaturerId(FeaturerTwins.ID_5401)
+                    .setFactoryProcessorParams(null);
+        }
         validateEntityAndThrow(factory, EntitySmartService.EntityValidateMode.beforeSave);
         return repository.save(factory);
     }
@@ -114,6 +123,7 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
         updateFactoryKey(factoryEntity, dbEntity, changesHelper);
         updateFactoryName(nameI18n, dbEntity, changesHelper);
         updateFactoryDescription(descriptionI18n, dbEntity, changesHelper);
+        updateFactoryProcessorFeaturerId(dbEntity, factoryEntity.getFactoryProcessorFeaturerId(), factoryEntity.getFactoryProcessorParams(), changesHelper);
         return updateSafe(dbEntity, changesHelper);
     }
 
@@ -141,6 +151,14 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
         i18nService.saveTranslations(I18nType.TWIN_FACTORY_DESCRIPTION, descriptionI18n);
         if (changesHelper.isChanged(TwinFactoryEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
             dbEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+    public void updateFactoryProcessorFeaturerId(TwinFactoryEntity dbEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+        updateEntityFeaturerField(dbEntity, newFeaturerId, newFeaturerParams,
+                TwinFactoryEntity::getFactoryProcessorFeaturerId, TwinFactoryEntity::setFactoryProcessorFeaturerId,
+                TwinFactoryEntity::getFactoryProcessorParams, TwinFactoryEntity::setFactoryProcessorParams,
+                TwinFactoryEntity.Fields.factoryProcessorFeaturerId, TwinFactoryEntity.Fields.factoryProcessorParams,
+                FactoryProcessor.class, changesHelper);
     }
 
     public void countFactoryUsages(TwinFactoryEntity twinFactory) {

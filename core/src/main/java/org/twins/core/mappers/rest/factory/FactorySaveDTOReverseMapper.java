@@ -3,7 +3,6 @@ package org.twins.core.mappers.rest.factory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dto.rest.factory.FactoryCreateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactorySaveRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -16,7 +15,9 @@ public class FactorySaveDTOReverseMapper extends RestSimpleDTOMapper<FactorySave
     @Override
     public void map(FactorySaveRqDTOv1 src, TwinFactoryEntity dst, MapperContext mapperContext) {
         dst
-                .setKey(src.getKey());
+                .setKey(src.getKey())
+                .setFactoryProcessorFeaturerId(src.getFactoryProcessorFeaturerId())
+                .setFactoryProcessorParams(src.getFactoryProcessorParams());
 
     }
 }
