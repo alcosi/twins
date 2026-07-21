@@ -28,7 +28,7 @@ public class FactoryBranchExportService extends EntityExportService<TwinFactoryB
         // Load and export ConditionSets
         factoryBranchService.loadConditionSet(branches);
         sqlParts.addNotBlank(conditionSetExportService.exportCollectionToSql(
-                CollectionUtils.collect(branches, TwinFactoryBranchEntity::getConditionSet)));
+                CollectionUtils.collect(branches, TwinFactoryBranchEntity::getTwinFactoryConditionSet)));
         // Export Branches
         sqlParts.addNotBlank(buildUpsertsSorted(branches, TwinFactoryBranchEntity::getId));
         return String.join("\n", sqlParts);

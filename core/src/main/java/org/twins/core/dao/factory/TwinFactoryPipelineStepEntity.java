@@ -19,7 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_pipeline_step")
-public class TwinFactoryPipelineStepEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryPipelineStepEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 

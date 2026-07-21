@@ -17,11 +17,12 @@ import org.twins.core.domain.factory.EraseAction;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.enums.factory.FactoryEraserAction;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.service.factory.FactoryConditionSetService;
+import org.twins.core.service.factory.FactoryConditionService;
 import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.factory.FactoryPipelineService;
 import org.twins.core.service.factory.FactoryService;
@@ -47,10 +48,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
     TwinClassService twinClassService;
     @Lazy
     @Autowired
-    TwinFactoryConditionRepository twinFactoryConditionRepository;
-    @Lazy
-    @Autowired
-    FactoryConditionSetService factoryConditionSetService;
+    FactoryConditionService factoryConditionService;
     @Lazy
     @Autowired
     FactoryPipelineService factoryPipelineService;
@@ -110,7 +108,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
                         if (!filter.getInputTwinClassId().equals(factoryItem.getOutput().getTwinEntity().getTwinClassId()))
                             continue;
                         if (filter.isActive()) {
-                            allowed = checkCondition(filter.getTwinFactoryConditionSetId(), filter.isTwinFactoryConditionInvert(), factoryItem);
+                            allowed = checkCondition(filter, factoryItem);
                             if (allowed)
                                 break;
                         }
@@ -145,7 +143,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
                 continue;
             }
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
-            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.getTwinFactoryConditionInvert());
+            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity);
             if (CollectionUtils.isEmpty(pipelineInputList)) {
                 log.info("Skipping " + factoryPipelineEntity.logShort() + " because of empty input");
                 continue;
@@ -188,7 +186,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
             log.info("Checking input for " + factoryBranchEntity.logNormal() + " **" + factoryBranchEntity.getDescription() + "** ");
             boolean selected = false;
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.getTwinFactoryConditionInvert(), factoryItem)) {
+                if (checkCondition(factoryBranchEntity, factoryItem)) {
                     selected = true;
                     log.info("Branch was selected because of success condition check for {}", factoryItem.toString());
                     break;
@@ -228,7 +226,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
                     log.info("Skipping inactive {}", pipelineStepEntity.logNormal());
                     continue;
                 }
-                if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.getTwinFactoryConditionInvert(), pipelineInput)) {
+                if (!checkCondition(pipelineStepEntity, pipelineInput)) {
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
                 }
@@ -270,7 +268,7 @@ public class FactoryProcessorImpl extends FactoryProcessor {
                 continue;
             }
             log.info("Checking input for {} **{}** ", eraserEntity.logNormal(), eraserEntity.getDescription());
-            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.getTwinFactoryConditionInvert());
+            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity);
             if (CollectionUtils.isEmpty(eraserInputList)) {
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;
@@ -301,8 +299,10 @@ public class FactoryProcessorImpl extends FactoryProcessor {
                 log.info("Skipping inactive {}", factoryTriggerEntity.logNormal());
                 continue;
             }
-            Set<FactoryItem> triggerInputList = getInputItems(factoryContext, factoryTriggerEntity.getInputTwinClassId(),
-                    factoryTriggerEntity.getTwinFactoryConditionSetId(), factoryTriggerEntity.getTwinFactoryConditionInvert());
+            Set<FactoryItem> triggerInputList = getInputItems(
+                    factoryContext,
+                    factoryTriggerEntity.getInputTwinClassId(),
+                    factoryTriggerEntity);
             if (CollectionUtils.isEmpty(triggerInputList)) {
                 log.info("Skipping trigger {} because of empty input", factoryTriggerEntity.logShort());
                 continue;
@@ -328,11 +328,11 @@ public class FactoryProcessorImpl extends FactoryProcessor {
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private Set<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, UUID twinFactoryConditionSetId, boolean conditionInvert) throws ServiceException {
+    private Set<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, ContainsFactoryConditionSet containsFactoryConditionSet) throws ServiceException {
         Set<FactoryItem> filtered = new HashSet<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
             if (twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), inputTwinClassId)) {
-                if (checkCondition(twinFactoryConditionSetId, conditionInvert, factoryItem))
+                if (checkCondition(containsFactoryConditionSet, factoryItem))
                     filtered.add(factoryItem);
                 else
                     log.warn("Factory item will be skipped because of unsuccessful condition check");
@@ -352,24 +352,33 @@ public class FactoryProcessorImpl extends FactoryProcessor {
         return factoryInputTwins;
     }
 
-    private boolean checkCondition(UUID conditionSetId, boolean twinFactoryConditionInvert, FactoryItem factoryItem) throws ServiceException {
-        if (conditionSetId == null)
-            return true;
-        boolean ret = checkCondition(conditionSetId, factoryItem);
-        return twinFactoryConditionInvert ? !ret : ret;
+    private boolean checkCondition(ContainsFactoryConditionSet containsFactoryConditionSet, FactoryItem factoryItem) throws ServiceException {
+        if (containsFactoryConditionSet.getTwinFactoryConditionSetId() != null && containsFactoryConditionSet.getTwinFactoryConditionSet() == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Condition set is not defined");
+        boolean ret = checkCondition(containsFactoryConditionSet.getTwinFactoryConditionSet(), factoryItem);
+        return Boolean.TRUE.equals(containsFactoryConditionSet.getTwinFactoryConditionInvert()) ? !ret : ret;
     }
 
-    public boolean checkCondition(UUID conditionSetId, FactoryItem factoryItem) throws ServiceException {
-        if (conditionSetId == null)
+    public boolean checkCondition(TwinFactoryConditionSetEntity conditionSet, FactoryItem factoryItem) throws ServiceException {
+        if (conditionSet == null)
             return true;
         // Check cache first
-        if (factoryItem.hasConditionSetResult(conditionSetId)) {
-            return factoryItem.getCachedConditionSetResult(conditionSetId);
+        if (factoryItem.hasConditionSetResult(conditionSet.getId())) {
+            var cached = factoryItem.getCachedConditionSetResult(conditionSet.getId());
+            log.info("Condition set result is cached for {}: {}", factoryItem.logShort(), cached);
+            return cached;
         }
-        // Evaluate and cache (only if cachable)
-        List<TwinFactoryConditionEntity> conditionEntityList = twinFactoryConditionRepository.findByTwinFactoryConditionSetIdAndActiveTrue(conditionSetId);
+        factoryConditionService.loadConditions(conditionSet);
+        if (KitUtils.isEmpty(conditionSet.getTwinFactoryConditionKit())) {
+            log.warn("{} is empty (or has no active conditions)", conditionSet.logNormal());
+            return true;
+        }
         boolean result = true;
-        for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
+        for (TwinFactoryConditionEntity conditionEntity : conditionSet.getTwinFactoryConditionKit()) {
+            if (!Boolean.TRUE.equals(conditionEntity.getActive())) {
+                log.info("Skipping inactive {}", conditionEntity.logNormal());
+                continue;
+            }
             Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturerId(), Conditioner.class);
             boolean conditionerResult = conditioner.check(conditionEntity, factoryItem);
             if (conditionEntity.getInvert())
@@ -379,14 +388,13 @@ public class FactoryProcessorImpl extends FactoryProcessor {
                 break;
             }
         }
-        cacheConditionSetResultIfNeeded(conditionSetId, factoryItem, result);
+        cacheConditionSetResultIfNeeded(conditionSet, factoryItem, result);
         return result;
     }
 
-    private void cacheConditionSetResultIfNeeded(UUID conditionSetId, FactoryItem factoryItem, boolean result) throws ServiceException {
-        TwinFactoryConditionSetEntity conditionSet = factoryConditionSetService.findEntitySafe(conditionSetId);
+    private void cacheConditionSetResultIfNeeded(TwinFactoryConditionSetEntity conditionSet, FactoryItem factoryItem, boolean result) throws ServiceException {
         if (Boolean.TRUE.equals(conditionSet.getCachable())) {
-            factoryItem.setConditionSetResult(conditionSetId, result);
+            factoryItem.setConditionSetResult(conditionSet.getId(), result);
         }
     }
 }

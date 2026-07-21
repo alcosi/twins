@@ -60,7 +60,7 @@ public class FactoryEraserRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryE
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.HIDE)) {
             dst.setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
             factoryEraserService.loadConditionSet(src);
-            factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.SHORT));
+            factoryConditionSetRestDTOMapper.postpone(src.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryEraser2TwinClassMode.HIDE)) {
             dst.setInputTwinClassId(src.getInputTwinClassId());

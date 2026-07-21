@@ -92,7 +92,7 @@ public class FactoryBranchDuplicateService extends EntityDuplicateService<Factor
         UUID targetFactoryId = duplicate.getNewParentEntity().getId();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
         if (newConditionSetId != null && !Objects.equals(src.getTwinFactoryId(), targetFactoryId)) {
-            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), targetFactoryId, duplicateCollector);
         }
         return new TwinFactoryBranchEntity()
                 .setId(UuidUtils.generate())

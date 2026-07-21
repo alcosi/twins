@@ -56,6 +56,8 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowFactoryRepository twinflowFactoryRepository;
     @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
+    @Lazy
     private final FactoryMultiplierService factoryMultiplierService;
     @Lazy
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
@@ -386,25 +388,40 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
                 TwinFactoryEntity::setCreatedByUser);
     }
 
-    public void loadFactoryElements(TwinFactoryEntity factory) {
+    public void loadFactoryElements(TwinFactoryEntity factory) throws ServiceException {
         loadFactoryElements(Collections.singletonList(factory));
     }
 
-    public void loadFactoryElements(Collection<TwinFactoryEntity> factories) {
+    public void loadFactoryElements(Collection<TwinFactoryEntity> factories) throws ServiceException {
+        factoryConditionSetService.loadFactoryConditionSets(factories);
         factoryMultiplierService.loadFactoryMultipliers(factories);
         var multipliers = new ArrayList<TwinFactoryMultiplierEntity>();
-        for (TwinFactoryEntity factory : factories) {
+        for (var factory : factories) {
             multipliers.addAll(factory.getTwinFactoryMultiplierKit().getCollection());
         }
         factoryMultiplierFilterService.loadFactoryMultiplierFilters(multipliers);
+        var elementsWithConditionSets = new ArrayList<ContainsFactoryConditionSet>();
+        for (var multiplier : multipliers) {
+            elementsWithConditionSets.addAll(multiplier.getTwinFactoryMultiplierFilterKit().getCollection());
+        }
         factoryPipelineService.loadFactoryPipelines(factories);
         var pipelines = new ArrayList<TwinFactoryPipelineEntity>();
-        for (TwinFactoryEntity factory : factories) {
+        for (var factory : factories) {
             pipelines.addAll(factory.getTwinFactoryPipelineKit().getCollection());
         }
         factoryPipelineStepService.loadFactoryPipelineSteps(pipelines);
+        for (var pipeline : pipelines) {
+            elementsWithConditionSets.addAll(pipeline.getTwinFactoryPipelineStepKit().getCollection());
+        }
         factoryBranchService.loadFactoryBranches(factories);
         factoryEraserService.loadFactoryErasers(factories);
         factoryTriggerService.loadFactoryTriggers(factories);
+        for (var factory : factories) {
+            elementsWithConditionSets.addAll(factory.getTwinFactoryPipelineKit().getCollection());
+            elementsWithConditionSets.addAll(factory.getTwinFactoryBranchKit().getCollection());
+            elementsWithConditionSets.addAll(factory.getTwinFactoryEraserKit().getCollection());
+            elementsWithConditionSets.addAll(factory.getTwinFactoryTriggerKit().getCollection());
+        }
+        factoryConditionSetService.loadElementsConditionSets(elementsWithConditionSets);
     }
 }

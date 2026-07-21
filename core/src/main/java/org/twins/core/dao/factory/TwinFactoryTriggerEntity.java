@@ -19,7 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_trigger")
-public class TwinFactoryTriggerEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryTriggerEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
 
     @Id
     private UUID id;

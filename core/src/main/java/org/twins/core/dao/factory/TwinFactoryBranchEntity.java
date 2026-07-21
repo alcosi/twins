@@ -15,7 +15,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_branch")
-public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -79,7 +79,7 @@ public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

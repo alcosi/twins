@@ -17,7 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_eraser")
-public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -85,7 +85,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     @Override
     public String easyLog(Level level) {

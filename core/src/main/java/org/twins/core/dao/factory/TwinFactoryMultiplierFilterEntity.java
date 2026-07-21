@@ -16,7 +16,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_multiplier_filter")
-public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -35,7 +35,7 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifi
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "twin_factory_condition_invert")
-    private boolean twinFactoryConditionInvert;
+    private Boolean twinFactoryConditionInvert;
 
     @Column(name = "active")
     private boolean active;
@@ -80,7 +80,7 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifi
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

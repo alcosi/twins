@@ -95,7 +95,7 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
         var dstFactory = duplicate.getNewParentEntity();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
         if (newConditionSetId != null && !Objects.equals(src.getTwinFactoryId(), dstFactory.getId())) {
-            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), dstFactory.getId(), duplicateCollector);
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), dstFactory.getId(), duplicateCollector);
         }
         return new TwinFactoryPipelineEntity()
                 .setId(UuidUtils.generate())
