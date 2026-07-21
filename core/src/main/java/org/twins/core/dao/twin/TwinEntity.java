@@ -150,6 +150,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @JoinColumn(name = "flavor_data_list_option_id", insertable = false, updatable = false)
     private DataListOptionEntity flavorDataListOptionSpecOnly;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListOptionEntity flavorDataListOption;
+
     @Column(name = "name")
     private String name;
 

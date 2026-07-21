@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -65,6 +66,7 @@ public class TwinBaseDTOv1 {
     @Schema(description = "owner user id", example = DTOExamples.USER_ID)
     public UUID ownerUserId;
 
+    @RelatedObject(type = DataListOptionDTOv1.class, name = "flavorDataListOption")
     @Schema(description = "flavor data list option id")
     public UUID flavorDataListOptionId;
 
