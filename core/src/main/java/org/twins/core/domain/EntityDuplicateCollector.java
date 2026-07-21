@@ -96,6 +96,9 @@ public class EntityDuplicateCollector {
     }
 
     public <E> E getNewEntity(UUID newId) {
+        if (newId == null) {
+            return null; // top-level entities (newParentId == null) have no parent entity
+        }
         for (var e : entries.entrySet()) {
             var newEntity = e.getValue().getNewEntity();
             if (newEntity != null && newId.equals(newEntity.getId())) {

@@ -108,7 +108,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     protected TwinFactoryEntity createNewEntity(FactoryDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         var original = duplicate.getOriginalEntity();
         var apiUser = authService.getApiUser();
-        String newKey = resolveNewKey(duplicate);
+        String newKey = resolveKey(duplicate);
         log.info("{} will be duplicated with new key[{}]", original.logShort(), newKey);
         return new TwinFactoryEntity()
                 .setId(UuidUtils.generate())
@@ -123,23 +123,18 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     }
 
     /**
-     * Resolves the key for the new factory. Uses the caller-supplied key as-is; for cascaded
-     * factories (no key supplied) generates {@code <originalKey>_copy_<uuid>}. A full UUID suffix
-     * gives 122 bits of entropy, so a key collision is astronomically unlikely — no pre-check (and
-     * thus no check-then-insert race / extra round-trips) is needed. The DB unique index
-     * {@code twin_factory_domain_id_key_uindex} remains the final integrity guard. The generated key
-     * is cached back on the duplicate so logs and {@code validateKeyUniqueness} see it.
+     * Factory key is unique per domain ({@code twin_factory_domain_id_key_uindex}), so a cascaded
+     * factory cannot copy the original key (it would collide in the same domain) — synthesize
+     * {@code <originalKey>_copy_<uuid>} instead. A full UUID suffix gives 122 bits of entropy, so a
+     * collision is astronomically unlikely (no check-then-insert race / extra round-trips); the DB
+     * unique index remains the final integrity guard. Invoked by {@link #resolveKey} when no key was
+     * supplied or copied; the resolved key is cached back on the duplicate there.
      */
-    private String resolveNewKey(FactoryDuplicate duplicate) {
-        String suppliedKey = duplicate.getNewKey();
-        if (suppliedKey != null && !suppliedKey.isBlank()) {
-            return suppliedKey;
-        }
+    @Override
+    protected String generateKey(FactoryDuplicate duplicate) {
         var original = duplicate.getOriginalEntity();
         String base = (original.getKey() != null && !original.getKey().isBlank()) ? original.getKey() : "factory";
-        String candidate = base + "_copy_" + UUID.randomUUID();
-        duplicate.setNewKey(candidate);
-        return candidate;
+        return base + "_copy_" + UUID.randomUUID();
     }
 
     @Override
