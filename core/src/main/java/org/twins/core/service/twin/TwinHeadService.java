@@ -162,6 +162,21 @@ public class TwinHeadService {
                 .setPermissionSchemaId(headTwin.getPermissionSchemaId());
     }
 
+    /**
+     * Initializes the hierarchy tree for a root / standalone twin (one without a head):
+     * {@code hierarchyTree = <own id>}. This is the canonical counterpart of {@link #setHead} for a
+     * newly created twin that has no head.
+     * <p>
+     * Keeping hierarchyTree populated for every new twin serves two purposes: business logic can read
+     * the hierarchy before flush, and TwinChangesService gets a stable depth key to persist twins in
+     * head-first order (satisfying the non-deferrable twin_head_twin_id_fk). The DB trigger
+     * {@code hierarchyprocesstreeupdate} recalculates hierarchy_tree AFTER INSERT from head_twin_id,
+     * so this value is an in-memory hint rather than the source of truth.
+     */
+    public static void initRootHierarchy(TwinEntity twin) {
+        twin.setHierarchyTree(LTreeUtils.convertToLTreeFormat(twin.getId()));
+    }
+
     public static UUID resolveHeadTwinId(TwinEntity twin, int depth) {
         return LTreeUtils.uuidByIndex(twin.getHierarchyTree(), true, depth);
     }

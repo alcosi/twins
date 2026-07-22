@@ -32,6 +32,7 @@ import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
 
@@ -75,7 +76,7 @@ public class TwinChangesService {
             twinChangesCollector.getPostponedTriggers().isEmpty())
             return changesApplyResult;
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
-        saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
+        saveTwinEntitiesAndFlush(twinChangesCollector, changesApplyResult);
         applyDecimalIncrements(twinChangesCollector);
         saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldSimpleNonIndexedEntity.class, twinFieldSimpleNonIndexedRepository, changesApplyResult);
@@ -224,6 +225,31 @@ public class TwinChangesService {
             changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entityMap, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
         }
+    }
+
+    // TwinEntity is special: rows can reference each other via head_twin_id within the same batch, and
+    // twin_head_twin_id_fk is NOT DEFERRABLE. A plain saveAllAndFlush iterates the collector's
+    // ConcurrentHashMap in arbitrary order, so a child may be INSERTed before its head parent and violate
+    // the FK. We sort by hierarchyTree depth first (head-first), so a parent is always persisted before
+    // its children. hierarchyTree is guaranteed populated for new twins by the canonical rule in
+    // TwinHeadService (setHead for a twin with a head, initRootHierarchy for a root twin); the DB trigger
+    // hierarchyprocesstreeupdate recalculates hierarchy_tree AFTER INSERT regardless.
+    private void saveTwinEntitiesAndFlush(TwinChangesCollector twinChangesCollector, TwinChangesApplyResult changesApplyResult) throws ServiceException {
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinEntity.class);
+        if (entityKeyMap == null || entityKeyMap.isEmpty()) {
+            return;
+        }
+        List<TwinEntity> twins = new ArrayList<>(entityKeyMap.size());
+        for (var entry : entityKeyMap.entrySet()) {
+            twins.add((TwinEntity) entry.getKey().entity());
+        }
+        TwinService.sortByHierarchyDepth(twins);
+        // ChangesHelper values from the Map variant are never read (EntitySmartService marks it "todo
+        // collect and log changes"), so pass the ordered List straight to the Iterable overload, which
+        // preserves List iteration order through repository.saveAllAndFlush.
+        changesApplyResult.put(TwinEntity.class,
+                (Iterable) entitySmartService.saveAllAndFlushAndLog(twins, twinRepository));
+        twinChangesCollector.getSaveEntityMap().remove(TwinEntity.class);
     }
 
     private <T> void deleteEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository) {

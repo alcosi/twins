@@ -605,6 +605,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
+        if (headTwin.getTwinClass() == null) {
+            return null; //will be detected on db level
+        }
         return Boolean.TRUE.equals(headTwin.getTwinClass().getPermissionSchemaSpace()) ?
                 headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
@@ -616,6 +619,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 twinEntity.setId(UuidUtils.generate()); // this id is necessary for fields and links. Because the entity is not stored currently
             twinEntity.setCreateElseUpdate(true);
             fillOwner(twinEntity);
+            if (twinEntity.getHeadTwinId() == null && twinEntity.getHierarchyTree() == null) {
+                TwinHeadService.initRootHierarchy(twinEntity);
+            }
         }
     }
 
@@ -2356,6 +2362,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (dep != null) {
             acc.add(dep);
         }
+    }
+
+    /**
+     * Sorts twin entities in-place by hierarchyTree depth ascending (head/root first), so that within
+     * a single save batch a head is always persisted before the twins referencing it via head_twin_id.
+     * This keeps the non-deferrable twin_head_twin_id_fk satisfied without a DEFERRABLE constraint.
+     * A null/empty hierarchyTree is treated as depth 0 (sorted first). Used by TwinChangesService before
+     * saveAllAndFlush.
+     */
+    public static void sortByHierarchyDepth(List<TwinEntity> twins) {
+        if (twins == null || twins.size() <= 1) {
+            return;
+        }
+        twins.sort(Comparator.comparingInt(TwinService::hierarchyTreeDepth));
+    }
+
+    private static int hierarchyTreeDepth(TwinEntity twin) {
+        String hierarchyTree = twin.getHierarchyTree();
+        return hierarchyTree == null ? 0 : hierarchyTree.split("\\.").length;
     }
 
     public void loadAttachments(TwinEntity src) {

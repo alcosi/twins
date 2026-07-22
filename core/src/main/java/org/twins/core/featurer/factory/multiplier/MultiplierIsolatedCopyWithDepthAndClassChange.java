@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -29,9 +30,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -338,18 +338,22 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                 .setCreatedByUser(user);
 
         var origHeadTwinId = origTwin.getHeadTwinId();
-        if (origHeadTwinId != null) {
-            if (copyTwinIdsMap.containsKey(origHeadTwinId)) {
-                // Parent was copied — point to the copy
-                twinCopy.setHeadTwinId(copyTwinIdsMap.get(origHeadTwinId));
-                var headContext = copyContextMap.get(origHeadTwinId);
-                if (headContext != null && headContext.getTwinCopy() != null) {
-                    twinCopy.setHeadTwin(headContext.getTwinCopy());
-                }
-            } else {
-                // Parent is outside the copy scope — keep the original reference
-                twinCopy.setHeadTwinId(origHeadTwinId);
+        if (origHeadTwinId != null && copyTwinIdsMap.containsKey(origHeadTwinId)) {
+            // Parent was copied — point to the copy and build the hierarchy tree from the parent copy.
+            // The parent copy is guaranteed to be materialized earlier (originals are depth-sorted), so
+            // its hierarchyTree is already populated.
+            twinCopy.setHeadTwinId(copyTwinIdsMap.get(origHeadTwinId));
+            var headContext = copyContextMap.get(origHeadTwinId);
+            if (headContext != null && headContext.getTwinCopy() != null) {
+                TwinHeadService.setHead(twinCopy, headContext.getTwinCopy());
             }
+        } else if (origHeadTwinId != null) {
+            // Parent is outside the copy scope — keep the original reference; TwinService.setHeadSafe
+            // resolves it from DB and populates the hierarchy tree.
+            twinCopy.setHeadTwinId(origHeadTwinId);
+        } else {
+            // Root copy (no head) — initialize its own hierarchy tree.
+            TwinHeadService.initRootHierarchy(twinCopy);
         }
 
         copyContext.setTwinCopy(twinCopy);
