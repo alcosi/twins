@@ -1,6 +1,8 @@
 package org.twins.core.dto.rest.permission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +15,8 @@ import org.twins.core.enums.sort.PermissionSortField;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "PermissionSearchRqV1")
 public class PermissionSearchRqDTOv1 extends Request {
+    @Valid
+    @NotNull
     @Schema(description = "search params")
     public PermissionSearchDTOv1 search;
 

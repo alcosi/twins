@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -59,7 +60,7 @@ public class PermissionSearchController extends ApiController {
     @PostMapping(value = "/private/permission/search/v1")
     public ResponseEntity<?> permissionSearchListV1(
             @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody PermissionSearchRqDTOv1 request,
+            @RequestBody @Valid PermissionSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         PermissionSearchRsDTOv1 rs = new PermissionSearchRsDTOv1();
         try {

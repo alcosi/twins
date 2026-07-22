@@ -1,6 +1,8 @@
 package org.twins.core.dto.rest.permission;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,6 +17,8 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "PermissionCountRqV1")
 public class PermissionCountRqDTOv1 extends Request {
+    @Valid
+    @NotNull
     @Schema(description = "search params")
     public PermissionSearchDTOv1 search;
 
