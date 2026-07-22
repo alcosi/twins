@@ -97,6 +97,7 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
         return new TwinFactoryEntity()
                 .setId(UuidUtils.generate())
                 .setKey(duplicate.getNewKey())
+                .setFactoryProcessorFeaturerId(original.getFactoryProcessorFeaturerId())
                 .setCreatedByUserId(apiUser.getUser().getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(original.getDomainId());
