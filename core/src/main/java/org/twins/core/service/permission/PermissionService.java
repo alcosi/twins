@@ -25,7 +25,6 @@ import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -39,7 +38,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.twin.TwinService;
@@ -62,7 +60,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionSchemaRepository permissionSchemaRepository;
     private final PermissionGrantUserRepository permissionGrantUserRepository;
     private final PermissionGrantUserGroupRepository permissionGrantUserGroupRepository;
-    private final PermissionGrantGlobalRepository permissionGrantGlobalRepository;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
     @Lazy
@@ -72,13 +69,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
     private final I18nService i18nService;
 
-    private final TwinRepository twinRepository;
     @Lazy
     private final TwinService twinService;
     @Lazy
     private final AuthService authService;
-    @Lazy
-    private final DomainService domainService;
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserGroupService userGroupService;
     private final UserGroupFootprintService userGroupFootprintService;
@@ -381,6 +375,19 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public void checkTwinClassFieldPermission(TwinClassFieldEntity twinClassFieldEntity) {
 
+    }
+
+    public void loadPermissionGroup(PermissionEntity permission) throws ServiceException {
+        loadPermissionGroup(Collections.singletonList(permission));
+    }
+
+    public void loadPermissionGroup(Collection<PermissionEntity> permissions) throws ServiceException {
+        permissionGroupService.load(
+                permissions,
+                PermissionEntity::getPermissionGroupId,
+                PermissionEntity::getPermissionGroup,
+                PermissionEntity::setPermissionGroup
+                );
     }
 
     public KitGroupedObj<PermissionEntity, UUID, UUID, PermissionGroupEntity> findPermissionsForCurrentUser() throws ServiceException {

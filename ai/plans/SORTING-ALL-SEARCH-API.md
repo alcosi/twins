@@ -9,6 +9,19 @@
 * `docs/api_sorting_architecture.md` — полная архитектура сортировки
 * `docs/api_counting_architecture.md` — полная архитектура count API с группировкой
 
+## Прогресс реализации
+
+> Статус сверен с кодом (наличие `SearchService extends EntitySearchService` + `*CountController` + `sortField` в `SearchRqDTO`).
+
+**✅ DONE (18 API):** attachment, comment, twin_class, twin_class_fields, twin_status, link, data_list_option, domain_business_account, domain_business_account_user (пилот), factory, factory_branch, factory_condition, factory_condition_set, factory_eraser, factory_multiplier, factory_multiplier_filter, factory_pipeline, factory_pipeline_step.
+*(Вне плана, но тоже готовы: twin_pointer TWINS-880, twin.)*
+
+**⬜ Осталось (~40 API):** i18n_translation; permission (7); projection, projection_type, scheduler, scheduler_log, tier, transition_trigger (6); twin_class_field_rule/condition/schema/dynamic_marker/freeze (5); twinflow_schema, twinflow/factory, twin_factory/trigger, twin_status/trigger, twin_trigger, twin_trigger_task (6); notification_schema, history_notification, history_notification_recipient, history_notification_recipient_collector (4); space_role, user_group, user_group/involve_assignee, user_group/involve_act_as_user, user, domain/user (6); featurer, data_list, data_list_option_projection, twin_validator_set, action_restriction_reason (5).
+
+**Следующий по порядку:** `i18n_translation`.
+
+**Замечание по версиям DTO:** при миграции часть сущностей получила `SearchRqDTOv2` (новая структура: `search` (SearchDTO-обёртка) + inline `sortField`/`sortDirection`, v1 оставлен для обратной совместимости) — attachment, comment, twin_status, link, data_list_option, twin_class, twin_class_fields. Остальные мигрированы в рамках существующего `SearchRqDTOv1` (factory-группа, domain_business_account).
+
 ## Паттерн (на примере DomainBusinessAccountUser)
 
 Для каждой сущности нужно выполнить **8 изменений** (search + count делаются вместе):
@@ -200,7 +213,7 @@ GroupField — это список полей, по которым имеет с
 
 ---
 
-### `POST /private/attachment/search/v1` ✅ reviewed
+### `POST /private/attachment/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `AttachmentDTOv1`
 * **SearchRqDTO**: `AttachmentSearchRqDTOv1`
@@ -232,7 +245,7 @@ GroupField — это список полей, по которым имеет с
     * `commentIdList` → пропущено: у TwinCommentEntity нет осмысленного поля `name` для сортировки
     * `storageLinkLikeList` → пропущено: сортировка по URL не имеет практического смысла
 
-### `POST /private/comment/search/v1` ✅ reviewed
+### `POST /private/comment/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `CommentDTOv1`
 * **SearchRqDTO**: `CommentSearchRqDTOv1`
@@ -738,7 +751,7 @@ GroupField — это список полей, по которым имеет с
     * `async`
     * `twinFactoryConditionInvert`
 
-### `POST /private/twin_status/search/v1` ✅ reviewed
+### `POST /private/twin_status/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `TwinStatusDTOv1`
 * **SearchRqDTO**: `TwinStatusSearchRqDTOv1`
@@ -827,7 +840,7 @@ GroupField — это список полей, по которым имеет с
     * `businessAccountId`
     * `statusId`
 
-### `POST /private/factory/search/v1` ✅ reviewed
+### `POST /private/factory/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryDTOv1`
 * **SearchRqDTO**: `FactorySearchRqDTOv1`
@@ -844,7 +857,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `createdByUserId`
 
-### `POST /private/factory_branch/search/v1` ✅ reviewed
+### `POST /private/factory_branch/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryBranchDTOv1`
 * **SearchRqDTO**: `FactoryBranchSearchRqDTOv1`
@@ -866,7 +879,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `factoryConditionSetInvert`
 
-### `POST /private/factory_condition/search/v1` ✅ reviewed
+### `POST /private/factory_condition/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryConditionDTOv1`
 * **SearchRqDTO**: `FactoryConditionSearchRqDTOv1`
@@ -886,7 +899,7 @@ GroupField — это список полей, по которым имеет с
     * `invert`
     * `active`
 
-### `POST /private/factory_condition_set/search/v1` ✅ reviewed
+### `POST /private/factory_condition_set/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryConditionSetDTOv1`
 * **SearchRqDTO**: `FactoryConditionSetSearchRqDTOv1`
@@ -907,7 +920,7 @@ GroupField — это список полей, по которым имеет с
     * `cachable`
     * `createdByUserId`
 
-### `POST /private/factory_eraser/search/v1` ✅ reviewed
+### `POST /private/factory_eraser/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryEraserDTOv1`
 * **SearchRqDTO**: `FactoryEraserSearchRqDTOv1`
@@ -931,7 +944,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `action`
 
-### `POST /private/factory_multiplier/search/v1` ✅ reviewed
+### `POST /private/factory_multiplier/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryMultiplierDTOv1`
 * **SearchRqDTO**: `FactoryMultiplierSearchRqDTOv1`
@@ -951,7 +964,7 @@ GroupField — это список полей, по которым имеет с
     * `multiplierFeaturerId`
     * `active`
 
-### `POST /private/factory_multiplier_filter/search/v1` ✅ reviewed
+### `POST /private/factory_multiplier_filter/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryMultiplierFilterDTOv1`
 * **SearchRqDTO**: `FactoryMultiplierFilterSearchRqDTOv1`
@@ -976,7 +989,7 @@ GroupField — это список полей, по которым имеет с
     * `factoryIdList` → пропущено: косвенная связь через multiplier, нет прямой FK в Entity
     * `factoryMultiplierIdList` → пропущено: у TwinFactoryMultiplierEntity нет поля `name`
 
-### `POST /private/factory_pipeline/search/v1` ✅ reviewed
+### `POST /private/factory_pipeline/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryPipelineDTOv1`
 * **SearchRqDTO**: `FactoryPipelineSearchRqDTOv1`
@@ -1004,7 +1017,7 @@ GroupField — это список полей, по которым имеет с
     * `nextFactoryLimitScope`
     * `factoryConditionSetInvert`
 
-### `POST /private/factory_pipeline_step/search/v1` ✅ reviewed
+### `POST /private/factory_pipeline_step/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `FactoryPipelineStepDTOv1`
 * **SearchRqDTO**: `FactoryPipelineStepSearchRqDTOv1`
@@ -1220,6 +1233,31 @@ GroupField — это список полей, по которым имеет с
     * `businessAccountId`
 * **Composite index:** `(userId, businessAccountId)` — частый кейс «пользователь в нескольких BA»
 
+### `POST /private/domain/business_account/search/v1` — DONE (search + sort + count)
+
+* **DTO**: `DomainBusinessAccountDTOv1`
+* **SearchRqDTO**: `DomainBusinessAccountSearchRqDTOv1`
+    * Поля фильтрации: `idList`, `businessAccountIdList`, `businessAccountNameLikeList`, `permissionSchemaIdList`, `notificationSchemaIdList`, `twinflowSchemaIdList`, `twinClassSchemaIdList`, `tierIdList`, `storageUsedSizeRange`, `storageUsedCountRange`, `createdAt`
+* **Entity**: `DomainBusinessAccountEntity`
+* **SortField values**:
+
+    * `createdAt`
+    * `businessAccountName`(join: businessAccount → BusinessAccount.name)
+    * `permissionSchemaName`(join: permissionSchema → PermissionSchema.name)
+    * `twinClassSchemaName`(join: twinClassSchema → TwinClassSchema.name)
+    * `twinflowSchemaName`(join: twinflowSchema → TwinflowSchema.name)
+    * `notificationSchemaName`(join: notificationSchema → NotificationSchema.name)
+    * `tierName`(join: tier → Tier.name)
+    * `attachmentsStorageUsedCount`
+    * `attachmentsStorageUsedSize`
+
+* **GroupField values**:
+    * `permissionSchemaId`
+    * `twinClassSchemaId`
+    * `twinflowSchemaId`
+    * `notificationSchemaId`
+    * `tierId`
+
 ### `POST /private/domain/business_account_user/search/v1` — УЖЕ РЕАЛИЗОВАНО (пропустить)
 
 ### `POST /private/featurer/search/v1` ✅ reviewed
@@ -1256,7 +1294,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `defaultOptionId`
 
-### `POST /private/data_list_option/search/v1` ✅ reviewed
+### `POST /private/data_list_option/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `DataListOptionDTOv1`
 * **SearchRqDTO**: `DataListOptionSearchRqDTOv1` (наследует `DataListOptionSearchDTOv1`)
@@ -1316,7 +1354,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `invert`
 
-### `POST /private/link/search/v1` ✅ reviewed
+### `POST /private/link/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `LinkDTOv2`
 * **SearchRqDTO**: `LinkSearchRqDTOv1`
@@ -1363,15 +1401,15 @@ GroupField — это список полей, по которым имеет с
 
 По пакетам, один за другим. Для каждого API делаем **search + count вместе** (общие SortField/GroupField enum, общий SearchService):
 
-1. attachment → comment → i18n
-2. permission (7 сущностей)
-3. projection → scheduler → tier → transition
-4. twinclass (twin_class_fields уже DONE, остальные 6)
-5. twinflow → twinstatus → trigger
-6. factory (9 сущностей)
-7. notification (4 сущности)
-8. space → usergroup → user → domain
-9. system → datalist → validator → link → action
+1. ✅ attachment → ✅ comment → ⬜ i18n
+2. ⬜ permission (7 сущностей)
+3. ⬜ projection → scheduler → tier → transition (6)
+4. twinclass: ✅ twin_class + ✅ twin_class_fields → ⬜ rule/condition/schema/dynamic_marker/freeze (5)
+5. ⬜ twinflow → ✅ twinstatus → ⬜ trigger (twin_status/trigger, twin_trigger, twin_trigger_task, twin_factory/trigger, twinflow/factory)
+6. ✅ factory (9 сущностей)
+7. ⬜ notification (4 сущности)
+8. ⬜ space → usergroup → user → domain (✅ domain_business_account + ✅ domain_business_account_user; ⬜ остальное)
+9. ⬜ system → datalist (✅ data_list_option) → validator → ✅ link → action
 
 **Шаги на каждый API:**
 1. Создать `{Entity}SortField` enum
@@ -1386,7 +1424,7 @@ GroupField — это список полей, по которым имеет с
 
 ## Важные замечания
 
-* **Контроллеры с существующим sortField** (FeaturerSearchController, DataListOptionSearchController, UserSearchController) — нужно мигрировать inline `sortField`/`sortDirection` на новый enum-паттерн
+* **Контроллеры с существующим sortField** — DataListOptionSearchController ✅ мигрирован. Остались: FeaturerSearchController, UserSearchController — нужно мигрировать inline `sortField`/`sortDirection` на новый enum-паттерн
 * **Сущности без createdAt** — используют первое поле из списка как default
 * **SearchDTOReverseMapper** — маппит только критерии поиска (SearchDTO). Sort-поля (`sortField`/`sortDirection`) передаются напрямую из `SearchRqDTO` в `EntitySearchService.search()` — отдельный mapper не нужен
 * **Entity.Fields** — используем константы из Lombok `@FieldNameConstants` для имён полей в switch
