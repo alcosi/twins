@@ -60,6 +60,26 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
         twinClassFieldService.loadTwinClassFields(parents);
     }
 
+    /**
+     * Enables "duplicate in place": a class field duplicated without an explicit target class
+     * ({@code newTwinClassId == null}) defaults to its own class. Restores the pre-TWINS-798
+     * {@code TwinClassFieldService.duplicateFields} behavior.
+     */
+    @Override
+    protected UUID extractOriginalParentId(TwinClassFieldEntity original) {
+        return original.getTwinClassId();
+    }
+
+    /**
+     * Cascaded class fields (from a class duplicate with {@code duplicateFields=true}) reuse the
+     * original key. Safe because {@code twin_class_field.key} is unique per twin_class and the clone
+     * lands in a different class.
+     */
+    @Override
+    protected String extractOriginalKey(TwinClassFieldEntity original) {
+        return original.getKey();
+    }
+
     @Override
     protected Kit<TwinClassFieldEntity, UUID> extractorChildren(TwinClassEntity parent) {
         return parent.getTwinClassFieldKit();
@@ -80,7 +100,7 @@ public class TwinClassFieldDuplicateService extends EntityDuplicateService<TwinC
         TwinClassFieldEntity original = duplicate.getOriginalEntity();
         return new TwinClassFieldEntity()
                 .setId(null)
-                .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
+                .setKey(KeyUtils.lowerCaseNullSafe(resolveKey(duplicate), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
                 .setFieldTyperFeaturerId(original.getFieldTyperFeaturerId())
                 .setFieldTyperParams(original.getFieldTyperParams())
                 .setTwinSorterFeaturerId(original.getTwinSorterFeaturerId())

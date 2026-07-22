@@ -62,6 +62,26 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
         twinStatusService.loadStatuses(parents);
     }
 
+    /**
+     * Enables "duplicate in place": a status duplicated without an explicit target class
+     * ({@code newTwinClassId == null}) defaults to its own class. Restores the pre-TWINS-798
+     * {@code TwinStatusService.duplicateStatuses} behavior.
+     */
+    @Override
+    protected UUID extractOriginalParentId(TwinStatusEntity original) {
+        return original.getTwinClassId();
+    }
+
+    /**
+     * Cascaded statuses (from a class duplicate with {@code duplicateStatuses=true}) reuse the
+     * original key. Safe because {@code twin_status.key} is unique per twin_class and the clone lands
+     * in a different class.
+     */
+    @Override
+    protected String extractOriginalKey(TwinStatusEntity original) {
+        return original.getKey();
+    }
+
     @Override
     protected Kit<TwinStatusEntity, UUID> extractorChildren(TwinClassEntity parent) {
         return parent.getTwinStatusKit();
@@ -82,7 +102,7 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
         TwinStatusEntity original = duplicate.getOriginalEntity();
         return new TwinStatusEntity()
                 .setId(UuidUtils.generate())
-                .setKey(KeyUtils.lowerCaseNullSafe(duplicate.getNewKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
+                .setKey(KeyUtils.lowerCaseNullSafe(resolveKey(duplicate), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setInheritable(original.getInheritable())
                 .setBackgroundColor(original.getBackgroundColor())
                 .setFontColor(original.getFontColor())

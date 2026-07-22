@@ -137,6 +137,11 @@ public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable, Co
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private TwinFactoryEntity afterCommitTwinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity outputTwinStatus;
 
     @Transient

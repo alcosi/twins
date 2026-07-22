@@ -33,4 +33,18 @@ public class FactoryDuplicateDTOv1 {
 
     @Schema(description = "[optional] duplicate condition set with condition sets, conditions")
     public boolean duplicateConditionSets = false;
+
+    @Schema(description = "[optional] Recursively duplicate EVERY factory reachable through branch/pipeline "
+            + "nextTwinFactoryId and remap the FK to the clone. Each cascaded factory is duplicated FULLY "
+            + "(all its branches, multipliers, pipelines, erasers, triggers, condition sets) and keeps "
+            + "cascading through its own next/afterCommit factories — the whole reachable factory graph is "
+            + "cloned, not a single factory. Granular flags above apply only to the top-level factory. "
+            + "Cycles and self-references are handled (each original is cloned exactly once).")
+    public boolean duplicateNextFactoryCascade = false;
+
+    @Schema(description = "[optional] Duplicate the factory reachable through pipeline.afterCommitTwinFactoryId "
+            + "and remap the FK to the clone. That factory is duplicated FULLY (all its branches, multipliers, "
+            + "pipelines, erasers, triggers, condition sets). Independent from duplicateNextFactoryCascade — "
+            + "the two flags are orthogonal.")
+    public boolean duplicateAfterCommitFactory = false;
 }
