@@ -76,6 +76,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
@@ -2378,9 +2379,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twins.sort(Comparator.comparingInt(TwinService::hierarchyTreeDepth));
     }
 
+    private static final Pattern HIERARCHY_TREE_SEPARATOR = Pattern.compile("\\.");
+
     private static int hierarchyTreeDepth(TwinEntity twin) {
         String hierarchyTree = twin.getHierarchyTree();
-        return hierarchyTree == null ? 0 : hierarchyTree.split("\\.").length;
+        if (hierarchyTree == null || hierarchyTree.isEmpty()) {
+            return 0;
+        }
+        return HIERARCHY_TREE_SEPARATOR.split(hierarchyTree).length;
     }
 
     public void loadAttachments(TwinEntity src) {

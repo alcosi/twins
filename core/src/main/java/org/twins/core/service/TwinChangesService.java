@@ -8,7 +8,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +28,7 @@ import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
@@ -214,19 +214,6 @@ public class TwinChangesService {
         }
     }
 
-    private <T> void saveEntitiesAndFlush(TwinChangesCollector twinChangesCollector, Class<T> entityClass, JpaRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(entityClass);
-        if (entityKeyMap != null) {
-            // Convert EntityKey map to entity map for EntitySmartService
-            Map<T, ChangesHelper> entityMap = new HashMap<>();
-            for (var entry : entityKeyMap.entrySet()) {
-                entityMap.put((T) entry.getKey().entity(), entry.getValue());
-            }
-            changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entityMap, repository));
-            twinChangesCollector.getSaveEntityMap().remove(entityClass);
-        }
-    }
-
     // TwinEntity is special: rows can reference each other via head_twin_id within the same batch, and
     // twin_head_twin_id_fk is NOT DEFERRABLE. A plain saveAllAndFlush iterates the collector's
     // ConcurrentHashMap in arbitrary order, so a child may be INSERTed before its head parent and violate
@@ -241,8 +228,15 @@ public class TwinChangesService {
         }
         List<TwinEntity> twins = new ArrayList<>(entityKeyMap.size());
         for (var entry : entityKeyMap.entrySet()) {
-            twins.add((TwinEntity) entry.getKey().entity());
+            var twin = (TwinEntity) entry.getKey().entity();
+            if (twin.getHeadTwinId() != null && twin.getHierarchyTree() == null) {
+                throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID,
+                        "{}} has headTwinId set but hierarchyTree is null — setHead/initRootHierarchy must be called before save",
+                        twin.logNormal());
+            }
+            twins.add(twin);
         }
+
         TwinService.sortByHierarchyDepth(twins);
         // ChangesHelper values from the Map variant are never read (EntitySmartService marks it "todo
         // collect and log changes"), so pass the ordered List straight to the Iterable overload, which
