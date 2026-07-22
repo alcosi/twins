@@ -56,6 +56,9 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 3, optional = true)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
+    @FeaturerParam(name = "Dst twin lookupper", description = "Dst twin lookupper", order = 6, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper dstTwinLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("dstTwinLookupper");
+
     @FeaturerParam(name = "Equals twin class field id", description = "Numeric field for equals compare. Used both to read the value from context and as a search filter field when equalsSearchTwinClassFieldId is not set", order = 4, optional = true)
     public static final FeaturerParamUUID equalsTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("equalsTwinClassFieldId");
 
@@ -76,6 +79,9 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
     @FeaturerParam(name = "Flavor data list option id", description = "Optional twin flavor for location-specific uniqueness", order = 8, optional = true)
     public static final FeaturerParamUUID flavorDataListOptionId = new FeaturerParamUUIDTwinsDataListOptionId("flavorDataListOptionId");
+
+    @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 9, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
 
     @Lazy
     @Autowired
@@ -104,14 +110,19 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     }
 
     private Optional<BasicSearch> buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
+        TwinEntity rootTwin;
+        if (factoryItemElseContext.extract(properties)) {
+            rootTwin = factoryItem.getTwin();
+        } else {
+            rootTwin = factoryItem.checkSingleContextTwin();
+        }
 
-        UUID headTwinId = twinHeadService.resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
+        UUID headTwinId = twinHeadService.resolveHeadTwinId(rootTwin, headTwinClassId.extract(properties));
         if (headTwinId == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
         }
 
-        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, contextTwin);
+        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, rootTwin);
         if (dstTwinId == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Dst twin not found");
         }
@@ -163,8 +174,8 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
             Set<UUID> excludeIds = factoryItem.getFactoryContext().getInputTwinList().stream()
                     .map(TwinEntity::getId)
                     .collect(Collectors.toSet());
-            if (contextTwin.getId() != null) {
-                excludeIds.add(contextTwin.getId());
+            if (rootTwin.getId() != null) {
+                excludeIds.add(rootTwin.getId());
             }
             if (!excludeIds.isEmpty()) {
                 search.setTwinIdExcludeList(excludeIds);
@@ -183,10 +194,10 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
         return Optional.of(search);
     }
 
-    private UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
+    private UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity rootTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         if (dstFieldId != null) {
-            FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
+            FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstTwinLookupper.extract(properties)))
                     .lookupFieldValue(factoryItem, dstFieldId);
             UUID dstTwinId = extractTwinIdFromFieldValue(dstFieldValue);
             if (dstTwinId != null) {
@@ -195,11 +206,11 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
         }
 
         UUID linkId = dstLinkId.extract(properties);
-        twinLinkService.loadTwinLinks(contextTwin);
+        twinLinkService.loadTwinLinks(rootTwin);
         try {
-            return contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst().getDstTwin().getId();
+            return rootTwin.getTwinLinks().getForwardLinks().getGrouped(linkId).getFirst().getDstTwin().getId();
         } catch (Exception e) {
-            log.info("Link dst twin not found by link [{}] on context twin [{}]", linkId, contextTwin.logShort());
+            log.info("Link dst twin not found by link [{}] on context twin [{}]", linkId, rootTwin.logShort());
             return null;
         }
     }
