@@ -128,7 +128,8 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryEntity::setTwinFactoryBranchKit,
                 twinFactoryBranchRepository::findByTwinFactoryIdIn,
                 TwinFactoryBranchEntity::getId,
-                TwinFactoryBranchEntity::getTwinFactoryId);
+                TwinFactoryBranchEntity::getTwinFactoryId,
+                TwinFactoryBranchEntity::setFactory);
     }
 
     public void loadConditionSet(TwinFactoryBranchEntity branch) throws ServiceException {
@@ -138,8 +139,8 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     public void loadConditionSet(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
         factoryConditionSetService.load(branches,
                 TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
-                TwinFactoryBranchEntity::getConditionSet,
-                TwinFactoryBranchEntity::setConditionSet);
+                TwinFactoryBranchEntity::getTwinFactoryConditionSet,
+                TwinFactoryBranchEntity::setTwinFactoryConditionSet);
     }
 
     public void loadFactory(TwinFactoryBranchEntity branch) throws ServiceException {

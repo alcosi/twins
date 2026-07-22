@@ -19,6 +19,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.factory.ContainsFactoryConditionSet;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
@@ -188,6 +189,14 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryEntity::setTwinFactoryConditionSetKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryConditionSetEntity::getId,
-                TwinFactoryConditionSetEntity::getTwinFactoryId);
+                TwinFactoryConditionSetEntity::getTwinFactoryId,
+                TwinFactoryConditionSetEntity::setTwinFactory);
+    }
+
+    public void loadElementsConditionSets(Collection<ContainsFactoryConditionSet> elementsWithConditionSets) throws ServiceException {
+        load(elementsWithConditionSets,
+                ContainsFactoryConditionSet::getTwinFactoryConditionSetId,
+                ContainsFactoryConditionSet::getTwinFactoryConditionSet,
+                ContainsFactoryConditionSet::setTwinFactoryConditionSet);
     }
 }

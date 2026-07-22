@@ -32,12 +32,10 @@ public interface FieldTyperScalable {
         }
 
         var scale = decimalPlaces.extract(properties);
-        var roundingModeParam = roundingMode.extract(properties);
-
-        if (scale != null) {
-            value = value.setScale(scale, roundingModeParam);
+        if (scale == null) {
+            return value;
         }
 
-        return value;
+        return value.setScale(scale, roundingMode.extract(properties));
     }
 }

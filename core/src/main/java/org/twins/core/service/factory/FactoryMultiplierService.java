@@ -117,7 +117,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 TwinFactoryEntity::setTwinFactoryMultiplierKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryMultiplierEntity::getId,
-                TwinFactoryMultiplierEntity::getTwinFactoryId);
+                TwinFactoryMultiplierEntity::getTwinFactoryId,
+                TwinFactoryMultiplierEntity::setTwinFactory);
     }
 
     public void loadTwinFactory(TwinFactoryMultiplierEntity multiplier) throws ServiceException {

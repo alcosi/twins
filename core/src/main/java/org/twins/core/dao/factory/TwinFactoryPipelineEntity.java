@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_pipeline")
-public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -122,7 +122,7 @@ public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     @Transient
     @EqualsAndHashCode.Exclude

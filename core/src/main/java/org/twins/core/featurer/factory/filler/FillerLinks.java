@@ -51,8 +51,7 @@ public abstract class FillerLinks extends Filler {
                 twinUpdate.setTwinLinkCUD(new EntityCUD<>());
             if (twinUpdate.getTwinLinkCUD().getCreateList() == null)
                 twinUpdate.getTwinLinkCUD().setCreateList(new ArrayList<>());
-            else
-                twinUpdate.getTwinLinkCUD().getCreateList().add(twinLinkEntity);
+            twinUpdate.getTwinLinkCUD().getCreateList().add(twinLinkEntity);
         }
     }
 

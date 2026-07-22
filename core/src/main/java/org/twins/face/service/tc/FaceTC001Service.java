@@ -65,6 +65,7 @@ public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
                 FaceTC001Entity::setOptions,
                 faceTC001OptionRepository::findByFaceTC001IdIn,
                 FaceTC001OptionEntity::getId,
-                FaceTC001OptionEntity::getFaceTC001Id);
+                FaceTC001OptionEntity::getFaceTC001Id,
+                FaceTC001OptionEntity::setFaceTC001);
     }
 }

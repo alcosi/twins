@@ -54,6 +54,7 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.history.ChangesRecorder;
@@ -137,6 +138,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     private final TwinflowTransitionService twinflowTransitionService;
     private final UserService userService;
+    private final DataListOptionService dataListOptionService;
     @Autowired
     private TwinflowFactoryService twinflowFactoryService;
     @Autowired
@@ -2057,6 +2059,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         TwinEntity::getCreatedByUser,
                         TwinEntity::setCreatedByUser
                 ));
+    }
+
+    public void loadFlavorDataListOption(TwinEntity entity) throws ServiceException {
+        loadFlavorDataListOption(Collections.singletonList(entity));
+    }
+
+    public void loadFlavorDataListOption(Collection<TwinEntity> entities) throws ServiceException {
+        dataListOptionService.load(entities,
+                TwinEntity::getFlavorDataListOptionId,
+                TwinEntity::getFlavorDataListOption,
+                TwinEntity::setFlavorDataListOption);
     }
 
     @Data

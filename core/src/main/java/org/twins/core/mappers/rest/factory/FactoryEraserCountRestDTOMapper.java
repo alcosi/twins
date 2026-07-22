@@ -60,7 +60,7 @@ public class FactoryEraserCountRestDTOMapper extends RestSimpleDTOMapper<CountRe
         }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.HIDE, src, FactoryEraserGroupField.factoryConditionSetId)) {
             factoryEraserService.loadConditionSet(entity);
-            factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.SHORT)));
+            factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryEraser2FactoryConditionSetMode.SHORT)));
         }
     }
 

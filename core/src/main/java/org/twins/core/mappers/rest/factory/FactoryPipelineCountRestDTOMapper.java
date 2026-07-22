@@ -75,7 +75,7 @@ public class FactoryPipelineCountRestDTOMapper extends RestSimpleDTOMapper<Count
         }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.HIDE, src, FactoryPipelineGroupField.factoryConditionSetId)) {
             factoryPipelineService.loadConditionSet(entity);
-            factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.SHORT)));
+            factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.SHORT)));
         }
     }
 

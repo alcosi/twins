@@ -87,14 +87,14 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
         UUID targetFactoryId = duplicate.getNewParentEntity().getTwinFactoryId();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
         if (newConditionSetId != null && !Objects.equals(src.getMultiplier().getTwinFactoryId(), targetFactoryId)) {
-            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), targetFactoryId, duplicateCollector);
         }
         return new TwinFactoryMultiplierFilterEntity()
                 .setId(UuidUtils.generate())
                 .setTwinFactoryMultiplierId(src.getTwinFactoryMultiplierId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setTwinFactoryConditionSetId(newConditionSetId)
-                .setTwinFactoryConditionInvert(src.isTwinFactoryConditionInvert())
+                .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setActive(src.isActive())
                 .setDescription(src.getDescription());
     }

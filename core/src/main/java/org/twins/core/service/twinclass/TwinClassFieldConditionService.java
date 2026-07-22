@@ -58,7 +58,8 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
             TwinClassFieldRuleEntity::setConditionKit,
             twinClassFieldConditionRepository::findByTwinClassFieldRuleIdIn,
                 TwinClassFieldConditionEntity::getId,
-            TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
+            TwinClassFieldConditionEntity::getTwinClassFieldRuleId,
+            TwinClassFieldConditionEntity::setTwinClassFieldRule);
     }
 
     public void loadBaseTwinClassField(TwinClassFieldConditionEntity conditionEntity) throws ServiceException {

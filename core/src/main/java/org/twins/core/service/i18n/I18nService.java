@@ -190,7 +190,8 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
                 I18nEntity::setTranslationsKit,
                 i18nTranslationRepository::findByI18nIdIn,
                 I18nTranslationEntity::getLocale,
-                I18nTranslationEntity::getI18nId);
+                I18nTranslationEntity::getI18nId,
+                (child, parent) -> {});
     }
 
     public void loadStyles(I18nTranslationEntity translation) {

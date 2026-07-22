@@ -116,7 +116,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
                 TwinFactoryEntity::setTwinFactoryEraserKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryEraserEntity::getId,
-                TwinFactoryEraserEntity::getTwinFactoryId);
+                TwinFactoryEraserEntity::getTwinFactoryId,
+                TwinFactoryEraserEntity::setTwinFactory);
     }
 
     public void loadConditionSet(TwinFactoryEraserEntity eraser) throws ServiceException {
@@ -126,8 +127,8 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     public void loadConditionSet(Collection<TwinFactoryEraserEntity> erasers) throws ServiceException {
         factoryConditionSetService.load(erasers,
                 TwinFactoryEraserEntity::getTwinFactoryConditionSetId,
-                TwinFactoryEraserEntity::getConditionSet,
-                TwinFactoryEraserEntity::setConditionSet);
+                TwinFactoryEraserEntity::getTwinFactoryConditionSet,
+                TwinFactoryEraserEntity::setTwinFactoryConditionSet);
     }
 
     public void loadTwinFactory(TwinFactoryEraserEntity eraser) throws ServiceException {

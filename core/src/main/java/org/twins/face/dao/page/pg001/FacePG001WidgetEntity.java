@@ -46,6 +46,11 @@ public class FacePG001WidgetEntity implements EasyLoggable, FaceVariantEntity {
     @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FacePG001Entity facePG001;
+
     @Override
     public String easyLog(Level level) {
         switch (level) {

@@ -47,7 +47,7 @@ public class FactoryMultiplierFilterCountRestDTOMapper extends RestSimpleDTOMapp
                 .setInputTwinClassId(entity.getInputTwinClassId())
                 .setFactoryConditionSetId(entity.getTwinFactoryConditionSetId())
                 .setActive(entity.isActive())
-                .setFactoryConditionSetInvert(entity.isTwinFactoryConditionInvert())
+                .setFactoryConditionSetInvert(entity.getTwinFactoryConditionInvert())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, FactoryMultiplierMode.FactoryMultiplierFilter2FactoryMultiplierMode.HIDE, src, FactoryMultiplierFilterGroupField.factoryMultiplierId)) {
             factoryMultiplierFilterService.loadMultiplier(src.getEntity());
@@ -59,7 +59,7 @@ public class FactoryMultiplierFilterCountRestDTOMapper extends RestSimpleDTOMapp
         }
         if (needLoad(mapperContext, FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.HIDE, src, FactoryMultiplierFilterGroupField.factoryConditionSetId)) {
             factoryMultiplierFilterService.loadConditionSet(src.getEntity());
-            factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.SHORT)));
+            factoryConditionSetRestDTOMapper.convertOrPostpone(entity.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryConditionSetMode.FactoryMultiplierFilter2FactoryConditionSetMode.SHORT)));
         }
     }
 

@@ -76,7 +76,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.HIDE)) {
             dst.setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
             factoryPipelineService.loadConditionSet(src);
-            factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.SHORT));
+            factoryConditionSetRestDTOMapper.postpone(src.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(StatusMode.FactoryPipelineOutputTwinStatus2StatusMode.HIDE)) {
             dst.setOutputTwinStatusId(src.getOutputTwinStatusId());

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Properties;
 
 @Component
@@ -28,10 +27,9 @@ public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase {
         }
 
         var scale = decimalPlaces.extract(properties);
-        var roundingModeValue = roundingMode.extract(properties) == null ? RoundingMode.HALF_UP : roundingMode.extract(properties);
 
         var result = scaleAndRound(
-                d1.divide(d2, scale, roundingModeValue),
+                d1.divide(d2, scale, roundingMode.extract(properties)),
                 properties
         );
 

@@ -75,7 +75,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                     loadTwinFactory(entity);
                 if (entity.getNextTwinFactoryId() != null && (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId())))
                     loadNextTwinFactory(entity);
-                if (entity.getTwinFactoryConditionSetId() != null && (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
+                if (entity.getTwinFactoryConditionSetId() != null && (entity.getTwinFactoryConditionSet() == null || !entity.getTwinFactoryConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
                     loadConditionSet(entity);
                 if (entity.getOutputTwinStatusId() != null && (entity.getOutputTwinStatus() == null || !entity.getOutputTwinStatus().getId().equals(entity.getOutputTwinStatusId())))
                     loadOutputTwinStatus(entity);
@@ -133,7 +133,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryEntity::setTwinFactoryPipelineKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryPipelineEntity::getId,
-                TwinFactoryPipelineEntity::getTwinFactoryId);
+                TwinFactoryPipelineEntity::getTwinFactoryId,
+                TwinFactoryPipelineEntity::setTwinFactory);
     }
 
     public void loadConditionSet(TwinFactoryPipelineEntity src) throws ServiceException {
@@ -143,8 +144,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     public void loadConditionSet(Collection<TwinFactoryPipelineEntity> srcCollection) throws ServiceException {
         factoryConditionSetService.load(srcCollection,
                 TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
-                TwinFactoryPipelineEntity::getConditionSet,
-                TwinFactoryPipelineEntity::setConditionSet);
+                TwinFactoryPipelineEntity::getTwinFactoryConditionSet,
+                TwinFactoryPipelineEntity::setTwinFactoryConditionSet);
     }
 
     public void loadTwinFactory(TwinFactoryPipelineEntity src) throws ServiceException {

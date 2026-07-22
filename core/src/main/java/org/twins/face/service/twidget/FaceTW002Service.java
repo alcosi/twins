@@ -60,7 +60,8 @@ public class FaceTW002Service extends FacePointedService<FaceTW002Entity> {
                 FaceTW002Entity::setAccordionItems,
                 faceTW002AccordionItemRepository::findByFaceTW002IdIn,
                 FaceTW002AccordionItemEntity::getId,
-                FaceTW002AccordionItemEntity::getFaceTW002Id);
+                FaceTW002AccordionItemEntity::getFaceTW002Id,
+                FaceTW002AccordionItemEntity::setFaceTW002);
     }
 
     @Override

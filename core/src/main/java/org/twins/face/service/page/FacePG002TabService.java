@@ -63,6 +63,7 @@ public class FacePG002TabService extends FaceVariantsService<FacePG002TabEntity>
                 FacePG002Entity::setTabs,
                 facePG002TabRepository::findByFacePG002IdIn,
                 FacePG002TabEntity::getId,
-                FacePG002TabEntity::getFacePG002Id);
+                FacePG002TabEntity::getFacePG002Id,
+                FacePG002TabEntity::setFacePG002);
     }
 }
