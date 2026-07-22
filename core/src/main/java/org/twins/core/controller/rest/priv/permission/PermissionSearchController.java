@@ -64,7 +64,7 @@ public class PermissionSearchController extends ApiController {
         PermissionSearchRsDTOv1 rs = new PermissionSearchRsDTOv1();
         try {
             PaginationResult<PermissionEntity> permissionList = permissionSearchService
-                    .findPermissionForDomain(permissionSearchDTOReverseMapper.convert(request), pagination);
+                    .search(permissionSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPermissions(permissionRestDTOMapper.convertCollection(permissionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionList))
