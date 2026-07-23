@@ -17,6 +17,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByLinkWithTwinType;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Properties;
 
@@ -32,6 +33,7 @@ public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<Fie
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
+    private final AuthService authService;
 
     @FeaturerParam(name = "fieldIdByTwinFlavorId", description = "JSON map: twin flavor (flavor_data_list_option_id) -> fieldId to sum. Example: {\"twin-flavor-uuid-1\": \"field-uuid-1\", \"twin-flavor-uuid-2\": \"field-uuid-2\"}", order = 10)
     public static final FeaturerParamMap fieldIdByTwinFlavorId = new FeaturerParamMap("fieldIdByTwinFlavorId");
@@ -57,13 +59,15 @@ public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<Fie
             return new TwinFieldStorageCalcSumByLinkWithTwinType(
                     twinClassFieldEntity.getId(),
                     twinFieldDecimalRepository,
+                    authService,
                     linkIds.extract(properties),
                     srcElseDst.extract(properties),
                     linkedTwinInStatusIdSet.extract(properties),
                     linkedTwinOfClassIds.extract(properties),
                     statusExclude.extract(properties),
                     fieldIdByTwinFlavorIdJson,
-                    skipIfNotFound.extract(properties)
+                    skipIfNotFound.extract(properties),
+                    matchAssignee.extract(properties)
             );
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Error serializing fieldIdByTwinFlavorId map: " + e.getMessage(), e);

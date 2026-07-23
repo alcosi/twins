@@ -15,6 +15,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import java.util.Properties;
 public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByLink, TwinFieldSearchNotImplemented> implements FieldTyperCalcByLink {
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
+    private final AuthService authService;
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
@@ -46,12 +48,14 @@ public class FieldTyperCalcSumByLink extends FieldTyperImmutable<FieldDescriptor
         return new TwinFieldStorageCalcSumByLink(
                 twinClassFieldEntity.getId(),
                 twinFieldDecimalRepository,
+                authService,
                 fieldIds.extract(properties),
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),
                 srcElseDst.extract(properties),
                 statusExclude.extract(properties),
-                linkIds.extract(properties)
+                linkIds.extract(properties),
+                matchAssignee.extract(properties)
         );
     }
 }

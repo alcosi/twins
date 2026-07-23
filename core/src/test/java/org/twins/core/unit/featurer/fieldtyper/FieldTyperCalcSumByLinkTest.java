@@ -13,6 +13,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.auth.AuthService;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -27,11 +28,14 @@ class FieldTyperCalcSumByLinkTest extends BaseUnitTest {
     @Mock
     private TwinFieldDecimalRepository twinFieldDecimalRepository;
 
+    @Mock
+    private AuthService authService;
+
     private FieldTyperCalcSumByLink fieldTyper;
 
     @BeforeEach
     void setUp() {
-        fieldTyper = new FieldTyperCalcSumByLink(twinFieldDecimalRepository);
+        fieldTyper = new FieldTyperCalcSumByLink(twinFieldDecimalRepository, authService);
     }
 
     private Properties properties(UUID linkId, UUID... fieldIds) {
