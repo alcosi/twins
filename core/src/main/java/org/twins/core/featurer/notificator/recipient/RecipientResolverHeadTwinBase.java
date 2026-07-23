@@ -34,9 +34,7 @@ public class RecipientResolverHeadTwinBase extends RecipientResolver {
     @Override
     protected void resolve(HistoryEntity history, Set<UUID> userIds, Properties properties) throws ServiceException {
         var twin = history.getTwin();
-        if (twin.getHeadTwin() == null) {
-            twin.setHeadTwin(twinService.findHeadTwin(twin.getId()));
-        }
+        twinService.loadHead(twin);
         if (twin.getHeadTwin() == null) {
             return;
         }

@@ -46,10 +46,13 @@ public class FillerHeadFromContextTwinHead extends Filler {
             }
         }
         // single lookup for the agreed head: hierarchyTree gave us the id above without any db queries
-        TwinEntity detectedHeadTwin = detectedHeadTwinId == null ? null : twinService.findHeadTwin(detectedHeadTwinId);
-        factoryItem.getOutput().getTwinEntity()
-                .setHeadTwin(detectedHeadTwin)
-                .setHeadTwinId(detectedHeadTwinId);
+        if (detectedHeadTwinId == null) {
+//            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "no head twin context");
+            return;
+        }
+        var detectedHeadTwin = twinService.findHeadTwin(detectedHeadTwinId);
+        var outputTwin = factoryItem.getOutput().getTwinEntity();
+        TwinHeadService.setHead(outputTwin, detectedHeadTwin);
     }
 
     @Override

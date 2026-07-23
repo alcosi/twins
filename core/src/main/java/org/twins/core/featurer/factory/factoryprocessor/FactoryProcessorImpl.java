@@ -149,13 +149,19 @@ public class FactoryProcessorImpl extends FactoryProcessor {
         List<TwinEntity> pending = null;
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
             var twin = factoryItem.getTwin();
-            if (factoryItem.getOutput() instanceof TwinCreate twinCreate
-                    && twin.getHeadTwinId() != null
-                    && twin.getHeadTwin() == null) {
-                if (pending == null) {
-                    pending = new ArrayList<>();
+            if (factoryItem.getOutput() instanceof TwinCreate twinCreate) {
+                if (twin.getHeadTwinId() != null && twin.getHeadTwin() == null) {
+                    if (pending == null) {
+                        pending = new ArrayList<>();
+                    }
+                    pending.add(twin);
+                } else if (twin.getHierarchyTree() == null) {
+                    if (twin.getHeadTwinId() == null) {
+                        TwinHeadService.initRootHierarchy(twin);
+                    } else {
+                        TwinHeadService.setHead(twin, twin.getHeadTwin());
+                    }
                 }
-                pending.add(twin);
             }
         }
         if (CollectionUtils.isEmpty(pending)) {

@@ -1122,11 +1122,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
                 draftTwinPersistEntity
                         .setHeadTwinId(headTwin.getId()); //todo check permissionSchemaSpace is updated on db level
-            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
-                twinEntity
-                        .setHeadTwinId(headTwin.getId())
-                        .setHeadTwin(headTwin)
-                        .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
+            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity) {
+                TwinHeadService.setHead(twinEntity, headTwin);
+            }
         }
     }
 
