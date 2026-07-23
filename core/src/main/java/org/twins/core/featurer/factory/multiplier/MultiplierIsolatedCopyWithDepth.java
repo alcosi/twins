@@ -24,6 +24,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
@@ -235,17 +236,19 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                 .setCreatedByUser(user);
 
         var origHeadTwinId = origTwin.getHeadTwinId();
-        if (origHeadTwinId != null) {
-            if (copyContextMap.containsKey(origHeadTwinId)) {
-                // Parent is being copied — point to the copy
-                var headTwinCopy = copyContextMap.get(origHeadTwinId).getTwinCopy();
-                twinCopy
-                        .setHeadTwin(headTwinCopy)
-                        .setHeadTwinId(headTwinCopy.getId());
-            } else {
-                // Parent is outside the copy scope — keep the original reference
-                twinCopy.setHeadTwinId(origHeadTwinId);
-            }
+        if (origHeadTwinId != null && copyContextMap.containsKey(origHeadTwinId)) {
+            // Parent is being copied — point to the copy and build the hierarchy tree from the parent
+            // copy. The parent copy is guaranteed to be created earlier because the originals are
+            // depth-sorted, so its hierarchyTree is already populated.
+            TwinHeadService.setHead(twinCopy, copyContextMap.get(origHeadTwinId).getTwinCopy());
+        } else if (origHeadTwinId != null) {
+            // Parent is outside the copy scope — keep the original reference. The head twin object is
+            // left null on purpose so TwinService.setHeadSafe resolves it from DB and populates the
+            // hierarchy tree via TwinHeadService.setHead.
+            twinCopy.setHeadTwinId(origHeadTwinId);
+        } else {
+            // Root copy (no head) — initialize its own hierarchy tree.
+            TwinHeadService.initRootHierarchy(twinCopy);
         }
 
         // setting twin copy in context

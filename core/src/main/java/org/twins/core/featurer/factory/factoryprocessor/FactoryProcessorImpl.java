@@ -16,6 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.EraseAction;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -27,6 +28,8 @@ import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.factory.FactoryPipelineService;
 import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.twin.TwinHeadService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -61,11 +64,15 @@ public class FactoryProcessorImpl extends FactoryProcessor {
     @Lazy
     @Autowired
     FactoryExecutionService factoryExecutionService;
+    @Lazy
+    @Autowired
+    TwinService twinService;
 
     @Override
     public void doProcess(Properties properties, TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
         factoryService.loadFactoryElements(factoryEntity);
         runMultipliers(factoryEntity, factoryContext);
+        applyHeadHierarchyGuard(factoryContext);
         runPipelines(factoryEntity, factoryContext);
         runBranches(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
@@ -126,6 +133,44 @@ public class FactoryProcessorImpl extends FactoryProcessor {
             factoryContext.addAll(multiplierOutputFiltered);
         }
         LoggerUtils.traceTreeLevelUp();
+    }
+
+    /**
+     * Canonical hierarchy guard run right after multipliers: every new twin must carry a populated
+     * hierarchyTree so TwinChangesService can persist the batch in head-first order (non-deferrable
+     * twin_head_twin_id_fk) and so business logic can read the hierarchy before flush. Multipliers wire
+     * head copies themselves; this covers the remaining case — a twin whose headTwinId references an
+     * EXISTING twin in DB (head outside the copy scope, or set by a filler) but the headTwin object /
+     * hierarchyTree was never resolved. Those heads are batch-loaded and wired via
+     * {@link TwinHeadService#setHead}. Heads that are new copies produced in this same batch
+     * are left to the multiplier that created them.
+     */
+    private void applyHeadHierarchyGuard(FactoryContext factoryContext) throws ServiceException {
+        List<TwinEntity> pending = null;
+        for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
+            var twin = factoryItem.getTwin();
+            if (factoryItem.getOutput() instanceof TwinCreate twinCreate) {
+                if (twin.getHeadTwinId() != null && twin.getHeadTwin() == null) {
+                    if (pending == null) {
+                        pending = new ArrayList<>();
+                    }
+                    pending.add(twin);
+                } else if (twin.getHierarchyTree() == null) {
+                    if (twin.getHeadTwinId() == null) {
+                        TwinHeadService.initRootHierarchy(twin);
+                    } else {
+                        TwinHeadService.setHead(twin, twin.getHeadTwin());
+                    }
+                }
+            }
+        }
+        if (CollectionUtils.isEmpty(pending)) {
+            return;
+        }
+        twinService.loadHead(pending);
+        for (TwinEntity twin : pending) {
+            TwinHeadService.setHead(twin, twin.getHeadTwin()); // set hierarchyTree
+        }
     }
 
     private void runPipelines(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {

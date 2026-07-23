@@ -2,11 +2,15 @@ package org.twins.core.featurer.factory.filler;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.twin.TwinHeadService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 
@@ -15,14 +19,18 @@ import java.util.Properties;
         name = "Head from template twin head",
         description = "")
 public class FillerHeadFromTemplateTwinHead extends Filler {
+    @Lazy
+    @Autowired
+    TwinService twinService;
+
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         if (templateTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template twin");
         if (templateTwin.getHeadTwinId() == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template head twin");
-        factoryItem.getOutput().getTwinEntity()
-                .setHeadTwin(templateTwin.getHeadTwin())
-                .setHeadTwinId(templateTwin.getHeadTwinId());
+        twinService.loadHead(templateTwin);
+        var outputTwin = factoryItem.getOutput().getTwinEntity();
+        TwinHeadService.setHead(outputTwin, templateTwin.getHeadTwin());
     }
 }

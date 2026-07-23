@@ -76,6 +76,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
@@ -605,6 +606,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
+        if (headTwin.getTwinClass() == null) {
+            return null; //will be detected on db level
+        }
         return Boolean.TRUE.equals(headTwin.getTwinClass().getPermissionSchemaSpace()) ?
                 headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
@@ -616,6 +620,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 twinEntity.setId(UuidUtils.generate()); // this id is necessary for fields and links. Because the entity is not stored currently
             twinEntity.setCreateElseUpdate(true);
             fillOwner(twinEntity);
+            if (twinEntity.getHeadTwinId() == null && twinEntity.getHierarchyTree() == null) {
+                TwinHeadService.initRootHierarchy(twinEntity);
+            }
         }
     }
 
@@ -1115,11 +1122,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
                 draftTwinPersistEntity
                         .setHeadTwinId(headTwin.getId()); //todo check permissionSchemaSpace is updated on db level
-            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
-                twinEntity
-                        .setHeadTwinId(headTwin.getId())
-                        .setHeadTwin(headTwin)
-                        .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
+            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity) {
+                TwinHeadService.setHead(twinEntity, headTwin);
+            }
         }
     }
 
@@ -2356,6 +2361,30 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (dep != null) {
             acc.add(dep);
         }
+    }
+
+    /**
+     * Sorts twin entities in-place by hierarchyTree depth ascending (head/root first), so that within
+     * a single save batch a head is always persisted before the twins referencing it via head_twin_id.
+     * This keeps the non-deferrable twin_head_twin_id_fk satisfied without a DEFERRABLE constraint.
+     * A null/empty hierarchyTree is treated as depth 0 (sorted first). Used by TwinChangesService before
+     * saveAllAndFlush.
+     */
+    public static void sortByHierarchyDepth(List<TwinEntity> twins) {
+        if (twins == null || twins.size() <= 1) {
+            return;
+        }
+        twins.sort(Comparator.comparingInt(TwinService::hierarchyTreeDepth));
+    }
+
+    private static final Pattern HIERARCHY_TREE_SEPARATOR = Pattern.compile("\\.");
+
+    private static int hierarchyTreeDepth(TwinEntity twin) {
+        String hierarchyTree = twin.getHierarchyTree();
+        if (hierarchyTree == null || hierarchyTree.isEmpty()) {
+            return 0;
+        }
+        return HIERARCHY_TREE_SEPARATOR.split(hierarchyTree).length;
     }
 
     public void loadAttachments(TwinEntity src) {

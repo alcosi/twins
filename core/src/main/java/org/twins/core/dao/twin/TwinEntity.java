@@ -685,6 +685,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
                 .setCreatedAt(createdAt)
                 .setHeadTwinId(headTwinId)
                 .setHeadTwin(headTwin)
+                .setHierarchyTree(hierarchyTree)
                 .setOwnerUserId(ownerUserId)
                 .setOwnerBusinessAccountId(ownerBusinessAccountId)
                 .setPermissionSchemaSpaceId(permissionSchemaSpaceId)
