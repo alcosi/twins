@@ -39,7 +39,7 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
         TwinFieldValueSearchNumeric> implements FieldTyperNumeric {
 
     @FeaturerParam(name = "Allow increment/decrement values (+/-)", order = 3, optional = true, defaultValue = "false")
-    FeaturerParamBoolean allowIncrementValue = new FeaturerParamBoolean("allowIncrementValue");
+    public static final FeaturerParamBoolean allowIncrementValue = new FeaturerParamBoolean("allowIncrementValue");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
