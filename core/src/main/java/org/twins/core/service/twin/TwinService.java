@@ -439,6 +439,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         saveTwinFields(twinCreateStage, twinChangesCollector);
         twinFieldRecomputeService.triggerAffected(twinChangesCollector);
         for (TwinCreate twinCreate : twinCreateStage) {
+            runFactoryOnCreateAfterRecompute(twinCreate, twinChangesCollector);
+        }
+        for (TwinCreate twinCreate : twinCreateStage) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
                 attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -931,7 +934,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (batchFieldValidationException != null) {
             throw batchFieldValidationException;
         }
-        twinFieldRecomputeService.triggerAffected(twinChangesCollector);;
+        twinFieldRecomputeService.triggerAffected(twinChangesCollector);
+        for (TwinUpdate twinUpdate : twinUpdates) {
+            if (!twinUpdate.isChanged()) continue;
+            runFactoryOnUpdateAfterRecompute(twinUpdate, twinChangesCollector);
+        }
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
@@ -1022,6 +1029,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher, twinChangesCollector);
     }
 
+    private void runFactoryOnCreateAfterRecompute(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (isReachedCascadeDepth(twinCreate))
+            return;
+        FactoryLauncher factoryLauncher = twinCreate.getSketchMode() ? FactoryLauncher.onSketchCreateAfterRecompute : FactoryLauncher.onTwinCreateAfterRecompute;
+        twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher, twinChangesCollector);
+    }
+
     private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
@@ -1046,6 +1060,45 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 && twinUpdate.getTwinEntity().isSketch()) {
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);
         }
+    }
+
+    private void runFactoryOnUpdateAfterRecompute(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (isReachedCascadeDepth(twinUpdate))
+            return;
+        FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
+            case twinUpdate -> FactoryLauncher.onTwinUpdateAfterRecompute;
+            case sketchUpdate -> FactoryLauncher.onSketchUpdateAfterRecompute;
+            default -> null;
+        };
+        if (factoryLauncher == null)
+            return;
+        // TwinUpdate.twinEntity is a basics clone (field kits null). Conditioners/lookupers that read
+        // getOutput().getTwinEntity() need recomputed DB field kits from dbTwinEntity.
+        shareDbFieldStateForFactory(twinUpdate);
+        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher, twinChangesCollector);
+        // Factory may set status on twinEntity after basics were already collected — apply it now.
+        ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
+                twinUpdate.getDbTwinEntity(),
+                twinUpdate.getTwinEntity(),
+                twinUpdate.getDbTwinEntity(),
+                twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
+        updateTwinStatus(changesRecorder);
+        if (changesRecorder.hasChanges())
+            twinChangesCollector.add(changesRecorder.getRecorder());
+    }
+
+    /**
+     * Point TwinUpdate output twin's transient field kits at dbTwinEntity so AfterRecompute
+     * factories can evaluate conditions against recomputed values without changing global lookupers.
+     */
+    private static void shareDbFieldStateForFactory(TwinUpdate twinUpdate) {
+        TwinEntity db = twinUpdate.getDbTwinEntity();
+        TwinEntity out = twinUpdate.getTwinEntity();
+        if (db == null || out == null || db == out)
+            return;
+        out.setTwinFieldDecimalKit(db.getTwinFieldDecimalKit());
+        out.setFieldValuesKit(db.getFieldValuesKit());
+        out.setTwinLinks(db.getTwinLinks());
     }
 
     private static boolean isReachedCascadeDepth(TwinSave twinSave) {
