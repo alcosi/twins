@@ -209,6 +209,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField())));
         }
+        var storage = getStorage(value.getTwinClassField());
+        if (!storage.isLoaded(twin)) {
+            storage.load(Kit.singleton(twin, TwinEntity::getId));
+        }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         ValidationResult validationResult = validate(properties, twin, value);
         value.setValidationResult(validationResult);
