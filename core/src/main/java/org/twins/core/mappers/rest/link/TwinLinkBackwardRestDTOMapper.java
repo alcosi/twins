@@ -9,7 +9,10 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.util.Collection;
@@ -18,8 +21,10 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
 
-    private final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
     private final TwinLinkService twinLinkService;
+
+    @MapperModePointerBinding(modes = UserMode.TwinLink2UserMode.class)
+    private final UserRestDTOMapper userDTOMapper;
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
     private final TwinBaseRestDTOMapper twinBaseV2RestDTOMapper;
@@ -29,7 +34,25 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
 
     @Override
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        twinLinkRestDTOMapper.map(src, dst, mapperContext);
+        switch (mapperContext.getModeOrUse(TwinLinkMode.DETAILED)) {
+            case DETAILED:
+                dst
+                        .setId(src.getId())
+                        .setCreatedByUserId(src.getCreatedByUserId())
+                        .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
+                        .setLinkId(src.getLinkId());
+                break;
+            case SHORT:
+                dst
+                        .setId(src.getId())
+                        .setLinkId(src.getLinkId());
+                break;
+        }
+        if (mapperContext.hasModeButNot(UserMode.TwinLink2UserMode.HIDE)) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+            twinLinkService.loadCreatedByUser(src);
+            userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinLink2UserMode.SHORT)));
+        }
         dst
                 .setDstTwinId(src.getSrcTwinId());
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
@@ -45,6 +68,9 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
 
     @Override
     public void beforeCollectionConversion(Collection<TwinLinkEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasModeButNot(UserMode.TwinLink2UserMode.HIDE)) {
+            twinLinkService.loadCreatedByUser(srcCollection);
+        }
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
             twinLinkService.loadSrcTwin(srcCollection);
         }

@@ -3,6 +3,7 @@ package org.twins.core.domain.twin;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinPointerEntity;
+import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.search.EntitySearch;
 
 import java.util.Set;
@@ -19,4 +20,5 @@ public class TwinPointerSearch extends EntitySearch<TwinPointerEntity> {
     private Set<Integer> pointerFeaturerIdExcludeList;
     private Set<String> nameLikeList;
     private Set<String> nameNotLikeList;
+    private DataTimeRange createdAt;
 }

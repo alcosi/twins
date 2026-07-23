@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinpointer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -34,4 +35,7 @@ public class TwinPointerSearchDTOv1 {
 
     @Schema(description = "name not like list")
     public Set<String> nameNotLikeList;
+
+    @Schema(description = "createdAt range")
+    public DataTimeRangeDTOv1 createdAt;
 }
