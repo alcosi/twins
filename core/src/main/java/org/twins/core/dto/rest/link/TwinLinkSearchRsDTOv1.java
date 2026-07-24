@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinpointer;
+package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinPointerSearchRsV1")
-public class TwinPointerSearchRsDTOv1 extends TwinPointerListRsDTOv1 {
+@Schema(name = "TwinLinkSearchRsV1")
+public class TwinLinkSearchRsDTOv1 extends TwinLinkListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

@@ -9,19 +9,15 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.sort.CommentGroupField;
 import org.twins.core.enums.sort.CommentSortField;
 import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.usergroup.UserGroupService;
+import org.twins.core.service.twin.TwinAccessSpecificationFactory;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -31,11 +27,10 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class CommentSearchService extends EntitySearchService<        CommentSearch,        TwinCommentEntity,        CommentSortField,        CommentGroupField> {
+public class CommentSearchService extends EntitySearchService<CommentSearch, TwinCommentEntity, CommentSortField, CommentGroupField> {
 
     private final AuthService authService;
-    private final PermissionService permissionService;
-    private final UserGroupService userGroupService;
+    private final TwinAccessSpecificationFactory twinAccessSpecificationFactory;
     private final TwinCommentRepository commentRepository;
 
     @Override
@@ -63,6 +58,7 @@ public class CommentSearchService extends EntitySearchService<        CommentSea
             CommentSearch search, UUID domainId, Locale locale) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Specification<TwinCommentEntity> specification = Specification.allOf(
+                twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinCommentEntity.Fields.twinSpecOnly),
                 checkUuidIn(search.getIdList(), false, false, TwinCommentEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, true, TwinCommentEntity.Fields.id),
                 checkUuidIn(search.getTwinIdList(), false, false, TwinCommentEntity.Fields.twinId),
@@ -74,15 +70,6 @@ public class CommentSearchService extends EntitySearchService<        CommentSea
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinCommentEntity.Fields.createdAt),
                 checkFieldLocalDateTimeBetween(search.getUpdatedAt(), TwinCommentEntity.Fields.changedAt)
         );
-        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
-            userGroupService.loadGroupsForCurrentUser();
-            specification = specification
-                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroupsFootprint(), TwinCommentEntity.Fields.twinSpecOnly))
-                    .and(checkClass(java.util.List.of(), apiUser, DBUMembershipCheck.BLOCKED, TwinCommentEntity.Fields.twinSpecOnly));
-        } else {
-            specification = specification
-                    .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twinSpecOnly, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
-        }
         return specification;
     }
 
@@ -95,8 +82,10 @@ public class CommentSearchService extends EntitySearchService<        CommentSea
         return switch (sortField) {
             case createdAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdAt);
             case changedAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.changedAt);
-            case authorUserName -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
-            case twinName -> toSortSpecification(ascending, TwinCommentEntity.Fields.twinSpecOnly, TwinEntity.Fields.name);
+            case authorUserName ->
+                    toSortSpecification(ascending, TwinCommentEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
+            case twinName ->
+                    toSortSpecification(ascending, TwinCommentEntity.Fields.twinSpecOnly, TwinEntity.Fields.name);
         };
     }
 

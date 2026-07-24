@@ -70,6 +70,13 @@ public enum Permissions {
     LINK_UPDATE(SystemIds.Permission.Link.UPDATE),
     LINK_DELETE(SystemIds.Permission.Link.DELETE),
 
+    // TWIN LINK permissions
+    TWIN_LINK_MANAGE(SystemIds.Permission.TwinLink.MANAGE),
+    TWIN_LINK_CREATE(SystemIds.Permission.TwinLink.CREATE),
+    TWIN_LINK_VIEW(SystemIds.Permission.TwinLink.VIEW),
+    TWIN_LINK_UPDATE(SystemIds.Permission.TwinLink.UPDATE),
+    TWIN_LINK_DELETE(SystemIds.Permission.TwinLink.DELETE),
+
     // DOMAIN permissions
     DOMAIN_MANAGE(SystemIds.Permission.Domain.MANAGE),
     DOMAIN_CREATE(SystemIds.Permission.Domain.CREATE),

@@ -64,8 +64,8 @@ public class TwinPointerSearchController extends ApiController {
             PaginationResult<TwinPointerEntity> result =
                     twinPointerSearchService.search(search, pagination, request.getSortField(), request.getSortDirection());
             rs
-                    .setTwinPointers(twinPointerRestDTOMapper.convertCollection(result.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(result))
+                    .setTwinPointers(twinPointerRestDTOMapper.convertCollection(result.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

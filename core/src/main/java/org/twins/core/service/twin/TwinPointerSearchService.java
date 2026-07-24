@@ -61,7 +61,8 @@ public class TwinPointerSearchService extends EntitySearchService
                 checkUuidIn(search.getTwinClassIdList(), false, true, TwinPointerEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinClassIdExcludeList(), true, true, TwinPointerEntity.Fields.twinClassId),
                 checkIntegerIn(search.getPointerFeaturerIdList(), false, TwinPointerEntity.Fields.pointerFeaturerId),
-                checkIntegerIn(search.getPointerFeaturerIdExcludeList(), true, TwinPointerEntity.Fields.pointerFeaturerId)
+                checkIntegerIn(search.getPointerFeaturerIdExcludeList(), true, TwinPointerEntity.Fields.pointerFeaturerId),
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinPointerEntity.Fields.createdAt)
         );
     }
 
