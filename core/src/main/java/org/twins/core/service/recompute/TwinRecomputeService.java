@@ -1,4 +1,4 @@
-package org.twins.core.service.twinfield;
+package org.twins.core.service.recompute;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -13,39 +13,46 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.recompute.TwinRecomputeOnActionEntity;
+import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
+import org.twins.core.dao.recompute.TwinRecomputeSubscriberEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
-import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperRecomputed;
+import org.twins.core.featurer.recomputer.Recomputer;
 import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.twinclassfield.recompute.*;
+import org.twins.core.service.twinfield.TwinFieldDecimalService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Parallel recompute engine (TWINS-893) that dispatches through a pluggable {@link Recomputer} featurer.
+ * Works on the new {@code twin_recompute_*} tables; the legacy {@code TwinFieldRecomputeService} and its
+ * {@code twin_class_field_recompute_*} tables are left untouched. The recomputer config lives on the
+ * subscriber row and becomes part of the recompute target identity, so different recomputers for the same
+ * (subscriber twin, field) split into separate requests automatically.
+ */
 @Lazy
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinFieldRecomputeService {
+public class TwinRecomputeService {
 
     private final TwinPointerService twinPointerService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassService twinClassService;
     private final FeaturerService featurerService;
     private final TwinFieldDecimalService twinFieldDecimalService;
-    private final TwinClassFieldRecomputeOnFieldService twinClassFieldRecomputeOnFieldService;
-    private final TwinClassFieldRecomputeOnActionService twinClassFieldRecomputeOnActionService;
     private final TwinService twinService;
+    private final TwinRecomputeOnFieldService twinRecomputeOnFieldService;
+    private final TwinRecomputeOnActionService twinRecomputeOnActionService;
 
     @Value("${twins.mater.max-depth:5}")
     private int maxDepth;
@@ -57,7 +64,7 @@ public class TwinFieldRecomputeService {
     private void triggerAffected(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {
         recomputePlan.newLoop();
         if (recomputePlan.getCurrentLoop() > maxDepth) {
-            log.warn("TwinFieldRecompute cascade depth {} exceeded max {}, skipping remaining", recomputePlan.getCurrentLoop(), maxDepth);
+            log.warn("TwinRecompute cascade depth {} exceeded max {}, skipping remaining", recomputePlan.getCurrentLoop(), maxDepth);
             return;
         }
         if (recomputePlan.getCurrentLoop() == 1 || recomputePlan.hasRecomputedFields(collector)) {
@@ -69,16 +76,11 @@ public class TwinFieldRecomputeService {
 
         if (recomputePlan.getLoop().isEmpty()) return;
 
-        // TODO TWINS-868 §4.2: bulk detection — if total touched twins > bulkThreshold,
-        //   schedule consolidated async TwinChangeTaskEntity and return. Sync recompute on >50 twins
-        //   risks tx timeout / pool exhaustion.
-
         resolvePointers(recomputePlan);
-        // === Resolve pointers → build requests → dispatch ===
-        List<FieldRecomputeRequest> requests = buildRecomputeRequests(recomputePlan);
-        if (requests.isEmpty()) return;  // nothing dispatched → no new writes → no cascade needed
-        for (FieldRecomputeRequest request : requests) {
-            dispatchRecompute(request, collector);
+        List<DispatchTask> tasks = buildRecomputeRequests(recomputePlan);
+        if (tasks.isEmpty()) return; // nothing dispatched -> no new writes -> no cascade needed
+        for (DispatchTask task : tasks) {
+            dispatchRecompute(task.request(), collector, task.recomputerFeaturerId(), task.recomputerParams());
         }
         triggerAffected(collector, recomputePlan);
     }
@@ -109,25 +111,24 @@ public class TwinFieldRecomputeService {
                 TwinFieldDecimalEntity::getId,
                 TwinFieldDecimalEntity::getTwinClassFieldId,
                 TwinFieldDecimalEntity::getTwinClassField);
-        twinClassFieldService.loadRecomputeOnField(decimalFieldsKit.getGroupingObjectMap().values());
+        twinClassFieldService.loadRecomputeOnFieldV2(decimalFieldsKit.getGroupingObjectMap().values());
         List<TwinFieldDecimalEntity> hasRecomputes = null;
-        List<TwinClassFieldRecomputeOnFieldEntity> recomputeOnFields = null;
+        List<TwinRecomputeOnFieldEntity> recomputeOnFields = null;
         for (var groupedField : decimalFieldsKit.getGroupedList()) {
             var twinClassField = groupedField.left;
             var twinFieldsDecimal = groupedField.right;
-            if (KitUtils.isNotEmpty(twinClassField.getRecomputeOnField())) {
+            if (KitUtils.isNotEmpty(twinClassField.getRecomputeOnFieldV2())) {
                 hasRecomputes = CollectionUtils.safeAdd(hasRecomputes, twinFieldsDecimal);
-                recomputeOnFields = CollectionUtils.safeAdd(recomputeOnFields, twinClassField.getRecomputeOnField().getCollection());
+                recomputeOnFields = CollectionUtils.safeAdd(recomputeOnFields, twinClassField.getRecomputeOnFieldV2().getCollection());
             }
         }
         if (hasRecomputes == null)
             return;
         decimalFieldsKit.clear();
         decimalFieldsKit.addAll(hasRecomputes);
-        twinClassFieldRecomputeOnFieldService.loadSubscriberTwinPointer(recomputeOnFields);
-        twinClassFieldRecomputeOnFieldService.loadSubscriberTwinClassField(recomputeOnFields);
+        twinRecomputeOnFieldService.loadSubscriber(recomputeOnFields);
         for (var triggerField : decimalFieldsKit.getCollection()) {
-            for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnField()) {
+            for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnFieldV2()) {
                 recomputePlan.add(triggerField, recomputeOnField);
             }
         }
@@ -152,26 +153,24 @@ public class TwinFieldRecomputeService {
                 TwinEntity::getId,
                 TwinEntity::getTwinClassId,
                 TwinEntity::getTwinClass);
-        twinClassService.loadRecomputeOnAction(twinKit.getGroupingObjectMap().values());
+        twinClassService.loadRecomputeOnActionV2(twinKit.getGroupingObjectMap().values());
         List<TwinEntity> hasRecomputes = null;
-        List<TwinClassFieldRecomputeOnActionEntity> recomputeOnActions = null;
+        List<TwinRecomputeOnActionEntity> recomputeOnActions = null;
         for (var groupedTwin : twinKit.getGroupedList()) {
             var twinClass = groupedTwin.left;
             var twinsByTwinClass = groupedTwin.right;
-            if (KitUtils.isNotEmpty(twinClass.getRecomputeOnAction())) {
+            if (KitUtils.isNotEmpty(twinClass.getRecomputeOnActionV2())) {
                 hasRecomputes = CollectionUtils.safeAdd(hasRecomputes, twinsByTwinClass);
-                recomputeOnActions = CollectionUtils.safeAdd(recomputeOnActions, twinClass.getRecomputeOnAction().getCollection());
+                recomputeOnActions = CollectionUtils.safeAdd(recomputeOnActions, twinClass.getRecomputeOnActionV2().getCollection());
             }
         }
         if (hasRecomputes == null)
             return;
         twinKit.clear();
         twinKit.addAll(hasRecomputes);
-        twinClassFieldRecomputeOnActionService.loadSubscriberTwinPointer(recomputeOnActions);
-        twinClassFieldRecomputeOnActionService.loadSubscriberTwinClassField(recomputeOnActions);
-
+        twinRecomputeOnActionService.loadSubscriber(recomputeOnActions);
         for (var twin : twinKit.getCollection()) {
-            for (var recomputeOnAction : twin.getTwinClass().getRecomputeOnAction()) {
+            for (var recomputeOnAction : twin.getTwinClass().getRecomputeOnActionV2()) {
                 recomputePlan.add(twin, twinActionMap.get(twin.getId()), recomputeOnAction);
             }
         }
@@ -187,84 +186,97 @@ public class TwinFieldRecomputeService {
 
     @Data
     private static class RecomputePlan {
-        private Set<UUID> subscriberTwinPointerIds;
-        private Set<UUID> subscriberTwinClassFieldIds;
+        private Kit<TwinRecomputeSubscriberEntity, UUID> subscriberKit;
         private Kit<TwinPointerEntity, UUID> subscriberTwinPointerKit;
         private Kit<TwinClassFieldEntity, UUID> subscriberTwinClassFieldKit;
         private Kit<TwinEntity, UUID> publisherTwinsKit;
         private Kit<TwinEntity, UUID> subscriberTwinsKit;
         private Map<UUID, List<TwinEntity>> publisherTwinsByPointerId;
-        private Map<UnresolvedPointer, TwinEntity> subscriberTwinByUnresolvedPointer;
+        private Map<UnresolvedSubscriber, TwinEntity> subscriberTwinByUnresolvedSubscriber;
         private int currentLoop = 0;
-        private Map<String, Set<String>> appliedPublishersBySubscriber; // subKey -> publisher keys already applied
+        private Map<RecomputeTarget, Set<String>> appliedPublishersByTarget; // target -> publisher keys already applied
         private Set<String> visitedPublishers;
+        private boolean initialized = false;
         private List<RecomputePlanLoop> loops;
 
         private void init() {
-            if (subscriberTwinPointerIds == null) {
-                subscriberTwinPointerIds = new HashSet<>();
-                subscriberTwinClassFieldIds = new HashSet<>();
+            if (!initialized) {
+                subscriberKit = new Kit<>(TwinRecomputeSubscriberEntity::getId);
                 subscriberTwinPointerKit = new Kit<>(TwinPointerEntity::getId);
                 subscriberTwinClassFieldKit = new Kit<>(TwinClassFieldEntity::getId);
                 publisherTwinsKit = new Kit<>(TwinEntity::getId);
                 subscriberTwinsKit = new Kit<>(TwinEntity::getId);
-                subscriberTwinByUnresolvedPointer = new HashMap<>();
+                subscriberTwinByUnresolvedSubscriber = new HashMap<>();
                 publisherTwinsByPointerId = new HashMap<>();
-                appliedPublishersBySubscriber = new HashMap<>();
+                appliedPublishersByTarget = new HashMap<>();
                 visitedPublishers = new HashSet<>();
+                initialized = true;
             }
             getLoop().init();
         }
 
         public RecomputePlanLoop getLoop() {
-            if (currentLoop == 0)
+            if (currentLoop == 0) {
                 newLoop();
+            }
             return loops.get(currentLoop - 1);
         }
 
-        public void add(TwinFieldDecimalEntity triggerField, TwinClassFieldRecomputeOnFieldEntity recomputeOnField) {
+        public void add(TwinFieldDecimalEntity triggerField, TwinRecomputeOnFieldEntity recomputeOnField) {
             init();
             visitedPublishers.add(toKey(triggerField));
-            subscriberTwinPointerIds.add(recomputeOnField.getSubscriberTwinPointerId());
-            subscriberTwinClassFieldIds.add(recomputeOnField.getSubscriberTwinClassFieldId());
-            subscriberTwinPointerKit.add(recomputeOnField.getSubscriberTwinPointer());
-            subscriberTwinClassFieldKit.add(recomputeOnField.getSubscriberTwinClassField());
+            TwinRecomputeSubscriberEntity subscriber = recomputeOnField.getSubscriber();
+            if (subscriber == null || subscriber.getSubscriberTwinPointer() == null || subscriber.getSubscriberTwinClassField() == null) {
+                log.warn("Recompute rule {} has unresolved subscriber, skipping", recomputeOnField.logShort());
+                return;
+            }
+            subscriberKit.add(subscriber);
+            subscriberTwinPointerKit.add(subscriber.getSubscriberTwinPointer());
+            subscriberTwinClassFieldKit.add(subscriber.getSubscriberTwinClassField());
             publisherTwinsKit.add(triggerField.getTwin());
             publisherTwinsByPointerId
-                    .computeIfAbsent(recomputeOnField.getSubscriberTwinPointerId(), _ -> new ArrayList<>())
+                    .computeIfAbsent(subscriber.getSubscriberTwinPointerId(), _ -> new ArrayList<>())
                     .add(triggerField.getTwin());
-            var unresolvedPointer = new UnresolvedPointer(triggerField.getTwinId(), recomputeOnField.getSubscriberTwinPointerId());
+            var unresolvedPointer = new UnresolvedSubscriber(triggerField.getTwinId(), subscriber.getId());
             getLoop().recomputeTriggersByUnresolvedPointer
                     .computeIfAbsent(unresolvedPointer, _ -> new HashMap<>())
-                    .computeIfAbsent(recomputeOnField.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
+                    .computeIfAbsent(subscriber.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
                     .add(new RecomputeTriggerOnField(triggerField.getTwin(), triggerField.getTwinClassField(), recomputeOnField.isAsync()));
         }
 
-        public void add(TwinEntity twin, TwinAction twinAction, TwinClassFieldRecomputeOnActionEntity recomputeOnAction) {
+        public void add(TwinEntity twin, TwinAction twinAction, TwinRecomputeOnActionEntity recomputeOnAction) {
             init();
-            subscriberTwinPointerIds.add(recomputeOnAction.getSubscriberTwinPointerId());
-            subscriberTwinClassFieldIds.add(recomputeOnAction.getSubscriberTwinClassFieldId());
-            subscriberTwinPointerKit.add(recomputeOnAction.getSubscriberTwinPointer());
-            subscriberTwinClassFieldKit.add(recomputeOnAction.getSubscriberTwinClassField());
+            TwinRecomputeSubscriberEntity subscriber = recomputeOnAction.getSubscriber();
+            if (subscriber == null || subscriber.getSubscriberTwinPointer() == null || subscriber.getSubscriberTwinClassField() == null) {
+                log.warn("Recompute rule {} has unresolved subscriber, skipping", recomputeOnAction.logShort());
+                return;
+            }
+            subscriberKit.add(subscriber);
+            subscriberTwinPointerKit.add(subscriber.getSubscriberTwinPointer());
+            subscriberTwinClassFieldKit.add(subscriber.getSubscriberTwinClassField());
             publisherTwinsKit.add(twin);
             publisherTwinsByPointerId
-                    .computeIfAbsent(recomputeOnAction.getSubscriberTwinPointerId(), _ -> new ArrayList<>())
+                    .computeIfAbsent(subscriber.getSubscriberTwinPointerId(), _ -> new ArrayList<>())
                     .add(twin);
-            var unresolvedPointer = new UnresolvedPointer(twin.getId(), recomputeOnAction.getSubscriberTwinPointerId());
+            var unresolvedPointer = new UnresolvedSubscriber(twin.getId(), subscriber.getId());
             getLoop().recomputeTriggersByUnresolvedPointer
                     .computeIfAbsent(unresolvedPointer, _ -> new HashMap<>())
-                    .computeIfAbsent(recomputeOnAction.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
+                    .computeIfAbsent(subscriber.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
                     .add(new RecomputeTriggerOnAction(twin, twinAction, recomputeOnAction.isAsync()));
         }
 
         public void resolveSubscriberTwins() {
             for (var unresolvedPointer : getLoop().recomputeTriggersByUnresolvedPointer.keySet()) {
-                var subscriberTwin = publisherTwinsKit.get(unresolvedPointer.publisherTwinId).getPointer(unresolvedPointer.twinPointerId);
+                var subscriber = subscriberKit.get(unresolvedPointer.subscriberId());
+                if (subscriber == null) {
+                    continue;
+                }
+                var subscriberTwin = publisherTwinsKit.get(unresolvedPointer.publisherTwinId()).getPointer(subscriber.getSubscriberTwinPointerId());
                 if (subscriberTwin == null) {
                     log.warn("No subscriber was detected by {}", unresolvedPointer);
                     continue;
                 }
-                subscriberTwinByUnresolvedPointer.put(unresolvedPointer, subscriberTwin);
+                subscriberTwinByUnresolvedSubscriber.put(unresolvedPointer, subscriberTwin);
                 subscriberTwinsKit.add(subscriberTwin);
             }
         }
@@ -273,17 +285,22 @@ public class TwinFieldRecomputeService {
             for (var entry : getLoop().recomputeTriggersByUnresolvedPointer.entrySet()) {
                 var unresolvePointer = entry.getKey();
                 var fieldTriggersMap = entry.getValue();
-                var subscriberTwin = subscriberTwinByUnresolvedPointer.get(unresolvePointer);
+                var subscriberTwin = subscriberTwinByUnresolvedSubscriber.get(unresolvePointer);
                 if (subscriberTwin == null) {
                     log.warn("No subscriber was detected by {}", unresolvePointer);
                     continue;
                 }
+                var subscriber = subscriberKit.get(unresolvePointer.subscriberId());
                 for (var fieldTrigger : fieldTriggersMap.entrySet()) {
                     var subscriberFieldId = fieldTrigger.getKey();
                     var triggers = fieldTrigger.getValue();
-                    getLoop().recomputeTriggersBySubscriberTwinId
-                            .computeIfAbsent(subscriberTwin.getId(), _ -> new HashMap<>())
-                            .computeIfAbsent(subscriberFieldId, _ -> new ArrayList<>())
+                    var target = new RecomputeTarget(
+                            subscriberTwin.getId(),
+                            subscriberFieldId,
+                            subscriber.getRecomputerFeaturerId(),
+                            subscriber.getRecomputerParams());
+                    getLoop().recomputeTriggersByTarget
+                            .computeIfAbsent(target, _ -> new ArrayList<>())
                             .addAll(triggers);
                 }
             }
@@ -293,51 +310,60 @@ public class TwinFieldRecomputeService {
             return visitedPublishers != null && visitedPublishers.contains(key);
         }
 
-        /** true если среди publisherKeys есть хотя бы один новый для этого подписчика (и тогда все они фиксируются). */
-        public boolean markAppliedPublishers(String subKey, Set<String> publisherKeys) {
-            return appliedPublishersBySubscriber
-                    .computeIfAbsent(subKey, k -> new HashSet<>())
+        /** true if any of publisherKeys is new for this target (and then all of them are recorded). */
+        public boolean markAppliedPublishers(RecomputeTarget target, Set<String> publisherKeys) {
+            return appliedPublishersByTarget
+                    .computeIfAbsent(target, k -> new HashSet<>())
                     .addAll(publisherKeys);
         }
 
         public boolean isEmpty() {
-            return subscriberTwinPointerIds == null;
+            return !initialized;
         }
 
         public void newLoop() {
             this.currentLoop++;
-            if (this.loops == null)
+            if (this.loops == null) {
                 loops = new ArrayList<>();
+            }
             this.loops.add(new RecomputePlanLoop());
         }
 
         public boolean hasRecomputedFields(TwinChangesCollector collector) {
-            if (visitedPublishers == null)
+            if (visitedPublishers == null) {
                 return true;
+            }
             int collectedDecimalFieldsCount = collector.getSaveEntities(TwinFieldDecimalEntity.class).size() + collector.getDeletes(TwinFieldDecimalEntity.class).size();
-            if (collectedDecimalFieldsCount == 0)
+            if (collectedDecimalFieldsCount == 0) {
                 return false;
-            if (collectedDecimalFieldsCount != visitedPublishers.size()) //some new fields were added
+            }
+            if (collectedDecimalFieldsCount != visitedPublishers.size()) { //some new fields were added
                 return true;
+            }
             return false;
         }
 
-        private record UnresolvedPointer(UUID publisherTwinId, UUID twinPointerId) {
+        private record UnresolvedSubscriber(UUID publisherTwinId, UUID subscriberId) {
             @Override
             public String toString() {
-                return "pointer[fromTwinId:" + publisherTwinId + ", twinPointerId:" + twinPointerId + "]";
+                return "subscriber[fromTwinId:" + publisherTwinId + ", subscriberId:" + subscriberId + "]";
             }
+        }
+
+        /** Unit of recompute work: same target merges triggers; different recomputer -> separate target. */
+        private record RecomputeTarget(UUID subscriberTwinId, UUID subscriberFieldId,
+                                       Integer recomputerFeaturerId, HashMap<String, String> recomputerParams) {
         }
 
         @Data
         private static class RecomputePlanLoop {
-            private Map<UnresolvedPointer, Map<UUID, List<RecomputeTrigger>>> recomputeTriggersByUnresolvedPointer;
-            private Map<UUID, Map<UUID, List<RecomputeTrigger>>> recomputeTriggersBySubscriberTwinId;
+            private Map<UnresolvedSubscriber, Map<UUID, List<RecomputeTrigger>>> recomputeTriggersByUnresolvedPointer;
+            private Map<RecomputeTarget, List<RecomputeTrigger>> recomputeTriggersByTarget;
 
             public void init() {
                 if (recomputeTriggersByUnresolvedPointer == null) {
                     recomputeTriggersByUnresolvedPointer = new HashMap<>();
-                    recomputeTriggersBySubscriberTwinId = new HashMap<>();
+                    recomputeTriggersByTarget = new HashMap<>();
                 }
             }
 
@@ -358,45 +384,40 @@ public class TwinFieldRecomputeService {
         recomputePlan.groupTriggersBySubscriber();
     }
 
-
-    private List<FieldRecomputeRequest> buildRecomputeRequests(RecomputePlan recomputePlan) throws ServiceException {
-        List<FieldRecomputeRequest> requests = new ArrayList<>();
-        for (var entry : recomputePlan.getLoop().getRecomputeTriggersBySubscriberTwinId().entrySet()) {
-            var subscriberTwinId = entry.getKey();
-            var subscriberFieldTriggers = entry.getValue();
-
-            for (var fieldTriggers : subscriberFieldTriggers.entrySet()) {
-                var subscriberFieldId = fieldTriggers.getKey();
-                var triggers = fieldTriggers.getValue();
-                Set<String> publisherKeys = triggers.stream()
-                        .map(RecomputeTrigger::publisherKey)
-                        .collect(Collectors.toSet());
-                if (!recomputePlan.markAppliedPublishers(toKey(subscriberTwinId, subscriberFieldId), publisherKeys)) {
-                    continue; // все publisher-ы уже применены — дубль, пропускаем
-                }
-                requests.add(new FieldRecomputeRequest(
-                        recomputePlan.getSubscriberTwinsKit().get(subscriberTwinId),
-                        recomputePlan.getSubscriberTwinClassFieldKit().get(subscriberFieldId),
-                        triggers));
+    private List<DispatchTask> buildRecomputeRequests(RecomputePlan recomputePlan) {
+        List<DispatchTask> tasks = new ArrayList<>();
+        for (var entry : recomputePlan.getLoop().getRecomputeTriggersByTarget().entrySet()) {
+            var target = entry.getKey();
+            var triggers = entry.getValue();
+            Set<String> publisherKeys = triggers.stream()
+                    .map(RecomputeTrigger::publisherKey)
+                    .collect(Collectors.toSet());
+            if (!recomputePlan.markAppliedPublishers(target, publisherKeys)) {
+                continue; // all publishers already applied for this target — duplicate, skip
             }
-
+            tasks.add(new DispatchTask(
+                    new FieldRecomputeRequest(
+                            recomputePlan.getSubscriberTwinsKit().get(target.subscriberTwinId()),
+                            recomputePlan.getSubscriberTwinClassFieldKit().get(target.subscriberFieldId()),
+                            triggers),
+                    target.recomputerFeaturerId(),
+                    target.recomputerParams()));
         }
-        return requests;
+        return tasks;
     }
 
-    private void dispatchRecompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+    private void dispatchRecompute(FieldRecomputeRequest request, TwinChangesCollector collector,
+                                   Integer recomputerFeaturerId, HashMap<String, String> recomputerParams) throws ServiceException {
         if (request.triggers().stream().anyMatch(RecomputeTrigger::async)) {
             //TODO
             log.warn("Async Mater recompute not yet implemented, falling back to sync for {} on twin {}",
                     request.subscriberField().getId(), request.subscriberTwin().getId());
         }
+        Recomputer recomputer = featurerService.getFeaturer(recomputerFeaturerId, Recomputer.class);
+        recomputer.recompute(request, collector, recomputerParams);
+    }
 
-        FieldTyper fieldTyper = featurerService.getFeaturer(request.subscriberField().getFieldTyperFeaturerId(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperRecomputed subscriber)) {
-            log.warn("FieldTyper {} for field {} is not a FieldTyperRecomputed, skipping",
-                    fieldTyper.getClass().getSimpleName(), request.subscriberField().getId());
-            return;
-        }
-        subscriber.recompute(request, collector);
+    private record DispatchTask(FieldRecomputeRequest request, Integer recomputerFeaturerId,
+                                HashMap<String, String> recomputerParams) {
     }
 }

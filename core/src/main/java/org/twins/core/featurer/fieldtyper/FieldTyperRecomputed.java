@@ -2,7 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.service.twinclassfield.recompute.FieldRecomputeRequest;
+import org.twins.core.service.recompute.FieldRecomputeRequest;
 
 /**
  * Contract for a FieldTyper that acts as a Mater-subscriber: receives

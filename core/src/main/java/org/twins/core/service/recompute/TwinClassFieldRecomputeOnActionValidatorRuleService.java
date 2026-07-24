@@ -1,4 +1,4 @@
-package org.twins.core.service.twinclassfield.recompute;
+package org.twins.core.service.recompute;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;

@@ -63,9 +63,9 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.recompute.TwinRecomputeService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.twinfield.TwinFieldRecomputeService;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
@@ -160,7 +160,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Autowired
     private TwinActionService twinActionService;
     @Autowired
-    private TwinFieldRecomputeService twinFieldRecomputeService;
+    private TwinRecomputeService twinRecomputeService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -437,7 +437,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             validateAndCollect(twinEntity, twinChangesCollector);
         }
         saveTwinFields(twinCreateStage, twinChangesCollector);
-        twinFieldRecomputeService.triggerAffected(twinChangesCollector);
+        twinRecomputeService.triggerAffected(twinChangesCollector);
         for (TwinCreate twinCreate : twinCreateStage) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -931,7 +931,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (batchFieldValidationException != null) {
             throw batchFieldValidationException;
         }
-        twinFieldRecomputeService.triggerAffected(twinChangesCollector);;
+        twinRecomputeService.triggerAffected(twinChangesCollector);;
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
