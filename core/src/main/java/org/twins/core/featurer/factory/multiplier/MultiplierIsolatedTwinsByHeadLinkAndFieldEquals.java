@@ -117,7 +117,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
 
             double equalsValue;
             try {
-                equalsValue = Double.parseDouble(numericField.getValue());
+                equalsValue = Double.parseDouble(numericField.getValue().trim().replace(',','.'));
             } catch (NumberFormatException e) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, "Incorrect numeric value for field [" + equalsFieldId + "]: [" + numericField.getValue() + "]");
             }

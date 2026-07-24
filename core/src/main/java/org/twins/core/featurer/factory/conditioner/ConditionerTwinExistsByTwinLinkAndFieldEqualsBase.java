@@ -136,7 +136,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
         UUID equalsFieldId = equalsTwinClassFieldId.extract(properties);
         if (equalsFieldId != null) {
             FieldValue equalsFieldValue = resolveEqualsFieldValue(properties, factoryItem, equalsFieldId);
-            if (!(equalsFieldValue instanceof FieldValueText priceField) || priceField.isEmpty()) {
+            if (!(equalsFieldValue instanceof FieldValueText numericField) || numericField.isEmpty()) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Twin field not found");
             }
 
@@ -144,10 +144,10 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
             double equalsValue;
             try {
-                equalsValue = Double.parseDouble(priceField.getValue());
+                equalsValue = Double.parseDouble(numericField.getValue().trim().replace(',','.'));
             } catch (NumberFormatException e) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT,
-                        "Incorrect numeric value for field [" + equalsFieldId + "]: [" + priceField.getValue() + "]");
+                        "Incorrect numeric value for field [" + equalsFieldId + "]: [" + numericField.getValue() + "]");
             }
 
             search.setFieldsFilter(new TwinFieldFilter()

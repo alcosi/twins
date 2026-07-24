@@ -71,7 +71,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
                 } else {
                     FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
                     try {
-                        Double.parseDouble(fieldValue.getValue());
+                        Double.parseDouble(fieldValue.getValue().trim().replace(',','.'));
                     } catch (NumberFormatException e) {
                         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] cant be parsed to Double");
                     }
