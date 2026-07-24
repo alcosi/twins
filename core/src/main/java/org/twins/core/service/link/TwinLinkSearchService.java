@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
@@ -13,11 +14,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinLinkSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.sort.TwinLinkGroupField;
 import org.twins.core.enums.sort.TwinLinkSortField;
 import org.twins.core.service.EntitySearchService;
+import org.twins.core.service.twin.TwinAccessSpecificationFactory;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -32,6 +35,7 @@ import static org.twins.core.dao.specifications.link.TwinLinkSpecification.*;
 @RequiredArgsConstructor
 public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, TwinLinkEntity, TwinLinkSortField, TwinLinkGroupField> {
     private final TwinLinkRepository twinLinkRepository;
+    private final TwinAccessSpecificationFactory twinAccessSpecificationFactory;
 
     @Override
     public JpaSpecificationExecutor<TwinLinkEntity> jpaSpecificationExecutor() {
@@ -54,7 +58,14 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
     }
 
     @Override
-    public Specification<TwinLinkEntity> createFilterSpecification(TwinLinkSearch search, UUID domainId, Locale locale) {
+    public Specification<TwinLinkEntity> createFilterSpecification(TwinLinkSearch search, UUID domainId, Locale locale) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        // NOTE: checkPermissions (inside TwinAccessSpecificationFactory) LEFT-joins the permission_mater_*
+        // collections, which can multiply rows when a twin has >1 grant. We intentionally do NOT add
+        // query.distinct(true) here: it breaks ORDER BY on joined fields (dstTwinName/srcTwinName/linkName)
+        // because PostgreSQL requires DISTINCT-query ORDER BY expressions to appear in the SELECT list.
+        // The dedup-by-EXISTS refactor of checkPermissions is tracked as follow-up tech debt (same as
+        // TwinSearchServiceV2 / CommentSearchService, which run without DISTINCT for the same reason).
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinLinkEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinLinkEntity.Fields.id),
@@ -68,8 +79,12 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
                 checkUuidIn(search.getLinkIdExcludeList(), true, false, TwinLinkEntity.Fields.linkId),
                 checkUuidIn(search.getCreatedByUserIdList(), false, false, TwinLinkEntity.Fields.createdByUserId),
                 checkUuidIn(search.getCreatedByUserIdExcludeList(), true, false, TwinLinkEntity.Fields.createdByUserId),
-                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinLinkEntity.Fields.createdAt)
-        );
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinLinkEntity.Fields.createdAt),
+                // Object-level authorization of both endpoints — a twin link is visible only when the caller is
+                // authorized to read BOTH twins (same rules as TwinSearchServiceV2). See TwinAccessSpecificationFactory.
+                twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinLinkEntity.Fields.srcTwinSpecOnly),
+                twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinLinkEntity.Fields.dstTwinSpecOnly)
+                );
     }
 
     @Override

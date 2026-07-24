@@ -16,11 +16,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.AttachmentSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.sort.AttachmentGroupField;
 import org.twins.core.enums.sort.AttachmentSortField;
 import org.twins.core.service.EntitySearchService;
+import org.twins.core.service.twin.TwinAccessSpecificationFactory;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -36,6 +38,7 @@ public class AttachmentSearchService extends EntitySearchService
         <AttachmentSearch, TwinAttachmentEntity, AttachmentSortField, AttachmentGroupField> {
 
     private final TwinAttachmentRepository twinAttachmentRepository;
+    private final TwinAccessSpecificationFactory twinAccessSpecificationFactory;
 
     @Override
     public JpaSpecificationExecutor<TwinAttachmentEntity> jpaSpecificationExecutor() {
@@ -58,8 +61,14 @@ public class AttachmentSearchService extends EntitySearchService
     }
 
     @Override
-    public Specification<TwinAttachmentEntity> createFilterSpecification(AttachmentSearch search, UUID domainId, Locale locale) {
+    public Specification<TwinAttachmentEntity> createFilterSpecification(AttachmentSearch search, UUID domainId, Locale locale) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        // NOTE: no query.distinct(true) here despite checkPermissions' collection joins — see the comment
+        // in TwinLinkSearchService: DISTINCT breaks ORDER BY on joined fields (twinName, etc.) on PostgreSQL.
         return Specification.allOf(
+                // Object-level authorization of the attachment's twin — an attachment is visible only when
+                // the caller is authorized to read its twin (same rules as TwinSearchServiceV2).
+                twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinAttachmentEntity.Fields.twinSpecOnly),
                 checkUuidIn(search.getIdList(), false, false, TwinAttachmentEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinAttachmentEntity.Fields.id),
                 checkUuidIn(search.getTwinIdList(), false, false, TwinAttachmentEntity.Fields.twinId),
@@ -84,7 +93,7 @@ public class AttachmentSearchService extends EntitySearchService
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinAttachmentEntity.Fields.description),
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinAttachmentEntity.Fields.createdAt),
                 checkFieldLongRange(search.getOrder(), TwinAttachmentEntity.Fields.order)
-        );
+                );
     }
 
     @Override
