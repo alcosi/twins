@@ -4,7 +4,9 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -81,6 +83,11 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
         FieldValueText value = new FieldValueText(request.subscriberField());
         TwinFieldDecimalEntity twinFieldEntity = request.subscriberTwin().getTwinFieldDecimalKit().get(request.subscriberField().getId());
         serializeCalculatedValue(properties, request.subscriberTwin(), twinFieldEntity, value, collector);
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchNumeric search) throws ServiceException {
+        return TwinSpecification.checkFieldDecimal(search);
     }
 
     private BigDecimal calcSum(Properties properties, TwinEntity twin) throws ServiceException {
