@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.related;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
@@ -16,6 +17,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
@@ -24,17 +26,17 @@ import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
-import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
@@ -48,6 +50,7 @@ import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.link.LinkDTOv2;
 import org.twins.core.dto.rest.notification.*;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
@@ -57,19 +60,19 @@ import org.twins.core.dto.rest.projection.ProjectionTypeGroupDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.scheduler.SchedulerDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
-import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
-import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.action.ActionRestrictionReasonRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentRestrictionRestDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
@@ -83,6 +86,7 @@ import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
+import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.notification.*;
@@ -94,17 +98,16 @@ import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.scheduler.SchedulerRestDTOMapperV1;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
+import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.*;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
-import org.twins.core.mappers.rest.action.ActionRestrictionReasonRestDTOMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -117,8 +120,8 @@ import java.util.function.Function;
 public class RelatedObjectsRestDTOConverter {
 
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
-
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final LinkRestDTOMapper linkRestDTOMapper;
     private final UserRestDTOMapper userRestDTOMapper;
     private final UserGroupRestDTOMapper userGroupRestDTOMapper;
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
@@ -165,6 +168,7 @@ public class RelatedObjectsRestDTOConverter {
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
+        Map<UUID, LinkDTOv2> linkMap = new HashMap<>();
         Map<UUID, TwinTriggerDTOv1> triggerMap = new HashMap<>();
         Map<UUID, UserDTOv1> userMap = new HashMap<>();
         Map<UUID, UserGroupDTOv1> userGroupMap = new HashMap<>();
@@ -212,6 +216,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel2, twinMap, TwinEntity::getId);
         if (!mapperContext.getRelatedTwinStatusMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel2, statusMap, TwinStatusEntity::getId);
+        if (!mapperContext.getRelatedLinkMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedLinkMap(), linkRestDTOMapper, mapperContextLevel2, linkMap, LinkEntity::getId);
         if (!mapperContext.getRelatedTwinTriggerMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinTriggerMap(), twinTriggerRestDTOMapper, mapperContextLevel2, triggerMap, TwinTriggerEntity::getId);
         if (!mapperContext.getRelatedUserMap().isEmpty())
@@ -297,6 +303,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel3, twinMap, TwinEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinStatusMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
+        if (!mapperContextLevel2.getRelatedLinkMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedLinkMap(), linkRestDTOMapper, mapperContextLevel3, linkMap, LinkEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinTriggerMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinTriggerMap(), twinTriggerRestDTOMapper, mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
         if (!mapperContextLevel2.getRelatedUserMap().isEmpty())
@@ -383,6 +391,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel3, twinMap, TwinEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinStatusMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
+        if (!mapperContextLevel3.getRelatedLinkMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedLinkMap(), linkRestDTOMapper, mapperContextLevel3, linkMap, LinkEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinTriggerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinTriggerMap(), twinTriggerRestDTOMapper, mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
         if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
@@ -464,6 +474,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
                 .setTwinMap(twinMap.isEmpty() ? null : twinMap)
                 .setStatusMap(statusMap.isEmpty() ? null : statusMap)
+                .setLinkMap(linkMap.isEmpty() ? null : linkMap)
                 .setTriggerMap(triggerMap.isEmpty() ? null : triggerMap)
                 .setUserMap(userMap.isEmpty() ? null : userMap)
                 .setUserGroupMap(userGroupMap.isEmpty() ? null : userGroupMap)

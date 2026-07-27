@@ -3,47 +3,44 @@ package org.twins.core.dto.rest.related;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.dto.rest.domain.DomainBusinessAccountDTOv1;
+import org.twins.core.dto.rest.domain.DomainUserDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
-import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
+import org.twins.core.dto.rest.link.LinkDTOv2;
+import org.twins.core.dto.rest.notification.*;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
-import org.twins.core.dto.rest.notification.NotificationChannelDTOv1;
-import org.twins.core.dto.rest.notification.NotificationChannelEventDTOv1;
-import org.twins.core.dto.rest.notification.NotificationContextDTOv1;
-import org.twins.core.dto.rest.notification.NotificationSchemaDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeGroupDTOv1;
 import org.twins.core.dto.rest.scheduler.SchedulerDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
-import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
-import org.twins.core.dto.rest.domain.DomainBusinessAccountDTOv1;
-import org.twins.core.dto.rest.domain.DomainUserDTOv1;
-import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
-import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
-import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
+import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -101,7 +98,7 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap;
 
     @Schema(description = "related link map", example = "{link map}")
-    public Map<UUID, LinkDTOv1> linkMap;
+    public Map<UUID, LinkDTOv2> linkMap;
 
     @Schema(description = "related factory map", example = "{factory map}")
     public Map<UUID, FactoryDTOv1> factoryMap;
@@ -223,7 +220,7 @@ public class RelatedObjectsDTOv1 {
             return (T) twinflowMap.get(id);
         } else if (relatedObjectClass == TwinflowSchemaDTOv1.class) {
             return (T) twinflowSchemaMap.get(id);
-        } else if (relatedObjectClass == LinkDTOv1.class) {
+        } else if (relatedObjectClass == LinkDTOv2.class) {
             return (T) linkMap.get(id);
         } else if (relatedObjectClass == FactoryDTOv1.class) {
             return (T) factoryMap.get(id);
