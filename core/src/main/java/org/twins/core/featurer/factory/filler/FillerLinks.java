@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -56,7 +57,7 @@ public abstract class FillerLinks extends Filler {
     }
 
     private boolean missed(UUID twinId, List<TwinLinkEntity> linksEntityList, TwinLinkEntity newLinkEntity) {
-        if (linksEntityList.isEmpty())
+        if (CollectionUtils.isEmpty(linksEntityList))
             return true;
         for (TwinLinkEntity linkEntity : linksEntityList) {
             if (!linkEntity.getLinkId().equals(newLinkEntity.getLinkId()))
