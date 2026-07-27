@@ -33,7 +33,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
-    private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+    private final LinkRestDTOMapper linkRestDTOMapper;
 
     @MapperModePointerBinding(modes = UserMode.TwinLink2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -63,7 +63,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
         }
         if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
             twinLinkService.loadLink(src);
-            linkForwardRestDTOMapper.convertOrPostpone(src.getLink(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinLink2LinkMode.SHORT)));
+            linkRestDTOMapper.postpone(src.getLink(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinLink2LinkMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.TwinLink2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());

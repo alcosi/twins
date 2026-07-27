@@ -18,6 +18,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
@@ -55,6 +56,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinClassEntity>> relatedTwinClassMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinStatusEntity>> relatedTwinStatusMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<LinkEntity>> relatedLinkMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinTriggerEntity>> relatedTwinTriggerMap = new LinkedHashMap<>();
     @Getter
@@ -233,6 +236,8 @@ public class MapperContext {
             smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
             smartPut(relatedTwinStatusMap, twinStatus, twinStatus.getId());
+        else if (relatedObject instanceof LinkEntity link)
+            smartPut(relatedLinkMap, link, link.getId());
         else if (relatedObject instanceof TwinTriggerEntity twinTrigger)
             smartPut(relatedTwinTriggerMap, twinTrigger, twinTrigger.getId());
         else if (relatedObject instanceof TwinEntity twin) {
@@ -496,6 +501,7 @@ public class MapperContext {
         dstMapperContext.relatedUserGroupMap = srcMapperContext.relatedUserGroupMap;
         dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
         dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
+        dstMapperContext.relatedLinkMap = srcMapperContext.relatedLinkMap;
         dstMapperContext.relatedTwinTriggerMap = srcMapperContext.relatedTwinTriggerMap;
         dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
         dstMapperContext.relatedTwinflowTransitionMap = srcMapperContext.relatedTwinflowTransitionMap;
