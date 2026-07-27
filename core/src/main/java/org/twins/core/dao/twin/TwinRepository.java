@@ -43,6 +43,19 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "update TwinEntity set headTwinId = :newVal where headTwinId = :oldVal and twinClassId = :twinClassId")
     void replaceHeadTwinForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
 
+    @Query(value = "select distinct t.flavorDataListOptionId from TwinEntity t where t.twinClassId = :twinClassId and t.flavorDataListOptionId is not null")
+    Set<UUID> findDistinctFlavorDataListOptionIdByTwinClassId(@Param("twinClassId") UUID twinClassId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set flavorDataListOptionId = :newVal where flavorDataListOptionId = :oldVal and twinClassId = :twinClassId")
+    int replaceFlavorForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set flavorDataListOptionId = null where twinClassId = :twinClassId and flavorDataListOptionId is not null")
+    int clearFlavorForTwinsOfClass(@Param("twinClassId") UUID twinClassId);
+
     /**
      * Bulk status transition: one UPDATE for any number of Twins. Used by glossary MARK_DELETE
      * pass — replaces a per-Twin {@code entitySmartService.save()} loop with a single statement.

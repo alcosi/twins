@@ -2,14 +2,11 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.BasicUpdateOperationRestDTOReverseMapper;
-import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.twinclass.TwinClassService;
 
 @Deprecated
 @Component
@@ -24,6 +21,7 @@ public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
         dst
                 .setMarkerDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getMarkerDataListUpdate()))
                 .setTagDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getTagDataListUpdate()))
+                .setFlavorDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getFlavorDataListUpdate()))
                 .setExtendsTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getExtendsTwinClassUpdate()))
                 .setHeadTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getHeadTwinClassUpdate()))
                 .getTwinClass().setId(src.getTwinClassId());

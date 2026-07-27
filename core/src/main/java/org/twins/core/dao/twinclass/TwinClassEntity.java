@@ -137,6 +137,9 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @Column(name = "tag_data_list_id")
     private UUID tagDataListId;
 
+    @Column(name = "flavor_data_list_id")
+    private UUID flavorDataListId;
+
     @Column(name = "twin_class_owner_type_id")
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
@@ -171,6 +174,9 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
 
     @Column(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
     private UUID inheritedTagDataListId;
+
+    @Column(name = "inherited_flavor_data_list_id", insertable = false, updatable = false)
+    private UUID inheritedFlavorDataListId;
 
     @Column(name = "general_attachment_restriction_id")
     private UUID generalAttachmentRestrictionId;
@@ -312,6 +318,14 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
     private DataListEntity inheritedTagDataListSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_flavor_data_list_id", insertable = false, updatable = false)
+    private DataListEntity inheritedFlavorDataListSpecOnly;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_freeze_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -349,6 +363,14 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_data_list_id", insertable = false, updatable = false)
     private DataListEntity tagDataListSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "flavor_data_list_id", insertable = false, updatable = false)
+    private DataListEntity flavorDataListSpecOnly;
 
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
@@ -516,6 +538,11 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DataListEntity tagDataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListEntity flavorDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude

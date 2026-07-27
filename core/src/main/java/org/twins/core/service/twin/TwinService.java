@@ -229,6 +229,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getTwinStatusId()));
                 checkAssignee(entity);
                 checkNameUniqueness(entity);
+                checkFlavorDataListOption(entity);
                 if (entity.getCreatedAt() == null)
                     entity.setCreatedAt(Timestamp.from(Instant.now()));
                 if (entity.getCreatedByUserId() == null)
@@ -238,6 +239,28 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinStatusId[" + entity.getTwinStatusId() + "]");
         }
         return true;
+    }
+
+    private void checkFlavorDataListOption(TwinEntity entity) throws ServiceException {
+        TwinClassEntity twinClass = entity.getTwinClass();
+        UUID expectedDataListId = twinClass.getFlavorDataListId() != null
+                ? twinClass.getFlavorDataListId()
+                : twinClass.getInheritedFlavorDataListId();
+        // class does not manage flavors — nothing to validate against, no point querying the option
+        if (expectedDataListId == null && entity.getFlavorDataListOptionId() == null) {
+            return;
+        } else if (expectedDataListId == null && entity.getFlavorDataListOptionId() != null) {
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST,
+                    entity.easyLog(EasyLoggable.Level.NORMAL) + " given class does not configured with flavor support");
+        } else if (expectedDataListId != null && entity.getFlavorDataListOptionId() == null) {
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST,
+                    entity.easyLog(EasyLoggable.Level.NORMAL) + " missed flavour id");
+        }
+        if (entity.getFlavorDataListOption() == null)
+            entity.setFlavorDataListOption(dataListOptionService.findEntitySafe(entity.getFlavorDataListOptionId()));
+        if (!expectedDataListId.equals(entity.getFlavorDataListOption().getDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST,
+                    entity.logNormal() + " incorrect flavorDataListOptionId[" + entity.getFlavorDataListOptionId() + "]");
     }
 
     public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {

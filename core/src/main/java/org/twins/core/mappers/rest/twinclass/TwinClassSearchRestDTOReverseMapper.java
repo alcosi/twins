@@ -41,6 +41,8 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setDescriptionI18nNotLikeList(convertToSetSafe(src.getDescriptionI18nNotLikeList()))
                 .setMarkerDatalistIdList(src.getMarkerDatalistIdList())
                 .setMarkerDatalistIdExcludeList(src.getMarkerDatalistIdExcludeList())
+                .setFlavorDatalistIdList(src.getFlavorDatalistIdList())
+                .setFlavorDatalistIdExcludeList(src.getFlavorDatalistIdExcludeList())
                 .setTagDatalistIdList(src.getTagDatalistIdList())
                 .setTagDatalistIdExcludeList(src.getTagDatalistIdExcludeList())
                 .setFreezeIdList(src.getFreezeIdList())

@@ -70,6 +70,10 @@ public class TwinClassDTOv1 {
     @Schema(description = "some tags for twins. Can be business account level and editable by user")
     public UUID tagsDataListId;
 
+    @RelatedObject(type = DataListDTOv1.class, name = "flavorsDataList")
+    @Schema(description = "flavor data list for twins. Restricts the flavorDataListOptionId that can be set on twins of this class")
+    public UUID flavorsDataListId;
+
     @Schema(description = "twin class owner type")
     public OwnerType ownerType;
 

@@ -39,6 +39,9 @@ public class TwinClassCountDTOv1 extends CountDTOv1 {
     @Schema(description = "tag data list id", example = DTOExamples.UUID_ID)
     public UUID tagDataListId;
 
+    @Schema(description = "flavor data list id", example = DTOExamples.UUID_ID)
+    public UUID flavorDataListId;
+
     @Schema(description = "twinflow schema space")
     public Boolean twinflowSchemaSpace;
 

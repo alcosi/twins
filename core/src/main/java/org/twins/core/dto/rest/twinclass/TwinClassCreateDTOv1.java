@@ -26,6 +26,9 @@ public class TwinClassCreateDTOv1 extends TwinClassSaveDTOv1 {
             "And the list of markers is configured only by the domain manager. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID tagDataListId;
 
+    @Schema(description = "[optional] id of linked flavor list. Restricts the flavorDataListOptionId that can be set on twins of this class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
+    public UUID flavorDataListId;
+
     @Schema(description = "[optional] if true - permissions will be created and assign to class (if not specified another permission ids in this dto)")
     public Boolean autoCreatePermissions = false;
 
