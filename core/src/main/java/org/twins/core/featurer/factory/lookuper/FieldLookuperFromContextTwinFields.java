@@ -19,6 +19,10 @@ public class FieldLookuperFromContextTwinFields extends FieldLookuperNearest {
         if (fieldValue != null) {
             return fieldValue;
         }
+        fieldValue = getValueFromOutputLinks(lookupTwinClassFieldId, contextItem.getOutput());
+        if (fieldValue != null) {
+            return fieldValue;
+        }
         TwinEntity contextTwin = contextItem.getTwin();
         fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassFieldId);
         if (fieldValue == null) {
