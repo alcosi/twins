@@ -54,7 +54,7 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
                         .setLogicOperatorId(src.getLogicOperatorId());
                 if (src.getConditionEvaluatorFeaturerId() != null) {
                     ConditionEvaluator<?> evaluator = featurerService.getFeaturer(src.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
-                    ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src);
+                    ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src.getConditionEvaluatorParams());
                     TwinClassFieldConditionDescriptorDTO dto = conditionDescriptorMapper.convert(descriptor, mapperContext);
                     dst.setConditionDescriptor(dto);
                 }

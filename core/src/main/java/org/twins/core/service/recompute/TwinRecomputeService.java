@@ -22,6 +22,8 @@ import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.recomputer.Recomputer;
 import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
@@ -129,9 +131,24 @@ public class TwinRecomputeService {
         twinRecomputeOnFieldService.loadSubscriber(recomputeOnFields);
         for (var triggerField : decimalFieldsKit.getCollection()) {
             for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnFieldV2()) {
+                if (!passesCondition(recomputeOnField, triggerField)) {
+                    continue; // publisher field value did not pass the rule's condition
+                }
                 recomputePlan.add(triggerField, recomputeOnField);
             }
         }
+    }
+
+    /**
+     * Returns true if the publisher field's current value passes the rule's {@link ConditionEvaluator}
+     * (column is NOT NULL, default {@code ConditionEvaluatorTrue} = always pass). The publisher Mater field
+     * value is carried as a {@link FieldValueText} (Mater field typers operate on text values).
+     */
+    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldDecimalEntity triggerField) throws ServiceException {
+        FieldValueText currentValue = new FieldValueText(triggerField.getTwinClassField())
+                .setValue(triggerField.getValue() != null ? triggerField.getValue().toPlainString() : null);
+        ConditionEvaluator evaluator = featurerService.getFeaturer(recomputeOnField.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
+        return evaluator.evaluate(recomputeOnField.getConditionEvaluatorParams(), currentValue);
     }
 
     private void collectTwinActions(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {

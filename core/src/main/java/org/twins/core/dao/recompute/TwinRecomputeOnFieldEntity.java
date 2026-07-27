@@ -1,14 +1,17 @@
 package org.twins.core.dao.recompute;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.Identifiable;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -36,6 +39,17 @@ public class TwinRecomputeOnFieldEntity implements EasyLoggable, Identifiable {
 
     @Column(name = "publisher_twin_class_field_id", nullable = false)
     private UUID publisherTwinClassFieldId;
+
+    /**
+     * Optional condition evaluator: when set, the recompute trigger fires only if the publisher field's
+     * current value passes this check. Mirrors twin_class_field_condition.condition_evaluator_*.
+     */
+    @Column(name = "condition_evaluator_featurer_id", nullable = false)
+    private Integer conditionEvaluatorFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "condition_evaluator_params", columnDefinition = "hstore")
+    private HashMap<String, String> conditionEvaluatorParams;
 
     @Column(name = "async", nullable = false)
     private boolean async;

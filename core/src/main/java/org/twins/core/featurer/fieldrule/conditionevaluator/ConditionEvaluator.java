@@ -9,7 +9,6 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
 import org.twins.core.featurer.FeaturerTwins;
@@ -55,19 +54,19 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
         return descriptorType;
     }
 
-    public D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams());
-        return getConditionDescriptor(twinClassFieldConditionEntity, properties);
+    public D getConditionDescriptor(HashMap<String, String> params) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, params);
+        return getConditionDescriptor(properties);
     }
 
-    protected abstract D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException;
+    protected abstract D getConditionDescriptor(Properties properties) throws ServiceException;
 
-    public boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, FieldValue currentValue) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams());
-        return evaluate(twinClassFieldConditionEntity, properties, currentValue);
+    public boolean evaluate(HashMap<String, String> params, FieldValue currentValue) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, params);
+        return evaluate(properties, currentValue);
     }
 
-    protected abstract boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException;
+    protected abstract boolean evaluate(Properties properties, FieldValue currentValue) throws ServiceException;
 
     protected static boolean evaluateOperator(String actualValue, TwinClassFieldConditionOperator operator, String expected) {
         if (expected == null)
