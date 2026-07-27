@@ -13,9 +13,7 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.link.TwinLinkService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 public abstract class FillerLinks extends Filler {
@@ -45,28 +43,35 @@ public abstract class FillerLinks extends Filler {
 
     protected void addLink(TwinOperation outputTwin, TwinLinkEntity twinLinkEntity) {
         if (outputTwin instanceof TwinCreate twinCreate) {
-            twinCreate.addLink(twinLinkEntity);
+            if (missed(twinCreate.getTwinEntity().getId(), twinCreate.getLinksEntityList(), twinLinkEntity))
+                twinCreate.addLink(twinLinkEntity);
         } else if (outputTwin instanceof TwinUpdate twinUpdate) {
             if (twinUpdate.getTwinLinkCUD() == null)
                 twinUpdate.setTwinLinkCUD(new EntityCUD<>());
             if (twinUpdate.getTwinLinkCUD().getCreateList() == null)
                 twinUpdate.getTwinLinkCUD().setCreateList(new ArrayList<>());
-            twinUpdate.getTwinLinkCUD().getCreateList().add(twinLinkEntity);
+            if (missed(twinUpdate.getTwinEntity().getId(), twinUpdate.getTwinLinkCUD().getCreateList(), twinLinkEntity))
+                twinUpdate.getTwinLinkCUD().getCreateList().add(twinLinkEntity);
         }
     }
 
+    private boolean missed(UUID twinId, List<TwinLinkEntity> linksEntityList, TwinLinkEntity newLinkEntity) {
+        if (linksEntityList.isEmpty())
+            return true;
+        for (TwinLinkEntity linkEntity : linksEntityList) {
+            if (!linkEntity.getLinkId().equals(newLinkEntity.getLinkId()))
+                continue;
+            var id1ToCompare = newLinkEntity.getDstTwinId() != null && !newLinkEntity.getDstTwinId().equals(twinId) ? newLinkEntity.getDstTwinId() : newLinkEntity.getSrcTwinId();
+            var id2ToCompare = linkEntity.getDstTwinId() != null && !linkEntity.getDstTwinId().equals(twinId) ? linkEntity.getDstTwinId() : linkEntity.getSrcTwinId();
+            if (Objects.equals(id1ToCompare, id2ToCompare))
+                return false;
+        }
+        return true;
+    }
+
     protected void addLinks(TwinOperation outputTwin, List<TwinLinkEntity> twinLinkEntityList) {
-        if (outputTwin instanceof TwinCreate twinCreate) {
-            if (twinCreate.getLinksEntityList() == null)
-                twinCreate.setLinksEntityList(twinLinkEntityList);
-            else
-                twinCreate.getLinksEntityList().addAll(twinLinkEntityList);
-        } else if (outputTwin instanceof TwinUpdate twinUpdate) {
-            if (twinUpdate.getTwinLinkCUD() == null)
-                twinUpdate.setTwinLinkCUD(new EntityCUD<>());
-            if (twinUpdate.getTwinLinkCUD().getCreateList() == null)
-                twinUpdate.getTwinLinkCUD().setCreateList(twinLinkEntityList);
-            twinUpdate.getTwinLinkCUD().getCreateList().addAll(twinLinkEntityList);
+        for (TwinLinkEntity twinLinkEntity : twinLinkEntityList) {
+            addLink(outputTwin, twinLinkEntity);
         }
     }
 }
