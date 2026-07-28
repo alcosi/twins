@@ -171,8 +171,11 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public DomainBusinessAccountEntity getDomainBusinessAccountEntitySafe(UUID domainId, UUID businessAccountId) throws ServiceException {
         var apiUser = authService.getApiUser();
-        if (apiUser.getDomainId().equals(domainId) && apiUser.isBusinessAccountSpecified() && apiUser.getBusinessAccountId().equals(businessAccountId)) { //shortcut
-            return apiUser.getDomainBusinessAccount();
+        if (apiUser.getDomainId().equals(domainId)
+                && apiUser.isBusinessAccountSpecified()
+                && apiUser.getBusinessAccountId().equals(businessAccountId)
+                && !apiUser.isSystemUser()) {
+            return apiUser.getDomainBusinessAccount(); //shortcut
         }
         DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
         if (domainBusinessAccountEntity == null)

@@ -155,7 +155,7 @@ public class ApiUserResolverService {
         }
     }
 
-    public boolean isSystemUser(UUID userId) {
+    public static boolean isSystemUser(UUID userId) {
         return SystemIds.User.SYSTEM.equals(userId);
     }
 

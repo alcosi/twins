@@ -369,7 +369,7 @@ public class ApiUser {
     }
 
     public boolean isSystemUser() throws ServiceException {
-        return apiUserResolverService.isSystemUser(getUserId());
+        return ApiUserResolverService.isSystemUser(userId);
     }
 
     public DomainBusinessAccountEntity getDomainBusinessAccount() throws ServiceException {
