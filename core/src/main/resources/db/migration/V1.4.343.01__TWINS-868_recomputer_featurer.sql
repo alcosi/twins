@@ -3,6 +3,19 @@
 -- per subscriber (pointer + field); on_field/on_action rules reference it via FK. recomputer_featurer_id
 -- is NOT NULL — every subscriber must declare its Recomputer (default 5501 = RecomputerByFieldTyper).
 
+INSERT INTO featurer_type (id, name, description)
+VALUES (55, 'Recomputer', 'Twin recomputer')
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Pre-seed default featurers (must exist before backfills reference them as FK):
+--    5501 = RecomputerByFieldTyper (subscriber default), 5502 = RecomputerChangeStatus,
+--    4504 = ConditionEvaluatorTrue (on_field condition default)
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (5501, 55, '', '', '', false),
+       (5502, 55, '', '', '', false),
+       (4504, 45, '', '', '', false)
+ON CONFLICT ON CONSTRAINT featurer_pk DO NOTHING;
+
 -- 1. Subscriber table: one row per (pointer, field) + recomputer config
 CREATE TABLE IF NOT EXISTS twin_recompute_subscriber
 (
@@ -123,14 +136,6 @@ CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_action_validator_rule_on_action
 CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_action_validator_rule_validator_set
     ON twin_recompute_on_action_validator_rule (twin_validator_set_id);
 
--- 4. Pre-seed default featurers (must exist before backfills reference them as FK):
---    5501 = RecomputerByFieldTyper (subscriber default), 5502 = RecomputerChangeStatus,
---    4504 = ConditionEvaluatorTrue (on_field condition default)
-INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES
-    (5501, 55, '', '', '', false),
-    (5502, 55, '', '', '', false),
-    (4504, 45, '', '', '', false)
-ON CONFLICT ON CONSTRAINT featurer_pk DO NOTHING;
 
 -- 5. Backfill subscriber rows from old tables (no-op on empty DBs). recomputer = 5501 (default RecomputerByFieldTyper).
 INSERT INTO twin_recompute_subscriber (id, domain_id, subscriber_twin_pointer_id, subscriber_twin_class_field_id, recomputer_featurer_id)
