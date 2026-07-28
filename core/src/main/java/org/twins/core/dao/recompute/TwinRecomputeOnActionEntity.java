@@ -1,27 +1,28 @@
-package org.twins.core.dao.twinclassfield;
+package org.twins.core.dao.recompute;
 
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinAction;
 
 import java.util.UUID;
 
+/**
+ * OnAction recompute rule: "when a twin of publisher class undergoes an action, recompute the subscriber
+ * via {@link #subscriber}". Subscriber side lives on the {@link TwinRecomputeSubscriberEntity} parent.
+ */
 @Data
 @Entity
 @Accessors(chain = true)
-@Table(name = "twin_class_field_recompute_on_action")
+@Table(name = "twin_recompute_on_action")
 @FieldNameConstants
-@Deprecated
-public class TwinClassFieldRecomputeOnActionEntity implements EasyLoggable, Identifiable {
+public class TwinRecomputeOnActionEntity implements EasyLoggable, Identifiable {
 
     @Id
     @Column(name = "id")
@@ -32,14 +33,8 @@ public class TwinClassFieldRecomputeOnActionEntity implements EasyLoggable, Iden
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id", nullable = false)
-    private UUID domainId;
-
-    @Column(name = "subscriber_twin_pointer_id", nullable = false)
-    private UUID subscriberTwinPointerId;
-
-    @Column(name = "subscriber_twin_class_field_id", nullable = false)
-    private UUID subscriberTwinClassFieldId;
+    @Column(name = "recompute_subscriber_id", nullable = false)
+    private UUID recomputeSubscriberId;
 
     @Column(name = "publisher_twin_class_id", nullable = false)
     private UUID publisherTwinClassId;
@@ -56,24 +51,8 @@ public class TwinClassFieldRecomputeOnActionEntity implements EasyLoggable, Iden
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domainSpecOnly;
-
-    @Deprecated // for specification only
-    @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscriber_twin_pointer_id", insertable = false, updatable = false)
-    private TwinPointerEntity subscriberTwinPointerSpecOnly;
-
-    @Deprecated // for specification only
-    @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscriber_twin_class_field_id", insertable = false, updatable = false)
-    private TwinClassFieldEntity subscriberTwinClassFieldSpecOnly;
+    @JoinColumn(name = "recompute_subscriber_id", insertable = false, updatable = false)
+    private TwinRecomputeSubscriberEntity recomputeSubscriberSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -86,29 +65,27 @@ public class TwinClassFieldRecomputeOnActionEntity implements EasyLoggable, Iden
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinPointerEntity subscriberTwinPointer;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinClassFieldEntity subscriberTwinClassField;
+    private TwinRecomputeSubscriberEntity subscriber;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassEntity publisherTwinClass;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinRecomputeOnActionValidatorRuleEntity, UUID> validatorRulesKit;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinClassFieldRecomputeOnAction[" + id + "]";
-            case NORMAL -> "twinClassFieldRecomputeOnAction[id:" + id
+            case SHORT -> "twinRecomputeOnAction[" + id + "]";
+            case NORMAL -> "twinRecomputeOnAction[id:" + id
                     + ", publisherClass:" + publisherTwinClassId
                     + ", action:" + publisherTwinAction + "]";
-            default -> "twinClassFieldRecomputeOnAction[id:" + id
-                    + ", domainId:" + domainId
-                    + ", subscriberPointer:" + subscriberTwinPointerId
-                    + ", subscriberField:" + subscriberTwinClassFieldId
+            default -> "twinRecomputeOnAction[id:" + id
+                    + ", subscriber:" + recomputeSubscriberId
                     + ", publisherClass:" + publisherTwinClassId
                     + ", action:" + publisherTwinAction
                     + ", async:" + async + "]";

@@ -6,7 +6,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorParam;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -22,7 +21,7 @@ public class ConditionEvaluatorParam extends ConditionEvaluator<ConditionDescrip
     public static final FeaturerParamString evaluatedParamKey = new FeaturerParamString("evaluatedParamKey");
 
     @Override
-    protected ConditionDescriptorParam getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException {
+    protected ConditionDescriptorParam getConditionDescriptor(Properties properties) throws ServiceException {
         ConditionDescriptorParam descriptor = new ConditionDescriptorParam();
         descriptor
                 .evaluatedParamKey(evaluatedParamKey.extract(properties))
@@ -32,7 +31,7 @@ public class ConditionEvaluatorParam extends ConditionEvaluator<ConditionDescrip
     }
 
     @Override
-    protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
+    protected boolean evaluate(Properties properties, FieldValue currentValue) throws ServiceException {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "ConditionEvaluatorParam is not Implemented");
     }
 }

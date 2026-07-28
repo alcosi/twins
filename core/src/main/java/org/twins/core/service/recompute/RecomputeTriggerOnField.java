@@ -1,4 +1,4 @@
-package org.twins.core.service.twinclassfield.recompute;
+package org.twins.core.service.recompute;
 
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;

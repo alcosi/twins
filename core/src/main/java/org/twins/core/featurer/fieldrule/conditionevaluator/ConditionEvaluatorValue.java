@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldrule.conditionevaluator;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -16,7 +15,7 @@ import java.util.Properties;
         description = "Evaluates a basic condition against a field value ")
 public class ConditionEvaluatorValue extends ConditionEvaluator<ConditionDescriptorValue> {
     @Override
-    protected ConditionDescriptorValue getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException {
+    protected ConditionDescriptorValue getConditionDescriptor(Properties properties) throws ServiceException {
         ConditionDescriptorValue descriptor = new ConditionDescriptorValue();
         descriptor.conditionOperator(conditionOperator.extract(properties))
                 .valueToCompareWith(valueToCompareWith.extract(properties));
@@ -24,7 +23,7 @@ public class ConditionEvaluatorValue extends ConditionEvaluator<ConditionDescrip
     }
 
     @Override
-    protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
+    protected boolean evaluate(Properties properties, FieldValue currentValue) throws ServiceException {
         String actualValue = normalizeValue(currentValue);
         var operator = conditionOperator.extract(properties);
         String expected = valueToCompareWith.extract(properties);

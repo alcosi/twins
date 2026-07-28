@@ -5,11 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
-import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
-import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluatorParam;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorParam;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
@@ -21,12 +18,10 @@ class ConditionEvaluatorParamTest extends BaseUnitTest {
 
     private final ConditionEvaluatorParam evaluator = new ConditionEvaluatorParam();
     private TwinClassFieldEntity field;
-    private TwinClassFieldConditionEntity condition;
 
     @BeforeEach
     void setUp() {
         field = new TwinClassFieldEntity();
-        condition = new TwinClassFieldConditionEntity();
     }
 
     private Properties props(TwinClassFieldConditionOperator operator, String compareWith, String paramKey) {
@@ -47,7 +42,7 @@ class ConditionEvaluatorParamTest extends BaseUnitTest {
             var props = props(TwinClassFieldConditionOperator.eq, "hello", "myKey");
             var value = new FieldValueText(field).setValue("hello");
 
-            assertThrows(ServiceException.class, () -> evaluator.evaluate(condition, props, value));
+            assertThrows(ServiceException.class, () -> evaluator.evaluate(props, value));
         }
     }
 
@@ -66,7 +61,6 @@ class ConditionEvaluatorParamTest extends BaseUnitTest {
         @Test
         void getConditionDescriptor_buildsAllFields() throws ServiceException {
             var descriptor = evaluator.getConditionDescriptor(
-                    condition,
                     props(TwinClassFieldConditionOperator.eq, "expected", "myParamKey")
             );
 
@@ -78,7 +72,6 @@ class ConditionEvaluatorParamTest extends BaseUnitTest {
         @Test
         void getConditionDescriptor_nullParamKey_setsNullKey() throws ServiceException {
             var descriptor = evaluator.getConditionDescriptor(
-                    condition,
                     props(TwinClassFieldConditionOperator.gt, "10", null)
             );
 

@@ -23,6 +23,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.recompute.TwinRecomputeOnActionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
@@ -479,7 +480,18 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Deprecated
     private KitGrouped<TwinClassFieldRecomputeOnActionEntity, UUID, TwinAction> recomputeOnAction;
+
+    /**
+     * OnAction recompute rules (TWINS-893 new {@code twin_recompute_on_action} table) where this twin class
+     * is the publisher, grouped by TwinAction. Loaded via {@code TwinClassService.loadRecomputeOnActionV2(...)};
+     * null until loaded.
+     */
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private KitGrouped<TwinRecomputeOnActionEntity, UUID, TwinAction> recomputeOnActionV2;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient

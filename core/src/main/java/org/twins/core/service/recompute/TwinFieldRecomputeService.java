@@ -1,4 +1,4 @@
-package org.twins.core.service.twinfield;
+package org.twins.core.service.recompute;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.twinclassfield.recompute.*;
+import org.twins.core.service.twinfield.TwinFieldDecimalService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class TwinFieldRecomputeService {
 
     private final TwinPointerService twinPointerService;

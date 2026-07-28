@@ -1,4 +1,4 @@
-package org.twins.core.service.twinclassfield.recompute;
+package org.twins.core.service.recompute;
 
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
@@ -40,6 +40,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
+@Deprecated
 public class TwinClassFieldRecomputeOnActionService extends TwinsEntitySecureFindService<TwinClassFieldRecomputeOnActionEntity> {
     private final TwinClassFieldRecomputeOnActionRepository repository;
     @Lazy

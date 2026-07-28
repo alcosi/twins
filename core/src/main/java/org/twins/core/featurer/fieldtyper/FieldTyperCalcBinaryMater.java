@@ -12,7 +12,7 @@ import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
-import org.twins.core.service.twinclassfield.recompute.FieldRecomputeRequest;
+import org.twins.core.service.recompute.FieldRecomputeRequest;
 
 import java.math.BigDecimal;
 import java.util.List;

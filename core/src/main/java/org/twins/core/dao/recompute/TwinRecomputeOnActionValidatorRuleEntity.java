@@ -1,11 +1,14 @@
-package org.twins.core.dao.twinclassfield;
+package org.twins.core.dao.recompute;
 
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.validator.ContainsTwinValidatorSet;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.domain.Identifiable;
 
@@ -14,10 +17,9 @@ import java.util.UUID;
 @Data
 @Entity
 @Accessors(chain = true)
-@Table(name = "twin_class_field_recompute_on_action_validator_rule")
+@Table(name = "twin_recompute_on_action_validator_rule")
 @FieldNameConstants
-@Deprecated
-public class TwinClassFieldRecomputeOnActionValidatorRuleEntity implements EasyLoggable, Identifiable {
+public class TwinRecomputeOnActionValidatorRuleEntity implements EasyLoggable, Identifiable, ContainsTwinValidatorSet {
 
     @Id
     @Column(name = "id")
@@ -28,8 +30,8 @@ public class TwinClassFieldRecomputeOnActionValidatorRuleEntity implements EasyL
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "twin_class_field_recompute_on_action_id", nullable = false)
-    private UUID twinClassFieldRecomputeOnActionId;
+    @Column(name = "twin_recompute_on_action_id", nullable = false)
+    private UUID twinRecomputeOnActionId;
 
     @Column(name = "\"order\"")
     private Integer order;
@@ -45,8 +47,8 @@ public class TwinClassFieldRecomputeOnActionValidatorRuleEntity implements EasyL
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_field_recompute_on_action_id", insertable = false, updatable = false)
-    private TwinClassFieldRecomputeOnActionEntity twinClassFieldRecomputeOnActionSpecOnly;
+    @JoinColumn(name = "twin_recompute_on_action_id", insertable = false, updatable = false)
+    private TwinRecomputeOnActionEntity twinRecomputeOnActionSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -59,22 +61,27 @@ public class TwinClassFieldRecomputeOnActionValidatorRuleEntity implements EasyL
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassFieldRecomputeOnActionEntity twinClassFieldRecomputeOnAction;
+    private TwinRecomputeOnActionEntity twinRecomputeOnAction;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinValidatorSetEntity twinValidatorSet;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinClassFieldRecomputeValidatorRule[" + id + "]";
-            case NORMAL -> "twinClassFieldRecomputeValidatorRule[id:" + id
-                    + ", recompute:" + twinClassFieldRecomputeOnActionId
+            case SHORT -> "twinRecomputeValidatorRule[" + id + "]";
+            case NORMAL -> "twinRecomputeValidatorRule[id:" + id
+                    + ", onAction:" + twinRecomputeOnActionId
                     + ", order:" + order + "]";
-            default -> "twinClassFieldRecomputeValidatorRule[id:" + id
-                    + ", recompute:" + twinClassFieldRecomputeOnActionId
+            default -> "twinRecomputeValidatorRule[id:" + id
+                    + ", onAction:" + twinRecomputeOnActionId
                     + ", order:" + order
                     + ", active:" + active
                     + ", validatorSet:" + twinValidatorSetId + "]";

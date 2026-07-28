@@ -262,7 +262,7 @@ public class TwinFieldRuleExecutionService {
                 return false;
             FieldValue fieldValue = contextValues.get(node.getCondition().getBaseTwinClassFieldId());
             ConditionEvaluator evaluator = featurerService.getFeaturer(node.getCondition().getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
-            return evaluator.evaluate(node.getCondition(), fieldValue);
+            return evaluator.evaluate(node.getCondition().getConditionEvaluatorParams(), fieldValue);
         }
 
         if (CollectionUtils.isEmpty(node.getChildren()))

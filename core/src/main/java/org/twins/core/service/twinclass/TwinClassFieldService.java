@@ -25,6 +25,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionRepository;
+import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
+import org.twins.core.dao.recompute.TwinRecomputeOnFieldRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
@@ -85,6 +87,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final PermissionService permissionService;
     @Lazy
     private final TwinClassFieldRecomputeOnFieldRepository twinClassFieldRecomputeOnFieldRepository;
+    @Lazy
+    private final TwinRecomputeOnFieldRepository twinRecomputeOnFieldRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -206,6 +210,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
     }
 
+    @Deprecated
     public void loadRecomputeOnField(Collection<TwinClassFieldEntity> fields) {
         loadKit(
                 fields,
@@ -216,6 +221,19 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 TwinClassFieldRecomputeOnFieldEntity::getId,
                 TwinClassFieldRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
                 TwinClassFieldRecomputeOnFieldEntity::setPublisherTwinClassField
+        );
+    }
+
+    public void loadRecomputeOnFieldV2(Collection<TwinClassFieldEntity> fields) {
+        loadKit(
+                fields,
+                TwinClassFieldEntity::getId,
+                TwinClassFieldEntity::getRecomputeOnFieldV2,
+                TwinClassFieldEntity::setRecomputeOnFieldV2,
+                twinRecomputeOnFieldRepository::findByPublisherTwinClassFieldIdIn,
+                TwinRecomputeOnFieldEntity::getId,
+                TwinRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
+                TwinRecomputeOnFieldEntity::setPublisherTwinClassField
         );
     }
 

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
+@Deprecated
 public interface TwinClassFieldRecomputeOnFieldRepository
         extends CrudRepository<TwinClassFieldRecomputeOnFieldEntity, UUID>,
                 JpaSpecificationExecutor<TwinClassFieldRecomputeOnFieldEntity> {
