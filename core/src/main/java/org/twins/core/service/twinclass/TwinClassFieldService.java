@@ -210,6 +210,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
     }
 
+    @Deprecated
     public void loadRecomputeOnField(Collection<TwinClassFieldEntity> fields) {
         loadKit(
                 fields,

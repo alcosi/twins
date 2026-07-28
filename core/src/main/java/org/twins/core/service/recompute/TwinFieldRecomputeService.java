@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Deprecated
 public class TwinFieldRecomputeService {
 
     private final TwinPointerService twinPointerService;

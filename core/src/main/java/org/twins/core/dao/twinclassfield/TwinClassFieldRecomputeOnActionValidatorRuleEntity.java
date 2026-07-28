@@ -16,6 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_field_recompute_on_action_validator_rule")
 @FieldNameConstants
+@Deprecated
 public class TwinClassFieldRecomputeOnActionValidatorRuleEntity implements EasyLoggable, Identifiable {
 
     @Id

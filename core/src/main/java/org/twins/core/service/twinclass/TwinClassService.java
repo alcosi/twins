@@ -23,11 +23,13 @@ import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
+import org.twins.core.dao.recompute.TwinRecomputeOnActionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
@@ -750,6 +752,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
      * One batch SQL via the cached
      * {@link org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionRepository#findByPublisherTwinClassIdIn(Collection)}.
      */
+    @Deprecated
     public void loadRecomputeOnAction(Collection<TwinClassEntity> classes) {
         if (classes == null || classes.isEmpty()) return;
         Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
@@ -760,17 +763,17 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         if (needLoad.isEmpty()) return;
 
-        KitGrouped<org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
+        KitGrouped<TwinClassFieldRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
                 twinClassFieldRecomputeOnActionRepository.findByPublisherTwinClassIdIn(needLoad.getIdSet()),
-                org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getId,
-                org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getPublisherTwinClassId);
+                TwinClassFieldRecomputeOnActionEntity::getId,
+                TwinClassFieldRecomputeOnActionEntity::getPublisherTwinClassId);
 
         for (TwinClassEntity c : needLoad) {
-            List<org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
+            List<TwinClassFieldRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
             c.setRecomputeOnAction(new KitGrouped<>(
                     classRules,
-                    org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getId,
-                    org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity::getPublisherTwinAction));
+                    TwinClassFieldRecomputeOnActionEntity::getId,
+                    TwinClassFieldRecomputeOnActionEntity::getPublisherTwinAction));
         }
     }
 
@@ -790,17 +793,17 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         if (needLoad.isEmpty()) return;
 
-        KitGrouped<org.twins.core.dao.recompute.TwinRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
+        KitGrouped<TwinRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
                 twinRecomputeOnActionRepository.findByPublisherTwinClassIdIn(needLoad.getIdSet()),
-                org.twins.core.dao.recompute.TwinRecomputeOnActionEntity::getId,
-                org.twins.core.dao.recompute.TwinRecomputeOnActionEntity::getPublisherTwinClassId);
+                TwinRecomputeOnActionEntity::getId,
+                TwinRecomputeOnActionEntity::getPublisherTwinClassId);
 
         for (TwinClassEntity c : needLoad) {
-            List<org.twins.core.dao.recompute.TwinRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
+            List<TwinRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
             c.setRecomputeOnActionV2(new KitGrouped<>(
                     classRules,
-                    org.twins.core.dao.recompute.TwinRecomputeOnActionEntity::getId,
-                    org.twins.core.dao.recompute.TwinRecomputeOnActionEntity::getPublisherTwinAction));
+                    TwinRecomputeOnActionEntity::getId,
+                    TwinRecomputeOnActionEntity::getPublisherTwinAction));
         }
     }
 

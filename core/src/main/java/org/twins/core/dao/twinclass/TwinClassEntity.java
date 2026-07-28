@@ -480,6 +480,7 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Deprecated
     private KitGrouped<TwinClassFieldRecomputeOnActionEntity, UUID, TwinAction> recomputeOnAction;
 
     /**

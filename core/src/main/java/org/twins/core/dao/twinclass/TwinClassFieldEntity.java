@@ -252,6 +252,7 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
      * Empty kit means "no rules listen to this field" — distinct from null "not loaded yet".
      */
     @Transient
+    @Deprecated
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldRecomputeOnFieldEntity, UUID> recomputeOnField;

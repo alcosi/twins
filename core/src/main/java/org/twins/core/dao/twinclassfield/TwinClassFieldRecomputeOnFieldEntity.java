@@ -18,6 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_field_recompute_on_field")
 @FieldNameConstants
+@Deprecated
 public class TwinClassFieldRecomputeOnFieldEntity implements EasyLoggable, Identifiable {
 
     @Id
