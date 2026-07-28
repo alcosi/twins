@@ -124,16 +124,16 @@ public class TwinFactoryEntity implements EasyLoggable, Identifiable {
     @Transient
     public Integer factoryUsagesCount;
 
-    @Transient
+    @Column(name = "factory_pipelines_count")
     public Integer factoryPipelinesCount;
 
-    @Transient
+    @Column(name = "factory_multipliers_count")
     public Integer factoryMultipliersCount;
 
-    @Transient
+    @Column(name = "factory_branches_count")
     public Integer factoryBranchesCount;
 
-    @Transient
+    @Column(name = "factory_erasers_count")
     public Integer factoryErasersCount;
 
     @Transient

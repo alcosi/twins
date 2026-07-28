@@ -34,10 +34,6 @@ public class FactoryCascadeMapper {
             List<TwinFactoryEntity> cascade = factoryService.expandFactoryCascade(
                     List.of(root), FactoryService.FACTORY_CASCADE_HARD_CAP);
             factoryService.countFactoryUsages(cascade);
-            factoryService.countFactoryPipelines(cascade);
-            factoryService.countFactoryMultipliers(cascade);
-            factoryService.countFactoryBranches(cascade);
-            factoryService.countFactoryErasers(cascade);
             factoryService.loadCreatedByUser(cascade);
             Map<UUID, RelatedObject<TwinFactoryEntity>> factoryMap = mapperContext.getRelatedFactoryMap();
             for (TwinFactoryEntity factory : cascade) {

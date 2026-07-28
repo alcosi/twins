@@ -77,20 +77,23 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable, Identifiable
     @ToString.Exclude
     private UserEntity createdByUser;
 
-    @Transient
-    private Integer inFactoryPipelineUsagesCount;
+    @Column(name = "usage_count_pipeline")
+    private Integer usageCountPipeline;
 
-    @Transient
-    private Integer inFactoryPipelineStepUsagesCount;
+    @Column(name = "usage_count_pipeline_step")
+    private Integer usageCountPipelineStep;
 
-    @Transient
-    private Integer inFactoryMultiplierFilterUsagesCount;
+    @Column(name = "usage_count_multiplier_filter")
+    private Integer usageCountMultiplierFilter;
 
-    @Transient
-    private Integer inFactoryBranchUsagesCount;
+    @Column(name = "usage_count_branch")
+    private Integer usageCountBranch;
 
-    @Transient
-    private Integer inFactoryEraserUsagesCount;
+    @Column(name = "usage_count_eraser")
+    private Integer usageCountEraser;
+
+    @Column(name = "usage_count_trigger")
+    private Integer usageCountTrigger;
 
     @Transient
     @EqualsAndHashCode.Exclude

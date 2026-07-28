@@ -4,15 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.FactoryMultiplierSearch;
 import org.twins.core.dto.rest.factory.FactoryMultiplierSearchDTOv1;
+import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
 public class FactoryMultiplierSearchDTOReverseMapper extends RestSimpleDTOMapper<FactoryMultiplierSearchDTOv1, FactoryMultiplierSearch> {
+    private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
 
     @Override
-    public void map(FactoryMultiplierSearchDTOv1 src, FactoryMultiplierSearch dst, MapperContext mapperContext) {
+    public void map(FactoryMultiplierSearchDTOv1 src, FactoryMultiplierSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
@@ -24,6 +26,7 @@ public class FactoryMultiplierSearchDTOReverseMapper extends RestSimpleDTOMapper
                 .setMultiplierFeaturerIdExcludeList(src.getMultiplierFeaturerIdExcludeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
-                .setActive(src.getActive());
+                .setActive(src.getActive())
+                .setFactoryMultiplierFiltersCountRange(integerRangeDTOReverseMapper.convert(src.getFactoryMultiplierFiltersCountRange()));
     }
 }

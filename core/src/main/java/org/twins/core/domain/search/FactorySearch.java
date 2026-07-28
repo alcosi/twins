@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.math.IntegerRange;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 
 import java.util.Set;
@@ -20,4 +21,8 @@ public class FactorySearch extends EntitySearch<TwinFactoryEntity> {
     Set<String> nameNotLikeList;
     Set<String> descriptionLikeList;
     Set<String> descriptionNotLikeList;
+    IntegerRange factoryPipelinesCountRange;
+    IntegerRange factoryMultipliersCountRange;
+    IntegerRange factoryBranchesCountRange;
+    IntegerRange factoryErasersCountRange;
 }

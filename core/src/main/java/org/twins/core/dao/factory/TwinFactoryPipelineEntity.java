@@ -144,8 +144,8 @@ public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable, Co
     @ToString.Exclude
     private TwinStatusEntity outputTwinStatus;
 
-    @Transient
-    private Integer pipelineStepsCount;
+    @Column(name = "factory_pipeline_steps_count")
+    private Integer factoryPipelineStepsCount;
 
     @Transient
     @EqualsAndHashCode.Exclude

@@ -51,7 +51,7 @@ public class FactoryPipelineDTOv1 {
     public String description;
 
     @Schema(description = "count pipeline steps", example = DTOExamples.COUNT)
-    public Integer pipelineStepsCount;
+    public Integer factoryPipelineStepsCount;
 
     @Schema(description = "after commit factory id", example = DTOExamples.FACTORY_ID)
     @RelatedObject(type = FactoryDTOv1.class, name = "afterCommitFactory")

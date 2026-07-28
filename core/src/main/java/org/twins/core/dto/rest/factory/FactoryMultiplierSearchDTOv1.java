@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -45,4 +46,7 @@ public class FactoryMultiplierSearchDTOv1 {
 
     @Schema(description = "is active", example = DTOExamples.TERNARY)
     public Ternary active;
+
+    @Schema(description = "Filter by factory multiplier filters count (range: from, to)")
+    public IntegerRangeDTOv1 factoryMultiplierFiltersCountRange;
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -60,4 +61,7 @@ public class FactoryPipelineSearchDTOv1 {
 
     @Schema(description = "next factory limit scope", example = DTOExamples.TERNARY)
     public Ternary nextFactoryLimitScope;
+
+    @Schema(description = "Filter by factory pipeline steps count (range: from, to)")
+    public IntegerRangeDTOv1 factoryPipelineStepsCountRange;
 }

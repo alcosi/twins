@@ -73,7 +73,7 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "multiplier_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity multiplierFeaturerSpecOnly;
 
-    @Transient
+    @Column(name = "factory_multiplier_filters_count")
     private Integer factoryMultiplierFiltersCount;
 
     @Transient
