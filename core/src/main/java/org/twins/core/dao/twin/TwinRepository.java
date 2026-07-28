@@ -46,6 +46,12 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select distinct t.flavorDataListOptionId from TwinEntity t where t.twinClassId = :twinClassId and t.flavorDataListOptionId is not null")
     Set<UUID> findDistinctFlavorDataListOptionIdByTwinClassId(@Param("twinClassId") UUID twinClassId);
 
+    // Flavor is mandatory on a twin once its class has a flavor list, so a class flavor-list change
+    // must not leave any twin without a flavor. This count detects such twins (NULL flavor) so the
+    // update can be rejected instead of silently turning existing twins invalid.
+    @Query(value = "select count(t) from TwinEntity t where t.twinClassId = :twinClassId and t.flavorDataListOptionId is null")
+    long countByTwinClassIdAndFlavorDataListOptionIdIsNull(@Param("twinClassId") UUID twinClassId);
+
     @Transactional
     @Modifying
     @Query(value = "update TwinEntity set flavorDataListOptionId = :newVal where flavorDataListOptionId = :oldVal and twinClassId = :twinClassId")
@@ -55,6 +61,14 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Modifying
     @Query(value = "update TwinEntity set flavorDataListOptionId = null where twinClassId = :twinClassId and flavorDataListOptionId is not null")
     int clearFlavorForTwinsOfClass(@Param("twinClassId") UUID twinClassId);
+
+    // Back-fill a flavor onto twins of a class that currently have none. Used when a class flavor
+    // list is enabled/changed and the caller passes a default flavor for flavor-less twins via the
+    // NULLIFY_MARKER key of the replaceMap. Flavor is mandatory, so these twins cannot be left NULL.
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set flavorDataListOptionId = :newVal where twinClassId = :twinClassId and flavorDataListOptionId is null")
+    int setFlavorForTwinsWithoutFlavor(@Param("twinClassId") UUID twinClassId, @Param("newVal") UUID newVal);
 
     /**
      * Bulk status transition: one UPDATE for any number of Twins. Used by glossary MARK_DELETE

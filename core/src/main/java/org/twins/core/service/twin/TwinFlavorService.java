@@ -4,10 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.StringUtils;
 import org.cambium.common.util.UuidUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -16,11 +13,9 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
-import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.datalist.DataListService;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +31,8 @@ public class TwinFlavorService {
     @Transactional(rollbackFor = Throwable.class)
     public void replaceFlavorForTwinsOfClass(TwinClassEntity twinClassEntity, EntityRelinkOperation entityRelinkOperation) throws ServiceException {
         if (UuidUtils.isNullifyMarker(entityRelinkOperation.getNewId())) {
-            //we have to clear flavor on all twins of given class
+            // flavor is being disabled on the class -> clear it on every twin.
+            // Once the class has no flavor list, twins without a flavor become valid again.
             twinRepository.clearFlavorForTwinsOfClass(twinClassEntity.getId());
             twinClassEntity
                     .setFlavorDataListId(null)
@@ -44,43 +40,43 @@ public class TwinFlavorService {
             return;
         }
         DataListEntity newFlavorDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
-        //we will try to replace flavor on twins with new provided values
-        Set<UUID> existedTwinFlavorIds = twinRepository.findDistinctFlavorDataListOptionIdByTwinClassId(twinClassEntity.getId());
-        if (CollectionUtils.isEmpty(existedTwinFlavorIds)) {
-            twinClassEntity
-                    .setFlavorDataList(newFlavorDataList)
-                    .setFlavorDataListId(newFlavorDataList.getId());
-            return; // nice :) we have nothing to do
-        }
-
-        if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
-                && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide flavorReplaceMap for flavors: " + StringUtils.join(existedTwinFlavorIds));
-
         dataListService.loadDataListOptions(newFlavorDataList);
-        Set<UUID> flavorsForClearing = new HashSet<>();
-        for (UUID flavorForReplace : existedTwinFlavorIds) {
-            if (newFlavorDataList.getOptions().get(flavorForReplace) != null) //be smart if somehow already existed flavor belongs to new list
-                continue;
-            UUID replacement = entityRelinkOperation.getReplaceMap().get(flavorForReplace);
-            if (replacement == null) {
-                if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide flavorReplaceMap value for flavor: " + flavorForReplace);
-                else
-                    replacement = UuidUtils.NULLIFY_MARKER;
-            }
-            if (UuidUtils.isNullifyMarker(replacement)) {
-                flavorsForClearing.add(flavorForReplace);
-                continue;
-            }
-            if (newFlavorDataList.getOptions().get(replacement) == null)
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide correct flavorReplaceMap value for flavor: " + flavorForReplace);
-            twinRepository.replaceFlavorForTwinsOfClass(twinClassEntity.getId(), flavorForReplace, replacement);
+
+        // Flavor is MANDATORY on a twin once its class has a flavor list, so unlike marker/tag
+        // (optional) we may never clear/nullify a twin's flavor — that would turn it invalid.
+        // Every existing flavor that is not kept by the new list must therefore be mapped to a
+        // valid option of the new list; otherwise the whole class update is rejected.
+        Set<UUID> existedTwinFlavorIds = twinRepository.findDistinctFlavorDataListOptionIdByTwinClassId(twinClassEntity.getId());
+        for (UUID oldFlavor : existedTwinFlavorIds) {
+            if (newFlavorDataList.getOptions().get(oldFlavor) != null)
+                continue; // already a valid option of the new list, nothing to migrate
+            UUID replacement = entityRelinkOperation.getReplaceMap().get(oldFlavor);
+            if (replacement == null || UuidUtils.isNullifyMarker(replacement) || newFlavorDataList.getOptions().get(replacement) == null)
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED,
+                        "flavor is mandatory for twins; please provide a valid flavorReplaceMap entry for flavor ["
+                                + oldFlavor + "] pointing at an option of the new flavor list (a flavor cannot be cleared)");
+            twinRepository.replaceFlavorForTwinsOfClass(twinClassEntity.getId(), oldFlavor, replacement);
         }
-        if (CollectionUtils.isNotEmpty(flavorsForClearing)) {
-            for (UUID flavorForClearing : flavorsForClearing)
-                twinRepository.replaceFlavorForTwinsOfClass(twinClassEntity.getId(), flavorForClearing, null);
+
+        // Twins that currently have no flavor would become invalid as soon as the class requires one.
+        // They can be back-filled in place through the replaceMap: an entry with the NULLIFY_MARKER
+        // key acts as the default flavor assigned to every flavor-less twin (NULLIFY_MARKER -> new
+        // option). Without such an entry the update is rejected, since a mandatory flavor cannot be
+        // left NULL.
+        long twinsWithoutFlavor = twinRepository.countByTwinClassIdAndFlavorDataListOptionIdIsNull(twinClassEntity.getId());
+        if (twinsWithoutFlavor > 0) {
+            UUID defaultForNullFlavor = entityRelinkOperation.getReplaceMap().get(UuidUtils.NULLIFY_MARKER);
+            if (defaultForNullFlavor == null
+                    || UuidUtils.isNullifyMarker(defaultForNullFlavor)
+                    || newFlavorDataList.getOptions().get(defaultForNullFlavor) == null)
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED,
+                        "flavor is mandatory for twins: " + twinsWithoutFlavor
+                                + " twin(s) of the class have no flavorDataListOptionId. "
+                                + "Provide a flavorReplaceMap entry [" + UuidUtils.NULLIFY_MARKER
+                                + " -> option of the new flavor list] to assign them a flavor.");
+            twinRepository.setFlavorForTwinsWithoutFlavor(twinClassEntity.getId(), defaultForNullFlavor);
         }
+
         twinClassEntity
                 .setFlavorDataList(newFlavorDataList)
                 .setFlavorDataListId(newFlavorDataList.getId());
