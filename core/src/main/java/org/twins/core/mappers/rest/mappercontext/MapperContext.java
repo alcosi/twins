@@ -12,10 +12,7 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
-import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.factory.*;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
@@ -88,6 +85,18 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinFactoryConditionSetEntity>> relatedFactoryConditionSetMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryMultiplierEntity>> relatedFactoryMultiplierMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryBranchEntity>> relatedFactoryBranchMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryPipelineStepEntity>> relatedFactoryPipelineStepMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryMultiplierFilterEntity>> relatedFactoryMultiplierFilterMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryEraserEntity>> relatedFactoryEraserMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryTriggerEntity>> relatedFactoryTriggerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryConditionEntity>> relatedFactoryConditionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
     @Getter
@@ -270,6 +279,18 @@ public class MapperContext {
             smartPut(relatedFactoryConditionSetMap, factoryConditionSet, factoryConditionSet.getId());
         else if (relatedObject instanceof TwinFactoryMultiplierEntity factoryMultiplier)
             smartPut(relatedFactoryMultiplierMap, factoryMultiplier, factoryMultiplier.getId());
+        else if (relatedObject instanceof TwinFactoryBranchEntity factoryBranch)
+            smartPut(relatedFactoryBranchMap, factoryBranch, factoryBranch.getId());
+        else if (relatedObject instanceof TwinFactoryPipelineStepEntity factoryPipelineStep)
+            smartPut(relatedFactoryPipelineStepMap, factoryPipelineStep, factoryPipelineStep.getId());
+        else if (relatedObject instanceof TwinFactoryMultiplierFilterEntity factoryMultiplierFilter)
+            smartPut(relatedFactoryMultiplierFilterMap, factoryMultiplierFilter, factoryMultiplierFilter.getId());
+        else if (relatedObject instanceof TwinFactoryEraserEntity factoryEraser)
+            smartPut(relatedFactoryEraserMap, factoryEraser, factoryEraser.getId());
+        else if (relatedObject instanceof TwinFactoryTriggerEntity factoryTrigger)
+            smartPut(relatedFactoryTriggerMap, factoryTrigger, factoryTrigger.getId());
+        else if (relatedObject instanceof TwinFactoryConditionEntity factoryCondition)
+            smartPut(relatedFactoryConditionMap, factoryCondition, factoryCondition.getId());
         else if (relatedObject instanceof FaceEntity face)
             smartPut(relatedFaceMap, face, face.getId());
         else if (relatedObject instanceof I18nEntity i18n)
@@ -517,6 +538,12 @@ public class MapperContext {
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
         dstMapperContext.relatedFactoryConditionSetMap = srcMapperContext.relatedFactoryConditionSetMap;
         dstMapperContext.relatedFactoryMultiplierMap = srcMapperContext.relatedFactoryMultiplierMap;
+        dstMapperContext.relatedFactoryBranchMap = srcMapperContext.relatedFactoryBranchMap;
+        dstMapperContext.relatedFactoryPipelineStepMap = srcMapperContext.relatedFactoryPipelineStepMap;
+        dstMapperContext.relatedFactoryMultiplierFilterMap = srcMapperContext.relatedFactoryMultiplierFilterMap;
+        dstMapperContext.relatedFactoryEraserMap = srcMapperContext.relatedFactoryEraserMap;
+        dstMapperContext.relatedFactoryTriggerMap = srcMapperContext.relatedFactoryTriggerMap;
+        dstMapperContext.relatedFactoryConditionMap = srcMapperContext.relatedFactoryConditionMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;

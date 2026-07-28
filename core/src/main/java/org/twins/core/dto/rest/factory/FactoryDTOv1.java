@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -50,6 +51,30 @@ public class FactoryDTOv1 {
 
     @Schema(description = "factory erasers count", example = DTOExamples.COUNT)
     public Integer factoryErasersCount;
+
+    @Schema(description = "pipeline id list.")
+    @RelatedObject(type = FactoryPipelineDTOv1.class, name = "pipelines")
+    public Set<UUID> pipelineIdList;
+
+    @Schema(description = "branch id list.")
+    @RelatedObject(type = FactoryBranchDTOv1.class, name = "branches")
+    public Set<UUID> branchIdList;
+
+    @Schema(description = "multiplier id list.")
+    @RelatedObject(type = FactoryMultiplierDTOv1.class, name = "multipliers")
+    public Set<UUID> multiplierIdList;
+
+    @Schema(description = "condition set id list.")
+    @RelatedObject(type = FactoryConditionSetDTOv1.class, name = "conditionSets")
+    public Set<UUID> conditionSetIdList;
+
+    @Schema(description = "eraser id list.")
+    @RelatedObject(type = FactoryEraserDTOv1.class, name = "erasers")
+    public Set<UUID> eraserIdList;
+
+    @Schema(description = "trigger id list.")
+    @RelatedObject(type = FactoryTriggerDTOv1.class, name = "triggers")
+    public Set<UUID> triggerIdList;
 }
 
 

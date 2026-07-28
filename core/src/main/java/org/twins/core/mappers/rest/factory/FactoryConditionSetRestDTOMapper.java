@@ -1,6 +1,8 @@
 package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -10,6 +12,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.factory.FactoryConditionService;
 import org.twins.core.service.factory.FactoryConditionSetService;
 import org.twins.core.service.factory.FactoryService;
 
@@ -37,6 +40,13 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     private final FactoryService factoryService;
 
     private final FactoryConditionSetService factoryConditionSetService;
+
+    private final FactoryConditionService factoryConditionService;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryConditionMode.FactoryConditionSet2FactoryConditionMode.class)
+    private FactoryConditionRestDTOMapper factoryConditionRestDTOMapper;
 
     @Override
     public void map(TwinFactoryConditionSetEntity src, FactoryConditionSetDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -88,6 +98,11 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             dst.setTwinFactoryId(src.getTwinFactoryId());
             factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryConditionSet2FactoryMode.SHORT));
         }
+        if (mapperContext.hasModeButNot(FactoryConditionMode.FactoryConditionSet2FactoryConditionMode.HIDE)) {
+            factoryConditionService.loadConditions(src);
+            dst.setConditionIdList(src.getTwinFactoryConditionKit().getIdSet());
+            factoryConditionRestDTOMapper.postpone(src.getTwinFactoryConditionKit(), mapperContext.forkOnPoint(FactoryConditionMode.FactoryConditionSet2FactoryConditionMode.SHORT));
+        }
     }
 
     @Override
@@ -107,5 +122,7 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             factoryConditionSetService.loadFactory(srcCollection);
         if (mapperContext.hasModeButNot(UserMode.FactoryConditionSet2UserMode.HIDE))
             factoryConditionSetService.loadCreatedByUser(srcCollection);
+        if (mapperContext.hasModeButNot(FactoryConditionMode.FactoryConditionSet2FactoryConditionMode.HIDE))
+            factoryConditionService.loadConditions(srcCollection);
     }
 }

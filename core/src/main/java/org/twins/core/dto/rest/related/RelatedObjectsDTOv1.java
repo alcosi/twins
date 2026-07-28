@@ -13,10 +13,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
-import org.twins.core.dto.rest.factory.FactoryDTOv1;
-import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
-import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
+import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
@@ -111,6 +108,24 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related factory conditionSet map", example = "{factory conditionSet map}")
     public Map<UUID, FactoryConditionSetDTOv1> factoryConditionSetMap;
+
+    @Schema(description = "related factory branch map", example = "{factory branch map}")
+    public Map<UUID, FactoryBranchDTOv1> factoryBranchMap;
+
+    @Schema(description = "related factory pipeline step map", example = "{factory pipeline step map}")
+    public Map<UUID, FactoryPipelineStepDTOv1> factoryPipelineStepMap;
+
+    @Schema(description = "related factory multiplier filter map", example = "{factory multiplier filter map}")
+    public Map<UUID, FactoryMultiplierFilterDTOv1> factoryMultiplierFilterMap;
+
+    @Schema(description = "related factory eraser map", example = "{factory eraser map}")
+    public Map<UUID, FactoryEraserDTOv1> factoryEraserMap;
+
+    @Schema(description = "related factory trigger map", example = "{factory trigger map}")
+    public Map<UUID, FactoryTriggerDTOv1> factoryTriggerMap;
+
+    @Schema(description = "related factory condition map", example = "{factory condition map}")
+    public Map<UUID, FactoryConditionDTOv1> factoryConditionMap;
 
     @Schema(description = "related twin class schema map", example = "{twin class schema map}")
     public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap;
@@ -230,6 +245,18 @@ public class RelatedObjectsDTOv1 {
             return (T) factoryMultiplierMap.get(id);
         } else if (relatedObjectClass == FactoryConditionSetDTOv1.class) {
             return (T) factoryConditionSetMap.get(id);
+        } else if (relatedObjectClass == FactoryBranchDTOv1.class) {
+            return (T) factoryBranchMap.get(id);
+        } else if (relatedObjectClass == FactoryPipelineStepDTOv1.class) {
+            return (T) factoryPipelineStepMap.get(id);
+        } else if (relatedObjectClass == FactoryMultiplierFilterDTOv1.class) {
+            return (T) factoryMultiplierFilterMap.get(id);
+        } else if (relatedObjectClass == FactoryEraserDTOv1.class) {
+            return (T) factoryEraserMap.get(id);
+        } else if (relatedObjectClass == FactoryTriggerDTOv1.class) {
+            return (T) factoryTriggerMap.get(id);
+        } else if (relatedObjectClass == FactoryConditionDTOv1.class) {
+            return (T) factoryConditionMap.get(id);
         } else if (relatedObjectClass == TwinClassSchemaDTOv1.class) {
             return (T) twinClassSchemaMap.get(id);
         } else if (relatedObjectClass == CommentDTOv1.class) {
