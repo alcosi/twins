@@ -9,9 +9,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
-import org.twins.core.dao.recompute.TwinRecomputeOnFieldRepository;
-import org.twins.core.dao.recompute.TwinRecomputeSubscriberEntity;
+import org.twins.core.dao.recompute.*;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -35,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TwinRecomputeOnFieldService extends TwinsEntitySecureFindService<TwinRecomputeOnFieldEntity> {
     private final TwinRecomputeOnFieldRepository repository;
+    private final TwinRecomputeOnFieldValidatorRuleRepository twinRecomputeOnFieldValidatorRuleRepository;
     @Lazy
     private final TwinRecomputeSubscriberService twinRecomputeSubscriberService;
     @Lazy
@@ -106,5 +105,16 @@ public class TwinRecomputeOnFieldService extends TwinsEntitySecureFindService<Tw
                 TwinRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
                 TwinRecomputeOnFieldEntity::getPublisherTwinClassField,
                 TwinRecomputeOnFieldEntity::setPublisherTwinClassField);
+    }
+
+    public void loadValidators(Collection<TwinRecomputeOnFieldEntity> srcCollection) {
+        loadKit(srcCollection,
+                TwinRecomputeOnFieldEntity::getId,
+                TwinRecomputeOnFieldEntity::getValidatorRulesKit,
+                TwinRecomputeOnFieldEntity::setValidatorRulesKit,
+                twinRecomputeOnFieldValidatorRuleRepository::findByTwinRecomputeOnFieldIdInOrderByOrder,
+                TwinRecomputeOnFieldValidatorRuleEntity::getId,
+                TwinRecomputeOnFieldValidatorRuleEntity::getTwinRecomputeOnFieldId,
+                TwinRecomputeOnFieldValidatorRuleEntity::setTwinRecomputeOnField);
     }
 }

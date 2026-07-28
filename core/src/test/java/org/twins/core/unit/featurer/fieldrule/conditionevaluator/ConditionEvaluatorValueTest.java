@@ -64,6 +64,41 @@ class ConditionEvaluatorValueTest extends BaseUnitTest {
         }
 
         @Test
+        void evaluate_numberValue_eq_equalDecimalString_returnsTrue() throws ServiceException {
+            var value = new FieldValueText(field).setValue("10");
+
+            assertTrue(evaluator.evaluate(props(TwinClassFieldConditionOperator.eq, "10.0"), value));
+        }
+
+        @Test
+        void evaluate_numberValue_eq_different_returnsFalse() throws ServiceException {
+            var value = new FieldValueText(field).setValue("10");
+
+            assertFalse(evaluator.evaluate(props(TwinClassFieldConditionOperator.eq, "20"), value));
+        }
+
+        @Test
+        void evaluate_numberValue_eq_numberVsText_returnsFalse() throws ServiceException {
+            var value = new FieldValueText(field).setValue("10");
+
+            assertFalse(evaluator.evaluate(props(TwinClassFieldConditionOperator.eq, "abc"), value));
+        }
+
+        @Test
+        void evaluate_numberValue_neq_equalDecimalString_returnsFalse() throws ServiceException {
+            var value = new FieldValueText(field).setValue("10");
+
+            assertFalse(evaluator.evaluate(props(TwinClassFieldConditionOperator.neq, "10.0"), value));
+        }
+
+        @Test
+        void evaluate_numberValue_neq_different_returnsTrue() throws ServiceException {
+            var value = new FieldValueText(field).setValue("10");
+
+            assertTrue(evaluator.evaluate(props(TwinClassFieldConditionOperator.neq, "20"), value));
+        }
+
+        @Test
         void evaluate_textValue_neq_different_returnsTrue() throws ServiceException {
             var value = new FieldValueText(field).setValue("hello");
 

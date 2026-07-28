@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -41,8 +42,8 @@ public class TwinRecomputeOnFieldEntity implements EasyLoggable, Identifiable {
     private UUID publisherTwinClassFieldId;
 
     /**
-     * Optional condition evaluator: when set, the recompute trigger fires only if the publisher field's
-     * current value passes this check. Mirrors twin_class_field_condition.condition_evaluator_*.
+     * Condition evaluator: the recompute trigger fires only if the publisher field's current value passes
+     * this check (AND-ed with validator_rule checks). NOT NULL DEFAULT 4504 = ConditionEvaluatorTrue (always pass).
      */
     @Column(name = "condition_evaluator_featurer_id", nullable = false)
     private Integer conditionEvaluatorFeaturerId;
@@ -79,6 +80,11 @@ public class TwinRecomputeOnFieldEntity implements EasyLoggable, Identifiable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassFieldEntity publisherTwinClassField;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinRecomputeOnFieldValidatorRuleEntity, UUID> validatorRulesKit;
 
     @Override
     public String easyLog(Level level) {

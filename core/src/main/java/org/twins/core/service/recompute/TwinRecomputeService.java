@@ -13,13 +13,12 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.recompute.TwinRecomputeOnActionEntity;
-import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
-import org.twins.core.dao.recompute.TwinRecomputeSubscriberEntity;
+import org.twins.core.dao.recompute.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
@@ -27,11 +26,13 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.recomputer.Recomputer;
 import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinfield.TwinFieldDecimalService;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +56,7 @@ public class TwinRecomputeService {
     private final TwinService twinService;
     private final TwinRecomputeOnFieldService twinRecomputeOnFieldService;
     private final TwinRecomputeOnActionService twinRecomputeOnActionService;
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Value("${twins.mater.max-depth:5}")
     private int maxDepth;
@@ -129,26 +131,17 @@ public class TwinRecomputeService {
         decimalFieldsKit.clear();
         decimalFieldsKit.addAll(hasRecomputes);
         twinRecomputeOnFieldService.loadSubscriber(recomputeOnFields);
+        twinRecomputeOnFieldService.loadValidators(recomputeOnFields);
         for (var triggerField : decimalFieldsKit.getCollection()) {
+            TwinEntity publisherTwin = triggerField.getTwin();
             for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnFieldV2()) {
-                if (!passesCondition(recomputeOnField, triggerField)) {
-                    continue; // publisher field value did not pass the rule's condition
+                if (!passesCondition(recomputeOnField, triggerField)
+                        || !passesValidatorRules(publisherTwin, recomputeOnField.getValidatorRulesKit(), TwinRecomputeOnFieldValidatorRuleEntity::isActive)) {
+                    continue; // publisher twin failed every active validator set for this rule
                 }
                 recomputePlan.add(triggerField, recomputeOnField);
             }
         }
-    }
-
-    /**
-     * Returns true if the publisher field's current value passes the rule's {@link ConditionEvaluator}
-     * (column is NOT NULL, default {@code ConditionEvaluatorTrue} = always pass). The publisher Mater field
-     * value is carried as a {@link FieldValueText} (Mater field typers operate on text values).
-     */
-    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldDecimalEntity triggerField) throws ServiceException {
-        FieldValueText currentValue = new FieldValueText(triggerField.getTwinClassField())
-                .setValue(triggerField.getValue() != null ? triggerField.getValue().toPlainString() : null);
-        ConditionEvaluator evaluator = featurerService.getFeaturer(recomputeOnField.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
-        return evaluator.evaluate(recomputeOnField.getConditionEvaluatorParams(), currentValue);
     }
 
     private void collectTwinActions(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {
@@ -186,11 +179,38 @@ public class TwinRecomputeService {
         twinKit.clear();
         twinKit.addAll(hasRecomputes);
         twinRecomputeOnActionService.loadSubscriber(recomputeOnActions);
+        twinRecomputeOnActionService.loadValidators(recomputeOnActions);
         for (var twin : twinKit.getCollection()) {
             for (var recomputeOnAction : twin.getTwinClass().getRecomputeOnActionV2()) {
+                if (!passesValidatorRules(twin, recomputeOnAction.getValidatorRulesKit(), TwinRecomputeOnActionValidatorRuleEntity::isActive)) {
+                    continue; // publisher twin failed every active validator set for this rule
+                }
                 recomputePlan.add(twin, twinActionMap.get(twin.getId()), recomputeOnAction);
             }
         }
+    }
+
+    /**
+     * Returns true if the publisher field's current value passes the rule's {@link ConditionEvaluator}.
+     */
+    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldDecimalEntity triggerField) throws ServiceException {
+        FieldValueText currentValue = new FieldValueText(triggerField.getTwinClassField())
+                .setValue(triggerField.getValue() != null ? triggerField.getValue().toPlainString() : null);
+        ConditionEvaluator evaluator = featurerService.getFeaturer(recomputeOnField.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
+        return evaluator.evaluate(recomputeOnField.getConditionEvaluatorParams(), currentValue);
+    }
+
+    /**
+     * Returns true if the twin passes the rule's validator sets (OR-ed): no rules → pass; else pass if any
+     * active validator set validates. {@code activePredicate} selects active rule-containers (the {@code active}
+     * flag lives on the concrete rule entity, not on {@link ContainsTwinValidatorSet}).
+     */
+    private <R extends ContainsTwinValidatorSet> boolean passesValidatorRules(TwinEntity twin, Kit<R, UUID> rules, Predicate<R> activePredicate) throws ServiceException {
+        if (KitUtils.isEmpty(rules)) {
+            return true;
+        }
+        var activeRules = rules.getCollection().stream().filter(activePredicate).toList();
+        return activeRules.isEmpty() || twinValidatorSetService.isValid(List.of(twin), activeRules).get(twin.getId()).isValid();
     }
 
     private static String toKey(TwinFieldDecimalEntity twinFieldDecimal) {

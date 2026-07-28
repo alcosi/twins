@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
@@ -70,6 +71,11 @@ public class TwinRecomputeOnActionEntity implements EasyLoggable, Identifiable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassEntity publisherTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinRecomputeOnActionValidatorRuleEntity, UUID> validatorRulesKit;
 
     @Override
     public String easyLog(Level level) {

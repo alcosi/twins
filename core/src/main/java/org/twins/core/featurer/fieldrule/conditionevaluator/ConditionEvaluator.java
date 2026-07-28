@@ -68,7 +68,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
 
     protected abstract boolean evaluate(Properties properties, FieldValue currentValue) throws ServiceException;
 
-    protected static boolean evaluateOperator(String actualValue, TwinClassFieldConditionOperator operator, String expected) {
+    public static boolean evaluateOperator(String actualValue, TwinClassFieldConditionOperator operator, String expected) {
         if (expected == null)
             expected = "";
         else
@@ -80,13 +80,16 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
             case eq:
                 if ("null".equalsIgnoreCase(expected))
                     return isNullish;
-                return Strings.CI.equals(actualValue, expected);
+                Integer eqCompare = compareNumbers(actualValue, expected);
+                // numeric equality if both parse as numbers (10 == 10.0), else case-insensitive string eq
+                return eqCompare != null ? eqCompare == 0 : Strings.CI.equals(actualValue, expected);
             case neq:
                 if ("null".equalsIgnoreCase(expected))
                     return !isNullish;
                 if (actualValue == null)
                     return false;
-                return !Strings.CI.equals(actualValue, expected);
+                Integer neqCompare = compareNumbers(actualValue, expected);
+                return neqCompare != null ? neqCompare != 0 : !Strings.CI.equals(actualValue, expected);
             case lt:
                 Integer ltCompare = compareNumbers(actualValue, expected);
                 return ltCompare != null && ltCompare < 0;
@@ -114,7 +117,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
         }
     }
 
-    protected static String normalizeValue(Object value) {
+    public static String normalizeValue(Object value) {
         if (value == null)
             return null;
         if (value instanceof FieldValue fieldValue && fieldValue.isEmpty())

@@ -41,6 +41,10 @@ CREATE TABLE IF NOT EXISTS twin_recompute_on_field
     publisher_twin_class_field_id uuid            NOT NULL
         CONSTRAINT twin_recompute_on_field_pub_twin_class_field_id_fk
             REFERENCES twin_class_field ON UPDATE CASCADE ON DELETE CASCADE,
+    condition_evaluator_featurer_id integer         NOT NULL DEFAULT 4504
+        CONSTRAINT twin_recompute_on_field_condition_evaluator_featurer_id_fk
+            REFERENCES featurer ON UPDATE CASCADE ON DELETE CASCADE,
+    condition_evaluator_params      hstore,
     async                         boolean         NOT NULL DEFAULT false
 );
 
@@ -48,6 +52,30 @@ CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_field_subscriber_id
     ON twin_recompute_on_field (recompute_subscriber_id);
 CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_field_pub_field_id
     ON twin_recompute_on_field (publisher_twin_class_field_id);
+CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_field_condition_evaluator_featurer_id
+    ON twin_recompute_on_field (condition_evaluator_featurer_id);
+
+-- OnField validator rules: optional validator_set predicates checked before an OnField recompute fires
+CREATE TABLE IF NOT EXISTS twin_recompute_on_field_validator_rule
+(
+    id                          uuid     NOT NULL
+        CONSTRAINT twin_recompute_on_field_validator_rule_pk PRIMARY KEY,
+    twin_recompute_on_field_id  uuid     NOT NULL
+        CONSTRAINT twin_recompute_on_field_validator_rule_on_field_fk
+            REFERENCES twin_recompute_on_field ON UPDATE CASCADE ON DELETE CASCADE,
+    "order"                     integer  DEFAULT 1,
+    active                      boolean  DEFAULT true NOT NULL,
+    twin_validator_set_id       uuid NOT NULL
+        CONSTRAINT twin_recompute_on_field_validator_rule_validator_set_fk
+            REFERENCES twin_validator_set ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_twin_recompute_on_field_validator_rule_order
+    ON twin_recompute_on_field_validator_rule (twin_recompute_on_field_id, "order");
+CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_field_validator_rule_on_field
+    ON twin_recompute_on_field_validator_rule (twin_recompute_on_field_id);
+CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_field_validator_rule_validator_set
+    ON twin_recompute_on_field_validator_rule (twin_validator_set_id);
 
 -- 3. OnAction rules: subscriber + publisher class + action + async
 CREATE TABLE IF NOT EXISTS twin_recompute_on_action
@@ -73,9 +101,35 @@ CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_action_pub_class_id
 CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_action_pub_action_id
     ON twin_recompute_on_action (publisher_twin_action_id);
 
--- 4. Pre-seed default recomputer featurer (must exist before subscriber backfill references it as FK)
-INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
-VALUES (5501, 55, '', '', '', false)
+-- OnAction validator rules: optional validator_set predicates checked before an OnAction recompute fires
+CREATE TABLE IF NOT EXISTS twin_recompute_on_action_validator_rule
+(
+    id                          uuid     NOT NULL
+        CONSTRAINT twin_recompute_on_action_validator_rule_pk PRIMARY KEY,
+    twin_recompute_on_action_id uuid     NOT NULL
+        CONSTRAINT twin_recompute_on_action_validator_rule_on_action_fk
+            REFERENCES twin_recompute_on_action ON UPDATE CASCADE ON DELETE CASCADE,
+    "order"                     integer  DEFAULT 1,
+    active                      boolean  DEFAULT true NOT NULL,
+    twin_validator_set_id       uuid
+        CONSTRAINT twin_recompute_on_action_validator_rule_validator_set_fk
+            REFERENCES twin_validator_set ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_twin_recompute_on_action_validator_rule_order
+    ON twin_recompute_on_action_validator_rule (twin_recompute_on_action_id, "order");
+CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_action_validator_rule_on_action
+    ON twin_recompute_on_action_validator_rule (twin_recompute_on_action_id);
+CREATE INDEX IF NOT EXISTS ix_twin_recompute_on_action_validator_rule_validator_set
+    ON twin_recompute_on_action_validator_rule (twin_validator_set_id);
+
+-- 4. Pre-seed default featurers (must exist before backfills reference them as FK):
+--    5501 = RecomputerByFieldTyper (subscriber default), 5502 = RecomputerChangeStatus,
+--    4504 = ConditionEvaluatorTrue (on_field condition default)
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES
+    (5501, 55, '', '', '', false),
+    (5502, 55, '', '', '', false),
+    (4504, 45, '', '', '', false)
 ON CONFLICT ON CONSTRAINT featurer_pk DO NOTHING;
 
 -- 5. Backfill subscriber rows from old tables (no-op on empty DBs). recomputer = 5501 (default RecomputerByFieldTyper).
@@ -105,4 +159,10 @@ FROM twin_class_field_recompute_on_action o
     JOIN twin_recompute_subscriber s
         ON s.subscriber_twin_pointer_id = o.subscriber_twin_pointer_id
        AND s.subscriber_twin_class_field_id = o.subscriber_twin_class_field_id
+ON CONFLICT (id) DO NOTHING;
+
+-- 8. Backfill on_action validator rules (keep id; on_action id preserved so FK stays valid)
+INSERT INTO twin_recompute_on_action_validator_rule (id, twin_recompute_on_action_id, "order", active, twin_validator_set_id)
+SELECT id, twin_class_field_recompute_on_action_id, "order", active, twin_validator_set_id
+FROM twin_class_field_recompute_on_action_validator_rule
 ON CONFLICT (id) DO NOTHING;
