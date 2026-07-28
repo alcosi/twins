@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum FactoryBranchMode implements MapperMode {
+public enum FactoryTriggerMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum FactoryBranchMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum Factory2FactoryBranchMode implements MapperModePointer<FactoryBranchMode> {
+    public enum Factory2FactoryTriggerMode implements MapperModePointer<FactoryTriggerMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum FactoryBranchMode implements MapperMode {
         final int priority;
 
         @Override
-        public FactoryBranchMode point() {
+        public FactoryTriggerMode point() {
             return switch (this) {
-                case HIDE -> FactoryBranchMode.HIDE;
-                case SHORT -> FactoryBranchMode.SHORT;
-                case DETAILED -> FactoryBranchMode.DETAILED;
+                case HIDE -> FactoryTriggerMode.HIDE;
+                case SHORT -> FactoryTriggerMode.SHORT;
+                case DETAILED -> FactoryTriggerMode.DETAILED;
             };
         }
     }

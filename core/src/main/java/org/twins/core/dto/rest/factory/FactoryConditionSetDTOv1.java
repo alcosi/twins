@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -58,6 +59,10 @@ public class FactoryConditionSetDTOv1 {
 
     @Schema(description = "count in factory eraser usages", example = DTOExamples.COUNT)
     public Integer inFactoryEraserUsagesCount;
+
+    @Schema(description = "condition id list.")
+    @RelatedObject(type = FactoryConditionDTOv1.class, name = "conditions")
+    public Set<UUID> conditionIdList;
 }
 
 

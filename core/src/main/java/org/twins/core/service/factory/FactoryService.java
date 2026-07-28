@@ -23,6 +23,7 @@ import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.factoryprocessor.FactoryProcessor;
 import org.twins.core.service.auth.AuthService;
@@ -423,5 +424,73 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
             elementsWithConditionSets.addAll(factory.getTwinFactoryTriggerKit().getCollection());
         }
         factoryConditionSetService.loadElementsConditionSets(elementsWithConditionSets);
+    }
+
+    public static final int FACTORY_CASCADE_HARD_CAP = 100;
+
+    /**
+     * Builds the transitive closure of factories reachable from the seed via chaining links:
+     * {@code pipeline.nextTwinFactoryId}, {@code pipeline.afterCommitTwinFactoryId} and
+     * {@code branch.nextTwinFactoryId}. Cycle-safe (monotonically growing visited map guarantees
+     * termination). Aborts with {@link ErrorCodeTwins#FACTORY_CASCADE_LIMIT_EXCEEDED} if the
+     * closure size would exceed {@code hardCap}. Cross-domain/broken refs abort via
+     * {@link #findEntitiesSafe}. Idempotent w.r.t. already loaded element kits.
+     */
+    public List<TwinFactoryEntity> expandFactoryCascade(Collection<TwinFactoryEntity> seed, int hardCap) throws ServiceException {
+        LinkedHashMap<UUID, TwinFactoryEntity> visited = new LinkedHashMap<>();
+        for (TwinFactoryEntity factory : seed) {
+            visited.put(factory.getId(), factory);
+        }
+        List<TwinFactoryEntity> pending = new ArrayList<>(visited.values());
+        while (!pending.isEmpty()) {
+            List<TwinFactoryEntity> level = pending;
+            pending = new ArrayList<>();
+            loadFactoryElements(level);
+            Set<UUID> discovered = new HashSet<>();
+            for (TwinFactoryEntity factory : level) {
+                collectChainedFactoryIds(factory, discovered);
+            }
+            // cycle protection: only descend into factories not yet visited
+            Set<UUID> newIds = new HashSet<>();
+            for (UUID id : discovered) {
+                if (id != null && !visited.containsKey(id)) {
+                    newIds.add(id);
+                }
+            }
+            if (newIds.isEmpty()) {
+                continue;
+            }
+            if (visited.size() + newIds.size() > hardCap) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_CASCADE_LIMIT_EXCEEDED);
+            }
+            Kit<TwinFactoryEntity, UUID> loaded = findEntitiesSafe(newIds);
+            for (TwinFactoryEntity factory : loaded.getCollection()) {
+                visited.put(factory.getId(), factory);
+            }
+            pending = new ArrayList<>(loaded.getCollection());
+        }
+        return new ArrayList<>(visited.values());
+    }
+
+    private void collectChainedFactoryIds(TwinFactoryEntity factory, Set<UUID> sink) {
+        Kit<TwinFactoryPipelineEntity, UUID> pipelines = factory.getTwinFactoryPipelineKit();
+        if (pipelines != null) {
+            for (TwinFactoryPipelineEntity pipeline : pipelines.getCollection()) {
+                if (pipeline.getNextTwinFactoryId() != null) {
+                    sink.add(pipeline.getNextTwinFactoryId());
+                }
+                if (pipeline.getAfterCommitTwinFactoryId() != null) {
+                    sink.add(pipeline.getAfterCommitTwinFactoryId());
+                }
+            }
+        }
+        Kit<TwinFactoryBranchEntity, UUID> branches = factory.getTwinFactoryBranchKit();
+        if (branches != null) {
+            for (TwinFactoryBranchEntity branch : branches.getCollection()) {
+                if (branch.getNextTwinFactoryId() != null) {
+                    sink.add(branch.getNextTwinFactoryId());
+                }
+            }
+        }
     }
 }

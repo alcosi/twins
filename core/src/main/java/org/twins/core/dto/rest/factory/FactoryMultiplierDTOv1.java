@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -44,6 +45,10 @@ public class FactoryMultiplierDTOv1 {
 
     @Schema(description = "is active", example = DTOExamples.COUNT)
     public Boolean active;
+
+    @Schema(description = "multiplier filter id list.")
+    @RelatedObject(type = FactoryMultiplierFilterDTOv1.class, name = "filters")
+    public Set<UUID> filterIdList;
 }
 
 

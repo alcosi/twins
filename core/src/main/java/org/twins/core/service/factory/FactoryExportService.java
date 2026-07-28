@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
@@ -294,57 +293,6 @@ public class FactoryExportService extends EntityExportService<TwinFactoryEntity>
      * already loaded element kits, so seed elements prefetched by the caller are not fetched twice.
      */
     private List<TwinFactoryEntity> expandFactoryCascade(Collection<TwinFactoryEntity> seed) throws ServiceException {
-        LinkedHashMap<UUID, TwinFactoryEntity> visited = new LinkedHashMap<>();
-        for (TwinFactoryEntity factory : seed) {
-            visited.put(factory.getId(), factory);
-        }
-        List<TwinFactoryEntity> pending = new ArrayList<>(visited.values());
-        while (!pending.isEmpty()) {
-            List<TwinFactoryEntity> level = pending;
-            pending = new ArrayList<>();
-            factoryService.loadFactoryElements(level);
-            Set<UUID> discovered = new HashSet<>();
-            for (TwinFactoryEntity factory : level) {
-                collectChainedFactoryIds(factory, discovered);
-            }
-            // cycle protection: only descend into factories not yet visited
-            Set<UUID> newIds = new HashSet<>();
-            for (UUID id : discovered) {
-                if (id != null && !visited.containsKey(id)) {
-                    newIds.add(id);
-                }
-            }
-            if (newIds.isEmpty()) {
-                continue;
-            }
-            Kit<TwinFactoryEntity, UUID> loaded = factoryService.findEntitiesSafe(newIds);
-            for (TwinFactoryEntity factory : loaded.getCollection()) {
-                visited.put(factory.getId(), factory);
-            }
-            pending = new ArrayList<>(loaded.getCollection());
-        }
-        return new ArrayList<>(visited.values());
-    }
-
-    private void collectChainedFactoryIds(TwinFactoryEntity factory, Set<UUID> sink) {
-        Kit<TwinFactoryPipelineEntity, UUID> pipelines = factory.getTwinFactoryPipelineKit();
-        if (pipelines != null) {
-            for (TwinFactoryPipelineEntity pipeline : pipelines.getCollection()) {
-                if (pipeline.getNextTwinFactoryId() != null) {
-                    sink.add(pipeline.getNextTwinFactoryId());
-                }
-                if (pipeline.getAfterCommitTwinFactoryId() != null) {
-                    sink.add(pipeline.getAfterCommitTwinFactoryId());
-                }
-            }
-        }
-        Kit<TwinFactoryBranchEntity, UUID> branches = factory.getTwinFactoryBranchKit();
-        if (branches != null) {
-            for (TwinFactoryBranchEntity branch : branches.getCollection()) {
-                if (branch.getNextTwinFactoryId() != null) {
-                    sink.add(branch.getNextTwinFactoryId());
-                }
-            }
-        }
+        return factoryService.expandFactoryCascade(seed, Integer.MAX_VALUE);
     }
 }

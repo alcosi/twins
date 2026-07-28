@@ -1,6 +1,8 @@
 package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -24,7 +26,8 @@ import java.util.Collection;
         FactoryPipelineCountMode.class,
         FactoryMultipliersCountMode.class,
         FactoryBranchesCountMode.class,
-        FactoryErasersCountMode.class})
+        FactoryErasersCountMode.class,
+        FactoryCascadeMode.class})
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
 
     private final I18nService i18nService;
@@ -32,6 +35,36 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
 
     @MapperModePointerBinding(modes = UserMode.Factory2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryPipelineMode.Factory2FactoryPipelineMode.class)
+    private FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryBranchMode.Factory2FactoryBranchMode.class)
+    private FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryMultiplierMode.Factory2FactoryMultiplierMode.class)
+    private FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryConditionSetMode.TwinFactory2FactoryConditionSetMode.class)
+    private FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryEraserMode.Factory2FactoryEraserMode.class)
+    private FactoryEraserRestDTOMapper factoryEraserRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryTriggerMode.Factory2FactoryTriggerMode.class)
+    private FactoryTriggerRestDTOMapper factoryTriggerRestDTOMapper;
 
     @Override
     public void map(TwinFactoryEntity src, FactoryDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -77,6 +110,39 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             factoryService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
         }
+        boolean showPipelines = mapperContext.hasModeButNot(FactoryPipelineMode.Factory2FactoryPipelineMode.HIDE);
+        boolean showBranches = mapperContext.hasModeButNot(FactoryBranchMode.Factory2FactoryBranchMode.HIDE);
+        boolean showMultipliers = mapperContext.hasModeButNot(FactoryMultiplierMode.Factory2FactoryMultiplierMode.HIDE);
+        boolean showConditionSets = mapperContext.hasModeButNot(FactoryConditionSetMode.TwinFactory2FactoryConditionSetMode.HIDE);
+        boolean showErasers = mapperContext.hasModeButNot(FactoryEraserMode.Factory2FactoryEraserMode.HIDE);
+        boolean showTriggers = mapperContext.hasModeButNot(FactoryTriggerMode.Factory2FactoryTriggerMode.HIDE);
+        if (showPipelines || showBranches || showMultipliers || showConditionSets || showErasers || showTriggers) {
+            factoryService.loadFactoryElements(src);
+        }
+        if (showPipelines) {
+            dst.setPipelineIdList(src.getTwinFactoryPipelineKit().getIdSet());
+            factoryPipelineRestDTOMapper.postpone(src.getTwinFactoryPipelineKit(), mapperContext.forkOnPoint(FactoryPipelineMode.Factory2FactoryPipelineMode.SHORT));
+        }
+        if (showBranches) {
+            dst.setBranchIdList(src.getTwinFactoryBranchKit().getIdSet());
+            factoryBranchRestDTOMapper.postpone(src.getTwinFactoryBranchKit(), mapperContext.forkOnPoint(FactoryBranchMode.Factory2FactoryBranchMode.SHORT));
+        }
+        if (showMultipliers) {
+            dst.setMultiplierIdList(src.getTwinFactoryMultiplierKit().getIdSet());
+            factoryMultiplierRestDTOMapper.postpone(src.getTwinFactoryMultiplierKit(), mapperContext.forkOnPoint(FactoryMultiplierMode.Factory2FactoryMultiplierMode.SHORT));
+        }
+        if (showConditionSets) {
+            dst.setConditionSetIdList(src.getTwinFactoryConditionSetKit().getIdSet());
+            factoryConditionSetRestDTOMapper.postpone(src.getTwinFactoryConditionSetKit(), mapperContext.forkOnPoint(FactoryConditionSetMode.TwinFactory2FactoryConditionSetMode.SHORT));
+        }
+        if (showErasers) {
+            dst.setEraserIdList(src.getTwinFactoryEraserKit().getIdSet());
+            factoryEraserRestDTOMapper.postpone(src.getTwinFactoryEraserKit(), mapperContext.forkOnPoint(FactoryEraserMode.Factory2FactoryEraserMode.SHORT));
+        }
+        if (showTriggers) {
+            dst.setTriggerIdList(src.getTwinFactoryTriggerKit().getIdSet());
+            factoryTriggerRestDTOMapper.postpone(src.getTwinFactoryTriggerKit(), mapperContext.forkOnPoint(FactoryTriggerMode.Factory2FactoryTriggerMode.SHORT));
+        }
     }
 
     private static boolean showFactoryUsagesCount(MapperContext mapperContext) {
@@ -114,5 +180,14 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             factoryService.countFactoryErasers(srcCollection);
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE))
             factoryService.loadCreatedByUser(srcCollection);
+        boolean showPipelines = mapperContext.hasModeButNot(FactoryPipelineMode.Factory2FactoryPipelineMode.HIDE);
+        boolean showBranches = mapperContext.hasModeButNot(FactoryBranchMode.Factory2FactoryBranchMode.HIDE);
+        boolean showMultipliers = mapperContext.hasModeButNot(FactoryMultiplierMode.Factory2FactoryMultiplierMode.HIDE);
+        boolean showConditionSets = mapperContext.hasModeButNot(FactoryConditionSetMode.TwinFactory2FactoryConditionSetMode.HIDE);
+        boolean showErasers = mapperContext.hasModeButNot(FactoryEraserMode.Factory2FactoryEraserMode.HIDE);
+        boolean showTriggers = mapperContext.hasModeButNot(FactoryTriggerMode.Factory2FactoryTriggerMode.HIDE);
+        if (showPipelines || showBranches || showMultipliers || showConditionSets || showErasers || showTriggers) {
+            factoryService.loadFactoryElements(srcCollection);
+        }
     }
 }

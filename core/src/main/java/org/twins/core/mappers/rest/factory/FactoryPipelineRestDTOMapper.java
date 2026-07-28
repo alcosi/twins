@@ -1,6 +1,8 @@
 package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -12,6 +14,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.factory.FactoryPipelineService;
+import org.twins.core.service.factory.FactoryPipelineStepService;
 import org.twins.core.service.factory.FactoryService;
 
 import java.util.Collection;
@@ -23,11 +26,17 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
 
     private final FactoryService factoryService;
     private final FactoryPipelineService factoryPipelineService;
+    private final FactoryPipelineStepService factoryPipelineStepService;
 
     @MapperModePointerBinding(modes = {
             FactoryMode.FactoryPipeline2FactoryMode.class,
             FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.class})
     private final FactoryRestDTOMapper factoryRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryPipelineStepMode.FactoryPipeline2FactoryPipelineStepMode.class)
+    private FactoryPipelineStepRestDTOMapper factoryPipelineStepRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.FactoryPipeline2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
@@ -88,6 +97,11 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
             factoryPipelineService.loadNextTwinFactory(src);
             factoryRestDTOMapper.postpone(src.getNextTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.SHORT));
         }
+        if (mapperContext.hasModeButNot(FactoryPipelineStepMode.FactoryPipeline2FactoryPipelineStepMode.HIDE)) {
+            factoryPipelineStepService.loadFactoryPipelineSteps(src);
+            dst.setStepIdList(src.getTwinFactoryPipelineStepKit().getIdSet());
+            factoryPipelineStepRestDTOMapper.postpone(src.getTwinFactoryPipelineStepKit(), mapperContext.forkOnPoint(FactoryPipelineStepMode.FactoryPipeline2FactoryPipelineStepMode.SHORT));
+        }
     }
 
     @Override
@@ -111,6 +125,9 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.HIDE)) {
             factoryPipelineService.loadNextTwinFactory(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryPipelineStepMode.FactoryPipeline2FactoryPipelineStepMode.HIDE)) {
+            factoryPipelineStepService.loadFactoryPipelineSteps(srcCollection);
         }
     }
 }
