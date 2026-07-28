@@ -178,6 +178,12 @@ public class TwinClassEntity implements EasyLoggable, Identifiable {
     @Column(name = "inherited_flavor_data_list_id", insertable = false, updatable = false)
     private UUID inheritedFlavorDataListId;
 
+    // Populated by the twin_class_after_update_wrapper trigger: the class a flavor list is inherited
+    // from (the nearest flavor-bearing ancestor). Read-only mirror of the DB column, used to tell
+    // which descendants are actually affected when an ancestor's flavor list changes.
+    @Column(name = "inherited_flavor_data_list_twin_class_id", insertable = false, updatable = false)
+    private UUID inheritedFlavorDataListTwinClassId;
+
     @Column(name = "general_attachment_restriction_id")
     private UUID generalAttachmentRestrictionId;
 
