@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.link.TwinLinkCountDTOv1;
 import org.twins.core.enums.sort.TwinLinkGroupField;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
@@ -29,6 +30,9 @@ public class TwinLinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<
 
     @MapperModePointerBinding(modes = UserMode.TwinLink2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
+    private final LinkRestDTOMapper linkRestDTOMapper;
 
     private final TwinLinkService twinLinkService;
 
@@ -53,6 +57,10 @@ public class TwinLinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<
             twinLinkService.loadDstTwin(entity);
             twinBaseRestDTOMapper.postpone(entity.getDstTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
         }
+        if (needLoad(mapperContext, LinkMode.TwinLink2LinkMode.HIDE, src, TwinLinkGroupField.linkId)) {
+            twinLinkService.loadLink(entity);
+            linkRestDTOMapper.postpone(entity.getLink(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinLink2LinkMode.SHORT)));
+        }
         if (needLoad(mapperContext, UserMode.TwinLink2UserMode.HIDE, src, TwinLinkGroupField.createdByUserId)) {
             twinLinkService.loadCreatedByUser(entity);
             userRestDTOMapper.convertOrPostpone(entity.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinLink2UserMode.SHORT)));
@@ -74,6 +82,9 @@ public class TwinLinkCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<
         }
         if (needLoad(mapperContext, TwinMode.TwinLink2TwinMode.HIDE, someCount, TwinLinkGroupField.dstTwinId)) {
             twinLinkService.loadDstTwin(entityCollection);
+        }
+        if (needLoad(mapperContext, LinkMode.TwinLink2LinkMode.HIDE, someCount, TwinLinkGroupField.linkId)) {
+            twinLinkService.loadLink(entityCollection);
         }
         if (needLoad(mapperContext, UserMode.TwinLink2UserMode.HIDE, someCount, TwinLinkGroupField.createdByUserId)) {
             twinLinkService.loadCreatedByUser(entityCollection);
