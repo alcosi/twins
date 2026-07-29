@@ -57,6 +57,7 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
                         .setChangedAt(convertOrNull(src.getChangedAt()));
         }
         if (mapperContext.hasModeButNot(UserMode.Comment2UserMode.HIDE)) {
+            commentService.loadUser(src);
             dst.setAuthorUserId(src.getCreatedByUserId());
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Comment2UserMode.SHORT));
         }
@@ -87,6 +88,8 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
             commentActionService.loadCommentActions(srcCollection);
         if (mapperContext.hasModeButNot(TwinMode.Comment2TwinMode.HIDE))
             commentService.loadTwin(srcCollection);
+        if (mapperContext.hasModeButNot(UserMode.Comment2UserMode.HIDE))
+            commentService.loadUser(srcCollection);
     }
 
     @Override
