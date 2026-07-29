@@ -7,6 +7,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -144,8 +146,14 @@ public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable, Co
     @ToString.Exclude
     private TwinStatusEntity outputTwinStatus;
 
-    @Transient
-    private Integer pipelineStepsCount;
+    // Trigger-maintained counter column (created in V1.4.344.02, maintained by AFTER triggers on
+    // twin_factory_pipeline_step). insertable=false/updatable=false keeps Hibernate out of the
+    // write path; @Generated re-reads the row after INSERT/UPDATE.
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "factory_pipeline_steps_count", insertable = false, updatable = false)
+    private Integer factoryPipelineStepsCount;
 
     @Transient
     @EqualsAndHashCode.Exclude

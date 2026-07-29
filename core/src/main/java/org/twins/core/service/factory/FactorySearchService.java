@@ -62,7 +62,11 @@ public class FactorySearchService extends EntitySearchService
                 joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, true, false),
                 joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), locale, true, true),
                 joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionLikeList(), locale, true, false),
-                joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), locale, true, true)
+                joinAndSearchByI18NFieldDirect(TwinFactoryEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionNotLikeList(), locale, true, true),
+                checkFieldIntegerRange(search.getFactoryPipelinesCountRange(), TwinFactoryEntity.Fields.factoryPipelinesCount),
+                checkFieldIntegerRange(search.getFactoryMultipliersCountRange(), TwinFactoryEntity.Fields.factoryMultipliersCount),
+                checkFieldIntegerRange(search.getFactoryBranchesCountRange(), TwinFactoryEntity.Fields.factoryBranchesCount),
+                checkFieldIntegerRange(search.getFactoryErasersCountRange(), TwinFactoryEntity.Fields.factoryErasersCount)
         );
     }
 

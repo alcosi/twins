@@ -28,7 +28,8 @@ import static org.cambium.common.util.DateUtils.convertOrNull;
         ConditionSetInFactoryPipelineStepUsagesCountMode.class,
         ConditionSetInFactoryMultiplierFilterUsagesCountMode.class,
         ConditionSetInFactoryBranchUsagesCountMode.class,
-        ConditionSetInFactoryEraserUsagesCountMode.class,})
+        ConditionSetInFactoryEraserUsagesCountMode.class,
+        ConditionSetInFactoryTriggerUsagesCountMode.class,})
 public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryConditionSetEntity, FactoryConditionSetDTOv1> {
 
     @MapperModePointerBinding(modes = UserMode.FactoryConditionSet2UserMode.class)
@@ -69,24 +70,22 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setCachable(src.getCachable());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineUsagesCountMode.HIDE)) {
-            factoryService.countConditionSetInFactoryPipelineUsages(src);
-            dst.setId(src.getId()).setInFactoryPipelineUsagesCount(src.getInFactoryPipelineUsagesCount());
+            dst.setId(src.getId()).setUsageCountPipeline(src.getUsageCountPipeline());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineStepUsagesCountMode.HIDE)) {
-            factoryService.countConditionSetInFactoryPipelineStepUsages(src);
-            dst.setId(src.getId()).setInFactoryPipelineStepUsagesCount(src.getInFactoryPipelineStepUsagesCount());
+            dst.setId(src.getId()).setUsageCountPipelineStep(src.getUsageCountPipelineStep());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryMultiplierFilterUsagesCountMode.HIDE)) {
-            factoryService.countConditionSetInFactoryMultiplierFilterUsages(src);
-            dst.setId(src.getId()).setInFactoryMultiplierFilterUsagesCount(src.getInFactoryMultiplierFilterUsagesCount());
+            dst.setId(src.getId()).setUsageCountMultiplierFilter(src.getUsageCountMultiplierFilter());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryBranchUsagesCountMode.HIDE)) {
-            factoryService.countConditionSetInFactoryBranchUsages(src);
-            dst.setId(src.getId()).setInFactoryBranchUsagesCount(src.getInFactoryBranchUsagesCount());
+            dst.setId(src.getId()).setUsageCountBranch(src.getUsageCountBranch());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE)) {
-            factoryService.countConditionSetInFactoryEraserUsages(src);
-            dst.setId(src.getId()).setInFactoryEraserUsagesCount(src.getInFactoryEraserUsagesCount());
+            dst.setId(src.getId()).setUsageCountEraser(src.getUsageCountEraser());
+        }
+        if (mapperContext.hasModeButNot(ConditionSetInFactoryTriggerUsagesCountMode.HIDE)) {
+            dst.setId(src.getId()).setUsageCountTrigger(src.getUsageCountTrigger());
         }
         if (mapperContext.hasModeButNot(UserMode.FactoryConditionSet2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
@@ -108,16 +107,6 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     @Override
     public void beforeCollectionConversion(Collection<TwinFactoryConditionSetEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineUsagesCountMode.HIDE))
-            factoryService.countConditionSetInFactoryPipelineUsages(srcCollection);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineStepUsagesCountMode.HIDE))
-            factoryService.countConditionSetInFactoryPipelineStepUsages(srcCollection);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryMultiplierFilterUsagesCountMode.HIDE))
-            factoryService.countConditionSetInFactoryMultiplierFilterUsages(srcCollection);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryBranchUsagesCountMode.HIDE))
-            factoryService.countConditionSetInFactoryBranchUsages(srcCollection);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE))
-            factoryService.countConditionSetInFactoryEraserUsages(srcCollection);
         if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE))
             factoryConditionSetService.loadFactory(srcCollection);
         if (mapperContext.hasModeButNot(UserMode.FactoryConditionSet2UserMode.HIDE))

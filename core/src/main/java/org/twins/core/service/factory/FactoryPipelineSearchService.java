@@ -74,7 +74,8 @@ public class FactoryPipelineSearchService extends EntitySearchService
                 checkUuidIn(search.getNextFactoryIdList(), false, false, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
                 checkUuidIn(search.getNextFactoryIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
                 checkTernary(search.getActive(), TwinFactoryPipelineEntity.Fields.active),
-                checkTernary(search.getNextFactoryLimitScope(), TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope)
+                checkTernary(search.getNextFactoryLimitScope(), TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope),
+                checkFieldIntegerRange(search.getFactoryPipelineStepsCountRange(), TwinFactoryPipelineEntity.Fields.factoryPipelineStepsCount)
         );
     }
 

@@ -68,7 +68,8 @@ public class FactoryMultiplierSearchService extends EntitySearchService
                 checkIntegerIn(search.getMultiplierFeaturerIdExcludeList(), true, TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryMultiplierEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryMultiplierEntity.Fields.description),
-                checkTernary(search.getActive(), TwinFactoryMultiplierEntity.Fields.active)
+                checkTernary(search.getActive(), TwinFactoryMultiplierEntity.Fields.active),
+                checkFieldIntegerRange(search.getFactoryMultiplierFiltersCountRange(), TwinFactoryMultiplierEntity.Fields.factoryMultiplierFiltersCount)
         );
     }
 

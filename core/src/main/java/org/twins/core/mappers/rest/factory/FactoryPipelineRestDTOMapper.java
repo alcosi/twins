@@ -51,7 +51,6 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
     public void map(TwinFactoryPipelineEntity src, FactoryPipelineDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryPipelineMode.DETAILED)) {
             case DETAILED:
-                factoryService.countFactoryPipelineSteps(src);
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
@@ -62,7 +61,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
                         .setOutputTwinStatusId(src.getOutputTwinStatusId())
                         .setNextFactoryId(src.getNextTwinFactoryId())
                         .setNextFactoryLimitScope(src.getNextTwinFactoryLimitScope())
-                        .setPipelineStepsCount(src.getPipelineStepsCount())
+                        .setFactoryPipelineStepsCount(src.getFactoryPipelineStepsCount())
                         .setDescription(src.getDescription());
                 break;
             case SHORT:
@@ -107,9 +106,6 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
     @Override
     public void beforeCollectionConversion(Collection<TwinFactoryPipelineEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasMode(FactoryPipelineMode.DETAILED)) {
-            factoryService.countFactoryPipelineSteps(srcCollection);
-        }
         if (srcCollection.isEmpty()) return;
         if (mapperContext.hasModeButNot(FactoryMode.FactoryPipeline2FactoryMode.HIDE)) {
             factoryPipelineService.loadTwinFactory(srcCollection);

@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.factory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -34,4 +35,16 @@ public class FactorySearchDTOv1 {
 
     @Schema(description = "description not like list")
     public Set<String> descriptionNotLikeList;
+
+    @Schema(description = "Filter by factory pipelines count (range: from, to)")
+    public IntegerRangeDTOv1 factoryPipelinesCountRange;
+
+    @Schema(description = "Filter by factory multipliers count (range: from, to)")
+    public IntegerRangeDTOv1 factoryMultipliersCountRange;
+
+    @Schema(description = "Filter by factory branches count (range: from, to)")
+    public IntegerRangeDTOv1 factoryBranchesCountRange;
+
+    @Schema(description = "Filter by factory erasers count (range: from, to)")
+    public IntegerRangeDTOv1 factoryErasersCountRange;
 }

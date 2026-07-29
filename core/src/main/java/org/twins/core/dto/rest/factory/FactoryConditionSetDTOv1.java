@@ -46,19 +46,22 @@ public class FactoryConditionSetDTOv1 {
     public LocalDateTime createdAt;
 
     @Schema(description = "count in factory pipeline usages", example = DTOExamples.COUNT)
-    public Integer inFactoryPipelineUsagesCount;
+    public Integer usageCountPipeline;
 
     @Schema(description = "count in factory pipeline step usages", example = DTOExamples.COUNT)
-    public Integer inFactoryPipelineStepUsagesCount;
+    public Integer usageCountPipelineStep;
 
     @Schema(description = "count in factory multiplier filter usages", example = DTOExamples.COUNT)
-    public Integer inFactoryMultiplierFilterUsagesCount;
+    public Integer usageCountMultiplierFilter;
 
     @Schema(description = "count in factory branch usages", example = DTOExamples.COUNT)
-    public Integer inFactoryBranchUsagesCount;
+    public Integer usageCountBranch;
 
     @Schema(description = "count in factory eraser usages", example = DTOExamples.COUNT)
-    public Integer inFactoryEraserUsagesCount;
+    public Integer usageCountEraser;
+
+    @Schema(description = "count in factory trigger usages", example = DTOExamples.COUNT)
+    public Integer usageCountTrigger;
 
     @Schema(description = "condition id list.")
     @RelatedObject(type = FactoryConditionDTOv1.class, name = "conditions")

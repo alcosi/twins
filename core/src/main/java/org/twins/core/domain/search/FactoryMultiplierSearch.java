@@ -2,6 +2,7 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 
@@ -22,4 +23,5 @@ public class FactoryMultiplierSearch extends EntitySearch<TwinFactoryMultiplierE
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private Ternary active;
+    private IntegerRange factoryMultiplierFiltersCountRange;
 }

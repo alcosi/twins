@@ -63,7 +63,13 @@ public class FactoryConditionSetSearchService extends EntitySearchService
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.id),
                 checkUuidIn(search.getTwinFactoryIdList(), false, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId),
                 checkUuidIn(search.getTwinFactoryIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId),
-                checkTernary(search.getCachable(), TwinFactoryConditionSetEntity.Fields.cachable)
+                checkTernary(search.getCachable(), TwinFactoryConditionSetEntity.Fields.cachable),
+                checkFieldIntegerRange(search.getUsageCountPipelineRange(), TwinFactoryConditionSetEntity.Fields.usageCountPipeline),
+                checkFieldIntegerRange(search.getUsageCountPipelineStepRange(), TwinFactoryConditionSetEntity.Fields.usageCountPipelineStep),
+                checkFieldIntegerRange(search.getUsageCountMultiplierFilterRange(), TwinFactoryConditionSetEntity.Fields.usageCountMultiplierFilter),
+                checkFieldIntegerRange(search.getUsageCountBranchRange(), TwinFactoryConditionSetEntity.Fields.usageCountBranch),
+                checkFieldIntegerRange(search.getUsageCountEraserRange(), TwinFactoryConditionSetEntity.Fields.usageCountEraser),
+                checkFieldIntegerRange(search.getUsageCountTriggerRange(), TwinFactoryConditionSetEntity.Fields.usageCountTrigger)
         );
     }
 

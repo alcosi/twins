@@ -7,6 +7,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 
@@ -77,20 +79,46 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable, Identifiable
     @ToString.Exclude
     private UserEntity createdByUser;
 
-    @Transient
-    private Integer inFactoryPipelineUsagesCount;
+    // Trigger-maintained usage-counter columns (created in V1.4.327.03, maintained by AFTER
+    // triggers). insertable=false/updatable=false keeps Hibernate out of the write path
+    // (otherwise INSERT sends NULL into a NOT NULL DEFAULT 0 column, and UPDATE clobbers the
+    // trigger); @Generated makes Hibernate re-read the row after INSERT/UPDATE. usage_count_trigger
+    // is also maintained by V1.4.327.03 triggers.
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "usage_count_pipeline", insertable = false, updatable = false)
+    private Integer usageCountPipeline;
 
-    @Transient
-    private Integer inFactoryPipelineStepUsagesCount;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "usage_count_pipeline_step", insertable = false, updatable = false)
+    private Integer usageCountPipelineStep;
 
-    @Transient
-    private Integer inFactoryMultiplierFilterUsagesCount;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "usage_count_multiplier_filter", insertable = false, updatable = false)
+    private Integer usageCountMultiplierFilter;
 
-    @Transient
-    private Integer inFactoryBranchUsagesCount;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "usage_count_branch", insertable = false, updatable = false)
+    private Integer usageCountBranch;
 
-    @Transient
-    private Integer inFactoryEraserUsagesCount;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "usage_count_eraser", insertable = false, updatable = false)
+    private Integer usageCountEraser;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "usage_count_trigger", insertable = false, updatable = false)
+    private Integer usageCountTrigger;
 
     @Transient
     @EqualsAndHashCode.Exclude

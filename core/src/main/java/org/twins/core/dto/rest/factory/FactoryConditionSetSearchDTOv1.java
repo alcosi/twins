@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -39,4 +40,22 @@ public class FactoryConditionSetSearchDTOv1 {
 
     @Schema(description = "cachable", example = DTOExamples.TERNARY)
     public Ternary cachable;
+
+    @Schema(description = "Filter by count in factory pipeline usages (range: from, to)")
+    public IntegerRangeDTOv1 usageCountPipelineRange;
+
+    @Schema(description = "Filter by count in factory pipeline step usages (range: from, to)")
+    public IntegerRangeDTOv1 usageCountPipelineStepRange;
+
+    @Schema(description = "Filter by count in factory multiplier filter usages (range: from, to)")
+    public IntegerRangeDTOv1 usageCountMultiplierFilterRange;
+
+    @Schema(description = "Filter by count in factory branch usages (range: from, to)")
+    public IntegerRangeDTOv1 usageCountBranchRange;
+
+    @Schema(description = "Filter by count in factory eraser usages (range: from, to)")
+    public IntegerRangeDTOv1 usageCountEraserRange;
+
+    @Schema(description = "Filter by count in factory trigger usages (range: from, to)")
+    public IntegerRangeDTOv1 usageCountTriggerRange;
 }

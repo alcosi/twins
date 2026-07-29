@@ -90,19 +90,15 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             dst.setId(src.getId()).setFactoryUsagesCount(src.getFactoryUsagesCount());
         }
         if (showFactoryPipelinesCount(mapperContext)) {
-            factoryService.countFactoryPipelines(src);
             dst.setId(src.getId()).setFactoryPipelinesCount(src.getFactoryPipelinesCount());
         }
         if (showFactoryMultipliersCount(mapperContext)) {
-            factoryService.countFactoryMultipliers(src);
             dst.setId(src.getId()).setFactoryMultipliersCount(src.getFactoryMultipliersCount());
         }
         if (showFactoryBranchesCount(mapperContext)) {
-            factoryService.countFactoryBranches(src);
             dst.setId(src.getId()).setFactoryBranchesCount(src.getFactoryBranchesCount());
         }
         if (showFactoryErasersCount(mapperContext)) {
-            factoryService.countFactoryErasers(src);
             dst.setId(src.getId()).setFactoryErasersCount(src.getFactoryErasersCount());
         }
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE)) {
@@ -170,14 +166,6 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (showFactoryUsagesCount(mapperContext))
             factoryService.countFactoryUsages(srcCollection);
-        if (showFactoryPipelinesCount(mapperContext))
-            factoryService.countFactoryPipelines(srcCollection);
-        if (showFactoryMultipliersCount(mapperContext))
-            factoryService.countFactoryMultipliers(srcCollection);
-        if (showFactoryBranchesCount(mapperContext))
-            factoryService.countFactoryBranches(srcCollection);
-        if (showFactoryErasersCount(mapperContext))
-            factoryService.countFactoryErasers(srcCollection);
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE))
             factoryService.loadCreatedByUser(srcCollection);
         boolean showPipelines = mapperContext.hasModeButNot(FactoryPipelineMode.Factory2FactoryPipelineMode.HIDE);

@@ -59,7 +59,6 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
                     .setInputTwinClassId(src.getInputTwinClassId());
         }
         if (mapperContext.hasModeButNot(FactoryMultiplierFiltersCountMode.HIDE)) {
-            factoryService.countFactoryMultiplierFilters(src);
             dst.setFactoryMultiplierFiltersCount(src.getFactoryMultiplierFiltersCount());
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
@@ -86,9 +85,6 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
     @Override
     public void beforeCollectionConversion(Collection<TwinFactoryMultiplierEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasMode(FactoryMultiplierFiltersCountMode.SHOW)) {
-            factoryService.countFactoryMultiplierFilters(srcCollection);
-        }
         if (srcCollection.isEmpty()) return;
         if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
             factoryMultiplierService.loadTwinFactory(srcCollection);

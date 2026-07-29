@@ -2,6 +2,7 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 
@@ -27,4 +28,5 @@ public class FactoryPipelineSearch extends EntitySearch<TwinFactoryPipelineEntit
     private Set<String> descriptionNotLikeList;
     private Ternary active;
     private Ternary nextFactoryLimitScope;
+    private IntegerRange factoryPipelineStepsCountRange;
 }
