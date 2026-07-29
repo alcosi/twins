@@ -19,8 +19,8 @@ import org.twins.core.dao.notification.NotificationContextRepository;
 import org.twins.core.featurer.notificator.context.ContextCollector;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -54,7 +54,7 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
         return true;
     }
 
-    public Set<NotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
+    public List<NotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
         //todo perhaps this can be cached
         return notificationContextCollectorRepository.findAllByNotificationContextId(contextId);
     }
