@@ -265,4 +265,68 @@ class TwinFlavorServiceTest extends BaseUnitTest {
         verify(twinRepository).replaceFlavorForTwinsOfClassIn(
                 argThat((Collection<UUID> s) -> s.contains(classId) && !s.contains(childId)), eq(oldOption), eq(newOption));
     }
+
+    @Test
+    void cascade_enable_backfillsDescendantFlavorLessTwins() throws ServiceException {
+        // parent had NO flavor before -> parentHadFlavor=false; a descendant with no flavor source
+        // will inherit from the parent once it is enabled -> it must be back-filled too.
+        UUID newList = UUID.randomUUID();
+        UUID option = UUID.randomUUID();
+        UUID childId = UUID.randomUUID();
+        TwinClassEntity child = new TwinClassEntity().setId(childId)
+                .setInheritedFlavorDataListTwinClassId(null);
+        when(twinClassRepository.findAll(any(Specification.class))).thenReturn(List.of(child));
+        when(dataListService.findEntitySafe(newList)).thenReturn(dataList(newList, option));
+        when(twinRepository.countByTwinClassIdInAndFlavorDataListOptionIdIsNull(any())).thenReturn(7L);
+
+        twinFlavorService.replaceFlavorForTwinsOfClass(twinClass,
+                op(newList, EntityRelinkOperationStrategy.delete, Map.of(UuidUtils.NULLIFY_MARKER, option)));
+
+        verify(twinRepository).setFlavorForTwinsWithoutFlavorIn(
+                argThat((Collection<UUID> s) -> s.containsAll(List.of(classId, childId))), eq(option));
+        assertEquals(newList, twinClass.getFlavorDataListId());
+    }
+
+    @Test
+    void change_mappedToNullifyMarker_deletesTwins() throws ServiceException {
+        // explicit old -> NULLIFY_MARKER mapping requests deletion of the holding twins
+        // (honored under either strategy, mirroring marker)
+        UUID oldList = UUID.randomUUID();
+        UUID newList = UUID.randomUUID();
+        UUID oldOption = UUID.randomUUID();
+        UUID keptOption = UUID.randomUUID();
+        twinClass.setFlavorDataListId(oldList);
+        when(dataListService.findEntitySafe(newList)).thenReturn(dataList(newList, keptOption));
+        when(twinRepository.findDistinctFlavorDataListOptionIdByTwinClassIdIn(any())).thenReturn(Set.of(oldOption));
+
+        twinFlavorService.replaceFlavorForTwinsOfClass(twinClass,
+                op(newList, EntityRelinkOperationStrategy.restrict, Map.of(oldOption, UuidUtils.NULLIFY_MARKER)));
+
+        verify(twinRepository).deleteTwinsByTwinClassIdInAndFlavorDataListOptionIdIn(
+                argThat((Collection<UUID> s) -> s.contains(classId)), eq(Set.of(oldOption)));
+        verify(twinRepository, never()).replaceFlavorForTwinsOfClassIn(any(), any(), any());
+    }
+
+    @Test
+    void change_combined_replaceDeleteAndBackfill_inOnePass() throws ServiceException {
+        UUID oldList = UUID.randomUUID();
+        UUID newList = UUID.randomUUID();
+        UUID mappedOld = UUID.randomUUID();
+        UUID unmappedOld = UUID.randomUUID();
+        UUID newOption = UUID.randomUUID();
+        UUID defaultOption = UUID.randomUUID();
+        twinClass.setFlavorDataListId(oldList);
+        when(dataListService.findEntitySafe(newList)).thenReturn(dataList(newList, newOption, defaultOption));
+        when(twinRepository.findDistinctFlavorDataListOptionIdByTwinClassIdIn(any()))
+                .thenReturn(Set.of(mappedOld, unmappedOld));
+        when(twinRepository.countByTwinClassIdInAndFlavorDataListOptionIdIsNull(any())).thenReturn(2L);
+
+        twinFlavorService.replaceFlavorForTwinsOfClass(twinClass, op(newList,
+                EntityRelinkOperationStrategy.delete,
+                Map.of(mappedOld, newOption, UuidUtils.NULLIFY_MARKER, defaultOption)));
+
+        verify(twinRepository).replaceFlavorForTwinsOfClassIn(any(), eq(mappedOld), eq(newOption));
+        verify(twinRepository).deleteTwinsByTwinClassIdInAndFlavorDataListOptionIdIn(any(), eq(Set.of(unmappedOld)));
+        verify(twinRepository).setFlavorForTwinsWithoutFlavorIn(any(), eq(defaultOption));
+    }
 }

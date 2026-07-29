@@ -254,7 +254,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     entity.easyLog(EasyLoggable.Level.NORMAL) + " given class does not configured with flavor support");
         } else if (expectedDataListId != null && entity.getFlavorDataListOptionId() == null) {
             throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST,
-                    entity.easyLog(EasyLoggable.Level.NORMAL) + " missed flavour id");
+                    entity.easyLog(EasyLoggable.Level.NORMAL) + " missed flavor id");
         }
         if (entity.getFlavorDataListOption() == null)
             entity.setFlavorDataListOption(dataListOptionService.findEntitySafe(entity.getFlavorDataListOptionId()));
