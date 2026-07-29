@@ -1,9 +1,7 @@
 package org.twins.core.dao.notification;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -49,6 +47,8 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     private NotificationSchemaEntity notificationSchemaSpecOnly;

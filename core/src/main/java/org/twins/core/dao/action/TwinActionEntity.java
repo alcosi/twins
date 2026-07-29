@@ -1,9 +1,7 @@
 package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 
 import java.util.List;
@@ -27,6 +25,8 @@ public class TwinActionEntity {
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)

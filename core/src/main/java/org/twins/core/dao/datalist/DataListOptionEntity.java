@@ -131,6 +131,7 @@ public class DataListOptionEntity implements EasyLoggable {
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = DataListSubsetOptionEntity.Fields.dataListOption, fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptionsSpecOnly;
 

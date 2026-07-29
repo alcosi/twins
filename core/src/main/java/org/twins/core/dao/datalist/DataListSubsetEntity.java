@@ -1,10 +1,7 @@
 package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -42,6 +39,7 @@ public class DataListSubsetEntity implements EasyLoggable {
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "dataListSubset", fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptionsSpecOnly;
 
