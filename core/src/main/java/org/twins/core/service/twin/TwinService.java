@@ -1783,12 +1783,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadEditableFlag(Collection<TwinField> collection) throws ServiceException {
+        // Split into create/update buckets so each is validated against its own action's rules.
+        // A TwinField without a twin (e.g. calc-children fields) keeps the legacy EDIT behaviour.
+        List<TwinField> create = new ArrayList<>();
+        List<TwinField> edit = new ArrayList<>();
+        for (TwinField twinField : collection) {
+            TwinEntity twin = twinField.getTwin();
+            (twin != null && twin.isCreateElseUpdate() ? create : edit).add(twinField);
+        }
+        loadEditableFlag(create, TwinClassFieldAction.CREATE);
+        loadEditableFlag(edit, TwinClassFieldAction.EDIT);
+    }
+
+    private void loadEditableFlag(Collection<TwinField> collection, TwinClassFieldAction action) throws ServiceException {
         loadFieldPermissionFlag(
                 collection,
                 TwinField::getEditable,
                 TwinField::setEditable,
                 TwinClassFieldEntity::getEditPermissionId,
-                TwinClassFieldAction.EDIT,
+                action,
                 TwinEntity::getTwinFieldEditability);
     }
 
@@ -1894,12 +1907,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadFieldEditability(Collection<TwinEntity> collection) throws ServiceException {
+        // Split into create/update buckets so each is validated against its own action's rules.
+        List<TwinEntity> create = new ArrayList<>();
+        List<TwinEntity> edit = new ArrayList<>();
+        for (TwinEntity twin : collection) {
+            (twin.isCreateElseUpdate() ? create : edit).add(twin);
+        }
+        loadFieldEditability(create, TwinClassFieldAction.CREATE);
+        loadFieldEditability(edit, TwinClassFieldAction.EDIT);
+    }
+
+    private void loadFieldEditability(Collection<TwinEntity> collection, TwinClassFieldAction action) throws ServiceException {
         loadFieldAccessibility(
                 collection,
                 TwinEntity::getTwinFieldEditability,
                 TwinEntity::setTwinFieldEditability,
                 TwinClassFieldEntity::getEditPermissionId,
-                TwinClassFieldAction.EDIT,
+                action,
                 true,   // checkNotSerializable — non-serializable fields cannot be edited via API
                 false); // skipBaseFields — base fields go through normal logic
     }

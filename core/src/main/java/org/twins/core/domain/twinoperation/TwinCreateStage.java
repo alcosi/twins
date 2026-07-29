@@ -50,6 +50,7 @@ public class TwinCreateStage implements Iterable<TwinCreate> {
         if (entity.getId() == null) {
             entity.setId(UuidUtils.generate());
         }
+        entity.setCreateElseUpdate(true);
         map.put(entity.getId(), twinCreate);
         entities.add(entity);
         return this;
