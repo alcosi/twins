@@ -1,8 +1,9 @@
 -- Materializes 2 child counters:
 --   * twin_factory_pipeline.factory_pipeline_steps_count      = count of twin_factory_pipeline_step
 --   * twin_factory_multiplier.factory_multiplier_filters_count = count of twin_factory_multiplier_filter
--- maintained by AFTER insert/update/delete triggers. Replaces the on-the-fly COUNT(*) performed by
--- FactoryService.countFactoryPipelineSteps / countFactoryMultiplierFilters.
+-- maintained by AFTER insert/update/delete triggers. These counters used to be computed on the
+-- fly via COUNT(*) in the factory read/mapping path; they are now denormalized columns kept in
+-- sync by triggers.
 --
 -- Mirrors V1.4.344.01 (factory element counters) and follows the TWINS wrapper-functions convention
 -- (docs/db_trigger_functions_convention.md): counter maintenance is a side-effect -> AFTER triggers;

@@ -1,8 +1,8 @@
 -- Materializes 4 factory element counters (pipelines / multipliers / branches / erasers) on
--- twin_factory, maintained by AFTER insert/update/delete triggers. Replaces the on-the-fly
--- COUNT(*) performed by FactoryService.countFactoryPipelines/Multipliers/Branches/Erasers for
--- these four. factoryUsagesCount stays @Transient (it is a multi-source inbound count and is still
--- computed on the fly).
+-- twin_factory, maintained by AFTER insert/update/delete triggers. These counters used to be
+-- computed on the fly via COUNT(*) in the factory read/mapping path; they are now denormalized
+-- columns kept in sync by triggers. factoryUsagesCount stays @Transient (it is a multi-source
+-- inbound count and is still computed on the fly).
 --
 -- Follows the TWINS wrapper-functions convention (docs/db_trigger_functions_convention.md) and
 -- mirrors V1.4.327.03 (twin_factory_condition_set usage counters): counter maintenance is a
@@ -43,12 +43,17 @@ begin
         return;
     end if;
 
-    update twin_factory
-    set factory_pipelines_count   = factory_pipelines_count   + case when p_source = 'pipeline'   then p_delta else 0 end,
-        factory_multipliers_count = factory_multipliers_count + case when p_source = 'multiplier' then p_delta else 0 end,
-        factory_branches_count    = factory_branches_count    + case when p_source = 'branch'     then p_delta else 0 end,
-        factory_erasers_count     = factory_erasers_count     + case when p_source = 'eraser'     then p_delta else 0 end
-    where id = p_factory_id;
+    -- A single per-source UPDATE writes only the affected column. A CASE-expression UPDATE
+    -- touching all four columns would also bump tuple/WAL churn on every child DML, so we branch.
+    if p_source = 'pipeline' then
+        update twin_factory set factory_pipelines_count = factory_pipelines_count + p_delta where id = p_factory_id;
+    elseif p_source = 'multiplier' then
+        update twin_factory set factory_multipliers_count = factory_multipliers_count + p_delta where id = p_factory_id;
+    elseif p_source = 'branch' then
+        update twin_factory set factory_branches_count = factory_branches_count + p_delta where id = p_factory_id;
+    elseif p_source = 'eraser' then
+        update twin_factory set factory_erasers_count = factory_erasers_count + p_delta where id = p_factory_id;
+    end if;
 end;
 $$ language plpgsql;
 

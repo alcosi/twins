@@ -27,9 +27,6 @@ public class FactoryMultiplierDTOv1 {
     @RelatedObject(type = TwinClassDTOv1.class, name = "inputTwinClass")
     public UUID inputTwinClassId;
 
-    @Schema(description = "count pipeline steps", example = DTOExamples.COUNT)
-    public Integer pipelineStepsCount;
-
     @Schema(description = "multiplier featurer id", example = DTOExamples.FEATURER_ID)
     @RelatedObject(type = FeaturerDTOv1.class, name = "multiplierFeaturer")
     private Integer multiplierFeaturerId;

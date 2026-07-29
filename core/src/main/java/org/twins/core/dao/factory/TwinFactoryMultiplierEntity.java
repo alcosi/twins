@@ -9,7 +9,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
 
@@ -73,7 +75,13 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
     @JoinColumn(name = "multiplier_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity multiplierFeaturerSpecOnly;
 
-    @Column(name = "factory_multiplier_filters_count")
+    // Trigger-maintained counter column (created in V1.4.344.02, maintained by AFTER triggers on
+    // twin_factory_multiplier_filter). insertable=false/updatable=false keeps Hibernate out of the
+    // write path; @Generated re-reads the row after INSERT/UPDATE.
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "factory_multiplier_filters_count", insertable = false, updatable = false)
     private Integer factoryMultiplierFiltersCount;
 
     @Transient
