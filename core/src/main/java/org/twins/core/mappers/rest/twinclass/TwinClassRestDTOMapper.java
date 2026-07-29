@@ -65,7 +65,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     @MapperModePointerBinding(modes = {
             DataListMode.TwinClassMarker2DataListMode.class,
-            DataListMode.TwinClassTag2DataListMode.class
+            DataListMode.TwinClassTag2DataListMode.class,
+            DataListMode.TwinClassFlavor2DataListMode.class
     })
     private final DataListRestDTOMapper dataListRestDTOMapper;
 
@@ -115,6 +116,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
+                        .setFlavorsDataListId(src.getFlavorDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
@@ -157,6 +159,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
+                        .setFlavorsDataListId(src.getFlavorDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
@@ -212,6 +215,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassService.loadMarkerDataList(src);
             dst.setMarkersDataListId(src.getMarkerDataListId());
             dataListRestDTOMapper.postpone(src.getMarkerDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassMarker2DataListMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(DataListMode.TwinClassFlavor2DataListMode.HIDE) && src.getFlavorDataListId() != null) {
+            twinClassService.loadFlavorDataList(src);
+            dst.setFlavorsDataListId(src.getFlavorDataListId());
+            dataListRestDTOMapper.postpone(src.getFlavorDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassFlavor2DataListMode.SHORT));
         }
         if (mapperContext.hasModeButNot(DataListMode.TwinClassTag2DataListMode.HIDE) && src.getTagDataListId() != null) {
             twinClassService.loadTagDataList(src);
@@ -275,6 +283,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE)) {
             twinClassService.loadMarkerDataList(srcCollection, true);
+        }
+        if (mapperContext.hasModeButNot(DataListMode.TwinClassFlavor2DataListMode.HIDE)) {
+            twinClassService.loadFlavorDataList(srcCollection, true);
         }
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE)) {
             twinClassService.loadTagDataList(srcCollection);

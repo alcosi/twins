@@ -20,6 +20,7 @@ public class TwinClassUpdateRestDTOReverseMapperV2 extends RestSimpleDTOMapper<T
         dst
                 .setMarkerDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getMarkerDataListUpdate()))
                 .setTagDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getTagDataListUpdate()))
+                .setFlavorDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getFlavorDataListUpdate()))
                 .setExtendsTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getExtendsTwinClassUpdate()))
                 .setHeadTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getHeadTwinClassUpdate()))
                 .getTwinClass().setId(src.getTwinClassId());

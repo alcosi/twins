@@ -43,6 +43,43 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "update TwinEntity set headTwinId = :newVal where headTwinId = :oldVal and twinClassId = :twinClassId")
     void replaceHeadTwinForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
 
+    @Query(value = "select distinct t.flavorDataListOptionId from TwinEntity t where t.twinClassId in :twinClassIds and t.flavorDataListOptionId is not null")
+    Set<UUID> findDistinctFlavorDataListOptionIdByTwinClassIdIn(@Param("twinClassIds") Collection<UUID> twinClassIds);
+
+    // Flavor is mandatory on a twin once its class has a flavor list, so a flavor-list change must
+    // not leave any twin without a flavor. This count detects such twins (NULL flavor) across all
+    // affected classes so the update can be rejected instead of silently turning twins invalid.
+    @Query(value = "select count(t) from TwinEntity t where t.twinClassId in :twinClassIds and t.flavorDataListOptionId is null")
+    long countByTwinClassIdInAndFlavorDataListOptionIdIsNull(@Param("twinClassIds") Collection<UUID> twinClassIds);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set flavorDataListOptionId = :newVal where twinClassId in :twinClassIds and flavorDataListOptionId = :oldVal")
+    int replaceFlavorForTwinsOfClassIn(@Param("twinClassIds") Collection<UUID> twinClassIds, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set flavorDataListOptionId = null where twinClassId in :twinClassIds and flavorDataListOptionId is not null")
+    int clearFlavorForTwinsOfClassIn(@Param("twinClassIds") Collection<UUID> twinClassIds);
+
+    // Back-fill a flavor onto twins that currently have none. Used when a flavor list is enabled/
+    // changed and the caller passes a default flavor for flavor-less twins via the NULLIFY_MARKER key
+    // of the replaceMap. Flavor is mandatory, so these twins cannot be left NULL.
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set flavorDataListOptionId = :newVal where twinClassId in :twinClassIds and flavorDataListOptionId is null")
+    int setFlavorForTwinsWithoutFlavorIn(@Param("twinClassIds") Collection<UUID> twinClassIds, @Param("newVal") UUID newVal);
+
+    // Bulk-delete twins whose flavor is one of the obsolete, unmapped options. Flavor is a mandatory
+    // scalar on the twin (unlike marker/tag, which live in a separate join table), so an obsolete
+    // unmapped flavor cannot be cleared — the twins holding it are deleted. This is the flavor
+    // equivalent of marker's deleteByTwin_TwinClassIdAndMarkerDataListOptionIdIn, used by the relink
+    // under the delete strategy (or when a flavor is explicitly mapped to NULLIFY_MARKER).
+    @Transactional
+    @Modifying
+    @Query(value = "delete from TwinEntity te where te.twinClassId in :twinClassIds and te.flavorDataListOptionId in :oldFlavors")
+    int deleteTwinsByTwinClassIdInAndFlavorDataListOptionIdIn(@Param("twinClassIds") Collection<UUID> twinClassIds, @Param("oldFlavors") Collection<UUID> oldFlavors);
+
     /**
      * Bulk status transition: one UPDATE for any number of Twins. Used by glossary MARK_DELETE
      * pass — replaces a per-Twin {@code entitySmartService.save()} loop with a single statement.

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,4 +15,7 @@ public class EntityRelinkOperation {
     private EntityRelinkOperationStrategy strategy = EntityRelinkOperationStrategy.delete;
     private Map<UUID, UUID> replaceMap;
 
+    public Map<UUID, UUID> getReplaceMap() {
+        return replaceMap != null ? replaceMap : Collections.emptyMap();
+    }
 }

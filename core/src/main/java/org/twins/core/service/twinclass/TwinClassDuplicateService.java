@@ -111,6 +111,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
                 .setHasSegment(false)
                 .setMarkerDataListId(original.getMarkerDataListId())
                 .setTagDataListId(original.getTagDataListId())
+                .setFlavorDataListId(original.getFlavorDataListId())
                 .setHeadHunterFeaturerId(original.getHeadHunterFeaturerId())
                 .setHeadHunterParams(original.getHeadHunterParams())
                 .setHasDynamicMarkers(false)

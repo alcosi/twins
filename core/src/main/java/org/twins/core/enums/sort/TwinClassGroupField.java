@@ -8,6 +8,7 @@ public enum TwinClassGroupField {
     headTwinClassId,
     extendsTwinClassId,
     markerDataListId,
+    flavorDataListId,
     tagDataListId,
     twinflowSchemaSpace,
     twinClassSchemaSpace,

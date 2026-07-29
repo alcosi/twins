@@ -39,6 +39,8 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     private Set<OwnerType> ownerTypeExcludeList;
     private Set<UUID> markerDatalistIdList;
     private Set<UUID> markerDatalistIdExcludeList;
+    private Set<UUID> flavorDatalistIdList;
+    private Set<UUID> flavorDatalistIdExcludeList;
     private Set<UUID> tagDatalistIdList;
     private Set<UUID> tagDatalistIdExcludeList;
     private Set<UUID> freezeIdList;
@@ -99,6 +101,8 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
             Pair.of(TwinClassSearch::getOwnerTypeExcludeList, TwinClassSearch::setOwnerTypeExcludeList),
             Pair.of(TwinClassSearch::getMarkerDatalistIdList, TwinClassSearch::setMarkerDatalistIdList),
             Pair.of(TwinClassSearch::getMarkerDatalistIdExcludeList, TwinClassSearch::setMarkerDatalistIdExcludeList),
+            Pair.of(TwinClassSearch::getFlavorDatalistIdList, TwinClassSearch::setFlavorDatalistIdList),
+            Pair.of(TwinClassSearch::getFlavorDatalistIdExcludeList, TwinClassSearch::setFlavorDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getTagDatalistIdExcludeList, TwinClassSearch::setTagDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getTagDatalistIdExcludeList, TwinClassSearch::setTagDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getViewPermissionIdList, TwinClassSearch::setViewPermissionIdList),

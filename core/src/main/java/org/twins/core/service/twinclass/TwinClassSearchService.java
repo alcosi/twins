@@ -111,6 +111,8 @@ public class TwinClassSearchService extends EntitySearchService
 
                         .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdList(), false, false, TwinClassEntity.Fields.markerDataListId))
                         .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.markerDataListId))
+                        .and(checkUuidIn(twinClassSearch.getFlavorDatalistIdList(), false, false, TwinClassEntity.Fields.flavorDataListId))
+                        .and(checkUuidIn(twinClassSearch.getFlavorDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.flavorDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdList(), false, false, TwinClassEntity.Fields.tagDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.tagDataListId))
                         .and(checkUuidIn(twinClassSearch.getFreezeIdList(), false, false, TwinClassEntity.Fields.twinClassFreezeId))
@@ -157,6 +159,7 @@ public class TwinClassSearchService extends EntitySearchService
             case headhunterFeaturerName -> toSortSpecification(ascending, TwinClassEntity.Fields.headHunterFeaturerSpecOnly, FeaturerEntity.Fields.name);
             case extendsTwinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale,  TwinClassEntity.Fields.extendsTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case markerDataListName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.markerDataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
+            case flavorDataListName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.flavorDataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
             case tagDataListName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassEntity.Fields.tagDataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
             case twinflowSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinflowSchemaSpace);
             case twinClassSchemaSpace -> toSortSpecification(ascending, TwinClassEntity.Fields.twinClassSchemaSpace);
@@ -180,6 +183,7 @@ public class TwinClassSearchService extends EntitySearchService
             case headTwinClassId -> TwinClassEntity.Fields.headTwinClassId;
             case extendsTwinClassId -> TwinClassEntity.Fields.extendsTwinClassId;
             case markerDataListId -> TwinClassEntity.Fields.markerDataListId;
+            case flavorDataListId -> TwinClassEntity.Fields.flavorDataListId;
             case tagDataListId -> TwinClassEntity.Fields.tagDataListId;
             case twinflowSchemaSpace -> TwinClassEntity.Fields.twinflowSchemaSpace;
             case twinClassSchemaSpace -> TwinClassEntity.Fields.twinClassSchemaSpace;
@@ -206,6 +210,7 @@ public class TwinClassSearchService extends EntitySearchService
             case headTwinClassId -> entity.setHeadTwinClassId((UUID) o);
             case extendsTwinClassId -> entity.setExtendsTwinClassId((UUID) o);
             case markerDataListId -> entity.setMarkerDataListId((UUID) o);
+            case flavorDataListId -> entity.setFlavorDataListId((UUID) o);
             case tagDataListId -> entity.setTagDataListId((UUID) o);
             case twinflowSchemaSpace -> entity.setTwinflowSchemaSpace((Boolean) o);
             case twinClassSchemaSpace -> entity.setTwinClassSchemaSpace((Boolean) o);

@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -51,10 +52,7 @@ import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.resource.ResourceService;
-import org.twins.core.service.twin.TwinMarkerService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twin.TwinTagService;
+import org.twins.core.service.twin.*;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
@@ -100,6 +98,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinMarkerService twinMarkerService;
     @Lazy
     private final TwinTagService twinTagService;
+    @Lazy
+    private final TwinFlavorService twinFlavorService;
     @Lazy
     private final DataListService dataListService;
     @Lazy
@@ -157,6 +157,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getTagDataListId() != null
                         && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getTagDataListId(), apiUser.getDomainId(), entity.getTagDataListId()))
                     throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + entity.getTagDataListId() + "]");
+                if (entity.getFlavorDataListId() != null
+                        && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getFlavorDataListId(), apiUser.getDomainId(), entity.getFlavorDataListId()))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown flavor data list id[" + entity.getFlavorDataListId() + "]");
                 if (entity.getViewPermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
@@ -489,6 +492,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
             updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
             updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+            updateTwinClassFlavorDataList(dbTwinClassEntity, twinClassUpdate.getFlavorDataListUpdate(), changesHelper);
             updateTwinClassIcons(dbTwinClassEntity, iconLight, iconDark, changesHelper);
 
             if (changesHelper.hasChanges()) {
@@ -545,6 +549,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.markerDataListId, dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
             return;
         twinMarkerService.replaceMarkersForTwinsOfClass(dbTwinClassEntity, updateOperation);
+    }
+
+    public void updateTwinClassFlavorDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation updateOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.flavorDataListId, dbTwinClassEntity.getFlavorDataListId(), updateOperation.getNewId()))
+            return;
+        twinFlavorService.replaceFlavorForTwinsOfClass(dbTwinClassEntity, updateOperation);
     }
 
     public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
@@ -696,6 +706,26 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         loadMarkerDataList(entityCollection);
         if (loadOptions) {
             var dataLists = entityCollection.stream().map(TwinClassEntity::getMarkerDataList).filter(Objects::nonNull).collect(Collectors.toSet());
+            dataListService.loadDataListOptions(dataLists);
+        }
+    }
+
+    public void loadFlavorDataList(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadFlavorDataList(Collections.singleton(twinClassEntity));
+    }
+
+    public void loadFlavorDataList(Collection<TwinClassEntity> entityCollection) throws ServiceException {
+        dataListService.load(
+                entityCollection,
+                TwinClassEntity::getFlavorDataListId,
+                TwinClassEntity::getFlavorDataList,
+                TwinClassEntity::setFlavorDataList);
+    }
+
+    public void loadFlavorDataList(Collection<TwinClassEntity> entityCollection, boolean loadOptions) throws ServiceException {
+        loadFlavorDataList(entityCollection);
+        if (loadOptions) {
+            var dataLists = entityCollection.stream().map(TwinClassEntity::getFlavorDataList).filter(Objects::nonNull).collect(Collectors.toSet());
             dataListService.loadDataListOptions(dataLists);
         }
     }
