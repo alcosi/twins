@@ -144,8 +144,8 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         List<TwinFieldUserEntity> twinFieldUserEntityList = twinEntity.getTwinFieldUserKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (twinFieldUserEntityList != null) {
-            for (TwinFieldUserEntity twinFieldDataListEntity : twinFieldUserEntityList) {
-                ret.add(twinFieldDataListEntity.getUser());
+            for (var twinFieldUser : twinFieldUserEntityList) {
+                ret.add(twinFieldUser.getUser());
             }
         }
         return ret;

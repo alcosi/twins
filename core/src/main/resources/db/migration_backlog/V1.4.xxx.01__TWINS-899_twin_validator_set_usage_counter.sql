@@ -31,6 +31,15 @@
 alter table twin_validator_set
     add column if not exists usage_count integer not null default 0;
 
+-- 1b. Missing FK index on twin_class_field_action_validation_rule.twin_validator_set_id.
+--     This table was created in V1.4.243.01 — after V1.4.97.01 "add_indexes_for_all_fk" — so its FK
+--     column never got indexed (a CLAUDE.md violation: "index every FK column"). Added here because
+--     the backfill below counts this table per validator set and the trigger-driven adjust() UPDATEs
+--     resolve on twin_validator_set.id (PK), but without this index the backfill subquery and any
+--     FK-driven lookup on this table fall back to a Seq Scan.
+create index if not exists idx_twin_class_field_action_validation_rule_twin_validator_set_id
+    on twin_class_field_action_validation_rule(twin_validator_set_id);
+
 -- 2. Backfill from current data (single bulk UPDATE, no per-row loop)
 update twin_validator_set s set
     usage_count =
@@ -46,6 +55,15 @@ update twin_validator_set s set
         coalesce((select count(*)::int from twin_recompute_on_field_validator_rule                where twin_validator_set_id = s.id), 0) +
         coalesce((select count(*)::int from twin_recompute_on_action_validator_rule               where twin_validator_set_id = s.id), 0) +
         coalesce((select count(*)::int from history_notification                                  where twin_validator_set_id = s.id), 0);
+
+-- 2b. Partial index backing the usageCountRange search filter (TwinValidatorSetSearchService ->
+--     checkFieldIntegerRange on usage_count). Built AFTER the backfill so it is populated in a single
+--     pass. Partial (usage_count > 0) deliberately: the overwhelming majority of sets are unused
+--     (count = 0), and the predicate keeps those rows out of the index, so the trigger-driven
+--     `usage_count = usage_count + delta` UPDATEs pay index write cost only for sets in active use.
+create index if not exists idx_twin_validator_set_usage_count
+    on twin_validator_set(usage_count)
+    where usage_count > 0;
 
 -- 3. Business-logic procedure: applies a delta to the unified usage_count. Reads/writes the DB,
 --    so it is NOT IMMUTABLE.
