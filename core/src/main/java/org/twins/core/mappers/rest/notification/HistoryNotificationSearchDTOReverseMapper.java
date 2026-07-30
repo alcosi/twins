@@ -30,6 +30,7 @@ public class HistoryNotificationSearchDTOReverseMapper extends RestSimpleDTOMapp
                 .setHistoryNotificationRecipientIdList(src.getHistoryNotificationRecipientIdList())
                 .setHistoryNotificationRecipientIdExcludeList(src.getHistoryNotificationRecipientIdExcludeList())
                 .setNotificationChannelEventIdList(src.getNotificationChannelEventIdList())
-                .setNotificationChannelEventIdExcludeList(src.getNotificationChannelEventIdExcludeList());
+                .setNotificationChannelEventIdExcludeList(src.getNotificationChannelEventIdExcludeList())
+                .setActive(src.getActive());
     }
 }

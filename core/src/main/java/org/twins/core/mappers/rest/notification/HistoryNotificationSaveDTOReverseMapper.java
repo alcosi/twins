@@ -24,6 +24,7 @@ public class HistoryNotificationSaveDTOReverseMapper extends RestSimpleDTOMapper
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setHistoryNotificationRecipientId(src.getHistoryNotificationRecipientId())
                         .setNotificationChannelEventId(src.getNotificationChannelEventId())
+                        .setActive(src.getActive())
         );
     }
 }

@@ -16,9 +16,7 @@ import org.twins.core.dao.notification.HistoryNotificationRepository;
 import org.twins.core.domain.search.HistoryNotificationSearch;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
@@ -52,7 +50,8 @@ public class HistoryNotificationSearchService {
                 checkUuidIn(search.getHistoryNotificationRecipientIdList(), false, false, HistoryNotificationEntity.Fields.historyNotificationRecipientId),
                 checkUuidIn(search.getHistoryNotificationRecipientIdExcludeList(), true, false, HistoryNotificationEntity.Fields.historyNotificationRecipientId),
                 checkUuidIn(search.getNotificationChannelEventIdList(), false, false, HistoryNotificationEntity.Fields.notificationChannelEventId),
-                checkUuidIn(search.getNotificationChannelEventIdExcludeList(), true, false, HistoryNotificationEntity.Fields.notificationChannelEventId)
+                checkUuidIn(search.getNotificationChannelEventIdExcludeList(), true, false, HistoryNotificationEntity.Fields.notificationChannelEventId),
+                checkTernary(search.getActive(), HistoryNotificationEntity.Fields.active)
         );
     }
 }

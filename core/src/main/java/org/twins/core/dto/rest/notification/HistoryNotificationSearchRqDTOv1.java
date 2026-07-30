@@ -66,4 +66,7 @@ public class HistoryNotificationSearchRqDTOv1 extends Request {
 
     @Schema(description = "notification channel event id exclude list")
     public Set<UUID> notificationChannelEventIdExcludeList;
+
+    @Schema(description = "is active")
+    public Ternary active;
 }

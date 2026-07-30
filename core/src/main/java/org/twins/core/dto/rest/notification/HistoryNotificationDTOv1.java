@@ -52,6 +52,9 @@ public class HistoryNotificationDTOv1 {
     @RelatedObject(type = NotificationChannelEventDTOv1.class, name = "notificationChannelEvent")
     public UUID notificationChannelEventId;
 
+    @Schema(description = "is active")
+    public Boolean active;
+
     @Schema(description = "created by user id")
     @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;

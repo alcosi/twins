@@ -30,4 +30,5 @@ public class HistoryNotificationSearch {
     public Set<UUID> historyNotificationRecipientIdExcludeList;
     public Set<UUID> notificationChannelEventIdList;
     public Set<UUID> notificationChannelEventIdExcludeList;
+    public Ternary active;
 }

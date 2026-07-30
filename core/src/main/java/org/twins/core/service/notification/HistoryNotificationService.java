@@ -133,7 +133,9 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
             HistoryNotificationEntity entity = notification.getHistoryNotification();
             entity.setCreatedByUserId(authService.getApiUser().getUserId());
             entity.setCreatedAt(Timestamp.from(Instant.now()));
-
+            if (entity.getActive() == null) {
+                entity.setActive(true);
+            }
             entitiesToSave.add(entity);
         }
 
@@ -164,6 +166,7 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
             updateEntityFieldByValue(sourceEntity.getNotificationSchemaId(), entity, HistoryNotificationEntity::getNotificationSchemaId, HistoryNotificationEntity::setNotificationSchemaId, HistoryNotificationEntity.Fields.notificationSchemaId, changesHelper);
             updateEntityFieldByValue(sourceEntity.getHistoryNotificationRecipientId(), entity, HistoryNotificationEntity::getHistoryNotificationRecipientId, HistoryNotificationEntity::setHistoryNotificationRecipientId, HistoryNotificationEntity.Fields.historyNotificationRecipientId, changesHelper);
             updateEntityFieldByValue(sourceEntity.getNotificationChannelEventId(), entity, HistoryNotificationEntity::getNotificationChannelEventId, HistoryNotificationEntity::setNotificationChannelEventId, HistoryNotificationEntity.Fields.notificationChannelEventId, changesHelper);
+            updateEntityFieldByValue(sourceEntity.getActive(), entity, HistoryNotificationEntity::getActive, HistoryNotificationEntity::setActive, HistoryNotificationEntity.Fields.active, changesHelper);
 
             changes.add(entity, changesHelper);
         }
