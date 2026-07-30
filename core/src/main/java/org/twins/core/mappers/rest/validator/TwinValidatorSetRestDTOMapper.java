@@ -22,7 +22,8 @@ public class TwinValidatorSetRestDTOMapper extends RestSimpleDTOMapper<TwinValid
                         .setId(src.getId())
                         .setName(src.getName())
                         .setDescription(src.getDescription())
-                        .setInvert(src.getInvert());
+                        .setInvert(src.getInvert())
+                        .setUsageCount(src.getUsageCount());
                 break;
             case SHORT:
                 dst

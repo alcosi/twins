@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
 
 import java.util.Set;
@@ -19,4 +20,5 @@ public class TwinValidatorSetSearch {
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private Ternary invert;
+    private IntegerRange usageCountRange;
 }

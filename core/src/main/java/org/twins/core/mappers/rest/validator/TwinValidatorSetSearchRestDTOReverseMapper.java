@@ -20,7 +20,8 @@ public class TwinValidatorSetSearchRestDTOReverseMapper extends RestSimpleDTOMap
                 .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
-                .setInvert(src.getInvert());
+                .setInvert(src.getInvert())
+                .setUsageCountRange(src.getUsageCountRange());
     }
 
 }

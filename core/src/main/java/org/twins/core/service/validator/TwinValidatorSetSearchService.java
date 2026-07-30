@@ -8,18 +8,14 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
-import org.cambium.common.util.Ternary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinValidatorSetSearch;
 import org.twins.core.service.auth.AuthService;
-
-import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -47,7 +43,8 @@ public class TwinValidatorSetSearchService {
                 checkFieldLikeIn(search.getNameNotLikeList(), true, true, TwinValidatorSetEntity.Fields.name),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinValidatorSetEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinValidatorSetEntity.Fields.description),
-                checkTernary(search.getInvert(), TwinValidatorSetEntity.Fields.invert)
+                checkTernary(search.getInvert(), TwinValidatorSetEntity.Fields.invert),
+                checkFieldIntegerRange(search.getUsageCountRange(), TwinValidatorSetEntity.Fields.usageCount)
         );
     }
 }

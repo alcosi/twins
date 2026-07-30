@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
@@ -37,5 +38,8 @@ public class TwinValidatorSetSearchRqDTOv1 extends Request {
 
     @Schema(description = "invert", example = DTOExamples.TERNARY)
     public Ternary invert;
+
+    @Schema(description = "usageCountRange")
+    public IntegerRange usageCountRange;
 
 }
