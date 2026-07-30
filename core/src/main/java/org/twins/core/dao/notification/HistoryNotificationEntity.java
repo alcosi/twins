@@ -60,7 +60,7 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     @Column(name = "notification_channel_event_id")
     private UUID notificationChannelEventId;
 
-    @Column(name = "active")
+    @Column(name = "active", nullable = false)
     private Boolean active;
 
     @Column(name = "created_by_user_id")
