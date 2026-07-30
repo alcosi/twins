@@ -38,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy(Permissions.HISTORY_VIEW)
-public class HistoryListController extends ApiController {
+public class HistorySearchController extends ApiController {
     private final HistorySearchService historySearchService;
     private final HistoryDTOMapperV1 historyDTOMapperV1;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;

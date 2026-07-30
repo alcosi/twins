@@ -42,7 +42,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
-public class TwinListController extends ApiController {
+public class TwinSearchController extends ApiController {
     private final TwinSearchService twinSearchService;
     private final TwinSearchServiceV2 twinSearchServiceV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
