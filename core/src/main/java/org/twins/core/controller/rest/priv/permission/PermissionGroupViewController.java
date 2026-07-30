@@ -32,7 +32,7 @@ import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "Search permission group", name = ApiTag.PERMISSION)
+@Tag(description = "Get permission group", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

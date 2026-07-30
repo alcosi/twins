@@ -32,7 +32,7 @@ import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.DOMAIN)
+@Tag(description = "Get domain user", name = ApiTag.DOMAIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

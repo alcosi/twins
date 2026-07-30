@@ -31,7 +31,7 @@ import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "Search permission schema", name = ApiTag.PERMISSION)
+@Tag(description = "Get permission schema", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

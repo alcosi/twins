@@ -31,7 +31,7 @@ import org.twins.core.service.usergroup.UserGroupInvolveAssigneeService;
 
 import java.util.UUID;
 
-@Tag(description = "Search user group by assignee propagation", name = ApiTag.USER_GROUP)
+@Tag(description = "Get user group by assignee propagation", name = ApiTag.USER_GROUP)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

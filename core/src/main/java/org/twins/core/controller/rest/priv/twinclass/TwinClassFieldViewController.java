@@ -31,7 +31,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.TWIN_CLASS)
+@Tag(description = "Get twin class field", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

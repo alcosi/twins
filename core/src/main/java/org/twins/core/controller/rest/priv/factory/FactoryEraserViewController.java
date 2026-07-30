@@ -34,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 import java.util.UUID;
 
 
-@Tag(name = ApiTag.FACTORY)
+@Tag(description = "Get factory eraser", name = ApiTag.FACTORY)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

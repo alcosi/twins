@@ -32,7 +32,7 @@ import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.SPACE)
+@Tag(description = "Get space role user", name = ApiTag.SPACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
