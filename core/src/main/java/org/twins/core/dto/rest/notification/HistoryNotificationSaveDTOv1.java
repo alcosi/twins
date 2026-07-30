@@ -34,4 +34,7 @@ public class HistoryNotificationSaveDTOv1 {
 
     @Schema(description = "notification channel event id")
     public UUID notificationChannelEventId;
+
+    @Schema(description = "is active")
+    public Boolean active;
 }

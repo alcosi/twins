@@ -7,9 +7,9 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dto.rest.notification.HistoryNotificationDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
-import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -62,6 +62,7 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setHistoryNotificationRecipientId(src.getHistoryNotificationRecipientId())
                         .setNotificationChannelEventId(src.getNotificationChannelEventId())
+                        .setActive(src.getActive())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setCreatedAt(src.getCreatedAt());
                 break;
