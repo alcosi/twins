@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.transition;
+package org.twins.core.controller.rest.priv.twinflow;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,47 +22,48 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.dto.rest.twinflow.TransitionSearchRqDTOv1;
-import org.twins.core.dto.rest.twinflow.TransitionSearchRsDTOv1;
+import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dto.rest.twinflow.TwinflowSearchRqDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TransitionSearchRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinflow.TwinflowTransitionService;
+import org.twins.core.service.twinflow.TwinflowSearchService;
 
-@Tag(description = "", name = ApiTag.TRANSITION)
+@Tag(name = ApiTag.TWINFLOW)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_VIEW})
-public class TransitionListController extends ApiController {
-    private final TransitionSearchRestDTOReverseMapper transitionSearchRestDTOReverseMapper;
-    private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
-    private final TwinflowTransitionService transitionService;
+@ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_VIEW})
+public class TwinflowSearchController extends ApiController {
+    private final TwinflowSearchService twinflowSearchService;
+    private final TwinflowBaseV1RestDTOMapper twinflowRestDTOMapper;
+    private final TwinflowSearchRestDTOReverseMapper twinflowSearchRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "transitionSearchV1", summary = "Returns transition search result")
+    @Operation(operationId = "twinflowSearchV1", summary = "Returns twinflow search result")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transition data", content = {
+            @ApiResponse(responseCode = "200", description = "Twinflow list prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TransitionSearchRsDTOv1.class))}),
+                    @Schema(implementation = TwinflowSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/transition/search/v1")
-    public ResponseEntity<?> transitionSearchV1(
-            @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    @PostMapping(value = "/private/twinflow/search/v1")
+    public ResponseEntity<?> twinflowSearchV1(
+            @MapperContextBinding(roots = TwinflowBaseV1RestDTOMapper.class, response = TwinflowSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody TransitionSearchRqDTOv1 request) {
-        TransitionSearchRsDTOv1 rs = new TransitionSearchRsDTOv1();
+            @RequestBody TwinflowSearchRqDTOv1 request) {
+        TwinflowSearchRsDTOv1 rs = new TwinflowSearchRsDTOv1();
         try {
-            PaginationResult<TwinflowTransitionEntity> transitions = transitionService.search(transitionSearchRestDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinflowEntity> twinflowList = twinflowSearchService
+                    .search(twinflowSearchRestDTOReverseMapper.convert(request), pagination);
             rs
-                    .setTransition(transitionBaseV2RestDTOMapper.convertCollection(transitions.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(transitions))
+                    .setTwinflowList(twinflowRestDTOMapper.convertCollection(twinflowList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twinflowList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

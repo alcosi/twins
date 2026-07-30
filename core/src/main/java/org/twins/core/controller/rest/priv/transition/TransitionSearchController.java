@@ -22,46 +22,48 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
-import org.twins.core.dto.rest.transition.TransitionAliasSearchRqDTOv1;
-import org.twins.core.dto.rest.transition.TransitionAliasSearchRsDTOv1;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dto.rest.twinflow.TransitionSearchRqDTOv1;
+import org.twins.core.dto.rest.twinflow.TransitionSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.twinflow.TransitionAliasRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TransitionAliasSearchRestDTOReverseMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TransitionSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
-@Tag(name = ApiTag.TRANSITION)
+@Tag(description = "", name = ApiTag.TRANSITION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_VIEW})
-public class TransitionAliasListController extends ApiController {
-    private final TransitionAliasSearchRestDTOReverseMapper transitionAliasSearchRestDTOReverseMapper;
-    private final TransitionAliasRestDTOMapper transitionAliasRestDTOMapper;
-    private final TwinflowTransitionService twinflowTransitionService;
+public class TransitionSearchController extends ApiController {
+    private final TransitionSearchRestDTOReverseMapper transitionSearchRestDTOReverseMapper;
+    private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
+    private final TwinflowTransitionService transitionService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "transitionAliasSearchV1", summary = "Transition alias search request")
+    @Operation(operationId = "transitionSearchV1", summary = "Returns transition search result")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transition alias data list", content = {
+            @ApiResponse(responseCode = "200", description = "Transition data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TransitionAliasSearchRsDTOv1.class))}),
+                    @Schema(implementation = TransitionSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/transition_alias/search/v1")
-    public ResponseEntity<?> transitionAliasSearchV1(
-            @MapperContextBinding(roots = TransitionAliasRestDTOMapper.class, response = TransitionAliasSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    @PostMapping(value = "/private/transition/search/v1")
+    public ResponseEntity<?> transitionSearchV1(
+            @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody TransitionAliasSearchRqDTOv1 request) {
-        TransitionAliasSearchRsDTOv1 rs = new TransitionAliasSearchRsDTOv1();
+            @RequestBody TransitionSearchRqDTOv1 request) {
+        TransitionSearchRsDTOv1 rs = new TransitionSearchRsDTOv1();
         try {
-            PaginationResult<TwinflowTransitionAliasEntity> transitionAliasList = twinflowTransitionService
-                    .findTransitionAliases(transitionAliasSearchRestDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinflowTransitionEntity> transitions = transitionService.search(transitionSearchRestDTOReverseMapper.convert(request), pagination);
             rs
-                    .setAliasList(transitionAliasRestDTOMapper.convertCollection(transitionAliasList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(transitionAliasList));
+                    .setTransition(transitionBaseV2RestDTOMapper.convertCollection(transitions.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(transitions))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

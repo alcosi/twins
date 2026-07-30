@@ -21,10 +21,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -63,57 +61,6 @@ public class TwinClassFieldListController extends ApiController {
             twinClassFieldService.loadTwinClassFields(twinClassEntity);
             rs
                     .twinClassFieldList(twinClassFieldRestDTOMapper.convertCollection(twinClassEntity.getTwinClassFieldKit().getCollection(), mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassFieldViewV1", summary = "Returns twin class field list")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class field information", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassFieldRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1")
-    public ResponseEntity<?> twinClassFieldViewV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId) {
-        TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
-        try {
-            TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findEntitySafe(twinClassFieldId);
-            rs
-                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));;
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassFieldViewByKeyV1", summary = "Returns twin class field list")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class field information", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassFieldRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/twin_class_by_key/{classKey}/field/{fieldKey}/v1")
-    public ResponseEntity<?> twinClassFieldViewByKeyV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String classKey,
-            @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey) {
-        TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
-        try {
-            TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findByTwinClassKeyAndKey(classKey, fieldKey);
-            rs
-                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
