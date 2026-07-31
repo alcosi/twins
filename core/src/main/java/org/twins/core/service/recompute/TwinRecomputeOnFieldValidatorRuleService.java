@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.recompute.TwinRecomputeOnFieldValidatorRuleEntity;
 import org.twins.core.dao.recompute.TwinRecomputeOnFieldValidatorRuleRepository;
 import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.Collection;
 import java.util.Collections;

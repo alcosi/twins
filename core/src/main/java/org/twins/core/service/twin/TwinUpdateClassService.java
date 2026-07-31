@@ -20,9 +20,10 @@ import org.twins.core.dto.rest.twin.TwinChangeClassStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.*;
 

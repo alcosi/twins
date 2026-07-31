@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinStatusTriggerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
-import org.twins.core.service.twin.TwinStatusTriggerService;
+import org.twins.core.service.twinstatus.TwinStatusTriggerService;
 
 import java.util.Collection;
 

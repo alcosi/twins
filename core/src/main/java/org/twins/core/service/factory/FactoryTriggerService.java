@@ -17,8 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
-import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
 
 import java.util.*;
 import java.util.function.Function;

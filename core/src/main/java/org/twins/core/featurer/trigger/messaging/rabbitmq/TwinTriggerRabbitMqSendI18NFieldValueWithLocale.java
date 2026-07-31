@@ -21,7 +21,7 @@ import org.twins.core.featurer.trigger.messaging.rabbitmq.payloads.FieldTranslat
 import org.twins.core.featurer.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTranslation;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.ArrayList;
 import java.util.List;

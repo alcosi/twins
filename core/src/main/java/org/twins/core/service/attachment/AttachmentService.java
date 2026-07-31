@@ -45,7 +45,7 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.storage.StorageService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
 

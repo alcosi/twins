@@ -38,6 +38,7 @@ import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;

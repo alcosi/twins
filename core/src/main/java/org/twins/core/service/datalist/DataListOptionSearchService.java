@@ -31,7 +31,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
 import java.util.function.BiConsumer;

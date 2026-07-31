@@ -25,8 +25,8 @@ import org.twins.core.dto.rest.tier.TierSaveRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.tier.TierCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
-import org.twins.core.service.domain.TierService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.tier.TierService;
 
 @Tag(description = "", name = ApiTag.TIER)
 @RestController

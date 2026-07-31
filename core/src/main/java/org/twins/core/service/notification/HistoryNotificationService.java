@@ -22,9 +22,9 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinValidatorSetService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;

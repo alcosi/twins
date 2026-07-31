@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldRepository;
 import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.twin.TwinPointerService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.Collection;
 import java.util.Collections;

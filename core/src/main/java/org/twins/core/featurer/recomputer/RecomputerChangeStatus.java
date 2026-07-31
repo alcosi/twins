@@ -14,7 +14,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.recompute.FieldRecomputeRequest;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.Properties;
 

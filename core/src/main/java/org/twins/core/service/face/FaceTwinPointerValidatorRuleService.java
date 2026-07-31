@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.service.twin.TwinPointerValidatorRuleService;
+import org.twins.core.service.twinpointer.TwinPointerValidatorRuleService;
 
 import java.util.UUID;
 

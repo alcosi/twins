@@ -13,9 +13,9 @@ import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
 import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionRepository;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.twin.TwinPointerService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.Collection;
 import java.util.Collections;

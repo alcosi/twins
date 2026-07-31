@@ -16,11 +16,11 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.io.PrintWriter;
 import java.util.Objects;

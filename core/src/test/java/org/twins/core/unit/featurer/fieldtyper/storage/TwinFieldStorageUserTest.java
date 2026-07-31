@@ -13,7 +13,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageUser;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.List;
 import java.util.Map;

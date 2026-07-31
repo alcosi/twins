@@ -16,7 +16,7 @@ import org.twins.core.featurer.classfield.filter.FieldFilter;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.twinclass.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
 import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
 import org.twins.face.dao.twidget.tw004.FaceTW004Repository;
 import org.twins.face.domain.twidget.tw004.FaceTW004TwinClassField;

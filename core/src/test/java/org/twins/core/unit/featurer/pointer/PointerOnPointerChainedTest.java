@@ -10,7 +10,7 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
-import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.Collection;
 import java.util.Map;

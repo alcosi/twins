@@ -25,8 +25,8 @@ import org.twins.core.dto.rest.tier.TierUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.tier.TierUpdateDTOReverseMapper;
-import org.twins.core.service.domain.TierService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.tier.TierService;
 
 import java.util.UUID;
 

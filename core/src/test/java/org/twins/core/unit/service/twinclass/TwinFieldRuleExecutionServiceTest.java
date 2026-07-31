@@ -10,8 +10,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.service.twin.TwinFieldRuleExecutionService;
-import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinfield.TwinFieldRuleExecutionService;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twinpointer.TwinPointerDeleteRqDTOv1;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 @Tag(name = ApiTag.TWIN_POINTER)
 @RestController

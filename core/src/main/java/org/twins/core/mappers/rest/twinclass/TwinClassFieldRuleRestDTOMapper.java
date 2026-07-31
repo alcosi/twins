@@ -21,7 +21,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldRuleMode;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleService;
 
 import java.util.Collection;
 

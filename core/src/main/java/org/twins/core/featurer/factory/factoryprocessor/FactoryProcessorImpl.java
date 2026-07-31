@@ -27,10 +27,10 @@ import org.twins.core.service.factory.FactoryConditionService;
 import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.factory.FactoryPipelineService;
 import org.twins.core.service.factory.FactoryService;
-import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
 
 import java.util.*;
 

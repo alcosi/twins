@@ -19,8 +19,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.twinpointer.TwinPointerExportSqlRqDTOv1;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinPointerExportService;
-import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinpointer.TwinPointerExportService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.nio.charset.StandardCharsets;
 

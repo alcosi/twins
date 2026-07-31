@@ -24,12 +24,12 @@ import org.twins.core.enums.action.TwinAction;
 import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.recomputer.Recomputer;
-import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinValidatorSetService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinfield.TwinFieldDecimalService;
+import org.twins.core.service.twinpointer.TwinPointerService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.*;
 import java.util.function.Predicate;

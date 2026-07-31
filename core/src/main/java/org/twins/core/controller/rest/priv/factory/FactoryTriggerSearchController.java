@@ -30,7 +30,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinFactoryTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinFactoryTriggerSearchDTOReverseMapper;
-import org.twins.core.service.factory.TwinFactoryTriggerSearchService;
+import org.twins.core.service.factory.FactoryTriggerSearchService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
@@ -39,7 +39,7 @@ import org.twins.core.service.permission.Permissions;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_TRIGGER_MANAGE, Permissions.TWIN_TRIGGER_VIEW})
 public class FactoryTriggerSearchController extends ApiController {
-    private final TwinFactoryTriggerSearchService twinFactoryTriggerSearchService;
+    private final FactoryTriggerSearchService factoryTriggerSearchService;
     private final TwinFactoryTriggerRestDTOMapper twinFactoryTriggerRestDTOMapper;
     private final TwinFactoryTriggerSearchDTOReverseMapper twinFactoryTriggerSearchDTOReverseMapper;
     private final PaginationMapper paginationMapper;
@@ -59,7 +59,7 @@ public class FactoryTriggerSearchController extends ApiController {
             @SimplePaginationParams SimplePagination pagination) {
         TwinFactoryTriggerSearchRsDTOv1 rs = new TwinFactoryTriggerSearchRsDTOv1();
         try {
-            PaginationResult<TwinFactoryTriggerEntity> factoryTriggerList = twinFactoryTriggerSearchService
+            PaginationResult<TwinFactoryTriggerEntity> factoryTriggerList = factoryTriggerSearchService
                     .findFactoryTriggers(twinFactoryTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setPagination(paginationMapper.convert(factoryTriggerList))

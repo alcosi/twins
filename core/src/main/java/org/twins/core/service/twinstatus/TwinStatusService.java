@@ -1,0 +1,261 @@
+package org.twins.core.service.twinstatus;
+
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.*;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twin.TwinStatusRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.resource.ResourceService;
+import org.twins.core.service.twinclass.TwinClassService;
+
+import java.util.*;
+import java.util.function.Function;
+
+
+
+@Lazy
+@Slf4j
+@Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
+@RequiredArgsConstructor
+public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEntity> {
+    final TwinStatusRepository twinStatusRepository;
+    final TwinClassService twinClassService;
+    final I18nService i18nService;
+
+    private final ResourceService resourceService;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Override
+    public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
+        return twinStatusRepository;
+    }
+
+    @Override
+    public Function<TwinStatusEntity, UUID> entityGetIdFunction() {
+        return TwinStatusEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinStatusEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(TwinStatusEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (null == entity.getTwinClassId())
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED.getMessage());
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getType() == null) {
+                    entity.setType(StatusType.BASIC);
+                }
+                //todo validate that status is uniq in class
+                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+        }
+        return true;
+    }
+
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.REQUEST;
+    }
+
+    public void loadStatuses(TwinClassEntity twinClassEntity) {
+        loadStatuses(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadStatuses(Collection<TwinClassEntity> twinClassEntities) {
+        Kit<TwinClassEntity, UUID> needLoad = null;
+        Set<UUID> extendsClassesSet = null;
+        for (TwinClassEntity twinClassEntity : twinClassEntities) {
+            if (twinClassEntity.getTwinStatusKit() != null)
+                continue;
+            needLoad = Kit.safeAdd(needLoad, TwinClassEntity::getId, twinClassEntity);
+            twinClassEntity.setTwinStatusKit(new Kit<>(TwinStatusEntity::getId)); //fix an allocation problem
+            if (twinClassEntity.getExtendedClassIdSet().size() > 1) {
+                extendsClassesSet = CollectionUtils.safeAdd(extendsClassesSet, twinClassEntity.getExtendedClassIdSetExcludeCurrent());
+            }
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        if (extendsClassesSet == null)
+            extendsClassesSet = Collections.emptySet();
+        var loaded = twinStatusRepository.findByTwinClassIdInInheritable(needLoad.getIdSet(), extendsClassesSet);
+        if (CollectionUtils.isEmpty(loaded))
+            return;
+        KitGrouped<TwinStatusEntity, UUID, UUID> statusGroupedByClass = new KitGrouped<>(loaded, TwinStatusEntity::getId, TwinStatusEntity::getTwinClassId);
+        for (var twinClassEntity : needLoad) {
+            for (UUID extendsTwinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                var statuses = statusGroupedByClass.getGrouped(extendsTwinClassId);
+                if (statuses == null)
+                    continue;
+                if (extendsTwinClassId.equals(twinClassEntity.getId())) {
+                    twinClassEntity.getTwinStatusKit().addAll(statuses); // we can add all statuses
+                    continue;
+                }
+                for (var statusInherited : statuses) {
+                    if (Boolean.TRUE.equals(statusInherited.getInheritable()))
+                        twinClassEntity.getTwinStatusKit().add(statusInherited);
+                }
+            }
+        }
+    }
+
+    public List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIds) {
+        return twinStatusRepository.findByTwinClassIdIn(twinClassIds);
+    }
+
+    public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {
+        if (twinStatusEntity.getTwinClassId() == twinEntity.getTwinClassId()) {
+            return true;
+        }
+        return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {
+        TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
+                .setTwinClassId(twinClassEntity.getId())
+                .setKey(KeyUtils.lowerCaseNullSafe(key, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId())
+                .setInheritable(true);
+        validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        evictClassesCache(twinClassEntity);
+        return savedStatus;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n, FileData lightIcon, FileData darkIcon) throws ServiceException {
+        TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinStatusEntity.getTwinClassId());
+        twinStatusEntity
+                .setKey(KeyUtils.lowerCaseNullSafe(twinStatusEntity.getKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId())
+                .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
+        if (twinStatusEntity.getInheritable() == null) {
+            twinStatusEntity.setInheritable(true);
+        }
+        validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        evictClassesCache(twinClassEntity);
+        return processIcons(savedStatus, lightIcon, darkIcon);
+    }
+
+    private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
+        CacheUtils.evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
+        CacheUtils.evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), List.of(twinClassEntity.getId()));
+        twinClassService.loadExtendsHierarchyChildClasses(twinClassEntity);
+        if (KitUtils.isEmpty(twinClassEntity.getExtendsHierarchyChildClassKit()))
+            return;
+        CacheUtils.evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
+        CacheUtils.evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, FileData lightIcon, FileData darkIcon) throws ServiceException {
+        TwinStatusEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
+            dbEntity.setKey(updateEntity.getKey());
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.backgroundColor, dbEntity.getBackgroundColor(), updateEntity.getBackgroundColor()))
+            dbEntity.setBackgroundColor(updateEntity.getBackgroundColor());
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.fontColor, dbEntity.getFontColor(), updateEntity.getFontColor()))
+            dbEntity.setFontColor(updateEntity.getFontColor());
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWIN_STATUS_NAME, dbEntity, TwinStatusEntity::getNameI18nId, TwinStatusEntity::setNameI18nId, TwinStatusEntity.Fields.nameI18nId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWIN_STATUS_DESCRIPTION, dbEntity, TwinStatusEntity::getDescriptionI18nId, TwinStatusEntity::setDescriptionI18nId, TwinStatusEntity.Fields.descriptionI18nId, changesHelper);
+        updateTwinStatusIcons(dbEntity, lightIcon, darkIcon, changesHelper);
+        dbEntity = updateSafe(dbEntity, changesHelper);
+        if (changesHelper.hasChanges()) {
+            evictClassesCache(dbEntity.getTwinClass());
+        }
+        return dbEntity;
+    }
+
+    public void updateTwinStatusIcons(TwinStatusEntity dbEntity, FileData iconLight, FileData iconDark, ChangesHelper changesHelper) throws ServiceException {
+        if (iconLight != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconLight);
+            if (changesHelper.isChanged(TwinStatusEntity.Fields.iconLightResourceId, dbEntity.getIconLightResourceId(), newValue.getId())) {
+                dbEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+        if (iconDark != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconDark);
+            if (changesHelper.isChanged(TwinStatusEntity.Fields.iconDarkResourceId, dbEntity.getIconDarkResourceId(), newValue.getId())) {
+                dbEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+    }
+
+    protected TwinStatusEntity processIcons(TwinStatusEntity twinStatusEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
+        var lightIconEntity = saveIconResourceIfExist(lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(darkIcon);
+        if (lightIconEntity != null) {
+            twinStatusEntity.setIconLightResourceId(lightIconEntity.getId());
+            twinStatusEntity.setIconLightResource(lightIconEntity);
+        }
+        if (darkIconEntity != null) {
+            twinStatusEntity.setIconDarkResourceId(darkIconEntity.getId());
+            twinStatusEntity.setIconDarkResource(darkIconEntity);
+        }
+        if (darkIconEntity != null || lightIconEntity != null) {
+            twinStatusRepository.save(twinStatusEntity);
+        }
+        return twinStatusEntity;
+    }
+
+
+    private ResourceEntity saveIconResourceIfExist(FileData icon) throws ServiceException {
+        if (icon != null) {
+            return resourceService.addResource(icon.originalFileName(), icon.content());
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isSketch(UUID twinStatusId) {
+        return SystemIds.TwinStatus.SKETCH.equals(twinStatusId) || twinStatusRepository.existsByIdAndType(twinStatusId, StatusType.SKETCH);
+    }
+
+    public void loadClass(TwinStatusEntity entity) throws ServiceException {
+        loadClass(Collections.singletonList(entity));
+    }
+
+    public void loadClass(List<TwinStatusEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                TwinStatusEntity::getTwinClassId,
+                TwinStatusEntity::getTwinClass,
+                TwinStatusEntity::setTwinClass);
+    }
+}

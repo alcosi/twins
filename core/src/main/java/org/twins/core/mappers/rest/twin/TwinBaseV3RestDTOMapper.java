@@ -19,9 +19,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
-import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.*;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.Collection;
 import java.util.HashSet;

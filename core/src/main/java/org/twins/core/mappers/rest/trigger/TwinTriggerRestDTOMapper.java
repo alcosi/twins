@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
 
 @Component
 @RequiredArgsConstructor

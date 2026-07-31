@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldDuplicateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldDuplicateService;
+import org.twins.core.service.twinclassfield.TwinClassFieldDuplicateService;
 
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController

@@ -25,9 +25,9 @@ import org.twins.core.service.link.LinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.resource.ResourceService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.Collection;
 import java.util.List;

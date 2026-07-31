@@ -34,6 +34,7 @@ import org.twins.core.service.notification.NotificationSchemaService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.tier.TierService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
