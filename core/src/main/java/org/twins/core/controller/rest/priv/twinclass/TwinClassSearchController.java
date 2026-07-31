@@ -138,31 +138,4 @@ public class TwinClassSearchController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
-    @Deprecated
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassListV1", summary = "Returns twin class list")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class list prepared", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassSearchRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/twin_class/list/v1")
-    public ResponseEntity<?> twinClassLstV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination) {
-        TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
-        try {
-            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService.search(null, pagination);
-            rs
-                    .setPagination(paginationMapper.convert(twinClasses))
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
 }
