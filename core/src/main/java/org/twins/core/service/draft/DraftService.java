@@ -188,7 +188,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         int cascadeDepth = 0;
         while (CollectionUtils.isNotEmpty(eraseNotReadyList)) {
             cascadeDepth++;
-            if (cascadeDepth >= 5)
+            if (cascadeDepth > 5)
                 throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CASCADE_ERASE_LIMIT);
             eraseflowService.loadEraseflow(eraseNotReadyList.stream().map(DraftTwinEraseEntity::getTwin).toList()); //bulk detect
             for (DraftTwinEraseEntity eraseItem : eraseNotReadyList) {
