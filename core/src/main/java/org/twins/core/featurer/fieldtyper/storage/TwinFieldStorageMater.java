@@ -9,7 +9,7 @@ import org.twins.core.dao.twin.TwinFieldBaseEntity;
 import org.twins.core.dao.twin.TwinFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
 

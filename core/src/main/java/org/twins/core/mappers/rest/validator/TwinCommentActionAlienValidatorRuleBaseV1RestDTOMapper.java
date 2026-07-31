@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinCommentAlienValidatorRuleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.Collection;
 

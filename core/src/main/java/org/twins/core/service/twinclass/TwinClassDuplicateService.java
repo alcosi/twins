@@ -14,7 +14,8 @@ import org.twins.core.domain.twinclass.TwinClassDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinStatusDuplicateService;
+import org.twins.core.service.twinclassfield.TwinClassFieldDuplicateService;
+import org.twins.core.service.twinstatus.TwinStatusDuplicateService;
 
 import java.sql.Timestamp;
 import java.time.Instant;

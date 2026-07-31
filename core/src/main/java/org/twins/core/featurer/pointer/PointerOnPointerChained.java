@@ -13,7 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinPointerId;
-import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.*;
 

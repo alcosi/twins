@@ -30,9 +30,9 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskService;
 
 import java.util.*;
 

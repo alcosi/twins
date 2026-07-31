@@ -17,11 +17,11 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.trigger.TwinTrigger;
-import org.twins.core.service.trigger.TwinTriggerService;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinService.TwinCreateResult;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskService;
 
 import java.util.HashMap;
 import java.util.Properties;

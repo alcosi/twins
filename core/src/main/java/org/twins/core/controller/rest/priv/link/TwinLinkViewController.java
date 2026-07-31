@@ -26,8 +26,8 @@ import org.twins.core.dto.rest.link.TwinLinkViewRsDTOv1;
 import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.UUID;
 

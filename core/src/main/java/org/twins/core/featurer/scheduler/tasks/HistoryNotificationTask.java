@@ -23,7 +23,7 @@ import org.twins.core.service.history.HistoryRecipientService;
 import org.twins.core.service.notification.HistoryNotificationService;
 import org.twins.core.service.notification.NotificationChannelEventService;
 import org.twins.core.service.notification.NotificationContextService;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.sql.Timestamp;
 import java.time.Instant;

@@ -21,9 +21,9 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.TwinLinkAddRqDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddRsDTOv1;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
-import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.UUID;
 

@@ -13,8 +13,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDListTwinsLinkId;
-import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.*;
 

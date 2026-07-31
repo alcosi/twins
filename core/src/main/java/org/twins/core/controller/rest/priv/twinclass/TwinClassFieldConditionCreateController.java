@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -28,7 +27,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+import org.twins.core.service.twinclassfield.TwinClassFieldConditionService;
 
 import java.util.List;
 

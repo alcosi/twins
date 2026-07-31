@@ -9,12 +9,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.trigger.TwinTriggerService;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskService;
 
 import java.sql.Timestamp;
 import java.time.Instant;

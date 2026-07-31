@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 import org.twins.core.service.domain.DomainBusinessAccountService;
-import org.twins.core.service.domain.TierService;
+import org.twins.core.service.tier.TierService;
 
 import java.util.Collection;
 

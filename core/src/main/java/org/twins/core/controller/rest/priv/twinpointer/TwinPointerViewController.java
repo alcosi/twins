@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinpointer.TwinPointerRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.UUID;
 

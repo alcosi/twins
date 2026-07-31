@@ -15,7 +15,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+import org.twins.core.service.twinclassfield.TwinClassFieldConditionService;
 
 import java.util.Collection;
 

@@ -19,9 +19,9 @@ import org.twins.core.dao.projection.ProjectionRepository;
 import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.service.twin.TwinPointerService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.*;
 import java.util.function.Function;

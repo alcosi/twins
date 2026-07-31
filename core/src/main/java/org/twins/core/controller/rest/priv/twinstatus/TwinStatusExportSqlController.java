@@ -20,8 +20,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.twinstatus.TwinStatusExportSqlRqDTOv1;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinStatusExportService;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinstatus.TwinStatusExportService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.nio.charset.StandardCharsets;
 

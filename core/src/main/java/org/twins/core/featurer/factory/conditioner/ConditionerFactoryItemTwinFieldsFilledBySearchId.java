@@ -16,9 +16,9 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldSearchId;
-import org.twins.core.service.twin.TwinFieldRuleExecutionService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
+import org.twins.core.service.twinfield.TwinFieldRuleExecutionService;
 
 import java.util.*;
 

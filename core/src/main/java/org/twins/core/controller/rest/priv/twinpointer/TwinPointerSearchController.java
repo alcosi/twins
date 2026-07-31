@@ -32,7 +32,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinpointer.TwinPointerRestDTOMapper;
 import org.twins.core.mappers.rest.twinpointer.TwinPointerSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinPointerSearchService;
+import org.twins.core.service.twinpointer.TwinPointerSearchService;
 
 @Tag(name = ApiTag.TWIN_POINTER)
 @RestController

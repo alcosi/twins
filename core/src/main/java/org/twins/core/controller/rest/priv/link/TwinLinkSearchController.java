@@ -31,8 +31,8 @@ import org.twins.core.mappers.rest.link.TwinLinkSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.link.TwinLinkSearchService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinlink.TwinLinkSearchService;
 
 @Tag(name = ApiTag.LINK)
 @RestController

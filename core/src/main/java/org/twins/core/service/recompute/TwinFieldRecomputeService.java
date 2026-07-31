@@ -23,11 +23,11 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperRecomputed;
-import org.twins.core.service.twin.TwinPointerService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinfield.TwinFieldDecimalService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.*;
 import java.util.stream.Collectors;

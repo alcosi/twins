@@ -31,8 +31,8 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.tier.TierSearchDTOReverseMapper;
-import org.twins.core.service.domain.TierSearchService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.tier.TierSearchService;
 
 @Tag(name = ApiTag.TIER)
 @RestController

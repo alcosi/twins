@@ -4,7 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.UUID;
 

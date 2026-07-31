@@ -8,10 +8,10 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
-import static org.twins.core.service.twinclass.TwinClassFieldConditionService.MAX_RECURSION_DEPTH;
+import static org.twins.core.service.twinclassfield.TwinClassFieldConditionService.MAX_RECURSION_DEPTH;
 
 @Component
 public class TwinClassFieldConditionTreeRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldConditionTreeCreateDTOv1, TwinClassFieldConditionTree> {

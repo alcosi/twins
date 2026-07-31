@@ -29,9 +29,9 @@ import org.twins.core.enums.user.UserStatus;
 import org.twins.core.service.MapperModesResolveService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.Collections;
 import java.util.UUID;

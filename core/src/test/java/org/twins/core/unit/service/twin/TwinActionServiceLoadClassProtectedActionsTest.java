@@ -16,7 +16,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.service.twin.TwinActionService;
-import org.twins.core.service.validator.TwinValidatorService;
+import org.twins.core.service.twinvalidator.TwinValidatorService;
 
 import java.util.*;
 

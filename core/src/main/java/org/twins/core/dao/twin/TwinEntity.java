@@ -38,7 +38,7 @@ import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;

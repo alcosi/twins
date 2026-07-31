@@ -19,14 +19,9 @@ import org.twins.core.enums.action.TwinAction;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.PermissionService.PermissionDetectKey;
 import org.twins.core.service.twin.TwinActionService;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

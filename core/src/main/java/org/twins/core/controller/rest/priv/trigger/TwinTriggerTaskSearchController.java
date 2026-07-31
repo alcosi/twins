@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.trigger.TwinTriggerTaskRestDTOMapper;
 import org.twins.core.mappers.rest.trigger.TwinTriggerTaskSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.trigger.TwinTriggerTaskSearchService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskSearchService;
 
 @Tag(description = "", name = ApiTag.TRIGGER)
 @RestController
