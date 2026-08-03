@@ -13,14 +13,14 @@
 
 > Статус сверен с кодом (наличие `SearchService extends EntitySearchService` + `*CountController` + `sortField` в `SearchRqDTO`).
 
-**✅ DONE (18 API):** attachment, comment, twin_class, twin_class_fields, twin_status, link, data_list_option, domain_business_account, domain_business_account_user (пилот), factory, factory_branch, factory_condition, factory_condition_set, factory_eraser, factory_multiplier, factory_multiplier_filter, factory_pipeline, factory_pipeline_step.
+**✅ DONE (21 API):** attachment, comment, twin_class, twin_class_fields, twin_status, link, data_list_option, domain_business_account, domain_business_account_user (пилот), factory, factory_branch, factory_condition, factory_condition_set, factory_eraser, factory_multiplier, factory_multiplier_filter, factory_pipeline, factory_pipeline_step, data_list_option_projection, twin_validator_set, action_restriction_reason.
 *(Вне плана, но тоже готовы: twin_pointer TWINS-880, twin.)*
 
-**⬜ Осталось (~40 API):** i18n_translation; permission (7); projection, projection_type, scheduler, scheduler_log, tier, transition_trigger (6); twin_class_field_rule/condition/schema/dynamic_marker/freeze (5); twinflow_schema, twinflow/factory, twin_factory/trigger, twin_status/trigger, twin_trigger, twin_trigger_task (6); notification_schema, history_notification, history_notification_recipient, history_notification_recipient_collector (4); space_role, user_group, user_group/involve_assignee, user_group/involve_act_as_user, user, domain/user (6); featurer, data_list, data_list_option_projection, twin_validator_set, action_restriction_reason (5).
+**⬜ Осталось (~37 API):** i18n_translation; permission (7); projection, projection_type, scheduler, scheduler_log, tier, transition_trigger (6); twin_class_field_rule/condition/schema/dynamic_marker/freeze (5); twinflow_schema, twinflow/factory, twin_factory/trigger, twin_status/trigger, twin_trigger, twin_trigger_task (6); notification_schema, history_notification, history_notification_recipient, history_notification_recipient_collector (4); space_role, user_group, user_group/involve_assignee, user_group/involve_act_as_user, user, domain/user (6); featurer, data_list (2).
 
 **Следующий по порядку:** `i18n_translation`.
 
-**Замечание по версиям DTO:** при миграции часть сущностей получила `SearchRqDTOv2` (новая структура: `search` (SearchDTO-обёртка) + inline `sortField`/`sortDirection`, v1 оставлен для обратной совместимости) — attachment, comment, twin_status, link, data_list_option, twin_class, twin_class_fields. Остальные мигрированы в рамках существующего `SearchRqDTOv1` (factory-группа, domain_business_account).
+**Замечание по версиям DTO:** при миграции часть сущностей получила `SearchRqDTOv2` (новая структура: `search` (SearchDTO-обёртка) + inline `sortField`/`sortDirection`, v1 оставлен для обратной совместимости) — attachment, comment, twin_status, link, data_list_option, twin_class, twin_class_fields. Остальные мигрированы в рамках существующего `SearchRqDTOv1` (factory-группа, domain_business_account). Из новой партии: `twin_validator_set`, `data_list_option_projection` и `action_restriction_reason` мигрированы в рамках существующего `SearchRqDTOv1` (поиск переведён на `search` (SearchDTO-обёртку) + inline `sortField`/`sortDirection`, старая flat-структура v1 заменена без сохранения легаси).
 
 ## Паттерн (на примере DomainBusinessAccountUser)
 
@@ -1319,7 +1319,7 @@ GroupField — это список полей, по которым имеет с
     * `statusId`
     * `custom`
 
-### `POST /private/data_list_option_projection/search/v1` ✅ reviewed
+### `POST /private/data_list_option_projection/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `DataListOptionProjectionDTOv1`
 * **SearchRqDTO**: `DataListOptionProjectionSearchRqDTOv1`
@@ -1339,7 +1339,7 @@ GroupField — это список полей, по которым имеет с
     * `dstDataListOptionId`
     * `savedByUserId`
 
-### `POST /private/twin_validator_set/search/v1` ✅ reviewed
+### `POST /private/twin_validator_set/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `TwinValidatorSetDTOv1`
 * **SearchRqDTO**: `TwinValidatorSetSearchRqDTOv1`
@@ -1381,7 +1381,7 @@ GroupField — это список полей, по которым имеет с
     * `type`
     * `createdByUserId`
 
-### `POST /private/action_restriction_reason/search/v1` ✅ reviewed
+### `POST /private/action_restriction_reason/search/v1` — DONE (search + sort + count)
 
 * **DTO**: `ActionRestrictionReasonDTOv1`
 * **SearchRqDTO**: `ActionRestrictionReasonSearchRqDTOv1`
@@ -1409,7 +1409,7 @@ GroupField — это список полей, по которым имеет с
 6. ✅ factory (9 сущностей)
 7. ⬜ notification (4 сущности)
 8. ⬜ space → usergroup → user → domain (✅ domain_business_account + ✅ domain_business_account_user; ⬜ остальное)
-9. ⬜ system → datalist (✅ data_list_option) → validator → ✅ link → action
+9. ⬜ system → datalist (✅ data_list_option, ✅ data_list_option_projection) → ✅ twin_validator_set (validator) → ✅ link → ✅ action_restriction_reason (action)
 
 **Шаги на каждый API:**
 1. Создать `{Entity}SortField` enum

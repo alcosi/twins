@@ -34,14 +34,25 @@ public class ActionRestrictionReasonEntity implements EasyLoggable {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18nId;
 
-    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — see entity_code_convention.md §6.6.
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @Access(AccessType.PROPERTY)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
     private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
+
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
 
     @Override
     public String easyLog(Level level) {

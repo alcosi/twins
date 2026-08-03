@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +21,9 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.action.ActionRestrictionReasonEntity;
-import org.twins.core.dto.rest.action.ActionRestrictionReasonSearchRqDTOv1;
-import org.twins.core.dto.rest.action.ActionRestrictionReasonSearchRsDTOv1;
-import org.twins.core.mappers.rest.action.ActionRestrictionReasonRestDTOMapper;
+import org.twins.core.dto.rest.action.ActionRestrictionReasonCountRqDTOv1;
+import org.twins.core.dto.rest.action.ActionRestrictionReasonCountRsDTOv1;
+import org.twins.core.mappers.rest.action.ActionRestrictionReasonCountRestDTOMapper;
 import org.twins.core.mappers.rest.action.ActionRestrictionReasonSearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -36,34 +35,34 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.ACTION_RESTRICTION_REASON_MANAGE, Permissions.ACTION_RESTRICTION_REASON_VIEW})
-public class ActionRestrictionReasonSearchController extends ApiController {
-    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final PaginationMapper paginationMapper;
+public class ActionRestrictionReasonCountController extends ApiController {
     private final ActionRestrictionReasonSearchService actionRestrictionReasonSearchService;
     private final ActionRestrictionReasonSearchRestDTOReverseMapper actionRestrictionReasonSearchRestDTOReverseMapper;
-    private final ActionRestrictionReasonRestDTOMapper actionRestrictionReasonRestDTOMapper;
+    private final ActionRestrictionReasonCountRestDTOMapper actionRestrictionReasonCountRestDTOMapper;
+    private final PaginationMapper paginationMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "actionRestrictionReasonSearchV1", summary = "Action restriction reason search")
+    @Operation(operationId = "actionRestrictionReasonCountV1", summary = "Return count of action restriction reasons grouped by specified fields")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Action restriction reason search", content = {
+            @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = ActionRestrictionReasonSearchRsDTOv1.class))}),
+                    @Schema(implementation = ActionRestrictionReasonCountRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/action_restriction_reason/search/v1")
-    public ResponseEntity<?> actionRestrictionReasonSearchV1(
-            @MapperContextBinding(roots = ActionRestrictionReasonRestDTOMapper.class, response = ActionRestrictionReasonSearchRsDTOv1.class)
-            @Schema(hidden = true) MapperContext mapperContext,
+    @PostMapping(value = "/private/action_restriction_reason/count/v1")
+    public ResponseEntity<?> actionRestrictionReasonCountV1(
+            @MapperContextBinding(roots = ActionRestrictionReasonCountRestDTOMapper.class, response = ActionRestrictionReasonCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody ActionRestrictionReasonSearchRqDTOv1 request) {
-        ActionRestrictionReasonSearchRsDTOv1 rs = new ActionRestrictionReasonSearchRsDTOv1();
+            @RequestBody @Valid ActionRestrictionReasonCountRqDTOv1 request) {
+        ActionRestrictionReasonCountRsDTOv1 rs = new ActionRestrictionReasonCountRsDTOv1();
         try {
-            PaginationResult<ActionRestrictionReasonEntity> reasonsList = actionRestrictionReasonSearchService.search(
-                    actionRestrictionReasonSearchRestDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
+            var results =
+                    actionRestrictionReasonSearchService.countByGroupFields(actionRestrictionReasonSearchRestDTOReverseMapper
+                            .convert(request.getSearch(), mapperContext), request.getGroupFields(), pagination);
             rs
-                    .setPagination(paginationMapper.convert(reasonsList))
-                    .setActionRestrictionReasons(actionRestrictionReasonRestDTOMapper.convertCollection(reasonsList.getList(), mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+                    .setCounts(actionRestrictionReasonCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
