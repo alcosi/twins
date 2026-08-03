@@ -41,8 +41,17 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "history_id", insertable = false, updatable = false)
+    private HistoryEntity historySpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private HistoryEntity history;
 
     @Deprecated // for specification only
@@ -52,6 +61,11 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     private NotificationSchemaEntity notificationSchemaSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private NotificationSchemaEntity notificationSchema;
 
     public String easyLog(Level level) {
         return "historyNotificationTaskEntity[id:" + id + "]";

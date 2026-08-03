@@ -13,6 +13,7 @@ import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.scheduler.tasks.HistoryNotificationTask;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.notification.HistoryNotificationTaskService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -29,13 +30,17 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     private final HistoryNotificationTaskRepository historyNotificationTaskRepository;
     private final HistoryService historyService;
+    private final HistoryNotificationTaskService historyNotificationTaskService;
 
     @Autowired
     public SchedulerHistoryNotificationTaskRunner(@Qualifier("historyNotificationTaskExecutor") Executor taskExecutor,
-                                                  HistoryNotificationTaskRepository historyNotificationTaskRepository, HistoryService historyService) {
+                                                  HistoryNotificationTaskRepository historyNotificationTaskRepository,
+                                                  HistoryService historyService,
+                                                  HistoryNotificationTaskService historyNotificationTaskService) {
         super(taskExecutor);
         this.historyNotificationTaskRepository = historyNotificationTaskRepository;
         this.historyService = historyService;
+        this.historyNotificationTaskService = historyNotificationTaskService;
     }
 
     @Override
@@ -46,6 +51,8 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
     @Override
     protected Collection<HistoryNotificationTaskEntity> setStatusAndSave(Collection<HistoryNotificationTaskEntity> collectedEntities) {
         try {
+            // order matters: history must be populated before loadHistoryActors reads task.getHistory()
+            historyNotificationTaskService.loadHistory(collectedEntities);
             loadHistoryActors(collectedEntities);
         } catch (ServiceException e) {
             throw new RuntimeException(e);
@@ -61,6 +68,7 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
         }
         var historyEntities = tasks.stream().map(HistoryNotificationTaskEntity::getHistory).toList();
         historyService.loadUser(historyEntities);
+        historyService.loadTwin(historyEntities);
     }
 
     @Override

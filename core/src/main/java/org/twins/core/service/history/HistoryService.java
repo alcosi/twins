@@ -79,6 +79,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        loadTwin(entity);
         return checkDomainAccessDenied(entity.getTwin().getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
@@ -518,6 +519,17 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                         HistoryEntity::getMachineUser,
                         HistoryEntity::setMachineUser)
         );
+    }
+
+    public void loadTwin(HistoryEntity src) throws ServiceException {
+        loadTwin(Collections.singletonList(src));
+    }
+
+    public void loadTwin(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
     }
 
     public void loadTwinClassField(HistoryEntity src) throws ServiceException {
