@@ -1,9 +1,7 @@
 package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -43,28 +41,56 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
     @Column(name = "changed_at")
     private Timestamp changedAt;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projection_type_id", insertable = false, updatable = false)
-    private ProjectionTypeEntity ProjectionType;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private ProjectionTypeEntity projectionTypeSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ProjectionTypeEntity projectionType;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_data_list_option_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListOptionEntity srcDataListOptionSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListOptionEntity srcDataListOption;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_data_list_option_id", insertable = false, updatable = false)
-    private DataListOptionEntity dstDataListOption;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private DataListOptionEntity dstDataListOptionSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListOptionEntity dstDataListOption;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "saved_by_user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity savedByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity savedByUser;
 
     @Override

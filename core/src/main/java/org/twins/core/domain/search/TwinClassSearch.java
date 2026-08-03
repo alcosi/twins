@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.twinclass.OwnerType;
@@ -72,19 +73,15 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     }
 
     public TwinClassSearch addTwinClassId(UUID twinClassId, boolean exclude) {
-        if (exclude)
-            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassId);
-        else
-            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
-        return this;
+        return SetUtils.safeAdd(this, twinClassId, exclude,
+                this::getTwinClassIdList, this::setTwinClassIdList,
+                this::getTwinClassIdExcludeList, this::setTwinClassIdExcludeList);
     }
 
     public TwinClassSearch addTwinClassId(Collection<UUID> twinClassIdSet, boolean exclude) {
-        if (exclude)
-            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassIdSet);
-        else
-            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
-        return this;
+        return SetUtils.safeAddAll(this, twinClassIdSet, exclude,
+                this::getTwinClassIdList, this::setTwinClassIdList,
+                this::getTwinClassIdExcludeList, this::setTwinClassIdExcludeList);
     }
 
     public static final ImmutableList<Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>>> SET_FIELD = ImmutableList.of(

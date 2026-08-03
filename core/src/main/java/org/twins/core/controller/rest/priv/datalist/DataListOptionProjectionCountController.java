@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.*;
-import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
-import org.twins.core.dto.rest.datalist.DataListOptionProjectionSearchRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionProjectionSearchRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListOptionProjectionRestDTOMapper;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
+import org.twins.core.controller.rest.annotation.SimplePaginationParams;
+import org.twins.core.dto.rest.datalist.DataListOptionProjectionCountRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionProjectionCountRsDTOv1;
+import org.twins.core.mappers.rest.datalist.DataListOptionProjectionCountRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionProjectionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -35,34 +37,34 @@ import org.twins.core.service.permission.Permissions;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_VIEW})
-public class DataListOptionProjectionSearchController extends ApiController {
-    private final PaginationMapper paginationMapper;
+public class DataListOptionProjectionCountController extends ApiController {
     private final DataListOptionProjectionSearchService dataListOptionProjectionSearchService;
     private final DataListOptionProjectionSearchDTOReverseMapper dataListOptionProjectionSearchDTOReverseMapper;
-    private final DataListOptionProjectionRestDTOMapper dataListOptionProjectionRestDTOMapper;
-    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final DataListOptionProjectionCountRestDTOMapper dataListOptionProjectionCountRestDTOMapper;
+    private final PaginationMapper paginationMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "dataListOptionProjectionSearchV1", summary = "Returns lists data list option projections")
+    @Operation(operationId = "dataListOptionProjectionCountV1", summary = "Return count of data list option projections grouped by specified fields")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Data list option projections prepared", content = {
+            @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListOptionProjectionSearchRsDTOv1.class))}),
+                    @Schema(implementation = DataListOptionProjectionCountRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/data_list_option_projection/search/v1")
-    @Loggable(rsBodyThreshold = 1000)
-    public ResponseEntity<?> dataListOptionProjectionSearchV1(
-            @MapperContextBinding(roots = DataListOptionProjectionRestDTOMapper.class, response = DataListOptionProjectionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    @PostMapping(value = "/private/data_list_option_projection/count/v1")
+    public ResponseEntity<?> dataListOptionProjectionCountV1(
+            @MapperContextBinding(roots = DataListOptionProjectionCountRestDTOMapper.class, response = DataListOptionProjectionCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody DataListOptionProjectionSearchRqDTOv1 request) {
-        DataListOptionProjectionSearchRsDTOv1 rs = new DataListOptionProjectionSearchRsDTOv1();
+            @RequestBody @Valid DataListOptionProjectionCountRqDTOv1 request) {
+        DataListOptionProjectionCountRsDTOv1 rs = new DataListOptionProjectionCountRsDTOv1();
         try {
-            PaginationResult<DataListOptionProjectionEntity> dataListOptionProjectionsList = dataListOptionProjectionSearchService
-                    .search(dataListOptionProjectionSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
+            var results =
+                    dataListOptionProjectionSearchService.countByGroupFields(dataListOptionProjectionSearchDTOReverseMapper
+                            .convert(request.getSearch(), mapperContext), request.getGroupFields(), pagination);
             rs
-                    .setPagination(paginationMapper.convert(dataListOptionProjectionsList))
-                    .setDataListOptionProjections(dataListOptionProjectionRestDTOMapper.convertCollection(dataListOptionProjectionsList.getList(), mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+                    .setCounts(dataListOptionProjectionCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
