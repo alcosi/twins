@@ -115,15 +115,15 @@ public class TwinRecomputeService {
                 TwinFieldDecimalEntity::getId,
                 TwinFieldDecimalEntity::getTwinClassFieldId,
                 TwinFieldDecimalEntity::getTwinClassField);
-        twinClassFieldService.loadRecomputeOnFieldV2(decimalFieldsKit.getGroupingObjectMap().values());
+        twinClassFieldService.loadRecomputeOnField(decimalFieldsKit.getGroupingObjectMap().values());
         List<TwinFieldDecimalEntity> hasRecomputes = null;
         List<TwinRecomputeOnFieldEntity> recomputeOnFields = null;
         for (var groupedField : decimalFieldsKit.getGroupedList()) {
             var twinClassField = groupedField.left;
             var twinFieldsDecimal = groupedField.right;
-            if (KitUtils.isNotEmpty(twinClassField.getRecomputeOnFieldV2())) {
+            if (KitUtils.isNotEmpty(twinClassField.getRecomputeOnField())) {
                 hasRecomputes = CollectionUtils.safeAdd(hasRecomputes, twinFieldsDecimal);
-                recomputeOnFields = CollectionUtils.safeAdd(recomputeOnFields, twinClassField.getRecomputeOnFieldV2().getCollection());
+                recomputeOnFields = CollectionUtils.safeAdd(recomputeOnFields, twinClassField.getRecomputeOnField().getCollection());
             }
         }
         if (hasRecomputes == null)
@@ -134,7 +134,7 @@ public class TwinRecomputeService {
         twinRecomputeOnFieldService.loadValidators(recomputeOnFields);
         for (var triggerField : decimalFieldsKit.getCollection()) {
             TwinEntity publisherTwin = triggerField.getTwin();
-            for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnFieldV2()) {
+            for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnField()) {
                 if (!passesCondition(recomputeOnField, triggerField)
                         || !passesValidatorRules(publisherTwin, recomputeOnField.getValidatorRulesKit(), TwinRecomputeOnFieldValidatorRuleEntity::isActive)) {
                     continue; // publisher twin failed every active validator set for this rule
@@ -163,15 +163,15 @@ public class TwinRecomputeService {
                 TwinEntity::getId,
                 TwinEntity::getTwinClassId,
                 TwinEntity::getTwinClass);
-        twinClassService.loadRecomputeOnActionV2(twinKit.getGroupingObjectMap().values());
+        twinClassService.loadRecomputeOnAction(twinKit.getGroupingObjectMap().values());
         List<TwinEntity> hasRecomputes = null;
         List<TwinRecomputeOnActionEntity> recomputeOnActions = null;
         for (var groupedTwin : twinKit.getGroupedList()) {
             var twinClass = groupedTwin.left;
             var twinsByTwinClass = groupedTwin.right;
-            if (KitUtils.isNotEmpty(twinClass.getRecomputeOnActionV2())) {
+            if (KitUtils.isNotEmpty(twinClass.getRecomputeOnAction())) {
                 hasRecomputes = CollectionUtils.safeAdd(hasRecomputes, twinsByTwinClass);
-                recomputeOnActions = CollectionUtils.safeAdd(recomputeOnActions, twinClass.getRecomputeOnActionV2().getCollection());
+                recomputeOnActions = CollectionUtils.safeAdd(recomputeOnActions, twinClass.getRecomputeOnAction().getCollection());
             }
         }
         if (hasRecomputes == null)
@@ -181,7 +181,7 @@ public class TwinRecomputeService {
         twinRecomputeOnActionService.loadSubscriber(recomputeOnActions);
         twinRecomputeOnActionService.loadValidators(recomputeOnActions);
         for (var twin : twinKit.getCollection()) {
-            for (var recomputeOnAction : twin.getTwinClass().getRecomputeOnActionV2()) {
+            for (var recomputeOnAction : twin.getTwinClass().getRecomputeOnAction()) {
                 if (!passesValidatorRules(twin, recomputeOnAction.getValidatorRulesKit(), TwinRecomputeOnActionValidatorRuleEntity::isActive)) {
                     continue; // publisher twin failed every active validator set for this rule
                 }

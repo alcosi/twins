@@ -25,12 +25,12 @@ import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.recompute.TwinRecomputeOnActionEntity;
+import org.twins.core.dao.recompute.TwinRecomputeOnActionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
-import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
@@ -114,9 +114,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Lazy
     private final FaceService faceService;
     @Lazy
-    private final org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionRepository twinClassFieldRecomputeOnActionRepository;
-    @Lazy
-    private final org.twins.core.dao.recompute.TwinRecomputeOnActionRepository twinRecomputeOnActionRepository;
+    private final TwinRecomputeOnActionRepository twinRecomputeOnActionRepository;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -782,47 +780,16 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     /**
-     * Populates {@link TwinClassEntity#getRecomputeOnAction()} — OnAction recompute rules where
-     * each source class is the publisher, grouped by {@link org.twins.core.enums.action.TwinAction}.
-     * One batch SQL via the cached
-     * {@link org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnActionRepository#findByPublisherTwinClassIdIn(Collection)}.
+     * Populates {@link TwinClassEntity#getRecomputeOnAction()} — OnAction recompute rules (TWINS-893 new
+     * {@code twin_recompute_on_action} table) where each source class is the publisher, grouped by
+     * {@link org.twins.core.enums.action.TwinAction}. One batch SQL via the cached
+     * {@link org.twins.core.dao.recompute.TwinRecomputeOnActionRepository#findByPublisherTwinClassIdIn(Collection)}.
      */
-    @Deprecated
     public void loadRecomputeOnAction(Collection<TwinClassEntity> classes) {
         if (classes == null || classes.isEmpty()) return;
         Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
         for (TwinClassEntity c : classes) {
             if (c.getRecomputeOnAction() == null) {
-                needLoad.add(c);
-            }
-        }
-        if (needLoad.isEmpty()) return;
-
-        KitGrouped<TwinClassFieldRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
-                twinClassFieldRecomputeOnActionRepository.findByPublisherTwinClassIdIn(needLoad.getIdSet()),
-                TwinClassFieldRecomputeOnActionEntity::getId,
-                TwinClassFieldRecomputeOnActionEntity::getPublisherTwinClassId);
-
-        for (TwinClassEntity c : needLoad) {
-            List<TwinClassFieldRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
-            c.setRecomputeOnAction(new KitGrouped<>(
-                    classRules,
-                    TwinClassFieldRecomputeOnActionEntity::getId,
-                    TwinClassFieldRecomputeOnActionEntity::getPublisherTwinAction));
-        }
-    }
-
-    /**
-     * Populates {@link TwinClassEntity#getRecomputeOnActionV2()} — OnAction recompute rules (TWINS-893 new
-     * {@code twin_recompute_on_action} table) where each source class is the publisher, grouped by
-     * {@link org.twins.core.enums.action.TwinAction}. One batch SQL via the cached
-     * {@link org.twins.core.dao.recompute.TwinRecomputeOnActionRepository#findByPublisherTwinClassIdIn(Collection)}.
-     */
-    public void loadRecomputeOnActionV2(Collection<TwinClassEntity> classes) {
-        if (classes == null || classes.isEmpty()) return;
-        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
-        for (TwinClassEntity c : classes) {
-            if (c.getRecomputeOnActionV2() == null) {
                 needLoad.add(c);
             }
         }
@@ -835,7 +802,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         for (TwinClassEntity c : needLoad) {
             List<TwinRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
-            c.setRecomputeOnActionV2(new KitGrouped<>(
+            c.setRecomputeOnAction(new KitGrouped<>(
                     classRules,
                     TwinRecomputeOnActionEntity::getId,
                     TwinRecomputeOnActionEntity::getPublisherTwinAction));

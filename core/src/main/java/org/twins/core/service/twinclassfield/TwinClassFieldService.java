@@ -14,7 +14,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +28,6 @@ import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
 import org.twins.core.dao.recompute.TwinRecomputeOnFieldRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
-import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldEntity;
-import org.twins.core.dao.twinclassfield.TwinClassFieldRecomputeOnFieldRepository;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
@@ -65,12 +62,10 @@ import java.util.stream.Collectors;
 @Lazy
 @RequiredArgsConstructor
 public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClassFieldEntity> {
-
     private final TwinClassFieldRepository twinClassFieldRepository;
     private final I18nService i18nService;
     private final EntitySmartService entitySmartService;
     private final PermissionRepository permissionRepository;
-    private final FeaturerRepository featurerRepository;
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -85,8 +80,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final TwinValidatorSetService twinValidatorSetService;
     @Lazy
     private final PermissionService permissionService;
-    @Lazy
-    private final TwinClassFieldRecomputeOnFieldRepository twinClassFieldRecomputeOnFieldRepository;
     @Lazy
     private final TwinRecomputeOnFieldRepository twinRecomputeOnFieldRepository;
 
@@ -210,26 +203,12 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
     }
 
-    @Deprecated
     public void loadRecomputeOnField(Collection<TwinClassFieldEntity> fields) {
         loadKit(
                 fields,
                 TwinClassFieldEntity::getId,
                 TwinClassFieldEntity::getRecomputeOnField,
                 TwinClassFieldEntity::setRecomputeOnField,
-                twinClassFieldRecomputeOnFieldRepository::findByPublisherTwinClassFieldIdIn,
-                TwinClassFieldRecomputeOnFieldEntity::getId,
-                TwinClassFieldRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
-                TwinClassFieldRecomputeOnFieldEntity::setPublisherTwinClassField
-        );
-    }
-
-    public void loadRecomputeOnFieldV2(Collection<TwinClassFieldEntity> fields) {
-        loadKit(
-                fields,
-                TwinClassFieldEntity::getId,
-                TwinClassFieldEntity::getRecomputeOnFieldV2,
-                TwinClassFieldEntity::setRecomputeOnFieldV2,
                 twinRecomputeOnFieldRepository::findByPublisherTwinClassFieldIdIn,
                 TwinRecomputeOnFieldEntity::getId,
                 TwinRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
