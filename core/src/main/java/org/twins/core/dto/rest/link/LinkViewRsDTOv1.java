@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "LinkViewRsV1")
 public class LinkViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - link")
-    public LinkDTOv2 link;
+    public LinkDTOv1 link;
 }

@@ -17,7 +17,7 @@ import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
-import org.twins.core.dto.rest.link.LinkDTOv2;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.notification.*;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
@@ -95,7 +95,7 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap;
 
     @Schema(description = "related link map", example = "{link map}")
-    public Map<UUID, LinkDTOv2> linkMap;
+    public Map<UUID, LinkDTOv1> linkMap;
 
     @Schema(description = "related factory map", example = "{factory map}")
     public Map<UUID, FactoryDTOv1> factoryMap;
@@ -235,7 +235,7 @@ public class RelatedObjectsDTOv1 {
             return (T) twinflowMap.get(id);
         } else if (relatedObjectClass == TwinflowSchemaDTOv1.class) {
             return (T) twinflowSchemaMap.get(id);
-        } else if (relatedObjectClass == LinkDTOv2.class) {
+        } else if (relatedObjectClass == LinkDTOv1.class) {
             return (T) linkMap.get(id);
         } else if (relatedObjectClass == FactoryDTOv1.class) {
             return (T) factoryMap.get(id);

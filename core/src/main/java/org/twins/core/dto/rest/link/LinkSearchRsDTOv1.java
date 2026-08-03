@@ -20,5 +20,5 @@ public class LinkSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - link list")
-    public List<LinkDTOv2> links;
+    public List<LinkDTOv1> links;
 }

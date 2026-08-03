@@ -44,7 +44,7 @@ import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
-import org.twins.core.dto.rest.link.LinkDTOv2;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.notification.*;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
@@ -165,7 +165,7 @@ public class RelatedObjectsRestDTOConverter {
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
-        Map<UUID, LinkDTOv2> linkMap = new HashMap<>();
+        Map<UUID, LinkDTOv1> linkMap = new HashMap<>();
         Map<UUID, TwinTriggerDTOv1> triggerMap = new HashMap<>();
         Map<UUID, UserDTOv1> userMap = new HashMap<>();
         Map<UUID, UserGroupDTOv1> userGroupMap = new HashMap<>();

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dto.rest.link.LinkDTOv2;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -27,7 +27,7 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = LinkMode.class)
-public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv2> {
+public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1> {
     private final LinkService linkService;
     private final PermissionService permissionService;
 
@@ -40,7 +40,7 @@ public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv2
     private final UserRestDTOMapper userDTOMapper;
 
     @Override
-    public void map(LinkEntity src, LinkDTOv2 dst, MapperContext mapperContext) throws Exception {
+    public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(LinkMode.DETAILED)) {
             case DETAILED, MANAGED:
                 if (mapperContext.hasMode(LinkMode.MANAGED) && !permissionService.currentUserHasPermission(Permissions.LINK_MANAGE))
