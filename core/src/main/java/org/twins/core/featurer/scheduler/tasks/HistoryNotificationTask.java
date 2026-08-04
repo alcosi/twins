@@ -172,12 +172,12 @@ public class HistoryNotificationTask implements Runnable {
 
         if (history.getTwinClassFieldId() == null) {
             return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndNotificationSchemaIdAndActiveTrue(
-                    history.getHistoryType().name(),
+                    history.getHistoryType(),
                     matchingClassIds,
                     historyNotificationEntity.getNotificationSchemaId());
         } else {
             return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndTwinClassFieldIdAndNotificationSchemaIdAndActiveTrue(
-                    history.getHistoryType().name(),
+                    history.getHistoryType(),
                     matchingClassIds,
                     history.getTwinClassFieldId(),
                     historyNotificationEntity.getNotificationSchemaId());
