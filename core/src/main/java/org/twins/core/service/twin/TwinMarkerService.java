@@ -33,6 +33,8 @@ import org.twins.core.service.twinclass.TwinClassDynamicMarkerService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -167,7 +169,8 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                 TwinMarkerEntity twinMarkerEntity = new TwinMarkerEntity()
                         .setTwinId(twinEntity.getId())
                         .setTwin(twinEntity)
-                        .setMarkerDataListOptionId(marker);
+                        .setMarkerDataListOptionId(marker)
+                        .setCreatedAt(Timestamp.from(Instant.now()));
                 validateEntityAndThrow(twinMarkerEntity, EntitySmartService.EntityValidateMode.beforeSave);
                 //todo add history
                 twinChangesCollector.add(twinMarkerEntity);
