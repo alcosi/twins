@@ -6,10 +6,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_47,
@@ -17,12 +14,16 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public abstract class RecipientResolver extends FeaturerTwins {
-    public void resolve(HistoryEntity history, Set<UUID> recipientIds, HashMap<String, String> recipientParams) throws ServiceException {
+
+    /**
+     * Batch contract — resolves recipients for a group of histories sharing the same featurer params.
+     * {@code recipientIdsByHistory} is the shared accumulator (history -> recipient ids) owned by the caller;
+     * the histories to resolve are exactly its keySet, so there is no separate history list to keep in sync.
+     */
+    public void resolveBatch(Map<HistoryEntity, Set<UUID>> recipientIdsByHistory, HashMap<String, String> recipientParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, recipientParams);
-        resolve(history, recipientIds, properties);
+        resolveBatch(recipientIdsByHistory, properties);
     }
 
-    protected abstract void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException;
-
-
+    public abstract void resolveBatch(Map<HistoryEntity, Set<UUID>> recipientIdsByHistory, Properties properties) throws ServiceException;
 }

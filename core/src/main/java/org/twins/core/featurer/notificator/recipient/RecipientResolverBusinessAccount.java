@@ -16,7 +16,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4706,
         name = "Business Account Recipient Resolver",
         description = "Resolves all users within the business account as notification recipients.")
-public class RecipientResolverBusinessAccount extends RecipientResolver {
+public class RecipientResolverBusinessAccount extends RecipientResolverAtomic {
 
     @Autowired
     private BusinessAccountUserService businessAccountUserService;

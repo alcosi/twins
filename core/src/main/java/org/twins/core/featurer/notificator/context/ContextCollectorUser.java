@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
-public abstract class ContextCollectorUser extends ContextCollector {
+public abstract class ContextCollectorUser extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");

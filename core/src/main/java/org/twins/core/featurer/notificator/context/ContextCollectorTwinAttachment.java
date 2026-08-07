@@ -24,7 +24,7 @@ import java.util.UUID;
         name = "Twin Attachment Context Collector",
         description = "Collects twin attachment URL. Takes first attachment by order.")
 @RequiredArgsConstructor
-public class ContextCollectorTwinAttachment extends ContextCollector {
+public class ContextCollectorTwinAttachment extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect attachment url key", description = "", order = 1, optional = true, defaultValue = "TWIN_ATTACHMENT_URL")
     public static final FeaturerParamString collectKey = new FeaturerParamString("collectKey");

@@ -8,17 +8,22 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.history.HistoryEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorEntity;
 import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.notification.HistoryNotificationRecipientRepository;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientUpdate;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
@@ -27,6 +32,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
@@ -39,6 +45,8 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
     private final I18nService i18nService;
     private final AuthService authService;
     private final UserService userService;
+    private final HistoryNotificationRecipientCollectorService historyNotificationRecipientCollectorService;
+    private final FeaturerService featurerService;
 
     @Override
     public CrudRepository<HistoryNotificationRecipientEntity, UUID> entityRepository() {
@@ -122,5 +130,46 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
                 HistoryNotificationRecipientEntity::getCreatedByUserId,
                 HistoryNotificationRecipientEntity::getCreatedByUser,
                 HistoryNotificationRecipientEntity::setCreatedByUser);
+    }
+
+    public void loadCollectors(Collection<HistoryNotificationRecipientEntity> entities) {
+        loadKit(
+                entities,
+                HistoryNotificationRecipientEntity::getId,
+                HistoryNotificationRecipientEntity::getCollectors,
+                HistoryNotificationRecipientEntity::setCollectors,
+                historyNotificationRecipientCollectorService::findByHistoryNotificationRecipientIdIn,
+                HistoryNotificationRecipientCollectorEntity::getId,
+                HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipientId,
+                HistoryNotificationRecipientCollectorEntity::setHistoryNotificationRecipient);
+    }
+
+    public Set<UUID> recipientResolve(HistoryNotificationRecipientEntity recipient, HistoryEntity history) throws ServiceException {
+        var partitioned = recipient.getCollectors().getList().stream()
+                .collect(Collectors.partitioningBy(HistoryNotificationRecipientCollectorEntity::getExclude));
+
+        var include = resolveRecipient(history, partitioned.get(false));
+        if (include.isEmpty()) {
+            return include;
+        }
+
+        var excludeCollectors = partitioned.get(true);
+        if (CollectionUtils.isNotEmpty(excludeCollectors)) {
+            var exclude = resolveRecipient(history, excludeCollectors);
+            include.removeAll(exclude);
+        }
+
+        return include;
+    }
+
+    private Set<UUID> resolveRecipient(HistoryEntity history, List<HistoryNotificationRecipientCollectorEntity> collectors) throws ServiceException {
+        Set<UUID> result = new HashSet<>();
+        Map<HistoryEntity, Set<UUID>> batch = new HashMap<>();
+        batch.put(history, result);
+        for (HistoryNotificationRecipientCollectorEntity collector : collectors) {
+            RecipientResolver resolver = featurerService.getFeaturer(collector.getRecipientResolverFeaturerId(), RecipientResolver.class);
+            resolver.resolveBatch(batch, collector.getRecipientResolverParams());
+        }
+        return result;
     }
 }

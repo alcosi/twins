@@ -13,7 +13,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.NotificationContextCollectorEntity;
-import org.twins.core.dao.notification.NotificationContextCollectorRepository;
 import org.twins.core.dao.notification.NotificationContextEntity;
 import org.twins.core.dao.notification.NotificationContextRepository;
 import org.twins.core.featurer.notificator.context.ContextCollector;
@@ -32,7 +31,7 @@ import java.util.function.Function;
 public class NotificationContextService extends EntitySecureFindServiceImpl<NotificationContextEntity> {
     private final FeaturerService featurerService;
     private final NotificationContextRepository notificationContextRepository;
-    private final NotificationContextCollectorRepository notificationContextCollectorRepository;
+    private final NotificationContextCollectorService notificationContextCollectorService;
 
     @Override
     public CrudRepository<NotificationContextEntity, UUID> entityRepository() {
@@ -55,15 +54,16 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
     }
 
     public List<NotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
-        //todo perhaps this can be cached
-        return notificationContextCollectorRepository.findAllByNotificationContextId(contextId);
+        return notificationContextCollectorService.findByContextId(contextId);
     }
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {
         Map<String, String> context = new HashMap<>();
+        Map<HistoryEntity, Map<String, String>> batch = new HashMap<>();
+        batch.put(history, context);
         for (NotificationContextCollectorEntity contextCollector : getContextCollectors(contextId)) {
             ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturerId(), ContextCollector.class);
-            context = collector.collectData(history, context, contextCollector.getContextCollectorParams());
+            collector.collectDataBatch(batch, contextCollector.getContextCollectorParams());
         }
         return context;
     }

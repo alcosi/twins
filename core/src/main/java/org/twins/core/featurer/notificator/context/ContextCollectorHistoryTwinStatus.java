@@ -18,7 +18,7 @@ import java.util.Properties;
         name = "Context collector twin status from history",
         description = "Collect form twin (status)")
 @Slf4j
-public class ContextCollectorHistoryTwinStatus extends ContextCollector {
+public class ContextCollectorHistoryTwinStatus extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect src status", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectSrcStatus = new FeaturerParamBoolean("collectSrcStatus");

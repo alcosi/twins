@@ -21,7 +21,7 @@ import java.util.Properties;
         name = "Twin Class Icon Context Collector",
         description = "Collects twin class icon URL (dark or light theme).")
 @RequiredArgsConstructor
-public class ContextCollectorTwinClassIcon extends ContextCollector {
+public class ContextCollectorTwinClassIcon extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect icon url key", description = "", order = 1, optional = true, defaultValue = "TWIN_CLASS_ICON_URL")
     public static final FeaturerParamString collectKey = new FeaturerParamString("collectKey");

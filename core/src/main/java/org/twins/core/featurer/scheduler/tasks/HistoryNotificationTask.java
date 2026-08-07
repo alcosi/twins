@@ -18,7 +18,7 @@ import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.history.HistoryRecipientService;
+import org.twins.core.service.notification.HistoryNotificationRecipientService;
 import org.twins.core.service.notification.HistoryNotificationService;
 import org.twins.core.service.notification.NotificationChannelEventService;
 import org.twins.core.service.notification.NotificationContextService;
@@ -43,7 +43,7 @@ public class HistoryNotificationTask implements Runnable {
     @Autowired
     private NotificationChannelEventService notificationChannelEventService;
     @Autowired
-    private HistoryRecipientService historyRecipientService;
+    private HistoryNotificationRecipientService historyNotificationRecipientService;
     @Autowired
     private HistoryNotificationService historyNotificationService;
     @Autowired
@@ -80,7 +80,7 @@ public class HistoryNotificationTask implements Runnable {
             if (!allConfigs.isEmpty()) {
                 historyNotificationService.loadNotificationChannelEvent(allConfigs);
                 historyNotificationService.loadHistoryNotificationRecipient(allConfigs);
-                historyRecipientService.loadCollectors(allConfigs.stream()
+                historyNotificationRecipientService.loadCollectors(allConfigs.stream()
                         .map(HistoryNotificationEntity::getHistoryNotificationRecipient)
                         .filter(Objects::nonNull)
                         .toList());
@@ -168,7 +168,7 @@ public class HistoryNotificationTask implements Runnable {
                 for (var config : entry.getValue()) {
                     // configs are already validator-filtered in HistoryNotificationService.findConfigsForTasks
                     // todo create mechanism to group recipient resolvers and call batch resolve
-                    recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
+                    recipientIds.addAll(historyNotificationRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
                 }
 
                 if (recipientIds.isEmpty()) {

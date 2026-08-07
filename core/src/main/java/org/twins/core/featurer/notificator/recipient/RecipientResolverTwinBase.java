@@ -19,7 +19,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4704,
         name = "Recipient Resolver Twin Base",
         description = "Resolve users from history and history twin")
-public class RecipientResolverTwinBase extends RecipientResolver {
+public class RecipientResolverTwinBase extends RecipientResolverAtomic {
 
     @FeaturerParam(name = "resolve history actor user", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean resolveActor = new FeaturerParamBoolean("resolveActor");

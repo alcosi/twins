@@ -21,7 +21,7 @@ import java.util.Properties;
         name = "Twin Class Context Collector",
         description = "Collects twin class information (id, key, name, description).")
 @RequiredArgsConstructor
-public class ContextCollectorTwinClass extends ContextCollector {
+public class ContextCollectorTwinClass extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");

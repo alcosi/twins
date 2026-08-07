@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4705,
         name = "Recipient Resolver Head Twin Base",
         description = "The underlying data from head twin that will be added/deleted form result set")
-public class RecipientResolverHeadTwinBase extends RecipientResolver {
+public class RecipientResolverHeadTwinBase extends RecipientResolverAtomic {
     @FeaturerParam(name = "resolve history twin creator user", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean resolveHeadTwinCreator = new FeaturerParamBoolean("resolveHeadTwinCreator");
 

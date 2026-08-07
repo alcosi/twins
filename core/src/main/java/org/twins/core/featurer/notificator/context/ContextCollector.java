@@ -16,10 +16,15 @@ import java.util.Properties;
 @Slf4j
 public abstract class ContextCollector extends FeaturerTwins {
 
-    public Map<String, String> collectData(HistoryEntity history, Map<String, String> context, HashMap<String, String> recipientParams) throws ServiceException {
+    /**
+     * Batch contract — collects context for a group of histories sharing the same featurer params.
+     * {@code contextByHistory} is the shared per-history context accumulator (history -> context map) owned by
+     * the caller; the histories to collect for are exactly its keySet, so there is no separate history list.
+     */
+    public void collectDataBatch(Map<HistoryEntity, Map<String, String>> contextByHistory, HashMap<String, String> recipientParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, recipientParams);
-        return collectData(history, context, properties);
+        collectDataBatch(contextByHistory, properties);
     }
 
-    protected abstract Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException;
+    public abstract void collectDataBatch(Map<HistoryEntity, Map<String, String>> contextByHistory, Properties properties) throws ServiceException;
 }
