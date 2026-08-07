@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
-import org.twins.core.dao.notification.HistoryNotificationRepository;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
@@ -23,7 +22,6 @@ import org.twins.core.service.history.HistoryRecipientService;
 import org.twins.core.service.notification.HistoryNotificationService;
 import org.twins.core.service.notification.NotificationChannelEventService;
 import org.twins.core.service.notification.NotificationContextService;
-import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -35,9 +33,7 @@ import java.util.concurrent.TimeUnit;
 @Scope("prototype")
 @Slf4j
 public class HistoryNotificationTask implements Runnable {
-    private final HistoryNotificationTaskEntity historyNotificationEntity;
-    @Autowired
-    private HistoryNotificationRepository historyNotificationRepository;
+    private final List<HistoryNotificationTaskEntity> tasks;
     @Autowired
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
     @Autowired
@@ -51,48 +47,103 @@ public class HistoryNotificationTask implements Runnable {
     @Autowired
     private HistoryNotificationService historyNotificationService;
     @Autowired
-    private TwinValidatorSetService twinValidatorSetService;
-    @Autowired
     private AuthService authService;
 
-    private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
+    // per-history context cache: historyId -> (contextId -> context). Keyed by historyId because the
+    // collected context depends on the HistoryEntity, not just on contextId (different histories with
+    // the same contextId produce different contexts).
+    private final Map<UUID, Map<UUID, Map<String, String>>> contextCache = new HashMap<>();
     private static final Cache<UUID, Set<String>> batchEventCache = Caffeine.newBuilder()
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
-    public HistoryNotificationTask(HistoryNotificationTaskEntity historyNotificationEntity) {
-        this.historyNotificationEntity = historyNotificationEntity;
+    public HistoryNotificationTask(List<HistoryNotificationTaskEntity> tasks) {
+        this.tasks = tasks;
     }
 
     @Override
     public void run() {
         try {
-            var history = historyNotificationEntity.getHistory();
-            var twin = history.getTwin();
-
-            LoggerUtils.logSession(history.getHistoryBatchId());
             LoggerUtils.logController("historyNotificationTask");
-            LoggerUtils.logPrefix("HISTORY[" + historyNotificationEntity.getId() + "]:");
-            log.info("Performing history notification task: {}", historyNotificationEntity.logDetailed());
+            log.info("Performing batch history notification task: {} task(s)", tasks.size());
 
-            if (twin.getTwinClass().getDomainId() == null) {
+            // chunk is one domain (guaranteed by runner) — set ApiUser once so bulk validator filter
+            // inside findConfigsForTasks can read domainId; processTask re-sets it per history for the locale
+            setChunkApiUser(tasks);
+            // 1. one bulk query for configs across the whole chunk + in-memory match + bulk validator filter
+            Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask =
+                    historyNotificationService.findConfigsForTasks(tasks);
+
+            // 2. bulk-load config relations ONCE for the whole chunk (was per-history before)
+            Collection<HistoryNotificationEntity> allConfigs = new LinkedHashSet<>();
+            configsByTask.values().forEach(allConfigs::addAll);
+            if (!allConfigs.isEmpty()) {
+                historyNotificationService.loadNotificationChannelEvent(allConfigs);
+                historyNotificationService.loadHistoryNotificationRecipient(allConfigs);
+                historyRecipientService.loadCollectors(allConfigs.stream()
+                        .map(HistoryNotificationEntity::getHistoryNotificationRecipient)
+                        .filter(Objects::nonNull)
+                        .toList());
+                notificationChannelEventService.loadNotificationChannel(allConfigs.stream()
+                        .map(HistoryNotificationEntity::getNotificationChannelEvent)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .toList());
+            }
+
+            // 3. per-history processing — config relations are already loaded; ApiUser is set per history
+            //    (locale resolves to the twin creator's locale), status is set per entity, no cross-chunk throw
+            for (HistoryNotificationTaskEntity task : tasks) {
+                processTask(task, configsByTask.getOrDefault(task, List.of()));
+            }
+        } catch (Throwable e) {
+            log.error("Batch history notification task failed: ", e);
+        } finally {
+            // safety net: any task not finalized by processTask (e.g. failure during bulk-load) -> FAILED
+            Timestamp failedAt = Timestamp.from(Instant.now());
+            for (HistoryNotificationTaskEntity task : tasks) {
+                if (task.getStatusId() == null || task.getStatusId() == HistoryNotificationTaskStatus.IN_PROGRESS) {
+                    task.setStatusId(HistoryNotificationTaskStatus.FAILED)
+                            .setStatusDetails("Batch processing failed before this task was processed")
+                            .setDoneAt(failedAt);
+                }
+            }
+            authService.removeThreadLocalApiUser();
+            LoggerUtils.cleanMDC();
+            historyNotificationTaskRepository.saveAll(tasks);
+        }
+    }
+
+    private void setChunkApiUser(List<HistoryNotificationTaskEntity> tasks) {
+        for (HistoryNotificationTaskEntity task : tasks) {
+            var history = task.getHistory();
+            if (history != null && history.getTwin() != null && history.getTwin().getTwinClass() != null) {
+                UUID domainId = history.getTwin().getTwinClass().getDomainId();
+                if (domainId != null) {
+                    authService.setThreadLocalApiUser(domainId, null, null);
+                    return;
+                }
+            }
+        }
+    }
+
+    private void processTask(HistoryNotificationTaskEntity task, List<HistoryNotificationEntity> configs) {
+        try {
+            var history = task.getHistory();
+            LoggerUtils.logSession(history.getHistoryBatchId());
+            LoggerUtils.logPrefix("HISTORY[" + task.getId() + "]:");
+            log.info("Performing history notification task: {}", task.logDetailed());
+
+            var twin = history.getTwin();
+            if (twin == null || twin.getTwinClass() == null || twin.getTwinClass().getDomainId() == null) {
                 throw new NotificationSkippedException("Twin is out of domain");
             }
 
             authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId());
 
-            var configs = getConfigs(history);
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
             }
-
-            historyNotificationService.loadNotificationChannelEvent(configs);
-            historyNotificationService.loadHistoryNotificationRecipient(configs);
-            var recipients = configs.stream()
-                    .map(HistoryNotificationEntity::getHistoryNotificationRecipient)
-                    .filter(Objects::nonNull)
-                    .toList();
-            historyRecipientService.loadCollectors(recipients);
 
             var notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,
@@ -102,7 +153,6 @@ public class HistoryNotificationTask implements Runnable {
             );
 
             var recipientsCount = 0;
-            notificationChannelEventService.loadNotificationChannel(notificationConfigsGroupedByChannelEvent.getGroupingObjectMap().values());
             for (var entry : notificationConfigsGroupedByChannelEvent.getGroupedMap().entrySet()) {
                 var channelEvent = notificationConfigsGroupedByChannelEvent.getGroupingObject(entry.getKey());
 
@@ -116,10 +166,9 @@ public class HistoryNotificationTask implements Runnable {
 
                 var recipientIds = new HashSet<UUID>();
                 for (var config : entry.getValue()) {
-                    if (twinValidatorSetService.isValid(history.getTwin(), config)) {
-                        // todo create mechanism to group recipient resolvers and call batch resolve
-                        recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
-                    }
+                    // configs are already validator-filtered in HistoryNotificationService.findConfigsForTasks
+                    // todo create mechanism to group recipient resolvers and call batch resolve
+                    recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
                 }
 
                 if (recipientIds.isEmpty()) {
@@ -137,61 +186,37 @@ public class HistoryNotificationTask implements Runnable {
                 throw new NotificationSkippedException("No recipients were found for " + history.logNormal());
             }
 
-            historyNotificationEntity
+            task
                     .setStatusId(HistoryNotificationTaskStatus.SENT)
                     .setStatusDetails(STR."\{recipientsCount} recipients were notified")
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (NotificationSkippedException e) {
             log.info(e.getMessage());
-
-            historyNotificationEntity
+            task
                     .setStatusId(HistoryNotificationTaskStatus.SKIPPED)
                     .setStatusDetails(e.getMessage());
         } catch (ServiceException e) {
             log.error(e.log());
-
-            historyNotificationEntity
+            task
                     .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
-
-            historyNotificationEntity
+            task
                     .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();
-            LoggerUtils.cleanMDC();
-            historyNotificationTaskRepository.save(historyNotificationEntity);
-        }
-    }
-
-    private List<HistoryNotificationEntity> getConfigs(HistoryEntity history) {
-        Set<UUID> matchingClassIds = new HashSet<>(history.getTwin().getTwinClass().getExtendedClassIdSet());
-        matchingClassIds.add(history.getTwin().getTwinClassId());
-
-        if (history.getTwinClassFieldId() == null) {
-            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndNotificationSchemaIdAndActiveTrue(
-                    history.getHistoryType(),
-                    matchingClassIds,
-                    historyNotificationEntity.getNotificationSchemaId());
-        } else {
-            return historyNotificationRepository.findByHistoryTypeIdAndTwinClassIdInAndTwinClassFieldIdAndNotificationSchemaIdAndActiveTrue(
-                    history.getHistoryType(),
-                    matchingClassIds,
-                    history.getTwinClassFieldId(),
-                    historyNotificationEntity.getNotificationSchemaId());
         }
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {
-        if (contextCache.containsKey(contextId)) {
-            return contextCache.get(contextId);
+        Map<UUID, Map<String, String>> byHistory = contextCache.computeIfAbsent(history.getId(), k -> new HashMap<>());
+        if (byHistory.containsKey(contextId)) {
+            return byHistory.get(contextId);
         }
-
         var context = notificationContextService.collectHistoryContext(contextId, history);
-        contextCache.put(contextId, context);
-
+        byHistory.put(contextId, context);
         return context;
     }
 
