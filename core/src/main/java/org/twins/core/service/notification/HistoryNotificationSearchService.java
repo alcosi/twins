@@ -12,8 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.notification.HistoryNotificationRepository;
 import org.twins.core.domain.search.HistoryNotificationSearch;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -25,6 +27,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 public class HistoryNotificationSearchService {
     private final HistoryNotificationRepository repository;
     private final TwinClassService twinClassService;
+    private final AuthService authService;
 
     public PaginationResult<HistoryNotificationEntity> findHistoryNotification(HistoryNotificationSearch search, SimplePagination pagination) throws ServiceException {
         Specification<HistoryNotificationEntity> spec = createSearchSpecification(search);
@@ -34,6 +37,7 @@ public class HistoryNotificationSearchService {
 
     private Specification<HistoryNotificationEntity> createSearchSpecification(HistoryNotificationSearch search) throws ServiceException {
         return Specification.allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), HistoryNotificationEntity.Fields.historyNotificationRecipientSpecOnly, HistoryNotificationRecipientEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, HistoryNotificationEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, HistoryNotificationEntity.Fields.id),
                 checkFieldIn(search.getHistoryTypeIdList(), false, false, false, HistoryNotificationEntity.Fields.historyTypeId),

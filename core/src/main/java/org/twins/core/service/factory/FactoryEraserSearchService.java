@@ -24,7 +24,6 @@ import java.util.UUID;
 import static org.cambium.common.util.EnumUtils.convertOrEmpty;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.toSortSpecificationDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkDomainId;
 
 
 @Slf4j
@@ -58,7 +57,7 @@ public class FactoryEraserSearchService extends EntitySearchService
     @Override
     public Specification<TwinFactoryEraserEntity> createFilterSpecification(FactoryEraserSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkDomainId(domainId),
+                checkUuid(domainId, false, true, TwinFactoryEraserEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryEraserEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryEraserEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryEraserEntity.Fields.id),

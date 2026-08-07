@@ -1,9 +1,7 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -57,6 +55,14 @@ public class TwinFactoryTriggerEntity implements EasyLoggable, Identifiable, Con
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinFactoryEntity twinFactory;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactorySpecOnly;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

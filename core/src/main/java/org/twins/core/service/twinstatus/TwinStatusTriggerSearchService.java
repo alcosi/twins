@@ -13,12 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.domain.search.TwinStatusTriggerSearch;
+import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
 @Service
@@ -27,6 +28,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 @AllArgsConstructor
 public class TwinStatusTriggerSearchService {
     private final TwinStatusTriggerRepository twinStatusTriggerRepository;
+    private final AuthService authService;
 
     @Transactional(readOnly = true)
     public PaginationResult<TwinStatusTriggerEntity> findStatusTriggers(TwinStatusTriggerSearch search, SimplePagination pagination) throws ServiceException {
@@ -35,8 +37,9 @@ public class TwinStatusTriggerSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinStatusTriggerEntity> createTwinStatusTriggerSearchSpecification(TwinStatusTriggerSearch search) {
+    private Specification<TwinStatusTriggerEntity> createTwinStatusTriggerSearchSpecification(TwinStatusTriggerSearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinStatusTriggerEntity.Fields.twinTriggerSpecOnly, TwinTriggerEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinStatusTriggerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinStatusTriggerEntity.Fields.id),
                 checkUuidIn(search.getTwinStatusIdList(), false, true, TwinStatusTriggerEntity.Fields.twinStatusId),

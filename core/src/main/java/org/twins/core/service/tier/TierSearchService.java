@@ -16,7 +16,7 @@ import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.search.TierSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.domain.TierSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
 @Service
@@ -34,7 +34,7 @@ public class TierSearchService {
 
     private Specification<TierEntity> createTierSearchSpecification(TierSearch search) throws ServiceException {
         return Specification.allOf(
-                checkDomainId(authService.getApiUser().getDomainId()),
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TierEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TierEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TierEntity.Fields.id),
                 checkUuidIn(search.getPermissionSchemaIdList(), false, false, TierEntity.Fields.permissionSchemaId),

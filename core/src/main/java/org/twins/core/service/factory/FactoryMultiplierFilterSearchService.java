@@ -7,9 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
+import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.FactoryMultiplierFilterSearch;
 import org.twins.core.enums.SortDirection;
@@ -22,7 +20,6 @@ import java.util.UUID;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.toSortSpecificationDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.factory.FactoryMultiplierFilterSpecification.checkDomainId;
 import static org.twins.core.dao.specifications.factory.FactoryMultiplierFilterSpecification.checkFactoryIdIn;
 
 
@@ -57,7 +54,7 @@ public class FactoryMultiplierFilterSearchService extends EntitySearchService
     @Override
     public Specification<TwinFactoryMultiplierFilterEntity> createFilterSpecification(FactoryMultiplierFilterSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkDomainId(domainId),
+                checkUuid(domainId, false, true, TwinFactoryMultiplierFilterEntity.Fields.multiplierSpecOnly, TwinFactoryMultiplierEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryMultiplierFilterEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryMultiplierFilterEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.id),

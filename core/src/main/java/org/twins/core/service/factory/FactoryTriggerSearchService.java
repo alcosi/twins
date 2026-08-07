@@ -13,12 +13,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
 import org.twins.core.domain.search.TwinFactoryTriggerSearch;
+import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
 @Service
@@ -27,6 +28,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 @AllArgsConstructor
 public class FactoryTriggerSearchService {
     private final TwinFactoryTriggerRepository twinFactoryTriggerRepository;
+    private final AuthService authService;
 
     @Transactional(readOnly = true)
     public PaginationResult<TwinFactoryTriggerEntity> findFactoryTriggers(TwinFactoryTriggerSearch search, SimplePagination pagination) throws ServiceException {
@@ -35,8 +37,9 @@ public class FactoryTriggerSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryTriggerEntity> createTwinFactoryTriggerSearchSpecification(TwinFactoryTriggerSearch search) {
+    private Specification<TwinFactoryTriggerEntity> createTwinFactoryTriggerSearchSpecification(TwinFactoryTriggerSearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinFactoryTriggerEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryTriggerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryTriggerEntity.Fields.id),
                 checkUuidIn(search.getTwinFactoryIdList(), false, true, TwinFactoryTriggerEntity.Fields.twinFactoryId),

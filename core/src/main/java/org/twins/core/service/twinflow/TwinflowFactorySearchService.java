@@ -11,10 +11,14 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.domain.search.TwinflowFactorySearch;
+import org.twins.core.service.auth.AuthService;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuid;
 import static org.twins.core.dao.specifications.twinflow.TwinflowFactorySpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.twinflow.TwinflowFactorySpecification.checkUuidIn;
 
@@ -25,6 +29,7 @@ import static org.twins.core.dao.specifications.twinflow.TwinflowFactorySpecific
 @RequiredArgsConstructor
 public class TwinflowFactorySearchService {
     private final TwinflowFactoryRepository twinflowFactoryRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinflowFactoryEntity> findTwinflowFactory(TwinflowFactorySearch search, SimplePagination pagination) throws ServiceException {
         Page<TwinflowFactoryEntity> ret = twinflowFactoryRepository.findAll(createTwinflowFactorySearchSpecification(search), PaginationUtils.pageableOffset(pagination));
@@ -32,8 +37,9 @@ public class TwinflowFactorySearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinflowFactoryEntity> createTwinflowFactorySearchSpecification(TwinflowFactorySearch search) {
+    private Specification<TwinflowFactoryEntity> createTwinflowFactorySearchSpecification(TwinflowFactorySearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowFactoryEntity.Fields.twinflow, TwinflowEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdSet(), false, false, TwinflowFactoryEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, true, TwinflowFactoryEntity.Fields.id),
                 checkUuidIn(search.getTwinflowIdSet(), false, false, TwinflowFactoryEntity.Fields.twinflowId),

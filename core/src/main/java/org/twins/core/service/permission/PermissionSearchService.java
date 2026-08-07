@@ -23,7 +23,6 @@ import java.util.UUID;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.toSortSpecificationDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.permission.PermissionSpecification.checkDomainId;
 
 
 @Slf4j
@@ -58,7 +57,7 @@ public class PermissionSearchService extends EntitySearchService
     @Override
     public Specification<PermissionEntity> createFilterSpecification(PermissionSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkDomainId(domainId),
+                checkUuid(domainId, false, true, PermissionEntity.Fields.permissionGroup, PermissionGroupEntity.Fields.domainId),
                 checkFieldLikeContainsIn(search.getKeyLikeList(), false, true, PermissionEntity.Fields.key),
                 checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, PermissionEntity.Fields.key),
                 checkUuidIn(search.getIdList(), false, true, PermissionEntity.Fields.id),

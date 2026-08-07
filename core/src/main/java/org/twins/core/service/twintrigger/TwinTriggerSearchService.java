@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerRepository;
 import org.twins.core.domain.search.TwinTriggerSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -23,6 +24,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @Service
 public class TwinTriggerSearchService {
     private final TwinTriggerRepository twinTriggerRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinTriggerEntity> findTwinTriggers(TwinTriggerSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinTriggerEntity> spec = createTwinTriggerSearchSpecification(search);
@@ -32,6 +34,7 @@ public class TwinTriggerSearchService {
 
     private Specification<TwinTriggerEntity> createTwinTriggerSearchSpecification(TwinTriggerSearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinTriggerEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinTriggerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinTriggerEntity.Fields.id),
                 checkIntegerIn(search.getTriggerFeaturerIdList(), false, TwinTriggerEntity.Fields.twinTriggerFeaturerId),
