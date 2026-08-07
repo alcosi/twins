@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.twinflow;
+package org.twins.core.mappers.rest.factory;
 
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinFactoryTriggerSearch;
@@ -7,7 +7,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
-public class TwinFactoryTriggerSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFactoryTriggerSearchDTOv1, TwinFactoryTriggerSearch> {
+public class FactoryTriggerSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFactoryTriggerSearchDTOv1, TwinFactoryTriggerSearch> {
 
     @Override
     public void map(TwinFactoryTriggerSearchDTOv1 src, TwinFactoryTriggerSearch dst, MapperContext mapperContext) throws Exception {

@@ -1,11 +1,10 @@
-package org.twins.core.controller.rest.priv.twinstatus;
+package org.twins.core.controller.rest.priv.validator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,33 +17,31 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dto.rest.twinstatus.TwinStatusExportSqlRqDTOv1;
+import org.twins.core.dto.rest.validator.TwinValidatorExportSqlRqDTOv1;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinstatus.TwinStatusExportService;
-import org.twins.core.service.twinstatus.TwinStatusService;
+import org.twins.core.service.twinvalidator.TwinValidatorExportService;
 
 import java.nio.charset.StandardCharsets;
 
-@Tag(name = ApiTag.TWIN_STATUS)
+@Tag(name = ApiTag.TWIN_VALIDATOR)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
-@Slf4j
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_STATUS_MANAGE})
-public class TwinStatusExportSqlController extends ApiController {
-    private final TwinStatusExportService twinStatusExportService;
-    private final TwinStatusService twinStatusService;
+@ProtectedBy(Permissions.TWIN_VALIDATOR_MANAGE)
+public class TwinValidatorExportSqlController extends ApiController {
+    private final TwinValidatorExportService twinValidatorExportService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinStatusExportSqlV1", summary = "Exports twin statuses as SQL INSERT statements")
+    @Operation(operationId = "twinValidatorExportSqlV1", summary = "Exports twin validators as SQL INSERT statements")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "SQL file"),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_status/export/sql/v1", produces = "text/sql;charset=UTF-8")
-    public ResponseEntity<byte[]> twinStatusExportSqlV1(
-            @RequestBody TwinStatusExportSqlRqDTOv1 request) throws ServiceException {
-        String sql = twinStatusExportService.exportToSql(request.getStatusIds());
-        String filename = "twin_statuses_" + System.currentTimeMillis() + ".sql";
+    @PostMapping(value = "/private/twin_validator/export/sql/v1", produces = "text/sql;charset=UTF-8")
+    public ResponseEntity<byte[]> twinValidatorExportSqlV1(
+            @RequestBody TwinValidatorExportSqlRqDTOv1 request) throws ServiceException {
+        String sql = twinValidatorExportService.exportToSql(request.getTwinValidatorIds());
+
+        String filename = "twin_validators_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", filename);
 

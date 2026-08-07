@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.factory;
+package org.twins.core.controller.rest.priv.validator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,48 +22,48 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
-import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerSearchRqDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerSearchRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryTriggerSearchDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.TwinFactoryTriggerRestDTOMapper;
+import org.twins.core.dto.rest.validator.TwinValidatorCountRqDTOv1;
+import org.twins.core.dto.rest.validator.TwinValidatorCountRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryTriggerSearchService;
+import org.twins.core.mappers.rest.validator.TwinValidatorCountRestDTOMapper;
+import org.twins.core.mappers.rest.validator.TwinValidatorSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinvalidator.TwinValidatorSearchService;
 
-@Tag(name = ApiTag.FACTORY)
+@Tag(name = ApiTag.TWIN_VALIDATOR)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_TRIGGER_MANAGE, Permissions.TWIN_TRIGGER_VIEW})
-public class FactoryTriggerSearchController extends ApiController {
-    private final FactoryTriggerSearchService factoryTriggerSearchService;
-    private final TwinFactoryTriggerRestDTOMapper twinFactoryTriggerRestDTOMapper;
-    private final FactoryTriggerSearchDTOReverseMapper factoryTriggerSearchDTOReverseMapper;
+@ProtectedBy({Permissions.TWIN_VALIDATOR_MANAGE, Permissions.TWIN_VALIDATOR_VIEW})
+public class TwinValidatorCountController extends ApiController {
+    private final TwinValidatorSearchService twinValidatorSearchService;
+    private final TwinValidatorSearchRestDTOReverseMapper twinValidatorSearchRestDTOReverseMapper;
+    private final TwinValidatorCountRestDTOMapper twinValidatorCountRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinFactoryTriggerSearchV1", summary = "Search twin factory triggers")
+    @Operation(operationId = "twinValidatorCountV1", summary = "Return count of twin validators grouped by specified fields")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinFactoryTriggerSearchRsDTOv1.class))}),
+                    @Schema(implementation = TwinValidatorCountRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_factory/trigger/search/v1")
-    public ResponseEntity<?> twinFactoryTriggerSearchV1(
-            @MapperContextBinding(roots = TwinFactoryTriggerRestDTOMapper.class, response = TwinFactoryTriggerSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinFactoryTriggerSearchRqDTOv1 request,
-            @SimplePaginationParams SimplePagination pagination) {
-        TwinFactoryTriggerSearchRsDTOv1 rs = new TwinFactoryTriggerSearchRsDTOv1();
+    @PostMapping(value = "/private/twin_validator/count/v1")
+    public ResponseEntity<?> twinValidatorCountV1(
+            @MapperContextBinding(roots = TwinValidatorCountRestDTOMapper.class, response = TwinValidatorCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody @Valid TwinValidatorCountRqDTOv1 request) {
+        TwinValidatorCountRsDTOv1 rs = new TwinValidatorCountRsDTOv1();
         try {
-            PaginationResult<TwinFactoryTriggerEntity> factoryTriggerList = factoryTriggerSearchService
-                    .findFactoryTriggers(factoryTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+            var results =
+                    twinValidatorSearchService.countByGroupFields(twinValidatorSearchRestDTOReverseMapper
+                            .convert(request.getSearch(), mapperContext), request.getGroupFields(), pagination);
             rs
-                    .setPagination(paginationMapper.convert(factoryTriggerList))
-                    .setTwinFactoryTriggers(twinFactoryTriggerRestDTOMapper.convertCollection(factoryTriggerList.getList(), mapperContext))
+                    .setCounts(twinValidatorCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(results))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

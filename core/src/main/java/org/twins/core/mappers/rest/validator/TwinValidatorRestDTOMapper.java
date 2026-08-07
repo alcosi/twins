@@ -20,7 +20,7 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {TwinValidatorMode.class})
-public class TwinValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinValidatorEntity, TwinValidatorDTOv1> {
+public class TwinValidatorRestDTOMapper extends RestSimpleDTOMapper<TwinValidatorEntity, TwinValidatorDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.class})
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
@@ -40,8 +40,8 @@ public class TwinValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinValida
                         .setDescription(src.getDescription())
                         .setValidatorFeaturerId(src.getTwinValidatorFeaturerId())
                         .setValidatorParams(src.getTwinValidatorParams())
-                        .setInvert(src.isInvert())
-                        .setActive(src.isActive())
+                        .setInvert(src.getInvert())
+                        .setActive(src.getActive())
                         .setTwinValidatorSetId(src.getTwinValidatorSetId());
                 break;
             case SHORT:

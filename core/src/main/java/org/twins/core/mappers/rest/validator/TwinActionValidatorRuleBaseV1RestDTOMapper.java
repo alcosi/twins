@@ -19,7 +19,7 @@ import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 public class TwinActionValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinActionValidatorRuleEntity, TwinActionValidatorRuleBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.class})
-    private final TwinValidatorV1RestDTOMapper twinValidatorV1RestDTOMapper;
+    private final TwinValidatorRestDTOMapper twinValidatorRestDTOMapper;
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinActionValidatorRule2TwinValidatorSetMode.class})
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
@@ -48,7 +48,7 @@ public class TwinActionValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMap
                             src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinActionValidatorRule2TwinValidatorSetMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
         if (mapperContext.hasModeButNot(TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.HIDE)) {
-            dst.setTwinValidators(twinValidatorV1RestDTOMapper.convertCollection(
+            dst.setTwinValidators(twinValidatorRestDTOMapper.convertCollection(
                     src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.SHORT)));
         }
     }

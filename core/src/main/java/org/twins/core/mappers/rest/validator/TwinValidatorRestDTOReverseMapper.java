@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class TwinValidatorBaseV1RestDTOReverseMapper extends RestSimpleDTOMapper<TwinValidatorDTOv1, TwinValidatorEntity> {
+public class TwinValidatorRestDTOReverseMapper extends RestSimpleDTOMapper<TwinValidatorDTOv1, TwinValidatorEntity> {
 
     @Override
     public void map(TwinValidatorDTOv1 src, TwinValidatorEntity dst, MapperContext mapperContext) throws Exception {

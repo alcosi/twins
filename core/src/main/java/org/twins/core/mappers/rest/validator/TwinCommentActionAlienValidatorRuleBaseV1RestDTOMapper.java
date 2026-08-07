@@ -22,7 +22,7 @@ import java.util.Collection;
 public class TwinCommentActionAlienValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinCommentActionAlienValidatorRuleEntity, TwinCommentActionAlienValidatorRuleBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.class})
-    private final TwinValidatorV1RestDTOMapper twinValidatorV1RestDTOMapper;
+    private final TwinValidatorRestDTOMapper twinValidatorRestDTOMapper;
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.class})
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
@@ -54,7 +54,7 @@ public class TwinCommentActionAlienValidatorRuleBaseV1RestDTOMapper extends Rest
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE)) {
             twinValidatorSetService.loadTwinValidatorSet(src);
-            dst.setTwinValidators(twinValidatorV1RestDTOMapper.convertCollection(
+            dst.setTwinValidators(twinValidatorRestDTOMapper.convertCollection(
                     src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)));
         }
     }

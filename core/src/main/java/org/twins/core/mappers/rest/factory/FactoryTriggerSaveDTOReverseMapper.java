@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.twinflow;
+package org.twins.core.mappers.rest.factory;
 
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
@@ -7,7 +7,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
-public class TwinFactoryTriggerSaveDTOReverseMapper extends RestSimpleDTOMapper<TwinFactoryTriggerSaveDTOv1, TwinFactoryTriggerEntity> {
+public class FactoryTriggerSaveDTOReverseMapper extends RestSimpleDTOMapper<TwinFactoryTriggerSaveDTOv1, TwinFactoryTriggerEntity> {
 
     @Override
     public void map(TwinFactoryTriggerSaveDTOv1 src, TwinFactoryTriggerEntity dst, MapperContext mapperContext) throws Exception {

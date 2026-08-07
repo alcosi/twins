@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.twinflow;
+package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -9,12 +9,12 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFactoryTriggerUpdateDTOReverseMapper extends RestSimpleDTOMapper<TwinFactoryTriggerUpdateDTOv1, TwinFactoryTriggerEntity> {
-    private final TwinFactoryTriggerSaveDTOReverseMapper twinFactoryTriggerSaveDTOReverseMapper;
+public class FactoryTriggerUpdateDTOReverseMapper extends RestSimpleDTOMapper<TwinFactoryTriggerUpdateDTOv1, TwinFactoryTriggerEntity> {
+    private final FactoryTriggerSaveDTOReverseMapper factoryTriggerSaveDTOReverseMapper;
 
     @Override
     public void map(TwinFactoryTriggerUpdateDTOv1 src, TwinFactoryTriggerEntity dst, MapperContext mapperContext) throws Exception {
-        twinFactoryTriggerSaveDTOReverseMapper.map(src, dst, mapperContext);
+        factoryTriggerSaveDTOReverseMapper.map(src, dst, mapperContext);
         dst.setId(src.getId());
     }
 }

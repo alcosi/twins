@@ -22,10 +22,10 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerListRsDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerUpdateRqDTOv1;
+import org.twins.core.mappers.rest.factory.FactoryTriggerUpdateDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.TwinFactoryTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TwinFactoryTriggerRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinFactoryTriggerUpdateDTOReverseMapper;
 import org.twins.core.service.factory.FactoryTriggerService;
 import org.twins.core.service.permission.Permissions;
 
@@ -39,7 +39,7 @@ import java.util.List;
 public class FactoryTriggerUpdateController extends ApiController {
     private final FactoryTriggerService factoryTriggerService;
     private final TwinFactoryTriggerRestDTOMapper twinFactoryTriggerRestDTOMapper;
-    private final TwinFactoryTriggerUpdateDTOReverseMapper twinFactoryTriggerUpdateDTOReverseMapper;
+    private final FactoryTriggerUpdateDTOReverseMapper factoryTriggerUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
@@ -55,7 +55,7 @@ public class FactoryTriggerUpdateController extends ApiController {
             @RequestBody TwinFactoryTriggerUpdateRqDTOv1 request) {
         TwinFactoryTriggerListRsDTOv1 rs = new TwinFactoryTriggerListRsDTOv1();
         try {
-            List<TwinFactoryTriggerEntity> factoryTriggerEntities = twinFactoryTriggerUpdateDTOReverseMapper.convertCollection(request.getTwinFactoryTriggers());
+            List<TwinFactoryTriggerEntity> factoryTriggerEntities = factoryTriggerUpdateDTOReverseMapper.convertCollection(request.getTwinFactoryTriggers());
             factoryTriggerEntities = factoryTriggerService.updateFactoryTriggers(factoryTriggerEntities);
             rs
                     .setTwinFactoryTriggers(twinFactoryTriggerRestDTOMapper.convertCollection(factoryTriggerEntities, mapperContext))

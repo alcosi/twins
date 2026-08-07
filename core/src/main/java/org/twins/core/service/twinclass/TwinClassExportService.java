@@ -75,13 +75,13 @@ public class TwinClassExportService extends EntityExportService<TwinClassEntity>
         // statuses
         if (includeStatuses) {
             var allStatuses = twinStatusService.findByTwinClassIdIn(twinClassIds);
-            sqlParts.addNotBlank(twinStatusExportService.exportToSql(allStatuses));
+            sqlParts.addNotBlank(twinStatusExportService.exportCollectionToSql(allStatuses));
         }
 
         // twinflow
         if (includeTwinflow) {
             var twinflows = twinflowService.findByTwinClassIdIn(twinClassIds);
-            sqlParts.addNotBlank(twinflowExportService.exportToSql(twinflows));
+            sqlParts.addNotBlank(twinflowExportService.exportCollectionToSql(twinflows));
         }
 
         return String.join("\n", sqlParts);

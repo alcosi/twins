@@ -1,9 +1,9 @@
 package org.twins.core.dao.validator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -31,6 +31,14 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    private TwinValidatorSetEntity twinValidatorSetSpecOnly;
+
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
 
@@ -39,10 +47,10 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     private HashMap<String, String> twinValidatorParams;
 
     @Column(name = "invert")
-    private boolean invert;
+    private Boolean invert;
 
     @Column(name = "active")
-    private boolean isActive;
+    private Boolean active;
 
     @Column(name = "description")
     private String description;
@@ -56,7 +64,26 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Transient
+    @EqualsAndHashCode.Exclude
     private TwinValidatorSetEntity twinValidatorSet;
+
+    /**
+     * Null-safe primitive view of {@link #invert} (null and false both yield false).
+     */
+    @Transient
+    @JsonIgnore
+    public boolean isInvert() {
+        return Boolean.TRUE.equals(invert);
+    }
+
+    /**
+     * Null-safe primitive view of {@link #active} (null yields false — i.e. treated as inactive).
+     */
+    @Transient
+    @JsonIgnore
+    public boolean isActive() {
+        return Boolean.TRUE.equals(active);
+    }
 
     @Override
     public String easyLog(Level level) {

@@ -395,6 +395,13 @@ public enum Permissions {
     TWIN_VALIDATOR_SET_UPDATE(SystemIds.Permission.TwinValidatorSet.UPDATE),
     TWIN_VALIDATOR_SET_DELETE(SystemIds.Permission.TwinValidatorSet.DELETE),
 
+    // TWIN VALIDATOR permissions
+    TWIN_VALIDATOR_MANAGE(SystemIds.Permission.TwinValidator.MANAGE),
+    TWIN_VALIDATOR_CREATE(SystemIds.Permission.TwinValidator.CREATE),
+    TWIN_VALIDATOR_VIEW(SystemIds.Permission.TwinValidator.VIEW),
+    TWIN_VALIDATOR_UPDATE(SystemIds.Permission.TwinValidator.UPDATE),
+    TWIN_VALIDATOR_DELETE(SystemIds.Permission.TwinValidator.DELETE),
+
     // TWIN TRIGGER permissions
     TWIN_TRIGGER_MANAGE(SystemIds.Permission.TwinTrigger.MANAGE),
     TWIN_TRIGGER_CREATE(SystemIds.Permission.TwinTrigger.CREATE),

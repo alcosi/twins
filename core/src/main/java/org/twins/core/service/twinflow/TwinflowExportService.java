@@ -4,27 +4,22 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.sql.SqlBuilder;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.service.EntityExportService;
-import org.twins.core.service.i18n.I18nExportService;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TwinflowExportService {
+public class TwinflowExportService extends EntityExportService<TwinflowEntity> {
     private final TwinflowService twinflowService;
-    private final SqlBuilder sqlBuilder;
-    private final I18nService i18nService;
-    private final I18nExportService i18nExportService;
 
-    public String exportToSql(Collection<TwinflowEntity> twinflows) throws ServiceException {
+    @Override
+    public String exportCollectionToSql(Collection<TwinflowEntity> twinflows) throws ServiceException {
         if (twinflows.isEmpty()) {
             return "";
         }
@@ -61,8 +56,7 @@ public class TwinflowExportService {
                     .filter(sm -> twinflow.getId().equals(sm.getTwinflowId()))
                     .toList();
             if (CollectionUtils.isNotEmpty(schemaMaps)) {
-                String schemaMapsSql = EntityExportService.buildUpsertsSorted(
-                        sqlBuilder, schemaMaps, TwinflowSchemaMapEntity::getId);
+                String schemaMapsSql = buildUpsertsSorted(schemaMaps, TwinflowSchemaMapEntity::getId);
                 if (!schemaMapsSql.isEmpty()) {
                     if (!result.isEmpty()) result.append("\n");
                     result.append(schemaMapsSql);

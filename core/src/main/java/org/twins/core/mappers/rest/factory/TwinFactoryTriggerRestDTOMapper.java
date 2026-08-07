@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.twinflow;
+package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -7,8 +7,6 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dto.rest.twinflow.TwinFactoryTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinFactoryTriggerMode;
