@@ -22,4 +22,7 @@ public interface FieldTyperCalcByLink {
 
     @FeaturerParam(name = "Status exclude", order = 5, optional = true, defaultValue = "false")
     FeaturerParamBoolean statusExclude = new FeaturerParamBoolean("statusExclude");
+
+    @FeaturerParam(name = "Match assignee", description = "If true, sum only linked twins whose assigner_user_id equals current ApiUser userId; if ApiUser has no user, include all linked twins", order = 6, optional = true, defaultValue = "false")
+    FeaturerParamBoolean matchAssignee = new FeaturerParamBoolean("matchAssignee");
 }
