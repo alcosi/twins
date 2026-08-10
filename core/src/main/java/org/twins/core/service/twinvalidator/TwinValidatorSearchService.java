@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,8 @@ public class TwinValidatorSearchService extends EntitySearchService
             case description -> toSortSpecification(ascending, TwinValidatorEntity.Fields.description);
             case invert -> toSortSpecification(ascending, TwinValidatorEntity.Fields.invert);
             case active -> toSortSpecification(ascending, TwinValidatorEntity.Fields.active);
+            case twinValidatorSetName -> toSortSpecification(ascending, TwinValidatorEntity.Fields.twinValidatorSetSpecOnly, TwinValidatorSetEntity.Fields.name);
+            case twinValidatorFeaturerName -> toSortSpecification(ascending, TwinValidatorEntity.Fields.twinValidatorFeaturerSpecOnly, FeaturerEntity.Fields.name);
         };
     }
 

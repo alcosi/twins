@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -41,6 +42,14 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
 
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity twinValidatorFeaturerSpecOnly;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "twin_validator_params", columnDefinition = "hstore")

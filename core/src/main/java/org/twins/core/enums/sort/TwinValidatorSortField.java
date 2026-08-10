@@ -4,5 +4,7 @@ public enum TwinValidatorSortField {
     order,
     description,
     invert,
-    active
+    active,
+    twinValidatorSetName,
+    twinValidatorFeaturerName
 }
