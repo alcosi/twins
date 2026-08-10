@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
@@ -15,11 +16,10 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
 import java.math.BigDecimal;
 import java.util.Properties;
-import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1340, name = "Sum fields", description = "Sum of fields")
-public class FieldTyperCalcSum extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> implements FieldTyperScalable {
+public class FieldTyperCalcSum extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> implements FieldTyperScalable, FieldTyperCalc {
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
@@ -31,14 +31,19 @@ public class FieldTyperCalcSum extends FieldTyperImmutable<FieldDescriptorText, 
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var extractedTwinFields = fieldIds.extract(properties);
-        var totalSum = BigDecimal.ZERO;
+        // Caching, cycle protection and dependent-value loading come from FieldTyperCalc;
+        // the sum formula itself lives in calculate().
+        BigDecimal totalSum = computeCalculated(twinField.getTwin(), twinField.getTwinClassFieldId(), properties);
+        return new FieldValueText(twinField.getTwinClassField())
+                .setValue(scaleAndRound(totalSum, properties).toPlainString());
+    }
 
-        for (UUID twinFieldId : extractedTwinFields) {
-            var value = twinClassFieldService.getDecimalValue(twinField.getTwin(), twinFieldId, BigDecimal.ZERO);
-            totalSum = totalSum.add(value);
+    @Override
+    public BigDecimal calculate(TwinEntity twin, Properties properties) throws ServiceException {
+        BigDecimal sum = BigDecimal.ZERO;
+        for (TwinClassFieldEntity tcf : twinClassFieldService.findEntitiesSafe(fieldIds.extract(properties))) {
+            sum = sum.add(resolveDependentDecimalValue(twin, tcf.getId(), tcf));
         }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(scaleAndRound(totalSum, properties).toPlainString());
+        return sum;
     }
 }

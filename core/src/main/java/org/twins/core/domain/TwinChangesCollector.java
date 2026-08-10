@@ -72,7 +72,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinFieldAttributeEntity twinFieldAttributeEntity) {
             invalidateTwin(twinFieldAttributeEntity.getTwin(), TwinInvalidate.twinFieldAttributeKit);
         } else if (entity instanceof TwinFieldDecimalIncrement twinFieldDecimalIncrement) {
-            invalidateTwin(twinFieldDecimalIncrement.getTwin(), TwinInvalidate.twinFieldDecimalKit, TwinInvalidate.fieldValuesKit);
+            invalidateTwin(twinFieldDecimalIncrement.getTwin(), TwinInvalidate.twinFieldDecimalKit, TwinInvalidate.twinFieldCalculatedKit, TwinInvalidate.fieldValuesKit);
         } else if (entity instanceof TwinFieldSimpleEntity twinFieldSimpleEntity) {
             syncFieldKitAndInvalidate(
                     twinFieldSimpleEntity,
@@ -181,6 +181,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         twinLinks,
         twinFieldAttributeKit,
         twinFieldTimestampKit,
-        twinFieldDecimalKit
+        twinFieldDecimalKit,
+        twinFieldCalculatedKit
     }
 }

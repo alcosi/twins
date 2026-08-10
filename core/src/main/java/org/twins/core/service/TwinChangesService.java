@@ -175,6 +175,7 @@ public class TwinChangesService {
                         case twinFieldUserKit -> twinEntity.setTwinFieldUserKit(null);
                         case twinFieldDatalistKit -> twinEntity.setTwinFieldDatalistKit(null);
                         case twinFieldDecimalKit -> twinEntity.setTwinFieldDecimalKit(null);
+                        case twinFieldCalculatedKit -> twinEntity.setTwinFieldCalculated(null);
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
@@ -279,9 +280,11 @@ public class TwinChangesService {
         // Invalidate cache for affected twins so next read fetches updated values from DB
         for (UUID twinId : affectedTwinIds) {
             TwinEntity twin = new TwinEntity().setId(twinId);
-            twinChangesCollector.getInvalidationMap()
-                    .computeIfAbsent(twin, k -> new HashSet<>())
-                    .add(TwinInvalidate.twinFieldDecimalKit);
+
+            Set<TwinInvalidate> invalidations = twinChangesCollector.getInvalidationMap()
+                    .computeIfAbsent(twin, k -> new HashSet<>());
+            invalidations.add(TwinInvalidate.twinFieldDecimalKit);
+            invalidations.add(TwinInvalidate.twinFieldCalculatedKit);
         }
     }
 }
