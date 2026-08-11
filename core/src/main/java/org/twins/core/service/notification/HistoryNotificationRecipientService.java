@@ -175,106 +175,101 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
      * Chunk-level batch resolve: one {@link RecipientResolver#resolveBatch} per unique
      * {@code (resolverFeaturerId, canonical params, exclude)} group across the whole chunk, so that
      * {@code beforeResolve} preload fires once per group instead of once per history.
-     * <p>Resolver is deterministic by {@code (history, featurerId, params)}, so results are cached per
-     * group, then per-(recipient, history) include/exclude partitioning is reassembled from that cache
-     * (exclude is applied per-recipient before any union — see {@link #recipientResolve}) and stored on
-     * each {@link HistoryNotificationTaskEntity#getResolvedRecipientsByRecipientId()} for processTask.
+     * <p>Resolver is deterministic by {@code (history, featurerId, params)}, so each group is resolved
+     * once for all its histories, then per-(recipient, history) include/exclude is reassembled (exclude
+     * is applied per-recipient before any union — see {@link #recipientResolve}) and stored on
+     * {@link HistoryNotificationTaskEntity#getResolvedRecipientsByRecipientId()} for processTask.
      */
     public void resolveRecipientsBatch(
             Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask) throws ServiceException {
         if (CollectionUtils.isEmpty(configsByTask)) {
             return;
         }
-        // Stage 1: collect unique (featurerId, params, exclude) groups; histories = union across recipients
+        // Stage 1: unique (featurerId, params, exclude) groups (histories = union across recipients) +
+        //   per-recipient precomputed group keys (partitioning + toConfigKey done ONCE per recipient).
         Map<String, ResolverGroup> groups = new HashMap<>();
+        Map<UUID, RecipientKeys> keysByRecipient = new HashMap<>();
         for (var entry : configsByTask.entrySet()) {
             HistoryEntity history = entry.getKey().getHistory();
             if (history == null) {
                 continue;
             }
             for (HistoryNotificationEntity config : entry.getValue()) {
-                collectResolverGroups(groups, config.getHistoryNotificationRecipient(), history);
+                HistoryNotificationRecipientEntity recipient = config.getHistoryNotificationRecipient();
+                if (recipient == null || recipient.getCollectors() == null) {
+                    continue;
+                }
+                keysByRecipient.computeIfAbsent(recipient.getId(), id -> RecipientKeys.of(recipient));
+                collectResolverGroups(groups, recipient, history);
             }
         }
 
         // Stage 2: one resolveBatch per group → resolverCache (shared accumulator, do not mutate later)
         Map<String, Map<HistoryEntity, Set<UUID>>> resolverCache = new HashMap<>();
-        for (var entry : groups.entrySet()) {
-            ResolverGroup group = entry.getValue();
-            RecipientResolver resolver = featurerService.getFeaturer(group.featurerId, RecipientResolver.class);
+        for (var e : groups.entrySet()) {
+            ResolverGroup g = e.getValue();
+            RecipientResolver resolver = featurerService.getFeaturer(g.featurerId, RecipientResolver.class);
             Map<HistoryEntity, Set<UUID>> accumulator = new HashMap<>();
-            for (HistoryEntity history : group.histories) {
+            for (HistoryEntity history : g.histories) {
                 accumulator.put(history, new HashSet<>());
             }
-            resolver.resolveBatch(accumulator, group.params);
-            resolverCache.put(entry.getKey(), accumulator);
+            resolver.resolveBatch(accumulator, g.params);
+            resolverCache.put(e.getKey(), accumulator);
         }
 
-        // Stage 3: reassemble per-(recipient, history) with include/exclude partitioning → write to task-entity
+        // Stage 3: reassemble per-(recipient, history) from cache → write to task-entity.
+        //   Cheap: a few map lookups per (recipient, history), no re-partitioning / re-hashing.
         for (var entry : configsByTask.entrySet()) {
             HistoryNotificationTaskEntity task = entry.getKey();
             HistoryEntity history = task.getHistory();
             Map<UUID, Set<UUID>> byRecipient = new HashMap<>();
-            for (HistoryNotificationEntity config : entry.getValue()) {
-                HistoryNotificationRecipientEntity recipient = config.getHistoryNotificationRecipient();
-                if (recipient == null || recipient.getCollectors() == null) {
-                    continue;
+            if (history != null) {
+                for (HistoryNotificationEntity config : entry.getValue()) {
+                    HistoryNotificationRecipientEntity recipient = config.getHistoryNotificationRecipient();
+                    if (recipient == null) {
+                        continue;
+                    }
+                    byRecipient.computeIfAbsent(recipient.getId(),
+                            id -> resolveFromCache(resolverCache, keysByRecipient.get(id), history));
                 }
-                UUID recipientId = recipient.getId();
-                if (byRecipient.containsKey(recipientId)) {
-                    continue; // already resolved for this (recipient, history)
-                }
-                byRecipient.put(recipientId, resolveRecipientFromCache(resolverCache, recipient, history));
             }
             task.setResolvedRecipientsByRecipientId(byRecipient);
         }
     }
 
+    private static String groupKey(int featurerId, HashMap<String, String> params, boolean exclude) {
+        return FeaturerService.toConfigKey(featurerId, params) + "|" + exclude;
+    }
+
     private void collectResolverGroups(Map<String, ResolverGroup> groups,
                                        HistoryNotificationRecipientEntity recipient, HistoryEntity history) {
-        if (recipient == null || recipient.getCollectors() == null) {
-            return;
-        }
         for (HistoryNotificationRecipientCollectorEntity collector : recipient.getCollectors().getList()) {
-            Integer featurerId = collector.getRecipientResolverFeaturerId();
+            int featurerId = collector.getRecipientResolverFeaturerId();
             boolean exclude = Boolean.TRUE.equals(collector.getExclude());
-            String groupKey = FeaturerService.toConfigKey(featurerId, collector.getRecipientResolverParams()) + "|" + exclude;
-            groups.computeIfAbsent(groupKey, k -> new ResolverGroup(featurerId, collector.getRecipientResolverParams())).histories.add(history);
+            String key = groupKey(featurerId, collector.getRecipientResolverParams(), exclude);
+            groups.computeIfAbsent(key, k -> new ResolverGroup(featurerId, collector.getRecipientResolverParams())).histories.add(history);
         }
     }
 
-    private Set<UUID> resolveRecipientFromCache(Map<String, Map<HistoryEntity, Set<UUID>>> resolverCache,
-                                                HistoryNotificationRecipientEntity recipient, HistoryEntity history) {
-        List<HistoryNotificationRecipientCollectorEntity> collectors = recipient.getCollectors().getList();
-        List<HistoryNotificationRecipientCollectorEntity> includeCollectors = new ArrayList<>();
-        List<HistoryNotificationRecipientCollectorEntity> excludeCollectors = new ArrayList<>();
-        for (HistoryNotificationRecipientCollectorEntity collector : collectors) {
-            if (Boolean.TRUE.equals(collector.getExclude())) {
-                excludeCollectors.add(collector);
-            } else {
-                includeCollectors.add(collector);
-            }
+    private static Set<UUID> resolveFromCache(Map<String, Map<HistoryEntity, Set<UUID>>> resolverCache,
+                                              RecipientKeys keys, HistoryEntity history) {
+        if (keys == null) {
+            return Set.of();
         }
-        Set<UUID> include = collectResolvedFromCache(resolverCache, includeCollectors, history, false);
+        Set<UUID> include = unionFromCache(resolverCache, keys.include, history);
         if (include.isEmpty()) {
             return Set.of();
         }
-        if (!excludeCollectors.isEmpty()) {
-            include.removeAll(collectResolvedFromCache(resolverCache, excludeCollectors, history, true));
+        if (!keys.exclude.isEmpty()) {
+            include.removeAll(unionFromCache(resolverCache, keys.exclude, history));
         }
         return include;
     }
 
-    private Set<UUID> collectResolvedFromCache(Map<String, Map<HistoryEntity, Set<UUID>>> resolverCache,
-                                               List<HistoryNotificationRecipientCollectorEntity> collectors,
-                                               HistoryEntity history, boolean exclude) {
+    private static Set<UUID> unionFromCache(Map<String, Map<HistoryEntity, Set<UUID>>> resolverCache,
+                                            List<String> groupKeys, HistoryEntity history) {
         Set<UUID> result = new HashSet<>();
-        for (HistoryNotificationRecipientCollectorEntity collector : collectors) {
-            Integer featurerId = collector.getRecipientResolverFeaturerId();
-            if (featurerId == null) {
-                continue;
-            }
-            String groupKey = FeaturerService.toConfigKey(featurerId, collector.getRecipientResolverParams()) + "|" + exclude;
+        for (String groupKey : groupKeys) {
             Map<HistoryEntity, Set<UUID>> accumulator = resolverCache.get(groupKey);
             if (accumulator != null) {
                 Set<UUID> resolved = accumulator.get(history);
@@ -286,10 +281,24 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         return result;
     }
 
-    /**
-     * Unique resolver group across the chunk: a (featurerId, params) pair plus the union of histories
-     * where it occurs (via any recipient). {@code exclude} is encoded in the map key, not stored here.
-     */
+    /** Precomputed per-recipient group keys: partitioning + canonical key done once, reused per history. */
+    private static final class RecipientKeys {
+        final List<String> include = new ArrayList<>();
+        final List<String> exclude = new ArrayList<>();
+
+        static RecipientKeys of(HistoryNotificationRecipientEntity recipient) {
+            RecipientKeys keys = new RecipientKeys();
+            for (HistoryNotificationRecipientCollectorEntity collector : recipient.getCollectors().getList()) {
+                int featurerId = collector.getRecipientResolverFeaturerId();
+                boolean excl = Boolean.TRUE.equals(collector.getExclude());
+                (excl ? keys.exclude : keys.include)
+                        .add(groupKey(featurerId, collector.getRecipientResolverParams(), excl));
+            }
+            return keys;
+        }
+    }
+
+    /** Unique resolver group across the chunk: (featurerId, params) + union of histories where it occurs. */
     private static final class ResolverGroup {
         final int featurerId;
         final HashMap<String, String> params;
