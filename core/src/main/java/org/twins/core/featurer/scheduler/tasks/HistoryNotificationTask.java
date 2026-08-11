@@ -89,6 +89,10 @@ public class HistoryNotificationTask implements Runnable {
                         .filter(Objects::nonNull)
                         .distinct()
                         .toList());
+                // 2b. precompute recipients for the whole chunk: one resolveBatch per
+                //     (resolverFeaturerId, canonical params) group → beforeResolve preloads once per group.
+                //     Results land on each task.resolvedRecipientsByRecipientId for processTask.
+                historyNotificationRecipientService.resolveRecipientsBatch(configsByTask);
             }
 
             // 3. per-history processing — config relations are already loaded; ApiUser is set per history
@@ -165,10 +169,13 @@ public class HistoryNotificationTask implements Runnable {
                 }
 
                 var recipientIds = new HashSet<UUID>();
+                var resolvedByRecipient = task.getResolvedRecipientsByRecipientId();
                 for (var config : entry.getValue()) {
-                    // configs are already validator-filtered in HistoryNotificationService.findConfigsForTasks
-                    // todo create mechanism to group recipient resolvers and call batch resolve
-                    recipientIds.addAll(historyNotificationRecipientService.recipientResolve(config.getHistoryNotificationRecipient(), history));
+                    // configs are already validator-filtered in HistoryNotificationService.findConfigsForTasks.
+                    // recipients are precomputed at chunk level in run() (one resolveBatch per resolver group).
+                    if (resolvedByRecipient != null) {
+                        recipientIds.addAll(resolvedByRecipient.getOrDefault(config.getHistoryNotificationRecipientId(), Set.of()));
+                    }
                 }
 
                 if (recipientIds.isEmpty()) {
