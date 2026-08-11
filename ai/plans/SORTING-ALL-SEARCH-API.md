@@ -1356,7 +1356,7 @@ GroupField — это список полей, по которым имеет с
     * `externalId`
 
 * **GroupField values**:
-    * `defaultOptionId`
+    * `createdByUserId` (defaultOptionId убран — 1:1 с data list, бессмысленно для группировки; добавлено поле `created_by_user_id` в таблицу)
 
 ### `POST /private/data_list_option/search/v1`
 * **DTO**: `DataListOptionDTOv1`

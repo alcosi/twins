@@ -6,5 +6,6 @@ public enum DataListSortField {
     description,
     createdAt,
     updatedAt,
-    externalId
+    externalId,
+    createdByUserName
 }

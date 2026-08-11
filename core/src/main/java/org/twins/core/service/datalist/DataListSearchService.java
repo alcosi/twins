@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.domain.search.DataListSearch;
 import org.twins.core.enums.SortDirection;
@@ -106,20 +107,21 @@ public class DataListSearchService extends EntitySearchService
             case createdAt -> toSortSpecification(ascending, DataListEntity.Fields.createdAt);
             case updatedAt -> toSortSpecification(ascending, DataListEntity.Fields.updatedAt);
             case externalId -> toSortSpecification(ascending, DataListEntity.Fields.externalId);
+            case createdByUserName -> toSortSpecification(ascending, DataListEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
         };
     }
 
     @Override
     public String convertToEntityField(DataListGroupField groupField) throws ServiceException {
         return switch (groupField) {
-            case defaultOptionId -> DataListEntity.Fields.defaultDataListOptionId;
+            case createdByUserId -> DataListEntity.Fields.createdByUserId;
         };
     }
 
     @Override
     public void mapGroupedField(DataListEntity entity, DataListGroupField field, Object o) {
         switch (field) {
-            case defaultOptionId -> entity.setDefaultDataListOptionId((UUID) o);
+            case createdByUserId -> entity.setCreatedByUserId((UUID) o);
         }
     }
 }

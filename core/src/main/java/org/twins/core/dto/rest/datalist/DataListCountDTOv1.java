@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.CountDTOv1;
+import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.UUID;
 
@@ -13,8 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "DataListCountV1")
 public class DataListCountDTOv1 extends CountDTOv1 {
-    // defaultOptionId is returned as a plain scalar UUID — DataListEntity has no @ManyToOne to the
-    // default DataListOption, so no related object is loaded (client resolves by id if needed).
-    @Schema(description = "default data list option id")
-    public UUID defaultOptionId;
+    @Schema(description = "created by user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
+    public UUID createdByUserId;
 }
