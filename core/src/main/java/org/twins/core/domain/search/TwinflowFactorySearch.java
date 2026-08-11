@@ -2,13 +2,14 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class TwinflowFactorySearch {
+public class TwinflowFactorySearch extends EntitySearch<TwinflowFactoryEntity> {
     private Set<UUID> idSet;
     private Set<UUID> idExcludeSet;
     private Set<UUID> twinflowIdSet;

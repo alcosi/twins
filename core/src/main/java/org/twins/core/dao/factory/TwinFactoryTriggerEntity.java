@@ -51,11 +51,6 @@ public class TwinFactoryTriggerEntity implements EasyLoggable, Identifiable, Con
     @Column(name = "async")
     private Boolean async;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinFactoryEntity twinFactory;
-
     @Deprecated //for specification only
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
@@ -64,16 +59,44 @@ public class TwinFactoryTriggerEntity implements EasyLoggable, Identifiable, Con
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity twinFactorySpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER) // need for core logic
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClassSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity twinFactoryConditionSetSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
-    private TwinTriggerEntity twinTrigger;
+    private TwinTriggerEntity twinTriggerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity twinFactory;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassEntity twinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinTriggerEntity twinTrigger;
 
     @Transient
     @EqualsAndHashCode.Exclude

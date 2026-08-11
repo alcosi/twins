@@ -24,14 +24,12 @@ import org.twins.core.domain.space.SpaceRoleUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -53,6 +51,8 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
     private final I18nService i18nService;
     private final TwinClassService twinClassService;
     private final DomainBusinessAccountService domainBusinessAccountService;
+    @Lazy
+    private final BusinessAccountService businessAccountService;
 
     public void forceDeleteRoles(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -60,6 +60,28 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
 
         List<UUID> rolesToDelete = spaceRoleRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(rolesToDelete, spaceRoleRepository);
+    }
+
+    public void loadTwinClass(SpaceRoleEntity src) throws ServiceException {
+        loadTwinClass(Collections.singletonList(src));
+    }
+
+    public void loadTwinClass(Collection<SpaceRoleEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                SpaceRoleEntity::getTwinClassId,
+                SpaceRoleEntity::getTwinClass,
+                SpaceRoleEntity::setTwinClass);
+    }
+
+    public void loadBusinessAccount(SpaceRoleEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<SpaceRoleEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                SpaceRoleEntity::getBusinessAccountId,
+                SpaceRoleEntity::getBusinessAccount,
+                SpaceRoleEntity::setBusinessAccount);
     }
 
     @Override

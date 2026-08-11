@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 
 import java.util.Set;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinTriggerTaskSearch {
+public class TwinTriggerTaskSearch extends EntitySearch<TwinTriggerTaskEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> twinIdList;

@@ -61,6 +61,14 @@ public class TwinStatusTriggerEntity implements EasyLoggable {
     @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
     private TwinTriggerEntity twinTriggerSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_status_id", insertable = false, updatable = false)
+    private TwinStatusEntity twinStatusSpecOnly;
+
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinStatusTrigger[" + id + "]";

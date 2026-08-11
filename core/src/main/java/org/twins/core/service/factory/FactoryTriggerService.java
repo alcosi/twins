@@ -160,6 +160,17 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
     }
 
+    public void loadTwinTrigger(TwinFactoryTriggerEntity src) throws ServiceException {
+        loadTwinTriggers(Collections.singleton(src));
+    }
+
+    public void loadTwinTriggers(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
+        twinTriggerService.load(srcCollection,
+                TwinFactoryTriggerEntity::getTwinTriggerId,
+                TwinFactoryTriggerEntity::getTwinTrigger,
+                TwinFactoryTriggerEntity::setTwinTrigger);
+    }
+
     public List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
         return repository.findByTwinFactoryIdIn(factoryIds);
     }

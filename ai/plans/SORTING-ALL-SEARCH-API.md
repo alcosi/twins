@@ -13,10 +13,10 @@
 
 > Статус сверен с кодом (наличие `SearchService extends EntitySearchService` + `*CountController` + `sortField` в `SearchRqDTO`).
 
-**✅ DONE (21 API):** attachment, comment, twin_class, twin_class_fields, twin_status, link, data_list_option, domain_business_account, domain_business_account_user (пилот), factory, factory_branch, factory_condition, factory_condition_set, factory_eraser, factory_multiplier, factory_multiplier_filter, factory_pipeline, factory_pipeline_step, data_list_option_projection, twin_validator_set, action_restriction_reason.
-*(Вне плана, но тоже готовы: twin_pointer TWINS-880, twin.)*
+**✅ DONE (29 API):** attachment, comment, permission, space_role, twinflow/factory, twin_status/trigger, twin_trigger, twin_factory/trigger, twin_trigger_task, data_list, twin_class, twin_class_fields, twin_status, link, data_list_option, domain_business_account, domain_business_account_user (пилот), factory, factory_branch, factory_condition, factory_condition_set, factory_eraser, factory_multiplier, factory_multiplier_filter, factory_pipeline, factory_pipeline_step, data_list_option_projection, twin_validator_set, action_restriction_reason.
+*(Вне плана, но тоже готовы: twin_pointer TWINS-880, twin, twin_validator, twin_link.)*
 
-**⬜ Осталось (~37 API):** i18n_translation; permission (7); projection, projection_type, scheduler, scheduler_log, tier, transition_trigger (6); twin_class_field_rule/condition/schema/dynamic_marker/freeze (5); twinflow_schema, twinflow/factory, twin_factory/trigger, twin_status/trigger, twin_trigger, twin_trigger_task (6); notification_schema, history_notification, history_notification_recipient, history_notification_recipient_collector (4); space_role, user_group, user_group/involve_assignee, user_group/involve_act_as_user, user, domain/user (6); featurer, data_list (2).
+**⬜ Осталось (~29 API):** i18n_translation; permission_group/permission_schema/permission_grant(user,user_group,twin_role,space_role) (6); projection, projection_type, scheduler, scheduler_log, tier, transition_trigger (6); twin_class_field_rule/condition/schema/dynamic_marker/freeze (5); twinflow_schema (1); notification_schema, history_notification, history_notification_recipient, history_notification_recipient_collector (4); user_group, user_group/involve_assignee, user_group/involve_act_as_user, user, domain/user (5); featurer (1).
 
 **Следующий по порядку:** `i18n_translation`.
 
@@ -97,8 +97,7 @@ public ResponseEntity<?> entityCountV1(
 - GroupField enum **НЕ содержит fieldPath** — маппинг имени → колонка делается в `convertToEntityField()` switch в SearchService (как и для SortField)
 - Count DTO **НЕ наследует** Domain Entity DTOv1 — он наследует `CountDTOv1` и явно объявляет только groupable-поля (никаких лишних null-ов от unrelated entity полей)
 
-### `POST /private/twin_class/search/v2` — DONE (search + sort + count)
-
+### `POST /private/twin_class/search/v2`
 * **DTO**: `TwinClassDTOv1`
 * **SearchRqDTO**: `TwinClassSearchRqDTOv2`
     * Поля фильтрации: `twinClassIdList`, `twinClassKeyLikeList`, `nameI18nLikeList`, `descriptionI18nLikeList`, `externalIdLikeList`, `ownerTypeList`, `markerDatalistIdList`, `tagDatalistIdList`, `freezeIdList`, `abstractt`, `segment`, `hasSegments`, `uniqueName`, `twinflowSchemaSpace`, `twinClassSchemaSpace`, `permissionSchemaSpace`, `aliasSpace`, `assigneeRequired`, `viewPermissionIdList`, `createPermissionIdList`, `editPermissionIdList`, `deletePermissionIdList`, `twinCounterRange`
@@ -166,6 +165,84 @@ public ResponseEntity<?> entityCountV1(
 
 ---
 
+## Сводная таблица статусов миграции
+
+Статусы сверен с кодом (`SearchService extends EntitySearchService` + `*CountController` + `sortField` в `SearchRqDTO`) и с заголовками секций ниже.
+
+**Легенда статусов:**
+* ✅ **DONE** — реализовано (search + sort + count)
+* 📋 **reviewed** — поля сортировки/группировки определены и проревьючены, реализация pending
+* ⏭ **pilot** — пилот `DomainBusinessAccountUser` (TWINS-831), реализован вне этого плана
+
+**Пакеты** (номер соответствует «Порядку реализации» ниже): 1 — attachment/comment/i18n · 2 — permission · 3 — projection/scheduler/tier/transition · 4 — twin class fields · 5 — twinflow/triggers · 6 — factory · 7 — notification · 8 — user/domain · 9 — system/datalist/link
+
+| Пакет | Endpoint | Entity | Статус |
+|---|---|---|---|
+| 1 | `POST /private/attachment/search/v1` | TwinAttachmentEntity | ✅ DONE |
+| 1 | `POST /private/comment/search/v1` | TwinCommentEntity | ✅ DONE |
+| 1 | `POST /private/i18n_translation/search/v1` | I18nTranslationEntity | 📋 reviewed |
+| 2 | `POST /private/permission_group/search/v1` | PermissionGroupEntity | 📋 reviewed |
+| 2 | `POST /private/permission/search/v1` | PermissionEntity | ✅ DONE |
+| 2 | `POST /private/permission_schema/search/v1` | PermissionSchemaEntity | 📋 reviewed |
+| 2 | `POST /private/permission_grant/user/search/v1` | PermissionGrantUserEntity | 📋 reviewed |
+| 2 | `POST /private/permission_grant/user_group/search/v1` | PermissionGrantUserGroupEntity | 📋 reviewed |
+| 2 | `POST /private/permission_grant/twin_role/search/v1` | PermissionGrantTwinRoleEntity | 📋 reviewed |
+| 2 | `POST /private/permission_grant/space_role/search/v1` | PermissionGrantSpaceRoleEntity | 📋 reviewed |
+| 3 | `POST /private/projection/search/v1` | ProjectionEntity | 📋 reviewed |
+| 3 | `POST /private/projection_type/search/v1` | ProjectionTypeEntity | 📋 reviewed |
+| 3 | `POST /private/scheduler/search/v1` | SchedulerEntity | 📋 reviewed |
+| 3 | `POST /private/scheduler_log/search/v1` | SchedulerLogEntity | 📋 reviewed |
+| 3 | `POST /private/tier/search/v1` | TierEntity | 📋 reviewed |
+| 3 | `POST /private/transition_trigger/search/v1` | TwinflowTransitionTriggerEntity | 📋 reviewed |
+| 4 | `POST /private/twin_class/search/v2` | TwinClassEntity | ✅ DONE |
+| 4 | `POST /private/twin_class_fields/search/v1` | TwinClassFieldEntity | ✅ DONE |
+| 4 | `POST /private/twin_class_field_rule/search/v1` | TwinClassFieldRuleEntity | 📋 reviewed |
+| 4 | `POST /private/twin_class_field_condition/search/v1` | TwinClassFieldConditionEntity | 📋 reviewed |
+| 4 | `POST /private/twin_class_schema/search/v1` | TwinClassSchemaEntity | 📋 reviewed |
+| 4 | `POST /private/twin_class_dynamic_marker/search/v1` | TwinClassDynamicMarkerEntity | 📋 reviewed |
+| 4 | `POST /private/twin_class_freeze/search/v1` | TwinClassFreezeEntity | 📋 reviewed |
+| 5 | `POST /private/twin_status/search/v1` | TwinStatusEntity | ✅ DONE |
+| 5 | `POST /private/twinflow_schema/search/v1` | TwinflowSchemaEntity | 📋 reviewed |
+| 5 | `POST /private/twinflow/factory/search/v1` | TwinflowFactoryEntity | ✅ DONE |
+| 5 | `POST /private/twin_factory/trigger/search/v1` | TwinFactoryTriggerEntity | ✅ DONE |
+| 5 | `POST /private/twin_status/trigger/search/v1` | TwinStatusTriggerEntity | ✅ DONE |
+| 5 | `POST /private/twin_trigger/search/v1` | TwinTriggerEntity | ✅ DONE |
+| 5 | `POST /private/twin_trigger_task/search/v1` | TwinTriggerTaskEntity | ✅ DONE |
+| 6 | `POST /private/factory/search/v1` | TwinFactoryEntity | ✅ DONE |
+| 6 | `POST /private/factory_branch/search/v1` | TwinFactoryBranchEntity | ✅ DONE |
+| 6 | `POST /private/factory_condition/search/v1` | TwinFactoryConditionEntity | ✅ DONE |
+| 6 | `POST /private/factory_condition_set/search/v1` | TwinFactoryConditionSetEntity | ✅ DONE |
+| 6 | `POST /private/factory_eraser/search/v1` | TwinFactoryEraserEntity | ✅ DONE |
+| 6 | `POST /private/factory_multiplier/search/v1` | TwinFactoryMultiplierEntity | ✅ DONE |
+| 6 | `POST /private/factory_multiplier_filter/search/v1` | TwinFactoryMultiplierFilterEntity | ✅ DONE |
+| 6 | `POST /private/factory_pipeline/search/v1` | TwinFactoryPipelineEntity | ✅ DONE |
+| 6 | `POST /private/factory_pipeline_step/search/v1` | TwinFactoryPipelineStepEntity | ✅ DONE |
+| 7 | `POST /private/notification_schema/search/v1` | NotificationSchemaEntity | 📋 reviewed |
+| 7 | `POST /private/history_notification/search/v1` | HistoryNotificationEntity | 📋 reviewed |
+| 7 | `POST /private/history_notification_recipient/search/v1` | HistoryNotificationRecipientEntity | 📋 reviewed |
+| 7 | `POST /private/history_notification_recipient_collector/search/v1` | HistoryNotificationRecipientCollectorEntity | 📋 reviewed |
+| 8 | `POST /private/space_role/search/v1` | SpaceRoleEntity | ✅ DONE |
+| 8 | `POST /private/user_group/search/v1` | UserGroupEntity | 📋 reviewed |
+| 8 | `POST /private/user_group/involve_assignee/search/v1` | UserGroupInvolveAssigneeEntity | 📋 reviewed |
+| 8 | `POST /private/user_group/involve_act_as_user/search/v1` | UserGroupInvolveActAsUserEntity | 📋 reviewed |
+| 8 | `POST /private/user/search/v1` | UserEntity | 📋 reviewed |
+| 8 | `POST /private/domain/user/search/v1` | DomainUserEntity | 📋 reviewed |
+| 8 | `POST /private/domain/business_account/search/v1` | DomainBusinessAccountEntity | ✅ DONE |
+| 8 | `POST /private/domain/business_account_user/search/v1` | DomainBusinessAccountUserEntity | ⏭ pilot |
+| 9 | `POST /private/featurer/search/v1` | FeaturerEntity | 📋 reviewed |
+| 9 | `POST /private/data_list/search/v1` | DataListEntity | ✅ DONE |
+| 9 | `POST /private/data_list_option/search/v1` | DataListOptionEntity | ✅ DONE |
+| 9 | `POST /private/data_list_option_projection/search/v1` | DataListOptionProjectionEntity | ✅ DONE |
+| 9 | `POST /private/twin_validator_set/search/v1` | TwinValidatorSetEntity | ✅ DONE |
+| 9 | `POST /private/link/search/v1` | LinkEntity | ✅ DONE |
+| 9 | `POST /private/action_restriction_reason/search/v1` | ActionRestrictionReasonEntity | ✅ DONE |
+| — | `POST /private/twin_validator/search/v1` *(вне плана)* | TwinValidatorEntity | ✅ DONE |
+| — | `POST /private/twin_link/search/v1` *(вне плана)* | TwinLinkEntity | ✅ DONE |
+
+**Итого по плану: 28 DONE + 1 pilot + 29 reviewed = 58 API.** Плюс 2 API вне плана (`twin_validator`, `twin_link`) тоже реализованы. Следующий по порядку — `i18n_translation`.
+
+---
+
 ## Реестр API и полей сортировки/группировки
 
 Формат: **API endpoint** → **DTO ответа** → **Entity** → `SortField values` + `GroupField values`.
@@ -213,8 +290,7 @@ GroupField — это список полей, по которым имеет с
 
 ---
 
-### `POST /private/attachment/search/v1` — DONE (search + sort + count)
-
+### `POST /private/attachment/search/v1`
 * **DTO**: `AttachmentDTOv1`
 * **SearchRqDTO**: `AttachmentSearchRqDTOv1`
     * Поля фильтрации:  `twinIdList`, `twinflowTransitionIdList`, `commentIdList`, `twinClassFieldIdList`, `storageLinkLikeList`, `viewPermissionIdList`, `createdByUserIdList`, `externalIdLikeList`, `titleLikeList`, `descriptionLikeList`, `createdAt`, `order`
@@ -245,8 +321,7 @@ GroupField — это список полей, по которым имеет с
     * `commentIdList` → пропущено: у TwinCommentEntity нет осмысленного поля `name` для сортировки
     * `storageLinkLikeList` → пропущено: сортировка по URL не имеет практического смысла
 
-### `POST /private/comment/search/v1` — DONE (search + sort + count)
-
+### `POST /private/comment/search/v1`
 * **DTO**: `CommentDTOv1`
 * **SearchRqDTO**: `CommentSearchRqDTOv1`
     * Поля фильтрации:  `twinIdList`, `createdByUserIdList`, `textLikeList`, `createdAt`, `updatedAt`
@@ -265,7 +340,7 @@ GroupField — это список полей, по которым имеет с
 * **Пропущенные поля фильтрации:**
     * `textLikeList` → пропущено: сортировка по тексту комментария не имеет практического смысла
 
-### `POST /private/i18n_translation/search/v1` ✅ reviewed
+### `POST /private/i18n_translation/search/v1`
 
 * **DTO**: `I18nTranslationDTOv1`
 * **SearchRqDTO**: `I18nTranslationSearchRqDTOv1`
@@ -281,7 +356,7 @@ GroupField — это список полей, по которым имеет с
     * `locale` (низкая кардинальность — ограниченный набор языков)
     * `i18nId`
 
-### `POST /private/permission_group/search/v1` ✅ reviewed
+### `POST /private/permission_group/search/v1`
 
 * **DTO**: `PermissionGroupDTOv1`
 * **SearchRqDTO**: `PermissionGroupSearchRqDTOv1`
@@ -297,7 +372,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `twinClassId`
 
-### `POST /private/permission/search/v1` ✅ reviewed
+### `POST /private/permission/search/v1`
 
 * **DTO**: `PermissionDTOv1`
 * **SearchRqDTO**: `PermissionSearchRqDTOv1`
@@ -313,7 +388,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `groupId`
 
-### `POST /private/permission_schema/search/v1` ✅ reviewed
+### `POST /private/permission_schema/search/v1`
 
 * **DTO**: `PermissionSchemaDTOv1`
 * **SearchRqDTO**: `PermissionSchemaSearchRqDTOv1`
@@ -331,7 +406,7 @@ GroupField — это список полей, по которым имеет с
     * `businessAccountId`
     * `createdByUserId`
 
-### `POST /private/permission_grant/user/search/v1` ✅ reviewed
+### `POST /private/permission_grant/user/search/v1`
 
 * **DTO**: `PermissionGrantUserDTOv1`
 * **SearchRqDTO**: `PermissionGrantUserSearchRqDTOv1`
@@ -352,7 +427,7 @@ GroupField — это список полей, по которым имеет с
     * `grantedByUserId`
 * **Composite index:** `(permissionSchemaId, userId)` — частый кейс «сколько грантов у user в схеме»
 
-### `POST /private/permission_grant/user_group/search/v1` ✅ reviewed
+### `POST /private/permission_grant/user_group/search/v1`
 
 * **DTO**: `PermissionGrantUserGroupDTOv1`
 * **SearchRqDTO**: `PermissionGrantUserGroupSearchRqDTOv1`
@@ -372,7 +447,7 @@ GroupField — это список полей, по которым имеет с
     * `userGroupId`
     * `grantedByUserId`
 
-### `POST /private/permission_grant/twin_role/search/v1` ✅ reviewed
+### `POST /private/permission_grant/twin_role/search/v1`
 
 * **DTO**: `PermissionGrantTwinRoleDTOv1`
 * **SearchRqDTO**: `PermissionGrantTwinRoleSearchRqDTOv1`
@@ -400,7 +475,7 @@ GroupField — это список полей, по которым имеет с
     * `grantedToSpaceCreator`
     * `grantedByUserId`
 
-### `POST /private/permission_grant/space_role/search/v1` ✅ reviewed
+### `POST /private/permission_grant/space_role/search/v1`
 
 * **DTO**: `PermissionGrantSpaceRoleDTOv1`
 * **SearchRqDTO**: `PermissionGrantSpaceRoleSearchRqDTOv1`
@@ -420,7 +495,7 @@ GroupField — это список полей, по которым имеет с
     * `spaceRoleId`
     * `grantedByUserId`
 
-### `POST /private/projection/search/v1` ✅ reviewed
+### `POST /private/projection/search/v1`
 
 * **DTO**: `ProjectionDTOv1`
 * **SearchRqDTO**: `ProjectionSearchRqDTOv1`
@@ -446,7 +521,7 @@ GroupField — это список полей, по которым имеет с
 * **Пропущенные поля фильтрации:**
     * `srcTwinPointerIdList` → пропущено: TwinPointer не имеет осмысленного name для сортировки
 
-### `POST /private/projection_type/search/v1` ✅ reviewed
+### `POST /private/projection_type/search/v1`
 
 * **DTO**: `ProjectionTypeDTOv1`
 * **SearchRqDTO**: `ProjectionTypeSearchRqDTOv1`
@@ -463,7 +538,7 @@ GroupField — это список полей, по которым имеет с
     * `projectionTypeGroupId`
     * `membershipTwinClassId`
 
-### `POST /private/scheduler/search/v1` ✅ reviewed
+### `POST /private/scheduler/search/v1`
 
 * **TODO:** добавить поле `name` в `SchedulerEntity`, `SchedulerDTOv1`, `SchedulerSearchDTOv1`
 * **DTO**: `SchedulerDTOv1`
@@ -488,7 +563,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `logEnabled`
 
-### `POST /private/scheduler_log/search/v1` ✅ reviewed
+### `POST /private/scheduler_log/search/v1`
 
 * **TODO:** зависит от добавления `name` в `SchedulerEntity` (см. scheduler/search)
 * **DTO**: `SchedulerLogDTOv1`
@@ -506,7 +581,7 @@ GroupField — это список полей, по которым имеет с
     * `schedulerId`
     * `result` (если enum-like: success/failure/timeout — низкая кардинальность)
 
-### `POST /private/tier/search/v1` ✅ reviewed
+### `POST /private/tier/search/v1`
 
 * **DTO**: `TierDTOv1`
 * **SearchRqDTO**: `TierSearchRqDTOv1`
@@ -532,7 +607,7 @@ GroupField — это список полей, по которым имеет с
     * `twinClassSchemaId`
     * `custom`
 
-### `POST /private/transition_trigger/search/v1` ✅ reviewed
+### `POST /private/transition_trigger/search/v1`
 
 * **DTO**: `TransitionTriggerDTOv1`
 * **SearchRqDTO**: `TransitionTriggerSearchRqDTOv1`
@@ -552,8 +627,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `async`
 
-### `POST /private/twin_class_fields/search/v1` — DONE (search + sort + count)
-
+### `POST /private/twin_class_fields/search/v1`
 * **DTO**: `TwinClassFieldDTOv1`
 * **SearchRqDTO**: `TwinClassFieldSearchRqDTOv1`
     * Поля фильтрации:  `twinClassIdMap`, `keyLikeList`, `nameI18nLikeList`, `descriptionI18nLikeList`, `externalIdLikeList`, `fieldTyperIdList`, `fieldInitiatorIdList`, `twinSorterIdList`, `viewPermissionIdList`, `editPermissionIdList`, `required`, `inheritable`, `system`, `dependentField`, `hasDependentFields`, `projectionField`, `hasProjectionFields`, `orderRange`
@@ -598,7 +672,7 @@ GroupField — это список полей, по которым имеет с
     * `feValidationErrorI18nLikeList` → пропущено: текст ошибки валидации, не имеет смысла для сортировки
     * `beValidationErrorI18nLikeList` → пропущено: текст ошибки валидации, не имеет смысла для сортировки
 
-### `POST /private/twin_class_field_rule/search/v1` ✅ reviewed
+### `POST /private/twin_class_field_rule/search/v1`
 
 * **DTO**: `TwinClassFieldRuleDTOv1`
 * **SearchRqDTO**: `TwinClassFieldRuleSearchRqDTOv1`
@@ -616,7 +690,7 @@ GroupField — это список полей, по которым имеет с
     * `fieldOverwriterFeaturerId`
     * `overwrittenRequired`
 
-### `POST /private/twin_class_field_condition/search/v1` ✅ reviewed
+### `POST /private/twin_class_field_condition/search/v1`
 
 * **DTO**: `TwinClassFieldConditionDTOv1`
 * **SearchRqDTO**: `TwinClassFieldConditionSearchRqDTOv1`
@@ -640,7 +714,7 @@ GroupField — это список полей, по которым имеет с
     * `twinClassFieldRuleIdList` → пропущено: у TwinClassFieldRuleEntity нет осмысленного name для сортировки
     * `parentTwinClassFieldConditionIdList` → пропущено: self-reference, сортировка не имеет смысла
 
-### `POST /private/twin_class_schema/search/v1` ✅ reviewed
+### `POST /private/twin_class_schema/search/v1`
 
 * **DTO**: `TwinClassSchemaDTOv1`
 * **SearchRqDTO**: `TwinClassSchemaSearchRqDTOv1`
@@ -656,7 +730,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `createdByUserId`
 
-### `POST /private/twin_class_dynamic_marker/search/v1` ✅ reviewed
+### `POST /private/twin_class_dynamic_marker/search/v1`
 
 * **DTO**: `TwinClassDynamicMarkerDTOv1`
 * **SearchRqDTO**: `TwinClassDynamicMarkerSearchRqDTOv1`
@@ -675,7 +749,7 @@ GroupField — это список полей, по которым имеет с
     * `twinValidatorSetId`
     * `markerDataListOptionId`
 
-### `POST /private/twin_class_freeze/search/v1` ✅ reviewed
+### `POST /private/twin_class_freeze/search/v1`
 
 * **DTO**: `TwinClassFreezeDTOv1`
 * **SearchRqDTO**: `TwinClassFreezeSearchRqDTOv1`
@@ -691,7 +765,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `statusId`
 
-### `POST /private/twinflow_schema/search/v1` ✅ reviewed
+### `POST /private/twinflow_schema/search/v1`
 
 * **DTO**: `TwinflowSchemaDTOv1`
 * **SearchRqDTO**: `TwinflowSchemaSearchRqDTOv1`
@@ -709,7 +783,7 @@ GroupField — это список полей, по которым имеет с
     * `businessAccountId`
     * `createdByUserId`
 
-### `POST /private/twinflow/factory/search/v1` ✅ reviewed
+### `POST /private/twinflow/factory/search/v1`
 
 * **DTO**: `TwinflowFactoryDTOv1`
 * **SearchRqDTO**: `TwinflowFactorySearchRqDTOv1`
@@ -726,9 +800,9 @@ GroupField — это список полей, по которым имеет с
     * `factoryId`
     * `twinFactoryLauncherId`
 
-### `POST /private/twin_factory/trigger/search/v1` ✅ reviewed
+### `POST /private/twin_factory/trigger/search/v1`
 
-* **DTO**: `TwinFactoryTriggerDTOv1`
+* **DTO**: `FactoryTriggerDTOv1`
 * **SearchRqDTO**: `TwinFactoryTriggerSearchRqDTOv1`
     * Поля фильтрации: `twinFactoryIdList`, `inputTwinClassIdList`, `twinTriggerIdList`, `active`, `async`
 * **Entity**: `TwinFactoryTriggerEntity`
@@ -751,8 +825,7 @@ GroupField — это список полей, по которым имеет с
     * `async`
     * `twinFactoryConditionInvert`
 
-### `POST /private/twin_status/search/v1` — DONE (search + sort + count)
-
+### `POST /private/twin_status/search/v1`
 * **DTO**: `TwinStatusDTOv1`
 * **SearchRqDTO**: `TwinStatusSearchRqDTOv1`
     * Поля фильтрации:  `twinClassIdMap`, `inheritable`, `keyLikeList`, `nameI18nLikeList`, `descriptionI18nLikeList`
@@ -773,7 +846,7 @@ GroupField — это список полей, по которым имеет с
     * `inheritable`
     * `type`
 
-### `POST /private/twin_status/trigger/search/v1` ✅ reviewed
+### `POST /private/twin_status/trigger/search/v1`
 
 * **DTO**: `TwinStatusTriggerDTOv1`
 * **SearchRqDTO**: `TwinStatusTriggerSearchRqDTOv1`
@@ -795,7 +868,7 @@ GroupField — это список полей, по которым имеет с
     * `async`
     * `incomingElseOutgoing`
 
-### `POST /private/twin_trigger/search/v1` ✅ reviewed
+### `POST /private/twin_trigger/search/v1`
 
 * **DTO**: `TwinTriggerDTOv1`
 * **SearchRqDTO**: `TwinTriggerSearchRqDTOv1`
@@ -814,7 +887,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `jobTwinClassId`
 
-### `POST /private/twin_trigger_task/search/v1` ✅ reviewed
+### `POST /private/twin_trigger_task/search/v1`
 
 * **DTO**: `TwinTriggerTaskDTOv1`
 * **SearchRqDTO**: `TwinTriggerTaskSearchRqDTOv1`
@@ -840,8 +913,7 @@ GroupField — это список полей, по которым имеет с
     * `businessAccountId`
     * `statusId`
 
-### `POST /private/factory/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory/search/v1`
 * **DTO**: `FactoryDTOv1`
 * **SearchRqDTO**: `FactorySearchRqDTOv1`
     * Поля фильтрации:  `keyLikeList`, `nameLikeList`, `descriptionLikeList`
@@ -857,8 +929,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `createdByUserId`
 
-### `POST /private/factory_branch/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_branch/search/v1`
 * **DTO**: `FactoryBranchDTOv1`
 * **SearchRqDTO**: `FactoryBranchSearchRqDTOv1`
     * Поля фильтрации:  `factoryIdList`, `factoryConditionSetIdList`, `nextFactoryIdList`, `descriptionLikeList`, `conditionInvert`, `active`
@@ -879,8 +950,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `factoryConditionSetInvert`
 
-### `POST /private/factory_condition/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_condition/search/v1`
 * **DTO**: `FactoryConditionDTOv1`
 * **SearchRqDTO**: `FactoryConditionSearchRqDTOv1`
     * Поля фильтрации:  `factoryConditionSetIdList`, `conditionerFeaturerIdList`, `descriptionLikeList`, `invert`, `active`
@@ -899,8 +969,7 @@ GroupField — это список полей, по которым имеет с
     * `invert`
     * `active`
 
-### `POST /private/factory_condition_set/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_condition_set/search/v1`
 * **DTO**: `FactoryConditionSetDTOv1`
 * **SearchRqDTO**: `FactoryConditionSetSearchRqDTOv1`
     * Поля фильтрации:  `twinFactoryIdList`, `nameLikeList`, `descriptionLikeList`, `cachable`
@@ -920,8 +989,7 @@ GroupField — это список полей, по которым имеет с
     * `cachable`
     * `createdByUserId`
 
-### `POST /private/factory_eraser/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_eraser/search/v1`
 * **DTO**: `FactoryEraserDTOv1`
 * **SearchRqDTO**: `FactoryEraserSearchRqDTOv1`
     * Поля фильтрации:  `factoryIdList`, `inputTwinClassIdList`, `factoryConditionSetIdList`, `conditionInvert`, `descriptionLikeList`, `eraseActionLikeList`, `active`
@@ -944,8 +1012,7 @@ GroupField — это список полей, по которым имеет с
     * `active`
     * `action`
 
-### `POST /private/factory_multiplier/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_multiplier/search/v1`
 * **DTO**: `FactoryMultiplierDTOv1`
 * **SearchRqDTO**: `FactoryMultiplierSearchRqDTOv1`
     * Поля фильтрации:  `factoryIdList`, `inputTwinClassIdList`, `multiplierFeaturerIdList`, `descriptionLikeList`, `active`
@@ -964,8 +1031,7 @@ GroupField — это список полей, по которым имеет с
     * `multiplierFeaturerId`
     * `active`
 
-### `POST /private/factory_multiplier_filter/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_multiplier_filter/search/v1`
 * **DTO**: `FactoryMultiplierFilterDTOv1`
 * **SearchRqDTO**: `FactoryMultiplierFilterSearchRqDTOv1`
     * Поля фильтрации:  `factoryIdList`, `factoryMultiplierIdList`, `inputTwinClassIdList`, `factoryConditionSetIdList`, `descriptionLikeList`, `active`, `factoryConditionInvert`
@@ -989,8 +1055,7 @@ GroupField — это список полей, по которым имеет с
     * `factoryIdList` → пропущено: косвенная связь через multiplier, нет прямой FK в Entity
     * `factoryMultiplierIdList` → пропущено: у TwinFactoryMultiplierEntity нет поля `name`
 
-### `POST /private/factory_pipeline/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_pipeline/search/v1`
 * **DTO**: `FactoryPipelineDTOv1`
 * **SearchRqDTO**: `FactoryPipelineSearchRqDTOv1`
     * Поля фильтрации:  `factoryIdList`, `inputTwinClassIdList`, `factoryConditionSetIdList`, `outputTwinStatusIdList`, `nextFactoryIdList`, `descriptionLikeList`, `active`, `nextFactoryLimitScope`
@@ -1017,8 +1082,7 @@ GroupField — это список полей, по которым имеет с
     * `nextFactoryLimitScope`
     * `factoryConditionSetInvert`
 
-### `POST /private/factory_pipeline_step/search/v1` — DONE (search + sort + count)
-
+### `POST /private/factory_pipeline_step/search/v1`
 * **DTO**: `FactoryPipelineStepDTOv1`
 * **SearchRqDTO**: `FactoryPipelineStepSearchRqDTOv1`
     * Поля фильтрации:  `factoryIdList`, `factoryPipelineIdList`, `factoryConditionSetIdList`, `descriptionLikeList`, `fillerFeaturerIdList`, `conditionInvert`, `active`, `optional`
@@ -1045,7 +1109,7 @@ GroupField — это список полей, по которым имеет с
     * `factoryIdList` → пропущено: косвенная связь через pipeline, нет прямой FK в Entity
     * `factoryPipelineIdList` → пропущено: у TwinFactoryPipelineEntity нет поля `name`
 
-### `POST /private/notification_schema/search/v1` ✅ reviewed
+### `POST /private/notification_schema/search/v1`
 
 * **DTO**: `NotificationSchemaDTOv1`
 * **SearchRqDTO**: `NotificationSchemaSearchRqDTOv1`
@@ -1061,7 +1125,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `createdByUserId`
 
-### `POST /private/history_notification/search/v1` ✅ reviewed
+### `POST /private/history_notification/search/v1`
 
 * **DTO**: `HistoryNotificationDTOv1`
 * **SearchRqDTO**: `HistoryNotificationSearchRqDTOv1`
@@ -1093,7 +1157,7 @@ GroupField — это список полей, по которым имеет с
     * `historyTypeIdList` → пропущено: у HistoryTypeEntity нет осмысленного name для сортировки
     * `notificationChannelEventIdList` → пропущено: у NotificationChannelEventEntity нет поля `name`
 
-### `POST /private/history_notification_recipient/search/v1` ✅ reviewed
+### `POST /private/history_notification_recipient/search/v1`
 
 * **DTO**: `HistoryNotificationRecipientDTOv1`
 * **SearchRqDTO**: `HistoryNotificationRecipientSearchRqDTOv1`
@@ -1109,7 +1173,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `createdByUserId`
 
-### `POST /private/history_notification_recipient_collector/search/v1` ✅ reviewed
+### `POST /private/history_notification_recipient_collector/search/v1`
 
 * **DTO**: `HistoryNotificationRecipientCollectorDTOv1`
 * **SearchRqDTO**: `HistoryNotificationRecipientCollectorSearchRqDTOv1`
@@ -1126,7 +1190,7 @@ GroupField — это список полей, по которым имеет с
     * `recipientResolverFeaturerId`
     * `exclude`
 
-### `POST /private/space_role/search/v1` ✅ reviewed
+### `POST /private/space_role/search/v1`
 
 * **DTO**: `SpaceRoleDTOv1`
 * **SearchRqDTO**: `SpaceRoleSearchRqDTOv1`
@@ -1144,7 +1208,7 @@ GroupField — это список полей, по которым имеет с
     * `twinClassId`
     * `businessAccountId`
 
-### `POST /private/user_group/search/v1` ✅ reviewed
+### `POST /private/user_group/search/v1`
 
 * **DTO**: `UserGroupDTOv2`
 * **SearchRqDTO**: `UserGroupSearchRqDTOv1`
@@ -1159,7 +1223,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `type`
 
-### `POST /private/user_group/involve_assignee/search/v1` ✅ reviewed
+### `POST /private/user_group/involve_assignee/search/v1`
 
 * **DTO**: `UserGroupInvolveAssigneeDTOv1`
 * **SearchRqDTO**: `UserGroupInvolveAssigneeSearchRqDTOv1`
@@ -1179,7 +1243,7 @@ GroupField — это список полей, по которым имеет с
     * `propagationTwinClassId`
     * `propagationTwinStatusId`
 
-### `POST /private/user_group/involve_act_as_user/search/v1` ✅ reviewed
+### `POST /private/user_group/involve_act_as_user/search/v1`
 
 * **DTO**: `UserGroupInvolveActAsUserDTOv1`
 * **SearchRqDTO**: `UserGroupInvolveActAsUserSearchRqDTOv1`
@@ -1196,7 +1260,7 @@ GroupField — это список полей, по которым имеет с
     * `machineUserId`
     * `userGroupId`
 
-### `POST /private/user/search/v1` ✅ reviewed
+### `POST /private/user/search/v1`
 
 * **DTO**: `UserDTOv1`
 * **SearchRqDTO**: `UserSearchRqDTOv1`
@@ -1214,7 +1278,7 @@ GroupField — это список полей, по которым имеет с
     * `statusId`
     * `userGroupId`
 
-### `POST /private/domain/user/search/v1` ✅ reviewed
+### `POST /private/domain/user/search/v1`
 
 * **DTO**: `DomainUserDTOv1`
 * **SearchRqDTO**: `DomainUserSearchRqDTOv1`
@@ -1233,8 +1297,7 @@ GroupField — это список полей, по которым имеет с
     * `businessAccountId`
 * **Composite index:** `(userId, businessAccountId)` — частый кейс «пользователь в нескольких BA»
 
-### `POST /private/domain/business_account/search/v1` — DONE (search + sort + count)
-
+### `POST /private/domain/business_account/search/v1`
 * **DTO**: `DomainBusinessAccountDTOv1`
 * **SearchRqDTO**: `DomainBusinessAccountSearchRqDTOv1`
     * Поля фильтрации: `idList`, `businessAccountIdList`, `businessAccountNameLikeList`, `permissionSchemaIdList`, `notificationSchemaIdList`, `twinflowSchemaIdList`, `twinClassSchemaIdList`, `tierIdList`, `storageUsedSizeRange`, `storageUsedCountRange`, `createdAt`
@@ -1258,9 +1321,9 @@ GroupField — это список полей, по которым имеет с
     * `notificationSchemaId`
     * `tierId`
 
-### `POST /private/domain/business_account_user/search/v1` — УЖЕ РЕАЛИЗОВАНО (пропустить)
+### `POST /private/domain/business_account_user/search/v1`
 
-### `POST /private/featurer/search/v1` ✅ reviewed
+### `POST /private/featurer/search/v1`
 
 * **DTO**: `FeaturerDTOv1`
 * **SearchRqDTO**: `FeaturerSearchRqDTOv1`
@@ -1276,11 +1339,12 @@ GroupField — это список полей, по которым имеет с
     * `typeId`
     * `deprecated`
 
-### `POST /private/data_list/search/v1` ✅ reviewed
+### `POST /private/data_list/search/v1`
 
 * **DTO**: `DataListDTOv1`
-* **SearchRqDTO**: `DataListSearchRqDTOv1`
-    * Поля фильтрации:  `nameLikeList`, `descriptionLikeList`, `keyLikeList`, `optionSearch`, `externalIdLikeList`, `defaultOptionIdList`
+* **SearchRqDTO**: `DataListSearchRqDTOv2` (обёртка `search`: `DataListSearchDTOv1` + inline `sortField`/`sortDirection`)
+    * Поля фильтрации (в `search`):  `nameLikeList`, `descriptionLikeList`, `keyLikeList`, `optionSearch`, `externalIdLikeList`, `defaultOptionIdList`
+* **Public API**: `/public/data_list/search/v1` оставлен legacy (`DataListSearchRqDTOv1`, плоский, `@Deprecated`, без sort); новый формат — `/public/data_list/search/v2` (`DataListSearchRqDTOv2`).
 * **Entity**: `DataListEntity`
 * **SortField values**:
 
@@ -1294,8 +1358,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `defaultOptionId`
 
-### `POST /private/data_list_option/search/v1` — DONE (search + sort + count)
-
+### `POST /private/data_list_option/search/v1`
 * **DTO**: `DataListOptionDTOv1`
 * **SearchRqDTO**: `DataListOptionSearchRqDTOv1` (наследует `DataListOptionSearchDTOv1`)
     * Поля фильтрации:  `dataListIdList`, `dataListKeyList`, `optionLikeList`, `optionI18nLikeList`, `businessAccountIdList`, `dataListSubsetIdList`, `dataListSubsetKeyList`, `statusIdList`, `externalIdLikeList`, `externalIdList`, `validForTwinClassFieldIdList`, `custom`
@@ -1319,8 +1382,7 @@ GroupField — это список полей, по которым имеет с
     * `statusId`
     * `custom`
 
-### `POST /private/data_list_option_projection/search/v1` — DONE (search + sort + count)
-
+### `POST /private/data_list_option_projection/search/v1`
 * **DTO**: `DataListOptionProjectionDTOv1`
 * **SearchRqDTO**: `DataListOptionProjectionSearchRqDTOv1`
     * Поля фильтрации: `projectionTypeIdList`, `srcDataListOptionIdList`, `dstDataListOptionIdList`, `savedByUserIdList`, `changedAt`
@@ -1339,8 +1401,7 @@ GroupField — это список полей, по которым имеет с
     * `dstDataListOptionId`
     * `savedByUserId`
 
-### `POST /private/twin_validator_set/search/v1` — DONE (search + sort + count)
-
+### `POST /private/twin_validator_set/search/v1`
 * **DTO**: `TwinValidatorSetDTOv1`
 * **SearchRqDTO**: `TwinValidatorSetSearchRqDTOv1`
     * Поля фильтрации:  `nameLikeList`, `descriptionLikeList`, `invert`
@@ -1354,8 +1415,7 @@ GroupField — это список полей, по которым имеет с
 * **GroupField values**:
     * `invert`
 
-### `POST /private/link/search/v1` — DONE (search + sort + count)
-
+### `POST /private/link/search/v1`
 * **DTO**: `LinkDTOv2`
 * **SearchRqDTO**: `LinkSearchRqDTOv1`
     * Поля фильтрации:  `srcTwinClassIdList`, `srcTwinClassInheritable`, `dstTwinClassIdList`, `dstTwinClassInheritable`, `srcOrDstTwinClassIdList`, `forwardNameLikeList`, `backwardNameLikeList`, `typeLikeList`, `strengthLikeList`
@@ -1381,8 +1441,7 @@ GroupField — это список полей, по которым имеет с
     * `type`
     * `createdByUserId`
 
-### `POST /private/action_restriction_reason/search/v1` — DONE (search + sort + count)
-
+### `POST /private/action_restriction_reason/search/v1`
 * **DTO**: `ActionRestrictionReasonDTOv1`
 * **SearchRqDTO**: `ActionRestrictionReasonSearchRqDTOv1`
     * Поля фильтрации: `typeLikeList`, `descriptionLikeList`

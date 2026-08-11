@@ -60,7 +60,7 @@ public class TwinTriggerSearchController extends ApiController {
         TwinTriggerSearchRsDTOv1 rs = new TwinTriggerSearchRsDTOv1();
         try {
             PaginationResult<TwinTriggerEntity> twinTriggerList = twinTriggerSearchService
-                    .findTwinTriggers(twinTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinTriggerSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(twinTriggerList))
                     .setTriggers(twinTriggerRestDTOMapper.convertCollection(twinTriggerList.getList(), mapperContext))

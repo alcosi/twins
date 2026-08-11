@@ -12,7 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "DataListSearchRqV1")
+@Schema(name = "DataListSearchRqV1", description = "DEPRECATED: use /public/data_list/search/v2 (search wrapper + inline sort). Legacy flat payload.")
+@Deprecated
 public class DataListSearchRqDTOv1 extends Request {
     @Schema(description = "datalist id list")
     public Set<UUID> idList;

@@ -186,6 +186,7 @@ public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerE
     private UUID createJobTwin(TwinTriggerEntity twinTriggerEntity, UUID triggerTaskId) throws ServiceException {
         if (twinTriggerEntity.getJobTwinClassId() == null)
             return null;
+        loadJobTwinClass(twinTriggerEntity);
         // Create job twin if jobTwinClassId is set
         TwinEntity jobTwinEntity = new TwinEntity()
                 .setId(triggerTaskId)
