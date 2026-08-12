@@ -21,7 +21,7 @@ import java.util.UUID;
  * Resolves a fixed set of users (params) filtered by the twin's business account + domain.
  * <p>Result is a query result (not a relation), so this resolver overrides {@link #resolveBatch}
  * directly (no {@link RecipientResolverAtomic}): {@code userIds} are fixed by params, the resolver
- * group shares one domain and its business account ids (both provided by {@link RecipientResolveContext}).
+ * group shares one domain and its business account ids (both provided by {@link RecipientResolveBatch}).
  * It runs ONE bulk filter via {@code filterUsersByBusinessAccountAndDomainIn} and distributes the
  * userIds per history. The preload map is a local variable — thread-safe on the singleton bean.
  */
@@ -39,7 +39,7 @@ public class RecipientResolverUsersBase extends RecipientResolver {
     private UserService userService;
 
     @Override
-    public void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
         Set<UUID> paramUserIds = userIds.extract(properties);
         if (CollectionUtils.isEmpty(paramUserIds)) {
             return;

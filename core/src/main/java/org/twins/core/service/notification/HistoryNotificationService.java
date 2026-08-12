@@ -269,17 +269,15 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
      *
      * Used by the batch HistoryNotificationTask run().
      */
-    public HistoryNotificationChunk findConfigsForTasks(
-            Collection<HistoryNotificationTaskEntity> tasks) throws ServiceException {
-        if (CollectionUtils.isEmpty(tasks)) {
-            return new HistoryNotificationChunk();
+    public void findConfigsForTasks(HistoryNotificationChunk chunk) throws ServiceException {
+        if (chunk == null || CollectionUtils.isEmpty(chunk.getTasks())) {
+            return;
         }
         Set<HistoryType> historyTypeIds = null;
         Set<UUID> twinClassIds = null;
         Set<UUID> schemaIds = null;
-        UUID domainId = null;
         Map<HistoryNotificationTaskEntity, TaskContext> taskContexts = new HashMap<>();
-        for (HistoryNotificationTaskEntity task : tasks) {
+        for (HistoryNotificationTaskEntity task : chunk.getTasks()) {
             HistoryEntity history = task.getHistory();
             if (history == null || history.getHistoryType() == null
                     || history.getTwin() == null || history.getTwin().getTwinClass() == null) {
@@ -292,14 +290,11 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
             Set<UUID> matchingClassIds = extended == null ? new HashSet<>() : new HashSet<>(extended);
             matchingClassIds.add(history.getTwin().getTwinClassId());
             twinClassIds = CollectionUtils.safeAdd(twinClassIds, matchingClassIds);
-            if (domainId == null) {
-                domainId = history.getTwin().getTwinClass().getDomainId();
-            }
             taskContexts.put(task, new TaskContext(historyType, task.getNotificationSchemaId(), matchingClassIds, history.getTwinClassFieldId()));
         }
 
         if (taskContexts.isEmpty() || historyTypeIds.isEmpty()) {
-            return new HistoryNotificationChunk();
+            return;
         }
         List<HistoryNotificationEntity> candidates = repository.findByHistoryTypeIdInAndTwinClassIdInAndNotificationSchemaIdInAndActiveTrue(
                 historyTypeIds, twinClassIds, schemaIds);
@@ -312,7 +307,7 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
             byTrio.computeIfAbsent(new ConfigTrioKey(ht, c.getNotificationSchemaId(), c.getTwinClassId()), k -> new ArrayList<>()).add(c);
         }
         // match configs to tasks -> config -> set of tasks (single pass)
-        Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig = new HashMap<>();
+        var tasksByConfig = chunk.getTasksByConfig();
         for (Map.Entry<HistoryNotificationTaskEntity, TaskContext> entry : taskContexts.entrySet()) {
             HistoryNotificationTaskEntity task = entry.getKey();
             TaskContext ctx = entry.getValue();
@@ -327,56 +322,43 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
                 }
             }
         }
-        return filterByValidation(tasksByConfig, domainId);
-    }
-
-    /**
-     * Build the chunk (both projections) from the config -> tasks match: preloads all validator sets in
-     * one query, validates each config ONLY against the twins of the tasks it matched
-     * (TwinValidatorSetService.isValid(Collection<TwinEntity>, config) → Map<twinId, result>), and keeps
-     * the (task, config) pairs where the twin passes. Replaces the per-(task, config) isValid(...) call
-     * that was inside HistoryNotificationTask.processTask. Requires ApiUser to be set (domainId).
-     */
-    private HistoryNotificationChunk filterByValidation(
-            Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig, UUID domainId) throws ServiceException {
-        Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask = new HashMap<>();
-        Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> validTasksByConfig = new HashMap<>();
-        if (tasksByConfig.isEmpty()) {
-            return new HistoryNotificationChunk(configsByTask, validTasksByConfig, domainId);
-        }
-        // preload all validator sets in one query; isValid(...) below skips the load since they're cached
-        twinValidatorSetService.loadTwinValidatorSet(tasksByConfig.keySet());
-        // per config: validate the twins of the tasks it matched, keep (task, config) pairs that pass
-        for (Map.Entry<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> entry : tasksByConfig.entrySet()) {
-            HistoryNotificationEntity config = entry.getKey();
-            LinkedHashSet<HistoryNotificationTaskEntity> tasks = entry.getValue();
-            // deduped twins of these tasks (several tasks may share a twin)
-            Map<UUID, TwinEntity> twinById = new HashMap<>();
-            for (HistoryNotificationTaskEntity task : tasks) {
-                TwinEntity twin = task.getHistory().getTwin();
-                if (twin != null) {
-                    twinById.putIfAbsent(twin.getId(), twin);
+        // build both projections (validation) and store on the chunk
+        var configsByTask = chunk.getConfigsByTask();
+        if (!tasksByConfig.isEmpty()) {
+            // preload all validator sets in one query; isValid(...) below skips the load since they're cached
+            twinValidatorSetService.loadTwinValidatorSet(tasksByConfig.keySet());
+            for (Map.Entry<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> entry : tasksByConfig.entrySet()) {
+                HistoryNotificationEntity config = entry.getKey();
+                LinkedHashSet<HistoryNotificationTaskEntity> tasks = entry.getValue();
+                // deduped twins of these tasks (several tasks may share a twin)
+                Map<UUID, TwinEntity> twinById = new HashMap<>();
+                for (HistoryNotificationTaskEntity task : tasks) {
+                    TwinEntity twin = task.getHistory().getTwin();
+                    if (twin != null) {
+                        twinById.putIfAbsent(twin.getId(), twin);
+                    }
+                }
+                Map<UUID, ValidationResult> validationResults = twinById.isEmpty()
+                        ? Collections.emptyMap()
+                        : twinValidatorSetService.isValid(twinById.values(), config);
+                // tasks that passed validation for this config — keep them in both projections
+                LinkedHashSet<HistoryNotificationTaskEntity> validTasks = new LinkedHashSet<>();
+                for (HistoryNotificationTaskEntity task : tasks) {
+                    TwinEntity twin = task.getHistory().getTwin();
+                    ValidationResult vr = twin != null ? validationResults.get(twin.getId()) : null;
+                    // keep if valid; defensive keep if the twin/result is undetermined (vr == null)
+                    if (vr == null || vr.isValid()) {
+                        validTasks.add(task);
+                        configsByTask.computeIfAbsent(task, k -> new ArrayList<>()).add(config);
+                    }
+                }
+                if (!validTasks.isEmpty()) {
+                    tasksByConfig.put(config, validTasks);
+                } else {
+                    tasksByConfig.remove(config);
                 }
             }
-            Map<UUID, ValidationResult> validationResults = twinById.isEmpty()
-                    ? Collections.emptyMap()
-                    : twinValidatorSetService.isValid(twinById.values(), config);
-            // tasks that passed validation for this config — keep them in both projections
-            LinkedHashSet<HistoryNotificationTaskEntity> validTasks = new LinkedHashSet<>();
-            for (HistoryNotificationTaskEntity task : tasks) {
-                TwinEntity twin = task.getHistory().getTwin();
-                ValidationResult vr = twin != null ? validationResults.get(twin.getId()) : null;
-                // keep if valid; defensive keep if the twin/result is undetermined (vr == null)
-                if (vr == null || vr.isValid()) {
-                    validTasks.add(task);
-                    configsByTask.computeIfAbsent(task, k -> new ArrayList<>()).add(config);
-                }
-            }
-            if (!validTasks.isEmpty()) {
-                validTasksByConfig.put(config, validTasks);
-            }
         }
-        return new HistoryNotificationChunk(configsByTask, validTasksByConfig, domainId);
     }
 
     private record ConfigKey(HistoryType historyTypeId, UUID schemaId, UUID twinClassId, UUID twinClassFieldId) {}

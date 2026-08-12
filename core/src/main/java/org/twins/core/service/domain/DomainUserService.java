@@ -29,10 +29,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -81,6 +78,24 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         if (isEntityReadDenied(entity))
             return null;
         return entity;
+    }
+
+    /**
+     * Bulk locale map: userId → locale for the given domain (absent users map to nothing). Used by batch
+     * notification context collection to resolve per-history i18n locale (the twin creator's locale) in
+     * one query instead of per-history.
+     */
+    public Map<UUID, Locale> getLocaleMap(UUID domainId, Collection<UUID> userIds) {
+        if (domainId == null || userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Locale> localeByUser = new HashMap<>();
+        for (DomainUserEntity domainUser : domainUserRepository.findByDomainIdAndUserIdIn(domainId, userIds)) {
+            if (domainUser.getI18nLocaleId() != null) {
+                localeByUser.put(domainUser.getUserId(), domainUser.getI18nLocaleId());
+            }
+        }
+        return localeByUser;
     }
 
     @Transactional(rollbackFor = Throwable.class)

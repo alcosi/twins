@@ -14,17 +14,17 @@ import java.util.*;
  * computed at most once per context.
  */
 @Getter
-public class RecipientResolveContext {
+public class RecipientResolveBatch {
     private final UUID domainId;
     private Map<HistoryEntity, Set<UUID>> recipientIdsByHistory;
     private Set<UUID> businessAccountIds;
     private Set<UUID> twinIds;
 
-    public RecipientResolveContext(UUID domainId) {
+    public RecipientResolveBatch(UUID domainId) {
         this.domainId = domainId;
     }
 
-    public RecipientResolveContext add(HistoryEntity history) {
+    public RecipientResolveBatch add(HistoryEntity history) {
         if (recipientIdsByHistory == null)
             recipientIdsByHistory = new HashMap<>();
         recipientIdsByHistory.computeIfAbsent(history, _ -> new HashSet<>());

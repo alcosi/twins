@@ -18,7 +18,7 @@ import java.util.UUID;
  * Resolves all users within the business account as notification recipients.
  * <p>Result is a query result (not a relation), so this resolver overrides {@link #resolveBatch}
  * directly (no {@link RecipientResolverAtomic}): it runs ONE bulk query over the resolver group's
- * business account ids (provided by {@link RecipientResolveContext#getBusinessAccountIds()}) and
+ * business account ids (provided by {@link RecipientResolveBatch#getBusinessAccountIds()}) and
  * distributes the userIds per history. The preload map is a local variable — thread-safe on the
  * singleton bean.
  */
@@ -32,7 +32,7 @@ public class RecipientResolverBusinessAccount extends RecipientResolver {
     private BusinessAccountUserService businessAccountUserService;
 
     @Override
-    public void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
         Set<UUID> businessAccountIds = context.getBusinessAccountIds();
         if (businessAccountIds.isEmpty()) {
             return;

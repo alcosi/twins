@@ -18,6 +18,7 @@ import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.scheduler.tasks.HistoryNotificationTask;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.notification.HistoryNotificationChunk;
 import org.twins.core.service.notification.HistoryNotificationTaskService;
 
 import java.sql.Timestamp;
@@ -98,8 +99,8 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
             }
 
             List<HistoryNotificationTaskEntity> failed = new ArrayList<>();
-            for (List<HistoryNotificationTaskEntity> bucket : byDomain.values()) {
-                dispatchChunks(bucket, processBatchSize, failed);
+            for (var entry : byDomain.entrySet()) {
+                dispatchChunks(entry.getKey(), entry.getValue(), processBatchSize, failed);
             }
             // entities without a domain are skipped outright — notification makes no sense for out-of-domain twins
             if (!noDomain.isEmpty()) {
@@ -131,14 +132,15 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
         }
     }
 
-    private void dispatchChunks(List<HistoryNotificationTaskEntity> bucket, int processBatchSize, List<HistoryNotificationTaskEntity> failed) {
-        for (List<HistoryNotificationTaskEntity> chunk : ListUtils.partition(bucket, processBatchSize)) {
+    private void dispatchChunks(UUID domainId, List<HistoryNotificationTaskEntity> bucket, int processBatchSize, List<HistoryNotificationTaskEntity> failed) {
+        for (List<HistoryNotificationTaskEntity> partition : ListUtils.partition(bucket, processBatchSize)) {
             try {
+                HistoryNotificationChunk chunk = new HistoryNotificationChunk(domainId, partition);
                 HistoryNotificationTask task = applicationContext.getBean(HistoryNotificationTask.class, chunk);
                 taskExecutor.execute(task);
             } catch (Exception e) {
-                log.error("Task chunk ({} task(s)) submission rejected, will be reverted", chunk.size(), e);
-                failed.addAll(chunk);
+                log.error("Task chunk ({} task(s)) submission rejected, will be reverted", partition.size(), e);
+                failed.addAll(partition);
             }
         }
     }

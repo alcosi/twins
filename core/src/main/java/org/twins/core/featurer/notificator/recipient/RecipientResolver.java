@@ -17,10 +17,10 @@ public abstract class RecipientResolver extends FeaturerTwins {
 
     /**
      * Batch contract — resolves recipients for a resolver group sharing the same featurer params.
-     * {@link RecipientResolveContext#getRecipientIdsByHistory()} is the shared accumulator
+     * {@link RecipientResolveBatch#getRecipientIdsByHistory()} is the shared accumulator
      * (history -> recipient ids) owned by the caller; the histories to resolve are exactly its keySet.
      */
-    public void resolveBatch(RecipientResolveContext context, HashMap<String, String> recipientParams) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch context, HashMap<String, String> recipientParams) throws ServiceException {
         if (context.isEmpty()) {
             return;
         }
@@ -28,5 +28,5 @@ public abstract class RecipientResolver extends FeaturerTwins {
         resolveBatch(context, properties);
     }
 
-    public abstract void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException;
+    public abstract void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException;
 }

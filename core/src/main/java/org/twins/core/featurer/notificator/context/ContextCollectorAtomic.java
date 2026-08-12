@@ -12,14 +12,16 @@ import java.util.Properties;
  * Per-item {@link ContextCollector}: batch is implemented as a single {@link #beforeCollect(Collection)} hook
  * (bulk-load) followed by {@link #collectData} for each history. Concrete collectors extend this class and
  * implement {@link #collectData}; those that hit the DB override {@link #beforeCollect} to preload relations.
+ * Collectors that produce i18n call {@link ContextCollectorBatch#addI18n} instead of translating in place.
  */
 public abstract class ContextCollectorAtomic extends ContextCollector {
 
     @Override
-    public final void collectDataBatch(Map<HistoryEntity, Map<String, String>> contextByHistory, Properties properties) throws ServiceException {
-        if (contextByHistory.isEmpty()) {
+    public final void collectDataBatch(ContextCollectorBatch batch, Properties properties) throws ServiceException {
+        if (batch.isEmpty()) {
             return;
         }
+        Map<HistoryEntity, Map<String, String>> contextByHistory = batch.getContextByHistory();
         beforeCollect(contextByHistory.keySet());
         for (Map.Entry<HistoryEntity, Map<String, String>> entry : contextByHistory.entrySet()) {
             collectData(entry.getKey(), entry.getValue(), properties);

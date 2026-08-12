@@ -21,7 +21,7 @@ import java.util.UUID;
  * Resolves recipient users based on their membership in specified user groups within a business account.
  * <p>Result is a query result (not a relation), so this resolver overrides {@link #resolveBatch}
  * directly (no {@link RecipientResolverAtomic}): {@code userGroupIds} are fixed by params, the resolver
- * group shares one domain and its business account ids (both provided by {@link RecipientResolveContext}).
+ * group shares one domain and its business account ids (both provided by {@link RecipientResolveBatch}).
  * It runs ONE bulk query via {@code getUsersForGroupsIn} and distributes the userIds per history.
  * The preload map is a local variable — thread-safe on the singleton bean.
  */
@@ -39,7 +39,7 @@ public class RecipientResolverUserGroups extends RecipientResolver {
     private UserGroupService userGroupService;
 
     @Override
-    public void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
         Set<UUID> paramUserGroupIds = userGroupIds.extract(properties);
         if (CollectionUtils.isEmpty(paramUserGroupIds)) {
             return;

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.twins.core.dao.user.UserEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -41,6 +42,8 @@ public interface DomainUserRepository extends CrudRepository<DomainUserEntity, U
     }
 
     boolean existsByDomainIdAndUserId(UUID uuid, UUID userId);
+
+    List<DomainUserEntity> findByDomainIdAndUserIdIn(UUID domainId, Collection<UUID> userIds);
 
     @Modifying
     @Query("UPDATE DomainUserEntity e SET e.i18nLocaleId = :locale WHERE e.domainId = :domainId AND e.userId = :userId")

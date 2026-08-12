@@ -11,7 +11,6 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
@@ -30,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Scope("prototype")
 @Slf4j
 public class HistoryNotificationTask implements Runnable {
-    private final List<HistoryNotificationTaskEntity> tasks;
+    private final HistoryNotificationChunk chunk;
     @Autowired
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
     @Autowired
@@ -46,29 +45,28 @@ public class HistoryNotificationTask implements Runnable {
     @Autowired
     private AuthService authService;
 
-    // per-history context cache: historyId -> (contextId -> context). Keyed by historyId because the
-    // collected context depends on the HistoryEntity, not just on contextId (different histories with
-    // the same contextId produce different contexts).
-    private final Map<UUID, Map<UUID, Map<String, String>>> contextCache = new HashMap<>();
     private static final Cache<UUID, Set<String>> batchEventCache = Caffeine.newBuilder()
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
-    public HistoryNotificationTask(List<HistoryNotificationTaskEntity> tasks) {
-        this.tasks = tasks;
+    public HistoryNotificationTask(HistoryNotificationChunk chunk) {
+        this.chunk = chunk;
     }
 
     @Override
     public void run() {
+        List<HistoryNotificationTaskEntity> tasks = chunk.getTasks();
         try {
             LoggerUtils.logController("historyNotificationTask");
             log.info("Performing batch history notification task: {} task(s)", tasks.size());
 
             // chunk is one domain (guaranteed by runner) — set ApiUser once so bulk validator filter
             // inside findConfigsForTasks can read domainId; processTask re-sets it per history for the locale
-            setChunkApiUser(tasks);
-            // 1. one bulk query for configs across the whole chunk + in-memory match + bulk validator filter
-            HistoryNotificationChunk chunk = historyNotificationService.findConfigsForTasks(tasks);
+            if (chunk.getDomainId() != null) {
+                authService.setThreadLocalApiUser(chunk.getDomainId(), null, null);
+            }
+            // 1. one bulk query for configs across the whole chunk + in-memory match + bulk validator filter (mutates chunk)
+            historyNotificationService.findConfigsForTasks(chunk);
 
             // 2. bulk-load config relations ONCE for the whole chunk (was per-history before)
             Collection<HistoryNotificationEntity> allConfigs = chunk.getTasksByConfig().keySet();
@@ -88,6 +86,10 @@ public class HistoryNotificationTask implements Runnable {
                 //     (resolverFeaturerId, canonical params) group → beforeResolve preloads once per group.
                 //     Results land on each task.resolvedRecipientsByRecipientId for processTask.
                 historyNotificationRecipientService.resolveRecipientsBatch(chunk);
+                // 2c. precompute context for the whole chunk: one collectDataBatch per
+                //     (contextCollectorFeaturerId, params) group per contextId; i18n resolved per locale.
+                //     Results land on each task.collectedContextByContextId for processTask.
+                notificationContextService.collectHistoryContextBatch(chunk);
             }
 
             // 3. per-history processing — config relations are already loaded; ApiUser is set per history
@@ -110,19 +112,6 @@ public class HistoryNotificationTask implements Runnable {
             authService.removeThreadLocalApiUser();
             LoggerUtils.cleanMDC();
             historyNotificationTaskRepository.saveAll(tasks);
-        }
-    }
-
-    private void setChunkApiUser(List<HistoryNotificationTaskEntity> tasks) {
-        for (HistoryNotificationTaskEntity task : tasks) {
-            var history = task.getHistory();
-            if (history != null && history.getTwin() != null && history.getTwin().getTwinClass() != null) {
-                UUID domainId = history.getTwin().getTwinClass().getDomainId();
-                if (domainId != null) {
-                    authService.setThreadLocalApiUser(domainId, null, null);
-                    return;
-                }
-            }
         }
     }
 
@@ -178,7 +167,9 @@ public class HistoryNotificationTask implements Runnable {
                 }
 
                 recipientsCount += recipientIds.size();
-                var context = getContext(channelEvent.getNotificationContextId(), history);
+                // context is precomputed at chunk level in run() (one collectDataBatch per group; i18n per locale)
+                var collected = task.getCollectedContextByContextId();
+                var context = collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.<String, String>of();
                 var notificationChannel = channelEvent.getNotificationChannel();
                 var notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturerId(), Notifier.class);
                 notifier.notify(recipientIds, context, channelEvent.getEventCode(), notificationChannel.getNotifierParams());
@@ -210,16 +201,6 @@ public class HistoryNotificationTask implements Runnable {
         } finally {
             authService.removeThreadLocalApiUser();
         }
-    }
-
-    private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {
-        Map<UUID, Map<String, String>> byHistory = contextCache.computeIfAbsent(history.getId(), k -> new HashMap<>());
-        if (byHistory.containsKey(contextId)) {
-            return byHistory.get(contextId);
-        }
-        var context = notificationContextService.collectHistoryContext(contextId, history);
-        byHistory.put(contextId, context);
-        return context;
     }
 
     private static class NotificationSkippedException extends RuntimeException {

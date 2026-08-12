@@ -13,7 +13,7 @@ import java.util.*;
 public abstract class RecipientResolverAtomic extends RecipientResolver {
 
     @Override
-    public final void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException {
+    public final void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
         if (context.isEmpty()) {
             return;
         }

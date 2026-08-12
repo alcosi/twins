@@ -22,7 +22,7 @@ import java.util.UUID;
  * <p>Result is a query result (not a relation), so this resolver overrides {@link #resolveBatch}
  * directly (no {@link RecipientResolverAtomic}): {@code spaceRoleIds} are fixed by params, only the
  * space (twin id) varies per history. It runs ONE bulk query over the resolver group's twin ids
- * (provided by {@link RecipientResolveContext#getTwinIds()}) and distributes the userIds per history.
+ * (provided by {@link RecipientResolveBatch#getTwinIds()}) and distributes the userIds per history.
  * The preload map is a local variable — thread-safe on the singleton bean.
  */
 @Component
@@ -39,7 +39,7 @@ public class RecipientResolverSpaceRoles extends RecipientResolver {
     private SpaceRoleUserService spaceRoleUserService;
 
     @Override
-    public void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
         Set<UUID> paramSpaceRoleIds = spaceRoleIds.extract(properties);
         if (CollectionUtils.isEmpty(paramSpaceRoleIds)) {
             return;

@@ -6,31 +6,44 @@ import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 
 import java.util.*;
 
+/**
+ * Single container for a notification chunk: created by the runner with a domain id + the chunk's tasks,
+ * then populated by {@code findConfigsForTasks} with the matched/validated config projections. Carries
+ * lazy helpers (createdByUserIds) reused across the batch stages.
+ */
 @Getter
 public class HistoryNotificationChunk {
-    /**
-     * task → valid configs (used by processTask). Empty if no task matched any config.
-     */
-    private final Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask;
-    /**
-     * config → tasks that matched AND passed validation (inverse projection, used by recipient precompute).
-     */
-    private final Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig;
-    /**
-     * chunk-wide domain id (chunk = one domain).
-     */
+    /** chunk-wide domain id (chunk = one domain). */
     private final UUID domainId;
+    /** the chunk's tasks, set by the runner. */
+    private final List<HistoryNotificationTaskEntity> tasks;
+    /** task → valid configs (used by processTask). Populated by findConfigsForTasks. */
+    private Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask = new HashMap<>();
+    /** config → tasks that matched AND passed validation (inverse projection, used by recipient precompute). */
+    private Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig = new HashMap<>();
+    /** lazy: distinct twin-creator user ids across the chunk (for bulk locale resolution). */
+    private Set<UUID> createdByUserIds;
 
-    public HistoryNotificationChunk() {
-        this(new HashMap<>(), new HashMap<>(), null);
+    public HistoryNotificationChunk(UUID domainId, List<HistoryNotificationTaskEntity> tasks) {
+        this.domainId = domainId;
+        this.tasks = tasks != null ? tasks : new ArrayList<>();
     }
 
-    public HistoryNotificationChunk(
-            Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask,
-            Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig,
-            UUID domainId) {
-        this.configsByTask = configsByTask;
-        this.tasksByConfig = tasksByConfig;
-        this.domainId = domainId;
+    /**
+     * Distinct non-null {@code twin.createdByUserId} values across the chunk's tasks (lazy, cached).
+     */
+    public Set<UUID> getCreatedByUserIds() {
+        if (createdByUserIds == null) {
+            createdByUserIds = new HashSet<>();
+            for (HistoryNotificationTaskEntity task : tasks) {
+                if (task.getHistory() != null && task.getHistory().getTwin() != null) {
+                    UUID userId = task.getHistory().getTwin().getCreatedByUserId();
+                    if (userId != null) {
+                        createdByUserIds.add(userId);
+                    }
+                }
+            }
+        }
+        return createdByUserIds;
     }
 }

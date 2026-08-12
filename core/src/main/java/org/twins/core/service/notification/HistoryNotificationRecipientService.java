@@ -20,7 +20,7 @@ import org.twins.core.dao.notification.*;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientUpdate;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.featurer.notificator.recipient.RecipientResolveContext;
+import org.twins.core.featurer.notificator.recipient.RecipientResolveBatch;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -183,12 +183,12 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         // Stage 2: one resolveBatch per (featurerId, params) group (via FeaturerService helper) →
         //   resolverCache keyed by toConfigKey (independent of exclude — same result either way).
         //   businessAccountIds are derived per group by the context (lazy).
-        Map<String, RecipientResolveContext> resolverCache = new HashMap<>();
+        Map<String, RecipientResolveBatch> resolverCache = new HashMap<>();
         for (var group : FeaturerService.groupByFeaturerParams(work,
                 wh -> wh.collector.getRecipientResolverFeaturerId(),
                 wh -> wh.collector.getRecipientResolverParams())) {
             RecipientResolver resolver = featurerService.getFeaturer(group.getFeaturerId(), RecipientResolver.class);
-            RecipientResolveContext context = new RecipientResolveContext(chunkDomainId);
+            RecipientResolveBatch context = new RecipientResolveBatch(chunkDomainId);
             for (RecipientHistory wh : group.getItems()) {
                 context.add(wh.history);
             }
@@ -210,7 +210,7 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         }
     }
 
-    private static Set<UUID> resolveFromCache(Map<String, RecipientResolveContext> resolverCache,
+    private static Set<UUID> resolveFromCache(Map<String, RecipientResolveBatch> resolverCache,
                                               RecipientKeys keys, HistoryEntity history) {
         if (keys == null) {
             return Set.of();
@@ -225,7 +225,7 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         return include;
     }
 
-    private static Set<UUID> unionFromCache(Map<String, RecipientResolveContext> resolverCache,
+    private static Set<UUID> unionFromCache(Map<String, RecipientResolveBatch> resolverCache,
                                             List<String> groupKeys, HistoryEntity history) {
         Set<UUID> result = new HashSet<>();
         for (String groupKey : groupKeys) {
