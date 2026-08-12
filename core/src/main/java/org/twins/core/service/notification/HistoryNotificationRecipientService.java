@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -173,48 +174,52 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
 
     /**
      * Chunk-level batch resolve: one {@link RecipientResolver#resolveBatch} per unique
-     * {@code (resolverFeaturerId, canonical params, exclude)} group across the whole chunk, so that
-     * {@code beforeResolve} preload fires once per group instead of once per history.
-     * <p>Resolver is deterministic by {@code (history, featurerId, params)}, so each group is resolved
-     * once for all its histories, then per-(recipient, history) include/exclude is reassembled (exclude
-     * is applied per-recipient before any union — see {@link #recipientResolve}) and stored on
-     * {@link HistoryNotificationTaskEntity#getResolvedRecipientsByRecipientId()} for processTask.
+     * {@code (resolverFeaturerId, canonical params)} group across the whole chunk, so that
+     * {@code beforeResolve} preload fires once per group instead of once per history. Resolver is
+     * deterministic by {@code (history, featurerId, params)} (independent of include/exclude), so each
+     * group is resolved once for all its histories, then per-(recipient, history) include/exclude is
+     * reassembled (exclude applied per-recipient before any union — see {@link #recipientResolve}) and
+     * stored on {@link HistoryNotificationTaskEntity#getResolvedRecipientsByRecipientId()} for processTask.
      */
     public void resolveRecipientsBatch(
             Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask) throws ServiceException {
         if (CollectionUtils.isEmpty(configsByTask)) {
             return;
         }
-        // Stage 1: unique (featurerId, params, exclude) groups (histories = union across recipients) +
-        //   per-recipient precomputed group keys (partitioning + toConfigKey done ONCE per recipient).
-        Map<String, ResolverGroup> groups = new HashMap<>();
+        // Stage 1: per-recipient precomputed keys (partitioning + canonical key done ONCE per recipient)
+        //   + every (recipient, history) pair — the work units to resolve.
         Map<UUID, RecipientKeys> keysByRecipient = new HashMap<>();
+        List<RecipientHistory> work = new ArrayList<>();
         for (var entry : configsByTask.entrySet()) {
             HistoryEntity history = entry.getKey().getHistory();
-            if (history == null) {
-                continue;
-            }
-            for (HistoryNotificationEntity config : entry.getValue()) {
+            if (history == null)
+                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "resolveRecipientsBatch: history is null for {}", entry.getKey().logNormal());
+            for (var config : entry.getValue()) {
                 HistoryNotificationRecipientEntity recipient = config.getHistoryNotificationRecipient();
-                if (recipient == null || recipient.getCollectors() == null) {
-                    continue;
+                if (recipient == null || recipient.getCollectors() == null)
+                    throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "resolveRecipientsBatch: recipient or collectors is null for {}", config.logNormal());
+                keysByRecipient.computeIfAbsent(recipient.getId(), _ -> RecipientKeys.of(recipient));
+                for (HistoryNotificationRecipientCollectorEntity collector : recipient.getCollectors().getList()) {
+                    if (collector.getRecipientResolverFeaturerId() != null) {
+                        work.add(new RecipientHistory(collector, history));
+                    }
                 }
-                keysByRecipient.computeIfAbsent(recipient.getId(), id -> RecipientKeys.of(recipient));
-                collectResolverGroups(groups, recipient, history);
             }
         }
 
-        // Stage 2: one resolveBatch per group → resolverCache (shared accumulator, do not mutate later)
+        // Stage 2: one resolveBatch per (featurerId, params) group (via FeaturerService helper) →
+        //   resolverCache keyed by toConfigKey (independent of exclude — same result either way).
         Map<String, Map<HistoryEntity, Set<UUID>>> resolverCache = new HashMap<>();
-        for (var e : groups.entrySet()) {
-            ResolverGroup g = e.getValue();
-            RecipientResolver resolver = featurerService.getFeaturer(g.featurerId, RecipientResolver.class);
+        for (var group : FeaturerService.groupByFeaturerParams(work,
+                wh -> wh.collector.getRecipientResolverFeaturerId(),
+                wh -> wh.collector.getRecipientResolverParams())) {
+            RecipientResolver resolver = featurerService.getFeaturer(group.getFeaturerId(), RecipientResolver.class);
             Map<HistoryEntity, Set<UUID>> accumulator = new HashMap<>();
-            for (HistoryEntity history : g.histories) {
-                accumulator.put(history, new HashSet<>());
+            for (RecipientHistory wh : group.getItems()) {
+                accumulator.computeIfAbsent(wh.history, _ -> new HashSet<>());
             }
-            resolver.resolveBatch(accumulator, g.params);
-            resolverCache.put(e.getKey(), accumulator);
+            resolver.resolveBatch(accumulator, group.getParams());
+            resolverCache.put(group.getConfigKey(), accumulator);
         }
 
         // Stage 3: reassemble per-(recipient, history) from cache → write to task-entity.
@@ -223,31 +228,11 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
             HistoryNotificationTaskEntity task = entry.getKey();
             HistoryEntity history = task.getHistory();
             Map<UUID, Set<UUID>> byRecipient = new HashMap<>();
-            if (history != null) {
-                for (HistoryNotificationEntity config : entry.getValue()) {
-                    HistoryNotificationRecipientEntity recipient = config.getHistoryNotificationRecipient();
-                    if (recipient == null) {
-                        continue;
-                    }
-                    byRecipient.computeIfAbsent(recipient.getId(),
-                            id -> resolveFromCache(resolverCache, keysByRecipient.get(id), history));
-                }
+            for (HistoryNotificationEntity config : entry.getValue()) {
+                byRecipient.computeIfAbsent(config.getHistoryNotificationRecipientId(),
+                        id -> resolveFromCache(resolverCache, keysByRecipient.get(id), history));
             }
             task.setResolvedRecipientsByRecipientId(byRecipient);
-        }
-    }
-
-    private static String groupKey(int featurerId, HashMap<String, String> params, boolean exclude) {
-        return FeaturerService.toConfigKey(featurerId, params) + "|" + exclude;
-    }
-
-    private void collectResolverGroups(Map<String, ResolverGroup> groups,
-                                       HistoryNotificationRecipientEntity recipient, HistoryEntity history) {
-        for (HistoryNotificationRecipientCollectorEntity collector : recipient.getCollectors().getList()) {
-            int featurerId = collector.getRecipientResolverFeaturerId();
-            boolean exclude = Boolean.TRUE.equals(collector.getExclude());
-            String key = groupKey(featurerId, collector.getRecipientResolverParams(), exclude);
-            groups.computeIfAbsent(key, k -> new ResolverGroup(featurerId, collector.getRecipientResolverParams())).histories.add(history);
         }
     }
 
@@ -281,7 +266,9 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         return result;
     }
 
-    /** Precomputed per-recipient group keys: partitioning + canonical key done once, reused per history. */
+    /**
+     * Precomputed per-recipient group keys: partitioning + canonical key done once, reused per history.
+     */
     private static final class RecipientKeys {
         final List<String> include = new ArrayList<>();
         final List<String> exclude = new ArrayList<>();
@@ -289,24 +276,19 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         static RecipientKeys of(HistoryNotificationRecipientEntity recipient) {
             RecipientKeys keys = new RecipientKeys();
             for (HistoryNotificationRecipientCollectorEntity collector : recipient.getCollectors().getList()) {
-                int featurerId = collector.getRecipientResolverFeaturerId();
-                boolean excl = Boolean.TRUE.equals(collector.getExclude());
-                (excl ? keys.exclude : keys.include)
-                        .add(groupKey(featurerId, collector.getRecipientResolverParams(), excl));
+                String key = FeaturerService.toConfigKey(collector.getRecipientResolverFeaturerId(), collector.getRecipientResolverParams());
+                if (Boolean.TRUE.equals(collector.getExclude()))
+                    keys.exclude.add(key);
+                else
+                    keys.include.add(key);
             }
             return keys;
         }
     }
 
-    /** Unique resolver group across the chunk: (featurerId, params) + union of histories where it occurs. */
-    private static final class ResolverGroup {
-        final int featurerId;
-        final HashMap<String, String> params;
-        final Set<HistoryEntity> histories = new HashSet<>();
-
-        ResolverGroup(int featurerId, HashMap<String, String> params) {
-            this.featurerId = featurerId;
-            this.params = params;
-        }
+    /**
+     * A (collector, history) pair — the work unit grouped by featurer params in Stage 2.
+     */
+    private record RecipientHistory(HistoryNotificationRecipientCollectorEntity collector, HistoryEntity history) {
     }
 }
