@@ -1,6 +1,7 @@
 package org.twins.core.featurer.notificator.recipient;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
@@ -12,15 +13,21 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
 import org.twins.core.service.usergroup.UserGroupService;
 
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+/**
+ * Resolves recipient users based on their membership in specified user groups within a business account.
+ * <p>Result is a query result (not a relation), so this resolver overrides {@link #resolveBatch}
+ * directly (no {@link RecipientResolverAtomic}): {@code userGroupIds} are fixed by params, the chunk
+ * shares one domain, only business accounts vary per history. It collects the chunk's business account
+ * ids, runs ONE bulk query via {@code getUsersForGroupsIn}, and distributes the userIds per history.
+ * The preload map is a local variable — thread-safe on the singleton bean.
+ */
 @Component
 @Featurer(id = FeaturerTwins.ID_4702,
         name = "User Group–based Recipient Resolver",
         description = "Resolves recipient users based on their membership in specified user groups within a business account.")
-public class RecipientResolverUserGroups extends RecipientResolverAtomic {
+public class RecipientResolverUserGroups extends RecipientResolver {
 
     @FeaturerParam(name = "User group ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetUserId("userGroupIds");
@@ -30,13 +37,37 @@ public class RecipientResolverUserGroups extends RecipientResolverAtomic {
     private UserGroupService userGroupService;
 
     @Override
-    protected void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException {
-        recipientIds.addAll(
-                userGroupService.getUsersForGroups(
-                        history.getTwin().getTwinClass().getDomainId(),
-                        history.getTwin().getOwnerBusinessAccountId(),
-                        userGroupIds.extract(properties)
-                )
-        );
+    public void resolveBatch(Map<HistoryEntity, Set<UUID>> recipientIdsByHistory, Properties properties) throws ServiceException {
+        Set<UUID> paramUserGroupIds = userGroupIds.extract(properties);
+        if (CollectionUtils.isEmpty(paramUserGroupIds)) {
+            return;
+        }
+        // domainId is shared across the chunk (chunk = one domain); groupIds are fixed by params.
+        // only business accounts vary per history → collect distinct ones for one bulk query.
+        UUID domainId = null;
+        Set<UUID> businessAccountIds = new HashSet<>();
+        for (HistoryEntity history : recipientIdsByHistory.keySet()) {
+            UUID businessAccountId = history.getTwin().getOwnerBusinessAccountId();
+            if (businessAccountId != null) {
+                businessAccountIds.add(businessAccountId);
+            }
+            if (domainId == null) {
+                domainId = history.getTwin().getTwinClass().getDomainId();
+            }
+        }
+        if (domainId == null || businessAccountIds.isEmpty()) {
+            return;
+        }
+        // one bulk query → Map<businessAccountId, Set<userId>> (domain-level groups already spread to each BA)
+        Map<UUID, Set<UUID>> userIdsByBusinessAccount =
+                userGroupService.getUsersForGroupsIn(domainId, businessAccountIds, paramUserGroupIds);
+        // distribute per history
+        for (Map.Entry<HistoryEntity, Set<UUID>> entry : recipientIdsByHistory.entrySet()) {
+            UUID businessAccountId = entry.getKey().getTwin().getOwnerBusinessAccountId();
+            Set<UUID> resolved = businessAccountId == null ? null : userIdsByBusinessAccount.get(businessAccountId);
+            if (CollectionUtils.isNotEmpty(resolved)) {
+                entry.getValue().addAll(resolved);
+            }
+        }
     }
 }

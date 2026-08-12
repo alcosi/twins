@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.twins.core.dao.user.UserEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +39,9 @@ public interface BusinessAccountUserRepository extends CrudRepository<BusinessAc
 
     @Query("select bau.userId from BusinessAccountUserEntity bau where bau.businessAccountId = :businessAccountId")
     List<UUID> findUserIdByBusinessAccountId(@Param("businessAccountId") UUID businessAccountId);
+
+    @Query("select bau from BusinessAccountUserEntity bau where bau.businessAccountId in :businessAccountIds")
+    List<BusinessAccountUserEntity> findByBusinessAccountIdIn(@Param("businessAccountIds") Collection<UUID> businessAccountIds);
 
     @Modifying
     @Query("UPDATE BusinessAccountUserEntity e SET e.lastActivityAt = CURRENT_TIMESTAMP WHERE e.id = :id")

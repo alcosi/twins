@@ -23,10 +23,7 @@ import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -188,6 +185,28 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public Set<UUID> filterUsersByBusinessAccountAndDomain(Collection<UUID> userIds, UUID businessAccountId, UUID domainId) {
         return userRepository.findUserIdByBusinessAccountIdAndDomainIdFiltered(businessAccountId, domainId, userIds);
+    }
+
+    /**
+     * Bulk variant of {@link #filterUsersByBusinessAccountAndDomain}: filters {@code userIds} against
+     * many business accounts of one domain in a single query, result grouped by businessAccountId
+     * (absent ids map to an empty set). For batch recipient resolving where a whole chunk shares the
+     * same resolver params (fixed userIds) and domain.
+     */
+    public Map<UUID, Set<UUID>> filterUsersByBusinessAccountAndDomainIn(Collection<UUID> userIds, Collection<UUID> businessAccountIds, UUID domainId) {
+        if (businessAccountIds == null || businessAccountIds.isEmpty() || domainId == null || userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Set<UUID>> byBusinessAccount = new HashMap<>();
+        for (UUID businessAccountId : businessAccountIds) {
+            byBusinessAccount.put(businessAccountId, new HashSet<>());
+        }
+        for (Object[] row : userRepository.findUserIdByBusinessAccountIdInAndDomainIdFiltered(businessAccountIds, domainId, userIds)) {
+            UUID businessAccountId = (UUID) row[0];
+            UUID userId = (UUID) row[1];
+            byBusinessAccount.get(businessAccountId).add(userId);
+        }
+        return byBusinessAccount;
     }
 
     public UserEntity findByEmail(String email) {

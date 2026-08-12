@@ -21,6 +21,9 @@ public abstract class RecipientResolver extends FeaturerTwins {
      * the histories to resolve are exactly its keySet, so there is no separate history list to keep in sync.
      */
     public void resolveBatch(Map<HistoryEntity, Set<UUID>> recipientIdsByHistory, HashMap<String, String> recipientParams) throws ServiceException {
+        if (recipientIdsByHistory.isEmpty()) {
+            return;
+        }
         Properties properties = featurerService.extractProperties(this, recipientParams);
         resolveBatch(recipientIdsByHistory, properties);
     }
