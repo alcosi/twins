@@ -63,6 +63,18 @@ public class CountQueryExecutor {
         query.multiselect(selections);
         applyFilter(query, root, filterSpec, cb);
         query.groupBy(groupBy);
+        // Deterministic ordering so LIMIT/OFFSET pagination stays stable across pages.
+        // Without ORDER BY, PostgreSQL may return GROUP BY rows in any order (typically via
+        // HashAggregate, order governed by the hash table) — groups could swap positions
+        // between requests and get duplicated on one page / dropped on another.
+        // Primary: count DESC (clients of a count API usually want the biggest groups first).
+        // Tie-breaker: group fields ASC so groups sharing the same count keep a fixed order.
+        List<Order> orders = new ArrayList<>(groupBy.size() + 1);
+        orders.add(cb.desc(cb.count(root)));
+        for (Expression<?> groupExpr : groupBy) {
+            orders.add(cb.asc(groupExpr));
+        }
+        query.orderBy(orders);
 
         Pageable pageable = PaginationUtils.pageableOffset(pagination);
         List<Object[]> content = entityManager.createQuery(query)
