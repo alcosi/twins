@@ -18,10 +18,7 @@ import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.notification.HistoryNotificationRecipientService;
-import org.twins.core.service.notification.HistoryNotificationService;
-import org.twins.core.service.notification.NotificationChannelEventService;
-import org.twins.core.service.notification.NotificationContextService;
+import org.twins.core.service.notification.*;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -71,12 +68,10 @@ public class HistoryNotificationTask implements Runnable {
             // inside findConfigsForTasks can read domainId; processTask re-sets it per history for the locale
             setChunkApiUser(tasks);
             // 1. one bulk query for configs across the whole chunk + in-memory match + bulk validator filter
-            Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask =
-                    historyNotificationService.findConfigsForTasks(tasks);
+            HistoryNotificationChunk chunk = historyNotificationService.findConfigsForTasks(tasks);
 
             // 2. bulk-load config relations ONCE for the whole chunk (was per-history before)
-            Collection<HistoryNotificationEntity> allConfigs = new LinkedHashSet<>();
-            configsByTask.values().forEach(allConfigs::addAll);
+            Collection<HistoryNotificationEntity> allConfigs = chunk.getTasksByConfig().keySet();
             if (!allConfigs.isEmpty()) {
                 historyNotificationService.loadNotificationChannelEvent(allConfigs);
                 historyNotificationService.loadHistoryNotificationRecipient(allConfigs);
@@ -92,13 +87,13 @@ public class HistoryNotificationTask implements Runnable {
                 // 2b. precompute recipients for the whole chunk: one resolveBatch per
                 //     (resolverFeaturerId, canonical params) group → beforeResolve preloads once per group.
                 //     Results land on each task.resolvedRecipientsByRecipientId for processTask.
-                historyNotificationRecipientService.resolveRecipientsBatch(configsByTask);
+                historyNotificationRecipientService.resolveRecipientsBatch(chunk);
             }
 
             // 3. per-history processing — config relations are already loaded; ApiUser is set per history
             //    (locale resolves to the twin creator's locale), status is set per entity, no cross-chunk throw
             for (HistoryNotificationTaskEntity task : tasks) {
-                processTask(task, configsByTask.getOrDefault(task, List.of()));
+                processTask(task, chunk.getConfigsByTask().getOrDefault(task, List.of()));
             }
         } catch (Throwable e) {
             log.error("Batch history notification task failed: ", e);
@@ -232,4 +227,5 @@ public class HistoryNotificationTask implements Runnable {
             super(message);
         }
     }
+
 }

@@ -3,10 +3,10 @@ package org.twins.core.featurer.notificator.recipient;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Properties;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_47,
@@ -16,17 +16,17 @@ import java.util.*;
 public abstract class RecipientResolver extends FeaturerTwins {
 
     /**
-     * Batch contract — resolves recipients for a group of histories sharing the same featurer params.
-     * {@code recipientIdsByHistory} is the shared accumulator (history -> recipient ids) owned by the caller;
-     * the histories to resolve are exactly its keySet, so there is no separate history list to keep in sync.
+     * Batch contract — resolves recipients for a resolver group sharing the same featurer params.
+     * {@link RecipientResolveContext#getRecipientIdsByHistory()} is the shared accumulator
+     * (history -> recipient ids) owned by the caller; the histories to resolve are exactly its keySet.
      */
-    public void resolveBatch(Map<HistoryEntity, Set<UUID>> recipientIdsByHistory, HashMap<String, String> recipientParams) throws ServiceException {
-        if (recipientIdsByHistory.isEmpty()) {
+    public void resolveBatch(RecipientResolveContext context, HashMap<String, String> recipientParams) throws ServiceException {
+        if (context.isEmpty()) {
             return;
         }
         Properties properties = featurerService.extractProperties(this, recipientParams);
-        resolveBatch(recipientIdsByHistory, properties);
+        resolveBatch(context, properties);
     }
 
-    public abstract void resolveBatch(Map<HistoryEntity, Set<UUID>> recipientIdsByHistory, Properties properties) throws ServiceException;
+    public abstract void resolveBatch(RecipientResolveContext context, Properties properties) throws ServiceException;
 }

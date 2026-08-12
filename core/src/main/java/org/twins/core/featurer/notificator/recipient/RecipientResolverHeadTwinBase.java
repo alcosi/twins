@@ -9,12 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_4705,
@@ -31,10 +30,26 @@ public class RecipientResolverHeadTwinBase extends RecipientResolverAtomic {
     @Autowired
     private TwinService twinService;
 
+    /**
+     * Bulk-load head twins for the whole batch in one query so {@link #resolve} reads
+     * {@code twin.getHeadTwin()} in-memory (was a per-history {@code loadHead} call — N+1).
+     */
+    @Override
+    protected void beforeResolve(Collection<HistoryEntity> histories) throws ServiceException {
+        Collection<TwinEntity> twins = new HashSet<>();
+        for (HistoryEntity history : histories) {
+            if (history.getTwin() != null) {
+                twins.add(history.getTwin());
+            }
+        }
+        if (!twins.isEmpty()) {
+            twinService.loadHead(twins);
+        }
+    }
+
     @Override
     protected void resolve(HistoryEntity history, Set<UUID> userIds, Properties properties) throws ServiceException {
         var twin = history.getTwin();
-        twinService.loadHead(twin);
         if (twin.getHeadTwin() == null) {
             return;
         }
