@@ -20,7 +20,7 @@ public class FactoryTriggerCountRqDTOv1 extends Request {
     @Schema(description = "search params")
     public FactoryTriggerSearchDTOv1 search;
 
-    @Size(max = 6)
+    @Size(max = 2)
     @Schema(description = "Group by fields")
     public Set<TwinFactoryTriggerGroupField> groupFields;
 }

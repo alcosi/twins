@@ -1354,6 +1354,7 @@ GroupField — это список полей, по которым имеет с
     * `createdAt`
     * `updatedAt`
     * `externalId`
+    * `createdByUserName`(join: createdByUserSpecOnly → User.name)
 
 * **GroupField values**:
     * `createdByUserId` (defaultOptionId убран — 1:1 с data list, бессмысленно для группировки; добавлено поле `created_by_user_id` в таблицу)

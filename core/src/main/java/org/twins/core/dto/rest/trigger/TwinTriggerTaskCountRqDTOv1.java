@@ -20,7 +20,7 @@ public class TwinTriggerTaskCountRqDTOv1 extends Request {
     @Schema(description = "search params")
     public TwinTriggerTaskSearchDTOv1 search;
 
-    @Size(max = 6)
+    @Size(max = 1)
     @Schema(description = "Group by fields")
     public Set<TwinTriggerTaskGroupField> groupFields;
 }
