@@ -175,7 +175,10 @@ public class TwinChangesService {
                         case twinFieldUserKit -> twinEntity.setTwinFieldUserKit(null);
                         case twinFieldDatalistKit -> twinEntity.setTwinFieldDatalistKit(null);
                         case twinFieldDecimalKit -> twinEntity.setTwinFieldDecimalKit(null);
-                        case twinFieldCalculatedKit -> twinEntity.setTwinFieldCalculated(null);
+                        case twinFieldCalculatedKit -> {
+                            twinEntity.setTwinFieldCalculated(null);
+                            twinEntity.setTwinFieldCalcStorageLoaded(null);
+                        }
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);

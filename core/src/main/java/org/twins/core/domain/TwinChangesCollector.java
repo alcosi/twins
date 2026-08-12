@@ -109,10 +109,14 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
                     saveElseDelete,
                     TwinEntity::getTwinFieldTwinClassKit);
         } else if (entity instanceof TwinFieldDecimalEntity twinFieldDecimalEntity) {
+            // A decimal field can be an operand of an in-memory calculated field (FieldTyperCalcSum), whose
+            // cached value lives in twinFieldCalculated. Mirrors the TwinFieldDecimalIncrement branch below:
+            // any decimal change must drop the cached sum so it is recomputed against the new operand value.
             syncFieldKitAndInvalidate(
                     twinFieldDecimalEntity,
                     saveElseDelete,
-                    TwinEntity::getTwinFieldDecimalKit);
+                    TwinEntity::getTwinFieldDecimalKit,
+                    TwinInvalidate.twinFieldCalculatedKit);
         } else if (entity instanceof TwinFieldTimestampEntity twinFieldTimestampEntity) {
             syncFieldKitAndInvalidate(
                     twinFieldTimestampEntity,
@@ -135,7 +139,8 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
      * Common to every {@link TwinFieldBaseEntity} subclass whose twin exposes a typed kit accessor.
      */
     private <T extends TwinFieldBaseEntity> void syncFieldKitAndInvalidate(
-            T field, boolean saveElseDelete, Function<TwinEntity, Kit<T, UUID>> kitExtractor) {
+            T field, boolean saveElseDelete, Function<TwinEntity, Kit<T, UUID>> kitExtractor,
+            TwinInvalidate... extraInvalidations) {
         TwinEntity twin = field.getTwin();
         Kit<T, UUID> kit = kitExtractor.apply(twin);
         if (saveElseDelete) {
@@ -144,6 +149,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
             kit.removeByKey(field.getId());
         }
         invalidateTwin(twin, TwinInvalidate.fieldValuesKit);
+        if (extraInvalidations != null && extraInvalidations.length > 0) {
+            invalidateTwin(twin, extraInvalidations);
+        }
     }
 
     public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId, FactoryLauncher factoryLauncher) throws ServiceException {
