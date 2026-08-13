@@ -12,10 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.notification.HistoryNotificationEntity;
-import org.twins.core.dao.notification.NotificationContextCollectorEntity;
-import org.twins.core.dao.notification.NotificationContextEntity;
-import org.twins.core.dao.notification.NotificationContextRepository;
+import org.twins.core.dao.notification.*;
 import org.twins.core.featurer.notificator.context.ContextCollector;
 import org.twins.core.featurer.notificator.context.ContextCollectorBatch;
 import org.twins.core.service.domain.DomainUserService;
@@ -35,6 +32,8 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
     private final NotificationContextCollectorService notificationContextCollectorService;
     private final I18nService i18nService;
     private final DomainUserService domainUserService;
+    @Lazy
+    private final NotificationChannelEventService notificationChannelEventService;
 
     @Override
     public CrudRepository<NotificationContextEntity, UUID> entityRepository() {
@@ -75,11 +74,13 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
         UUID domainId = chunk.getDomainId();
         // contextId → set of histories that need it (via config → channelEvent → notificationContextId)
         Map<UUID, Set<HistoryEntity>> historiesByContextId = new HashMap<>();
+        Set<NotificationChannelEventEntity> channelEvents = new HashSet<>();
         for (var e : chunk.getTasksByConfig().entrySet()) {
             HistoryNotificationEntity config = e.getKey();
             if (config.getNotificationChannelEvent() == null) {
                 continue;
             }
+            channelEvents.add(config.getNotificationChannelEvent());
             UUID contextId = config.getNotificationChannelEvent().getNotificationContextId();
             if (contextId == null) {
                 continue;
@@ -95,13 +96,24 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
             return;
         }
 
+        // bulk-load context collectors onto channel events (one query for all distinct contextIds)
+        // → contextId → collectors map (events sharing a context share the same loaded kit)
+        notificationChannelEventService.loadContextCollectors(channelEvents);
+        Map<UUID, List<NotificationContextCollectorEntity>> collectorsByContextId = new HashMap<>();
+        for (NotificationChannelEventEntity channelEvent : channelEvents) {
+            UUID contextId = channelEvent.getNotificationContextId();
+            if (contextId != null && channelEvent.getCollectors() != null) {
+                collectorsByContextId.putIfAbsent(contextId, channelEvent.getCollectors().getList());
+            }
+        }
+
         // one ContextCollectorBatch per contextId; collectors grouped by (featurerId, params) so each runs
         // once for all its histories (via FeaturerService.groupByFeaturerParams — symmetric to resolveRecipientsBatch)
         Map<UUID, ContextCollectorBatch> batchByContextId = new HashMap<>();
         for (var e : historiesByContextId.entrySet()) {
             UUID contextId = e.getKey();
             Set<HistoryEntity> histories = e.getValue();
-            List<NotificationContextCollectorEntity> contextCollectors = getContextCollectors(contextId);
+            List<NotificationContextCollectorEntity> contextCollectors = collectorsByContextId.getOrDefault(contextId, List.of());
             if (contextCollectors.isEmpty()) {
                 continue;
             }

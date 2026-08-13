@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.NotificationContextCollectorEntity;
 import org.twins.core.dao.notification.NotificationContextCollectorRepository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -54,5 +56,12 @@ public class NotificationContextCollectorService extends EntitySecureFindService
 
     public List<NotificationContextCollectorEntity> findByContextId(UUID contextId) {
         return repository.findAllByNotificationContextId(contextId);
+    }
+
+    public Collection<NotificationContextCollectorEntity> findByContextIdIn(Set<UUID> contextIds) {
+        if (contextIds == null || contextIds.isEmpty()) {
+            return List.of();
+        }
+        return repository.findAllByNotificationContextIdIn(contextIds);
     }
 }

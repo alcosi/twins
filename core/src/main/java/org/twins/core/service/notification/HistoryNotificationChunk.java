@@ -18,9 +18,9 @@ public class HistoryNotificationChunk {
     /** the chunk's tasks, set by the runner. */
     private final List<HistoryNotificationTaskEntity> tasks;
     /** task → valid configs (used by processTask). Populated by findConfigsForTasks. */
-    private Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask = new HashMap<>();
+    private final Map<HistoryNotificationTaskEntity, List<HistoryNotificationEntity>> configsByTask = new HashMap<>();
     /** config → tasks that matched AND passed validation (inverse projection, used by recipient precompute). */
-    private Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig = new HashMap<>();
+    private final Map<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> tasksByConfig = new HashMap<>();
     /** lazy: distinct twin-creator user ids across the chunk (for bulk locale resolution). */
     private Set<UUID> createdByUserIds;
 

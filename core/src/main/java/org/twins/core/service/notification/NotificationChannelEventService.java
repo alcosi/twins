@@ -12,6 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.NotificationChannelEventEntity;
 import org.twins.core.dao.notification.NotificationChannelEventRepository;
+import org.twins.core.dao.notification.NotificationContextCollectorEntity;
 import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.Collection;
@@ -30,6 +31,8 @@ public class NotificationChannelEventService extends TwinsEntitySecureFindServic
     private final NotificationChannelService notificationChannelService;
     @Lazy
     private final NotificationContextService notificationContextService;
+    @Lazy
+    private final NotificationContextCollectorService notificationContextCollectorService;
 
     @Override
     public CrudRepository<NotificationChannelEventEntity, UUID> entityRepository() {
@@ -71,5 +74,21 @@ public class NotificationChannelEventService extends TwinsEntitySecureFindServic
                 NotificationChannelEventEntity::getNotificationContextId,
                 NotificationChannelEventEntity::getNotificationContext,
                 NotificationChannelEventEntity::setNotificationContext);
+    }
+
+    public void loadContextCollectors(NotificationChannelEventEntity src) throws ServiceException {
+        loadContextCollectors(Collections.singletonList(src));
+    }
+
+    public void loadContextCollectors(Collection<NotificationChannelEventEntity> srcCollection) {
+        loadKit(
+                srcCollection,
+                NotificationChannelEventEntity::getNotificationContextId,
+                NotificationChannelEventEntity::getCollectors,
+                NotificationChannelEventEntity::setCollectors,
+                notificationContextCollectorService::findByContextIdIn,
+                NotificationContextCollectorEntity::getId,
+                NotificationContextCollectorEntity::getNotificationContextId,
+                (collector, channelEvent) -> { });
     }
 }
