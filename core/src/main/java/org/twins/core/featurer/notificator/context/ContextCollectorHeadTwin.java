@@ -23,14 +23,19 @@ public class ContextCollectorHeadTwin extends ContextCollectorTwinBase {
     @Autowired
     private TwinService twinService;
 
+    /**
+     * Bulk-load head twins for the whole batch so {@link #resolveTwin} reads the relation in-memory
+     * (was a per-history {@code findEntitySafe} fallback — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadHead(batch.getTwins());
+        }
+    }
+
     @Override
     protected TwinEntity resolveTwin(HistoryEntity history) throws ServiceException {
-        TwinEntity headTwin = history.getTwin().getHeadTwin();
-
-        if (headTwin == null) {
-            headTwin = twinService.findEntitySafe(history.getTwin().getHeadTwinId());
-        }
-
-        return headTwin;
+        return history.getTwin().getHeadTwin();
     }
 }

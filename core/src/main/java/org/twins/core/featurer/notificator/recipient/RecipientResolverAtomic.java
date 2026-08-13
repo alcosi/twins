@@ -6,9 +6,10 @@ import org.twins.core.dao.history.HistoryEntity;
 import java.util.*;
 
 /**
- * Per-item {@link RecipientResolver}: batch is implemented as a single {@link #beforeResolve(Collection)} hook
+ * Per-item {@link RecipientResolver}: batch is implemented as a single {@link #beforeResolve(RecipientResolveBatch)} hook
  * (bulk-load) followed by {@link #resolve} for each history. Concrete resolvers extend this class and implement
- * {@link #resolve}; those that hit the DB override {@link #beforeResolve} to preload relations for the whole batch.
+ * {@link #resolve}; those that hit the DB override {@link #beforeResolve} to preload relations for the whole batch
+ * (using the batch's lazy getters — {@link RecipientResolveBatch#getTwins()}, etc. — so they don't re-collect them).
  */
 public abstract class RecipientResolverAtomic extends RecipientResolver {
 
@@ -18,7 +19,7 @@ public abstract class RecipientResolverAtomic extends RecipientResolver {
             return;
         }
         Map<HistoryEntity, Set<UUID>> recipientIdsByHistory = context.getRecipientIdsByHistory();
-        beforeResolve(recipientIdsByHistory.keySet());
+        beforeResolve(context);
         for (Map.Entry<HistoryEntity, Set<UUID>> entry : recipientIdsByHistory.entrySet()) {
             resolve(entry.getKey(), entry.getValue(), properties);
         }
@@ -27,7 +28,7 @@ public abstract class RecipientResolverAtomic extends RecipientResolver {
     /**
      * Override to bulk-load relations needed by {@link #resolve} across the whole batch (default: no-op).
      */
-    protected void beforeResolve(Collection<HistoryEntity> histories) throws ServiceException {
+    protected void beforeResolve(RecipientResolveBatch batch) throws ServiceException {
     }
 
     /**

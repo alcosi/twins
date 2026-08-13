@@ -34,6 +34,17 @@ public class ContextCollectorTwinAttachment extends ContextCollectorAtomic {
 
     private final AttachmentService attachmentService;
 
+    /**
+     * Bulk-load attachments for the whole batch's twins so {@link #collectData} (via
+     * {@code findFirstAttachment}) works in-memory (was a per-twin load — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            attachmentService.loadAttachments(batch.getTwins());
+        }
+    }
+
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
         String key = collectKey.extract(properties);

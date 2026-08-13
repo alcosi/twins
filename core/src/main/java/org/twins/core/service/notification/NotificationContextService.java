@@ -95,17 +95,36 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
             return;
         }
 
-        // one ContextCollectorBatch per contextId; run each contextId's collectors (grouped by params) once
+        // one ContextCollectorBatch per contextId; collectors grouped by (featurerId, params) so each runs
+        // once for all its histories (via FeaturerService.groupByFeaturerParams — symmetric to resolveRecipientsBatch)
         Map<UUID, ContextCollectorBatch> batchByContextId = new HashMap<>();
         for (var e : historiesByContextId.entrySet()) {
             UUID contextId = e.getKey();
-            ContextCollectorBatch batch = new ContextCollectorBatch(domainId);
-            for (HistoryEntity history : e.getValue()) {
-                batch.add(history);
+            Set<HistoryEntity> histories = e.getValue();
+            List<NotificationContextCollectorEntity> contextCollectors = getContextCollectors(contextId);
+            if (contextCollectors.isEmpty()) {
+                continue;
             }
-            for (NotificationContextCollectorEntity contextCollector : getContextCollectors(contextId)) {
-                ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturerId(), ContextCollector.class);
-                collector.collectDataBatch(batch, contextCollector.getContextCollectorParams());
+            // work units: (collector-entity, history) — grouped by featurer params below
+            List<ContextCollectorWork> work = new ArrayList<>();
+            for (NotificationContextCollectorEntity contextCollector : contextCollectors) {
+                if (contextCollector.getContextCollectorFeaturerId() == null) {
+                    continue;
+                }
+                for (HistoryEntity history : histories) {
+                    work.add(new ContextCollectorWork(contextCollector, history));
+                }
+            }
+            ContextCollectorBatch batch = new ContextCollectorBatch(domainId);
+            for (ContextCollectorWork w : work) {
+                batch.add(w.history());
+            }
+            // one collectDataBatch per (featurerId, params) group — getFeaturer + extractProperties once per group
+            for (var group : FeaturerService.groupByFeaturerParams(work,
+                    w -> w.collector().getContextCollectorFeaturerId(),
+                    w -> w.collector().getContextCollectorParams())) {
+                ContextCollector collector = featurerService.getFeaturer(group.getFeaturerId(), ContextCollector.class);
+                collector.collectDataBatch(batch, group.getParams());
             }
             batchByContextId.put(contextId, batch);
         }
@@ -113,7 +132,7 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
         // resolve i18n for every batch — per-history locale = twin creator's locale (loaded once for the chunk)
         Map<UUID, Locale> localeByUser = loadCreatorLocales(chunk);
         for (ContextCollectorBatch batch : batchByContextId.values()) {
-            resolveI18n(batch, history -> creatorLocale(history, localeByUser));
+            resolveI18n(batch, localeByUser);
         }
 
         // distribute per-(task, contextId) → task-entity.collectedContextByContextId
@@ -139,6 +158,10 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
         }
     }
 
+    /** A (context-collector-entity, history) pair — the work unit grouped by featurer params. */
+    private record ContextCollectorWork(NotificationContextCollectorEntity collector, HistoryEntity history) {
+    }
+
     /** Bulk-load the twin-creator locales for the chunk (one query) → userId → locale. */
     private Map<UUID, Locale> loadCreatorLocales(HistoryNotificationChunk chunk) {
         return domainUserService.getLocaleMap(chunk.getDomainId(), chunk.getCreatedByUserIds());
@@ -153,43 +176,37 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
 
     /**
      * Substitute i18n placeholders accumulated in {@code batch} with translations resolved per locale.
-     * {@code localeByHistory} provides the locale for each history (batch resolves them in bulk upstream;
-     * single-history callers pass a fallback that yields the thread-local locale).
+     * Each history's locale is the twin creator's locale from {@code localeByUser} (loaded once for the chunk);
+     * one bulk translate fires per locale, then placeholders are filled in a single pass over the refs.
      */
-    private void resolveI18n(ContextCollectorBatch batch, Function<HistoryEntity, Locale> localeByHistory) throws ServiceException {
-        // grouped by locale so one bulk translate fires per locale
+    private void resolveI18n(ContextCollectorBatch batch, Map<UUID, Locale> localeByUser) throws ServiceException {
+        // 1. group i18n ids by locale (one pass over refs)
         Map<Locale, Set<UUID>> idsByLocale = new HashMap<>();
-        for (HistoryEntity history : batch.getContextByHistory().keySet()) {
-            Locale locale = localeByHistory.apply(history);
-            if (locale != null) {
-                idsByLocale.computeIfAbsent(locale, _ -> new HashSet<>());
-            }
-        }
-        // assign each accumulated i18n id to the locale of every history it references
         for (var e : batch.getI18nRefs().entrySet()) {
             for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
-                Locale locale = localeByHistory.apply(ref.history());
+                Locale locale = creatorLocale(ref.history(), localeByUser);
                 if (locale != null) {
-                    idsByLocale.get(locale).add(e.getKey());
+                    idsByLocale.computeIfAbsent(locale, _ -> new HashSet<>()).add(e.getKey());
                 }
             }
         }
-        // bulk translate per locale and substitute into the context entries
+        // 2. one bulk translate per locale
+        Map<Locale, Map<UUID, String>> translationsByLocale = new HashMap<>();
         for (var e : idsByLocale.entrySet()) {
-            Locale locale = e.getKey();
-            if (e.getValue().isEmpty()) {
-                continue;
-            }
-            Map<UUID, String> translations = i18nService.translateToLocale(e.getValue(), locale);
-            for (var refEntry : batch.getI18nRefs().entrySet()) {
-                String translation = translations.get(refEntry.getKey());
-                if (translation == null) {
+            translationsByLocale.put(e.getKey(), i18nService.translateToLocale(e.getValue(), e.getKey()));
+        }
+        // 3. fill placeholders in one pass over refs (translation picked by the history's locale)
+        for (var e : batch.getI18nRefs().entrySet()) {
+            UUID i18nId = e.getKey();
+            for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
+                Locale locale = creatorLocale(ref.history(), localeByUser);
+                Map<UUID, String> translations = translationsByLocale.get(locale);
+                if (translations == null) {
                     continue;
                 }
-                for (ContextCollectorBatch.I18nRef ref : refEntry.getValue()) {
-                    if (locale.equals(localeByHistory.apply(ref.history()))) {
-                        batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), translation);
-                    }
+            String translation = translations.get(i18nId);
+                if (translation != null) {
+                    batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), translation);
                 }
             }
         }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.resource.ResourceService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Map;
 import java.util.Properties;
@@ -30,6 +31,18 @@ public class ContextCollectorTwinClassIcon extends ContextCollectorAtomic {
     public static final FeaturerParamBoolean useDarkIcon = new FeaturerParamBoolean("useDarkIcon");
 
     private final ResourceService resourceService;
+    private final TwinService twinService;
+
+    /**
+     * Bulk-load icon resources for the whole batch's twin classes so {@link #collectData} reads them
+     * in-memory (was a per-history {@code loadIconResources} call — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwinClasses().isEmpty()) {
+            resourceService.loadIconResources(batch.getTwinClasses());
+        }
+    }
 
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
@@ -37,7 +50,6 @@ public class ContextCollectorTwinClassIcon extends ContextCollectorAtomic {
         boolean dark = useDarkIcon.extract(properties);
 
         var twinClass = history.getTwin().getTwinClass();
-        resourceService.loadIconResources(twinClass);
 
         if (dark && twinClass.getIconDarkResource() != null) {
             String url = resourceService.getResourceUri(twinClass.getIconDarkResource());

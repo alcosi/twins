@@ -2,72 +2,39 @@ package org.twins.core.featurer.notificator.recipient;
 
 import lombok.Getter;
 import org.twins.core.dao.history.HistoryEntity;
+import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.*;
 
 /**
  * Context for a single {@link RecipientResolver#resolveBatch} call over one resolver group
  * {@code (featurerId, params)}: the histories to resolve (as the accumulator keySet) plus the
- * chunk-wide domain id and a lazily-computed set of distinct business account ids.
- * <p>{@code recipientIdsByHistory} is per resolver group (a subset of the notification chunk), so
- * {@link #getBusinessAccountIds()} is derived from its keySet — not from the whole chunk — and
- * computed at most once per context.
+ * chunk-wide domain id and the derived twin / business-account / twin-id collections.
+ * <p>All derived collections are populated incrementally in {@link #add} as histories are registered,
+ * so the getters are plain field reads. {@code recipientIdsByHistory} is per resolver group (a subset
+ * of the notification chunk), so the derived collections reflect that subset — not the whole chunk.
  */
 @Getter
 public class RecipientResolveBatch {
     private final UUID domainId;
-    private Map<HistoryEntity, Set<UUID>> recipientIdsByHistory;
-    private Set<UUID> businessAccountIds;
-    private Set<UUID> twinIds;
+    private Map<HistoryEntity, Set<UUID>> recipientIdsByHistory = new HashMap<>();
+    private final List<TwinEntity> twins = new ArrayList<>();
+    private final Set<UUID> businessAccountIds = new HashSet<>();
+    private final Set<UUID> twinIds = new HashSet<>();
 
     public RecipientResolveBatch(UUID domainId) {
         this.domainId = domainId;
     }
 
     public RecipientResolveBatch add(HistoryEntity history) {
-        if (recipientIdsByHistory == null)
-            recipientIdsByHistory = new HashMap<>();
         recipientIdsByHistory.computeIfAbsent(history, _ -> new HashSet<>());
+        twinIds.add(history.getTwinId());
+        TwinEntity twin = history.getTwin();
+        twins.add(twin);
+        if (twin.getOwnerBusinessAccountId() != null) {
+            businessAccountIds.add(twin.getOwnerBusinessAccountId());
+        }
         return this;
-    }
-
-    /**
-     * Distinct non-null {@code twin.ownerBusinessAccountId} values across {@link #recipientIdsByHistory}
-     * keySet. Computed lazily and cached; resolvers that don't need it never trigger the work.
-     */
-    public Set<UUID> getBusinessAccountIds() {
-        if (businessAccountIds == null) {
-            businessAccountIds = new HashSet<>();
-            for (HistoryEntity history : recipientIdsByHistory.keySet()) {
-                if (history.getTwin() != null) {
-                    UUID businessAccountId = history.getTwin().getOwnerBusinessAccountId();
-                    if (businessAccountId != null) {
-                        businessAccountIds.add(businessAccountId);
-                    }
-                }
-            }
-        }
-        return businessAccountIds;
-    }
-
-    /**
-     * Distinct non-null {@code twin.id} values across {@link #recipientIdsByHistory} keySet (the spaces
-     * to resolve space roles for). Computed lazily and cached; resolvers that don't need it never
-     * trigger the work.
-     */
-    public Set<UUID> getTwinIds() {
-        if (twinIds == null) {
-            twinIds = new HashSet<>();
-            for (HistoryEntity history : recipientIdsByHistory.keySet()) {
-                if (history.getTwin() != null) {
-                    UUID twinId = history.getTwin().getId();
-                    if (twinId != null) {
-                        twinIds.add(twinId);
-                    }
-                }
-            }
-        }
-        return twinIds;
     }
 
     public boolean isEmpty() {

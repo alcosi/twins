@@ -9,11 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.*;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_4705,
@@ -35,15 +36,9 @@ public class RecipientResolverHeadTwinBase extends RecipientResolverAtomic {
      * {@code twin.getHeadTwin()} in-memory (was a per-history {@code loadHead} call — N+1).
      */
     @Override
-    protected void beforeResolve(Collection<HistoryEntity> histories) throws ServiceException {
-        Collection<TwinEntity> twins = new HashSet<>();
-        for (HistoryEntity history : histories) {
-            if (history.getTwin() != null) {
-                twins.add(history.getTwin());
-            }
-        }
-        if (!twins.isEmpty()) {
-            twinService.loadHead(twins);
+    protected void beforeResolve(RecipientResolveBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadHead(batch.getTwins());
         }
     }
 

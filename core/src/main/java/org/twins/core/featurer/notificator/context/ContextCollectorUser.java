@@ -43,9 +43,19 @@ public abstract class ContextCollectorUser extends ContextCollectorAtomic {
     @Autowired
     private TwinService twinService;
 
+    /**
+     * Bulk-load the twin→user relation for the whole batch so {@link #collectData} reads it in-memory
+     * (was a per-history {@code loadUser} call — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadUser(batch.getTwins());
+        }
+    }
+
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
-        twinService.loadUser(history.getTwin());
         UserEntity user = getUser(history, properties);
 
         if (user != null) { //todo logic if null
