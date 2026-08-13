@@ -17,6 +17,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.service.auth.AuthService;
 
 import java.lang.reflect.ParameterizedType;
@@ -162,8 +163,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     /**
      * Looks up a single entity in the configured {@link CacheSupportType} cache, or null on miss / when
-     * caching is disabled or the scope (e.g. web request) is absent. Shared cache-read for both
-     * {@link #findEntitySafe(UUID)} and {@link #findEntitiesSafe(Collection)}.
+     * caching is disabled. Shared cache-read for both {@link #findEntitySafe(UUID)} and
+     * {@link #findEntitiesSafe(Collection)}. For REQUEST scope, when there is no web-request scope
+     * (schedulers on virtual threads, {@code @Async}), falls back to {@link EntityRequestCacheHolder} — the
+     * thread-local twin of the request cache — so the same dedup works outside HTTP too.
      */
     @SuppressWarnings("unchecked")
     protected T getCachedEntity(UUID entityId) {
@@ -175,10 +178,12 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 }
             }
             case REQUEST -> {
+                String cacheKey = entityCacheKey(entityId);
                 RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
                 if (requestAttributes != null) {
-                    return (T) requestAttributes.getAttribute(entityCacheKey(entityId), RequestAttributes.SCOPE_REQUEST);
+                    return (T) requestAttributes.getAttribute(cacheKey, RequestAttributes.SCOPE_REQUEST);
                 }
+                return EntityRequestCacheHolder.get(cacheKey);
             }
         }
         return null;
@@ -186,8 +191,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     /**
      * Stores a single entity by id in the configured {@link CacheSupportType} cache. No-op for
-     * {@link CacheSupportType#NONE} and for REQUEST when the web-request scope is absent — same fallback
-     * as {@link #findEntitySafe(UUID)}. Shared cache-write for both read paths.
+     * {@link CacheSupportType#NONE}. For REQUEST scope, when there is no web-request scope (schedulers on
+     * virtual threads, {@code @Async}), writes to {@link EntityRequestCacheHolder} instead — see the cleanup
+     * contract documented on it. Shared cache-write for both read paths.
      */
     protected void putCachedEntity(UUID entityId, T entity) {
         switch (getCacheSupportType()) {
@@ -198,9 +204,12 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 }
             }
             case REQUEST -> {
+                String cacheKey = entityCacheKey(entityId);
                 RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
                 if (requestAttributes != null) {
-                    requestAttributes.setAttribute(entityCacheKey(entityId), entity, RequestAttributes.SCOPE_REQUEST);
+                    requestAttributes.setAttribute(cacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                } else {
+                    EntityRequestCacheHolder.put(cacheKey, entity);
                 }
             }
         }
