@@ -11,9 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -64,17 +62,19 @@ class ContextCollectorHeadTwinAttachmentTest extends BaseUnitTest {
     class AttachmentFound {
 
         @Test
-        void collectData_headTwinHasAttachment_putsUrl() throws Exception {
+        void collectDataBatch_headTwinHasAttachment_putsUrl() throws Exception {
             twin.setHeadTwin(headTwin);
             var attachment = new TwinAttachmentEntity();
             when(attachmentService.findFirstAttachment(headTwin, null)).thenReturn(attachment);
             when(attachmentService.getAttachmentUri(attachment)).thenReturn("http://storage/head-file.png");
-            var context = new HashMap<String, String>();
+            var batch = new ContextCollectorBatch(UUID.randomUUID()).add(history);
 
-            var result = collector.collectData(history, context, props());
+            collector.collectDataBatch(batch, props());
 
-            assertEquals("http://storage/head-file.png", result.get("HEAD_TWIN_ATTACHMENT_URL"));
-            verify(twinService).loadHead(twin);
+            assertEquals("http://storage/head-file.png", batch.getContextByHistory().get(history).get("HEAD_TWIN_ATTACHMENT_URL"));
+            // head twins + their attachments are bulk-loaded once per batch (beforeCollect hook)
+            verify(twinService).loadHead(List.of(twin));
+            verify(attachmentService).loadAttachments(Set.of(headTwin));
         }
 
         @Test

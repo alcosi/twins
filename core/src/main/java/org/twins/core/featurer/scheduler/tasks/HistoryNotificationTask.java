@@ -181,7 +181,7 @@ public class HistoryNotificationTask implements Runnable {
 
             task
                     .setStatusId(HistoryNotificationTaskStatus.SENT)
-                    .setStatusDetails(STR."\{recipientsCount} recipients were notified")
+                    .setStatusDetails(recipientsCount + " recipients were notified")
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (NotificationSkippedException e) {
             log.info(e.getMessage());

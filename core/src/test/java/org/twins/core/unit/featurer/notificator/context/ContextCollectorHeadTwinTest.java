@@ -10,11 +10,10 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 
@@ -97,15 +96,24 @@ class ContextCollectorHeadTwinTest extends BaseUnitTest {
     class HeadTwinFromService {
 
         @Test
-        void collectData_headTwinNullOnEntity_fetchesFromService() throws Exception {
-            when(twinService.findEntitySafe(headTwinId)).thenReturn(headTwin);
-            var context = new HashMap<String, String>();
+        void collectDataBatch_headTwinNullOnEntity_loadedInBulkByHook() throws Exception {
+            var batch = new ContextCollectorBatch(UUID.randomUUID()).add(history);
 
-            var result = collector.collectData(history, context, props(true, true, false, false));
+            // beforeCollect hook bulk-loads head twins for the whole batch (mocked: single twin)
+            doAnswer(invocation -> {
+                Collection<TwinEntity> batchTwins = invocation.getArgument(0);
+                for (TwinEntity t : batchTwins) {
+                    t.setHeadTwin(headTwin);
+                }
+                return null;
+            }).when(twinService).loadHead(List.of(twin));
 
+            collector.collectDataBatch(batch, props(true, true, false, false));
+
+            var result = batch.getContextByHistory().get(history);
             assertEquals(headTwinId.toString(), result.get("TWIN_ID"));
             assertEquals("HeadTwin", result.get("TWIN_NAME"));
-            verify(twinService).findEntitySafe(headTwinId);
+            verify(twinService).loadHead(List.of(twin));
         }
     }
 

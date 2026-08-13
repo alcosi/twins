@@ -141,11 +141,11 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
             batchByContextId.put(contextId, batch);
         }
 
-        // resolve i18n for every batch — per-history locale = twin creator's locale (loaded once for the chunk)
+        // resolve i18n for the whole chunk: translations are bulk-loaded ONCE per locale across all
+        // context batches (contexts of one chunk usually share the same i18n ids, e.g. twin class
+        // names), then substituted in one pass per batch
         Map<UUID, Locale> localeByUser = loadCreatorLocales(chunk);
-        for (ContextCollectorBatch batch : batchByContextId.values()) {
-            resolveI18n(batch, localeByUser);
-        }
+        resolveI18n(batchByContextId.values(), localeByUser);
 
         // distribute per-(task, contextId) → task-entity.collectedContextByContextId
         for (var e : chunk.getConfigsByTask().entrySet()) {
@@ -187,38 +187,44 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
     }
 
     /**
-     * Substitute i18n placeholders accumulated in {@code batch} with translations resolved per locale.
-     * Each history's locale is the twin creator's locale from {@code localeByUser} (loaded once for the chunk);
-     * one bulk translate fires per locale, then placeholders are filled in a single pass over the refs.
+     * Substitute i18n placeholders accumulated in the chunk's context batches with translations
+     * resolved per locale. Each history's locale is the twin creator's locale from {@code localeByUser}
+     * (loaded once for the chunk); ONE bulk translate fires per locale across all batches, then
+     * placeholders are filled in a single pass over each batch's refs.
      */
-    private void resolveI18n(ContextCollectorBatch batch, Map<UUID, Locale> localeByUser) throws ServiceException {
-        // 1. group i18n ids by locale (one pass over refs)
+    private void resolveI18n(Collection<ContextCollectorBatch> batches, Map<UUID, Locale> localeByUser) throws ServiceException {
+        // 1. group i18n ids by locale across ALL batches (one pass over refs) — the union naturally
+        //    dedups ids shared between contexts of one chunk
         Map<Locale, Set<UUID>> idsByLocale = new HashMap<>();
-        for (var e : batch.getI18nRefs().entrySet()) {
-            for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
-                Locale locale = creatorLocale(ref.history(), localeByUser);
-                if (locale != null) {
-                    idsByLocale.computeIfAbsent(locale, _ -> new HashSet<>()).add(e.getKey());
+        for (ContextCollectorBatch batch : batches) {
+            for (var e : batch.getI18nRefs().entrySet()) {
+                for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
+                    Locale locale = creatorLocale(ref.history(), localeByUser);
+                    if (locale != null) {
+                        idsByLocale.computeIfAbsent(locale, _ -> new HashSet<>()).add(e.getKey());
+                    }
                 }
             }
         }
-        // 2. one bulk translate per locale
+        // 2. one bulk translate per locale (chunk-wide, shared by all context batches)
         Map<Locale, Map<UUID, String>> translationsByLocale = new HashMap<>();
         for (var e : idsByLocale.entrySet()) {
             translationsByLocale.put(e.getKey(), i18nService.translateToLocale(e.getValue(), e.getKey()));
         }
-        // 3. fill placeholders in one pass over refs (translation picked by the history's locale)
-        for (var e : batch.getI18nRefs().entrySet()) {
-            UUID i18nId = e.getKey();
-            for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
-                Locale locale = creatorLocale(ref.history(), localeByUser);
-                Map<UUID, String> translations = translationsByLocale.get(locale);
-                if (translations == null) {
-                    continue;
-                }
-            String translation = translations.get(i18nId);
-                if (translation != null) {
-                    batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), translation);
+        // 3. fill placeholders in one pass per batch (translation picked by the history's locale)
+        for (ContextCollectorBatch batch : batches) {
+            for (var e : batch.getI18nRefs().entrySet()) {
+                UUID i18nId = e.getKey();
+                for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
+                    Locale locale = creatorLocale(ref.history(), localeByUser);
+                    Map<UUID, String> translations = locale != null ? translationsByLocale.get(locale) : null;
+                    if (translations == null) {
+                        continue;
+                    }
+                    String translation = translations.get(i18nId);
+                    if (translation != null) {
+                        batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), translation);
+                    }
                 }
             }
         }

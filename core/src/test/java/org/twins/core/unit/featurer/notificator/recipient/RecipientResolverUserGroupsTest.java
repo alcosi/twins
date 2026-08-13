@@ -11,13 +11,14 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 class RecipientResolverUserGroupsTest extends BaseUnitTest {
 
@@ -58,10 +59,10 @@ class RecipientResolverUserGroupsTest extends BaseUnitTest {
     }
 
     @Nested
-    class Resolve {
+    class ResolveBatch {
 
         @Test
-        void resolve_addsUsersFromUserGroups() throws Exception {
+        void resolveBatch_addsUsersFromUserGroups() throws Exception {
             var domainId = UUID.randomUUID();
             var businessAccountId = UUID.randomUUID();
             var history = buildHistory(domainId, businessAccountId);
@@ -69,58 +70,61 @@ class RecipientResolverUserGroupsTest extends BaseUnitTest {
             var groupId2 = UUID.randomUUID();
             var userId1 = UUID.randomUUID();
             var userId2 = UUID.randomUUID();
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(domainId).add(history);
             var props = new Properties();
             props.setProperty("userGroupIds", groupId1 + "," + groupId2);
 
-            when(userGroupService.getUsersForGroups(domainId, businessAccountId, Set.of(groupId1, groupId2)))
-                    .thenReturn(Set.of(userId1, userId2));
+            when(userGroupService.getUsersForGroupsIn(domainId, Set.of(businessAccountId), Set.of(groupId1, groupId2)))
+                    .thenReturn(Map.of(businessAccountId, Set.of(userId1, userId2)));
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(2, recipientIds.size());
             assertTrue(recipientIds.contains(userId1));
             assertTrue(recipientIds.contains(userId2));
         }
 
         @Test
-        void resolve_appendsToExistingRecipients() throws Exception {
+        void resolveBatch_appendsToExistingRecipients() throws Exception {
             var domainId = UUID.randomUUID();
             var businessAccountId = UUID.randomUUID();
             var history = buildHistory(domainId, businessAccountId);
             var groupId = UUID.randomUUID();
             var existingUserId = UUID.randomUUID();
             var newUserId = UUID.randomUUID();
-            var recipientIds = new HashSet<>(Set.of(existingUserId));
+            var batch = new RecipientResolveBatch(domainId).add(history);
+            batch.getRecipientIdsByHistory().get(history).add(existingUserId);
             var props = new Properties();
             props.setProperty("userGroupIds", groupId.toString());
 
-            when(userGroupService.getUsersForGroups(domainId, businessAccountId, Set.of(groupId)))
-                    .thenReturn(Set.of(newUserId));
+            when(userGroupService.getUsersForGroupsIn(domainId, Set.of(businessAccountId), Set.of(groupId)))
+                    .thenReturn(Map.of(businessAccountId, Set.of(newUserId)));
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(2, recipientIds.size());
             assertTrue(recipientIds.contains(existingUserId));
             assertTrue(recipientIds.contains(newUserId));
         }
 
         @Test
-        void resolve_withEmptyResultFromService_keepsExistingRecipients() throws Exception {
+        void resolveBatch_withEmptyResultFromService_keepsExistingRecipients() throws Exception {
             var domainId = UUID.randomUUID();
             var businessAccountId = UUID.randomUUID();
             var history = buildHistory(domainId, businessAccountId);
             var groupId = UUID.randomUUID();
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(domainId).add(history);
             var props = new Properties();
             props.setProperty("userGroupIds", groupId.toString());
 
-            when(userGroupService.getUsersForGroups(domainId, businessAccountId, Set.of(groupId)))
-                    .thenReturn(Set.of());
+            when(userGroupService.getUsersForGroupsIn(domainId, Set.of(businessAccountId), Set.of(groupId)))
+                    .thenReturn(Map.of());
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
-            assertTrue(recipientIds.isEmpty());
+            assertTrue(batch.getRecipientIdsByHistory().get(history).isEmpty());
         }
     }
 }
