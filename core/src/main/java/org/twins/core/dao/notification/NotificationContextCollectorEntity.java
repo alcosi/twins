@@ -31,7 +31,7 @@ public class NotificationContextCollectorEntity implements EasyLoggable {
     @Column(name = "notification_context_id")
     private UUID notificationContextId;
 
-    @Column(name = "context_collector_featurer_id")
+    @Column(name = "context_collector_featurer_id", nullable = false)
     private Integer contextCollectorFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)

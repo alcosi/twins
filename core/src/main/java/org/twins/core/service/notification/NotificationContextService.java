@@ -9,6 +9,7 @@ import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -62,108 +63,124 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
 
     /**
      * Chunk-level batch context collection, symmetric to {@code resolveRecipientsBatch}: one
-     * {@link ContextCollector#collectDataBatch} per {@code (contextCollectorFeaturerId, params)} group per
-     * contextId, so DB-backed collectors preload once per group. i18n (4911) is two-phase — collectors
-     * register ids via {@link ContextCollectorBatch#addI18n}, then translations are resolved in bulk per
-     * locale (the twin creator's locale, loaded once for the chunk). Results land on each
+     * {@link ContextCollector#collectDataBatch} per {@code (contextCollectorFeaturerId, params)} group
+     * across the WHOLE chunk — different contexts often share collector configs (e.g. a head-twin
+     * collector in both manager and worker notification contexts), so a group runs once over the
+     * union of its histories (one beforeCollect preload per group). i18n (4911) is two-phase —
+     * collectors register ids via {@link ContextCollectorBatch#addI18n}, then translations are
+     * resolved in bulk per locale (the twin creator's locale, loaded once for the chunk).
+     * Per-(context, history) results are merged from the group batches and land on each
      * {@code task.collectedContextByContextId} for processTask.
      */
     public void collectHistoryContextBatch(HistoryNotificationChunk chunk) throws ServiceException {
         if (chunk == null || chunk.getTasksByConfig().isEmpty()) {
             return;
         }
-        UUID domainId = chunk.getDomainId();
-        // contextId → set of histories that need it (via config → channelEvent → notificationContextId)
-        Map<UUID, Set<HistoryEntity>> historiesByContextId = new HashMap<>();
-        Set<NotificationChannelEventEntity> channelEvents = new HashSet<>();
-        for (var e : chunk.getTasksByConfig().entrySet()) {
-            HistoryNotificationEntity config = e.getKey();
-            if (config.getNotificationChannelEvent() == null) {
-                continue;
-            }
-            channelEvents.add(config.getNotificationChannelEvent());
-            UUID contextId = config.getNotificationChannelEvent().getNotificationContextId();
-            if (contextId == null) {
-                continue;
-            }
-            Set<HistoryEntity> histories = historiesByContextId.computeIfAbsent(contextId, _ -> new HashSet<>());
-            for (var task : e.getValue()) {
-                if (task.getHistory() != null) {
-                    histories.add(task.getHistory());
-                }
-            }
-        }
-        if (historiesByContextId.isEmpty()) {
+        // channel events carrying a context (one pass over matched configs)
+        Set<NotificationChannelEventEntity> channelEvents = getNotificationChannelEvents(chunk);
+        if (channelEvents.isEmpty()) {
             return;
         }
-
         // bulk-load context collectors onto channel events (one query for all distinct contextIds)
-        // → contextId → collectors map (events sharing a context share the same loaded kit)
         notificationChannelEventService.loadContextCollectors(channelEvents);
-        Map<UUID, List<NotificationContextCollectorEntity>> collectorsByContextId = new HashMap<>();
-        for (NotificationChannelEventEntity channelEvent : channelEvents) {
+
+        // one pass over configs: (collector, history) pairs straight into chunk-global
+        // (featurerId, params) groups; side map contextId → its groups' configKeys (for the merge)
+        UUID domainId = chunk.getDomainId();
+        var collectorGroups = FeaturerGroup.builder(
+                NotificationContextCollectorEntity::getContextCollectorFeaturerId,
+                NotificationContextCollectorEntity::getContextCollectorParams,
+                HistoryEntity.class);
+        Map<UUID, Set<String>> groupKeysByContextId = new HashMap<>();
+        for (var e : chunk.getTasksByConfig().entrySet()) {
+            HistoryNotificationEntity config = e.getKey();
+            NotificationChannelEventEntity channelEvent = config.getNotificationChannelEvent();
+            if (channelEvent == null || channelEvent.getNotificationContextId() == null || channelEvent.getCollectors() == null) {
+                continue;
+            }
             UUID contextId = channelEvent.getNotificationContextId();
-            if (contextId != null && channelEvent.getCollectors() != null) {
-                collectorsByContextId.putIfAbsent(contextId, channelEvent.getCollectors().getList());
+            for (NotificationContextCollectorEntity collector : channelEvent.getCollectors().getList()) {
+                for (HistoryNotificationTaskEntity task : e.getValue()) {
+                    collectorGroups.add(collector, task.getHistory());
+                }
+                groupKeysByContextId.computeIfAbsent(contextId, _ -> new LinkedHashSet<>())
+                        .add(FeaturerService.toConfigKey(collector.getContextCollectorFeaturerId(), collector.getContextCollectorParams()));
             }
         }
 
-        // one ContextCollectorBatch per contextId; collectors grouped by (featurerId, params) so each runs
-        // once for all its histories (via FeaturerService.groupByFeaturerParams — symmetric to resolveRecipientsBatch)
-        Map<UUID, ContextCollectorBatch> batchByContextId = new HashMap<>();
-        for (var e : historiesByContextId.entrySet()) {
-            UUID contextId = e.getKey();
-            Set<HistoryEntity> histories = e.getValue();
-            List<NotificationContextCollectorEntity> contextCollectors = collectorsByContextId.getOrDefault(contextId, List.of());
-            if (contextCollectors.isEmpty()) {
-                continue;
-            }
+        // run each group ONCE: per-group batch over the group's histories (histories repeated by
+        // contexts sharing the group are absorbed by the idempotent batch.add) — one
+        // collectDataBatch + one beforeCollect preload per unique (featurerId, params) in the chunk
+        Map<String, ContextCollectorBatch> groupBatchByKey = new HashMap<>();
+        for (var group : collectorGroups.build()) {
+            ContextCollector collector = featurerService.getFeaturer(group.getFeaturerId(), ContextCollector.class);
             ContextCollectorBatch batch = new ContextCollectorBatch(domainId);
-            for (HistoryEntity history : histories) {
+            for (HistoryEntity history : group.getItems()) {
                 batch.add(history);
             }
-            // one collectDataBatch per (featurerId, params) group of THIS context's collectors —
-            // every group runs over the whole shared batch (collectors complement the same
-            // per-history context map), so grouping the collectors alone is enough
-            for (var group : FeaturerGroup.groupByFeaturerParams(contextCollectors,
-                    NotificationContextCollectorEntity::getContextCollectorFeaturerId,
-                    NotificationContextCollectorEntity::getContextCollectorParams)) {
-                ContextCollector collector = featurerService.getFeaturer(group.getFeaturerId(), ContextCollector.class);
-                collector.collectDataBatch(batch, group.getParams());
-            }
-            batchByContextId.put(contextId, batch);
+            collector.collectDataBatch(batch, group.getParams());
+            groupBatchByKey.put(group.getConfigKey(), batch);
         }
 
         // resolve i18n for the whole chunk: translations are bulk-loaded ONCE per locale across all
-        // context batches (contexts of one chunk usually share the same i18n ids, e.g. twin class
+        // group batches (groups of one chunk usually share the same i18n ids, e.g. twin class
         // names), then substituted in one pass per batch
         Map<UUID, Locale> localeByUser = loadCreatorLocales(chunk);
-        resolveI18n(batchByContextId.values(), localeByUser);
+        resolveI18n(groupBatchByKey.values(), localeByUser);
 
-        // distribute per-(task, contextId) → task-entity.collectedContextByContextId
+        // distribute per-(task, contextId): a context's entry for a history = union of its groups'
+        // contributions (collectors complement the same per-history context map)
         for (var e : chunk.getConfigsByTask().entrySet()) {
             var task = e.getKey();
             HistoryEntity history = task.getHistory();
             Map<UUID, Map<String, String>> byContextId = new HashMap<>();
-            if (history != null) {
-                for (HistoryNotificationEntity config : e.getValue()) {
-                    if (config.getNotificationChannelEvent() == null) {
-                        continue;
-                    }
-                    UUID contextId = config.getNotificationChannelEvent().getNotificationContextId();
-                    byContextId.computeIfAbsent(contextId, cid -> {
-                        ContextCollectorBatch batch = batchByContextId.get(cid);
-                        return batch != null && batch.getContextByHistory().get(history) != null
-                                ? new HashMap<>(batch.getContextByHistory().get(history))
-                                : new HashMap<>();
-                    });
-                }
+            for (HistoryNotificationEntity config : e.getValue()) {
+                UUID contextId = config.getNotificationChannelEvent().getNotificationContextId();
+                byContextId.computeIfAbsent(contextId,
+                        _ -> collectContext(groupKeysByContextId.get(contextId), groupBatchByKey, history));
             }
             task.setCollectedContextByContextId(byContextId);
         }
     }
 
-    /** Bulk-load the twin-creator locales for the chunk (one query) → userId → locale. */
+    @NotNull
+    private static Set<NotificationChannelEventEntity> getNotificationChannelEvents(HistoryNotificationChunk chunk) {
+        Set<NotificationChannelEventEntity> channelEvents = new HashSet<>();
+        for (HistoryNotificationEntity config : chunk.getTasksByConfig().keySet()) {
+            if (config.getNotificationChannelEvent() != null
+                    && config.getNotificationChannelEvent().getNotificationContextId() != null) {
+                channelEvents.add(config.getNotificationChannelEvent());
+            }
+        }
+        return channelEvents;
+    }
+
+    /**
+     * Union of the context's collector groups' contributions for one history (fresh mutable map).
+     */
+    private static Map<String, String> collectContext(Set<String> groupKeys,
+                                                      Map<String, ContextCollectorBatch> groupBatchByKey,
+                                                      HistoryEntity history) {
+        Map<String, String> context = new HashMap<>();
+        if (groupKeys == null) {
+            return context;
+        }
+        for (String groupKey : groupKeys) {
+            ContextCollectorBatch batch = groupBatchByKey.get(groupKey);
+            if (batch == null) {
+                continue;
+            }
+            Map<String, String> collected = batch.getContextByHistory().get(history);
+            if (collected != null) {
+                context.putAll(collected);
+            }
+        }
+        return context;
+    }
+
+    /**
+     * Bulk-load the twin-creator locales for the chunk (one query) → userId → locale.
+     */
     private Map<UUID, Locale> loadCreatorLocales(HistoryNotificationChunk chunk) {
         return domainUserService.getLocaleMap(chunk.getDomainId(), chunk.getCreatedByUserIds());
     }
