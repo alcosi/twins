@@ -39,19 +39,19 @@ public class RecipientResolverSpaceRoles extends RecipientResolver {
     private SpaceRoleUserService spaceRoleUserService;
 
     @Override
-    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch batch, Properties properties) throws ServiceException {
         Set<UUID> paramSpaceRoleIds = spaceRoleIds.extract(properties);
         if (CollectionUtils.isEmpty(paramSpaceRoleIds)) {
             return;
         }
-        Set<UUID> twinIds = context.getTwinIds();
+        Set<UUID> twinIds = batch.getTwinIds();
         if (twinIds.isEmpty()) {
             return;
         }
         // one bulk query → Map<twinId, Set<userId>>
         Map<UUID, Set<UUID>> userIdsByTwin = spaceRoleUserService.getUsersIn(twinIds, paramSpaceRoleIds);
         // distribute per history
-        for (var entry : context.getRecipientIdsByHistory().entrySet()) {
+        for (var entry : batch.getRecipientIdsByHistory().entrySet()) {
             UUID twinId = entry.getKey().getTwin().getId();
             Set<UUID> resolved = twinId == null ? null : userIdsByTwin.get(twinId);
             if (CollectionUtils.isNotEmpty(resolved)) {

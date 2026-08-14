@@ -38,6 +38,9 @@ public class ContextCollectorBatch {
     }
 
     public ContextCollectorBatch add(HistoryEntity history) {
+        if (contextByHistory.containsKey(history)) {
+            return this; // already registered — keeps twins/twinClasses free of duplicates
+        }
         contextByHistory.computeIfAbsent(history, _ -> new HashMap<>());
         twinIds.add(history.getTwinId());
         TwinEntity twin = history.getTwin();

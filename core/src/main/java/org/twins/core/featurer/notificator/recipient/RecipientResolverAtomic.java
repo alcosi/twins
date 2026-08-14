@@ -14,12 +14,12 @@ import java.util.*;
 public abstract class RecipientResolverAtomic extends RecipientResolver {
 
     @Override
-    public final void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
-        if (context.isEmpty()) {
+    public final void resolveBatch(RecipientResolveBatch batch, Properties properties) throws ServiceException {
+        if (batch.isEmpty()) {
             return;
         }
-        Map<HistoryEntity, Set<UUID>> recipientIdsByHistory = context.getRecipientIdsByHistory();
-        beforeResolve(context);
+        Map<HistoryEntity, Set<UUID>> recipientIdsByHistory = batch.getRecipientIdsByHistory();
+        beforeResolve(batch);
         for (Map.Entry<HistoryEntity, Set<UUID>> entry : recipientIdsByHistory.entrySet()) {
             resolve(entry.getKey(), entry.getValue(), properties);
         }

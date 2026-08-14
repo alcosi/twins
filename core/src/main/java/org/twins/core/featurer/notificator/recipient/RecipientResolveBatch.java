@@ -27,6 +27,9 @@ public class RecipientResolveBatch {
     }
 
     public RecipientResolveBatch add(HistoryEntity history) {
+        if (recipientIdsByHistory.containsKey(history)) {
+            return this; // already registered — keeps twins/twinIds free of duplicates
+        }
         recipientIdsByHistory.computeIfAbsent(history, _ -> new HashSet<>());
         twinIds.add(history.getTwinId());
         TwinEntity twin = history.getTwin();

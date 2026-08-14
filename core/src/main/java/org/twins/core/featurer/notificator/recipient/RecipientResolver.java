@@ -20,13 +20,13 @@ public abstract class RecipientResolver extends FeaturerTwins {
      * {@link RecipientResolveBatch#getRecipientIdsByHistory()} is the shared accumulator
      * (history -> recipient ids) owned by the caller; the histories to resolve are exactly its keySet.
      */
-    public void resolveBatch(RecipientResolveBatch context, HashMap<String, String> recipientParams) throws ServiceException {
-        if (context.isEmpty()) {
+    public void resolveBatch(RecipientResolveBatch batch, HashMap<String, String> recipientParams) throws ServiceException {
+        if (batch.isEmpty()) {
             return;
         }
         Properties properties = featurerService.extractProperties(this, recipientParams);
-        resolveBatch(context, properties);
+        resolveBatch(batch, properties);
     }
 
-    public abstract void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException;
+    public abstract void resolveBatch(RecipientResolveBatch batch, Properties properties) throws ServiceException;
 }

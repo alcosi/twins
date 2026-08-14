@@ -39,19 +39,19 @@ public class RecipientResolverUserGroups extends RecipientResolver {
     private UserGroupService userGroupService;
 
     @Override
-    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch batch, Properties properties) throws ServiceException {
         Set<UUID> paramUserGroupIds = userGroupIds.extract(properties);
         if (CollectionUtils.isEmpty(paramUserGroupIds)) {
             return;
         }
-        if (context.getBusinessAccountIds().isEmpty()) {
+        if (batch.getBusinessAccountIds().isEmpty()) {
             return;
         }
         // one bulk query → Map<businessAccountId, Set<userId>> (domain-level groups already spread to each BA)
         Map<UUID, Set<UUID>> userIdsByBusinessAccount =
-                userGroupService.getUsersForGroupsIn(context.getDomainId(), context.getBusinessAccountIds(), paramUserGroupIds);
+                userGroupService.getUsersForGroupsIn(batch.getDomainId(), batch.getBusinessAccountIds(), paramUserGroupIds);
         // distribute per history
-        for (var entry : context.getRecipientIdsByHistory().entrySet()) {
+        for (var entry : batch.getRecipientIdsByHistory().entrySet()) {
             UUID businessAccountId = entry.getKey().getTwin().getOwnerBusinessAccountId();
             Set<UUID> resolved = businessAccountId == null ? null : userIdsByBusinessAccount.get(businessAccountId);
             if (CollectionUtils.isNotEmpty(resolved)) {

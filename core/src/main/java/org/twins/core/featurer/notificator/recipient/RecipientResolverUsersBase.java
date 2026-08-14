@@ -39,19 +39,19 @@ public class RecipientResolverUsersBase extends RecipientResolver {
     private UserService userService;
 
     @Override
-    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
+    public void resolveBatch(RecipientResolveBatch batch, Properties properties) throws ServiceException {
         Set<UUID> paramUserIds = userIds.extract(properties);
         if (CollectionUtils.isEmpty(paramUserIds)) {
             return;
         }
-        if (context.getBusinessAccountIds().isEmpty()) {
+        if (batch.getBusinessAccountIds().isEmpty()) {
             return;
         }
         // one bulk filter → Map<businessAccountId, Set<userId>>
         Map<UUID, Set<UUID>> userIdsByBusinessAccount =
-                userService.filterUsersByBusinessAccountAndDomainIn(paramUserIds, context.getBusinessAccountIds(), context.getDomainId());
+                userService.filterUsersByBusinessAccountAndDomainIn(paramUserIds, batch.getBusinessAccountIds(), batch.getDomainId());
         // distribute per history
-        for (var entry : context.getRecipientIdsByHistory().entrySet()) {
+        for (var entry : batch.getRecipientIdsByHistory().entrySet()) {
             UUID businessAccountId = entry.getKey().getTwin().getOwnerBusinessAccountId();
             Set<UUID> filtered = businessAccountId == null ? null : userIdsByBusinessAccount.get(businessAccountId);
             if (CollectionUtils.isNotEmpty(filtered)) {

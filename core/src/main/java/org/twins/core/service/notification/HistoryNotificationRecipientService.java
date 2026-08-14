@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -156,10 +157,13 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         }
         UUID chunkDomainId = chunk.getDomainId();
         // Stage 1: per-recipient precomputed keys (partitioning + canonical key done ONCE per recipient)
-        //   + every (collector, history) pair across all matched (config, task) pairs — the work units.
-        //   config-centric via tasksByConfig: recipient/collectors are fixed per config.
+        //   + (collector, history) pairs accumulated straight into (featurerId, params) groups
+        //   (config-centric via tasksByConfig: recipient/collectors are fixed per config).
         Map<UUID, RecipientKeys> keysByRecipient = new HashMap<>();
-        List<RecipientHistory> work = new ArrayList<>();
+        var resolverGroups = FeaturerGroup.builder(
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturerId,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverParams,
+                HistoryEntity.class);
         for (var e : chunk.getTasksByConfig().entrySet()) {
             HistoryNotificationEntity config = e.getKey();
             HistoryNotificationRecipientEntity recipient = config.getHistoryNotificationRecipient();
@@ -168,32 +172,24 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
             }
             keysByRecipient.computeIfAbsent(recipient.getId(), _ -> RecipientKeys.of(recipient));
             for (HistoryNotificationRecipientCollectorEntity collector : recipient.getCollectors().getList()) {
-                if (collector.getRecipientResolverFeaturerId() == null) {
-                    continue;
-                }
                 for (HistoryNotificationTaskEntity task : e.getValue()) {
-                    HistoryEntity history = task.getHistory();
-                    if (history != null) {
-                        work.add(new RecipientHistory(collector, history));
-                    }
+                    resolverGroups.add(collector, task.getHistory());
                 }
             }
         }
 
-        // Stage 2: one resolveBatch per (featurerId, params) group (via FeaturerService helper) →
-        //   resolverCache keyed by toConfigKey (independent of exclude — same result either way).
-        //   businessAccountIds are derived per group by the context (lazy).
+        // Stage 2: one resolveBatch per (featurerId, params) group → resolverCache keyed by toConfigKey
+        //   (independent of exclude — same result either way). businessAccountIds are derived per group
+        //   by the context (lazy).
         Map<String, RecipientResolveBatch> resolverCache = new HashMap<>();
-        for (var group : FeaturerService.groupByFeaturerParams(work,
-                wh -> wh.collector.getRecipientResolverFeaturerId(),
-                wh -> wh.collector.getRecipientResolverParams())) {
+        for (var group : resolverGroups.build()) {
             RecipientResolver resolver = featurerService.getFeaturer(group.getFeaturerId(), RecipientResolver.class);
-            RecipientResolveBatch context = new RecipientResolveBatch(chunkDomainId);
-            for (RecipientHistory wh : group.getItems()) {
-                context.add(wh.history);
+            RecipientResolveBatch resolveBatch = new RecipientResolveBatch(chunkDomainId);
+            for (HistoryEntity history : group.getItems()) {
+                resolveBatch.add(history);
             }
-            resolver.resolveBatch(context, group.getParams());
-            resolverCache.put(group.getConfigKey(), context);
+            resolver.resolveBatch(resolveBatch, group.getParams());
+            resolverCache.put(group.getConfigKey(), resolveBatch);
         }
 
         // Stage 3: reassemble per-(recipient, history) from cache → write to task-entity.
@@ -260,9 +256,4 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         }
     }
 
-    /**
-     * A (collector, history) pair — the work unit grouped by featurer params in Stage 2.
-     */
-    private record RecipientHistory(HistoryNotificationRecipientCollectorEntity collector, HistoryEntity history) {
-    }
 }

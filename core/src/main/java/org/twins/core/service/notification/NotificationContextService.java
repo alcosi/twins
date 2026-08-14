@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -117,24 +118,16 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
             if (contextCollectors.isEmpty()) {
                 continue;
             }
-            // work units: (collector-entity, history) — grouped by featurer params below
-            List<ContextCollectorWork> work = new ArrayList<>();
-            for (NotificationContextCollectorEntity contextCollector : contextCollectors) {
-                if (contextCollector.getContextCollectorFeaturerId() == null) {
-                    continue;
-                }
-                for (HistoryEntity history : histories) {
-                    work.add(new ContextCollectorWork(contextCollector, history));
-                }
-            }
             ContextCollectorBatch batch = new ContextCollectorBatch(domainId);
-            for (ContextCollectorWork w : work) {
-                batch.add(w.history());
+            for (HistoryEntity history : histories) {
+                batch.add(history);
             }
-            // one collectDataBatch per (featurerId, params) group — getFeaturer + extractProperties once per group
-            for (var group : FeaturerService.groupByFeaturerParams(work,
-                    w -> w.collector().getContextCollectorFeaturerId(),
-                    w -> w.collector().getContextCollectorParams())) {
+            // one collectDataBatch per (featurerId, params) group of THIS context's collectors —
+            // every group runs over the whole shared batch (collectors complement the same
+            // per-history context map), so grouping the collectors alone is enough
+            for (var group : FeaturerGroup.groupByFeaturerParams(contextCollectors,
+                    NotificationContextCollectorEntity::getContextCollectorFeaturerId,
+                    NotificationContextCollectorEntity::getContextCollectorParams)) {
                 ContextCollector collector = featurerService.getFeaturer(group.getFeaturerId(), ContextCollector.class);
                 collector.collectDataBatch(batch, group.getParams());
             }
@@ -168,10 +161,6 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
             }
             task.setCollectedContextByContextId(byContextId);
         }
-    }
-
-    /** A (context-collector-entity, history) pair — the work unit grouped by featurer params. */
-    private record ContextCollectorWork(NotificationContextCollectorEntity collector, HistoryEntity history) {
     }
 
     /** Bulk-load the twin-creator locales for the chunk (one query) → userId → locale. */

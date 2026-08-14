@@ -32,15 +32,15 @@ public class RecipientResolverBusinessAccount extends RecipientResolver {
     private BusinessAccountUserService businessAccountUserService;
 
     @Override
-    public void resolveBatch(RecipientResolveBatch context, Properties properties) throws ServiceException {
-        Set<UUID> businessAccountIds = context.getBusinessAccountIds();
+    public void resolveBatch(RecipientResolveBatch batch, Properties properties) throws ServiceException {
+        Set<UUID> businessAccountIds = batch.getBusinessAccountIds();
         if (businessAccountIds.isEmpty()) {
             return;
         }
         // one bulk query → Map<businessAccountId, Set<userId>>
         Map<UUID, Set<UUID>> userIdsByBusinessAccount = businessAccountUserService.findUserIdsByBusinessAccountIdIn(businessAccountIds);
         // distribute per history
-        for (Map.Entry<HistoryEntity, Set<UUID>> entry : context.getRecipientIdsByHistory().entrySet()) {
+        for (Map.Entry<HistoryEntity, Set<UUID>> entry : batch.getRecipientIdsByHistory().entrySet()) {
             UUID businessAccountId = entry.getKey().getTwin().getOwnerBusinessAccountId();
             Set<UUID> userIds = businessAccountId == null ? null : userIdsByBusinessAccount.get(businessAccountId);
             if (CollectionUtils.isNotEmpty(userIds)) {
