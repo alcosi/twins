@@ -485,6 +485,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Map<UUID, BigDecimal> twinFieldCalculated;
 
+    // Marks calculated fields whose operand data has been bulk-loaded by their TwinFieldStorage
+    // (the storage does not write the field's own value into twinFieldCalculated — that is the
+    // FieldTyper's job — so this separate set is the storage's "isLoaded" signal).
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<UUID> twinFieldCalcStorageLoaded;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -793,6 +801,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
             headTwin.resetCalculatedFields();
         }
         twinFieldCalculated = null;
+        twinFieldCalcStorageLoaded = null;
         twinFieldAttributeKit = null;
         fieldValuesKit = null;
         return this;

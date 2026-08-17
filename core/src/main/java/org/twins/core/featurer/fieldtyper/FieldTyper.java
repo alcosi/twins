@@ -5,12 +5,10 @@ import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -46,10 +44,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     I18nService i18nService;
-
-    @Lazy
-    @Autowired
-    private ErrorRepository errorRepository;
 
     @Lazy
     @Autowired
@@ -100,15 +94,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public Class<A> getTwinFieldSearch() {
         return twinFieldSearchType;
-    }
-
-    /**
-     * Exposed for mixins (e.g. {@link FieldTyperCalc}) that need the inherited services.
-     * Direct field access from an interface's default methods is not always permitted by the JLS
-     * (featurerService is protected and lives in another package), so getters are the stable entry point.
-     */
-    protected FeaturerService getFeaturerService() {
-        return featurerService;
     }
 
     protected TwinClassFieldService getTwinClassFieldService() {
