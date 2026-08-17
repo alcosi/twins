@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,5 +9,5 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(name = "TwinFactoryTriggerCreateV1")
-public class TwinFactoryTriggerCreateDTOv1 extends TwinFactoryTriggerSaveDTOv1 {
+public class FactoryTriggerCreateDTOv1 extends FactoryTriggerSaveDTOv1 {
 }

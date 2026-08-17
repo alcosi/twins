@@ -114,6 +114,28 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
                 TwinTriggerTaskEntity::setCreatedByUser);
     }
 
+    public void loadTwin(TwinTriggerTaskEntity src) throws ServiceException {
+        loadTwins(Collections.singletonList(src));
+    }
+
+    public void loadTwins(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                TwinTriggerTaskEntity::getTwinId,
+                TwinTriggerTaskEntity::getTwin,
+                TwinTriggerTaskEntity::setTwin);
+    }
+
+    public void loadPreviousTwinStatus(TwinTriggerTaskEntity src) throws ServiceException {
+        loadPreviousTwinStatuses(Collections.singletonList(src));
+    }
+
+    public void loadPreviousTwinStatuses(Collection<TwinTriggerTaskEntity> srcCollection) throws ServiceException {
+        twinStatusService.load(srcCollection,
+                TwinTriggerTaskEntity::getPreviousTwinStatusId,
+                TwinTriggerTaskEntity::getPreviousTwinStatus,
+                TwinTriggerTaskEntity::setPreviousTwinStatus);
+    }
+
     public TwinTriggerTaskEntity addSyncTask(UUID twinId, UUID twinTriggerId, UUID previousTwinStatusId) throws ServiceException {
         log.info("Adding sync trigger task for twin[{}], trigger[{}]", twinId, twinTriggerId);
         ApiUser apiUser = authService.getApiUser();
@@ -132,6 +154,9 @@ public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTrig
 
     @Transactional(rollbackFor = Throwable.class)
     public void runTrigger(TwinTriggerTaskEntity triggerTaskEntity, TwinStatusEntity dstTwinStatus) throws ServiceException {
+        loadTwinTrigger(triggerTaskEntity);
+        loadTwin(triggerTaskEntity);
+        loadPreviousTwinStatus(triggerTaskEntity);
         twinTriggerService.runTrigger(
                 triggerTaskEntity.getTwinTrigger(),
                 triggerTaskEntity.getTwin(),

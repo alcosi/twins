@@ -7,10 +7,8 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twintrigger.TwinTriggerService;
@@ -48,9 +46,10 @@ public class TwinTriggerTask implements Runnable {
             LoggerUtils.logController("twinTriggerTask$");
             LoggerUtils.logPrefix("TRIGGER_TASK[" + twinTriggerTaskEntity.getId() + "]:");
             log.info("Performing async twin trigger run: {}", twinTriggerTaskEntity.logDetailed());
+            twinTriggerTaskService.loadTwin(twinTriggerTaskEntity);
+            twinTriggerTaskService.loadPreviousTwinStatus(twinTriggerTaskEntity);
+            twinTriggerTaskService.loadTwinTrigger(twinTriggerTaskEntity);
             TwinEntity twin = twinTriggerTaskEntity.getTwin();
-            TwinStatusEntity previousTwinStatus = twinTriggerTaskEntity.getPreviousTwinStatus();
-            TwinTriggerEntity twinTrigger = twinTriggerTaskEntity.getTwinTrigger();
 
             authService.setThreadLocalApiUser(
                     twin.getTwinClass().getDomainId(),

@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -7,10 +7,10 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "TwinFactoryTriggerSearchRsV1")
-public class TwinFactoryTriggerSearchRsDTOv1 extends TwinFactoryTriggerListRsDTOv1 {
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "FactoryTriggerSearchRsV1")
+public class FactoryTriggerSearchRsDTOv1 extends FactoryTriggerListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

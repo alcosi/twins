@@ -59,7 +59,7 @@ public class TwinStatusTriggerSearchController extends ApiController {
         TwinStatusTriggerSearchRsDTOv1 rs = new TwinStatusTriggerSearchRsDTOv1();
         try {
             PaginationResult<org.twins.core.dao.twin.TwinStatusTriggerEntity> statusTriggerList = twinStatusTriggerSearchService
-                    .findStatusTriggers(twinStatusTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinStatusTriggerSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(statusTriggerList))
                     .setTwinStatusTriggers(twinStatusTriggerRestDTOMapper.convertCollection(statusTriggerList.getList(), mapperContext))

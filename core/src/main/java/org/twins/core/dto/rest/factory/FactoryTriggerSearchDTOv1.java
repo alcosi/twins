@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(name = "TwinFactoryTriggerSearchV1")
-public class TwinFactoryTriggerSearchDTOv1 {
+public class FactoryTriggerSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
 

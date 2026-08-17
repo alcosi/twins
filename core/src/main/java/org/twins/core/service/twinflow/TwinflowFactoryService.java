@@ -315,4 +315,26 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         return entities.stream()
                 .noneMatch(entity -> twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncher(entity.getTwinflowId(), entity.getTwinFactoryLauncher()));
     }
+
+    public void loadTwinflow(TwinflowFactoryEntity src) throws ServiceException {
+        loadTwinflow(Collections.singletonList(src));
+    }
+
+    public void loadTwinflow(Collection<TwinflowFactoryEntity> srcCollection) throws ServiceException {
+        twinflowService.load(srcCollection,
+                TwinflowFactoryEntity::getTwinflowId,
+                TwinflowFactoryEntity::getTwinflow,
+                TwinflowFactoryEntity::setTwinflow);
+    }
+
+    public void loadTwinFactory(TwinflowFactoryEntity src) throws ServiceException {
+        loadTwinFactory(Collections.singletonList(src));
+    }
+
+    public void loadTwinFactory(Collection<TwinflowFactoryEntity> srcCollection) throws ServiceException {
+        factoryService.load(srcCollection,
+                TwinflowFactoryEntity::getTwinFactoryId,
+                TwinflowFactoryEntity::getTwinFactory,
+                TwinflowFactoryEntity::setTwinFactory);
+    }
 }
