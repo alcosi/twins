@@ -533,6 +533,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinEntity;
     }
 
+    /**
+     * Bulk existence check by ids (raw, no read-permission filtering) — used e.g. by the
+     * relation-twin idempotency guard in TwinLinkService.createRelationTwins.
+     */
+    public Set<UUID> findExistingIds(Collection<UUID> ids) {
+        if (CollectionUtils.isEmpty(ids))
+            return Collections.emptySet();
+        return twinRepository.findAllById(ids).stream().map(TwinEntity::getId).collect(Collectors.toSet());
+    }
+
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         createTwins(TwinCreateStage.of(twinCreate), twinChangesCollector);
     }

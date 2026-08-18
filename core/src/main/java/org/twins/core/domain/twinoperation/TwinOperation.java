@@ -20,6 +20,7 @@ public abstract class TwinOperation {
     public enum Launcher {
         direct,
         factory,
-        trigger
+        trigger,
+        link
     }
 }

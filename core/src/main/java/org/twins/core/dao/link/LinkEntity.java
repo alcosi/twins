@@ -78,6 +78,9 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "linker_params", columnDefinition = "hstore")
     private HashMap<String, String> linkerParams;
 
+    @Column(name = "relation_twin_class_id")
+    private UUID relationTwinClassId;
+
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -101,6 +104,14 @@ public class LinkEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private UserEntity createdByUserSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "relation_twin_class_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity relationTwinClassSpecOnly;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated // for specification only
@@ -134,6 +145,11 @@ public class LinkEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private UserEntity createdByUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity relationTwinClass;
 
     public String easyLog(Level level) {
         return switch (level) {

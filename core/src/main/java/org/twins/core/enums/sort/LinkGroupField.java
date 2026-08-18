@@ -7,5 +7,6 @@ public enum LinkGroupField {
     linkStrength,
     createdByUserId,
     srcTwinClassInheritable,
-    dstTwinClassInheritable
+    dstTwinClassInheritable,
+    relationTwinClassId
 }

@@ -21,6 +21,7 @@ public class LinkSaveRestDTOReverseMapper extends RestSimpleDTOMapper<LinkSaveDT
                 .setLinkerFeaturerId(src.getLinkerFeaturerId())
                 .setLinkerParams(src.getLinkerParams())
                 .setSrcTwinClassInheritable(src.getSrcTwinClassInheritable())
-                .setDstTwinClassInheritable(src.getDstTwinClassInheritable());
+                .setDstTwinClassInheritable(src.getDstTwinClassInheritable())
+                .setRelationTwinClassId(src.getRelationTwinClassId());
     }
 }

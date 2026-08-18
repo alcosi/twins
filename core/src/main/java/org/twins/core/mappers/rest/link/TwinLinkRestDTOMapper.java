@@ -47,6 +47,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                     .setId(src.getId())
                     .setSrcTwinId(src.getSrcTwinId())
                     .setDstTwinId(src.getDstTwinId())
+                    .setRelationTwinId(src.getRelationTwinId())
                     .setLinkId(src.getLinkId())
                     .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
                     .setCreatedByUserId(src.getCreatedByUserId());
@@ -54,12 +55,18 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                     .setId(src.getId())
                     .setSrcTwinId(src.getSrcTwinId())
                     .setDstTwinId(src.getDstTwinId())
+                    .setRelationTwinId(src.getRelationTwinId())
                     .setLinkId(src.getLinkId());
         }
         if (mapperContext.hasModeButNot(TwinMode.TwinLink2TwinMode.HIDE)) {
+            dst
+                    .setSrcTwinId(src.getSrcTwinId())
+                    .setDstTwinId(src.getDstTwinId())
+                    .setRelationTwinId(src.getRelationTwinId());
             twinLinkService.loadTwin(src);
             twinBaseRestDTOMapper.postpone(src.getSrcTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
             twinBaseRestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
+            twinBaseRestDTOMapper.postpone(src.getRelationTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
             twinLinkService.loadLink(src);

@@ -10,8 +10,10 @@ import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -42,6 +44,11 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    // Redundant by design: == id. Hosts the FK to twin(id) for referential integrity + reverse cascade;
+    // the value equals the relation twin id, which (ID equality) equals this twin_link id.
+    @Column(name = "relation_twin_id")
+    private UUID relationTwinId;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -90,10 +97,35 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUserSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "relation_twin_id", insertable = false, updatable = false)
+    private TwinEntity relationTwinSpecOnly;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private UserEntity createdByUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity relationTwin;
+
+    /**
+     * Initial relation-attribute field values for the relation twin. Converted from
+     * TwinLinkAddDTOv1.relationTwinFields (Map&lt;String,String&gt;) by TwinLinkAddRestDTOReverseMapper
+     * via TwinFieldValueRestDTOReverseMapperV2.mapFields — same layer/pattern as TwinCreateRqRestDTOReverseMapper:47,
+     * with the link lookup batched in beforeCollectionConversion (no N+1).
+     * Consumed as-is by TwinLinkService.createRelationTwins. Creation-only input carrier, not cloned.
+     */
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<FieldValue> relationTwinFields;
 
     public String easyLog(Level level) {
         return switch (level) {
@@ -115,6 +147,8 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
                 .setLink(link)
                 .setSrcTwinId(srcTwinId)
                 .setSrcTwin(srcTwin)
+                .setRelationTwinId(relationTwinId)
+                .setRelationTwin(relationTwin)
                 .setCreatedByUserId(createdByUserId)
                 .setCreatedByUser(createdByUser);
     }

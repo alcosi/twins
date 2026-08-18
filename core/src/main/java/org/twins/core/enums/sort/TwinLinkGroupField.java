@@ -4,5 +4,6 @@ public enum TwinLinkGroupField {
     srcTwinId,
     dstTwinId,
     linkId,
-    createdByUserId
+    createdByUserId,
+    relationTwinId
 }

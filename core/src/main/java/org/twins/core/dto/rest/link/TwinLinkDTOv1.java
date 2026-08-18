@@ -32,6 +32,11 @@ public class TwinLinkDTOv1 {
     @RelatedObject(type = LinkDTOv1.class, name = "link")
     public UUID linkId;
 
+    @Schema(description = "shadow relation-twin id carrying this link's relation attributes "
+            + "(present only if link.relation_twin_class_id is set; equals the twin_link id)", example = DTOExamples.TWIN_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "relationTwin")
+    public UUID relationTwinId;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
