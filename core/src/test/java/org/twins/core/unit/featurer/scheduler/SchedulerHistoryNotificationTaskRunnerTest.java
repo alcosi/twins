@@ -145,6 +145,10 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             assertEquals(HistoryNotificationTaskStatus.IN_PROGRESS, entity.getStatusId());
             verify(historyNotificationTaskService).loadHistory(entities);
             verify(historyService).loadUser(entities.stream().map(HistoryNotificationTaskEntity::getHistory).toList());
+            // regression guard (TWINS-836 review P1): twins in the scheduler thread must go through the
+            // unsafe load — the secure path hits AuthService.getApiUser on a request-scoped proxy and throws
+            verify(historyService).loadTwinUnsafe(entities.stream().map(HistoryNotificationTaskEntity::getHistory).toList());
+            verify(historyService, never()).loadTwin(anyList());
             verify(historyNotificationTaskRepository).saveAll(entities);
         }
 

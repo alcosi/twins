@@ -178,7 +178,9 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
         }
         var historyEntities = tasks.stream().map(HistoryNotificationTaskEntity::getHistory).toList();
         historyService.loadUser(historyEntities);
-        historyService.loadTwin(historyEntities);
+        // unsafe: scheduler thread has no ApiUser / request context — the secure path would throw on the
+        // request-scoped ApiUser proxy; domain isolation is guaranteed later by chunk grouping (one chunk = one domain)
+        historyService.loadTwinUnsafe(historyEntities);
     }
 
     @Override

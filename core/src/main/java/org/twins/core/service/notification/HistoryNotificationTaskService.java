@@ -50,8 +50,14 @@ public class HistoryNotificationTaskService extends EntitySecureFindServiceImpl<
         loadHistory(Collections.singleton(entity));
     }
 
+    /**
+     * Unsafe (no permission check / no validation) history load: runs in the scheduler thread without an
+     * ApiUser / request context, where the secure path (HistoryService.isEntityReadDenied → loadTwin →
+     * TwinService.isEntityReadDenied → AuthService.getApiUser on a request-scoped proxy) throws. Domain
+     * isolation is enforced later by the notification chunk grouping (one chunk = one domain).
+     */
     public void loadHistory(Collection<HistoryNotificationTaskEntity> entities) throws ServiceException {
-        historyService.load(entities,
+        historyService.loadUnsafe(entities,
                 HistoryNotificationTaskEntity::getHistoryId,
                 HistoryNotificationTaskEntity::getHistory,
                 HistoryNotificationTaskEntity::setHistory);

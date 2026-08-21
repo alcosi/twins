@@ -532,6 +532,19 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 HistoryEntity::setTwin);
     }
 
+    /**
+     * Unchecked (no permission check / no validation) variant of {@link #loadTwin(Collection)} — for
+     * scheduler-thread bulk loads that run without an ApiUser / request context, where the secure path
+     * (TwinService.isEntityReadDenied → AuthService.getApiUser) cannot work. Domain isolation is enforced
+     * later by the notification chunk grouping (one chunk = one domain).
+     */
+    public void loadTwinUnsafe(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.loadUnsafe(srcCollection,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
+    }
+
     public void loadTwinClassField(HistoryEntity src) throws ServiceException {
         loadTwinClassField(Collections.singletonList(src));
     }
