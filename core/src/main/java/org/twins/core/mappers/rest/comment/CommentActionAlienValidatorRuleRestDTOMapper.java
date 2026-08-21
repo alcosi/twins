@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.validator;
+package org.twins.core.mappers.rest.comment;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinCommentAlienValidatorRuleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
+import org.twins.core.mappers.rest.validator.TwinValidatorRestDTOMapper;
+import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.Collection;
@@ -19,7 +21,7 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {TwinCommentAlienValidatorRuleMode.class})
-public class TwinCommentActionAlienValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinCommentActionAlienValidatorRuleEntity, TwinCommentActionAlienValidatorRuleBaseDTOv1> {
+public class CommentActionAlienValidatorRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCommentActionAlienValidatorRuleEntity, TwinCommentActionAlienValidatorRuleBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.class})
     private final TwinValidatorRestDTOMapper twinValidatorRestDTOMapper;

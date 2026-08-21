@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.validator;
+package org.twins.core.mappers.rest.action;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,12 +11,14 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinActionValidatorRuleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
+import org.twins.core.mappers.rest.validator.TwinValidatorRestDTOMapper;
+import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {TwinActionValidatorRuleMode.class})
-public class TwinActionValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinActionValidatorRuleEntity, TwinActionValidatorRuleBaseDTOv1> {
+public class ActionValidatorRuleRestDTOMapper extends RestSimpleDTOMapper<TwinActionValidatorRuleEntity, TwinActionValidatorRuleBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.class})
     private final TwinValidatorRestDTOMapper twinValidatorRestDTOMapper;
