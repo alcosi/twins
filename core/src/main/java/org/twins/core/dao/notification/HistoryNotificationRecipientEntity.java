@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
@@ -12,7 +13,6 @@ import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -92,7 +92,7 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
     @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Set<HistoryNotificationRecipientCollectorEntity> collectors;
+    private Kit<HistoryNotificationRecipientCollectorEntity, UUID> collectors;
 
     public String easyLog(Level level) {
         return "historyNotificationRecipient[id:" + id + "]";

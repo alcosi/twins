@@ -24,7 +24,7 @@ import java.util.UUID;
         name = "Twin Attachment Context Collector",
         description = "Collects twin attachment URL. Takes first attachment by order.")
 @RequiredArgsConstructor
-public class ContextCollectorTwinAttachment extends ContextCollector {
+public class ContextCollectorTwinAttachment extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect attachment url key", description = "", order = 1, optional = true, defaultValue = "TWIN_ATTACHMENT_URL")
     public static final FeaturerParamString collectKey = new FeaturerParamString("collectKey");
@@ -33,6 +33,17 @@ public class ContextCollectorTwinAttachment extends ContextCollector {
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     private final AttachmentService attachmentService;
+
+    /**
+     * Bulk-load attachments for the whole batch's twins so {@link #collectData} (via
+     * {@code findFirstAttachment}) works in-memory (was a per-twin load — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            attachmentService.loadAttachments(batch.getTwins());
+        }
+    }
 
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {

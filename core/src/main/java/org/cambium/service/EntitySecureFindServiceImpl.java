@@ -286,6 +286,19 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return result;
     }
 
+    /**
+     * Same as {@link #findEntitiesSafe}, but skips read-permission checks and entity validation entirely.
+     * For system paths (schedulers, background jobs) that run without an ApiUser / request context and where
+     * {@code isEntityReadDenied} / {@code validateEntity} may depend on it. Callers must guarantee data
+     * isolation by other means (e.g. chunking by domain).
+     */
+    private Kit<T, UUID> findEntitiesUnsafe(Collection<UUID> entityIds) throws ServiceException {
+        return findEntities(entityIds,
+                EntitySmartService.ListFindMode.ifMissedThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.EntityValidateMode.none);
+    }
+
     public T checkEntityReadAllow(T entity) throws ServiceException {
         isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         return entity;
@@ -503,6 +516,27 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                          Function<? super E, UUID> functionGetGroupingId,
                          Function<? super E, T> functionGetGroupingEntity,
                          BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        load(srcCollection, functionGetGroupingId, functionGetGroupingEntity, functionSetGroupingEntity, false);
+    }
+
+    /**
+     * Bulk load without read-permission checks and entity validation (loads via {@link #findEntitiesUnsafe}).
+     * For system paths (schedulers, background jobs) that run without an ApiUser / request context and where
+     * {@code isEntityReadDenied} / {@code validateEntity} may depend on it. Callers must guarantee data
+     * isolation by other means (e.g. chunking by domain).
+     */
+    public <E> void loadUnsafe(Collection<E> srcCollection,
+                               Function<? super E, UUID> functionGetGroupingId,
+                               Function<? super E, T> functionGetGroupingEntity,
+                               BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        load(srcCollection, functionGetGroupingId, functionGetGroupingEntity, functionSetGroupingEntity, true);
+    }
+
+    private <E> void load(Collection<E> srcCollection,
+                          Function<? super E, UUID> functionGetGroupingId,
+                          Function<? super E, T> functionGetGroupingEntity,
+                          BiConsumer<E, T> functionSetGroupingEntity,
+                          boolean unsafe) throws ServiceException {
         if (CollectionUtils.isEmpty(srcCollection)) {
             return;
         }
@@ -552,7 +586,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (needLoad == null) {
             return;
         }
-        Kit<T, UUID> loaded = findEntitiesSafe(groupingIds);
+        Kit<T, UUID> loaded = unsafe ? findEntitiesUnsafe(groupingIds) : findEntitiesSafe(groupingIds);
         for (var item : needLoad) {
             functionSetGroupingEntity.accept(item, loaded.get(functionGetGroupingId.apply(item)));
         }

@@ -10,6 +10,8 @@ import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 
 import java.sql.Timestamp;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -41,8 +43,17 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "history_id", insertable = false, updatable = false)
+    private HistoryEntity historySpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private HistoryEntity history;
 
     @Deprecated // for specification only
@@ -52,6 +63,33 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     private NotificationSchemaEntity notificationSchemaSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private NotificationSchemaEntity notificationSchema;
+
+    /**
+     * Transient-runtime cache: recipientIds resolved per recipient for this task's history.
+     * Populated once per chunk by {@code HistoryNotificationRecipientService.resolveRecipientsBatch}
+     * (chunk-level batch resolve, grouped by {@code (resolverFeaturerId, canonical params)}), then read
+     * by {@code HistoryNotificationTask.processTask}. Never persisted, never crosses a chunk run.
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Map<UUID, Set<UUID>> resolvedRecipientsByRecipientId;
+
+    /**
+     * Transient-runtime cache: notification context collected per contextId for this task's history.
+     * Populated once per chunk by {@code NotificationContextService.collectHistoryContextBatch}
+     * (chunk-level batch collection, i18n resolved per locale), then read by {@code HistoryNotificationTask.processTask}.
+     * Never persisted, never crosses a chunk run.
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Map<UUID, Map<String, String>> collectedContextByContextId;
 
     public String easyLog(Level level) {
         return "historyNotificationTaskEntity[id:" + id + "]";

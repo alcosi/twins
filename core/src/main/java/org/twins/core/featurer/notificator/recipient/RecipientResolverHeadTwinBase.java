@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4705,
         name = "Recipient Resolver Head Twin Base",
         description = "The underlying data from head twin that will be added/deleted form result set")
-public class RecipientResolverHeadTwinBase extends RecipientResolver {
+public class RecipientResolverHeadTwinBase extends RecipientResolverAtomic {
     @FeaturerParam(name = "resolve history twin creator user", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean resolveHeadTwinCreator = new FeaturerParamBoolean("resolveHeadTwinCreator");
 
@@ -31,10 +31,20 @@ public class RecipientResolverHeadTwinBase extends RecipientResolver {
     @Autowired
     private TwinService twinService;
 
+    /**
+     * Bulk-load head twins for the whole batch in one query so {@link #resolve} reads
+     * {@code twin.getHeadTwin()} in-memory (was a per-history {@code loadHead} call — N+1).
+     */
+    @Override
+    protected void beforeResolve(RecipientResolveBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadHead(batch.getTwins());
+        }
+    }
+
     @Override
     protected void resolve(HistoryEntity history, Set<UUID> userIds, Properties properties) throws ServiceException {
         var twin = history.getTwin();
-        twinService.loadHead(twin);
         if (twin.getHeadTwin() == null) {
             return;
         }

@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 
 class ContextCollectorTwinAssigneeUserTest extends BaseUnitTest {
@@ -158,19 +159,8 @@ class ContextCollectorTwinAssigneeUserTest extends BaseUnitTest {
         }
     }
 
-    @Nested
-    class NullTwin {
-
-        @Test
-        void collectData_nullTwin_allEnabled_collectsNothingWithoutNpe() throws Exception {
-            history.setTwin(null);
-            var context = new HashMap<String, String>();
-
-            var result = collector.collectData(history, context, props(true, true, true, true));
-
-            assertTrue(result.isEmpty());
-        }
-    }
+    // no null-twin case: the batch flow guarantees a loaded twin on every history
+    // (runner bulk-loads it via HistoryService.loadTwin before any collector runs)
 
     private static void setField(Object target, String name, Object value) throws Exception {
         Class<?> clazz = target.getClass();

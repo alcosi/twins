@@ -31,7 +31,7 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     @Column(name = "history_notification_recipient_id")
     private UUID historyNotificationRecipientId;
 
-    @Column(name = "recipient_resolver_featurer_id")
+    @Column(name = "recipient_resolver_featurer_id", nullable = false)
     private Integer recipientResolverFeaturerId;
 
     @Column(name = "exclude")
