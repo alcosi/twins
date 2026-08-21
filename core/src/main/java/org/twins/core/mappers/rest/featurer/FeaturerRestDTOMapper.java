@@ -10,6 +10,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerParamMode;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerTypeMode;
 
 import java.util.Collection;
 
@@ -17,11 +18,13 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
         FeaturerMode.class,
-        FeaturerParamMode.class
+        FeaturerParamMode.class,
+        FeaturerTypeMode.class
 })
 public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, FeaturerDTOv1> {
 
     private final FeaturerParamRestDTOMapper featurerParamRestDTOMapper;
+    private final FeaturerTypeRestDTOMapper featurerTypeRestDTOMapper;
     private final FeaturerService featurerService;
 
     @Override
@@ -34,6 +37,10 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setDescription(src.getDescription())
                         .setFeaturerTypeId(src.getFeaturerTypeId())
                         .setDeprecated(src.isDeprecated());
+                if (showFeaturerType(mapperContext)) {
+                    featurerService.loadFeaturerTypes(src);
+                    dst.setFeaturerType(featurerTypeRestDTOMapper.convert(src.getFeaturerType(), mapperContext));
+                }
             case SHORT:
                 dst
                         .setId(src.getId())
@@ -50,11 +57,17 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         return mapperContext.hasModeButNot(FeaturerParamMode.HIDE);
     }
 
+    private static boolean showFeaturerType(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(FeaturerTypeMode.HIDE);
+    }
+
     @Override
     public void beforeCollectionConversion(Collection<FeaturerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (showFeaturerParams(mapperContext))
             featurerService.loadFeaturerParams(srcCollection);
+        if (showFeaturerType(mapperContext))
+            featurerService.loadFeaturerTypes(srcCollection);
     }
 
     @Override

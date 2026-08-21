@@ -17,6 +17,9 @@ public class FeaturerDTOv1 {
     @Schema(description = "featurer type id", example = "12")
     public int featurerTypeId;
 
+    @Schema(description = "featurer type")
+    public FeaturerTypeDTOv1 featurerType;
+
     @Schema(description = "name", example = DTOExamples.FEATURER_NAME)
     public String name;
 

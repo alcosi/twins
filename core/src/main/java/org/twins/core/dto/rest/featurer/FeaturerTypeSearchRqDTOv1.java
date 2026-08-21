@@ -7,19 +7,19 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.enums.SortDirection;
-import org.twins.core.enums.sort.FeaturerSortField;
+import org.twins.core.enums.sort.FeaturerTypeSortField;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FeaturerSearchRqV1")
-public class FeaturerSearchRqDTOv1 extends Request {
+@Schema(name = "FeaturerTypeSearchRqV1")
+public class FeaturerTypeSearchRqDTOv1 extends Request {
     @Valid
     @Schema(description = "search params")
-    public FeaturerSearchDTOv1 search;
+    public FeaturerTypeSearchDTOv1 search;
 
     @Schema(description = "Sort field. Default: name")
-    public FeaturerSortField sortField;
+    public FeaturerTypeSortField sortField;
 
     @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
     public SortDirection sortDirection;

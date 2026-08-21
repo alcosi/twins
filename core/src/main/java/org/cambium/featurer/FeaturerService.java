@@ -9,12 +9,9 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.annotations.FeaturerType;
@@ -24,11 +21,8 @@ import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-import org.twins.core.domain.search.FeaturerSearch;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -36,10 +30,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
-import static org.springframework.data.jpa.domain.Specification.allOf;
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
 
 @Component
 @Slf4j
@@ -217,6 +207,30 @@ public class FeaturerService {
         loadFeaturerParams(Collections.singleton(featurerEntity));
     }
 
+    public void loadFeaturerTypes(FeaturerEntity featurerEntity) {
+        loadFeaturerTypes(Collections.singleton(featurerEntity));
+    }
+
+    public void loadFeaturerTypes(Collection<FeaturerEntity> featurerEntityCollection) {
+        if (CollectionUtils.isEmpty(featurerEntityCollection))
+            return;
+        Kit<FeaturerEntity, Integer> needLoad = null;
+        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
+            if (featurerEntity.getFeaturerType() == null) {
+                if (needLoad == null)
+                    needLoad = new Kit<>(FeaturerEntity::getId);
+                needLoad.add(featurerEntity);
+            }
+        }
+        if (needLoad == null)
+            return;
+        Map<Integer, FeaturerTypeEntity> featurerTypeMap = new HashMap<>();
+        for (FeaturerTypeEntity featurerTypeEntity : featurerTypeRepository.findAllById(needLoad.getIdSet()))
+            featurerTypeMap.put(featurerTypeEntity.getId(), featurerTypeEntity);
+        for (FeaturerEntity featurerEntity : needLoad.getCollection())
+            featurerEntity.setFeaturerType(featurerTypeMap.get(featurerEntity.getFeaturerTypeId()));
+    }
+
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
         if (CollectionUtils.isEmpty(featurerEntityCollection))
             return;
@@ -327,19 +341,6 @@ public class FeaturerService {
 
     public Injector getInjector(FeaturerEntity featurerEntity) throws ServiceException {
         return getFeaturer(featurerEntity, Injector.class);
-    }
-
-    public PaginationResult<FeaturerEntity> findFeaturers(FeaturerSearch featurerSearch, SimplePagination pagination) throws ServiceException {
-        Specification<FeaturerEntity> spec = createFeaturerSearchSpecification(featurerSearch);
-        Page<FeaturerEntity> ret = featurerRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-    public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch) {
-        return allOf(
-                checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false),
-                checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false),
-                checkFieldLikeIn(featurerSearch.getNameLikeList(), false, true, FeaturerEntity.Fields.name));
     }
 
     public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {

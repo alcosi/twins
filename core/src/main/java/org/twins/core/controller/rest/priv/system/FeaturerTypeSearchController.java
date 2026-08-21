@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.featurer.dao.FeaturerTypeEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,45 +23,45 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dto.rest.featurer.FeaturerSearchRqDTOv1;
-import org.twins.core.dto.rest.featurer.FeaturerSearchRsDTOv1;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerSearchDTOReverseMapper;
+import org.twins.core.dto.rest.featurer.FeaturerTypeSearchRqDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerTypeSearchRsDTOv1;
+import org.twins.core.mappers.rest.featurer.FeaturerTypeRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerTypeSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.system.FeaturerSearchService;
+import org.twins.core.service.system.FeaturerTypeSearchService;
 
 @Tag(description = "", name = ApiTag.SYSTEM)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.FEATURER_MANAGE, Permissions.FEATURER_VIEW})
-public class FeaturerSearchController extends ApiController {
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
-    private final FeaturerSearchDTOReverseMapper featurerSearchDTOReverseMapper;
-    private final FeaturerSearchService featurerSearchService;
+public class FeaturerTypeSearchController extends ApiController {
+    private final FeaturerTypeRestDTOMapper featurerTypeRestDTOMapper;
+    private final FeaturerTypeSearchDTOReverseMapper featurerTypeSearchDTOReverseMapper;
+    private final FeaturerTypeSearchService featurerTypeSearchService;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "featurerSearchV1", summary = "Featurer search")
+    @Operation(operationId = "featurerTypeSearchV1", summary = "Featurer type search")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Featurer data result", content = {
+            @ApiResponse(responseCode = "200", description = "Featurer type data result", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FeaturerSearchRsDTOv1.class))}),
+                    @Schema(implementation = FeaturerTypeSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/featurer/search/v1")
-    public ResponseEntity<?> featurerSearchV1(
-            @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    @PostMapping(value = "/private/featurer_type/search/v1")
+    public ResponseEntity<?> featurerTypeSearchV1(
+            @MapperContextBinding(roots = FeaturerTypeRestDTOMapper.class, response = FeaturerTypeSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody FeaturerSearchRqDTOv1 request) {
-        FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
+            @RequestBody FeaturerTypeSearchRqDTOv1 request) {
+        FeaturerTypeSearchRsDTOv1 rs = new FeaturerTypeSearchRsDTOv1();
         try {
-            PaginationResult<FeaturerEntity> featurers = featurerSearchService
-                    .search(featurerSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
+            PaginationResult<FeaturerTypeEntity> featurerTypes = featurerTypeSearchService
+                    .search(featurerTypeSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
-                    .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(featurers));
+                    .setFeaturerTypeList(featurerTypeRestDTOMapper.convertCollection(featurerTypes.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(featurerTypes));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
