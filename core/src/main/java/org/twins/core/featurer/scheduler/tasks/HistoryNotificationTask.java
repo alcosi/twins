@@ -49,6 +49,10 @@ public class HistoryNotificationTask implements Runnable {
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
+    /** Max consecutive infra failures (bulk-stage failure / submission rejection) before a task is terminally failed (poison-pill protection). */
+    public static final int MAX_BATCH_ATTEMPTS = 3;
+    private static final int ERROR_SNIPPET_MAX_LENGTH = 500;
+
     public HistoryNotificationTask(HistoryNotificationChunk chunk) {
         this.chunk = chunk;
     }
@@ -56,6 +60,7 @@ public class HistoryNotificationTask implements Runnable {
     @Override
     public void run() {
         List<HistoryNotificationTaskEntity> tasks = chunk.getTasks();
+        Throwable batchError = null;
         try {
             LoggerUtils.logController("historyNotificationTask");
             log.info("Performing batch history notification task: {} task(s)", tasks.size());
@@ -98,15 +103,28 @@ public class HistoryNotificationTask implements Runnable {
                 processTask(task, chunk.getConfigsByTask().getOrDefault(task, List.of()));
             }
         } catch (Throwable e) {
+            batchError = e;
             log.error("Batch history notification task failed: ", e);
         } finally {
-            // safety net: any task not finalized by processTask (e.g. failure during bulk-load) -> FAILED
+            // safety net: any task not finalized by processTask (e.g. failure during bulk-load) failed for
+            // infra reasons, not its own business error — revert it to NEED_START so the next tick retries
+            // (attempt_count tracks consecutive failures). Terminal FAILED only after MAX_BATCH_ATTEMPTS
+            // consecutive failures, so a persistently failing chunk cannot retry forever (poison pill).
             Timestamp failedAt = Timestamp.from(Instant.now());
             for (HistoryNotificationTaskEntity task : tasks) {
                 if (task.getStatusId() == null || task.getStatusId() == HistoryNotificationTaskStatus.IN_PROGRESS) {
-                    task.setStatusId(HistoryNotificationTaskStatus.FAILED)
-                            .setStatusDetails("Batch processing failed before this task was processed")
-                            .setDoneAt(failedAt);
+                    int attempts = (task.getAttemptCount() == null ? 0 : task.getAttemptCount()) + 1;
+                    task.setAttemptCount(attempts);
+                    if (attempts >= MAX_BATCH_ATTEMPTS) {
+                        task.setStatusId(HistoryNotificationTaskStatus.FAILED)
+                                .setStatusDetails("Batch failed after " + attempts + " attempts: "
+                                        + LoggerUtils.errorSnippet(batchError, ERROR_SNIPPET_MAX_LENGTH))
+                                .setDoneAt(failedAt);
+                    } else {
+                        task.setStatusId(HistoryNotificationTaskStatus.NEED_START)
+                                .setStatusDetails("Batch failed (attempt " + attempts + " of " + MAX_BATCH_ATTEMPTS
+                                        + "), will retry: " + LoggerUtils.errorSnippet(batchError, ERROR_SNIPPET_MAX_LENGTH));
+                    }
                 }
             }
             authService.removeThreadLocalApiUser();

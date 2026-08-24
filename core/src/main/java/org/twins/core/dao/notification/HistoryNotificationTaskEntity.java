@@ -37,6 +37,17 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @Column(name = "status_details")
     private String statusDetails;
 
+    /**
+     * Consecutive infra-level failures of this task: incremented when the notification chunk fails before
+     * the task was processed (bulk-stage failure in {@code HistoryNotificationTask}) or when its chunk
+     * submission was rejected (see {@code SchedulerHistoryNotificationTaskRunner.revertStatusAndSave}).
+     * After {@code HistoryNotificationTask.MAX_BATCH_ATTEMPTS} consecutive failures the task is
+     * terminally failed (poison-pill protection against an infinite retry loop). Business errors of the
+     * task itself fail terminally on the first attempt and never increment this counter.
+     */
+    @Column(name = "attempt_count", nullable = false)
+    private Integer attemptCount = 0;
+
     @Column(name = "done_at")
     private Timestamp doneAt;
 

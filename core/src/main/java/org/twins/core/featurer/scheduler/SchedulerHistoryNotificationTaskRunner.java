@@ -185,7 +185,22 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     @Override
     protected void revertStatusAndSave(Collection<HistoryNotificationTaskEntity> entities) {
-        entities.forEach(entity -> entity.setStatusId(HistoryNotificationTaskStatus.NEED_START));
+        // submission rejection is an infra failure too — count it towards the poison-pill threshold,
+        // a persistently rejecting executor must not retry these tasks forever
+        Timestamp failedAt = Timestamp.from(Instant.now());
+        for (HistoryNotificationTaskEntity entity : entities) {
+            int attempts = (entity.getAttemptCount() == null ? 0 : entity.getAttemptCount()) + 1;
+            entity.setAttemptCount(attempts);
+            if (attempts >= HistoryNotificationTask.MAX_BATCH_ATTEMPTS) {
+                entity.setStatusId(HistoryNotificationTaskStatus.FAILED)
+                        .setStatusDetails("Chunk submission failed after " + attempts + " attempts")
+                        .setDoneAt(failedAt);
+            } else {
+                entity.setStatusId(HistoryNotificationTaskStatus.NEED_START)
+                        .setStatusDetails("Chunk submission failed (attempt " + attempts + " of "
+                                + HistoryNotificationTask.MAX_BATCH_ATTEMPTS + "), will retry");
+            }
+        }
         historyNotificationTaskRepository.saveAll(entities);
     }
 

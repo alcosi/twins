@@ -23,8 +23,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.Executor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
@@ -191,6 +190,23 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             runner.revertStatusAndSave(List.of(entity));
 
             assertEquals(HistoryNotificationTaskStatus.NEED_START, entity.getStatusId());
+            assertEquals(1, entity.getAttemptCount());
+            assertTrue(entity.getStatusDetails().contains("attempt 1 of " + HistoryNotificationTask.MAX_BATCH_ATTEMPTS));
+            assertNull(entity.getDoneAt());
+            verify(historyNotificationTaskRepository).saveAll(List.of(entity));
+        }
+
+        @Test
+        void revertStatusBatch_afterMaxAttempts_escalatesToFailed() {
+            var entity = buildEntity(null);
+            entity.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS);
+            entity.setAttemptCount(2); // two submission rejections already recorded
+
+            runner.revertStatusAndSave(List.of(entity));
+
+            assertEquals(HistoryNotificationTaskStatus.FAILED, entity.getStatusId());
+            assertEquals(3, entity.getAttemptCount());
+            assertNotNull(entity.getDoneAt());
             verify(historyNotificationTaskRepository).saveAll(List.of(entity));
         }
     }

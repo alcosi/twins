@@ -281,7 +281,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
         }
 
         @Test
-        void bulkLoadThrows_safetyNetMarksAllFailed_saveAllStillRuns() throws Exception {
+        void bulkLoadThrows_revertsUnprocessedTasksToNeedStartForRetry() throws Exception {
             var event = channelEvent("TWIN_CREATED", null, false);
             var config = config(event, UUID.randomUUID());
             var task1 = taskEntity(history(twin(twinClass(), null, null), null));
@@ -295,12 +295,40 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
 
             task(chunk).run();
 
-            assertEquals(HistoryNotificationTaskStatus.FAILED, task1.getStatusId());
-            assertEquals(HistoryNotificationTaskStatus.FAILED, task2.getStatusId());
-            assertTrue(task1.getStatusDetails().contains("Batch processing failed"));
+            // infra failure of the bulk stage is not a business error of these tasks — retry, not terminal FAILED
+            assertEquals(HistoryNotificationTaskStatus.NEED_START, task1.getStatusId());
+            assertEquals(HistoryNotificationTaskStatus.NEED_START, task2.getStatusId());
+            assertEquals(1, task1.getAttemptCount());
+            assertTrue(task1.getStatusDetails().contains("attempt 1 of 3"));
+            assertTrue(task1.getStatusDetails().contains("db down"));
+            assertNull(task1.getDoneAt());
             verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
             verify(authService).removeThreadLocalApiUser();
             verifyNoInteractions(notifier);
+        }
+
+        @Test
+        void bulkLoadThrows_afterMaxBatchAttempts_escalatesToFailed() throws Exception {
+            var event = channelEvent("TWIN_CREATED", null, false);
+            var config = config(event, UUID.randomUUID());
+            var task1 = taskEntity(history(twin(twinClass(), null, null), null));
+            // two batch attempts already recorded by previous runs (attempt_count column)
+            task1.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS);
+            task1.setAttemptCount(2);
+            var chunk = new HistoryNotificationChunk(domainId, List.of(task1));
+            wire(chunk, task1, config);
+            doThrow(new RuntimeException("db down"))
+                    .when(historyNotificationService)
+                    .loadNotificationChannelEvent(org.mockito.ArgumentMatchers.<java.util.Collection<HistoryNotificationEntity>>any());
+
+            task(chunk).run();
+
+            // third consecutive batch failure — poison-pill protection kicks in
+            assertEquals(HistoryNotificationTaskStatus.FAILED, task1.getStatusId());
+            assertEquals(3, task1.getAttemptCount());
+            assertTrue(task1.getStatusDetails().contains("after 3 attempts"));
+            assertNotNull(task1.getDoneAt());
+            verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
         }
 
         @Test
