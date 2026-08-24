@@ -217,20 +217,18 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
         for (var e : idsByLocale.entrySet()) {
             translationsByLocale.put(e.getKey(), i18nService.translateToLocale(e.getValue(), e.getKey()));
         }
-        // 3. fill placeholders in one pass per batch (translation picked by the history's locale)
+        // 3. fill placeholders in one pass per batch (translation picked by the history's locale).
+        //    Parity with the old per-id translateToLocale: a missing locale (user without i18nLocaleId)
+        //    or a missing translation resolves to an empty string — never leaves the raw
+        //    "#i18n=<uuid>" placeholder in the rendered notification
         for (ContextCollectorBatch batch : batches) {
             for (var e : batch.getI18nRefs().entrySet()) {
                 UUID i18nId = e.getKey();
                 for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
                     Locale locale = creatorLocale(ref.history(), localeByUser);
                     Map<UUID, String> translations = locale != null ? translationsByLocale.get(locale) : null;
-                    if (translations == null) {
-                        continue;
-                    }
-                    String translation = translations.get(i18nId);
-                    if (translation != null) {
-                        batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), translation);
-                    }
+                    String translation = translations != null ? translations.get(i18nId) : null;
+                    batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), translation != null ? translation : "");
                 }
             }
         }

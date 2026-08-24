@@ -29,8 +29,8 @@ public class CacheConfig {
 
     /**
      * Configures and provides a CacheManager bean using Caffeine as the caching provider.
-     * The CacheManager is set with an initial capacity of 1000 entries and an expiration
-     * policy of 5 minutes after a write operation.
+     * The CacheManager is set with an initial capacity of 1000 entries, a maximum of 10000 entries
+     * and an expiration policy of 5 minutes after a write operation.
      * Null cache entries are allowed.
      *
      * @return a configured instance of CaffeineCacheManager with the specified settings
@@ -42,6 +42,7 @@ public class CacheConfig {
 
         Caffeine<Object, Object> caffeine = Caffeine.newBuilder()
                 .initialCapacity(1000)
+                .maximumSize(10000)
                 .expireAfterWrite(5, TimeUnit.MINUTES);
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(caffeine);

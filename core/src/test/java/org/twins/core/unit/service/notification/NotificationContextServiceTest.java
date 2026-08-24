@@ -249,5 +249,43 @@ class NotificationContextServiceTest extends BaseUnitTest {
             assertEquals("Name-EN", taskEn.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
             assertEquals("Name-DE", taskDe.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
         }
+
+        @Test
+        void missingLocaleOrTranslation_resolvesToEmptyString_notRawPlaceholder() throws Exception {
+            // parity with the old per-id translateToLocale: a user without a locale and a locale without
+            // a translation both resolve to "" — the raw "#i18n=<uuid>" placeholder must never leak
+            var ctxId = UUID.randomUUID();
+            var event = channelEvent(ctxId, ctxCollector("TWIN_CLASS"));
+            var configCtx = config(event);
+            var userDe = UUID.randomUUID();       // has locale, has translation -> translated
+            var userEn = UUID.randomUUID();       // has locale, NO translation -> ""
+            var userNoLocale = UUID.randomUUID(); // no locale at all -> ""
+            var taskDe = task(history(twin(userDe)));
+            var taskEn = task(history(twin(userEn)));
+            var taskNoLocale = task(history(twin(userNoLocale)));
+            var chunk = chunkOf(taskDe, taskEn, taskNoLocale);
+            wire(chunk, configCtx, taskDe, taskEn, taskNoLocale);
+            var i18nId = UUID.randomUUID();
+            doAnswer(invocation -> {
+                ContextCollectorBatch batch = invocation.getArgument(0);
+                for (var historyEntry : batch.getContextByHistory().entrySet()) {
+                    batch.addI18n(historyEntry.getKey(), "TWIN_CLASS_NAME", i18nId);
+                }
+                return null;
+            }).when(collector).collectDataBatch(any(ContextCollectorBatch.class), any(HashMap.class));
+            when(domainUserService.getLocaleMap(eq(domainId), any())).thenReturn(Map.of(
+                    userDe, Locale.GERMAN,
+                    userEn, Locale.ENGLISH)); // userNoLocale deliberately absent
+            when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.GERMAN)))
+                    .thenReturn(Map.of(i18nId, "Name-DE"));
+            when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.ENGLISH)))
+                    .thenReturn(Map.of()); // translation missing for EN
+
+            service.collectHistoryContextBatch(chunk);
+
+            assertEquals("Name-DE", taskDe.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+            assertEquals("", taskEn.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+            assertEquals("", taskNoLocale.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+        }
     }
 }
