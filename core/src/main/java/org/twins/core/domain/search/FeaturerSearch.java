@@ -17,6 +17,7 @@ public class FeaturerSearch extends EntitySearch<FeaturerEntity> {
     private Set<Integer> typeIdList;
     private Set<Integer> typeIdExcludeList;
     private Set<String> nameLikeList;
+    private Set<String> nameOrIdLikeList;
     private Set<String> nameNotLikeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;

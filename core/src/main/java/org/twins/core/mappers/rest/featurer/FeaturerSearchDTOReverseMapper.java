@@ -19,6 +19,7 @@ public class FeaturerSearchDTOReverseMapper extends RestSimpleDTOMapper<Featurer
                 .setTypeIdList(src.getTypeIdList())
                 .setTypeIdExcludeList(src.getTypeIdExcludeList())
                 .setNameLikeList(src.getNameLikeList())
+                .setNameOrIdLikeList(src.getNameOrIdLikeList())
                 .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())

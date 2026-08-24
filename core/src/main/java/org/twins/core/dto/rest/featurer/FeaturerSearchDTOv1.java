@@ -27,6 +27,9 @@ public class FeaturerSearchDTOv1 {
     @Schema(description = "featurer name like list")
     public Set<String> nameLikeList;
 
+    @Schema(description = "featurer name or id like list")
+    public Set<String> nameOrIdLikeList;
+
     @Schema(description = "featurer name not like list")
     public Set<String> nameNotLikeList;
 

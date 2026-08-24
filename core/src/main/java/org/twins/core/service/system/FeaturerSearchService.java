@@ -59,6 +59,7 @@ public class FeaturerSearchService extends EntitySearchService
                 checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, search.getTypeIdList(), false),
                 checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, search.getTypeIdExcludeList(), true),
                 checkFieldLikeIn(search.getNameLikeList(), false, true, FeaturerEntity.Fields.name),
+                checkNameOrIdLikeIn(search.getNameOrIdLikeList(), FeaturerEntity.Fields.name, FeaturerEntity.Fields.id),
                 checkFieldLikeIn(search.getNameNotLikeList(), true, true, FeaturerEntity.Fields.name),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, FeaturerEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, FeaturerEntity.Fields.description),
