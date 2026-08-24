@@ -43,6 +43,7 @@ public class FeaturerService {
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
     Kit<FeaturerEntity, Integer> featurerEntityKit = new Kit<>(FeaturerEntity::getId);
+    Kit<FeaturerTypeEntity, Integer> featurerTypeEntityKit = new Kit<>(FeaturerTypeEntity::getId);
     Hashtable<Integer, Map<String, FeaturerParam>> featurerParamsAnnotationsMap = new Hashtable<>();
     Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
 
@@ -64,7 +65,6 @@ public class FeaturerService {
 
     private void syncFeaturers() {
         log.info("syncFeaturers: started");
-        List<FeaturerTypeEntity> featurerTypeEntityList = new ArrayList<>();
         List<FeaturerParamEntity> featurerParamEntityList = new ArrayList<>();
         for (Featurer featurer : featurerList) {
             try {
@@ -76,7 +76,7 @@ public class FeaturerService {
                     log.error("FeaturerType is not specified for class[{}]!", featurerClass.getSimpleName());
                     continue;
                 }
-                syncFeaturerType(featurerTypeAnnotation, featurerTypeEntityList);
+                syncFeaturerType(featurerTypeAnnotation);
                 FeaturerEntity featurerEntity = new FeaturerEntity();
                 featurerEntity.setId(featurerAnnotation.id());
                 featurerEntity.setName(StringUtils.isNotBlank(featurerAnnotation.name()) ? featurerAnnotation.name() : featurerClass.getSimpleName());
@@ -93,7 +93,7 @@ public class FeaturerService {
                 log.error("Got exception: ", e);
             }
         }
-        featurerTypeRepository.saveAll(featurerTypeEntityList);
+        featurerTypeRepository.saveAll(featurerTypeEntityKit.getCollection());
         featurerRepository.saveAll(featurerEntityKit.getCollection());
         //truncating old params
         featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityKit.getIdSet());
@@ -103,13 +103,13 @@ public class FeaturerService {
 
     private static Set<FeaturerType> syncedFeaturerTypes = new HashSet<>();
 
-    private void syncFeaturerType(FeaturerType featurerTypeAnnotation, List<FeaturerTypeEntity> featurerTypeEntityList) {
+    private void syncFeaturerType(FeaturerType featurerTypeAnnotation) {
         if (syncedFeaturerTypes.add(featurerTypeAnnotation)) {
             FeaturerTypeEntity featurerTypeEntity = new FeaturerTypeEntity();
             featurerTypeEntity.setId(featurerTypeAnnotation.id());
             featurerTypeEntity.setName(featurerTypeAnnotation.name());
             featurerTypeEntity.setDescription(featurerTypeAnnotation.description());
-            featurerTypeEntityList.add(featurerTypeEntity);
+            featurerTypeEntityKit.add(featurerTypeEntity);
         }
     }
 
@@ -212,23 +212,11 @@ public class FeaturerService {
     }
 
     public void loadFeaturerTypes(Collection<FeaturerEntity> featurerEntityCollection) {
-        if (CollectionUtils.isEmpty(featurerEntityCollection))
-            return;
-        Kit<FeaturerEntity, Integer> needLoad = null;
-        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
+        for (var featurerEntity : featurerEntityCollection) {
             if (featurerEntity.getFeaturerType() == null) {
-                if (needLoad == null)
-                    needLoad = new Kit<>(FeaturerEntity::getId);
-                needLoad.add(featurerEntity);
+                featurerEntity.setFeaturerType(featurerTypeEntityKit.get(featurerEntity.getFeaturerTypeId()));
             }
         }
-        if (needLoad == null)
-            return;
-        Map<Integer, FeaturerTypeEntity> featurerTypeMap = new HashMap<>();
-        for (FeaturerTypeEntity featurerTypeEntity : featurerTypeRepository.findAllById(needLoad.getIdSet()))
-            featurerTypeMap.put(featurerTypeEntity.getId(), featurerTypeEntity);
-        for (FeaturerEntity featurerEntity : needLoad.getCollection())
-            featurerEntity.setFeaturerType(featurerTypeMap.get(featurerEntity.getFeaturerTypeId()));
     }
 
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {

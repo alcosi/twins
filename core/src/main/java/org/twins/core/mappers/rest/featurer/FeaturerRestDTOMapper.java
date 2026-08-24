@@ -37,14 +37,15 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setDescription(src.getDescription())
                         .setFeaturerTypeId(src.getFeaturerTypeId())
                         .setDeprecated(src.isDeprecated());
-                if (showFeaturerType(mapperContext)) {
-                    featurerService.loadFeaturerTypes(src);
-                    dst.setFeaturerType(featurerTypeRestDTOMapper.convert(src.getFeaturerType(), mapperContext));
-                }
             case SHORT:
                 dst
                         .setId(src.getId())
                         .setName(src.getName());
+        }
+        if (showFeaturerType(mapperContext)) {
+            featurerService.loadFeaturerTypes(src);
+            dst.setFeaturerTypeId(src.getFeaturerTypeId());
+            featurerTypeRestDTOMapper.postpone(src.getFeaturerType(), mapperContext);
         }
         if (showFeaturerParams(mapperContext)) {
             featurerService.loadFeaturerParams(src);
@@ -66,8 +67,9 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (showFeaturerParams(mapperContext))
             featurerService.loadFeaturerParams(srcCollection);
-        if (showFeaturerType(mapperContext))
+        if (showFeaturerType(mapperContext)) {
             featurerService.loadFeaturerTypes(srcCollection);
+        }
     }
 
     @Override

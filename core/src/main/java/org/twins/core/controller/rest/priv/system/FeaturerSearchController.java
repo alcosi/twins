@@ -29,6 +29,7 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.system.FeaturerSearchService;
 
@@ -42,6 +43,7 @@ public class FeaturerSearchController extends ApiController {
     private final FeaturerSearchDTOReverseMapper featurerSearchDTOReverseMapper;
     private final FeaturerSearchService featurerSearchService;
     private final PaginationMapper paginationMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "featurerSearchV1", summary = "Featurer search")
@@ -61,7 +63,8 @@ public class FeaturerSearchController extends ApiController {
                     .search(featurerSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(featurers));
+                    .setPagination(paginationMapper.convert(featurers))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

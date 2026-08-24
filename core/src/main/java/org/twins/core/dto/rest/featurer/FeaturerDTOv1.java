@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.List;
 
@@ -15,10 +16,8 @@ public class FeaturerDTOv1 {
     public int id;
 
     @Schema(description = "featurer type id", example = "12")
+    @RelatedObject(type = FeaturerTypeDTOv1.class, name = "featurerType")
     public int featurerTypeId;
-
-    @Schema(description = "featurer type")
-    public FeaturerTypeDTOv1 featurerType;
 
     @Schema(description = "name", example = DTOExamples.FEATURER_NAME)
     public String name;
