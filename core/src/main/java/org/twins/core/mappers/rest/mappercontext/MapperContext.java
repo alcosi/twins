@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.featurer.dao.FeaturerTypeEntity;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -103,6 +104,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
     @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<Integer, RelatedObject<FeaturerTypeEntity>> relatedFeaturerTypeMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
     @Getter
@@ -297,6 +300,8 @@ public class MapperContext {
             smartPut(relatedI18nMap, i18n, i18n.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
+        else if (relatedObject instanceof FeaturerTypeEntity featurerType)
+            smartPut(relatedFeaturerTypeMap, featurerType, featurerType.getId());
         else if (relatedObject instanceof TwinClassFieldEntity twinClassField)
             smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
         else if (relatedObject instanceof TwinCommentEntity entity)
@@ -547,6 +552,7 @@ public class MapperContext {
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
+        dstMapperContext.relatedFeaturerTypeMap = srcMapperContext.relatedFeaturerTypeMap;
         dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;

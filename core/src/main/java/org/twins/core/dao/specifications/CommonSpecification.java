@@ -612,6 +612,23 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    /**
+     * Same matching semantics as {@link #checkFieldLikeIn(Collection, boolean, boolean, String...)}, but a pattern matches
+     * when it hits the string field OR the integer field cast to text. Patterns are combined with OR.
+     * Intended for "search by name or id" use cases.
+     */
+    public static <T> Specification<T> checkNameOrIdLikeIn(final Collection<String> search, final String nameField, final String idField) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            List<Predicate> predicates = search.stream().map(pattern -> cb.or(
+                    cb.like(cb.lower(root.get(nameField)), pattern.toLowerCase(), escapeChar),
+                    cb.like(cb.lower(root.get(idField).as(String.class)), pattern.toLowerCase(), escapeChar))).toList();
+            return getPredicate(cb, predicates, true);
+        };
+    }
+
     public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
                                                     final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {

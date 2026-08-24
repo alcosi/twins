@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.related;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.featurer.dao.FeaturerTypeEntity;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
@@ -42,6 +43,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerTypeDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
@@ -75,6 +77,7 @@ import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.factory.*;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerTypeRestDTOMapper;
 import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
@@ -139,6 +142,7 @@ public class RelatedObjectsRestDTOConverter {
     private final FactoryTriggerRestDTOMapper factoryTriggerRestDTOMapper;
     private final FactoryConditionRestDTOMapper factoryConditionRestDTOMapper;
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerTypeRestDTOMapper featurerTypeRestDTOMapper;
     private final FaceRestDTOMapper faceRestDTOMapper;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     private final CommentRestDTOMapper commentRestDTOMapper;
@@ -195,6 +199,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap = new HashMap<>();
         Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap = new HashMap<>();
         Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
+        Map<Integer, FeaturerTypeDTOv1> featurerTypeMap = new HashMap<>();
         Map<UUID, TwinClassFieldDTOv1> twinClassFiledMap = new HashMap<>();
         Map<UUID, TierDTOv1> tierMap = new HashMap<>();
         Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap = new HashMap<>();
@@ -273,6 +278,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel2, i18nMap, I18nEntity::getId);
         if (!mapperContext.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel2, featurerMap, FeaturerEntity::getId);
+        if (!mapperContext.getRelatedFeaturerTypeMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedFeaturerTypeMap(), featurerTypeRestDTOMapper, mapperContextLevel2, featurerTypeMap, FeaturerTypeEntity::getId);
         if (!mapperContext.getRelatedTwinClassFieldMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel2, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContext.getRelatedTwinClassSchemaMap().isEmpty())
@@ -372,6 +379,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel2.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
+        if (!mapperContextLevel2.getRelatedFeaturerTypeMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedFeaturerTypeMap(), featurerTypeRestDTOMapper, mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassFieldMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassSchemaMap().isEmpty())
@@ -472,6 +481,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
+        if (!mapperContextLevel3.getRelatedFeaturerTypeMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedFeaturerTypeMap(), featurerTypeRestDTOMapper, mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassFieldMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassSchemaMap().isEmpty())
@@ -538,6 +549,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setFactoryConditionMap(factoryConditionMap.isEmpty() ? null : factoryConditionMap)
                 .setCommentMap(commentMap.isEmpty() ? null : commentMap)
                 .setFeaturerMap(featurerMap.isEmpty() ? null : featurerMap)
+                .setFeaturerTypeMap(featurerTypeMap.isEmpty() ? null : featurerTypeMap)
                 .setFaceMap(faceMap.isEmpty() ? null : faceMap)
                 .setI18nMap(i18nMap.isEmpty() ? null : i18nMap)
                 .setTwinClassFieldMap(twinClassFiledMap.isEmpty() ? null : twinClassFiledMap)

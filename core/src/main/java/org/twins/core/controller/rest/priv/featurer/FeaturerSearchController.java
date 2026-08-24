@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.system;
+package org.twins.core.controller.rest.priv.featurer;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +25,13 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRqDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRsDTOv1;
-import org.twins.core.mappers.rest.featurer.FeaturerDTOReversMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.system.FeaturerSearchService;
 
 @Tag(description = "", name = ApiTag.SYSTEM)
 @RestController
@@ -39,9 +40,10 @@ import org.twins.core.service.permission.Permissions;
 @ProtectedBy({Permissions.FEATURER_MANAGE, Permissions.FEATURER_VIEW})
 public class FeaturerSearchController extends ApiController {
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
-    private final FeaturerDTOReversMapper featurerDTOReversMapper;
-    private final FeaturerService featurerService;
+    private final FeaturerSearchDTOReverseMapper featurerSearchDTOReverseMapper;
+    private final FeaturerSearchService featurerSearchService;
     private final PaginationMapper paginationMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "featurerSearchV1", summary = "Featurer search")
@@ -53,15 +55,16 @@ public class FeaturerSearchController extends ApiController {
     @PostMapping(value = "/private/featurer/search/v1")
     public ResponseEntity<?> featurerSearchV1(
             @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams(sortField = FeaturerEntity.Fields.name) SimplePagination pagination,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
         try {
-            PaginationResult<FeaturerEntity> featurers = featurerService
-                    .findFeaturers(featurerDTOReversMapper.convert(request), pagination);
+            PaginationResult<FeaturerEntity> featurers = featurerSearchService
+                    .search(featurerSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(featurers));
+                    .setPagination(paginationMapper.convert(featurers))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
