@@ -1,9 +1,7 @@
 package org.twins.core.dao.notification;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -72,8 +70,17 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false)
+    private HistoryTypeEntity historyTypeSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private HistoryTypeEntity historyType;
 
     @Transient

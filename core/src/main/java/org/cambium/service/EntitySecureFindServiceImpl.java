@@ -581,12 +581,31 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             Function<R, RI> queryResultGetId,
             Function<R, K> queryResultGetGroupId,
             BiConsumer<R, S> setResultParent) {
+        loadKit(srcCollection, srcGetId, srcGetKitField, srcSetKitField, queryFunction, queryResultGetId, queryResultGetGroupId, setResultParent, false);
+    }
+
+    public static <S, R, K, RI> void loadKit(
+            Collection<S> srcCollection,
+            Function<S, K> srcGetId,
+            Function<S, Kit<R, RI>> srcGetKitField,
+            BiConsumer<S, Kit<R, RI>> srcSetKitField,
+            Function<Set<K>, Collection<R>> queryFunction,
+            Function<R, RI> queryResultGetId,
+            Function<R, K> queryResultGetGroupId,
+            BiConsumer<R, S> setResultParent,
+            boolean nullable) {
         Kit<S, K> needLoad = null;
         for (S src : srcCollection) {
             if (srcGetKitField.apply(src) == null) {
                 if (needLoad == null)
                     needLoad = new Kit<>(srcGetId);
-                needLoad.add(src);
+                if (nullable) {
+                    var id = srcGetId.apply(src);
+                    if (id != null)
+                        needLoad.add(src);
+                } else {
+                    needLoad.add(src);
+                }
             }
         }
         if (needLoad == null)

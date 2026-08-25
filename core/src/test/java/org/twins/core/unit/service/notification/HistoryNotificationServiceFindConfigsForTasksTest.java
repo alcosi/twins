@@ -14,6 +14,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.history.HistoryTypeService;
 import org.twins.core.service.notification.*;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -53,6 +54,8 @@ class HistoryNotificationServiceFindConfigsForTasksTest extends BaseUnitTest {
     private NotificationEventServiceService notificationEventServiceService;
     @Mock
     private HistoryNotificationRecipientService historyNotificationRecipientService;
+    @Mock
+    private HistoryTypeService historyTypeService;
 
     private HistoryNotificationService service;
     private UUID domainId;
@@ -62,7 +65,7 @@ class HistoryNotificationServiceFindConfigsForTasksTest extends BaseUnitTest {
         service = new HistoryNotificationService(
                 repository, authService, userService, twinClassService, twinClassFieldService,
                 twinValidatorSetService, notificationSchemaService, notificationEventServiceService,
-                historyNotificationRecipientService);
+                historyNotificationRecipientService, historyTypeService);
         domainId = UUID.randomUUID();
     }
 

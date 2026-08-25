@@ -27,8 +27,10 @@ import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.history.HistoryTypeService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinvalidator.TwinValidatorService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 import org.twins.core.service.user.UserService;
 
@@ -51,9 +53,11 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinValidatorSetService twinValidatorSetService;
+    private final TwinValidatorService twinValidatorService;
     private final NotificationSchemaService notificationSchemaService;
     private final NotificationEventServiceService notificationEventServiceService;
     private final HistoryNotificationRecipientService historyNotificationRecipientService;
+    private final HistoryTypeService historyTypeService;
 
     @Override
     public CrudRepository<HistoryNotificationEntity, UUID> entityRepository() {
@@ -247,6 +251,17 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
                 HistoryNotificationEntity::setTwinValidatorSet);
     }
 
+    public void loadHistoryType(HistoryNotificationEntity entity) throws ServiceException {
+        loadHistoryType(List.of(entity));
+    }
+
+    public void loadHistoryType(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        historyTypeService.load(entities,
+                entity -> entity.getHistoryTypeId() == null ? null : entity.getHistoryTypeId().getId(),
+                HistoryNotificationEntity::getHistoryType,
+                HistoryNotificationEntity::setHistoryType);
+    }
+
     public void loadCreatedByUser(HistoryNotificationEntity entity) throws ServiceException {
         loadCreatedByUser(List.of(entity));
     }
@@ -279,10 +294,6 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         Map<HistoryNotificationTaskEntity, TaskContext> taskContexts = new HashMap<>();
         for (HistoryNotificationTaskEntity task : chunk.getTasks()) {
             HistoryEntity history = task.getHistory();
-            if (history == null || history.getHistoryType() == null
-                    || history.getTwin() == null || history.getTwin().getTwinClass() == null) {
-                continue;
-            }
             HistoryType historyType = history.getHistoryType();
             historyTypeIds = CollectionUtils.safeAdd(historyTypeIds, historyType);
             schemaIds = CollectionUtils.safeAdd(schemaIds, task.getNotificationSchemaId());
@@ -327,16 +338,15 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
         if (!tasksByConfig.isEmpty()) {
             // preload all validator sets in one query; isValid(...) below skips the load since they're cached
             twinValidatorSetService.loadTwinValidatorSet(tasksByConfig.keySet());
+            twinValidatorService.loadValidators(tasksByConfig.keySet());
             for (Map.Entry<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> entry : tasksByConfig.entrySet()) {
                 HistoryNotificationEntity config = entry.getKey();
                 LinkedHashSet<HistoryNotificationTaskEntity> tasks = entry.getValue();
                 // deduped twins of these tasks (several tasks may share a twin)
                 Map<UUID, TwinEntity> twinById = new HashMap<>();
                 for (HistoryNotificationTaskEntity task : tasks) {
-                    TwinEntity twin = task.getHistory().getTwin();
-                    if (twin != null) {
-                        twinById.putIfAbsent(twin.getId(), twin);
-                    }
+                    var twin = task.getHistory().getTwin();
+                    twinById.putIfAbsent(twin.getId(), twin);
                 }
                 Map<UUID, ValidationResult> validationResults = twinById.isEmpty()
                         ? Collections.emptyMap()

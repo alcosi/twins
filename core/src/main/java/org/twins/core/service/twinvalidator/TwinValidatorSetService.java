@@ -73,7 +73,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         ApiUser apiUser = authService.getApiUser();
         KitGrouped<T, UUID, UUID> needLoad = new KitGrouped<>(T::getId, T::getTwinValidatorSetId);
         for (T validatorRule : implementedValidatorRules)
-            if (validatorRule.getTwinValidatorSet() == null) {
+            if (validatorRule.getTwinValidatorSet() == null && validatorRule.getTwinValidatorSetId() != null) {
                 needLoad.add(validatorRule);
             }
         if (needLoad.isEmpty())
