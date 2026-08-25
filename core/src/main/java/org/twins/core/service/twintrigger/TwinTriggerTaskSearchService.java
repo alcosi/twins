@@ -60,7 +60,7 @@ public class TwinTriggerTaskSearchService extends EntitySearchService
     @Override
     public Specification<TwinTriggerTaskEntity> createFilterSpecification(TwinTriggerTaskSearch search, UUID domainId, Locale locale) throws ServiceException {
         return Specification.allOf(
-                checkFieldUuid(domainId, TwinTriggerTaskEntity.Fields.twinTrigger, TwinTriggerEntity.Fields.domainId),
+                checkFieldUuid(domainId, TwinTriggerTaskEntity.Fields.twinTriggerSpecOnly, TwinTriggerEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinTriggerTaskEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinTriggerTaskEntity.Fields.id),
                 checkUuidIn(search.getTwinIdList(), false, false, TwinTriggerTaskEntity.Fields.twinId),
