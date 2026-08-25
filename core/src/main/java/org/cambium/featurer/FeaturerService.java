@@ -356,6 +356,13 @@ public class FeaturerService {
         return featurerRepository.findById(featurerId).get();
     }
 
+    public FeaturerEntity findEntitySafe(Integer featurerId) throws ServiceException {
+        var featurerEntity = featurerEntityKit.get(featurerId);
+        if (featurerEntity == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
+        return featurerEntity;
+    }
+
     public Kit<FeaturerEntity, Integer> findEntitiesSafe(Set<Integer> ids) {
         Kit<FeaturerEntity, Integer> ret = new Kit<>(FeaturerEntity::getId);
         for (var id : ids) {

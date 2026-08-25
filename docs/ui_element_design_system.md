@@ -140,7 +140,7 @@ is the “where is this input used?” answer.
 | Part (outward `uses UI element`) | Container (inward `is used by`) | Example |
 |---|---|---|
 | table, card, chain | page / tab | `[chain] class head hierarchy` uses `[page] class [tab] general` |
-| input field / smart link (per column), table filter | table | `[smart link] domain business account` uses `[table] … users`; `[table filter] …` uses `[table] …` |
+| smart link (per column), table filter | table | `[smart link] domain business account` uses `[table] … users`; `[table filter] …` uses `[table] …` |
 | modal (one per action) | action menu | `[modal] factory trigger duplicate` uses `[action menu] factory trigger` |
 | menu item | menu | `[menu item] factory triggers` uses `[menu] triggers` |
 | input field (one per field) | modal | the `twin factory` input uses `[modal] factory trigger duplicate` |
@@ -309,7 +309,7 @@ Columns:
 | **Column** | **UI element** | **Sort** |
 | --- | --- | --- |
 | Id | <smartlink to [smart link] id> | |
-| <Column> | <smartlink to input field / smart link> | `<sortField>` |
+| <Column> | <smartlink to [smart link] — or empty> | `<sortField>` |
 | … | | |
 
 `API endpoint:` `/private/<domain>/<entity>/search/v1`
@@ -320,6 +320,13 @@ Example — `TWINFACES-981` `[table] domain business account users`.
 > **The first column is always `Id`** — it uses the `[smart link] id` atom
 > (`TWINFACES-200`), the clickable object id. Never omit it, and **leave `Sort`
 > empty** — the Id column is not sortable.
+
+> **Table columns reference `[smart link]` atoms only.** There is no inline
+> editing in tables, so `[input field]` atoms never appear in the `UI element`
+> column of a table — they belong to `[table filter]`, `[modal]` and `[tab]`
+> descriptions instead. A plain display column (text, date, flag) has an
+> **empty** `UI element` cell and at most a `Sort` value
+> (see `TWINFACES-981` `[table] domain business account users`).
 
 ### table filter
 ```md
