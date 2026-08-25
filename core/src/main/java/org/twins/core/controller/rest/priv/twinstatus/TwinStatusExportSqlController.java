@@ -43,8 +43,7 @@ public class TwinStatusExportSqlController extends ApiController {
     @PostMapping(value = "/private/twin_status/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> twinStatusExportSqlV1(
             @RequestBody TwinStatusExportSqlRqDTOv1 request) throws ServiceException {
-        var statuses = twinStatusService.findEntitiesSafe(request.getStatusIds());
-        String sql = twinStatusExportService.exportToSql(statuses.getCollection());
+        String sql = twinStatusExportService.exportToSql(request.getStatusIds());
         String filename = "twin_statuses_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", filename);

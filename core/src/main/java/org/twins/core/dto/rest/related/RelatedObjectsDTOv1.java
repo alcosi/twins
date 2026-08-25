@@ -15,6 +15,7 @@ import org.twins.core.dto.rest.domain.DomainUserDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerTypeDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
@@ -135,6 +136,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;
+
+    @Schema(description = "related featurer type map", example = "{featurer type map}")
+    public Map<Integer, FeaturerTypeDTOv1> featurerTypeMap;
 
     @Schema(description = "related face map", example = "{face map}")
     public Map<UUID, FaceDTOv1> faceMap;
@@ -263,6 +267,8 @@ public class RelatedObjectsDTOv1 {
             return (T) commentMap.get(id);
         } else if (relatedObjectClass == FeaturerDTOv1.class) {
             return (T) featurerMap.get(id);
+        } else if (relatedObjectClass == FeaturerTypeDTOv1.class) {
+            return (T) featurerTypeMap.get(id);
         } else if (relatedObjectClass == FaceDTOv1.class) {
             return (T) faceMap.get(id);
         } else if (relatedObjectClass == I18nDTOv1.class) {

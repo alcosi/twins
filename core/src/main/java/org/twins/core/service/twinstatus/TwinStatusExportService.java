@@ -3,12 +3,10 @@ package org.twins.core.service.twinstatus;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.StringList;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.sql.SqlBuilder;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.service.EntityExportService;
-import org.twins.core.service.i18n.I18nExportService;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.Collection;
 import java.util.Set;
@@ -16,13 +14,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TwinStatusExportService {
-    private final SqlBuilder sqlBuilder;
-    private final I18nService i18nService;
-    private final I18nExportService i18nExportService;
+public class TwinStatusExportService extends EntityExportService<TwinStatusEntity> {
+    private final TwinStatusService twinStatusService;
 
-    public String exportToSql(Collection<TwinStatusEntity> statuses) throws ServiceException {
-        if (statuses.isEmpty()) {
+    @Override
+    public String exportCollectionToSql(Collection<TwinStatusEntity> statuses) throws ServiceException {
+        if (CollectionUtils.isEmpty(statuses)) {
             return "";
         }
         Set<UUID> i18nIds = i18nService.collectI18nIds(statuses,
@@ -30,7 +27,11 @@ public class TwinStatusExportService {
                 TwinStatusEntity::getDescriptionI18nId);
         var sqlParts = new StringList();
         sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
-        sqlParts.addNotBlank(EntityExportService.buildUpsertsSorted(sqlBuilder, statuses, TwinStatusEntity::getId));
+        sqlParts.addNotBlank(buildUpsertsSorted(statuses, TwinStatusEntity::getId));
         return String.join("\n", sqlParts);
+    }
+
+    public String exportToSql(Collection<UUID> statusIds) throws ServiceException {
+        return exportCollectionToSql(twinStatusService.findEntitiesSafe(statusIds).getCollection());
     }
 }

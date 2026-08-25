@@ -54,6 +54,7 @@ public class FactoryConditionSearchService extends EntitySearchService
     @Override
     public Specification<TwinFactoryConditionEntity> createFilterSpecification(FactoryConditionSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
+                checkUuid(domainId, false, true, TwinFactoryConditionEntity.Fields.conditionSetSpecOnly, TwinFactoryConditionSetEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryConditionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionEntity.Fields.id),
                 checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryConditionEntity.Fields.twinFactoryConditionSetId),

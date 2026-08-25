@@ -3,9 +3,9 @@ package org.twins.core.dto.rest.validator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -36,5 +36,5 @@ public class TwinValidatorSetSearchDTOv1 {
     public Ternary invert;
 
     @Schema(description = "usageCountRange")
-    public IntegerRange usageCountRange;
+    public IntegerRangeDTOv1 usageCountRange;
 }

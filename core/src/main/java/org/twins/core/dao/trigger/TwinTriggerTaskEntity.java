@@ -60,23 +60,41 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @Column(name = "done_at")
     private Timestamp doneAt;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false, nullable = false)
     private TwinTriggerEntity twinTrigger;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "previous_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity previousTwinStatus;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private TwinEntity twinSpecOnly;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
+    private TwinTriggerEntity twinTriggerSpecOnly;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "previous_twin_status_id", insertable = false, updatable = false)
+    private TwinStatusEntity previousTwinStatusSpecOnly;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -87,6 +105,20 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @ToString.Exclude
     @Transient
     private BusinessAccountEntity businessAccount;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    private BusinessAccountEntity businessAccountSpecOnly;
 
     @Override
     public String easyLog(Level level) {

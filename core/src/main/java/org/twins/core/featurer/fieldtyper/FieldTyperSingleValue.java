@@ -56,7 +56,10 @@ public abstract class FieldTyperSingleValue<
     }
 
     public E resolveTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        return getFieldKit(twin).get(twinClassFieldEntity.getId());
+        var field = getFieldKit(twin).get(twinClassFieldEntity.getId());
+        if (field != null)
+            field.setTwin(twin);
+        return field;
     }
 
     protected abstract Kit<E, UUID> getFieldKit(TwinEntity twinEntity);

@@ -61,7 +61,7 @@ public class TwinflowFactorySearchController extends ApiController {
         TwinflowFactorySearchRsDTOv1 rs = new TwinflowFactorySearchRsDTOv1();
 
         try {
-            PaginationResult<TwinflowFactoryEntity> twinflowFactoryList = twinflowFactorySearchService.findTwinflowFactory(twinflowFactorySearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
+            PaginationResult<TwinflowFactoryEntity> twinflowFactoryList = twinflowFactorySearchService.search(twinflowFactorySearchRestDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
 
             rs
                     .setTwinflowFactories(twinflowFactoryRestDTOMapperV1.convertCollection(twinflowFactoryList.getList(), mapperContext))

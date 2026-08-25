@@ -55,6 +55,7 @@ public class UserGroupInvolveAssigneeSearchService {
 
     private Specification<UserGroupInvolveAssigneeEntity> createPermissionAssigneePropagationSearchSpecification(UserGroupInvolveAssigneeSearch search, UUID domainId) {
         return Specification.allOf(
+                checkFieldUuid(domainId, UserGroupInvolveAssigneeEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, UserGroupInvolveAssigneeEntity.Fields.id),
                 checkUuidIn(search.getUserGroupIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.userGroupId),

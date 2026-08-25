@@ -1,9 +1,7 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -53,21 +51,52 @@ public class TwinFactoryTriggerEntity implements EasyLoggable, Identifiable, Con
     @Column(name = "async")
     private Boolean async;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactorySpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClassSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity twinFactoryConditionSetSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
+    private TwinTriggerEntity twinTriggerSpecOnly;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinFactoryEntity twinFactory;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER) // need for core logic
-    @JoinColumn(name = "twin_trigger_id", insertable = false, updatable = false)
-    private TwinTriggerEntity twinTrigger;
-
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassEntity twinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinTriggerEntity twinTrigger;
 
     @Transient
     @EqualsAndHashCode.Exclude

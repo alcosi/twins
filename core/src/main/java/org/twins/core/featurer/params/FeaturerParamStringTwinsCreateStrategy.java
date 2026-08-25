@@ -9,8 +9,8 @@ import org.twins.core.enums.twin.TwinCreateStrategy;
 import java.util.Properties;
 
 @FeaturerParamType(
-        id = "STRING:TWINS:TWIN_CONDITION_OPERATOR_TYPE",
-        description = "twin condition operator type",
+        id = "STRING:TWINS:TWIN_CREATE_STRATEGY",
+        description = "twin create strategy",
         regexp = FeaturerParamStringTwinsCreateStrategy.TWIN_CREATE_STRATEGY_REGEXP,
         example = "SKETCH")
 public class FeaturerParamStringTwinsCreateStrategy extends FeaturerParam<TwinCreateStrategy> {

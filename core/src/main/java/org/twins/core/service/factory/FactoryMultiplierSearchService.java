@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.toSortSpecificationDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.factory.FactoryMultiplierSpecification.checkDomainId;
 
 
 @Slf4j
@@ -57,7 +56,7 @@ public class FactoryMultiplierSearchService extends EntitySearchService
     @Override
     public Specification<TwinFactoryMultiplierEntity> createFilterSpecification(FactoryMultiplierSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkDomainId(domainId),
+                checkUuid(domainId, false, true, TwinFactoryMultiplierEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryMultiplierEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryMultiplierEntity.Fields.id),
                 checkUuidIn(search.getFactoryIdList(), false, false, TwinFactoryMultiplierEntity.Fields.twinFactoryId),

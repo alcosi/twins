@@ -9,7 +9,6 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -45,10 +44,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     I18nService i18nService;
-
-    @Lazy
-    @Autowired
-    private ErrorRepository errorRepository;
 
     @Lazy
     @Autowired
@@ -99,6 +94,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public Class<A> getTwinFieldSearch() {
         return twinFieldSearchType;
+    }
+
+    protected TwinClassFieldService getTwinClassFieldService() {
+        return twinClassFieldService;
     }
 
     public D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {

@@ -140,7 +140,7 @@ is the “where is this input used?” answer.
 | Part (outward `uses UI element`) | Container (inward `is used by`) | Example |
 |---|---|---|
 | table, card, chain | page / tab | `[chain] class head hierarchy` uses `[page] class [tab] general` |
-| input field / smart link (per column), table filter | table | `[smart link] domain business account` uses `[table] … users`; `[table filter] …` uses `[table] …` |
+| smart link (per column), table filter | table | `[smart link] domain business account` uses `[table] … users`; `[table filter] …` uses `[table] …` |
 | modal (one per action) | action menu | `[modal] factory trigger duplicate` uses `[action menu] factory trigger` |
 | menu item | menu | `[menu item] factory triggers` uses `[menu] triggers` |
 | input field (one per field) | modal | the `twin factory` input uses `[modal] factory trigger duplicate` |
@@ -225,6 +225,42 @@ encouraged** as a human-readable mirror of the issue links.
 > the JIRA UI produces. The templates below are shown in markdown for readability;
 > emit them as ADF with `inlineCard`s when actually writing the issue.
 
+> **Editing an existing description ⇒ always rebuild the full ADF.** Re-saving an
+> already-smartlinked description with `contentFormat: "markdown"` — **even the
+> unchanged text** — strips **every** `inlineCard` to bare, non-clickable URL text.
+> Verified the hard way twice (TWINFACES-233 lost ~15 links after one markdown edit;
+> same trap hit earlier elements). There is no “edit one row” API: to change
+> anything you must regenerate the **whole** ADF doc (every URL → `inlineCard`) and
+> submit it as `contentFormat: "adf"`. The Atlassian MCP only hands back the
+> description as a markdown render (`<custom data-type="smartlink">…</custom>`),
+> never raw ADF — so build the ADF yourself. Minimal markdown→ADF mapping:
+> URL → `inlineCard`, `**x**` → `strong`, `` `x` `` → `code`, `:shortName:` → `emoji`,
+> `~~x~~` → **plain text (drop the strike)**.
+
+> **`strikeThrough` mark is rejected by JIRA Cloud.** Both `strikeThrough` and
+> `strikethrough` cause `INVALID_INPUT`; `strong`, `code`, and `emoji` work. So a
+> description that previously had `~~missed~~` ships as plain `missed` — accept the
+> loss (the strike is decorative; the word still reads) rather than fail the edit.
+
+> **The header row must be `tableHeader` cells, not `tableCell` with bold.** A JIRA
+> table heading is a `tableRow` whose cells are `tableHeader` (renders shaded/bold as a
+> real header); if every row is `tableCell`, the header degrades to an ordinary bold row.
+> The markdown render (`| **Column** | … |` plus the `| --- |` separator) does **not**
+> tell you which it was — so on a markdown→ADF rebuild you must **explicitly emit the
+> first row as `tableHeader`** and the rest as `tableCell`, or the header style is lost
+> (happened on TWINFACES-233/163/148/141: header rows became plain rows). Mapping:
+> first data row (the one before the `| --- |` separator) → `tableHeader`, every later
+> row → `tableCell`.
+
+> **Column widths: make the “content” column wide, the rest auto-size.** ADF supports
+> per-column width via `attrs.colwidth` on every `tableCell`/`tableHeader` (array of px;
+> **`0` = column auto-sizes to its content**) plus `attrs.displayMode:"fixed"` on the
+> `table`. Convention for spec tables (e.g. `[table] classes`): the **UI element** column
+> holds the smartlinks and must be the widest — set its `colwidth:[400]`, the other
+> columns `colwidth:[0]`. So `colwidth` per column = `[0, 400, 0, 0]`, and the table
+> `attrs = {isNumberColumnEnabled:false, layout:"default", displayMode:"fixed"}`. Every
+> cell in a column carries the same `colwidth`. (Applied on TWINFACES-148.)
+
 ### input field
 ```md
 ### Input type:
@@ -273,7 +309,7 @@ Columns:
 | **Column** | **UI element** | **Sort** |
 | --- | --- | --- |
 | Id | <smartlink to [smart link] id> | |
-| <Column> | <smartlink to input field / smart link> | `<sortField>` |
+| <Column> | <smartlink to [smart link] — or empty> | `<sortField>` |
 | … | | |
 
 `API endpoint:` `/private/<domain>/<entity>/search/v1`
@@ -284,6 +320,13 @@ Example — `TWINFACES-981` `[table] domain business account users`.
 > **The first column is always `Id`** — it uses the `[smart link] id` atom
 > (`TWINFACES-200`), the clickable object id. Never omit it, and **leave `Sort`
 > empty** — the Id column is not sortable.
+
+> **Table columns reference `[smart link]` atoms only.** There is no inline
+> editing in tables, so `[input field]` atoms never appear in the `UI element`
+> column of a table — they belong to `[table filter]`, `[modal]` and `[tab]`
+> descriptions instead. A plain display column (text, date, flag) has an
+> **empty** `UI element` cell and at most a `Sort` value
+> (see `TWINFACES-981` `[table] domain business account users`).
 
 ### table filter
 ```md
@@ -442,6 +485,18 @@ Per element:
    where applicable (§6).
 8. **Set status** (§8): `Not implemented` until built, then `Has changes`, finally
    `Up to date`.
+9. **Changelog comment — only for a real spec change, never for a mechanical edit.**
+   A comment is warranted when something *functional* lands (a new field appears, a
+   new link/relationship, a brand-new element). It is **not** warranted for batch /
+   mechanical edits — adding Sort/Group columns, setting column widths, fixing a
+   header label, markdown/ADF cleanup. For those: **no comment, no status change**.
+   When you do comment, state the *functional* delta in one line + at most a couple
+   of bullets — **never** implementation noise (`colwidth`, `displayMode`, “rebuilt
+   ADF”, “header typo fixed”, “old notes removed”); that is useless to the reader.
+   `@mention` only the owner who actually needs notifying (tagging is per-element,
+   not a fixed name). And do **not** auto-flip status to `Has changes` on an edit —
+   that is the maintainer’s call. (Send comments via `addCommentToJiraIssue`,
+   `contentFormat:"adf"`; ADF `mention` node for a real notification.)
 
 > **Never guess a key.** Do not write a real `TWINFACES-NNNN` into a description
 > before that issue exists — the number may land on an unrelated issue. If you

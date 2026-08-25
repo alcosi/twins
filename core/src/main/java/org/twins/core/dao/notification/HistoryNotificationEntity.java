@@ -118,6 +118,14 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     @EqualsAndHashCode.Exclude
     private HistoryNotificationRecipientEntity historyNotificationRecipient;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
+    private HistoryNotificationRecipientEntity historyNotificationRecipientSpecOnly;
+
     @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

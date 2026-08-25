@@ -11,12 +11,13 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.domain.search.TransitionTriggerSearch;
+import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 
 @Slf4j
@@ -25,6 +26,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 @RequiredArgsConstructor
 public class TwinflowTransitionTriggerSearchService {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinflowTransitionTriggerEntity> findTransitionTriggers(TransitionTriggerSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinflowTransitionTriggerEntity> spec = createTransitionTriggerSearchSpecification(search);
@@ -32,8 +34,9 @@ public class TwinflowTransitionTriggerSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinflowTransitionTriggerEntity> createTransitionTriggerSearchSpecification(TransitionTriggerSearch search) {
+    private Specification<TwinflowTransitionTriggerEntity> createTransitionTriggerSearchSpecification(TransitionTriggerSearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionTriggerEntity.Fields.twinTrigger, TwinTriggerEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionTriggerEntity.Fields.id),
                 checkUuidIn(search.getTwinflowTransitionIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),

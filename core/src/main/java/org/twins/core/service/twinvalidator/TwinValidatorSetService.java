@@ -8,7 +8,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.featurer.FeaturerService;
@@ -23,7 +22,6 @@ import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.validator.TwinValidatorSetCreate;
 import org.twins.core.domain.validator.TwinValidatorSetUpdate;
 import org.twins.core.featurer.twin.validator.TwinValidator;
@@ -70,19 +68,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        KitGrouped<T, UUID, UUID> needLoad = new KitGrouped<>(T::getId, T::getTwinValidatorSetId);
-        for (T validatorRule : implementedValidatorRules)
-            if (validatorRule.getTwinValidatorSet() == null && validatorRule.getTwinValidatorSetId() != null) {
-                needLoad.add(validatorRule);
-            }
-        if (needLoad.isEmpty())
-            return;
-        Kit<TwinValidatorSetEntity, UUID> twinValidatorSetEntitiesKit = new Kit<>(twinValidatorSetRepository.findAllByIdInAndDomainId(needLoad.getGroupedMap().keySet(), apiUser.getDomainId()), TwinValidatorSetEntity::getId);
-        if (CollectionUtils.isEmpty(twinValidatorSetEntitiesKit.getCollection()))
-            return;
-        for (T validatorRule : needLoad.getCollection())
-            validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
+        load(implementedValidatorRules, T::getTwinValidatorSetId, T::getTwinValidatorSet, T::setTwinValidatorSet);
     }
 
     public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {

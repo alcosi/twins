@@ -4,11 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -26,11 +25,12 @@ public class FactoryTriggerDTOv1 {
     @RelatedObject(type = TwinClassDTOv1.class, name = "inputTwinClass")
     public UUID inputTwinClassId;
 
-    @Schema(description = "trigger id")
-    @RelatedObject(type = FeaturerDTOv1.class, name = "trigger")
+    @Schema(description = "twin trigger id")
+    @RelatedObject(type = TwinTriggerDTOv1.class, name = "twinTrigger")
     public UUID twinTriggerId;
 
     @Schema(description = "condition set id")
+    @RelatedObject(type = FactoryConditionSetDTOv1.class, name = "twinFactoryConditionSet")
     public UUID twinFactoryConditionSetId;
 
     @Schema(description = "condition invert")
@@ -39,7 +39,7 @@ public class FactoryTriggerDTOv1 {
     @Schema(description = "is active")
     public Boolean active;
 
-    @Schema(description = "async")
+    @Schema(description = "is async")
     public Boolean async;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)

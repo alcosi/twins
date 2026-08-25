@@ -8,9 +8,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
+import org.twins.core.dao.factory.*;
 import org.twins.core.domain.search.FactoryPipelineStepSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.sort.FactoryPipelineStepGroupField;
@@ -21,7 +19,6 @@ import java.util.Locale;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.checkDomainId;
 import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.checkFactoryIdIn;
 
 
@@ -56,7 +53,7 @@ public class FactoryPipelineStepSearchService extends EntitySearchService
     @Override
     public Specification<TwinFactoryPipelineStepEntity> createFilterSpecification(FactoryPipelineStepSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
-                checkDomainId(domainId),
+                checkUuid(domainId, false, true, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineSpecOnly, TwinFactoryPipelineEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryPipelineStepEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineStepEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.id),

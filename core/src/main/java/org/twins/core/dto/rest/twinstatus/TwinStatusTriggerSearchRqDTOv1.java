@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.TwinStatusTriggerSortField;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -13,4 +15,10 @@ import org.twins.core.dto.rest.Request;
 public class TwinStatusTriggerSearchRqDTOv1 extends Request {
     @Schema(description = "search")
     public TwinStatusTriggerSearchDTOv1 search;
+
+    @Schema(description = "Sort field. Default: order")
+    public TwinStatusTriggerSortField sortField;
+
+    @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
+    public SortDirection sortDirection;
 }

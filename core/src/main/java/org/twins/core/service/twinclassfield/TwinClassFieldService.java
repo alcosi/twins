@@ -617,13 +617,24 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
 
-    public BigDecimal getDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) {
-        BigDecimal ret = null;
+    public BigDecimal getDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) throws ServiceException {
+        BigDecimal storedValue = null;
         if (twin.getTwinFieldDecimalKit() != null && twin.getTwinFieldDecimalKit().containsKey(fieldId)) {
-            ret = twin.getTwinFieldDecimalKit().get(fieldId).getValue();
-        } else if (twin.getTwinFieldCalculated() != null && twin.getTwinFieldCalculated().containsKey(fieldId)) {
-            ret = twin.getTwinFieldCalculated().get(fieldId);
+            storedValue = twin.getTwinFieldDecimalKit().get(fieldId).getValue();
         }
+        BigDecimal calculatedValue = null;
+        if (twin.getTwinFieldCalculated() != null && twin.getTwinFieldCalculated().containsKey(fieldId)) {
+            calculatedValue = twin.getTwinFieldCalculated().get(fieldId);
+        }
+        // Single source of truth: a field must not carry a value both as stored (twin_field_decimal)
+        // and as calculated (twinFieldCalculated). This typically signals a stale row left after a field
+        // was switched from a materializing typer to an in-memory calculated one — fail loud instead of
+        // silently shadowing one value with the other.
+        if (storedValue != null && calculatedValue != null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_CALCULATED_VALUE_CONFLICT,
+                    "Field[" + fieldId + "] has a value both in twinFieldDecimalKit and twinFieldCalculated");
+        }
+        BigDecimal ret = storedValue != null ? storedValue : calculatedValue;
         return ret != null ? ret : defaultValue;
     }
 

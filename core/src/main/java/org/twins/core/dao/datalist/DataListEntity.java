@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -41,6 +42,9 @@ public class DataListEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -77,6 +81,18 @@ public class DataListEntity implements EasyLoggable {
 
     @Column(name = "default_data_list_option_id")
     private UUID defaultDataListOptionId;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUser;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    private UserEntity createdByUserSpecOnly;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
     // HACK: @Access(PROPERTY) + NOOP getter/setter — see TwinClassFieldEntity.nameI18nTranslationsSpecOnly for explanation

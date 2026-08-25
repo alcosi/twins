@@ -63,9 +63,11 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
             userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinTriggerTask2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
+            twinTriggerTaskService.loadPreviousTwinStatus(src);
             twinStatusDTOMapper.postpone(src.getPreviousTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinTriggerTask2StatusMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
+            twinTriggerTaskService.loadTwin(src);
             twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinTriggerTask2TwinMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
@@ -91,6 +93,12 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
         }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
             twinTriggerTaskService.loadTwinTriggers(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
+            twinTriggerTaskService.loadPreviousTwinStatuses(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
+            twinTriggerTaskService.loadTwins(srcCollection);
         }
     }
 }

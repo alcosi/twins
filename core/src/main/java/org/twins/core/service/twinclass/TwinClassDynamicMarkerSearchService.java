@@ -13,7 +13,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.TwinClassDynamicMarkerSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -25,6 +27,7 @@ public class TwinClassDynamicMarkerSearchService {
 
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
     private final TwinClassService twinClassService;
+    private final AuthService authService;
 
     public PaginationResult<TwinClassDynamicMarkerEntity> findTwinClassDynamicMarkers(TwinClassDynamicMarkerSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassDynamicMarkerEntity> spec = createTwinClassDynamicMarkerSearchSpecification(search);
@@ -34,6 +37,7 @@ public class TwinClassDynamicMarkerSearchService {
 
     private Specification<TwinClassDynamicMarkerEntity> createTwinClassDynamicMarkerSearchSpecification(TwinClassDynamicMarkerSearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinClassDynamicMarkerEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdMap()), false, TwinClassDynamicMarkerEntity.Fields.twinClassId, TwinClassDynamicMarkerEntity.Fields.inheritable),

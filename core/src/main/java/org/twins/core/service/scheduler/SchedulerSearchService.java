@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerRepository;
 import org.twins.core.domain.search.SchedulerSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -19,6 +20,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 public class SchedulerSearchService {
 
     private final SchedulerRepository schedulerRepository;
+    private final AuthService authService;
 
     public PaginationResult<SchedulerEntity> search(SchedulerSearch schedulerSearch, SimplePagination pagination) throws Exception {
         if (schedulerSearch == null) {
@@ -30,6 +32,7 @@ public class SchedulerSearchService {
 
     private Specification<SchedulerEntity> createSchedulerEntitySearchSpecification(SchedulerSearch search) throws Exception {
         return allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), SchedulerEntity.Fields.domainId),
                 checkUuidIn(search.getIdSet(), false, false, SchedulerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerEntity.Fields.id),
                 checkUuidIn(search.getDomainIdSet(), false, false, SchedulerEntity.Fields.domainId),

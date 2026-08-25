@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -51,11 +52,24 @@ public class TwinTriggerEntity implements EasyLoggable {
     @Column(name = "job_twin_class_id")
     private UUID jobTwinClassId;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER) // need for core logic
-    @JoinColumn(name = "job_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity jobTwinClass;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity jobTwinClassSpecOnly;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_trigger_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity twinTriggerFeaturerSpecOnly;
 
     @Override
     public String easyLog(Level level) {
