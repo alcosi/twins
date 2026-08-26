@@ -699,7 +699,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void checkUpdatePermissionBatch(Collection<TwinUpdate> twinCollection) throws ServiceException {
         List<TwinEntity> needCheckTwins = null;
         for (var twinUpdate : twinCollection) {
-            if (!twinUpdate.isChanged() || !twinUpdate.isCheckEditPermission())
+            if (!twinUpdate.isChanged()
+                    || !twinUpdate.isCheckEditPermission()
+                    || twinUpdate.isAttachmentCUDOnly()) // attachment permission will be cheched later
                 continue;
             if (needCheckTwins == null) {
                 needCheckTwins = new ArrayList<>();
