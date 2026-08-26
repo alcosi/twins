@@ -54,6 +54,7 @@ public class TwinUpdate extends TwinSave {
     public boolean isChanged() {
         return !Objects.equals(dbTwinEntity, getTwinEntity()) ||
                 mode == Mode.sketchUpdate || // this mode helps to overcome "has changes" check logic. Sketch twin can have no direct changes, but some children dependent logic
+                MapUtils.isNotEmpty(fields) ||
                 CollectionUtils.isNotEmpty(tagsDelete) ||
                 CollectionUtils.isNotEmpty(markersDelete) ||
                 CollectionUtils.isNotEmpty(markersAdd) ||
@@ -63,16 +64,45 @@ public class TwinUpdate extends TwinSave {
                 CudUtils.isNotEmpty(twinLinkCUD);
     }
 
+    /**
+     * True when the only payload is attachment CUD.
+     * REST update builds a stub twin entity (unset attributes stay null); those must not count as field edits.
+     */
     public boolean isAttachmentCUDOnly() {
-        return Objects.equals(dbTwinEntity, getTwinEntity()) &&
-                MapUtils.isEmpty(fields) &&
-                CollectionUtils.isEmpty(tagsDelete) &&
-                CollectionUtils.isEmpty(markersDelete) &&
-                CollectionUtils.isEmpty(markersAdd) &&
-                CollectionUtils.isEmpty(tagsAddNew) &&
-                CollectionUtils.isEmpty(tagsAddExisted) &&
-                CudUtils.isNotEmpty(attachmentCUD) &&
-                CudUtils.isEmpty(twinLinkCUD);
+        if (CudUtils.isEmpty(attachmentCUD) || mode == Mode.sketchUpdate)
+            return false;
+        return !hasNonAttachmentChanges();
+    }
+
+    private boolean hasNonAttachmentChanges() {
+        return hasTwinAttributeChanges()
+                || MapUtils.isNotEmpty(fields)
+                || CollectionUtils.isNotEmpty(tagsDelete)
+                || CollectionUtils.isNotEmpty(markersDelete)
+                || CollectionUtils.isNotEmpty(markersAdd)
+                || CollectionUtils.isNotEmpty(tagsAddNew)
+                || CollectionUtils.isNotEmpty(tagsAddExisted)
+                || CudUtils.isNotEmpty(twinLinkCUD);
+    }
+
+    private boolean hasTwinAttributeChanges() {
+        TwinEntity db = dbTwinEntity;
+        TwinEntity update = getTwinEntity();
+        if (db == null || update == null)
+            return db != update;
+        if (db == update)
+            return false;
+        return isProvidedAndDifferent(db.getName(), update.getName())
+                || isProvidedAndDifferent(db.getDescription(), update.getDescription())
+                || isProvidedAndDifferent(db.getExternalId(), update.getExternalId())
+                || isProvidedAndDifferent(db.getHeadTwinId(), update.getHeadTwinId())
+                || isProvidedAndDifferent(db.getAssignerUserId(), update.getAssignerUserId())
+                || isProvidedAndDifferent(db.getTwinStatusId(), update.getTwinStatusId())
+                || isProvidedAndDifferent(db.getFlavorDataListOptionId(), update.getFlavorDataListOptionId());
+    }
+
+    private static boolean isProvidedAndDifferent(Object oldValue, Object newValue) {
+        return newValue != null && !newValue.equals(oldValue);
     }
 
     public enum Mode {

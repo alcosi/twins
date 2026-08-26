@@ -688,28 +688,38 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkUpdatePermission(Collection<TwinEntity> twinCollection) throws ServiceException {
+        checkTwinActionAllowed(twinCollection, TwinAction.EDIT);
+    }
+
+    public void checkUpdatePermissionBatch(Collection<TwinUpdate> twinCollection) throws ServiceException {
+        List<TwinEntity> needEditCheck = null;
+        List<TwinEntity> needAttachmentAddCheck = null;
+        for (var twinUpdate : twinCollection) {
+            if (!twinUpdate.isChanged() || !twinUpdate.isCheckEditPermission())
+                continue;
+            TwinEntity dbTwin = twinUpdate.getDbTwinEntity();
+            if (twinUpdate.isAttachmentCUDOnly()) {
+                if (needAttachmentAddCheck == null)
+                    needAttachmentAddCheck = new ArrayList<>();
+                needAttachmentAddCheck.add(dbTwin);
+            } else {
+                if (needEditCheck == null)
+                    needEditCheck = new ArrayList<>();
+                needEditCheck.add(dbTwin);
+            }
+            twinUpdate.setCheckEditPermission(false); //this is safe here, because checkUpdatePermission does not need this flag any more
+        }
+        checkTwinActionAllowed(needEditCheck, TwinAction.EDIT);
+        checkTwinActionAllowed(needAttachmentAddCheck, TwinAction.ATTACHMENT_ADD);
+    }
+
+    private void checkTwinActionAllowed(Collection<TwinEntity> twinCollection, TwinAction action) throws ServiceException {
         if (CollectionUtils.isEmpty(twinCollection) || permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
             return;
         for (var twinEntity : twinCollection) {
             checkCrossBusinessAccountAccess(twinEntity);
         }
-        twinActionService.checkAllowed(twinCollection, TwinAction.EDIT);
-    }
-
-    public void checkUpdatePermissionBatch(Collection<TwinUpdate> twinCollection) throws ServiceException {
-        List<TwinEntity> needCheckTwins = null;
-        for (var twinUpdate : twinCollection) {
-            if (!twinUpdate.isChanged()
-                    || !twinUpdate.isCheckEditPermission()
-                    || twinUpdate.isAttachmentCUDOnly()) // attachment permission will be cheched later
-                continue;
-            if (needCheckTwins == null) {
-                needCheckTwins = new ArrayList<>();
-            }
-            needCheckTwins.add(twinUpdate.getDbTwinEntity());
-            twinUpdate.setCheckEditPermission(false); //this is safe here, because checkUpdatePermission does not need this flag any more
-        }
-        checkUpdatePermission(needCheckTwins);
+        twinActionService.checkAllowed(twinCollection, action);
     }
 
     private void checkCrossBusinessAccountAccess(TwinEntity twinEntity) throws ServiceException {
@@ -968,7 +978,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (!twinUpdate.isChanged())
             return;
         if (twinUpdate.isCheckEditPermission())
-            checkUpdatePermission(twinUpdate.getDbTwinEntity());
+            checkUpdatePermissionBatch(Collections.singletonList(twinUpdate));
         if (twinUpdate.getTwinEntity().getTwinClassId() == null && twinUpdate.getDbTwinEntity() != null) {
             twinUpdate.getTwinEntity()
                     .setTwinClassId(twinUpdate.getDbTwinEntity().getTwinClassId())
