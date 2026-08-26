@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
-import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
@@ -32,8 +31,6 @@ import java.util.concurrent.TimeUnit;
 public class HistoryNotificationTask implements Runnable {
     private final HistoryNotificationChunk chunk;
     @Autowired
-    private HistoryNotificationTaskRepository historyNotificationTaskRepository;
-    @Autowired
     private FeaturerService featurerService;
     @Autowired
     private NotificationContextService notificationContextService;
@@ -43,6 +40,8 @@ public class HistoryNotificationTask implements Runnable {
     private HistoryNotificationRecipientService historyNotificationRecipientService;
     @Autowired
     private HistoryNotificationService historyNotificationService;
+    @Autowired
+    private HistoryNotificationTaskService historyNotificationTaskService;
     @Autowired
     private AuthService authService;
 
@@ -133,7 +132,7 @@ public class HistoryNotificationTask implements Runnable {
             }
             authService.removeThreadLocalApiUser();
             LoggerUtils.cleanMDC();
-            historyNotificationTaskRepository.saveAll(tasks);
+            historyNotificationTaskService.updateStatuses(tasks);
         }
     }
 

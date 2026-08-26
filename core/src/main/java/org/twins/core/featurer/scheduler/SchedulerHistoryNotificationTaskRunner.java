@@ -110,7 +110,7 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
                             .setStatusDetails("Twin is out of domain")
                             .setDoneAt(skippedAt);
                 }
-                historyNotificationTaskRepository.saveAll(noDomain);
+                historyNotificationTaskService.updateStatuses(noDomain);
                 log.info("{} task(s) skipped — twin is out of domain", noDomain.size());
             }
 
@@ -167,8 +167,13 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
         } catch (ServiceException e) {
             throw new RuntimeException(e);
         }
-        collectedEntities.forEach(task -> task.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS));
-        historyNotificationTaskRepository.saveAll(collectedEntities);
+        for (var task : collectedEntities) {
+            task
+                    .setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS)
+                    .setStatusDetails(null)
+                    .setDoneAt(null);
+        }
+        historyNotificationTaskService.updateStatuses(collectedEntities);
         return collectedEntities;
     }
 
@@ -201,7 +206,7 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
                                 + HistoryNotificationTask.MAX_BATCH_ATTEMPTS + "), will retry");
             }
         }
-        historyNotificationTaskRepository.saveAll(entities);
+        historyNotificationTaskService.updateStatuses(entities);
     }
 
     @Override

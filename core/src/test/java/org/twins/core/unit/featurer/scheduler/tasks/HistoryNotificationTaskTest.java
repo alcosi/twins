@@ -9,7 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationEntity;
+import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
+import org.twins.core.dao.notification.NotificationChannelEntity;
+import org.twins.core.dao.notification.NotificationChannelEventEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
@@ -38,7 +41,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
     private static final int NOTIFIER_FEATURER_ID = 7777;
 
     @Mock
-    private HistoryNotificationTaskRepository historyNotificationTaskRepository;
+    private HistoryNotificationTaskService historyNotificationTaskService;
     @Mock
     private FeaturerService featurerService;
     @Mock
@@ -70,7 +73,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
 
     private HistoryNotificationTask task(HistoryNotificationChunk chunk) throws Exception {
         var task = new HistoryNotificationTask(chunk);
-        inject(task, "historyNotificationTaskRepository", historyNotificationTaskRepository);
+        inject(task, "historyNotificationTaskService", historyNotificationTaskService);
         inject(task, "featurerService", featurerService);
         inject(task, "notificationContextService", notificationContextService);
         inject(task, "notificationChannelEventService", notificationChannelEventService);
@@ -171,7 +174,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
 
             assertEquals(HistoryNotificationTaskStatus.SKIPPED, taskEntity.getStatusId());
             assertTrue(taskEntity.getStatusDetails().contains("No configs found"));
-            verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
+            verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
             verifyNoInteractions(notifier);
             // chunk-wide ApiUser is the system NOTIFICATION_SCHEDULER user (global DOMAIN_TWINS_VIEW_ALL
             // grant — secure bulk loads pass the permission branch); per-history re-set follows for the
@@ -205,7 +208,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             // per-history ApiUser: locale source = twin creator
             verify(authService).setThreadLocalApiUser(domainId, ownerBa, creator);
             verify(notifier).notify(eq(Set.of(userId1, userId2)), eq(Map.of("TWIN_NAME", "n")), eq("TWIN_CREATED"), any());
-            verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
+            verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
         }
 
         @Test
@@ -280,7 +283,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             assertEquals(HistoryNotificationTaskStatus.SENT, task2.getStatusId());
             verify(notifier, times(2)).notify(any(), any(), eq("TWIN_CREATED"), any());
             // both statuses persisted with ONE saveAll of the whole chunk
-            verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
+            verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
         }
 
         @Test
@@ -305,7 +308,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             assertTrue(task1.getStatusDetails().contains("attempt 1 of 3"));
             assertTrue(task1.getStatusDetails().contains("db down"));
             assertNull(task1.getDoneAt());
-            verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
+            verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
             verify(authService).removeThreadLocalApiUser();
             verifyNoInteractions(notifier);
         }
@@ -331,7 +334,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             assertEquals(3, task1.getAttemptCount());
             assertTrue(task1.getStatusDetails().contains("after 3 attempts"));
             assertNotNull(task1.getDoneAt());
-            verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
+            verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
         }
 
         @Test
