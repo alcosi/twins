@@ -13,6 +13,7 @@ import org.twins.core.dao.notification.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.notification.*;
@@ -172,8 +173,10 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             assertTrue(taskEntity.getStatusDetails().contains("No configs found"));
             verify(historyNotificationTaskRepository, times(1)).saveAll(chunk.getTasks());
             verifyNoInteractions(notifier);
-            // chunk-wide ApiUser set + per-history re-set (both (domain, null, null) here) + removed
-            verify(authService, atLeastOnce()).setThreadLocalApiUser(domainId, null, null);
+            // chunk-wide ApiUser is the system NOTIFICATION_SCHEDULER user (global DOMAIN_TWINS_VIEW_ALL
+            // grant — secure bulk loads pass the permission branch); per-history re-set follows for the
+            // locale — here ownerBa/creator are null, so it lands on (domainId, null, null)
+            verify(authService, atLeastOnce()).setThreadLocalApiUser(domainId, null, SystemIds.User.NOTIFICATION_SCHEDULER);
             verify(authService, atLeastOnce()).removeThreadLocalApiUser();
         }
 

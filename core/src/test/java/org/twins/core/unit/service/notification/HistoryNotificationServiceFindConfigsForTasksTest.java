@@ -49,6 +49,8 @@ class HistoryNotificationServiceFindConfigsForTasksTest extends BaseUnitTest {
     @Mock
     private TwinValidatorSetService twinValidatorSetService;
     @Mock
+    private org.twins.core.service.twinvalidator.TwinValidatorService twinValidatorService;
+    @Mock
     private NotificationSchemaService notificationSchemaService;
     @Mock
     private NotificationEventServiceService notificationEventServiceService;
@@ -64,8 +66,8 @@ class HistoryNotificationServiceFindConfigsForTasksTest extends BaseUnitTest {
     void setUp() {
         service = new HistoryNotificationService(
                 repository, authService, userService, twinClassService, twinClassFieldService,
-                twinValidatorSetService, notificationSchemaService, notificationEventServiceService,
-                historyNotificationRecipientService, historyTypeService);
+                twinValidatorSetService, twinValidatorService, notificationSchemaService,
+                notificationEventServiceService, historyNotificationRecipientService, historyTypeService);
         domainId = UUID.randomUUID();
     }
 
@@ -193,12 +195,14 @@ class HistoryNotificationServiceFindConfigsForTasksTest extends BaseUnitTest {
         }
 
         @Test
-        void taskWithoutHistoryChain_skippedEntirely() {
-            // history without twinClass → no matching context, no repo call for this task
+        void taskWithoutHistoryChain_failsFast() {
+            // contract (simplified matcher): every task's history chain is populated by the runner
+            // (loadHistory throws on missing) — a null history here is a broken invariant, surfaced
+            // as a batch failure (run()'s safety net reverts/retries), not a silent skip
             var taskEntity = new HistoryNotificationTaskEntity().setId(UUID.randomUUID());
             var chunk = chunkOf(taskEntity);
 
-            assertDoesNotThrow(() -> service.findConfigsForTasks(chunk));
+            assertThrows(NullPointerException.class, () -> service.findConfigsForTasks(chunk));
 
             assertTrue(chunk.getConfigsByTask().isEmpty());
             assertTrue(chunk.getTasksByConfig().isEmpty());

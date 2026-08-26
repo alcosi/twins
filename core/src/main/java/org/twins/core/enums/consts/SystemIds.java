@@ -26,6 +26,15 @@ public final class SystemIds {
 
     public static final class User {
         public static final UUID SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+        /**
+         * System user the history-notification scheduler acts on behalf of (see
+         * {@code HistoryNotificationTask}). Its permissions are hardcoded in
+         * {@code PermissionService#SYSTEM_USER_PERMISSIONS} (DOMAIN_TWINS_VIEW_ALL) — identical in
+         * every domain, so the secure loads of the chunk bulk phases pass the permission branch of
+         * {@code TwinService.isEntityReadDenied} without any DB grants or group membership.
+         */
+        public static final UUID NOTIFICATION_SCHEDULER = UUID.fromString("00000000-0000-0000-0000-000000000002");
     }
 
     public static final class UserGroup {

@@ -15,6 +15,7 @@ import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.notification.*;
@@ -66,9 +67,12 @@ public class HistoryNotificationTask implements Runnable {
             log.info("Performing batch history notification task: {} task(s)", tasks.size());
 
             // chunk is one domain (guaranteed by runner) — set ApiUser once so bulk validator filter
-            // inside findConfigsForTasks can read domainId; processTask re-sets it per history for the locale
+            // inside findConfigsForTasks can read domainId; the system NOTIFICATION_SCHEDULER user's
+            // permissions are hardcoded (PermissionService.SYSTEM_USER_PERMISSIONS, DOMAIN_TWINS_VIEW_ALL),
+            // so secure loads of the bulk phases (loadHead etc.) pass the permission branch of
+            // TwinService.isEntityReadDenied in every domain. processTask re-sets ApiUser per history for the locale
             if (chunk.getDomainId() != null) {
-                authService.setThreadLocalApiUser(chunk.getDomainId(), null, null);
+                authService.setThreadLocalApiUser(chunk.getDomainId(), null, SystemIds.User.NOTIFICATION_SCHEDULER);
             }
             // 1. one bulk query for configs across the whole chunk + in-memory match + bulk validator filter (mutates chunk)
             historyNotificationService.findConfigsForTasks(chunk);
