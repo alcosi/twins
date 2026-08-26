@@ -339,7 +339,11 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
             // preload all validator sets in one query; isValid(...) below skips the load since they're cached
             twinValidatorSetService.loadTwinValidatorSet(tasksByConfig.keySet());
             twinValidatorService.loadValidators(tasksByConfig.keySet());
-            for (Map.Entry<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> entry : tasksByConfig.entrySet()) {
+            // iterate over a snapshot: configs whose every task failed validation are removed from
+            // tasksByConfig below — mutating the live entrySet would throw ConcurrentModificationException
+            // iterate over a snapshot: configs whose every task failed validation are removed from
+            // tasksByConfig below — mutating the live entrySet would throw ConcurrentModificationException
+            for (Map.Entry<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> entry : new ArrayList<>(tasksByConfig.entrySet())) {
                 HistoryNotificationEntity config = entry.getKey();
                 LinkedHashSet<HistoryNotificationTaskEntity> tasks = entry.getValue();
                 // deduped twins of these tasks (several tasks may share a twin)

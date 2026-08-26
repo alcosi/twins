@@ -143,7 +143,9 @@ public class HistoryNotificationTask implements Runnable {
             LoggerUtils.logSession(history.getHistoryBatchId());
             LoggerUtils.logPrefix("HISTORY[" + task.getId() + "]:");
             log.info("Performing history notification task: {}", task.logDetailed());
-
+            if (CollectionUtils.isEmpty(configs)) {
+                throw new NotificationSkippedException("No configs found for " + history.logNormal());
+            }
             var twin = history.getTwin();
             if (twin == null || twin.getTwinClass() == null || twin.getTwinClass().getDomainId() == null) {
                 throw new NotificationSkippedException("Twin is out of domain");
@@ -151,9 +153,6 @@ public class HistoryNotificationTask implements Runnable {
 
             authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId());
 
-            if (CollectionUtils.isEmpty(configs)) {
-                throw new NotificationSkippedException("No configs found for " + history.logNormal());
-            }
 
             var notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,

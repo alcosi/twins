@@ -35,6 +35,9 @@ public final class SystemIds {
          * {@code TwinService.isEntityReadDenied} without any DB grants or group membership.
          */
         public static final UUID NOTIFICATION_SCHEDULER = UUID.fromString("00000000-0000-0000-0000-000000000002");
+
+        /** All platform-level identities — bypass domain-registration membership checks (see {@code ApiUserResolverService.loadDBU}). */
+        public static final Set<UUID> ALL_SYSTEM_USERS_SET = Set.of(SYSTEM, NOTIFICATION_SCHEDULER);
     }
 
     public static final class UserGroup {

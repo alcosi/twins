@@ -250,5 +250,29 @@ class HistoryNotificationServiceFindConfigsForTasksTest extends BaseUnitTest {
             assertTrue(chunk.getConfigsByTask().isEmpty());
             assertTrue(chunk.getTasksByConfig().isEmpty());
         }
+
+        @Test
+        void severalConfigsAllDropped_noConcurrentModificationException() throws Exception {
+            // two configs, both ending with zero valid tasks → both removed from tasksByConfig inside
+            // the validation loop — with two removals a removed entry is never last in iteration order,
+            // so iterating the live entrySet deterministically threw ConcurrentModificationException
+            var classId = UUID.randomUUID();
+            var schemaId = UUID.randomUUID();
+            var config1 = config(HistoryType.twinCreated, schemaId, classId, UUID.randomUUID());
+            var config2 = config(HistoryType.twinCreated, schemaId, classId, UUID.randomUUID());
+            candidates(config1, config2);
+            var taskEntity = task(HistoryType.twinCreated, schemaId, twinClass(classId), null);
+            var chunk = chunkOf(taskEntity);
+            var twinId = taskEntity.getHistory().getTwin().getId();
+            when(twinValidatorSetService.isValid(org.mockito.ArgumentMatchers.<Collection<TwinEntity>>any(), eq(config1)))
+                    .thenReturn(Map.of(twinId, new ValidationResult(false)));
+            when(twinValidatorSetService.isValid(org.mockito.ArgumentMatchers.<Collection<TwinEntity>>any(), eq(config2)))
+                    .thenReturn(Map.of(twinId, new ValidationResult(false)));
+
+            assertDoesNotThrow(() -> service.findConfigsForTasks(chunk));
+
+            assertTrue(chunk.getConfigsByTask().isEmpty());
+            assertTrue(chunk.getTasksByConfig().isEmpty());
+        }
     }
 }

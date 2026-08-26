@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
         description = "")
 @Slf4j
 public abstract class Notifier extends FeaturerTwins {
-    @FeaturerParam(name = "Throw exception on null values", description = "", order = 1, defaultValue = "true")
+    @FeaturerParam(name = "Throw exception on null values", optional = true, description = "", order = 1, defaultValue = "true")
     public static final FeaturerParamBoolean throwExceptionOnNullValues = new FeaturerParamBoolean("throwExceptionOnNullValues");
 
     protected final Map<String, Object> stubCache = new ConcurrentHashMap<>();
