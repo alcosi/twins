@@ -56,13 +56,19 @@ public class HistoryNotificationTaskService extends EntitySecureFindServiceImpl<
      * Persists the tasks' status fields with grouped bulk updates — one UPDATE ... WHERE id IN per
      * distinct (statusId, statusDetails, doneAt, attemptCount) tuple — instead of saveAll, which merges
      * every detached entity with a SELECT + UPDATE pair (hundreds of atomic queries per chunk).
-     * Callers must set the status fields on the in-memory entities themselves before calling this.
+     * Callers must set the status fields on the in-memory entities themselves before calling this
+     * (entities are detached — see the claim in SchedulerHistoryNotificationTaskRunner.collectAll).
+     * REQUIRED propagation: joins the caller's transaction (e.g. the base scheduler claim tx).
      */
     @Transactional(rollbackFor = Throwable.class)
     public void updateStatuses(Collection<HistoryNotificationTaskEntity> tasks) {
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
+        updateStatusesGrouped(tasks);
+    }
+
+    private void updateStatusesGrouped(Collection<HistoryNotificationTaskEntity> tasks) {
         Map<StatusTuple, List<HistoryNotificationTaskEntity>> groups = new HashMap<>();
         for (HistoryNotificationTaskEntity task : tasks) {
             if (task.getStatusId() == null) {

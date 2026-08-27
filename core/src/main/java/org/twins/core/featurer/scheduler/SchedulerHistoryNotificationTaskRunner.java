@@ -72,13 +72,20 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
             LoggerUtils.logController(getLogSource());
 
             Integer batchSize = batchSizeParam.extract(properties);
-            List<HistoryNotificationTaskEntity> collected = batchSize == null ? collectAll() : collectBatch(batchSize);
+            // inherited atomic claim: collect (FOR UPDATE SKIP LOCKED) + setStatusAndSave in one tx
+            List<HistoryNotificationTaskEntity> collected = collectAndMarkInProgress(batchSize);
             if (CollectionUtils.isEmpty(collected)) {
                 log.debug("No tasks were collected");
                 return "";
             }
 
-            setStatusAndSave(collected); // mutates collected in-place (status + bulk-load)
+            try {
+                // order matters: history must be populated before loadHistoryActors reads task.getHistory()
+                historyNotificationTaskService.loadHistory(collected);
+                loadHistoryActors(collected);
+            } catch (ServiceException e) {
+                throw new RuntimeException(e);
+            }
             log.info("{} history notification task(s) need to be done", collected.size());
 
             Integer configuredProcessBatchSize = processBatchSizeParam.extract(properties);
@@ -160,20 +167,16 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     @Override
     protected Collection<HistoryNotificationTaskEntity> setStatusAndSave(Collection<HistoryNotificationTaskEntity> collectedEntities) {
-        try {
-            // order matters: history must be populated before loadHistoryActors reads task.getHistory()
-            historyNotificationTaskService.loadHistory(collectedEntities);
-            loadHistoryActors(collectedEntities);
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
-        }
+        // called inside the base claim transaction: the in-memory mark + bulk update land in the same
+        // tx that holds the FOR UPDATE SKIP LOCKED row locks — the claim stays atomic.
+        // history/actors are bulk-loaded after the claim, in processTask (no row locks held during reads)
         for (var task : collectedEntities) {
             task
                     .setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS)
                     .setStatusDetails(null)
                     .setDoneAt(null);
         }
-        historyNotificationTaskService.updateStatuses(collectedEntities);
+        historyNotificationTaskService.updateStatuses(collectedEntities); // REQUIRED propagation — joins the claim tx
         return collectedEntities;
     }
 
@@ -211,7 +214,9 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     @Override
     protected List<HistoryNotificationTaskEntity> collectAll() {
-        var historyTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
+        // claimable = FOR UPDATE SKIP LOCKED, ordered by createdAt — the base claim transaction
+        // holds the row locks until the IN_PROGRESS bulk update commits
+        var historyTasks = historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
         if (CollectionUtils.isEmpty(historyTasks)) {
             return Collections.emptyList();
         }
@@ -220,6 +225,10 @@ public class SchedulerHistoryNotificationTaskRunner extends SchedulerTaskRunner<
 
     @Override
     protected List<HistoryNotificationTaskEntity> collectBatch(int batchSize) {
-        return historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START), PageRequest.of(0, batchSize));
+        return historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START), PageRequest.of(0, batchSize));
+    }
+
+    protected boolean detachClaimed() {
+        return true;
     }
 }

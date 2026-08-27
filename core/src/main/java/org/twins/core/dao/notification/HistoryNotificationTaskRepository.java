@@ -1,9 +1,9 @@
 package org.twins.core.dao.notification;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,6 +18,23 @@ import java.util.UUID;
 public interface HistoryNotificationTaskRepository extends CrudRepository<HistoryNotificationTaskEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationTaskEntity> {
     List<HistoryNotificationTaskEntity> findByStatusIdIn(Collection<HistoryNotificationTaskStatus> statusIds);
     List<HistoryNotificationTaskEntity> findByStatusIdIn(Collection<HistoryNotificationTaskStatus> statusIds, Pageable pageable);
+
+    /**
+     * Queue-claim select: FOR UPDATE SKIP LOCKED (hint -2), ordered by createdAt for FIFO. Must run in
+     * the same transaction as the follow-up IN_PROGRESS bulk update — see
+     * {@code HistoryNotificationTaskService.collectAndMarkInProgress}: the row locks make the claim
+     * atomic across overlapping scheduler ticks (and app nodes), so no two transactions ever update
+     * overlapping task rows → no deadlocks, no double dispatch.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
+    @Query("select t from HistoryNotificationTaskEntity t where t.statusId in :statusIds order by t.createdAt")
+    List<HistoryNotificationTaskEntity> findClaimableByStatusIdIn(@Param("statusIds") Collection<HistoryNotificationTaskStatus> statusIds);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
+    @Query("select t from HistoryNotificationTaskEntity t where t.statusId in :statusIds order by t.createdAt")
+    List<HistoryNotificationTaskEntity> findClaimableByStatusIdIn(@Param("statusIds") Collection<HistoryNotificationTaskStatus> statusIds, Pageable pageable);
 
     /**
      * Bulk status update — replaces saveAll/merge for detached task entities (SELECT + UPDATE per row).

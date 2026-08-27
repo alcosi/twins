@@ -38,6 +38,11 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
     private ApplicationContext applicationContext;
 
     @Mock
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+    @Mock
+    private jakarta.persistence.EntityManager entityManager;
+
+    @Mock
     private HistoryService historyService;
 
     @Mock
@@ -50,6 +55,10 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
         runner = new SchedulerHistoryNotificationTaskRunner(
                 taskExecutor, historyNotificationTaskRepository, historyService, historyNotificationTaskService);
         setField(runner, "applicationContext", applicationContext);
+        setField(runner, "transactionTemplate", transactionTemplate);
+        setField(runner, "entityManager", entityManager);
+        lenient().when(transactionTemplate.execute(any())).thenAnswer(invocation ->
+                invocation.getArgument(0, org.springframework.transaction.support.TransactionCallback.class).doInTransaction(null));
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
@@ -92,7 +101,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
         @Test
         void collectAll_delegatesToRepository() {
             var entities = List.of(buildEntity(null));
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(entities);
 
             var result = runner.collectAll();
@@ -102,7 +111,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
 
         @Test
         void collectAll_returnsEmptyList() {
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(Collections.emptyList());
 
             var result = runner.collectAll();
@@ -117,14 +126,14 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
         @Test
         void collectBatch_delegatesToRepositoryWithPageable() {
             var entities = List.of(buildEntity(null));
-            when(historyNotificationTaskRepository.findByStatusIdIn(
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(
                     eq(List.of(HistoryNotificationTaskStatus.NEED_START)), any(Pageable.class)))
                     .thenReturn(entities);
 
             var result = runner.collectBatch(20);
 
             assertEquals(1, result.size());
-            verify(historyNotificationTaskRepository).findByStatusIdIn(
+            verify(historyNotificationTaskRepository).findClaimableByStatusIdIn(
                     eq(List.of(HistoryNotificationTaskStatus.NEED_START)),
                     argThat(p -> p.getPageNumber() == 0 && p.getPageSize() == 20));
         }
@@ -141,12 +150,6 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             var result = new ArrayList<>(runner.setStatusAndSave(entities));
 
             assertEquals(HistoryNotificationTaskStatus.IN_PROGRESS, entity.getStatusId());
-            verify(historyNotificationTaskService).loadHistory(entities);
-            verify(historyService).loadUser(entities.stream().map(HistoryNotificationTaskEntity::getHistory).toList());
-            // regression guard (TWINS-836 review P1): twins in the scheduler thread must go through the
-            // unsafe load — the secure path hits AuthService.getApiUser on a request-scoped proxy and throws
-            verify(historyService).loadTwinUnsafe(entities.stream().map(HistoryNotificationTaskEntity::getHistory).toList());
-            verify(historyService, never()).loadTwin(anyList());
             verify(historyNotificationTaskService).updateStatuses(entities);
         }
 
@@ -214,7 +217,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
 
         @Test
         void processTask_noTasksCollected_returnsEmptyString() {
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(Collections.emptyList());
 
             var result = runner.processTask(new Properties());
@@ -224,15 +227,14 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
         }
 
         @Test
-        void processTask_withTasks_submitsOneBatchPerChunk() {
+        void processTask_withTasks_submitsOneBatchPerChunk() throws Exception {
             UUID domainId = UUID.randomUUID();
             var entity = buildEntity(domainId);
             var entities = List.of(entity);
             var task = mock(HistoryNotificationTask.class);
 
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(entities);
-            // bulk status update goes through historyNotificationTaskService.updateStatuses (void) — no stub needed
             when(applicationContext.getBean(eq(HistoryNotificationTask.class), any(HistoryNotificationChunk.class)))
                     .thenReturn(task);
 
@@ -245,6 +247,11 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             assertEquals(domainId, chunkCaptor.getValue().getDomainId());
             assertEquals(entities, chunkCaptor.getValue().getTasks());
             assertEquals(HistoryNotificationTaskStatus.IN_PROGRESS, entity.getStatusId());
+            // loads happen AFTER the claim (outside the row-lock tx): history first, then actors —
+            // regression guard (TWINS-836 review P1): twins go through the unsafe load in the scheduler thread
+            verify(historyNotificationTaskService).loadHistory(entities);
+            verify(historyService).loadUser(entities.stream().map(HistoryNotificationTaskEntity::getHistory).toList());
+            verify(historyService).loadTwinUnsafe(entities.stream().map(HistoryNotificationTaskEntity::getHistory).toList());
         }
 
         @Test
@@ -257,7 +264,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             var entities = List.of(entityA1, entityA2, entityB);
             var task = mock(HistoryNotificationTask.class);
 
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(entities);
             // bulk status update goes through historyNotificationTaskService.updateStatuses (void) — no stub needed
             when(applicationContext.getBean(eq(HistoryNotificationTask.class), any(HistoryNotificationChunk.class)))
@@ -285,7 +292,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             var entity = buildEntity(null); // no domain resolvable from the history chain
             var entities = List.of(entity);
 
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(entities);
             // bulk status update goes through historyNotificationTaskService.updateStatuses (void) — no stub needed
 
@@ -296,7 +303,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             assertEquals("Twin is out of domain", entity.getStatusDetails());
             verify(applicationContext, never()).getBean(eq(HistoryNotificationTask.class), any(HistoryNotificationChunk.class));
             verify(taskExecutor, never()).execute(any());
-            // saved twice: once as IN_PROGRESS by setStatusAndSave, once as SKIPPED by the no-domain branch
+            // updateStatuses twice: claim (IN_PROGRESS inside the base transaction) + the no-domain skip
             verify(historyNotificationTaskService, times(2)).updateStatuses(entities);
         }
 
@@ -306,7 +313,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             var entity = buildEntity(domainId);
             var entities = List.of(entity);
 
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenReturn(entities);
             // bulk status update goes through historyNotificationTaskService.updateStatuses (void) — no stub needed
             when(applicationContext.getBean(eq(HistoryNotificationTask.class), any(HistoryNotificationChunk.class)))
@@ -317,7 +324,7 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             assertEquals("1 task(s) from db was processed", result);
             assertEquals(HistoryNotificationTaskStatus.NEED_START, entity.getStatusId());
             verify(taskExecutor, never()).execute(any());
-            // saved twice: once as IN_PROGRESS by setStatusAndSave, once reverted to NEED_START
+            // updateStatuses twice: claim (IN_PROGRESS inside the base transaction) + the revert to NEED_START
             verify(historyNotificationTaskService, times(2)).updateStatuses(List.of(entity));
         }
 
@@ -330,24 +337,23 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
             var props = new Properties();
             props.put("batchSize", "10");
 
-            when(historyNotificationTaskRepository.findByStatusIdIn(
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(
                     eq(List.of(HistoryNotificationTaskStatus.NEED_START)), any(Pageable.class)))
                     .thenReturn(entities);
-            // bulk status update goes through historyNotificationTaskService.updateStatuses (void) — no stub needed
             when(applicationContext.getBean(eq(HistoryNotificationTask.class), any(HistoryNotificationChunk.class)))
                     .thenReturn(task);
 
             var result = runner.processTask(props);
 
             assertEquals("1 task(s) from db was processed", result);
-            verify(historyNotificationTaskRepository).findByStatusIdIn(
+            verify(historyNotificationTaskRepository).findClaimableByStatusIdIn(
                     eq(List.of(HistoryNotificationTaskStatus.NEED_START)),
-                    argThat(p -> p.getPageNumber() == 0 && p.getPageSize() == 10));
+                    argThat(pg -> pg.getPageNumber() == 0 && pg.getPageSize() == 10));
         }
 
         @Test
-        void processTask_exceptionInCollectTasks_returnsErrorMessage() {
-            when(historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
+        void processTask_exceptionInClaim_returnsErrorMessage() {
+            when(historyNotificationTaskRepository.findClaimableByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START)))
                     .thenThrow(new RuntimeException("DB error"));
 
             var result = runner.processTask(new Properties());

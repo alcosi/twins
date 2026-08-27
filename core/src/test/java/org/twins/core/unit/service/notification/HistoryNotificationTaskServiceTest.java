@@ -94,4 +94,5 @@ class HistoryNotificationTaskServiceTest extends BaseUnitTest {
         assertThrows(IllegalArgumentException.class, () -> service.updateStatuses(List.of(noStatus)));
         verifyNoInteractions(repository);
     }
+
 }

@@ -32,12 +32,18 @@ class SchedulerDraftEraseScopeCollectTaskRunnerTest extends BaseUnitTest {
     @Mock
     private ApplicationContext applicationContext;
 
+    @Mock
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+
     private SchedulerDraftEraseScopeCollectTaskRunner runner;
 
     @BeforeEach
     void setUp() throws Exception {
         runner = new SchedulerDraftEraseScopeCollectTaskRunner(taskExecutor, draftRepository);
         setField(runner, "applicationContext", applicationContext);
+        setField(runner, "transactionTemplate", transactionTemplate);
+        lenient().when(transactionTemplate.execute(any())).thenAnswer(invocation ->
+                invocation.getArgument(0, org.springframework.transaction.support.TransactionCallback.class).doInTransaction(null));
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
