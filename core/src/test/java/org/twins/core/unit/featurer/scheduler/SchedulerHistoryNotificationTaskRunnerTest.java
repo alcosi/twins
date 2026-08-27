@@ -207,7 +207,6 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
 
             assertEquals(HistoryNotificationTaskStatus.FAILED, entity.getStatusId());
             assertEquals(3, entity.getAttemptCount());
-            assertNotNull(entity.getDoneAt());
             verify(historyNotificationTaskService).updateStatuses(List.of(entity));
         }
     }

@@ -15,7 +15,6 @@ import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.service.history.HistoryService;
 
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.function.Function;
 
@@ -77,7 +76,6 @@ public class HistoryNotificationTaskService extends EntitySecureFindServiceImpl<
             StatusTuple tuple = new StatusTuple(
                     task.getStatusId(),
                     task.getStatusDetails(),
-                    task.getDoneAt(),
                     task.getAttemptCount() == null ? 0 : task.getAttemptCount());
             groups.computeIfAbsent(tuple, k -> new ArrayList<>()).add(task);
         }
@@ -88,12 +86,11 @@ public class HistoryNotificationTaskService extends EntitySecureFindServiceImpl<
                     group.stream().map(HistoryNotificationTaskEntity::getId).toList(),
                     tuple.statusId(),
                     tuple.statusDetails(),
-                    tuple.doneAt(),
                     tuple.attemptCount());
         }
     }
 
-    private record StatusTuple(HistoryNotificationTaskStatus statusId, String statusDetails, Timestamp doneAt, Integer attemptCount) {
+    private record StatusTuple(HistoryNotificationTaskStatus statusId, String statusDetails, Integer attemptCount) {
     }
 
     /**

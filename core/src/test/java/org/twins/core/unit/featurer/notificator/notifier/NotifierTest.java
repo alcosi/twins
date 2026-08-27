@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class NotifierTest extends BaseUnitTest {
 
@@ -24,9 +24,9 @@ class NotifierTest extends BaseUnitTest {
     }
 
     /**
-     * Concrete test subclass that captures notify calls.
+     * Concrete test subclass that captures per-event notify calls (the {@link NotifierAtomic} hook).
      */
-    static class TestableNotifier extends Notifier {
+    static class TestableNotifier extends NotifierAtomic {
 
         Set<UUID> lastRecipientIds;
         Map<String, String> lastContext;
@@ -36,7 +36,7 @@ class NotifierTest extends BaseUnitTest {
 
         @Override
         protected void notify(Set<UUID> recipientIds, Map<String, String> context,
-                              String eventCode, Properties properties) throws ServiceException {
+                              String eventCode, Properties properties) {
             lastRecipientIds = recipientIds;
             lastContext = context;
             lastEventCode = eventCode;
@@ -99,20 +99,59 @@ class NotifierTest extends BaseUnitTest {
     class NotifyPublicMethod {
 
         @Test
-        void notify_validContext_delegatesToAbstractMethod() throws ServiceException {
+        void notify_validContext_delegatesPerEventAndReturnsNoFailures() throws Exception {
             var recipientIds = Set.of(UUID.randomUUID());
             var context = new HashMap<String, String>();
             context.put("key1", "value1");
+            var notifierParams = new HashMap<String, String>();
+            notifierParams.put("throwExceptionOnNullValues", "true");
             var props = new Properties();
             props.setProperty("throwExceptionOnNullValues", "true");
+            var featurerService = mock(org.cambium.featurer.FeaturerService.class);
+            when(featurerService.extractProperties(any(org.cambium.featurer.Featurer.class), eq(notifierParams))).thenReturn(props);
+            setField(notifier, "featurerService", featurerService);
 
-            // We need to mock featurerService for the public method,
-            // but since we test the protected method directly, we test validateContext + notify separately
-            notifier.notify(recipientIds, context, "eventCode", props);
+            var failed = notifier.notify(notifierParams, new java.util.LinkedHashSet<>(java.util.List.of(
+                    new NotifyEvent(null, recipientIds, context, "eventCode"))));
 
+            assertTrue(failed.isEmpty());
             assertEquals(1, notifier.notifyCallCount);
             assertEquals(recipientIds, notifier.lastRecipientIds);
             assertEquals("eventCode", notifier.lastEventCode);
+        }
+
+        @Test
+        void notify_nullContextValue_throwsBeforeSending() throws Exception {
+            var notifierParams = new HashMap<String, String>();
+            notifierParams.put("throwExceptionOnNullValues", "true");
+            var props = new Properties();
+            props.setProperty("throwExceptionOnNullValues", "true");
+            var featurerService = mock(org.cambium.featurer.FeaturerService.class);
+            when(featurerService.extractProperties(any(org.cambium.featurer.Featurer.class), eq(notifierParams))).thenReturn(props);
+            setField(notifier, "featurerService", featurerService);
+            var context = new HashMap<String, String>();
+            context.put("key1", null);
+
+            var exception = assertThrows(ServiceException.class, () -> notifier.notify(notifierParams,
+                    new java.util.LinkedHashSet<>(java.util.List.of(new NotifyEvent(null, Set.of(UUID.randomUUID()), context, "eventCode")))));
+
+            assertTrue(exception.getMessage().contains("key1"));
+            assertEquals(0, notifier.notifyCallCount);
+        }
+
+        private void setField(Object target, String fieldName, Object value) throws Exception {
+            Class<?> clazz = target.getClass();
+            while (clazz != null) {
+                try {
+                    var field = clazz.getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    field.set(target, value);
+                    return;
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass();
+                }
+            }
+            throw new NoSuchFieldException(fieldName);
         }
     }
 }

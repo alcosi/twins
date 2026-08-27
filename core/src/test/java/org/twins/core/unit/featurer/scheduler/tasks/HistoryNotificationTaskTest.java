@@ -1,7 +1,5 @@
 package org.twins.core.featurer.scheduler.tasks;
 
-import org.cambium.common.exception.ErrorCodeCommon;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -18,6 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
+import org.twins.core.featurer.notificator.notifier.NotifyEvent;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.notification.*;
 
@@ -204,10 +203,15 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
 
             assertEquals(HistoryNotificationTaskStatus.SENT, taskEntity.getStatusId());
             assertTrue(taskEntity.getStatusDetails().contains("2 recipients were notified"));
-            assertNotNull(taskEntity.getDoneAt());
+            // doneAt is DB-owned (trigger on the SENT transition) — never set by the application
+            assertNull(taskEntity.getDoneAt());
             // per-history ApiUser: locale source = twin creator
             verify(authService).setThreadLocalApiUser(domainId, ownerBa, creator);
-            verify(notifier).notify(eq(Set.of(userId1, userId2)), eq(Map.of("TWIN_NAME", "n")), eq("TWIN_CREATED"), any());
+            // one batched notify per channel: single event carries recipients + context + event code
+            verify(notifier).notify(any(), argThat(events -> events.size() == 1
+                    && events.iterator().next().recipientIds().equals(Set.of(userId1, userId2))
+                    && events.iterator().next().context().equals(Map.of("TWIN_NAME", "n"))
+                    && events.iterator().next().eventCode().equals("TWIN_CREATED")));
             verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
         }
 
@@ -248,7 +252,8 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
 
             task(chunk).run();
 
-            verify(notifier, times(1)).notify(any(), any(), eq("TWIN_CREATED"), any());
+            verify(notifier, times(1)).notify(any(), argThat(events ->
+                    events.size() == 1 && events.iterator().next().eventCode().equals("TWIN_CREATED")));
             assertEquals(HistoryNotificationTaskStatus.SENT, task1.getStatusId());
             assertEquals(HistoryNotificationTaskStatus.SKIPPED, task2.getStatusId());
         }
@@ -259,30 +264,37 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
 
         @Test
         void notifyFailsForFirstTask_secondStillProcessed() throws Exception {
+            // distinct recipients per task → distinct events in the shared channel batch; the notifier
+            // reports the failed EVENT back, the worker attributes it to the contributing task only
             var recipientId = UUID.randomUUID();
-            var userId = UUID.randomUUID();
+            var userId1 = UUID.randomUUID();
+            var userId2 = UUID.randomUUID();
             var event = channelEvent("TWIN_CREATED", null, false);
             var config1 = config(event, recipientId);
             var config2 = config(event, recipientId);
             var task1 = taskEntity(history(twin(twinClass(), null, null), null));
             var task2 = taskEntity(history(twin(twinClass(), null, null), null));
-            for (var t : List.of(task1, task2)) {
-                t.setResolvedRecipientsByRecipientId(Map.of(recipientId, Set.of(userId)));
-            }
+            task1.setResolvedRecipientsByRecipientId(Map.of(recipientId, Set.of(userId1)));
+            task2.setResolvedRecipientsByRecipientId(Map.of(recipientId, Set.of(userId2)));
             var chunk = new HistoryNotificationChunk(domainId, List.of(task1, task2));
             wire(chunk, task1, config1);
             wire(chunk, task2, config2);
             notifierReady();
-            doThrow(new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "grpc down"))
-                    .doNothing() // second call succeeds
-                    .when(notifier).notify(any(), any(), eq("TWIN_CREATED"), any());
+            when(notifier.notify(any(), argThat(events -> events != null && events.size() == 2)))
+                    .thenAnswer(invocation -> {
+                        Set<NotifyEvent> events = invocation.getArgument(1);
+                        return events.stream()
+                                .filter(e -> e.recipientIds().contains(userId1))
+                                .collect(java.util.stream.Collectors.toSet());
+                    });
 
             task(chunk).run();
 
             assertEquals(HistoryNotificationTaskStatus.FAILED, task1.getStatusId());
+            assertTrue(task1.getStatusDetails().contains("Notify failed"));
             assertEquals(HistoryNotificationTaskStatus.SENT, task2.getStatusId());
-            verify(notifier, times(2)).notify(any(), any(), eq("TWIN_CREATED"), any());
-            // both statuses persisted with ONE saveAll of the whole chunk
+            // ONE batched notify for the whole channel, both statuses persisted with ONE bulk update
+            verify(notifier, times(1)).notify(any(), any());
             verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
         }
 
@@ -333,7 +345,6 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             assertEquals(HistoryNotificationTaskStatus.FAILED, task1.getStatusId());
             assertEquals(3, task1.getAttemptCount());
             assertTrue(task1.getStatusDetails().contains("after 3 attempts"));
-            assertNotNull(task1.getDoneAt());
             verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
         }
 

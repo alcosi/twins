@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_4801,
         name = "Notifier Alcosi Notification Manager",
         description = "")
-public class NotifierAlcosiNotificationManager extends Notifier {
+public class NotifierAlcosiNotificationManager extends NotifierAtomic {
 
     @FeaturerParam(name = "Host domain base uri", order = 1, optional = false, defaultValue = "/")
     public static final FeaturerParamUrl hostDomainBaseUri = new FeaturerParamUrl("hostDomainBaseUri");

@@ -41,11 +41,10 @@ public interface HistoryNotificationTaskRepository extends CrudRepository<Histor
      * Callers keep the in-memory entities in sync themselves; see HistoryNotificationTaskService.updateStatuses.
      */
     @Modifying
-    @Query("update HistoryNotificationTaskEntity t set t.statusId = :statusId, t.statusDetails = :statusDetails, t.doneAt = :doneAt, t.attemptCount = :attemptCount where t.id in :ids")
+    @Query("update HistoryNotificationTaskEntity t set t.statusId = :statusId, t.statusDetails = :statusDetails, t.attemptCount = :attemptCount where t.id in :ids")
     int updateStatusByIdIn(@Param("ids") Collection<UUID> ids,
                            @Param("statusId") HistoryNotificationTaskStatus statusId,
                            @Param("statusDetails") String statusDetails,
-                           @Param("doneAt") Timestamp doneAt,
                            @Param("attemptCount") int attemptCount);
 
     void deleteAllByStatusIdIn(List<HistoryNotificationTaskStatus> statuses);

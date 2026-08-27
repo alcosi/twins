@@ -3,7 +3,6 @@ package org.twins.core.featurer.scheduler.tasks;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
@@ -13,14 +12,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
+import org.twins.core.dao.notification.NotificationChannelEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
+import org.twins.core.featurer.notificator.notifier.NotifyEvent;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.notification.*;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -100,10 +99,21 @@ public class HistoryNotificationTask implements Runnable {
                 notificationContextService.collectHistoryContextBatch(chunk);
             }
 
-            // 3. per-history processing — config relations are already loaded; ApiUser is set per history
-            //    (locale resolves to the twin creator's locale), status is set per entity, no cross-chunk throw
+            // 3. phase A — per-history build of notify events (recipients/context precomputed, ApiUser per
+            //    history for the locale, per-task isolation for skip/business-failure statuses);
+            //    phase B — ONE notify() call per notifier channel for the whole chunk. doneAt is DB-owned
+            //    (trigger on the SENT transition), so identical status tuples collapse into bulk groups
+            collectNotifyEvents(chunk);
+            dispatchNotify(chunk);
             for (HistoryNotificationTaskEntity task : tasks) {
-                processTask(task, chunk.getConfigsByTask().getOrDefault(task, List.of()));
+                // not terminal yet (null = freshly built in tests / never claimed, IN_PROGRESS = claimed):
+                // survived phase A without skip/failure and phase B without a failed event → SENT.
+                // read the count BEFORE mutating — @Data entities are mutable map keys (hashCode drift)
+                int recipientsCount = chunk.getRecipientsByTask().getOrDefault(task, 0);
+                if (task.getStatusId() == null || task.getStatusId() == HistoryNotificationTaskStatus.IN_PROGRESS) {
+                    task.setStatusId(HistoryNotificationTaskStatus.SENT)
+                            .setStatusDetails(recipientsCount + " recipients were notified");
+                }
             }
         } catch (Throwable e) {
             batchError = e;
@@ -113,7 +123,6 @@ public class HistoryNotificationTask implements Runnable {
             // infra reasons, not its own business error — revert it to NEED_START so the next tick retries
             // (attempt_count tracks consecutive failures). Terminal FAILED only after MAX_BATCH_ATTEMPTS
             // consecutive failures, so a persistently failing chunk cannot retry forever (poison pill).
-            Timestamp failedAt = Timestamp.from(Instant.now());
             for (HistoryNotificationTaskEntity task : tasks) {
                 if (task.getStatusId() == null || task.getStatusId() == HistoryNotificationTaskStatus.IN_PROGRESS) {
                     int attempts = (task.getAttemptCount() == null ? 0 : task.getAttemptCount()) + 1;
@@ -121,8 +130,7 @@ public class HistoryNotificationTask implements Runnable {
                     if (attempts >= MAX_BATCH_ATTEMPTS) {
                         task.setStatusId(HistoryNotificationTaskStatus.FAILED)
                                 .setStatusDetails("Batch failed after " + attempts + " attempts: "
-                                        + LoggerUtils.errorSnippet(batchError, ERROR_SNIPPET_MAX_LENGTH))
-                                .setDoneAt(failedAt);
+                                        + LoggerUtils.errorSnippet(batchError, ERROR_SNIPPET_MAX_LENGTH));
                     } else {
                         task.setStatusId(HistoryNotificationTaskStatus.NEED_START)
                                 .setStatusDetails("Batch failed (attempt " + attempts + " of " + MAX_BATCH_ATTEMPTS
@@ -136,7 +144,20 @@ public class HistoryNotificationTask implements Runnable {
         }
     }
 
-    private void processTask(HistoryNotificationTaskEntity task, List<HistoryNotificationEntity> configs) {
+    /**
+     * Phase A: builds every task's notify events into the chunk's per-channel buckets
+     * ({@code chunk.pendingByChannel} / {@code chunk.recipientsByTask}). Recipients/context are
+     * precomputed at chunk level; only statuses for skip/business-failure paths are set here — SENT is
+     * finalized after phase B (dispatchNotify) with the chunk-wide timestamp.
+     */
+    private void collectNotifyEvents(HistoryNotificationChunk chunk) {
+        for (HistoryNotificationTaskEntity task : chunk.getTasks()) {
+            collectNotifyEvents(chunk, task);
+        }
+    }
+
+    private void collectNotifyEvents(HistoryNotificationChunk chunk, HistoryNotificationTaskEntity task) {
+        List<HistoryNotificationEntity> configs = chunk.getConfigsByTask().getOrDefault(task, List.of());
         try {
             var history = task.getHistory();
             LoggerUtils.logSession(history.getHistoryBatchId());
@@ -190,36 +211,57 @@ public class HistoryNotificationTask implements Runnable {
                 // context is precomputed at chunk level in run() (one collectDataBatch per group; i18n per locale)
                 var collected = task.getCollectedContextByContextId();
                 var context = collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.<String, String>of();
-                var notificationChannel = channelEvent.getNotificationChannel();
-                var notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturerId(), Notifier.class);
-                notifier.notify(recipientIds, context, channelEvent.getEventCode(), notificationChannel.getNotifierParams());
+                chunk.getPendingByChannel().computeIfAbsent(channelEvent.getNotificationChannel(), k -> new ArrayList<>())
+                        .add(new NotifyEvent(task, recipientIds, context, channelEvent.getEventCode()));
             }
 
             if (recipientsCount == 0) {
                 throw new NotificationSkippedException("No recipients were found for " + history.logNormal());
             }
-
-            task
-                    .setStatusId(HistoryNotificationTaskStatus.SENT)
-                    .setStatusDetails(recipientsCount + " recipients were notified")
-                    .setDoneAt(Timestamp.from(Instant.now()));
+            chunk.getRecipientsByTask().put(task, recipientsCount);
         } catch (NotificationSkippedException e) {
             log.info(e.getMessage());
-            task
-                    .setStatusId(HistoryNotificationTaskStatus.SKIPPED)
-                    .setStatusDetails(e.getMessage());
-        } catch (ServiceException e) {
-            log.error(e.log());
-            task
-                    .setStatusId(HistoryNotificationTaskStatus.FAILED)
-                    .setStatusDetails(e.log());
+            task.setStatusId(HistoryNotificationTaskStatus.SKIPPED).setStatusDetails(e.getMessage());
         } catch (Throwable e) {
+            // notify itself no longer runs here (phase B, dispatchNotify) — only building can fail
             log.error("Exception: ", e);
-            task
-                    .setStatusId(HistoryNotificationTaskStatus.FAILED)
-                    .setStatusDetails(e.getMessage());
+            task.setStatusId(HistoryNotificationTaskStatus.FAILED).setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();
+        }
+    }
+
+    /**
+     * Phase B: one notify() batch per notifier channel across the whole chunk. Per-event failures come
+     * back as the failed-event set (see Notifier) and are attributed to their tasks; a channel-level
+     * throw fails every task that contributed events to the channel. Tasks not marked terminal here or
+     * in phase A are finalized as SENT by the caller.
+     */
+    private void dispatchNotify(HistoryNotificationChunk chunk) {
+        for (var entry : chunk.getPendingByChannel().entrySet()) {
+            NotificationChannelEntity channel = entry.getKey();
+            List<NotifyEvent> pending = entry.getValue();
+            Set<NotifyEvent> failedEvents;
+            try {
+                Notifier notifier = featurerService.getFeaturer(channel.getNotifierFeaturerId(), Notifier.class);
+                failedEvents = notifier.notify(channel.getNotifierParams(), new LinkedHashSet<>(pending));
+            } catch (Exception e) {
+                log.error("Notify failed for the whole channel, {} event(s) affected", pending.size(), e);
+                for (NotifyEvent event : pending) {
+                    event.task().setStatusId(HistoryNotificationTaskStatus.FAILED)
+                            .setStatusDetails("Notify failed: " + LoggerUtils.errorSnippet(e, ERROR_SNIPPET_MAX_LENGTH));
+                }
+                continue;
+            }
+            if (CollectionUtils.isEmpty(failedEvents)) {
+                continue;
+            }
+            for (NotifyEvent event : pending) {
+                if (failedEvents.contains(event)) {
+                    event.task().setStatusId(HistoryNotificationTaskStatus.FAILED)
+                            .setStatusDetails("Notify failed (see notifier log)");
+                }
+            }
         }
     }
 

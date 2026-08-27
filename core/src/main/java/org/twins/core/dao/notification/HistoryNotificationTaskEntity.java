@@ -5,7 +5,6 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 
@@ -16,7 +15,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "history_notification_task")
-@DynamicUpdate
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
@@ -48,7 +46,12 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @Column(name = "attempt_count", nullable = false)
     private Integer attemptCount = 0;
 
-    @Column(name = "done_at")
+    /**
+     * DB-owned: set by the history_notification_task_touch_done_at trigger on the transition INTO
+     * SENT (per-row clock_timestamp precision — bulk updates fire row triggers). The application
+     * never writes it: updatable = false here, the bulk status update does not include the column.
+     */
+    @Column(name = "done_at", updatable = false)
     private Timestamp doneAt;
 
     @Column(name = "created_at")
