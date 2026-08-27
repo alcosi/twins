@@ -454,6 +454,30 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    /**
+     * Membership filter against a related collection table (markers, tags, …) via EXISTS.
+     * Must not JOIN the collection: a twin matching several values would be multiplied,
+     * which breaks offset pagination and inflates {@code count(*)}.
+     */
+    public static <T, E> Specification<T> checkUuidExistsInRelated(final Collection<UUID> uuids, boolean not,
+                                                                   Class<E> relatedEntityClass, String relatedTwinIdField,
+                                                                   String relatedUuidField, String... twinIdFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
+            Path<UUID> twinIdPath = getFieldPath(root, JoinType.INNER, twinIdFieldPath);
+            Subquery<Long> subquery = query.subquery(Long.class);
+            Root<E> subRoot = subquery.from(relatedEntityClass);
+            String arrayString = collectionUuidsToSqlArray(uuids);
+            Expression<Boolean> anyExpression = cb.function("native_uuid_any", Boolean.class, subRoot.get(relatedUuidField), cb.literal(arrayString));
+            subquery.select(cb.literal(1L)).where(
+                    cb.equal(subRoot.get(relatedTwinIdField), twinIdPath),
+                    cb.isTrue(anyExpression)
+            );
+            Predicate exists = cb.exists(subquery);
+            return not ? cb.not(exists) : exists;
+        };
+    }
+
     public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
                                                                     final String twinClassIdFieldPath, final String inheritableFieldPath) {
         return checkTwinClassAndInheritable(classes, not, new String[]{twinClassIdFieldPath}, new String[]{inheritableFieldPath});
