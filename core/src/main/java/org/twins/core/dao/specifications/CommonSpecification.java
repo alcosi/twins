@@ -653,7 +653,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
-    public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
+    public static <T> Specification<T> checkFieldIn(final Collection<?> search, final boolean not,
                                                     final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))

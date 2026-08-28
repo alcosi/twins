@@ -10,13 +10,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 class RecipientResolverSpaceRolesTest extends BaseUnitTest {
 
@@ -49,71 +50,75 @@ class RecipientResolverSpaceRolesTest extends BaseUnitTest {
         var twin = new TwinEntity();
         twin.setId(UUID.randomUUID());
         var history = new HistoryEntity();
+        history.setTwinId(twin.getId());
         history.setTwin(twin);
         return history;
     }
 
     @Nested
-    class Resolve {
+    class ResolveBatch {
 
         @Test
-        void resolve_addsUsersFromSpaceRoles() throws Exception {
+        void resolveBatch_addsUsersFromSpaceRoles() throws Exception {
             var history = buildHistory();
             var twinId = history.getTwin().getId();
             var roleId1 = UUID.randomUUID();
             var roleId2 = UUID.randomUUID();
             var userId1 = UUID.randomUUID();
             var userId2 = UUID.randomUUID();
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
             var props = new Properties();
             props.setProperty("spaceRoleIds", roleId1 + "," + roleId2);
 
-            when(spaceRoleUserService.getUsers(twinId, Set.of(roleId1, roleId2)))
-                    .thenReturn(Set.of(userId1, userId2));
+            when(spaceRoleUserService.getUsersIn(Set.of(twinId), Set.of(roleId1, roleId2)))
+                    .thenReturn(Map.of(twinId, Set.of(userId1, userId2)));
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(2, recipientIds.size());
             assertTrue(recipientIds.contains(userId1));
             assertTrue(recipientIds.contains(userId2));
         }
 
         @Test
-        void resolve_appendsToExistingRecipients() throws Exception {
+        void resolveBatch_appendsToExistingRecipients() throws Exception {
             var history = buildHistory();
             var twinId = history.getTwin().getId();
             var roleId = UUID.randomUUID();
             var existingUserId = UUID.randomUUID();
             var newUserId = UUID.randomUUID();
-            var recipientIds = new HashSet<>(Set.of(existingUserId));
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
+            batch.getRecipientIdsByHistory().get(history).add(existingUserId);
             var props = new Properties();
             props.setProperty("spaceRoleIds", roleId.toString());
 
-            when(spaceRoleUserService.getUsers(twinId, Set.of(roleId)))
-                    .thenReturn(Set.of(newUserId));
+            when(spaceRoleUserService.getUsersIn(Set.of(twinId), Set.of(roleId)))
+                    .thenReturn(Map.of(twinId, Set.of(newUserId)));
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(2, recipientIds.size());
             assertTrue(recipientIds.contains(existingUserId));
             assertTrue(recipientIds.contains(newUserId));
         }
 
         @Test
-        void resolve_withEmptyResultFromService_keepsExistingRecipients() throws Exception {
+        void resolveBatch_withEmptyResultFromService_keepsExistingRecipients() throws Exception {
             var history = buildHistory();
             var twinId = history.getTwin().getId();
             var roleId = UUID.randomUUID();
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
             var props = new Properties();
             props.setProperty("spaceRoleIds", roleId.toString());
 
-            when(spaceRoleUserService.getUsers(twinId, Set.of(roleId)))
-                    .thenReturn(Set.of());
+            when(spaceRoleUserService.getUsersIn(Set.of(twinId), Set.of(roleId)))
+                    .thenReturn(Map.of());
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
-            assertTrue(recipientIds.isEmpty());
+            assertTrue(batch.getRecipientIdsByHistory().get(history).isEmpty());
         }
     }
 }

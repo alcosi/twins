@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.history.HistoryTypeConverter;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -15,6 +16,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -35,7 +37,8 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     }
 
     @Column(name = "history_type_id")
-    private String historyTypeId;
+    @Convert(converter = HistoryTypeConverter.class)
+    private HistoryType historyTypeId;
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
@@ -67,8 +70,17 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false)
+    private HistoryTypeEntity historyTypeSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private HistoryTypeEntity historyType;
 
     @Transient

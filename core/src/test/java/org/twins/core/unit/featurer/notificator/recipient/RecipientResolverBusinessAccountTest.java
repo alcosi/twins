@@ -10,13 +10,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.businessaccount.BusinessAccountUserService;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class RecipientResolverBusinessAccountTest extends BaseUnitTest {
@@ -55,51 +55,54 @@ class RecipientResolverBusinessAccountTest extends BaseUnitTest {
     }
 
     @Nested
-    class Resolve {
+    class ResolveBatch {
 
         @Test
-        void resolve_withBusinessAccount_addsAllUsers() throws Exception {
+        void resolveBatch_withBusinessAccount_addsAllUsers() throws Exception {
             var businessAccountId = UUID.randomUUID();
             var userId1 = UUID.randomUUID();
             var userId2 = UUID.randomUUID();
             var history = buildHistory(businessAccountId);
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
 
-            when(businessAccountUserService.findUserIdsByBusinessAccountId(businessAccountId))
-                    .thenReturn(List.of(userId1, userId2));
+            when(businessAccountUserService.findUserIdsByBusinessAccountIdIn(Set.of(businessAccountId)))
+                    .thenReturn(Map.of(businessAccountId, Set.of(userId1, userId2)));
 
-            resolver.resolve(history, recipientIds, new Properties());
+            resolver.resolveBatch(batch, new Properties());
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(2, recipientIds.size());
             assertTrue(recipientIds.contains(userId1));
             assertTrue(recipientIds.contains(userId2));
-            verify(businessAccountUserService).findUserIdsByBusinessAccountId(eq(businessAccountId));
+            verify(businessAccountUserService).findUserIdsByBusinessAccountIdIn(Set.of(businessAccountId));
         }
 
         @Test
-        void resolve_withNullBusinessAccount_doesNotAddAnyUsers() throws Exception {
+        void resolveBatch_withNullBusinessAccount_doesNotAddAnyUsers() throws Exception {
             var history = buildHistory(null);
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
 
-            resolver.resolve(history, recipientIds, new Properties());
+            resolver.resolveBatch(batch, new Properties());
 
-            assertTrue(recipientIds.isEmpty());
+            assertTrue(batch.getRecipientIdsByHistory().get(history).isEmpty());
             verifyNoInteractions(businessAccountUserService);
         }
 
         @Test
-        void resolve_preservesExistingRecipients() throws Exception {
+        void resolveBatch_preservesExistingRecipients() throws Exception {
             var businessAccountId = UUID.randomUUID();
             var existingUserId = UUID.randomUUID();
             var newUserId = UUID.randomUUID();
             var history = buildHistory(businessAccountId);
-            var recipientIds = new HashSet<>(Set.of(existingUserId));
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
+            batch.getRecipientIdsByHistory().get(history).add(existingUserId);
 
-            when(businessAccountUserService.findUserIdsByBusinessAccountId(businessAccountId))
-                    .thenReturn(List.of(newUserId));
+            when(businessAccountUserService.findUserIdsByBusinessAccountIdIn(Set.of(businessAccountId)))
+                    .thenReturn(Map.of(businessAccountId, Set.of(newUserId)));
 
-            resolver.resolve(history, recipientIds, new Properties());
+            resolver.resolveBatch(batch, new Properties());
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(2, recipientIds.size());
             assertTrue(recipientIds.contains(existingUserId));
             assertTrue(recipientIds.contains(newUserId));

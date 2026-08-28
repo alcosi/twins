@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -16,14 +17,20 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationRepository;
+import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.history.HistoryTypeService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinvalidator.TwinValidatorService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 import org.twins.core.service.user.UserService;
 
@@ -46,9 +53,11 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinValidatorSetService twinValidatorSetService;
+    private final TwinValidatorService twinValidatorService;
     private final NotificationSchemaService notificationSchemaService;
     private final NotificationEventServiceService notificationEventServiceService;
     private final HistoryNotificationRecipientService historyNotificationRecipientService;
+    private final HistoryTypeService historyTypeService;
 
     @Override
     public CrudRepository<HistoryNotificationEntity, UUID> entityRepository() {
@@ -242,6 +251,17 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
                 HistoryNotificationEntity::setTwinValidatorSet);
     }
 
+    public void loadHistoryType(HistoryNotificationEntity entity) throws ServiceException {
+        loadHistoryType(List.of(entity));
+    }
+
+    public void loadHistoryType(Collection<HistoryNotificationEntity> entities) throws ServiceException {
+        historyTypeService.load(entities,
+                entity -> entity.getHistoryTypeId() == null ? null : entity.getHistoryTypeId().getId(),
+                HistoryNotificationEntity::getHistoryType,
+                HistoryNotificationEntity::setHistoryType);
+    }
+
     public void loadCreatedByUser(HistoryNotificationEntity entity) throws ServiceException {
         loadCreatedByUser(List.of(entity));
     }
@@ -252,4 +272,110 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
                 HistoryNotificationEntity::getCreatedByUser,
                 HistoryNotificationEntity::setCreatedByUser);
     }
+
+    /**
+     * Bulk replacement for the per-history getConfigs(...) query in HistoryNotificationTask.
+     * One query over the union of (historyTypeId, twinClassId, notificationSchemaId) across all tasks,
+     * then in-memory matching via a prebuilt lookup cache (no per-task stream filters).
+     *
+     * Reproduces the original null-semantics of twinClassFieldId:
+     *  - taskFieldId == null  → accept configs with ANY fieldId (old no-fieldId query)
+     *  - taskFieldId != null  → exact fieldId match (old with-fieldId query)
+     *
+     * Used by the batch HistoryNotificationTask run().
+     */
+    public void findConfigsForTasks(HistoryNotificationChunk chunk) throws ServiceException {
+        if (chunk == null || CollectionUtils.isEmpty(chunk.getTasks())) {
+            return;
+        }
+        Set<HistoryType> historyTypeIds = null;
+        Set<UUID> twinClassIds = null;
+        Set<UUID> schemaIds = null;
+        Map<HistoryNotificationTaskEntity, TaskContext> taskContexts = new HashMap<>();
+        for (HistoryNotificationTaskEntity task : chunk.getTasks()) {
+            HistoryEntity history = task.getHistory();
+            HistoryType historyType = history.getHistoryType();
+            historyTypeIds = CollectionUtils.safeAdd(historyTypeIds, historyType);
+            schemaIds = CollectionUtils.safeAdd(schemaIds, task.getNotificationSchemaId());
+            Set<UUID> extended = history.getTwin().getTwinClass().getExtendedClassIdSet();
+            Set<UUID> matchingClassIds = extended == null ? new HashSet<>() : new HashSet<>(extended);
+            matchingClassIds.add(history.getTwin().getTwinClassId());
+            twinClassIds = CollectionUtils.safeAdd(twinClassIds, matchingClassIds);
+            taskContexts.put(task, new TaskContext(historyType, task.getNotificationSchemaId(), matchingClassIds, history.getTwinClassFieldId()));
+        }
+
+        if (taskContexts.isEmpty() || historyTypeIds.isEmpty()) {
+            return;
+        }
+        List<HistoryNotificationEntity> candidates = repository.findByHistoryTypeIdInAndTwinClassIdInAndNotificationSchemaIdInAndActiveTrue(
+                historyTypeIds, twinClassIds, schemaIds);
+        // prebuild lookup cache keyed by HistoryType enum — O(candidates) once, O(1) per (task × classId), no stream filters
+        Map<ConfigKey, List<HistoryNotificationEntity>> byKey = new HashMap<>();   // exact fieldId
+        Map<ConfigTrioKey, List<HistoryNotificationEntity>> byTrio = new HashMap<>(); // any fieldId
+        for (HistoryNotificationEntity c : candidates) {
+            HistoryType ht = c.getHistoryTypeId();
+            byKey.computeIfAbsent(new ConfigKey(ht, c.getNotificationSchemaId(), c.getTwinClassId(), c.getTwinClassFieldId()), k -> new ArrayList<>()).add(c);
+            byTrio.computeIfAbsent(new ConfigTrioKey(ht, c.getNotificationSchemaId(), c.getTwinClassId()), k -> new ArrayList<>()).add(c);
+        }
+        // match configs to tasks -> config -> set of tasks (single pass)
+        var tasksByConfig = chunk.getTasksByConfig();
+        for (Map.Entry<HistoryNotificationTaskEntity, TaskContext> entry : taskContexts.entrySet()) {
+            HistoryNotificationTaskEntity task = entry.getKey();
+            TaskContext ctx = entry.getValue();
+            for (UUID classId : ctx.matchingClassIds()) {
+                List<HistoryNotificationEntity> bucket = ctx.taskFieldId() == null
+                        ? byTrio.get(new ConfigTrioKey(ctx.historyTypeId(), ctx.schemaId(), classId))
+                        : byKey.get(new ConfigKey(ctx.historyTypeId(), ctx.schemaId(), classId, ctx.taskFieldId()));
+                if (bucket != null) {
+                    for (HistoryNotificationEntity config : bucket) {
+                        tasksByConfig.computeIfAbsent(config, k -> new LinkedHashSet<>()).add(task);
+                    }
+                }
+            }
+        }
+        // build both projections (validation) and store on the chunk
+        var configsByTask = chunk.getConfigsByTask();
+        if (!tasksByConfig.isEmpty()) {
+            // preload all validator sets in one query; isValid(...) below skips the load since they're cached
+            twinValidatorSetService.loadTwinValidatorSet(tasksByConfig.keySet());
+            twinValidatorService.loadValidators(tasksByConfig.keySet());
+            // iterate over a snapshot: configs whose every task failed validation are removed from
+            // tasksByConfig below — mutating the live entrySet would throw ConcurrentModificationException
+            // iterate over a snapshot: configs whose every task failed validation are removed from
+            // tasksByConfig below — mutating the live entrySet would throw ConcurrentModificationException
+            for (Map.Entry<HistoryNotificationEntity, LinkedHashSet<HistoryNotificationTaskEntity>> entry : new ArrayList<>(tasksByConfig.entrySet())) {
+                HistoryNotificationEntity config = entry.getKey();
+                LinkedHashSet<HistoryNotificationTaskEntity> tasks = entry.getValue();
+                // deduped twins of these tasks (several tasks may share a twin)
+                Map<UUID, TwinEntity> twinById = new HashMap<>();
+                for (HistoryNotificationTaskEntity task : tasks) {
+                    var twin = task.getHistory().getTwin();
+                    twinById.putIfAbsent(twin.getId(), twin);
+                }
+                Map<UUID, ValidationResult> validationResults = twinById.isEmpty()
+                        ? Collections.emptyMap()
+                        : twinValidatorSetService.isValid(twinById.values(), config);
+                // tasks that passed validation for this config — keep them in both projections
+                LinkedHashSet<HistoryNotificationTaskEntity> validTasks = new LinkedHashSet<>();
+                for (HistoryNotificationTaskEntity task : tasks) {
+                    TwinEntity twin = task.getHistory().getTwin();
+                    ValidationResult vr = twin != null ? validationResults.get(twin.getId()) : null;
+                    // keep if valid; defensive keep if the twin/result is undetermined (vr == null)
+                    if (vr == null || vr.isValid()) {
+                        validTasks.add(task);
+                        configsByTask.computeIfAbsent(task, k -> new ArrayList<>()).add(config);
+                    }
+                }
+                if (!validTasks.isEmpty()) {
+                    tasksByConfig.put(config, validTasks);
+                } else {
+                    tasksByConfig.remove(config);
+                }
+            }
+        }
+    }
+
+    private record ConfigKey(HistoryType historyTypeId, UUID schemaId, UUID twinClassId, UUID twinClassFieldId) {}
+    private record ConfigTrioKey(HistoryType historyTypeId, UUID schemaId, UUID twinClassId) {}
+    private record TaskContext(HistoryType historyTypeId, UUID schemaId, Set<UUID> matchingClassIds, UUID taskFieldId) {}
 }

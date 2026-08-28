@@ -58,4 +58,6 @@ public class HistoryNotificationSearchService {
                 checkTernary(search.getActive(), HistoryNotificationEntity.Fields.active)
         );
     }
+
+
 }

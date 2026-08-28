@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
-public abstract class ContextCollectorUser extends ContextCollector {
+public abstract class ContextCollectorUser extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");
@@ -43,9 +43,19 @@ public abstract class ContextCollectorUser extends ContextCollector {
     @Autowired
     private TwinService twinService;
 
+    /**
+     * Bulk-load the twin→user relation for the whole batch so {@link #collectData} reads it in-memory
+     * (was a per-history {@code loadUser} call — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadUser(batch.getTwins());
+        }
+    }
+
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
-        twinService.loadUser(history.getTwin());
         UserEntity user = getUser(history, properties);
 
         if (user != null) { //todo logic if null

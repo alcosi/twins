@@ -31,6 +31,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twin.TwinRole;
@@ -439,6 +440,26 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return currentUserHasPermission(false, Set.of(permission.getId()));
     }
 
+    /**
+     * Hardcoded permissions of system identities (schedulers acting on behalf of the platform) —
+     * domain-independent, identical in every domain, no DB grants or user-group membership needed.
+     * Checked before the regular user-permission resolution, so a system ApiUser never touches the
+     * user_group/permission tables at all.
+     */
+    static final Map<UUID, Set<UUID>> SYSTEM_USER_PERMISSIONS = Map.of(
+            SystemIds.User.NOTIFICATION_SCHEDULER, Set.of(Permissions.DOMAIN_TWINS_VIEW_ALL.getId())
+    );
+
+    public static boolean systemUserHasPermission(UUID userId, boolean anyOf, Set<UUID> permissions) {
+        Set<UUID> systemPermissions = SYSTEM_USER_PERMISSIONS.get(userId);
+        if (systemPermissions == null) {
+            return false;
+        }
+        return anyOf
+                ? permissions.stream().anyMatch(systemPermissions::contains)
+                : systemPermissions.containsAll(permissions);
+    }
+
     public boolean currentUserHasPermission(boolean anyOf, Set<UUID> permissions) throws ServiceException {
         if (CollectionUtils.isEmpty(permissions))
             return false;
@@ -446,6 +467,9 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         ApiUser apiUser = authService.getApiUser();
         if (!apiUser.isUserSpecified())
             return false;
+
+        if (systemUserHasPermission(apiUser.getUserId(), anyOf, permissions))
+            return true;
 
         loadUserPermissions(apiUser.getUser());
         return anyOf

@@ -123,7 +123,8 @@ public class TwinValidatorService extends EntitySecureFindServiceImpl<TwinValida
                 twinValidatorRepository::findByTwinValidatorSetIdIn,
                 TwinValidatorEntity::getId,
                 TwinValidatorEntity::getTwinValidatorSetId,
-                (child, parent) -> {});
+                (child, parent) -> {},
+                true);
     }
 
     public void loadTwinValidatorSet(TwinValidatorEntity src) throws ServiceException {

@@ -88,6 +88,25 @@ public class BusinessAccountUserService extends EntitySecureFindServiceImpl<Busi
         return businessAccountUserRepository.findUserIdByBusinessAccountId(businessAccountId);
     }
 
+    /**
+     * Bulk variant of {@link #findUserIdsByBusinessAccountId(UUID)}: one query for many business
+     * accounts, result grouped by businessAccountId (absent ids map to an empty set). For batch
+     * recipient resolving where the whole chunk shares resolvers.
+     */
+    public Map<UUID, Set<UUID>> findUserIdsByBusinessAccountIdIn(Collection<UUID> businessAccountIds) {
+        if (CollectionUtils.isEmpty(businessAccountIds)) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Set<UUID>> byBusinessAccount = new HashMap<>();
+        for (UUID businessAccountId : businessAccountIds) {
+            byBusinessAccount.put(businessAccountId, new HashSet<>());
+        }
+        for (BusinessAccountUserEntity businessAccountUser : businessAccountUserRepository.findByBusinessAccountIdIn(businessAccountIds)) {
+            byBusinessAccount.get(businessAccountUser.getBusinessAccountId()).add(businessAccountUser.getUserId());
+        }
+        return byBusinessAccount;
+    }
+
     public void loadBusinessAccounts(Collection<DomainUserEntity> domainUserList) {
         if (CollectionUtils.isEmpty(domainUserList))
             return;

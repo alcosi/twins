@@ -79,6 +79,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        loadTwin(entity);
         return checkDomainAccessDenied(entity.getTwin().getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
@@ -518,6 +519,30 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                         HistoryEntity::getMachineUser,
                         HistoryEntity::setMachineUser)
         );
+    }
+
+    public void loadTwin(HistoryEntity src) throws ServiceException {
+        loadTwin(Collections.singletonList(src));
+    }
+
+    public void loadTwin(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
+    }
+
+    /**
+     * Unchecked (no permission check / no validation) variant of {@link #loadTwin(Collection)} — for
+     * scheduler-thread bulk loads that run without an ApiUser / request context, where the secure path
+     * (TwinService.isEntityReadDenied → AuthService.getApiUser) cannot work. Domain isolation is enforced
+     * later by the notification chunk grouping (one chunk = one domain).
+     */
+    public void loadTwinUnsafe(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.loadUnsafe(srcCollection,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
     }
 
     public void loadTwinClassField(HistoryEntity src) throws ServiceException {

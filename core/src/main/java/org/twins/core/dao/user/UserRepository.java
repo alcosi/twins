@@ -30,11 +30,27 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and domainUser.domainId = :domainId")
     List<UUID> findUserIdByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
-    @Query(value = "select domainUser.userId from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
-            "where businessAccountUser.businessAccountId = :businessAccountId " +
-            "and domainUser.domainId = :domainId " +
-            "and domainUser.userId in :userIds")
+    @Query(value = "select dbau.userId " +
+            "from DomainBusinessAccountUserEntity dbau " +
+            "where dbau.businessAccountId = :businessAccountId " +
+            "and dbau.domainId = :domainId " +
+            "and dbau.userId in :userIds")
     Set<UUID> findUserIdByBusinessAccountIdAndDomainIdFiltered(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId, @Param("userIds") Collection<UUID> userIds);
+
+    /**
+     * Bulk variant of {@link #findUserIdByBusinessAccountIdAndDomainIdFiltered}: filters {@code userIds}
+     * against many business accounts of one domain in a single query, returning {@code (businessAccountId, userId)}
+     * pairs to group by business account. Backed by the materialized {@code domain_business_account_user}
+     * link table (a row exists only when user is in both the domain and the business account), so no JOIN
+     * is needed. Used by batch recipient resolvers where a whole chunk shares the same resolver params
+     * (fixed userIds) and domain.
+     */
+    @Query(value = "select dbau.businessAccountId, dbau.userId " +
+            "from DomainBusinessAccountUserEntity dbau " +
+            "where dbau.domainId = :domainId " +
+            "and dbau.businessAccountId in :businessAccountIds " +
+            "and dbau.userId in :userIds")
+    List<Object[]> findUserIdByBusinessAccountIdInAndDomainIdFiltered(@Param("businessAccountIds") Collection<UUID> businessAccountIds, @Param("domainId") UUID domainId, @Param("userIds") Collection<UUID> userIds);
 
     @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
             "where businessAccountUser.businessAccountId = :businessAccountId " +

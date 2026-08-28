@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -62,6 +63,16 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private NotificationContextEntity notificationContext;
+
+    /**
+     * Transient-runtime: context collectors of this event's notification context (loaded in bulk via
+     * {@code loadContextCollectors}). Grouped by contextId, so several events sharing one context share
+     * the same collector list.
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Kit<NotificationContextCollectorEntity, UUID> collectors;
 
     public String easyLog(Level level) {
         return switch (level) {

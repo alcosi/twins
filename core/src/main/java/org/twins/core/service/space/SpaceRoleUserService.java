@@ -257,6 +257,25 @@ public class SpaceRoleUserService extends TwinsEntitySecureFindService<SpaceRole
         return repository.findUserIdsByTwinIdAndSpaceRoleIds(twinId, spaceRoleIds);
     }
 
+    /**
+     * Bulk variant of {@link #getUsers}: resolves users across many twins (spaces) sharing the same
+     * space roles in a single query, result grouped by twinId (absent ids map to an empty set). For
+     * batch recipient resolving where a whole chunk shares the same resolver params (fixed spaceRoleIds).
+     */
+    public Map<UUID, Set<UUID>> getUsersIn(Collection<UUID> twinIds, Set<UUID> spaceRoleIds) {
+        if (twinIds == null || twinIds.isEmpty() || spaceRoleIds == null || spaceRoleIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Set<UUID>> byTwin = new HashMap<>();
+        for (UUID twinId : twinIds) {
+            byTwin.put(twinId, new HashSet<>());
+        }
+        for (Object[] row : repository.findUserIdsByTwinIdInAndSpaceRoleIdsIn(twinIds, spaceRoleIds)) {
+            byTwin.get((UUID) row[0]).add((UUID) row[1]);
+        }
+        return byTwin;
+    }
+
     public void loadTwin(SpaceRoleUserEntity src) throws ServiceException {
         loadTwin(Collections.singletonList(src));
     }

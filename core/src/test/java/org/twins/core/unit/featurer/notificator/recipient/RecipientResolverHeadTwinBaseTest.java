@@ -10,12 +10,12 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 
 class RecipientResolverHeadTwinBaseTest extends BaseUnitTest {
 
@@ -112,38 +112,45 @@ class RecipientResolverHeadTwinBaseTest extends BaseUnitTest {
     class ResolveWithoutCachedHeadTwin {
 
         @Test
-        void resolve_headTwinNull_loadsFromService() throws Exception {
+        void resolveBatch_headTwinNull_loadedInBulkByHook() throws Exception {
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
             var headTwin = new TwinEntity();
             headTwin.setCreatedByUserId(UUID.randomUUID());
             var history = buildHistory(twin);
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
             var props = new Properties();
             props.setProperty("resolveHeadTwinCreator", "true");
 
-            when(twinService.findHeadTwin(twin.getId())).thenReturn(headTwin);
+            // beforeResolve hook bulk-loads head twins for the whole batch (mocked: single twin)
+            doAnswer(invocation -> {
+                Collection<TwinEntity> batchTwins = invocation.getArgument(0);
+                for (TwinEntity t : batchTwins) {
+                    t.setHeadTwin(headTwin);
+                }
+                return null;
+            }).when(twinService).loadHead(List.of(twin));
 
-            resolver.resolve(history, recipientIds, props);
+            resolver.resolveBatch(batch, props);
 
+            var recipientIds = batch.getRecipientIdsByHistory().get(history);
             assertEquals(1, recipientIds.size());
             assertTrue(recipientIds.contains(headTwin.getCreatedByUserId()));
+            verify(twinService).loadHead(List.of(twin));
         }
 
         @Test
-        void resolve_headTwinNullAndServiceReturnsNull_doesNotAdd() throws Exception {
+        void resolveBatch_headTwinNotLoaded_doesNotAdd() throws Exception {
             var twin = new TwinEntity();
             twin.setId(UUID.randomUUID());
             var history = buildHistory(twin);
-            var recipientIds = new HashSet<UUID>();
+            var batch = new RecipientResolveBatch(UUID.randomUUID()).add(history);
             var props = new Properties();
             props.setProperty("resolveHeadTwinCreator", "true");
 
-            when(twinService.findHeadTwin(twin.getId())).thenReturn(null);
+            resolver.resolveBatch(batch, props);
 
-            resolver.resolve(history, recipientIds, props);
-
-            assertTrue(recipientIds.isEmpty());
+            assertTrue(batch.getRecipientIdsByHistory().get(history).isEmpty());
         }
     }
 

@@ -7,6 +7,7 @@ import io.grpc.ManagedChannelBuilder;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUrl;
 import org.springframework.stereotype.Component;
@@ -17,13 +18,14 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_4801,
         name = "Notifier Alcosi Notification Manager",
         description = "")
-public class NotifierAlcosiNotificationManager extends Notifier {
+public class NotifierAlcosiNotificationManager extends NotifierAtomic {
 
     @FeaturerParam(name = "Host domain base uri", order = 1, optional = false, defaultValue = "/")
     public static final FeaturerParamUrl hostDomainBaseUri = new FeaturerParamUrl("hostDomainBaseUri");
@@ -34,6 +36,9 @@ public class NotifierAlcosiNotificationManager extends Notifier {
     @FeaturerParam(name = "Collect event key", order = 3, optional = true, defaultValue = "EVENT_ID")
     public static final FeaturerParamString collectEventKey = new FeaturerParamString("collectEventKey");
 
+    @FeaturerParam(name = "Send timeout ms", order = 4, optional = true, defaultValue = "5000")
+    public static final FeaturerParamInt sendTimeoutMs = new FeaturerParamInt("sendTimeoutMs");
+
     @Override
     protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, Properties properties) throws ServiceException {
         String businessAccountKey = collectCompanyKey.extract(properties);
@@ -41,7 +46,11 @@ public class NotifierAlcosiNotificationManager extends Notifier {
 
         String hostDomainBaseUriValue = getHostDomainBaseUri(properties);
 
-        ReceiverServiceGrpc.ReceiverServiceBlockingStub receiverServiceFutureStub = getOrCreateStub(hostDomainBaseUriValue);
+        // deadline per call: a hung gRPC call must not block the chunk worker thread forever. Applied to a
+        // derived stub — the cached base stub stays deadline-free and reusable
+        Integer sendTimeoutMsValue = sendTimeoutMs.extract(properties);
+        ReceiverServiceGrpc.ReceiverServiceBlockingStub receiverServiceFutureStub = getOrCreateStub(hostDomainBaseUriValue)
+                .withDeadlineAfter(sendTimeoutMsValue, TimeUnit.MILLISECONDS);
 
         AlcosiReceiver.SendNotificationCommand notificationCommand = AlcosiReceiver.SendNotificationCommand.newBuilder()
                 .addAllUsersIds(recipientIds.stream().map(UUID::toString).collect(Collectors.toList()))

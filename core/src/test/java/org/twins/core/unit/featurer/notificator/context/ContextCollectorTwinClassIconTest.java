@@ -10,13 +10,15 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.resource.ResourceService;
+import org.twins.core.service.twin.TwinService;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 class ContextCollectorTwinClassIconTest extends BaseUnitTest {
@@ -26,13 +28,16 @@ class ContextCollectorTwinClassIconTest extends BaseUnitTest {
     @Mock
     private ResourceService resourceService;
 
+    @Mock
+    private TwinService twinService;
+
     private TwinClassEntity twinClass;
     private TwinEntity twin;
     private HistoryEntity history;
 
     @BeforeEach
     void setUp() {
-        collector = new ContextCollectorTwinClassIcon(resourceService);
+        collector = new ContextCollectorTwinClassIcon(resourceService, twinService);
 
         twinClass = new TwinClassEntity();
         twinClass.setId(UUID.randomUUID());
@@ -42,6 +47,10 @@ class ContextCollectorTwinClassIconTest extends BaseUnitTest {
 
         history = new HistoryEntity();
         history.setTwin(twin);
+    }
+
+    private ContextCollectorBatch newBatch() {
+        return new ContextCollectorBatch(UUID.randomUUID()).add(history);
     }
 
     private Properties lightProps() {
@@ -62,38 +71,39 @@ class ContextCollectorTwinClassIconTest extends BaseUnitTest {
     class LightIcon {
 
         @Test
-        void collectData_lightIcon_withResource_putsUrl() throws Exception {
+        void collectDataBatch_lightIcon_withResource_putsUrl() throws Exception {
             var lightResource = new ResourceEntity();
             twinClass.setIconLightResource(lightResource);
             when(resourceService.getResourceUri(lightResource)).thenReturn("http://cdn/icon-light.png");
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, lightProps());
+            collector.collectDataBatch(batch, lightProps());
 
-            assertEquals("http://cdn/icon-light.png", result.get("TWIN_CLASS_ICON_URL"));
-            verify(resourceService).loadIconResources(twinClass);
+            assertEquals("http://cdn/icon-light.png", batch.getContextByHistory().get(history).get("TWIN_CLASS_ICON_URL"));
+            // bulk preload of icon resources happens once per batch (beforeCollect hook)
+            verify(resourceService).loadIconResources(List.of(twinClass));
         }
 
         @Test
-        void collectData_lightIcon_nullResource_returnsEmptyContext() throws Exception {
+        void collectDataBatch_lightIcon_nullResource_returnsEmptyContext() throws Exception {
             twinClass.setIconLightResource(null);
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, lightProps());
+            collector.collectDataBatch(batch, lightProps());
 
-            assertTrue(result.isEmpty());
+            assertTrue(batch.getContextByHistory().get(history).isEmpty());
         }
 
         @Test
-        void collectData_lightIcon_resourceWithNullUri_returnsEmptyContext() throws Exception {
+        void collectDataBatch_lightIcon_resourceWithNullUri_returnsEmptyContext() throws Exception {
             var lightResource = new ResourceEntity();
             twinClass.setIconLightResource(lightResource);
             when(resourceService.getResourceUri(lightResource)).thenReturn(null);
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, lightProps());
+            collector.collectDataBatch(batch, lightProps());
 
-            assertTrue(result.isEmpty());
+            assertTrue(batch.getContextByHistory().get(history).isEmpty());
         }
     }
 
@@ -101,37 +111,37 @@ class ContextCollectorTwinClassIconTest extends BaseUnitTest {
     class DarkIcon {
 
         @Test
-        void collectData_darkIcon_withResource_putsUrl() throws Exception {
+        void collectDataBatch_darkIcon_withResource_putsUrl() throws Exception {
             var darkResource = new ResourceEntity();
             twinClass.setIconDarkResource(darkResource);
             when(resourceService.getResourceUri(darkResource)).thenReturn("http://cdn/icon-dark.png");
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, darkProps());
+            collector.collectDataBatch(batch, darkProps());
 
-            assertEquals("http://cdn/icon-dark.png", result.get("TWIN_CLASS_ICON_URL"));
+            assertEquals("http://cdn/icon-dark.png", batch.getContextByHistory().get(history).get("TWIN_CLASS_ICON_URL"));
         }
 
         @Test
-        void collectData_darkIcon_nullResource_returnsEmptyContext() throws Exception {
+        void collectDataBatch_darkIcon_nullResource_returnsEmptyContext() throws Exception {
             twinClass.setIconDarkResource(null);
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, darkProps());
+            collector.collectDataBatch(batch, darkProps());
 
-            assertTrue(result.isEmpty());
+            assertTrue(batch.getContextByHistory().get(history).isEmpty());
         }
 
         @Test
-        void collectData_darkIcon_resourceWithNullUri_returnsEmptyContext() throws Exception {
+        void collectDataBatch_darkIcon_resourceWithNullUri_returnsEmptyContext() throws Exception {
             var darkResource = new ResourceEntity();
             twinClass.setIconDarkResource(darkResource);
             when(resourceService.getResourceUri(darkResource)).thenReturn(null);
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, darkProps());
+            collector.collectDataBatch(batch, darkProps());
 
-            assertTrue(result.isEmpty());
+            assertTrue(batch.getContextByHistory().get(history).isEmpty());
         }
     }
 
@@ -139,17 +149,18 @@ class ContextCollectorTwinClassIconTest extends BaseUnitTest {
     class CustomKey {
 
         @Test
-        void collectData_customKey_usedForCollection() throws Exception {
+        void collectDataBatch_customKey_usedForCollection() throws Exception {
             var props = new Properties();
             props.put("collectKey", "MY_ICON");
             props.put("useDarkIcon", "false");
             var lightResource = new ResourceEntity();
             twinClass.setIconLightResource(lightResource);
             when(resourceService.getResourceUri(lightResource)).thenReturn("http://cdn/icon.png");
-            var context = new HashMap<String, String>();
+            var batch = newBatch();
 
-            var result = collector.collectData(history, context, props);
+            collector.collectDataBatch(batch, props);
 
+            var result = batch.getContextByHistory().get(history);
             assertEquals("http://cdn/icon.png", result.get("MY_ICON"));
             assertNull(result.get("TWIN_CLASS_ICON_URL"));
         }
@@ -159,15 +170,16 @@ class ContextCollectorTwinClassIconTest extends BaseUnitTest {
     class PreserveContext {
 
         @Test
-        void collectData_preservesExistingContext() throws Exception {
+        void collectDataBatch_preservesExistingContext() throws Exception {
             var lightResource = new ResourceEntity();
             twinClass.setIconLightResource(lightResource);
             when(resourceService.getResourceUri(lightResource)).thenReturn("http://cdn/icon.png");
-            var context = new HashMap<String, String>();
-            context.put("EXISTING", "value");
+            var batch = newBatch();
+            batch.getContextByHistory().get(history).put("EXISTING", "value");
 
-            var result = collector.collectData(history, context, lightProps());
+            collector.collectDataBatch(batch, lightProps());
 
+            var result = batch.getContextByHistory().get(history);
             assertEquals("value", result.get("EXISTING"));
             assertEquals("http://cdn/icon.png", result.get("TWIN_CLASS_ICON_URL"));
         }

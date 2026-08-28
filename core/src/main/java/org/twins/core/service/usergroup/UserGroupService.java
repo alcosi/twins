@@ -212,6 +212,40 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         return userGroupMapRepository.getUsers(domainId, businessAccountId, userGroupIds);
     }
 
+    /**
+     * Bulk variant of {@link #getUsersForGroups}: resolves group memberships for many business accounts
+     * of one domain in a single query, result grouped by businessAccountId (absent ids map to an empty
+     * set). Domain-level memberships ({@code businessAccountId = null} rows) match every requested
+     * business account and are added to each. For batch recipient resolving where a whole chunk shares
+     * the same resolver params (fixed groupIds) and domain.
+     */
+    public Map<UUID, Set<UUID>> getUsersForGroupsIn(UUID domainId, Collection<UUID> businessAccountIds, Set<UUID> userGroupIds) {
+        if (CollectionUtils.isEmpty(businessAccountIds) || domainId == null || CollectionUtils.isEmpty(userGroupIds)) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Set<UUID>> byBusinessAccount = new HashMap<>();
+        for (UUID businessAccountId : businessAccountIds) {
+            byBusinessAccount.put(businessAccountId, new HashSet<>());
+        }
+        Set<UUID> domainLevel = new HashSet<>();
+        for (Object[] row : userGroupMapRepository.getUsersIn(domainId, businessAccountIds, userGroupIds)) {
+            UUID businessAccountId = (UUID) row[0];
+            UUID userId = (UUID) row[1];
+            if (businessAccountId == null) {
+                // domain-level group → matches every requested business account
+                domainLevel.add(userId);
+            } else {
+                byBusinessAccount.computeIfAbsent(businessAccountId, id -> new HashSet<>()).add(userId);
+            }
+        }
+        if (!domainLevel.isEmpty()) {
+            for (Set<UUID> userIds : byBusinessAccount.values()) {
+                userIds.addAll(domainLevel);
+            }
+        }
+        return byBusinessAccount;
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     public List<UserGroupEntity> createUserGroup(Collection<UserGroupCreate> entities) throws ServiceException {
         if (CollectionUtils.isEmpty(entities)) {
