@@ -213,16 +213,20 @@ class NotificationContextServiceTest extends BaseUnitTest {
     class I18nPerLocale {
 
         @Test
-        void sharedI18nId_resolvedPerHistoryCreatorLocale() throws Exception {
-            // one collector group over two histories; the same i18n id must resolve to DIFFERENT
-            // translations per history — each history's locale is its twin creator's locale
+        void recipientLocalesDriveTranslations_templatesKeepPlaceholders() throws Exception {
+            // locales come from the RECIPIENTS (task.resolvedRecipientsByRecipientId), not from the twin
+            // creators; collect keeps #i18n placeholders in the templates and bulk-loads translations
+            // once per distinct recipient locale
             var ctxId = UUID.randomUUID();
             var event = channelEvent(ctxId, ctxCollector("TWIN_CLASS"));
             var configCtx = config(event);
-            var userEn = UUID.randomUUID();
-            var userDe = UUID.randomUUID();
-            var taskEn = task(history(twin(userEn)));
-            var taskDe = task(history(twin(userDe)));
+            var recipientConfigId = UUID.randomUUID();
+            var recipientEn = UUID.randomUUID();
+            var recipientDe = UUID.randomUUID();
+            var taskEn = task(history(twin(UUID.randomUUID())));
+            var taskDe = task(history(twin(UUID.randomUUID())));
+            taskEn.setResolvedRecipientsByRecipientId(Map.of(recipientConfigId, Set.of(recipientEn)));
+            taskDe.setResolvedRecipientsByRecipientId(Map.of(recipientConfigId, Set.of(recipientDe)));
             var chunk = chunkOf(taskEn, taskDe);
             wire(chunk, configCtx, taskEn, taskDe);
             var i18nId = UUID.randomUUID();
@@ -233,9 +237,9 @@ class NotificationContextServiceTest extends BaseUnitTest {
                 }
                 return null;
             }).when(collector).collectDataBatch(any(ContextCollectorBatch.class), any(HashMap.class));
-            when(domainUserService.getLocaleMap(eq(domainId), any())).thenReturn(Map.of(
-                    userEn, Locale.ENGLISH,
-                    userDe, Locale.GERMAN));
+            when(domainUserService.getLocaleMap(eq(domainId), eq(Set.of(recipientEn, recipientDe)))).thenReturn(Map.of(
+                    recipientEn, Locale.ENGLISH,
+                    recipientDe, Locale.GERMAN));
             when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.ENGLISH)))
                     .thenReturn(Map.of(i18nId, "Name-EN"));
             when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.GERMAN)))
@@ -243,49 +247,46 @@ class NotificationContextServiceTest extends BaseUnitTest {
 
             service.collectHistoryContextBatch(chunk);
 
-            // one bulk translate per locale — shared across the whole chunk
+            // one bulk translate per distinct recipient locale — shared across the whole chunk
             verify(i18nService, times(1)).translateToLocale(eq(Set.of(i18nId)), eq(Locale.ENGLISH));
             verify(i18nService, times(1)).translateToLocale(eq(Set.of(i18nId)), eq(Locale.GERMAN));
-            assertEquals("Name-EN", taskEn.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
-            assertEquals("Name-DE", taskDe.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+            // templates keep the raw placeholders — materialization happens per locale at event build
+            assertEquals("#i18n=" + i18nId, taskEn.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+            assertEquals("#i18n=" + i18nId, taskDe.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+            assertEquals(Map.of(i18nId, "Name-EN"), chunk.getI18nTranslationsByLocale().get(Locale.ENGLISH));
+            assertEquals(Map.of(i18nId, "Name-DE"), chunk.getI18nTranslationsByLocale().get(Locale.GERMAN));
         }
 
         @Test
-        void missingLocaleOrTranslation_resolvesToEmptyString_notRawPlaceholder() throws Exception {
-            // parity with the old per-id translateToLocale: a user without a locale and a locale without
-            // a translation both resolve to "" — the raw "#i18n=<uuid>" placeholder must never leak
+        void materializeContext_perLocale_emptyOnMissingLocaleOrTranslation() throws Exception {
+            // parity with the old per-id translateToLocale: a recipient without a locale and a locale
+            // without a translation both materialize to "" — the raw "#i18n=<uuid>" never leaks
             var ctxId = UUID.randomUUID();
             var event = channelEvent(ctxId, ctxCollector("TWIN_CLASS"));
             var configCtx = config(event);
-            var userDe = UUID.randomUUID();       // has locale, has translation -> translated
-            var userEn = UUID.randomUUID();       // has locale, NO translation -> ""
-            var userNoLocale = UUID.randomUUID(); // no locale at all -> ""
-            var taskDe = task(history(twin(userDe)));
-            var taskEn = task(history(twin(userEn)));
-            var taskNoLocale = task(history(twin(userNoLocale)));
-            var chunk = chunkOf(taskDe, taskEn, taskNoLocale);
-            wire(chunk, configCtx, taskDe, taskEn, taskNoLocale);
+            var recipient = UUID.randomUUID();
+            var taskEntity = task(history(twin(UUID.randomUUID())));
+            taskEntity.setResolvedRecipientsByRecipientId(Map.of(UUID.randomUUID(), Set.of(recipient)));
+            var chunk = chunkOf(taskEntity);
+            wire(chunk, configCtx, taskEntity);
             var i18nId = UUID.randomUUID();
             doAnswer(invocation -> {
                 ContextCollectorBatch batch = invocation.getArgument(0);
                 for (var historyEntry : batch.getContextByHistory().entrySet()) {
                     batch.addI18n(historyEntry.getKey(), "TWIN_CLASS_NAME", i18nId);
+                    batch.getContextByHistory().get(historyEntry.getKey()).put("PLAIN", "value");
                 }
                 return null;
             }).when(collector).collectDataBatch(any(ContextCollectorBatch.class), any(HashMap.class));
-            when(domainUserService.getLocaleMap(eq(domainId), any())).thenReturn(Map.of(
-                    userDe, Locale.GERMAN,
-                    userEn, Locale.ENGLISH)); // userNoLocale deliberately absent
-            when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.GERMAN)))
-                    .thenReturn(Map.of(i18nId, "Name-DE"));
-            when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.ENGLISH)))
-                    .thenReturn(Map.of()); // translation missing for EN
+            when(domainUserService.getLocaleMap(eq(domainId), any())).thenReturn(Map.of(recipient, Locale.ENGLISH));
+            when(i18nService.translateToLocale(eq(Set.of(i18nId)), eq(Locale.ENGLISH))).thenReturn(Map.of()); // no translation
 
             service.collectHistoryContextBatch(chunk);
 
-            assertEquals("Name-DE", taskDe.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
-            assertEquals("", taskEn.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
-            assertEquals("", taskNoLocale.getCollectedContextByContextId().get(ctxId).get("TWIN_CLASS_NAME"));
+            var template = taskEntity.getCollectedContextByContextId().get(ctxId);
+            assertEquals("", service.materializeContext(template, chunk, Locale.ENGLISH).get("TWIN_CLASS_NAME"));
+            assertEquals("", service.materializeContext(template, chunk, null).get("TWIN_CLASS_NAME"));
+            assertEquals("value", service.materializeContext(template, chunk, null).get("PLAIN")); // non-placeholder passes through
         }
     }
 }

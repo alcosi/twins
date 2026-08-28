@@ -208,11 +208,22 @@ public class HistoryNotificationTask implements Runnable {
                 }
 
                 recipientsCount += recipientIds.size();
-                // context is precomputed at chunk level in run() (one collectDataBatch per group; i18n per locale)
+                // context template is precomputed at chunk level (one collectDataBatch per group); it still
+                // carries #i18n placeholders — materialize PER RECIPIENT LOCALE: split the event's
+                // recipients by locale so each recipient gets the notification in their own language
+                // (recipients without a locale land in the null-locale group → placeholders become "")
                 var collected = task.getCollectedContextByContextId();
-                var context = collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.<String, String>of();
-                chunk.getPendingByChannel().computeIfAbsent(channelEvent.getNotificationChannel(), k -> new ArrayList<>())
-                        .add(new NotifyEvent(task, recipientIds, context, channelEvent.getEventCode()));
+                var template = collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.<String, String>of();
+                Map<Locale, Set<UUID>> recipientsByLocale = new HashMap<>();
+                for (UUID recipientId : recipientIds) {
+                    recipientsByLocale.computeIfAbsent(chunk.getLocaleByRecipient().get(recipientId), _ -> new LinkedHashSet<>()).add(recipientId);
+                }
+                for (var localeEntry : recipientsByLocale.entrySet()) {
+                    var context = notificationContextService.materializeContext(template, chunk, localeEntry.getKey());
+                    chunk.getPendingByChannel()
+                            .computeIfAbsent(channelEvent.getNotificationChannel(), k -> new ArrayList<>())
+                            .add(new NotifyEvent(task, localeEntry.getValue(), context, channelEvent.getEventCode()));
+                }
             }
 
             if (recipientsCount == 0) {

@@ -28,8 +28,10 @@ public class HistoryNotificationChunk {
     private final Map<NotificationChannelEntity, List<NotifyEvent>> pendingByChannel = new LinkedHashMap<>();
     /** task → total recipient count across its events (for the SENT status details). */
     private final Map<HistoryNotificationTaskEntity, Integer> recipientsByTask = new HashMap<>();
-    /** lazy: distinct twin-creator user ids across the chunk (for bulk locale resolution). */
-    private Set<UUID> createdByUserIds;
+    /** recipient user id → locale (for per-recipient-locale context translation). Populated by collectHistoryContextBatch. */
+    private final Map<UUID, Locale> localeByRecipient = new HashMap<>();
+    /** i18n id translations per locale for ALL i18n ids collected in the chunk. Populated by collectHistoryContextBatch. */
+    private final Map<Locale, Map<UUID, String>> i18nTranslationsByLocale = new HashMap<>();
 
     public HistoryNotificationChunk(UUID domainId, List<HistoryNotificationTaskEntity> tasks) {
         this.domainId = domainId;
@@ -37,20 +39,23 @@ public class HistoryNotificationChunk {
     }
 
     /**
-     * Distinct non-null {@code twin.createdByUserId} values across the chunk's tasks (lazy, cached).
+     * Union of all resolved recipient user ids across the chunk's tasks — every user that will receive
+     * a notification from this chunk (their locales drive the context translation).
      */
-    public Set<UUID> getCreatedByUserIds() {
-        if (createdByUserIds == null) {
-            createdByUserIds = new HashSet<>();
-            for (HistoryNotificationTaskEntity task : tasks) {
-                if (task.getHistory() != null && task.getHistory().getTwin() != null) {
-                    UUID userId = task.getHistory().getTwin().getCreatedByUserId();
-                    if (userId != null) {
-                        createdByUserIds.add(userId);
-                    }
+    public Set<UUID> getRecipientUserIds() {
+        Set<UUID> recipientIds = new HashSet<>();
+        for (HistoryNotificationTaskEntity task : tasks) {
+            Map<UUID, Set<UUID>> resolved = task.getResolvedRecipientsByRecipientId();
+            if (resolved == null) {
+                continue;
+            }
+            for (Set<UUID> userIds : resolved.values()) {
+                if (userIds != null) {
+                    recipientIds.addAll(userIds);
                 }
             }
         }
-        return createdByUserIds;
+        return recipientIds;
     }
+
 }

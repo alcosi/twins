@@ -66,6 +66,9 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
     /** Stubbed only in tests that reach the notify loop (strict stubs reject unused ones). */
     private void notifierReady() throws Exception {
         when(featurerService.getFeaturer(eq(NOTIFIER_FEATURER_ID), eq(Notifier.class))).thenReturn(notifier);
+        // pass-through: the real materialize copies the template (per-locale substitution is covered
+        // by NotificationContextServiceTest.materializeContext_perLocale_...)
+        when(notificationContextService.materializeContext(any(), any(), any())).thenAnswer(inv -> new HashMap<>(inv.getArgument(0)));
     }
 
     // ---------- wiring ----------
@@ -213,6 +216,41 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
                     && events.iterator().next().context().equals(Map.of("TWIN_NAME", "n"))
                     && events.iterator().next().eventCode().equals("TWIN_CREATED")));
             verify(historyNotificationTaskService, times(1)).updateStatuses(chunk.getTasks());
+        }
+
+        @Test
+        void recipientsSplitByLocale_perLocaleContextAndEvent() throws Exception {
+            // the bug fix (TWINS-836): context must be translated in the RECIPIENT's locale, not the
+            // twin creator's — one NotifyEvent per (task, channel, locale group of recipients)
+            var recipientId = UUID.randomUUID();
+            var userEn = UUID.randomUUID();
+            var userDe = UUID.randomUUID();
+            var userNoLocale = UUID.randomUUID();
+            var i18nId = UUID.randomUUID();
+            var ctxId = UUID.randomUUID();
+            var event = channelEvent("TWIN_CREATED", ctxId, false);
+            var config = config(event, recipientId);
+            var taskEntity = taskEntity(history(twin(twinClass(), null, null), null));
+            taskEntity.setResolvedRecipientsByRecipientId(Map.of(recipientId, Set.of(userEn, userDe, userNoLocale)));
+            taskEntity.setCollectedContextByContextId(Map.of(ctxId, Map.of("TWIN_CLASS_NAME", "#i18n=" + i18nId)));
+            var chunk = new HistoryNotificationChunk(domainId, List.of(taskEntity));
+            wire(chunk, taskEntity, config);
+            chunk.getLocaleByRecipient().put(userEn, Locale.ENGLISH);
+            chunk.getLocaleByRecipient().put(userDe, Locale.GERMAN); // userNoLocale deliberately absent -> null-locale group
+            chunk.getI18nTranslationsByLocale().put(Locale.ENGLISH, Map.of(i18nId, "Name-EN"));
+            chunk.getI18nTranslationsByLocale().put(Locale.GERMAN, Map.of(i18nId, "Name-DE"));
+            notifierReady();
+
+            task(chunk).run();
+
+            assertEquals(HistoryNotificationTaskStatus.SENT, taskEntity.getStatusId());
+            assertTrue(taskEntity.getStatusDetails().contains("3 recipients were notified"));
+            // three locale groups -> three events in ONE channel batch, each with its own recipient set
+            // (per-locale context values are covered by NotificationContextServiceTest)
+            verify(notifier).notify(any(), argThat(events -> events.size() == 3
+                    && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(userEn)))
+                    && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(userDe)))
+                    && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(userNoLocale)))));
         }
 
         @Test
