@@ -10,7 +10,9 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
 import org.twins.core.dao.twin.TwinFieldDecimalRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByLink;
+import org.twins.core.service.auth.AuthService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,6 +27,12 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
     @Mock
     private TwinFieldDecimalRepository twinFieldDecimalRepository;
 
+    @Mock
+    private AuthService authService;
+
+    @Mock
+    private ApiUser apiUser;
+
     private UUID fieldId;
     private Set<UUID> linkedTwinClassIds;
     private Set<UUID> linkIds;
@@ -32,18 +40,24 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
     private Set<UUID> linkedOfClassIds;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws ServiceException {
         fieldId = UUID.randomUUID();
         linkedTwinClassIds = Set.of(UUID.randomUUID());
         linkIds = Set.of(UUID.randomUUID());
         linkedInStatusIds = Set.of(UUID.randomUUID());
         linkedOfClassIds = Set.of(UUID.randomUUID());
+        when(authService.getApiUser()).thenReturn(apiUser);
+        when(apiUser.getUserId()).thenReturn(null);
     }
 
     private TwinFieldStorageCalcSumByLink newStorage(boolean srcElseDst, boolean statusExclude) {
+        return newStorage(srcElseDst, statusExclude, false);
+    }
+
+    private TwinFieldStorageCalcSumByLink newStorage(boolean srcElseDst, boolean statusExclude, boolean matchAssignee) {
         return new TwinFieldStorageCalcSumByLink(
-                fieldId, twinFieldDecimalRepository, linkedTwinClassIds,
-                linkedInStatusIds, linkedOfClassIds, srcElseDst, statusExclude, linkIds);
+                fieldId, twinFieldDecimalRepository, authService, linkedTwinClassIds,
+                linkedInStatusIds, linkedOfClassIds, srcElseDst, statusExclude, linkIds, matchAssignee);
     }
 
     private TwinEntity twin(UUID id) {
@@ -64,7 +78,7 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLink(
                     eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds),
-                    eq(linkedOfClassIds), eq(linkedTwinClassIds), eq(linkIds), eq(false)))
+                    eq(linkedOfClassIds), eq(linkedTwinClassIds), eq(linkIds), eq(false), isNull()))
                     .thenReturn(List.of(
                             new TwinFieldCalcProjection(dst1.getId(), new BigDecimal("3")),
                             new TwinFieldCalcProjection(dst2.getId(), new BigDecimal("4"))));
@@ -74,11 +88,30 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
             // ByLink: aggregation targets the link relation, NOT the head/children relation.
             verify(twinFieldDecimalRepository).sumLinkedTwinFieldValuesByLink(
                     eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds),
-                    eq(linkedOfClassIds), eq(linkedTwinClassIds), eq(linkIds), eq(false));
+                    eq(linkedOfClassIds), eq(linkedTwinClassIds), eq(linkIds), eq(false), isNull());
             verify(twinFieldDecimalRepository, never()).sumChildrenTwinFieldValuesByHead(
                     any(), any(), any(), anyBoolean(), any());
             assertEquals(new BigDecimal("3"), dst1.getTwinFieldCalculated().get(fieldId));
             assertEquals(new BigDecimal("4"), dst2.getTwinFieldCalculated().get(fieldId));
+        }
+
+        @Test
+        void load_matchAssigneeTrue_passesApiUserId() throws ServiceException {
+            var userId = UUID.randomUUID();
+            when(apiUser.getUserId()).thenReturn(userId);
+            var storage = newStorage(true, false, true);
+            var dst1 = twin(UUID.randomUUID());
+            var kit = new Kit<>(java.util.List.of(dst1), TwinEntity::getId);
+
+            when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLink(
+                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean(), eq(userId)))
+                    .thenReturn(List.of());
+
+            storage.load(kit);
+
+            verify(twinFieldDecimalRepository).sumLinkedTwinFieldValuesByLink(
+                    eq(kit.getIdSet()), eq(true), eq(linkedInStatusIds),
+                    eq(linkedOfClassIds), eq(linkedTwinClassIds), eq(linkIds), eq(false), eq(userId));
         }
 
         @Test
@@ -89,7 +122,7 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
             var kit = new Kit<>(java.util.Arrays.asList(dst1, dst2), TwinEntity::getId);
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLink(
-                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean()))
+                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean(), any()))
                     .thenReturn(List.of(new TwinFieldCalcProjection(dst1.getId(), new BigDecimal("11"))));
 
             storage.load(kit);
@@ -105,7 +138,7 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
             var kit = new Kit<>(java.util.List.of(dst1), TwinEntity::getId);
 
             when(twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLink(
-                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean()))
+                    any(), anyBoolean(), any(), any(), any(), any(), anyBoolean(), any()))
                     .thenReturn(List.of());
 
             storage.load(kit);
@@ -127,8 +160,8 @@ class TwinFieldStorageCalcSumByLinkTest extends BaseUnitTest {
             // ByLink merge contract must include the linkId (distinguishes which link aggregates).
             var a = newStorage(true, false);
             var b = new TwinFieldStorageCalcSumByLink(
-                    fieldId, twinFieldDecimalRepository, linkedTwinClassIds,
-                    linkedInStatusIds, linkedOfClassIds, true, false, Set.of(UUID.randomUUID()));
+                    fieldId, twinFieldDecimalRepository, authService, linkedTwinClassIds,
+                    linkedInStatusIds, linkedOfClassIds, true, false, Set.of(UUID.randomUUID()), false);
             assertNotEquals(a, b);
         }
 
