@@ -10,9 +10,9 @@ import java.util.*;
 
 /**
  * Single container for a notification chunk: created by the runner with a domain id + the chunk's tasks,
- * then populated by {@code findConfigsForTasks} with the matched/validated config projections, and by
- * the worker's phase A with the pending notify events. Carries lazy helpers (createdByUserIds) reused
- * across the batch stages.
+ * then populated by {@code findConfigsForTasks} with the matched/validated config projections, by
+ * {@code resolveRecipientsBatch} / {@code collectHistoryContextBatch} with the precomputed recipients
+ * and per-locale i18n state, and by the worker's phase A with the pending notify events.
  */
 @Getter
 public class HistoryNotificationChunk {
@@ -58,4 +58,22 @@ public class HistoryNotificationChunk {
         return recipientIds;
     }
 
+    /**
+     * Splits recipient ids into locale groups by {@link #localeByRecipient}: each group becomes its own
+     * NotifyEvent with the context materialized for the group's locale. Recipients without a locale
+     * (or the whole chunk, when it collected no i18n and locales were never loaded) form the single
+     * null-locale group.
+     */
+    public Map<Locale, Set<UUID>> splitRecipientsByLocale(Set<UUID> recipientIds) {
+        Map<Locale, Set<UUID>> recipientsByLocale = new LinkedHashMap<>();
+        for (UUID recipientId : recipientIds) {
+            recipientsByLocale.computeIfAbsent(localeByRecipient.get(recipientId), _ -> new LinkedHashSet<>()).add(recipientId);
+        }
+        return recipientsByLocale;
+    }
+
+    /** Adds an event to its channel's pending batch (phase A accumulator; phase B sends one batch per channel). */
+    public void addPendingEvent(NotificationChannelEntity channel, NotifyEvent event) {
+        pendingByChannel.computeIfAbsent(channel, _ -> new ArrayList<>()).add(event);
+    }
 }

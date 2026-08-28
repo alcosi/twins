@@ -117,20 +117,18 @@ class ContextCollectorTwinClassTest extends BaseUnitTest {
     class CollectName {
 
         @Test
-        void collectDataBatch_collectNameTrue_withI18nId_registersI18nRef() throws Exception {
+        void collectDataBatch_collectNameTrue_withI18nId_putsPlaceholderAndRegistersId() throws Exception {
             var nameI18nId = UUID.randomUUID();
             twinClass.setNameI18NId(nameI18nId);
             var batch = newBatch();
 
             collector.collectDataBatch(batch, props(false, false, true, false));
 
-            // two-phase i18n: no value in the context yet, the caller substitutes the translation
-            // in bulk per locale via the registered refs
-            assertNull(batch.getContextByHistory().get(history).get("TWIN_CLASS_NAME"));
+            // two-phase i18n: the context holds the #i18n placeholder, the caller materializes it
+            // with the per-locale translation in bulk afterwards
+            assertEquals(ContextCollectorBatch.i18nPlaceholder(nameI18nId),
+                    batch.getContextByHistory().get(history).get("TWIN_CLASS_NAME"));
             assertTrue(batch.getI18nIds().contains(nameI18nId));
-            var refs = batch.getI18nRefs().get(nameI18nId);
-            assertEquals(1, refs.size());
-            assertEquals(new ContextCollectorBatch.I18nRef(history, "TWIN_CLASS_NAME"), refs.get(0));
         }
 
         @Test
@@ -161,18 +159,16 @@ class ContextCollectorTwinClassTest extends BaseUnitTest {
     class CollectDescription {
 
         @Test
-        void collectDataBatch_collectDescriptionTrue_withI18nId_registersI18nRef() throws Exception {
+        void collectDataBatch_collectDescriptionTrue_withI18nId_putsPlaceholderAndRegistersId() throws Exception {
             var descI18nId = UUID.randomUUID();
             twinClass.setDescriptionI18NId(descI18nId);
             var batch = newBatch();
 
             collector.collectDataBatch(batch, props(false, false, false, true));
 
-            assertNull(batch.getContextByHistory().get(history).get("TWIN_CLASS_DESCRIPTION"));
+            assertEquals(ContextCollectorBatch.i18nPlaceholder(descI18nId),
+                    batch.getContextByHistory().get(history).get("TWIN_CLASS_DESCRIPTION"));
             assertTrue(batch.getI18nIds().contains(descI18nId));
-            var refs = batch.getI18nRefs().get(descI18nId);
-            assertEquals(1, refs.size());
-            assertEquals(new ContextCollectorBatch.I18nRef(history, "TWIN_CLASS_DESCRIPTION"), refs.get(0));
         }
 
         @Test
@@ -200,11 +196,13 @@ class ContextCollectorTwinClassTest extends BaseUnitTest {
 
             collector.collectDataBatch(batch, props(true, true, true, true));
 
-            // id + key land in the context directly; name + description are deferred to i18n refs
+            // id + key land in the context directly; name + description are i18n placeholders
             var result = batch.getContextByHistory().get(history);
-            assertEquals(2, result.size());
+            assertEquals(4, result.size());
             assertEquals(twinClassId.toString(), result.get("TWIN_CLASS_ID"));
             assertEquals("test-class-key", result.get("TWIN_CLASS_KEY"));
+            assertEquals(ContextCollectorBatch.i18nPlaceholder(nameI18nId), result.get("TWIN_CLASS_NAME"));
+            assertEquals(ContextCollectorBatch.i18nPlaceholder(descI18nId), result.get("TWIN_CLASS_DESCRIPTION"));
             assertEquals(2, batch.getI18nIds().size());
             assertTrue(batch.getI18nIds().contains(nameI18nId));
             assertTrue(batch.getI18nIds().contains(descI18nId));

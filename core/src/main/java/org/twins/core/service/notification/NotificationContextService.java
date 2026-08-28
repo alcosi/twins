@@ -67,12 +67,12 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
      * across the WHOLE chunk — different contexts often share collector configs (e.g. a head-twin
      * collector in both manager and worker notification contexts), so a group runs once over the
      * union of its histories (one beforeCollect preload per group). i18n (4911) is two-phase —
-     * collectors register ids via {@link ContextCollectorBatch#addI18n}, then translations are
-     * resolved in bulk per RECIPIENT locale (each recipient gets the notification in their own
-     * locale, not the twin creator's). Per-(context, history) results are merged from the group
-     * batches and land on each {@code task.collectedContextByContextId} as a TEMPLATE with
-     * {@code #i18n=<uuid>} placeholders — materialized per recipient locale at notify-event build
-     * time via {@link #materializeContext}.
+     * collectors put {@code #i18n=<uuid>} placeholders via {@link ContextCollectorBatch#addI18n},
+     * then {@link #resolveI18n} bulk-translates the ids in the RECIPIENTS' locales (each recipient
+     * gets the notification in their own locale, not the twin creator's). Per-(context, history)
+     * results are merged from the group batches and land on each {@code task.collectedContextByContextId}
+     * as a TEMPLATE still carrying the placeholders — materialized per recipient locale at
+     * notify-event build time via {@link #materializeContext}.
      */
     public void collectHistoryContextBatch(HistoryNotificationChunk chunk) throws ServiceException {
         if (chunk == null || chunk.getTasksByConfig().isEmpty()) {
@@ -124,11 +124,10 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
             groupBatchByKey.put(group.getConfigKey(), batch);
         }
 
-        // resolve i18n for the whole chunk in the RECIPIENTS' locales: recipient locales are
-        // bulk-loaded once (one query), translations bulk-loaded once per distinct locale across all
-        // group batches (groups of one chunk usually share the same i18n ids, e.g. twin class names).
-        // Placeholders stay in the templates — materialization happens per locale at event build
-        loadRecipientLocalesAndTranslations(chunk, groupBatchByKey.values());
+        // resolve i18n for the whole chunk in the RECIPIENTS' locales (one bulk translate per locale,
+        // shared by all group batches); placeholders stay in the templates — materialization happens
+        // per locale at event build
+        resolveI18n(chunk, groupBatchByKey.values());
 
         // distribute per-(task, contextId): a context's entry for a history = union of its groups'
         // contributions (collectors complement the same per-history context map)
@@ -181,20 +180,13 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
     }
 
     /**
-     * Bulk-loads the chunk recipients' locales (one query) and the i18n translations for every
-     * distinct recipient locale (one bulk translate per locale) into the chunk. Recipients without a
-     * locale end up in the null-locale group — their placeholders materialize as empty strings.
+     * Resolves the chunk's i18n in the RECIPIENTS' locales: recipient locales are bulk-loaded once
+     * (one query), then every i18n id collected in the chunk is bulk-translated once per distinct
+     * locale (groups of one chunk usually share the same i18n ids, e.g. twin class names). A chunk
+     * with no i18n skips this entirely — no locale is loaded, so all recipients land in one
+     * null-locale group at event build.
      */
-    private void loadRecipientLocalesAndTranslations(HistoryNotificationChunk chunk, Collection<ContextCollectorBatch> batches) throws ServiceException {
-        // place the raw placeholders into the per-history context templates: addI18n only registers the
-        // ref, the value materializes per recipient locale at event build (materializeContext)
-        for (ContextCollectorBatch batch : batches) {
-            for (var e : batch.getI18nRefs().entrySet()) {
-                for (ContextCollectorBatch.I18nRef ref : e.getValue()) {
-                    batch.getContextByHistory().get(ref.history()).put(ref.contextKey(), I18N_PLACEHOLDER_PREFIX + e.getKey());
-                }
-            }
-        }
+    private void resolveI18n(HistoryNotificationChunk chunk, Collection<ContextCollectorBatch> batches) throws ServiceException {
         Set<UUID> i18nIds = new HashSet<>();
         for (ContextCollectorBatch batch : batches) {
             i18nIds.addAll(batch.getI18nIds());
@@ -210,24 +202,22 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
     }
 
     /**
-     * Materializes a context template for one locale: {@code #i18n=<uuid>} placeholder values are
-     * replaced with the locale's translation (empty string on a missing translation or a null locale —
-     * parity with the old per-id translateToLocale). Non-placeholder values pass through as is.
+     * Materializes a context template for one locale: every {@code #i18n=<uuid>} placeholder value is
+     * replaced with its translation for the locale (empty string on a missing translation or a null
+     * locale — parity with the old per-id translateToLocale, the raw placeholder never leaks).
+     * Non-placeholder values pass through unchanged.
      */
     public Map<String, String> materializeContext(Map<String, String> template, HistoryNotificationChunk chunk, Locale locale) {
+        Map<UUID, String> translations = locale != null ? chunk.getI18nTranslationsByLocale().get(locale) : null;
         Map<String, String> context = new HashMap<>(template);
         for (var entry : context.entrySet()) {
-            String value = entry.getValue();
-            if (value == null || !value.startsWith(I18N_PLACEHOLDER_PREFIX)) {
+            if (!ContextCollectorBatch.isI18nPlaceholder(entry.getValue())) {
                 continue;
             }
-            UUID i18nId = UUID.fromString(value.substring(I18N_PLACEHOLDER_PREFIX.length()));
-            Map<UUID, String> translations = locale != null ? chunk.getI18nTranslationsByLocale().get(locale) : null;
+            UUID i18nId = ContextCollectorBatch.i18nIdOfPlaceholder(entry.getValue());
             String translation = translations != null ? translations.get(i18nId) : null;
             entry.setValue(translation != null ? translation : "");
         }
         return context;
     }
-
-    private static final String I18N_PLACEHOLDER_PREFIX = "#i18n=";
 }

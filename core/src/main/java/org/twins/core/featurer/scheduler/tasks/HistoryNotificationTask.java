@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.NotificationChannelEntity;
+import org.twins.core.dao.notification.NotificationChannelEventEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
@@ -193,37 +194,15 @@ public class HistoryNotificationTask implements Runnable {
                     }
                 }
 
-                var recipientIds = new HashSet<UUID>();
-                var resolvedByRecipient = task.getResolvedRecipientsByRecipientId();
-                for (var config : entry.getValue()) {
-                    // configs are already validator-filtered in HistoryNotificationService.findConfigsForTasks.
-                    // recipients are precomputed at chunk level in run() (one resolveBatch per resolver group).
-                    if (resolvedByRecipient != null) {
-                        recipientIds.addAll(resolvedByRecipient.getOrDefault(config.getHistoryNotificationRecipientId(), Set.of()));
-                    }
-                }
-
+                // configs are already validator-filtered in HistoryNotificationService.findConfigsForTasks.
+                // recipients are precomputed at chunk level in run() (one resolveBatch per resolver group).
+                var recipientIds = resolveRecipientIds(task, entry.getValue());
                 if (recipientIds.isEmpty()) {
                     continue;
                 }
 
                 recipientsCount += recipientIds.size();
-                // context template is precomputed at chunk level (one collectDataBatch per group); it still
-                // carries #i18n placeholders — materialize PER RECIPIENT LOCALE: split the event's
-                // recipients by locale so each recipient gets the notification in their own language
-                // (recipients without a locale land in the null-locale group → placeholders become "")
-                var collected = task.getCollectedContextByContextId();
-                var template = collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.<String, String>of();
-                Map<Locale, Set<UUID>> recipientsByLocale = new HashMap<>();
-                for (UUID recipientId : recipientIds) {
-                    recipientsByLocale.computeIfAbsent(chunk.getLocaleByRecipient().get(recipientId), _ -> new LinkedHashSet<>()).add(recipientId);
-                }
-                for (var localeEntry : recipientsByLocale.entrySet()) {
-                    var context = notificationContextService.materializeContext(template, chunk, localeEntry.getKey());
-                    chunk.getPendingByChannel()
-                            .computeIfAbsent(channelEvent.getNotificationChannel(), k -> new ArrayList<>())
-                            .add(new NotifyEvent(task, localeEntry.getValue(), context, channelEvent.getEventCode()));
-                }
+                addNotifyEventsByLocale(chunk, task, channelEvent, recipientIds);
             }
 
             if (recipientsCount == 0) {
@@ -240,6 +219,41 @@ public class HistoryNotificationTask implements Runnable {
         } finally {
             authService.removeThreadLocalApiUser();
         }
+    }
+
+    /** Union of the recipient user ids resolved for these configs (recipients are precomputed at chunk level). */
+    private static Set<UUID> resolveRecipientIds(HistoryNotificationTaskEntity task, List<HistoryNotificationEntity> configs) {
+        Set<UUID> recipientIds = new HashSet<>();
+        Map<UUID, Set<UUID>> resolvedByRecipient = task.getResolvedRecipientsByRecipientId();
+        if (resolvedByRecipient == null) {
+            return recipientIds;
+        }
+        for (HistoryNotificationEntity config : configs) {
+            recipientIds.addAll(resolvedByRecipient.getOrDefault(config.getHistoryNotificationRecipientId(), Set.of()));
+        }
+        return recipientIds;
+    }
+
+    /**
+     * Splits one channel event's recipients by locale and adds a NotifyEvent per locale group: the
+     * context template is precomputed at chunk level and still carries {@code #i18n=<uuid>}
+     * placeholders, so it is materialized for each group's locale — every recipient gets the
+     * notification in their own language (the null-locale group's placeholders become empty strings).
+     */
+    private void addNotifyEventsByLocale(HistoryNotificationChunk chunk, HistoryNotificationTaskEntity task,
+                                         NotificationChannelEventEntity channelEvent, Set<UUID> recipientIds) {
+        Map<String, String> template = contextTemplate(task, channelEvent);
+        for (var localeGroup : chunk.splitRecipientsByLocale(recipientIds).entrySet()) {
+            var context = notificationContextService.materializeContext(template, chunk, localeGroup.getKey());
+            chunk.addPendingEvent(channelEvent.getNotificationChannel(),
+                    new NotifyEvent(task, localeGroup.getValue(), context, channelEvent.getEventCode()));
+        }
+    }
+
+    /** The task's collected context template for the channel event's context (empty when none was collected). */
+    private static Map<String, String> contextTemplate(HistoryNotificationTaskEntity task, NotificationChannelEventEntity channelEvent) {
+        var collected = task.getCollectedContextByContextId();
+        return collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.of();
     }
 
     /**
