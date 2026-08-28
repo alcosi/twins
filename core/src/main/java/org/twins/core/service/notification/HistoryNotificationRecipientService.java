@@ -150,6 +150,8 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
      * deterministic by {@code (history, featurerId, params)} (independent of include/exclude), so each
      * group is resolved once for all its histories, then per-(recipient, history) include/exclude is
      * reassembled and stored on {@link HistoryNotificationTaskEntity#getResolvedRecipientsByRecipientId()} for processTask.
+     * Afterwards a hard isolation gate (stage 4, {@code enforceBusinessAccountIsolation}) drops every
+     * recipient not registered in the twin's owner business account — one bulk membership query per chunk.
      */
     public void resolveRecipientsBatch(HistoryNotificationChunk chunk) throws ServiceException {
         if (chunk == null || chunk.getTasksByConfig().isEmpty()) {
@@ -203,6 +205,59 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
                         id -> resolveFromCache(resolverCache, keysByRecipient.get(id), history));
             }
             task.setResolvedRecipientsByRecipientId(byRecipient);
+        }
+
+        // Stage 4: hard isolation gate over the assembled sets (one bulk membership query per chunk)
+        enforceBusinessAccountIsolation(chunk);
+    }
+
+    /**
+     * Recipient-isolation gate: for every task whose twin has an owner business account, drops the
+     * resolved recipients NOT registered in that business account (one bulk membership query per chunk
+     * via the materialized {@code domain_business_account_user}). A buggy/custom resolver or a stale
+     * row in another materialized source must never deliver a notification outside the twin's
+     * business account — a dropped recipient is recoverable, a leaked notification is not. Tasks of
+     * twins without an owner business account pass unfiltered. Legitimate cross-BA recipients, if
+     * ever needed, will require an explicit permission — deliberately not supported yet.
+     */
+    private void enforceBusinessAccountIsolation(HistoryNotificationChunk chunk) throws ServiceException {
+        Set<UUID> recipientIds = new HashSet<>();
+        Set<UUID> ownerBusinessAccountIds = new HashSet<>();
+        for (HistoryNotificationTaskEntity task : chunk.getTasks()) {
+            UUID ownerBusinessAccountId = task.getHistory().getTwin().getOwnerBusinessAccountId();
+            Map<UUID, Set<UUID>> byRecipient = task.getResolvedRecipientsByRecipientId();
+            if (ownerBusinessAccountId == null || byRecipient == null) {
+                continue;
+            }
+            ownerBusinessAccountIds.add(ownerBusinessAccountId);
+            for (Set<UUID> ids : byRecipient.values()) {
+                recipientIds.addAll(ids);
+            }
+        }
+        if (recipientIds.isEmpty()) {
+            return;
+        }
+        Map<UUID, Set<UUID>> membersByBusinessAccount =
+                userService.filterUsersByBusinessAccountAndDomainIn(recipientIds, ownerBusinessAccountIds, chunk.getDomainId());
+        for (HistoryNotificationTaskEntity task : chunk.getTasks()) {
+            UUID ownerBusinessAccountId = task.getHistory().getTwin().getOwnerBusinessAccountId();
+            Map<UUID, Set<UUID>> byRecipient = task.getResolvedRecipientsByRecipientId();
+            if (ownerBusinessAccountId == null || byRecipient == null) {
+                continue;
+            }
+            Set<UUID> members = membersByBusinessAccount.getOrDefault(ownerBusinessAccountId, Set.of());
+            Map<UUID, Set<UUID>> gated = new HashMap<>();
+            for (var entry : byRecipient.entrySet()) {
+                Set<UUID> resolved = entry.getValue();
+                Set<UUID> allowed = new HashSet<>(resolved);
+                allowed.retainAll(members);
+                if (allowed.size() < resolved.size()) {
+                    log.warn("Dropped {} recipient(s) not registered in owner business account {} for task {} in domain {}",
+                            resolved.size() - allowed.size(), ownerBusinessAccountId, task.logShort(), chunk.getDomainId());
+                }
+                gated.put(entry.getKey(), allowed);
+            }
+            task.setResolvedRecipientsByRecipientId(gated);
         }
     }
 

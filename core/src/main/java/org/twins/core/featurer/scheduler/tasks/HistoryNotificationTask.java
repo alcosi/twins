@@ -45,7 +45,12 @@ public class HistoryNotificationTask implements Runnable {
     @Autowired
     private AuthService authService;
 
-    private static final Cache<UUID, Set<String>> batchEventCache = Caffeine.newBuilder()
+    /**
+     * uniqueInBatch dedup, shared across chunks (static): batch id → event codes already notified in
+     * that batch. The key includes the domain id — the cache is JVM-global, so equal batch ids from
+     * different tenants must never suppress each other's events.
+     */
+    private static final Cache<String, Set<String>> batchEventCache = Caffeine.newBuilder()
             .expireAfterAccess(1, TimeUnit.MINUTES)
             .build();
 
@@ -187,7 +192,8 @@ public class HistoryNotificationTask implements Runnable {
                 var channelEvent = notificationConfigsGroupedByChannelEvent.getGroupingObject(entry.getKey());
 
                 if (channelEvent.isUniqueInBatch()) {
-                    var processedEvents = batchEventCache.get(history.getHistoryBatchId(), k -> ConcurrentHashMap.newKeySet());
+                    String dedupKey = twin.getTwinClass().getDomainId() + ":" + history.getHistoryBatchId();
+                    var processedEvents = batchEventCache.get(dedupKey, k -> ConcurrentHashMap.newKeySet());
                     if (processedEvents != null && !processedEvents.add(channelEvent.getEventCode())) {
                         log.info("Notification for event {} in batch {} skipped due to uniqueInBatch flag", channelEvent.getEventCode(), history.getHistoryBatchId());
                         continue;

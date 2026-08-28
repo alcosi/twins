@@ -62,6 +62,21 @@ class HistoryNotificationRecipientServiceTest extends BaseUnitTest {
                 repository, i18nService, authService, userService, recipientCollectorService, featurerService);
         domainId = UUID.randomUUID();
         when(featurerService.getFeaturer(eq(RESOLVER_FEATURER_ID), eq(RecipientResolver.class))).thenReturn(resolver);
+        // BA-membership gate (stage 4) default: pass-through — every resolved user is a member of
+        // every owner BA; gate tests override with a concrete membership map. Null args are the
+        // eq()-matcher registration calls of later when(...) stubs — answer them harmlessly.
+        lenient().when(userService.filterUsersByBusinessAccountAndDomainIn(any(), any(), any())).thenAnswer(inv -> {
+            Collection<UUID> userIds = inv.getArgument(0);
+            Collection<UUID> businessAccountIds = inv.getArgument(1);
+            Map<UUID, Set<UUID>> byBusinessAccount = new HashMap<>();
+            if (userIds == null || businessAccountIds == null) {
+                return byBusinessAccount;
+            }
+            for (UUID businessAccountId : businessAccountIds) {
+                byBusinessAccount.put(businessAccountId, new HashSet<>(userIds));
+            }
+            return byBusinessAccount;
+        });
     }
 
     // ---------- test data builders ----------
@@ -289,6 +304,79 @@ class HistoryNotificationRecipientServiceTest extends BaseUnitTest {
             assertEquals(employeeIds, task1.getResolvedRecipientsByRecipientId().get(recipient.getId()));
             assertEquals(employeeIds, task2.getResolvedRecipientsByRecipientId().get(recipient.getId()));
             verify(resolver, times(1)).resolveBatch(any(RecipientResolveBatch.class), any(HashMap.class));
+        }
+    }
+
+    @Nested
+    class BusinessAccountIsolationGate {
+
+        @Test
+        void recipientsOutsideOwnerBa_dropped_insideKept() throws Exception {
+            // the resolver returned a user of ANOTHER business account (bug / stale group row) — the
+            // gate must drop them; only members of the twin's own BA survive
+            var ba1Twin = twin();
+            var ba1 = ba1Twin.getOwnerBusinessAccountId();
+            var member = UUID.randomUUID();
+            var outsider = UUID.randomUUID();
+            var recipient = recipient(resolverCollector("employees", false));
+            var configEmployees = config(recipient);
+            var task = task(history(ba1Twin));
+            var chunk = chunkOf(task);
+            wire(chunk, configEmployees, task);
+            resolverAddsByGroup(Map.of("employees", Set.of(member, outsider)));
+            when(userService.filterUsersByBusinessAccountAndDomainIn(eq(Set.of(member, outsider)), eq(Set.of(ba1)), eq(domainId)))
+                    .thenReturn(Map.of(ba1, Set.of(member)));
+
+            service.resolveRecipientsBatch(chunk);
+
+            assertEquals(Set.of(member), task.getResolvedRecipientsByRecipientId().get(recipient.getId()));
+        }
+
+        @Test
+        void twoTasksDifferentBas_eachKeepsOnlyItsOwnMembers() throws Exception {
+            // ONE bulk membership query for the whole chunk (union of recipients × union of owner BAs),
+            // each task gated against its own twin's BA
+            var ba1Twin = twin();
+            var ba2Twin = twin();
+            var user1 = UUID.randomUUID();
+            var user2 = UUID.randomUUID();
+            var recipient = recipient(resolverCollector("employees", false));
+            var configEmployees = config(recipient);
+            var task1 = task(history(ba1Twin));
+            var task2 = task(history(ba2Twin));
+            var chunk = new HistoryNotificationChunk(domainId, List.of(task1, task2));
+            wire(chunk, configEmployees, task1, task2);
+            resolverAddsByGroup(Map.of("employees", Set.of(user1, user2)));
+            when(userService.filterUsersByBusinessAccountAndDomainIn(eq(Set.of(user1, user2)),
+                    eq(Set.of(ba1Twin.getOwnerBusinessAccountId(), ba2Twin.getOwnerBusinessAccountId())), eq(domainId)))
+                    .thenReturn(Map.of(
+                            ba1Twin.getOwnerBusinessAccountId(), Set.of(user1),
+                            ba2Twin.getOwnerBusinessAccountId(), Set.of(user2)));
+
+            service.resolveRecipientsBatch(chunk);
+
+            assertEquals(Set.of(user1), task1.getResolvedRecipientsByRecipientId().get(recipient.getId()));
+            assertEquals(Set.of(user2), task2.getResolvedRecipientsByRecipientId().get(recipient.getId()));
+            verify(userService, times(1)).filterUsersByBusinessAccountAndDomainIn(any(), any(), any());
+        }
+
+        @Test
+        void twinWithoutOwnerBa_recipientsUntouched() throws Exception {
+            // no owner BA → nothing to enforce, the membership query is not even fired
+            var domainLevelTwin = twin();
+            domainLevelTwin.setOwnerBusinessAccountId(null);
+            var userId = UUID.randomUUID();
+            var recipient = recipient(resolverCollector("employees", false));
+            var configEmployees = config(recipient);
+            var task = task(history(domainLevelTwin));
+            var chunk = chunkOf(task);
+            wire(chunk, configEmployees, task);
+            resolverAddsByGroup(Map.of("employees", Set.of(userId)));
+
+            service.resolveRecipientsBatch(chunk);
+
+            assertEquals(Set.of(userId), task.getResolvedRecipientsByRecipientId().get(recipient.getId()));
+            verify(userService, never()).filterUsersByBusinessAccountAndDomainIn(any(), any(), any());
         }
     }
 }

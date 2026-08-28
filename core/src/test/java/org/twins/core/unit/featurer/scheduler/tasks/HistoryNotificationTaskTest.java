@@ -254,6 +254,44 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
         }
 
         @Test
+        void twoTasksOfDifferentBusinessAccounts_sameChannel_eventsStayIsolated() throws Exception {
+            // BA isolation contract (NotifyEvent): one chunk = one domain but many business accounts,
+            // and one notify() batch carries their events together — each event must keep its OWN
+            // recipient set and its OWN context, so nothing crosses business accounts
+            var ba1 = UUID.randomUUID();
+            var ba2 = UUID.randomUUID();
+            var recipientId = UUID.randomUUID(); // same recipient config matched by both tasks
+            var ba1User = UUID.randomUUID();
+            var ba2User = UUID.randomUUID();
+            var ctxId = UUID.randomUUID();
+            var event = channelEvent("TWIN_CREATED", ctxId, false);
+            var config = config(event, recipientId);
+            var taskBa1 = taskEntity(history(twin(twinClass(), ba1, null), null));
+            var taskBa2 = taskEntity(history(twin(twinClass(), ba2, null), null));
+            taskBa1.setResolvedRecipientsByRecipientId(Map.of(recipientId, Set.of(ba1User)));
+            taskBa2.setResolvedRecipientsByRecipientId(Map.of(recipientId, Set.of(ba2User)));
+            taskBa1.setCollectedContextByContextId(Map.of(ctxId, Map.of("TWIN_NAME", "ba1-secret")));
+            taskBa2.setCollectedContextByContextId(Map.of(ctxId, Map.of("TWIN_NAME", "ba2-secret")));
+            var chunk = new HistoryNotificationChunk(domainId, List.of(taskBa1, taskBa2));
+            wire(chunk, taskBa1, config);
+            wire(chunk, taskBa2, config);
+            notifierReady();
+
+            task(chunk).run();
+
+            assertEquals(HistoryNotificationTaskStatus.SENT, taskBa1.getStatusId());
+            assertEquals(HistoryNotificationTaskStatus.SENT, taskBa2.getStatusId());
+            // ONE channel batch of TWO events: disjoint recipient sets, each context only its own task's
+            verify(notifier).notify(any(), argThat(events -> events.size() == 2
+                    && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(ba1User))
+                            && "ba1-secret".equals(e.context().get("TWIN_NAME"))
+                            && !e.context().containsValue("ba2-secret"))
+                    && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(ba2User))
+                            && "ba2-secret".equals(e.context().get("TWIN_NAME"))
+                            && !e.context().containsValue("ba1-secret"))));
+        }
+
+        @Test
         void noRecipients_skipped() throws Exception {
             var event = channelEvent("TWIN_CREATED", null, false);
             var config = config(event, UUID.randomUUID());
