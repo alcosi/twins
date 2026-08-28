@@ -10,14 +10,13 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.history.HistoryEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -25,7 +24,7 @@ import java.util.UUID;
         name = "Head Twin Attachment Context Collector",
         description = "Collects head twin attachment URL. Takes first attachment by order.")
 @RequiredArgsConstructor
-public class ContextCollectorHeadTwinAttachment extends ContextCollector {
+public class ContextCollectorHeadTwinAttachment extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect attachment url key", description = "", order = 1, optional = true, defaultValue = "HEAD_TWIN_ATTACHMENT_URL")
     public static final FeaturerParamString collectKey = new FeaturerParamString("collectKey");
@@ -36,12 +35,33 @@ public class ContextCollectorHeadTwinAttachment extends ContextCollector {
     private final AttachmentService attachmentService;
     private final TwinService twinService;
 
+    /**
+     * Bulk-load head twins and their attachments for the whole batch so {@link #collectData} (via
+     * {@code loadHead} + {@code findFirstAttachment}) works in-memory (was per-history — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        List<TwinEntity> twins = batch.getTwins();
+        if (twins.isEmpty()) {
+            return;
+        }
+        twinService.loadHead(twins);
+        Set<TwinEntity> headTwins = new HashSet<>(); // deduplication
+        for (TwinEntity twin : twins) {
+            if (twin.getHeadTwin() != null) {
+                headTwins.add(twin.getHeadTwin());
+            }
+        }
+        if (!headTwins.isEmpty()) {
+            attachmentService.loadAttachments(headTwins);
+        }
+    }
+
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
         String key = collectKey.extract(properties);
         UUID fieldId = headTwinClassFieldId.extract(properties);
 
-        twinService.loadHead(history.getTwin());
         var headTwin = history.getTwin().getHeadTwin();
 
         if (headTwin != null) {

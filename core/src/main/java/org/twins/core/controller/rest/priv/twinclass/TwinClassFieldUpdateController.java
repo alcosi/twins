@@ -30,7 +30,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapperV2;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.List;
 import java.util.UUID;

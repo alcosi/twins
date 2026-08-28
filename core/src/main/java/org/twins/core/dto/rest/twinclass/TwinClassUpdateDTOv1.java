@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.twinclass;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,6 +18,9 @@ public class TwinClassUpdateDTOv1 extends TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] should be filled on change tag data list id")
     public BasicUpdateOperationDTOv1 tagDataListUpdate;
+
+    @Schema(description = "[optional] should be filled on change flavor data list id")
+    public BasicUpdateOperationDTOv1 flavorDataListUpdate;
 
     @Schema(description = "[optional] should be filled on change extends twins class id")
     public BasicUpdateOperationDTOv1 extendsTwinClassUpdate;

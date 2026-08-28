@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.domain.notification.HistoryNotificationSave;
 import org.twins.core.dto.rest.notification.HistoryNotificationSaveDTOv1;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
@@ -16,7 +17,7 @@ public class HistoryNotificationSaveDTOReverseMapper extends RestSimpleDTOMapper
     public void map(HistoryNotificationSaveDTOv1 src, HistoryNotificationSave dst, MapperContext mapperContext) throws Exception {
         dst.setHistoryNotification(
                 new HistoryNotificationEntity()
-                        .setHistoryTypeId(src.getHistoryTypeId())
+                        .setHistoryTypeId(HistoryType.valueOd(src.getHistoryTypeId()))
                         .setTwinClassId(src.getTwinClassId())
                         .setTwinClassFieldId(src.getTwinClassFieldId())
                         .setTwinValidatorSetId(src.getTwinValidatorSetId())
@@ -24,6 +25,7 @@ public class HistoryNotificationSaveDTOReverseMapper extends RestSimpleDTOMapper
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setHistoryNotificationRecipientId(src.getHistoryNotificationRecipientId())
                         .setNotificationChannelEventId(src.getNotificationChannelEventId())
+                        .setActive(src.getActive())
         );
     }
 }

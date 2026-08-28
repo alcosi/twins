@@ -20,6 +20,9 @@ public abstract class FieldValueStated extends FieldValue {
         dstValue.state = this.state;
     }
 
+    // Contract: copies the value only. State is applied separately by copyValueTo(FieldValue) above,
+    // so calling this typed overload directly leaves the destination's state untouched.
+    // TODO: consider also copying the state here so the typed overload is self-sufficient.
     public abstract void copyValueTo(FieldValueStated dst);
 
     public enum State {

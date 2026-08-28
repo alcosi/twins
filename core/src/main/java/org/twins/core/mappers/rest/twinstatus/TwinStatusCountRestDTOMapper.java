@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.Collection;
 

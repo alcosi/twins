@@ -17,6 +17,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +38,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     private final FactoryConditionSetService factoryConditionSetService;
     @Lazy
     private final FactoryMultiplierService factoryMultiplierService;
+    @Lazy
+    private final TwinClassService twinClassService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierFilterEntity, UUID> entityRepository() {
@@ -68,6 +71,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     }
 
     public void loadFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        if (multiplier.getTwinFactoryMultiplierFilterKit() != null)
+            return;
         loadFactoryMultiplierFilters(Collections.singletonList(multiplier));
     }
 
@@ -79,7 +84,8 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
                 TwinFactoryMultiplierEntity::setTwinFactoryMultiplierFilterKit,
                 repository::findByTwinFactoryMultiplierIdIn,
                 TwinFactoryMultiplierFilterEntity::getId,
-                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId);
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
+                TwinFactoryMultiplierFilterEntity::setMultiplier);
     }
 
     public void loadConditionSet(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
@@ -89,18 +95,29 @@ public class FactoryMultiplierFilterService extends EntitySecureFindServiceImpl<
     public void loadConditionSet(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
         factoryConditionSetService.load(filters,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSetId,
-                TwinFactoryMultiplierFilterEntity::getConditionSet,
-                TwinFactoryMultiplierFilterEntity::setConditionSet);
+                TwinFactoryMultiplierFilterEntity::getTwinFactoryConditionSet,
+                TwinFactoryMultiplierFilterEntity::setTwinFactoryConditionSet);
     }
 
     public void loadMultiplier(TwinFactoryMultiplierFilterEntity src) throws ServiceException {
         loadMultiplier(Collections.singletonList(src));
     }
 
-    public void loadMultiplier(List<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
+    public void loadMultiplier(Collection<TwinFactoryMultiplierFilterEntity> srcCollection) throws ServiceException {
         factoryMultiplierService.load(srcCollection,
                 TwinFactoryMultiplierFilterEntity::getTwinFactoryMultiplierId,
                 TwinFactoryMultiplierFilterEntity::getMultiplier,
                 TwinFactoryMultiplierFilterEntity::setMultiplier);
+    }
+
+    public void loadInputTwinClass(TwinFactoryMultiplierFilterEntity filter) throws ServiceException {
+        loadInputTwinClass(Collections.singleton(filter));
+    }
+
+    public void loadInputTwinClass(Collection<TwinFactoryMultiplierFilterEntity> filters) throws ServiceException {
+        twinClassService.load(filters,
+                TwinFactoryMultiplierFilterEntity::getInputTwinClassId,
+                TwinFactoryMultiplierFilterEntity::getInputTwinClass,
+                TwinFactoryMultiplierFilterEntity::setInputTwinClass);
     }
 }

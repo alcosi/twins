@@ -62,13 +62,9 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
                 twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeTwinClass(value.getTwinClassField(), null, twinClassEntity));
             }
 
-            twinChangesCollector.add(new TwinFieldTwinClassEntity()
-                    .setTwin(twin)
-                    .setTwinId(twin.getId())
-                    .setTwinClassFieldId(value.getTwinClassField().getId())
+            twinChangesCollector.add(TwinFieldTwinClassEntity.of(twin, value.getTwinClassField())
                     .setTwinClassId(twinClassEntity.getId())
                     .setTwinClass(twinClassEntity));
-
             return;
         }
 
@@ -97,10 +93,7 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
                     historyItem.getContext().shotAddedTwinClassId(userEntity.getId());
                 }
 
-                twinChangesCollector.add(new TwinFieldTwinClassEntity()
-                        .setTwin(twin)
-                        .setTwinId(twin.getId())
-                        .setTwinClassFieldId(value.getTwinClassField().getId())
+                twinChangesCollector.add(TwinFieldTwinClassEntity.of(twin, value.getTwinClassField())
                         .setTwinClassId(userEntity.getId())
                         .setTwinClass(userEntity));
             } else {

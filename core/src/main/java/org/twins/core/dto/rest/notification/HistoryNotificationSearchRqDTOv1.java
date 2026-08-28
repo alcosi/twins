@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,10 +24,10 @@ public class HistoryNotificationSearchRqDTOv1 extends Request {
     public Set<UUID> idExcludeList;
 
     @Schema(description = "history type id list")
-    public Set<String> historyTypeIdList;
+    public Set<HistoryType> historyTypeIdList;
 
     @Schema(description = "history type id exclude list")
-    public Set<String> historyTypeIdExcludeList;
+    public Set<HistoryType> historyTypeIdExcludeList;
 
     @Schema(description = "twin class id map (key=classId, value=includeExtendsHierarchy)")
     public Map<UUID, Boolean> twinClassIdMap;
@@ -66,4 +67,7 @@ public class HistoryNotificationSearchRqDTOv1 extends Request {
 
     @Schema(description = "notification channel event id exclude list")
     public Set<UUID> notificationChannelEventIdExcludeList;
+
+    @Schema(description = "is active")
+    public Ternary active;
 }

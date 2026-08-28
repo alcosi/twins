@@ -16,7 +16,7 @@ import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
 
 import java.util.*;
 import java.util.function.Function;

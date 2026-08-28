@@ -70,6 +70,13 @@ public enum Permissions {
     LINK_UPDATE(SystemIds.Permission.Link.UPDATE),
     LINK_DELETE(SystemIds.Permission.Link.DELETE),
 
+    // TWIN LINK permissions
+    TWIN_LINK_MANAGE(SystemIds.Permission.TwinLink.MANAGE),
+    TWIN_LINK_CREATE(SystemIds.Permission.TwinLink.CREATE),
+    TWIN_LINK_VIEW(SystemIds.Permission.TwinLink.VIEW),
+    TWIN_LINK_UPDATE(SystemIds.Permission.TwinLink.UPDATE),
+    TWIN_LINK_DELETE(SystemIds.Permission.TwinLink.DELETE),
+
     // DOMAIN permissions
     DOMAIN_MANAGE(SystemIds.Permission.Domain.MANAGE),
     DOMAIN_CREATE(SystemIds.Permission.Domain.CREATE),
@@ -388,6 +395,13 @@ public enum Permissions {
     TWIN_VALIDATOR_SET_UPDATE(SystemIds.Permission.TwinValidatorSet.UPDATE),
     TWIN_VALIDATOR_SET_DELETE(SystemIds.Permission.TwinValidatorSet.DELETE),
 
+    // TWIN VALIDATOR permissions
+    TWIN_VALIDATOR_MANAGE(SystemIds.Permission.TwinValidator.MANAGE),
+    TWIN_VALIDATOR_CREATE(SystemIds.Permission.TwinValidator.CREATE),
+    TWIN_VALIDATOR_VIEW(SystemIds.Permission.TwinValidator.VIEW),
+    TWIN_VALIDATOR_UPDATE(SystemIds.Permission.TwinValidator.UPDATE),
+    TWIN_VALIDATOR_DELETE(SystemIds.Permission.TwinValidator.DELETE),
+
     // TWIN TRIGGER permissions
     TWIN_TRIGGER_MANAGE(SystemIds.Permission.TwinTrigger.MANAGE),
     TWIN_TRIGGER_CREATE(SystemIds.Permission.TwinTrigger.CREATE),
@@ -414,7 +428,14 @@ public enum Permissions {
     NOTIFICATION_SCHEMA_CREATE(SystemIds.Permission.NotificationSchema.CREATE),
     NOTIFICATION_SCHEMA_VIEW(SystemIds.Permission.NotificationSchema.VIEW),
     NOTIFICATION_SCHEMA_UPDATE(SystemIds.Permission.NotificationSchema.UPDATE),
-    NOTIFICATION_SCHEMA_DELETE(SystemIds.Permission.NotificationSchema.DELETE)
+    NOTIFICATION_SCHEMA_DELETE(SystemIds.Permission.NotificationSchema.DELETE),
+
+    // TWIN POINTER permissions
+    TWIN_POINTER_MANAGE(SystemIds.Permission.TwinPointer.MANAGE),
+    TWIN_POINTER_CREATE(SystemIds.Permission.TwinPointer.CREATE),
+    TWIN_POINTER_VIEW(SystemIds.Permission.TwinPointer.VIEW),
+    TWIN_POINTER_UPDATE(SystemIds.Permission.TwinPointer.UPDATE),
+    TWIN_POINTER_DELETE(SystemIds.Permission.TwinPointer.DELETE)
     ;
 
     private final UUID id;

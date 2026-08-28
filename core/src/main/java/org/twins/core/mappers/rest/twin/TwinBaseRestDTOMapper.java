@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -37,6 +38,9 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
 
     @MapperModePointerBinding(modes = {FaceMode.Twin2FaceMode.class})
     private final FaceRestDTOMapper faceRestDTOMapper;
+
+    @MapperModePointerBinding(modes = {DataListOptionMode.TwinFlavor2DataListOptionMode.class})
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Lazy
     @Autowired
@@ -114,6 +118,11 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
             faceRestDTOMapper.postpone(src.getBreadCrumbsFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
         }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE)) {
+            dst.flavorDataListOptionId(src.getFlavorDataListOptionId());
+            twinService.loadFlavorDataListOption(src);
+            dataListOptionRestDTOMapper.postpone(src.getFlavorDataListOption(), mapperContext.forkOnPoint(DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT));
+        }
     }
 
     @Override
@@ -139,6 +148,9 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         }
         if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
             twinService.loadFaces(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE)) {
+            twinService.loadFlavorDataListOption(srcCollection);
         }
     }
 

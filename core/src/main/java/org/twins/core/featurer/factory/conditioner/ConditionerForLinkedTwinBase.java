@@ -12,7 +12,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.Map;
 import java.util.Properties;

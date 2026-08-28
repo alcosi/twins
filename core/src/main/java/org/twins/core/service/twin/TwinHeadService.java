@@ -12,11 +12,13 @@ import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -41,6 +43,7 @@ public class TwinHeadService {
     private final TwinService twinService;
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
+    private final TwinRepository twinRepository;
 
     public void validHeadsExpandSearch(TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
         twinClassService.loadHeadTwinClass(twinClassEntity);
@@ -148,5 +151,51 @@ public class TwinHeadService {
             }
             twinEntity.setCreatableChildTwinClasses(creatableChildTwinClasses);
         }
+    }
+
+    public static void setHead(TwinEntity twin, TwinEntity headTwin) {
+        twin
+                .setHeadTwinId(headTwin.getId())
+                .setHeadTwin(headTwin)
+                .setHierarchyTree(headTwin.getHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twin.getId()))
+                .setPermissionSchemaSpaceId(TwinService.getPermissionSchemaSpaceId(headTwin))
+                .setPermissionSchemaId(headTwin.getPermissionSchemaId());
+    }
+
+    /**
+     * Initializes the hierarchy tree for a root / standalone twin (one without a head):
+     * {@code hierarchyTree = <own id>}. This is the canonical counterpart of {@link #setHead} for a
+     * newly created twin that has no head.
+     * <p>
+     * Keeping hierarchyTree populated for every new twin serves two purposes: business logic can read
+     * the hierarchy before flush, and TwinChangesService gets a stable depth key to persist twins in
+     * head-first order (satisfying the non-deferrable twin_head_twin_id_fk). The DB trigger
+     * {@code hierarchyprocesstreeupdate} recalculates hierarchy_tree AFTER INSERT from head_twin_id,
+     * so this value is an in-memory hint rather than the source of truth.
+     */
+    public static void initRootHierarchy(TwinEntity twin) {
+        twin.setHierarchyTree(LTreeUtils.convertToLTreeFormat(twin.getId()));
+    }
+
+    public static UUID resolveHeadTwinId(TwinEntity twin, int depth) {
+        return LTreeUtils.uuidByIndex(twin.getHierarchyTree(), true, depth);
+    }
+
+    public UUID resolveHeadTwinId(TwinEntity twin, UUID headTwinClassId) throws ServiceException {
+        if (headTwinClassId == null) {
+            return twin.getHeadTwinId() != null ? twin.getHeadTwinId() : twin.getId();
+        }
+        TwinEntity current = twin;
+        //soft loop, no db query
+        for (int depth = 0; depth < 10; depth++) {
+            if (current.getHeadTwin() == null) {
+                break;
+            }
+            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
+                return current.getHeadTwinId();
+            }
+            current = current.getHeadTwin();
+        }
+        return twinRepository.getHeadTwinIdOfClass(twin.getHeadTwinsIdSet(), headTwinClassId);
     }
 }

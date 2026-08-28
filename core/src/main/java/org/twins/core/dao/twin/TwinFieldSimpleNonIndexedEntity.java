@@ -9,6 +9,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
@@ -65,6 +66,17 @@ public class TwinFieldSimpleNonIndexedEntity extends TwinFieldBaseEntity {
                     "twinFieldNonIndexed[id:" + getId() + (getTwinClassField() != null ? ", key:" + getTwinClassField().getKey() : "") + ", value:" + value + "]";
         };
     }
+
+    public static TwinFieldSimpleNonIndexedEntity of(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) {
+        return new TwinFieldSimpleNonIndexedEntity()
+                .setId(UuidUtils.generate())
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(null);
+    }
+
 
     public TwinFieldSimpleNonIndexedEntity cloneFor(TwinEntity dstTwinEntity) {
         return new TwinFieldSimpleNonIndexedEntity()

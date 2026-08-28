@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -26,7 +25,6 @@ import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
-import org.twins.core.dto.rest.space.UserWithinSpaceRolesViewRsDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -120,34 +118,6 @@ public class SpaceRoleUserListController extends ApiController {
             PaginationResult<UserRefSpaceRole> usersRefRolesMap = spaceRoleUserService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, pagination);
             rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRolesMap.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRolesMap))
-                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleUserViewV1", summary = "Get user within his roles of specific space")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserWithinSpaceRolesViewRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/space/{spaceId}/users/{userId}/v1")
-    public ResponseEntity<?> spaceRoleUserViewV1(
-            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.SPACE_ID) @PathVariable UUID spaceId,
-            @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable("userId") UUID userId) {
-        UserWithinSpaceRolesViewRsDTOv1 rs = new UserWithinSpaceRolesViewRsDTOv1();
-        try {
-            UserRefSpaceRole userRefRolesMap = spaceRoleUserService.getUsersRefRolesMapById(spaceId, userId);
-            if (userRefRolesMap.getUser() == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such user: " + userId+ " in current domain." );
-            }
-            rs.setUserRefSpaceRoles(userRefSpaceRoleDTOMapper.convert(userRefRolesMap, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

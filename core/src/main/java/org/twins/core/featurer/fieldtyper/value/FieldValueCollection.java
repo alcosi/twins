@@ -94,7 +94,7 @@ public abstract class FieldValueCollection<T> extends FieldValue {
         } else {
             collection = new ArrayList<>(); // we do not use Collections.emptyList(), because it's immutable
         }
-        return null;
+        return this;
     }
 
     protected abstract Function<T, UUID> itemGetIdFunction();

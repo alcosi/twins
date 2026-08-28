@@ -6,6 +6,7 @@ import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -281,6 +282,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
                 continue; //skipping
             }
             var newEntity = createNewEntity(duplicate, duplicateCollector);
+            reserveIdIfMissing(newEntity); // ensure cascaded children and cross-entity FK targets can reference this not-yet-saved entity
             if (duplicate.getNewParentEntity() != null) {
                 setNewParentEntity(newEntity, duplicate.getNewParentEntity());
             }
@@ -326,6 +328,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
                 newDuplicate.setOriginalEntityId(childIdExtractor.apply(child));
                 newDuplicate.setNewParentEntity(destinationParent);
                 newDuplicate.setNewParentEntityId(destinationParentId);
+                newDuplicate.setCascaded(true); //built by cascade — no caller-supplied key
                 duplicates.add(newDuplicate);
             }
         }
@@ -358,11 +361,24 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
                 .setOriginalEntity(original)
                 .setOriginalEntityId(originalId)
                 .setNewParentEntityId(newParentId)
-                .setNewParentEntity(duplicateCollector.getNewEntity(newParentId)); //not null only for new parents
+                .setNewParentEntity(duplicateCollector.getNewEntity(newParentId)) //not null only for new parents
+                .setCascaded(true); //built by cross-entity cascade — no caller-supplied key
+        customizeCollectedDuplicate(duplicate, duplicateCollector);
         duplicateCollector.registerService(getEntityClass(), this);
         duplicateCollector.register(key, duplicate);
         collect(duplicateCollector, List.of(duplicate));
         return duplicateCollector.getEntry(key).getNewEntity().getId();
+    }
+
+    /**
+     * Hook fired inside {@link #lookupOrCollect} right after a fresh {@code D} is built (via
+     * {@link #createNewDuplicate()}) and its original/parent refs are set, but <b>before</b> it is
+     * registered and collected. Lets the owning service customize a <b>cascaded</b> duplicate —
+     * e.g. flip cascade flags on, supply a generated key — since {@code createNewDuplicate()}
+     * returns a blank descriptor by default. Default: no-op. Top-level duplicates (built directly
+     * by {@link #collect}, not via {@code lookupOrCollect}) do not pass through this hook.
+     */
+    protected void customizeCollectedDuplicate(D duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
     }
 
     // === Commit phase ===
@@ -484,9 +500,97 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
     }
 
     protected void loadNewParentEntities(Collection<D> duplicates) throws ServiceException {
+        // Backward-compat defaulting: a child-entity duplicate without an explicit target parent
+        // defaults to the original entity's parent ("duplicate in place"). Domains opt in via
+        // {@link #extractOriginalParentId(E)}; its default (null) keeps the previous "parent
+        // required" behavior, so child-entity domains that need an explicit parent are unaffected.
+        for (var duplicate : duplicates) {
+            if (duplicate.getNewParentEntityId() == null && duplicate.getOriginalEntity() != null) {
+                UUID originalParentId = extractOriginalParentId(duplicate.getOriginalEntity());
+                if (originalParentId != null) {
+                    duplicate.setNewParentEntityId(originalParentId);
+                }
+            }
+        }
         entityParentService().load(duplicates,
                 EntityDuplicate::getNewParentEntityId,
                 EntityDuplicate::getNewParentEntity,
                 EntityDuplicate::setNewParentEntity);
+    }
+
+    /**
+     * Parent id of the original entity, used by {@link #loadNewParentEntities} to default a
+     * child-entity duplicate without an explicit target parent to "duplicate in place" (same parent
+     * as the original). Default {@code null} = no defaulting, parent must be supplied explicitly
+     * (base {@code collect} will throw "newParentEntityId is required"). Override in child-entity
+     * domains where duplicating in place is the desired behavior (e.g. class fields, statuses).
+     */
+    protected UUID extractOriginalParentId(E original) {
+        return null;
+    }
+
+    /**
+     * Resolves the key for a new entity built by {@code createNewEntity}. Order:
+     * <ol>
+     *   <li>Cascaded duplicate ({@link EntityDuplicate#isCascaded()}) + domain opts in via
+     *       {@link #extractOriginalKey(E)} → copy the original key. Safe for entities whose key is
+     *       scoped per-parent (e.g. class fields/statuses); the clone lands in a different parent.</li>
+     *   <li>Caller-supplied {@link EntityDuplicate#getNewKey()} (non-blank) → use it as-is.</li>
+     *   <li>Otherwise → {@link #generateKey(D)} (domain-specific, e.g. a unique suffix for
+     *       domain-scoped keys like {@code twin_factory.key}). Default throws: a top-level duplicate
+     *       must supply a key unless the domain overrides {@code generateKey}.</li>
+     * </ol>
+     * The resolved key is cached back on {@link EntityDuplicate#setNewKey(String)} so logs and
+     * {@code validateKeyUniqueness} see it.
+     */
+    protected String resolveKey(D duplicate) throws ServiceException {
+        if (duplicate.isCascaded()) {
+            String originalKey = extractOriginalKey(duplicate.getOriginalEntity());
+            if (originalKey != null) {
+                duplicate.setNewKey(originalKey);
+                return originalKey;
+            }
+        }
+        String newKey = duplicate.getNewKey();
+        if (newKey != null && !newKey.isBlank()) {
+            return newKey;
+        }
+        String generated = generateKey(duplicate);
+        duplicate.setNewKey(generated);
+        return generated;
+    }
+
+    /**
+     * Original entity's key, copied verbatim for a cascaded duplicate when the domain opts in.
+     * Default {@code null} = do not copy (fall through to {@link #generateKey}). Override in domains
+     * whose key is unique per-parent so copying into a different parent cannot collide.
+     */
+    protected String extractOriginalKey(E original) {
+        return null;
+    }
+
+    /**
+     * Synthesize a key for a duplicate that has none (cascaded without {@link #extractOriginalKey},
+     * or top-level without a caller-supplied key). Default throws — override to provide a
+     * domain-specific generated key (e.g. {@code <originalKey>_copy_<uuid>} for domain-scoped keys).
+     */
+    protected String generateKey(D duplicate) throws ServiceException {
+        throw new ServiceException(getKeyDuplicatedErrorCode(),
+                "newKey is required for " + getEntityClass().getSimpleName()
+                        + " (originalId=" + duplicate.getOriginalEntityId() + ")");
+    }
+
+    /**
+     * Ensures a freshly built new entity has an id, so cascaded children (built later in the same
+     * collect phase, referencing this entity via {@code setNewParentEntity}) and cross-entity FK
+     * targets (via {@link #lookupOrCollect}) can reference it <b>before</b> flush. Entities use
+     * {@code @PrePersist} to generate an id only at insert time — too late for in-collect references.
+     * Domains that already assign an id in {@code createNewEntity} are unaffected; the
+     * {@code @PrePersist} {@code if (id == null)} guard stays as a last resort.
+     */
+    private void reserveIdIfMissing(E newEntity) {
+        if (newEntity.getId() == null) {
+            newEntity.setId(UuidUtils.generate());
+        }
     }
 }

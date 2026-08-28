@@ -83,6 +83,14 @@ public class PermissionEntity implements EasyLoggable {
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
     private PermissionGroupEntity permissionGroup;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_group_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private PermissionGroupEntity permissionGroupSpecOnly;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(mappedBy = PermissionGrantTwinRoleEntity.Fields.permission, fetch = FetchType.LAZY)

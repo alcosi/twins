@@ -2,9 +2,7 @@ package org.twins.core.dao.notification;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -33,7 +31,7 @@ public class NotificationContextCollectorEntity implements EasyLoggable {
     @Column(name = "notification_context_id")
     private UUID notificationContextId;
 
-    @Column(name = "context_collector_featurer_id")
+    @Column(name = "context_collector_featurer_id", nullable = false)
     private Integer contextCollectorFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
@@ -42,6 +40,8 @@ public class NotificationContextCollectorEntity implements EasyLoggable {
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
     private NotificationContextEntity historyNotificationContextSpecOnly;

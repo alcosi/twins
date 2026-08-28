@@ -2,15 +2,16 @@ package org.twins.core.dao.factory;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
 
@@ -50,20 +51,48 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
     @Column(name = "active")
     private Boolean active;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity twinFactory;
+    private TwinFactoryEntity twinFactorySpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
-    private TwinClassEntity inputTwinClass;
+    private TwinClassEntity inputTwinClassSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "multiplier_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity multiplierFeaturerSpecOnly;
+
+    // Trigger-maintained counter column (created in V1.4.344.02, maintained by AFTER triggers on
+    // twin_factory_multiplier_filter). insertable=false/updatable=false keeps Hibernate out of the
+    // write path; @Generated re-reads the row after INSERT/UPDATE.
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "factory_multiplier_filters_count", insertable = false, updatable = false)
+    private Integer factoryMultiplierFiltersCount;
 
     @Transient
-    private Integer factoryMultiplierFiltersCount;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity twinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity inputTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude

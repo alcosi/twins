@@ -34,6 +34,7 @@ import org.twins.core.service.notification.NotificationSchemaService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.tier.TierService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
@@ -171,8 +172,11 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public DomainBusinessAccountEntity getDomainBusinessAccountEntitySafe(UUID domainId, UUID businessAccountId) throws ServiceException {
         var apiUser = authService.getApiUser();
-        if (apiUser.getDomainId().equals(domainId) && apiUser.isBusinessAccountSpecified() && apiUser.getBusinessAccountId().equals(businessAccountId)) { //shortcut
-            return apiUser.getDomainBusinessAccount();
+        if (apiUser.getDomainId().equals(domainId)
+                && apiUser.isBusinessAccountSpecified()
+                && apiUser.getBusinessAccountId().equals(businessAccountId)
+                && !apiUser.isSystemUser()) {
+            return apiUser.getDomainBusinessAccount(); //shortcut
         }
         DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
         if (domainBusinessAccountEntity == null)

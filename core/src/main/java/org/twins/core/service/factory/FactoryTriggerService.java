@@ -17,8 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
-import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
     private final TwinTriggerService twinTriggerService;
     private final TwinClassService twinClassService;
     private final FactoryConditionSetService factoryConditionSetService;
@@ -67,9 +67,9 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
             return logErrorAndReturnFalse(entity.logDetailed() + " twinTriggerId is not specified");
         }
         if (entity.getTwinFactory() == null) {
-            entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+            entity.setTwinFactory(factoryService.findEntitySafe(entity.getTwinFactoryId()));
         }
-        if (twinFactoryService.isEntityReadDenied(entity.getTwinFactory(), EntitySmartService.ReadPermissionCheckMode.none)) {
+        if (factoryService.isEntityReadDenied(entity.getTwinFactory(), EntitySmartService.ReadPermissionCheckMode.none)) {
             return logErrorAndReturnFalse(entity.logDetailed() + " factory domain check failed");
         }
         return true;
@@ -132,7 +132,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
     }
 
     public void loadFactories(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
-        twinFactoryService.load(srcCollection,
+        factoryService.load(srcCollection,
                 TwinFactoryTriggerEntity::getTwinFactoryId,
                 TwinFactoryTriggerEntity::getTwinFactory,
                 TwinFactoryTriggerEntity::setTwinFactory);
@@ -160,6 +160,17 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryTriggerEntity::setTwinFactoryConditionSet);
     }
 
+    public void loadTwinTrigger(TwinFactoryTriggerEntity src) throws ServiceException {
+        loadTwinTriggers(Collections.singleton(src));
+    }
+
+    public void loadTwinTriggers(Collection<TwinFactoryTriggerEntity> srcCollection) throws ServiceException {
+        twinTriggerService.load(srcCollection,
+                TwinFactoryTriggerEntity::getTwinTriggerId,
+                TwinFactoryTriggerEntity::getTwinTrigger,
+                TwinFactoryTriggerEntity::setTwinTrigger);
+    }
+
     public List<TwinFactoryTriggerEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
         return repository.findByTwinFactoryIdIn(factoryIds);
     }
@@ -176,6 +187,7 @@ public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFacto
                 TwinFactoryEntity::setTwinFactoryTriggerKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryTriggerEntity::getId,
-                TwinFactoryTriggerEntity::getTwinFactoryId);
+                TwinFactoryTriggerEntity::getTwinFactoryId,
+                TwinFactoryTriggerEntity::setTwinFactory);
     }
 }

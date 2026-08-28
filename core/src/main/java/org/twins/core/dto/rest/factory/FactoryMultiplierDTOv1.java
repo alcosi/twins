@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -26,9 +27,6 @@ public class FactoryMultiplierDTOv1 {
     @RelatedObject(type = TwinClassDTOv1.class, name = "inputTwinClass")
     public UUID inputTwinClassId;
 
-    @Schema(description = "count pipeline steps", example = DTOExamples.COUNT)
-    public Integer pipelineStepsCount;
-
     @Schema(description = "multiplier featurer id", example = DTOExamples.FEATURER_ID)
     @RelatedObject(type = FeaturerDTOv1.class, name = "multiplierFeaturer")
     private Integer multiplierFeaturerId;
@@ -44,6 +42,10 @@ public class FactoryMultiplierDTOv1 {
 
     @Schema(description = "is active", example = DTOExamples.COUNT)
     public Boolean active;
+
+    @Schema(description = "multiplier filter id list.")
+    @RelatedObject(type = FactoryMultiplierFilterDTOv1.class, name = "filters")
+    public Set<UUID> filterIdList;
 }
 
 

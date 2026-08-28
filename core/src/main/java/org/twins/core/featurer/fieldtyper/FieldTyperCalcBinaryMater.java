@@ -1,6 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -9,12 +11,19 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
+import org.twins.core.service.recompute.FieldRecomputeRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcBinary, FieldTyperCalcMater {
+public abstract class FieldTyperCalcBinaryMater
+        extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric>
+        implements FieldTyperCalcBinary, FieldTyperCalcMater, FieldTyperRecomputed {
+
+    @FeaturerParam(name = "Ignore flavor data list option ids", description = "", order = 1, optional = true)
+    public static final FeaturerParamUUIDSet ignoreFlavorDataListOptionIds = new FeaturerParamUUIDSetDatalistOptionId("ignoreFlavorDataListOptionIds");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -25,11 +34,25 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (shouldIgnoreSerialization(properties, twin)) {
+            return;
+        }
         if (skipIfEmpty(twin, properties, twinClassFieldService, List.of(firstFieldId.extract(properties), secondFieldId.extract(properties)), value.getTwinClassField())) {
             return;
         }
+        serializeCalculatedValue(properties, twin, twinFieldEntity, value, twinChangesCollector);
+    }
+
+    private boolean shouldIgnoreSerialization(Properties properties, TwinEntity twin) {
+        var ignore = ignoreFlavorDataListOptionIds.extract(properties);
+        return twin.getFlavorDataListOptionId() != null
+                && ignore != null
+                && ignore.contains(twin.getFlavorDataListOptionId());
+    }
+
+    private void serializeCalculatedValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity == null) {
-            twinFieldEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
         }
         var firstValue = twinClassFieldService.getDecimalValue(twin, firstFieldId.extract(properties), BigDecimal.ZERO);
@@ -40,5 +63,22 @@ public abstract class FieldTyperCalcBinaryMater extends FieldTyperDecimalBase<Fi
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) throws ServiceException {
         return deserializeValueBase(properties, twinField, twinFieldEntity);
+    }
+
+    /**
+     * Mater-subscriber entry point. Reuses {@link #serializeValue(Properties, TwinEntity, FieldValueText, TwinChangesCollector)}
+     * which reads operands through {@code twinClassFieldService.getDecimalValue(...)} — this works in the sync flow
+     * where the publisher twin is still pending in the collector and not yet in the DB. MVP implementation; per-type
+     * delta-increment overrides are a future optimization (see ai/plans/field-typer-mater-listeners.md §7.11).
+     */
+    @Override
+    public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, request.subscriberField().getFieldTyperParams());
+        if (shouldIgnoreSerialization(properties, request.subscriberTwin())) {
+            return;
+        }
+        FieldValueText value = new FieldValueText(request.subscriberField());
+        TwinFieldDecimalEntity twinFieldEntity = request.subscriberTwin().getTwinFieldDecimalKit().get(request.subscriberField().getId());
+        serializeCalculatedValue(properties, request.subscriberTwin(), twinFieldEntity, value, collector);
     }
 }

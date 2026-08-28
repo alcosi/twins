@@ -33,7 +33,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchRqDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
 
 import java.util.UUID;
 

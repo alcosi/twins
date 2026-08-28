@@ -3,7 +3,8 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.SetUtils;
+import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
 import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class DataListOptionProjectionSearch {
+public class DataListOptionProjectionSearch extends EntitySearch<DataListOptionProjectionEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
 
@@ -31,34 +32,26 @@ public class DataListOptionProjectionSearch {
     private DataTimeRange changedAt;
 
     public DataListOptionProjectionSearch addProjectionTypeId(UUID ProjectionTypeId, boolean exclude) {
-        if (exclude)
-            projectionTypeIdExcludeList = CollectionUtils.safeAdd(projectionTypeIdExcludeList, ProjectionTypeId);
-        else
-            projectionTypeIdList = CollectionUtils.safeAdd(projectionTypeIdList, ProjectionTypeId);
-        return this;
+        return SetUtils.safeAdd(this, ProjectionTypeId, exclude,
+                this::getProjectionTypeIdList, this::setProjectionTypeIdList,
+                this::getProjectionTypeIdExcludeList, this::setProjectionTypeIdExcludeList);
     }
 
     public DataListOptionProjectionSearch addSrcDataListOptionId(UUID optionId, boolean exclude) {
-        if (exclude)
-            srcDataListOptionIdExcludeList = CollectionUtils.safeAdd(srcDataListOptionIdExcludeList, optionId);
-        else
-            srcDataListOptionIdList = CollectionUtils.safeAdd(srcDataListOptionIdList, optionId);
-        return this;
+        return SetUtils.safeAdd(this, optionId, exclude,
+                this::getSrcDataListOptionIdList, this::setSrcDataListOptionIdList,
+                this::getSrcDataListOptionIdExcludeList, this::setSrcDataListOptionIdExcludeList);
     }
 
     public DataListOptionProjectionSearch addDstDataListOptionId(UUID optionId, boolean exclude) {
-        if (exclude)
-            dstDataListOptionIdExcludeList = CollectionUtils.safeAdd(dstDataListOptionIdExcludeList, optionId);
-        else
-            dstDataListOptionIdList = CollectionUtils.safeAdd(dstDataListOptionIdList, optionId);
-        return this;
+        return SetUtils.safeAdd(this, optionId, exclude,
+                this::getDstDataListOptionIdList, this::setDstDataListOptionIdList,
+                this::getDstDataListOptionIdExcludeList, this::setDstDataListOptionIdExcludeList);
     }
 
     public DataListOptionProjectionSearch addSavedByUserId(UUID userId, boolean exclude) {
-        if (exclude)
-            savedByUserIdExcludeList = CollectionUtils.safeAdd(savedByUserIdExcludeList, userId);
-        else
-            savedByUserIdList = CollectionUtils.safeAdd(savedByUserIdList, userId);
-        return this;
+        return SetUtils.safeAdd(this, userId, exclude,
+                this::getSavedByUserIdList, this::setSavedByUserIdList,
+                this::getSavedByUserIdExcludeList, this::setSavedByUserIdExcludeList);
     }
 }

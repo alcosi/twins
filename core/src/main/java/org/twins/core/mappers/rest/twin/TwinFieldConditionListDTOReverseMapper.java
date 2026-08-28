@@ -17,7 +17,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -34,7 +34,7 @@ public class TwinFieldStorageUser extends TwinFieldStorageMater<TwinFieldUserEnt
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldUserKit(KitGrouped.EMPTY);
+        twinEntity.setTwinFieldUserKit(new KitGrouped<>(TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
     }
 
     @Override

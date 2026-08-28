@@ -15,7 +15,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchText;
 import org.twins.core.enums.twinclass.OwnerType;
@@ -55,12 +54,12 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
+    protected String processValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) {
+        return value.getValue();
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
                         twinFieldEntity.getValue() : null);

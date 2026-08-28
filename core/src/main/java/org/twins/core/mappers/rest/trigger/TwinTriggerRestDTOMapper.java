@@ -13,7 +13,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -51,6 +53,7 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
         }
 
         if (mapperContext.hasModeButNot(TwinClassMode.TwinTrigger2TwinClassMode.HIDE)) {
+            twinTriggerService.loadJobTwinClass(src);
             dst.setJobTwinClassId(src.getJobTwinClassId());
             twinClassRestDTOMapper.postpone(src.getJobTwinClass(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinTrigger2TwinClassMode.SHORT)));
@@ -65,6 +68,14 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
     @Override
     public String getObjectCacheId(TwinTriggerEntity src) {
         return src.getId().toString();
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinTriggerEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinTrigger2TwinClassMode.HIDE)) {
+            twinTriggerService.loadJobTwinClass(srcCollection);
+        }
     }
 
 }

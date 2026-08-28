@@ -190,7 +190,8 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
                 I18nEntity::setTranslationsKit,
                 i18nTranslationRepository::findByI18nIdIn,
                 I18nTranslationEntity::getLocale,
-                I18nTranslationEntity::getI18nId);
+                I18nTranslationEntity::getI18nId,
+                (child, parent) -> {});
     }
 
     public void loadStyles(I18nTranslationEntity translation) {
@@ -223,16 +224,20 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     }
 
     public Map<UUID, String> translateToLocale(Set<UUID> idsToLoad) {
-        if (CollectionUtils.isEmpty(idsToLoad)) {
+        return translateToLocale(idsToLoad, resolveCurrentUserLocale());
+    }
+
+    /**
+     * Bulk translate i18n ids for an explicit locale (one SQL regardless of the number of ids).
+     * Unlike {@link #translateToLocale(Set)}, the locale is a parameter — not the thread-local ApiUser —
+     * so batch flows can group ids by per-history locale. Missing ids map to an empty string.
+     */
+    public Map<UUID, String> translateToLocale(Set<UUID> idsToLoad, Locale locale) {
+        if (CollectionUtils.isEmpty(idsToLoad) || locale == null) {
             return Collections.emptyMap();
-        }
-        if (idsToLoad.size() == 1) {
-            UUID id = idsToLoad.iterator().next();
-            return Map.of(id, translateToLocale(id));
         }
 
         Map<UUID, String> result = new HashMap<>();
-        Locale locale = resolveCurrentUserLocale();
         String arrayLiteral = advancedEntityManager.buildPostgresUuidArrayLiteral(idsToLoad);
 
         i18nTranslationRepository.findByI18nIdInAndLocaleArray(arrayLiteral, locale.toLanguageTag())

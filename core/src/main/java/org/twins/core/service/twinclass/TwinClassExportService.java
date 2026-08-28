@@ -7,10 +7,12 @@ import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.EntityExportService;
-import org.twins.core.service.twin.TwinStatusExportService;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinclassfield.TwinClassFieldExportService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowExportService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinstatus.TwinStatusExportService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -62,7 +64,7 @@ public class TwinClassExportService extends EntityExportService<TwinClassEntity>
         // i18n for twin classes
         sqlParts.addNotBlank(i18nExportService.exportToSql(i18nIds));
         // twin classes
-        sqlParts.addNotBlank(sqlBuilder.buildInserts(twinClasses));
+        sqlParts.addNotBlank(buildUpsertsSorted(twinClasses, TwinClassEntity::getId));
 
         // fields
         if (includeFields) {
@@ -73,13 +75,13 @@ public class TwinClassExportService extends EntityExportService<TwinClassEntity>
         // statuses
         if (includeStatuses) {
             var allStatuses = twinStatusService.findByTwinClassIdIn(twinClassIds);
-            sqlParts.addNotBlank(twinStatusExportService.exportToSql(allStatuses));
+            sqlParts.addNotBlank(twinStatusExportService.exportCollectionToSql(allStatuses));
         }
 
         // twinflow
         if (includeTwinflow) {
             var twinflows = twinflowService.findByTwinClassIdIn(twinClassIds);
-            sqlParts.addNotBlank(twinflowExportService.exportToSql(twinflows));
+            sqlParts.addNotBlank(twinflowExportService.exportCollectionToSql(twinflows));
         }
 
         return String.join("\n", sqlParts);

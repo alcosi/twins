@@ -16,7 +16,7 @@ import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -29,7 +29,7 @@ public class TwinChangeTask implements Runnable {
     private final TwinChangeTaskEntity twinChangeTaskEntity;
 
     @Autowired
-    private TwinFactoryService twinFactoryService;
+    private FactoryExecutionService factoryExecutionService;
     @Autowired
     private TwinChangeTaskRepository twinChangeTaskRepository;
     @Autowired
@@ -59,7 +59,7 @@ public class TwinChangeTask implements Runnable {
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
 //                    .setBasics(transitionContext.getBasics());
-            FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinChangeTaskEntity.getTwinFactoryId(), factoryContext);
+            FactoryResultUncommited result = factoryExecutionService.runFactoryAndCollectResult(twinChangeTaskEntity.getTwinFactoryId(), factoryContext);
             if (KitUtils.isNotEmpty(result.getDeletes())) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "deletes are currently not supported by  tasks");
             }
@@ -69,7 +69,7 @@ public class TwinChangeTask implements Runnable {
             for (var twinUpdate : result.getUpdates() ) {
                 twinUpdate.setCanTriggerAfterOperationFactory(false);
             }
-            twinFactoryService.commitResult(result);
+            factoryExecutionService.commitResult(result);
             twinChangesService.savePostponedTriggers(factoryContext.getPostponedTriggers());
             twinChangeTaskEntity
                     .setStatusId(TwinChangeTaskStatus.DONE)

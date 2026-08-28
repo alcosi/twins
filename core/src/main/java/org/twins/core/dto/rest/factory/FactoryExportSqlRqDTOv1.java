@@ -17,6 +17,9 @@ public class FactoryExportSqlRqDTOv1 extends Request {
     @Schema(description = "twin factory ids to export SQL for")
     public Set<UUID> twinFactoryIds;
 
+    @Schema(description = "include condition sets")
+    public boolean includeConditionSets = false;
+
     @Schema(description = "include branches with condition sets and conditions")
     public boolean includeBranches = false;
 
@@ -34,4 +37,10 @@ public class FactoryExportSqlRqDTOv1 extends Request {
 
     @Schema(description = "include triggers with condition sets, conditions")
     public boolean includeTriggers = false;
+
+    @Schema(description = "follow nextTwinFactoryId / afterCommitTwinFactoryId links from pipelines and branches and export referenced factories too (cycle-safe; aborts with error on broken or cross-domain factory references)")
+    public boolean cascadeFactory = false;
+
+    @Schema(description = "before upsert, DELETE all factory elements of include-* categories so orphan rows (present in target DB but not in this export) are removed. Factory row itself is NOT deleted (external FKs). Steps/conditions/multiplier_filters are removed via DB cascade. twin_factory_condition_set is cleared only when all its RESTRICT referencers are in clear scope, otherwise skipped with a SQL comment (its definition is still refreshed by the upsert).")
+    public boolean clearElements = false;
 }

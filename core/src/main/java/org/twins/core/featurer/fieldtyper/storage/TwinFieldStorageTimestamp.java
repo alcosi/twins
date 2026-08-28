@@ -31,6 +31,6 @@ public class TwinFieldStorageTimestamp extends TwinFieldStorageMater<TwinFieldTi
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldTimestampKit(Kit.EMPTY);
+        twinEntity.setTwinFieldTimestampKit(new Kit<>(TwinFieldTimestampEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
     }
 }

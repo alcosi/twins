@@ -12,8 +12,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
-import org.twins.core.service.twin.TwinValidatorSetService;
-import org.twins.core.service.validator.TwinValidatorService;
+import org.twins.core.service.twinvalidator.TwinValidatorService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.Collection;
 import java.util.UUID;

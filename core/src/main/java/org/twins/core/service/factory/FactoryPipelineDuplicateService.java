@@ -13,14 +13,12 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.domain.EntityDuplicateCollector;
+import org.twins.core.domain.factory.FactoryDuplicate;
 import org.twins.core.domain.factory.FactoryPipelineDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -35,6 +33,8 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     private final FactoryService factoryService;
     @Lazy
     private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
+    @Lazy
+    private final FactoryDuplicateService factoryDuplicateService;
 
     @Override
     protected EntitySecureFindServiceImpl<TwinFactoryPipelineEntity> entityService() {
@@ -70,6 +70,8 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
     @Override
     protected void loadRequiredRelations(List<TwinFactoryPipelineEntity> originalEntities) throws ServiceException {
         factoryPipelineService.loadConditionSet(originalEntities);
+        factoryPipelineService.loadNextTwinFactory(originalEntities);
+        factoryPipelineService.loadAfterCommitTwinFactory(originalEntities);
     }
 
     @Override
@@ -97,9 +99,11 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
         var src = duplicate.getOriginalEntity();
         var dstFactory = duplicate.getNewParentEntity();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
-        if (newConditionSetId != null && src.getTwinFactoryId() != dstFactory.getId()) {
-            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), dstFactory.getId(), duplicateCollector);
+        if (newConditionSetId != null && !Objects.equals(src.getTwinFactoryId(), dstFactory.getId())) {
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), dstFactory.getId(), duplicateCollector);
         }
+        UUID newNextFactoryId = remapNextFactoryId(src, duplicateCollector);
+        UUID newAfterCommitFactoryId = remapAfterCommitFactoryId(src, duplicateCollector);
         return new TwinFactoryPipelineEntity()
                 .setId(UuidUtils.generate())
                 .setTwinFactoryId(src.getTwinFactoryId())
@@ -107,12 +111,47 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
                 .setTwinFactoryConditionSetId(newConditionSetId)
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setOutputTwinStatusId(src.getOutputTwinStatusId())
-                .setNextTwinFactoryId(src.getNextTwinFactoryId())
+                .setNextTwinFactoryId(newNextFactoryId)
                 .setNextTwinFactoryLimitScope(src.getNextTwinFactoryLimitScope())
-                .setAfterCommitTwinFactoryId(src.getAfterCommitTwinFactoryId())
+                .setAfterCommitTwinFactoryId(newAfterCommitFactoryId)
                 .setTemplateTwinId(src.getTemplateTwinId())
                 .setDescription(src.getDescription())
                 .setActive(src.getActive());
+    }
+
+    /**
+     * Remaps {@code nextTwinFactoryId} to the cascade-duplicated factory when
+     * {@code duplicateNextFactoryCascade} is set on the owning factory; otherwise copies the original id.
+     */
+    private UUID remapNextFactoryId(TwinFactoryPipelineEntity src, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        UUID originalNextId = src.getNextTwinFactoryId();
+        if (originalNextId == null) {
+            return null;
+        }
+        FactoryDuplicate ownerDuplicate = (FactoryDuplicate) duplicateCollector.getEntry(
+                new EntityDuplicateCollector.DuplicateKey(TwinFactoryEntity.class, src.getTwinFactoryId(), null));
+        if (ownerDuplicate == null || !ownerDuplicate.isDuplicateNextFactoryCascade() || src.getNextTwinFactory() == null) {
+            return originalNextId;
+        }
+        return factoryDuplicateService.lookupOrCollect(src.getNextTwinFactory(), null, duplicateCollector);
+    }
+
+    /**
+     * Remaps {@code afterCommitTwinFactoryId} to the cascade-duplicated factory when
+     * {@code duplicateAfterCommitFactory} is set on the owning factory; otherwise copies the original id.
+     * Independent from {@code duplicateNextFactoryCascade} — the two flags are orthogonal.
+     */
+    private UUID remapAfterCommitFactoryId(TwinFactoryPipelineEntity src, EntityDuplicateCollector duplicateCollector) throws ServiceException {
+        UUID originalId = src.getAfterCommitTwinFactoryId();
+        if (originalId == null) {
+            return null;
+        }
+        FactoryDuplicate ownerDuplicate = (FactoryDuplicate) duplicateCollector.getEntry(
+                new EntityDuplicateCollector.DuplicateKey(TwinFactoryEntity.class, src.getTwinFactoryId(), null));
+        if (ownerDuplicate == null || !ownerDuplicate.isDuplicateAfterCommitFactory() || src.getAfterCommitTwinFactory() == null) {
+            return originalId;
+        }
+        return factoryDuplicateService.lookupOrCollect(src.getAfterCommitTwinFactory(), null, duplicateCollector);
     }
 
     @Override

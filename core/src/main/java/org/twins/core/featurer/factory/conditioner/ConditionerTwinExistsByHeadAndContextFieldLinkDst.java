@@ -26,14 +26,21 @@ public class ConditionerTwinExistsByHeadAndContextFieldLinkDst extends Condition
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Override
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException {
+        return twinHeadService.resolveHeadTwinId(contextTwin, null);
+    }
+
+    @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                 .lookupFieldValue(factoryItem, dstFieldId);
-        UUID dstTwinId = extractTwinIdFromFieldValue(dstFieldValue);
-        if (dstTwinId == null) {
+        TwinEntity dstTwin = extractTwinFromFieldValue(dstFieldValue);
+        if (dstTwin == null) {
             log.debug("Link dst twin id is not resolved from context field [{}]", dstFieldId);
+            return null;
         }
-        return dstTwinId;
+
+        return dstTwin.getId();
     }
 }

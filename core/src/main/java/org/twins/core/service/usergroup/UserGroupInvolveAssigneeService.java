@@ -23,8 +23,8 @@ import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
 import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
-import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;

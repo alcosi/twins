@@ -13,8 +13,8 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinFieldAttributeMode;
-import org.twins.core.service.twin.TwinFieldAttributeService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinfield.TwinFieldAttributeService;
 
 import java.util.Collection;
 import java.util.Map;

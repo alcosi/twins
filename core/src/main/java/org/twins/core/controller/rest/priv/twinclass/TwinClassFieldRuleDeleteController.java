@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleService;
 
 import java.util.UUID;
 

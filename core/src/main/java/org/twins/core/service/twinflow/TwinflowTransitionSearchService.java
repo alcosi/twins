@@ -11,6 +11,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
@@ -21,6 +22,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Locale;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkAliasLikeIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkTransitionTypeLikeIn;
@@ -38,6 +40,7 @@ public class TwinflowTransitionSearchService {
     private Specification<TwinflowTransitionEntity> createTwinflowTransitionEntitySearchSpecification(TransitionSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionEntity.Fields.twinflow, TwinflowEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinflowTransitionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionEntity.Fields.id),
                 joinAndSearchByI18NFieldDirect(TwinflowTransitionEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, true, false),

@@ -271,6 +271,7 @@ public class ApiUser {
         return userId != null && !NOT_SPECIFIED.equals(userId);
     }
 
+
     //this method only indicates that we have some data about domain id, but it's unchecked
     public boolean isMachineUserSpecified() throws ServiceException {
         if (machineUser != null)
@@ -292,8 +293,13 @@ public class ApiUser {
     }
 
     public UUID getUserId() throws ServiceException {
-        if (isUserSpecified())
-            return getUser().getId();
+        if (isUserSpecified()) {
+            if (isSystemUser())
+                return userId;
+            else {
+                return getUser().getId();
+            }
+        }
         return null;
     }
 
@@ -369,7 +375,7 @@ public class ApiUser {
     }
 
     public boolean isSystemUser() throws ServiceException {
-        return apiUserResolverService.isSystemUser(getUserId());
+        return ApiUserResolverService.isSystemUser(userId);
     }
 
     public DomainBusinessAccountEntity getDomainBusinessAccount() throws ServiceException {

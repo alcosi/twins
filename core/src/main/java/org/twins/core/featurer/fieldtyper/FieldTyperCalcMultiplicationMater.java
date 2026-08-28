@@ -18,7 +18,7 @@ import java.util.Properties;
 )
 public class FieldTyperCalcMultiplicationMater extends FieldTyperCalcBinaryMater {
 
-    @FeaturerParam(name = "replaceZeroWithOne", description = "if some filed value is null or 0, then mulitply on 1")
+    @FeaturerParam(name = "replaceZeroWithOne", description = "if some filed value is null or 0, then mulitply on 1", optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean replaceZeroWithOne = new FeaturerParamBoolean("replaceZeroWithOne");
 
     @Override

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionSearchEntity;
@@ -46,35 +46,27 @@ public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> {
     private DataListOptionSearchEntity configuredSearch;
 
     public DataListOptionSearch addDataListId(UUID datalistId, boolean exclude) {
-        if (exclude)
-            dataListIdExcludeList = CollectionUtils.safeAdd(dataListIdExcludeList, datalistId);
-        else
-            dataListIdList = CollectionUtils.safeAdd(dataListIdList, datalistId);
-        return this;
+        return SetUtils.safeAdd(this, datalistId, exclude,
+                this::getDataListIdList, this::setDataListIdList,
+                this::getDataListIdExcludeList, this::setDataListIdExcludeList);
     }
 
     public DataListOptionSearch addBusinessAccountId(UUID businessAccountId, boolean exclude) {
-        if (exclude)
-            businessAccountIdExcludeList = CollectionUtils.safeAdd(businessAccountIdExcludeList, businessAccountId);
-        else
-            businessAccountIdList = CollectionUtils.safeAdd(businessAccountIdList, businessAccountId);
-        return this;
+        return SetUtils.safeAdd(this, businessAccountId, exclude,
+                this::getBusinessAccountIdList, this::setBusinessAccountIdList,
+                this::getBusinessAccountIdExcludeList, this::setBusinessAccountIdExcludeList);
     }
 
     public DataListOptionSearch addExternalId(String externalId, boolean exclude) {
-        if (exclude)
-            externalIdExcludeList = CollectionUtils.safeAdd(externalIdExcludeList, externalId);
-        else
-            externalIdList = CollectionUtils.safeAdd(externalIdList, externalId);
-        return this;
+        return SetUtils.safeAdd(this, externalId, exclude,
+                this::getExternalIdList, this::setExternalIdList,
+                this::getExternalIdExcludeList, this::setExternalIdExcludeList);
     }
 
     public DataListOptionSearch addOptionKeyLike(String optionKey, boolean exclude) {
-        if (exclude)
-            optionNotLikeList = CollectionUtils.safeAdd(optionNotLikeList, optionKey);
-        else
-            optionLikeList = CollectionUtils.safeAdd(optionLikeList, optionKey);
-        return this;
+        return SetUtils.safeAdd(this, optionKey, exclude,
+                this::getOptionLikeList, this::setOptionLikeList,
+                this::getOptionNotLikeList, this::setOptionNotLikeList);
     }
 
     public static final ImmutableList<Pair<Function<DataListOptionSearch, Set>, BiConsumer<DataListOptionSearch, Set>>> SET_FIELDS = ImmutableList.of(

@@ -1,6 +1,8 @@
 package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -11,8 +13,9 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.factory.FactoryMultiplierFilterService;
 import org.twins.core.service.factory.FactoryMultiplierService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryService;
 
 import java.util.Collection;
 
@@ -21,7 +24,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = {FactoryMultiplierMode.class, FactoryMultiplierFiltersCountMode.class})
 public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryMultiplierEntity, FactoryMultiplierDTOv1> {
 
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     @MapperModePointerBinding(modes = FactoryMode.FactoryMultiplier2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapper;
@@ -32,6 +35,12 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
     @MapperModePointerBinding(modes = FeaturerMode.FactoryMultiplier2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
     private final FactoryMultiplierService factoryMultiplierService;
+    private final FactoryMultiplierFilterService factoryMultiplierFilterService;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryMultiplierFilterMode.FactoryMultiplier2FactoryMultiplierFilterMode.class)
+    private FactoryMultiplierFilterRestDTOMapper factoryMultiplierFilterRestDTOMapper;
 
     @Override
     public void map(TwinFactoryMultiplierEntity src, FactoryMultiplierDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -50,28 +59,41 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
                     .setInputTwinClassId(src.getInputTwinClassId());
         }
         if (mapperContext.hasModeButNot(FactoryMultiplierFiltersCountMode.HIDE)) {
-            twinFactoryService.countFactoryMultiplierFilters(src);
             dst.setFactoryMultiplierFiltersCount(src.getFactoryMultiplierFiltersCount());
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
             dst.setFactoryId(src.getTwinFactoryId());
+            factoryMultiplierService.loadTwinFactory(src);
             factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryMultiplier2FactoryMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryMultiplier2TwinClassMode.HIDE)) {
             dst.setInputTwinClassId(src.getInputTwinClassId());
+            factoryMultiplierService.loadInputTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryMultiplier2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
             dst.setMultiplierFeaturerId(src.getMultiplierFeaturerId());
             featurerRestDTOMapper.postpone(src.getMultiplierFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT));
         }
+        if (mapperContext.hasModeButNot(FactoryMultiplierFilterMode.FactoryMultiplier2FactoryMultiplierFilterMode.HIDE)) {
+            factoryMultiplierFilterService.loadFactoryMultiplierFilters(src);
+            dst.setFilterIdList(src.getTwinFactoryMultiplierFilterKit().getIdSet());
+            factoryMultiplierFilterRestDTOMapper.postpone(src.getTwinFactoryMultiplierFilterKit(), mapperContext.forkOnPoint(FactoryMultiplierFilterMode.FactoryMultiplier2FactoryMultiplierFilterMode.SHORT));
+        }
     }
 
     @Override
     public void beforeCollectionConversion(Collection<TwinFactoryMultiplierEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasMode(FactoryMultiplierFiltersCountMode.SHOW)) {
-            twinFactoryService.countFactoryMultiplierFilters(srcCollection);
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE)) {
+            factoryMultiplierService.loadTwinFactory(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.FactoryMultiplier2TwinClassMode.HIDE)) {
+            factoryMultiplierService.loadInputTwinClass(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryMultiplierFilterMode.FactoryMultiplier2FactoryMultiplierFilterMode.HIDE)) {
+            factoryMultiplierFilterService.loadFactoryMultiplierFilters(srcCollection);
         }
     }
 }

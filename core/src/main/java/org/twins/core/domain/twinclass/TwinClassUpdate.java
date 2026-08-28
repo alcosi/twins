@@ -11,6 +11,7 @@ import org.twins.core.domain.EntityRelinkOperation;
 public class TwinClassUpdate extends TwinClassSave {
     private EntityRelinkOperation markerDataListUpdate;
     private EntityRelinkOperation tagDataListUpdate;
+    private EntityRelinkOperation flavorDataListUpdate;
     private EntityRelinkOperation extendsTwinClassUpdate;
     private EntityRelinkOperation headTwinClassUpdate;
 }

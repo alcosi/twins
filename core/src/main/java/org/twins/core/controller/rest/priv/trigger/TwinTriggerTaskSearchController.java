@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.trigger.TwinTriggerTaskRestDTOMapper;
 import org.twins.core.mappers.rest.trigger.TwinTriggerTaskSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.trigger.TwinTriggerTaskSearchService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskSearchService;
 
 @Tag(description = "", name = ApiTag.TRIGGER)
 @RestController
@@ -60,7 +60,7 @@ public class TwinTriggerTaskSearchController extends ApiController {
         TwinTriggerTaskSearchRsDTOv1 rs = new TwinTriggerTaskSearchRsDTOv1();
         try {
             PaginationResult<TwinTriggerTaskEntity> twinTriggerTaskList = twinTriggerTaskSearchService
-                    .findTwinTriggerTasks(twinTriggerTaskSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinTriggerTaskSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(twinTriggerTaskList))
                     .setTwinTriggerTasks(twinTriggerTaskRestDTOMapper.convertCollection(twinTriggerTaskList.getList(), mapperContext))

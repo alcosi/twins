@@ -13,8 +13,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.HistorySearch;
+import org.twins.core.service.auth.AuthService;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.history.HistorySpecification.*;
 
@@ -25,6 +29,7 @@ import static org.twins.core.dao.specifications.history.HistorySpecification.*;
 @RequiredArgsConstructor
 public class HistorySearchService {
     private final HistoryRepository historyRepository;
+    private final AuthService authService;
 
     public PaginationResult<HistoryEntity> findHistory(HistorySearch search, SimplePagination pagination) throws ServiceException {
         Specification<HistoryEntity> spec = createHisotrySearchSpecification(search);
@@ -32,8 +37,10 @@ public class HistorySearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) {
-        return checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
+    private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) throws ServiceException {
+        Specification<HistoryEntity> domainSpec = checkUuid(authService.getApiUser().getDomainId(), false, true, HistoryEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId);
+        return domainSpec
+                .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false))
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
                 .and(checkUuidIn(search.getIdList(), false, false, HistoryEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), true, false, HistoryEntity.Fields.id))

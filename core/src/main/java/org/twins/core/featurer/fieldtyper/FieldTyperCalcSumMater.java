@@ -3,7 +3,10 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -13,7 +16,9 @@ import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
+import org.twins.core.service.recompute.FieldRecomputeRequest;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -25,10 +30,13 @@ import java.util.UUID;
         name = "Sum fields (materialization)",
         description = "Save sum of twin fields on serializeValue, and return saved total from database"
 )
-public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperScalable, FieldTyperCalcMater {
+public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> implements FieldTyperCalcMater, FieldTyperRecomputed {
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
+
+    @FeaturerParam(name = "Ignore flavor data list option ids", description = "", order = 1, optional = true)
+    public static final FeaturerParamUUIDSet ignoreFlavorDataListOptionIds = new FeaturerParamUUIDSetDatalistOptionId("ignoreFlavorDataListOptionIds");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -37,11 +45,25 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (shouldIgnoreSerialization(properties, twin)) {
+            return;
+        }
         if (skipIfEmpty(twin, properties, twinClassFieldService, fieldIds.extract(properties), value.getTwinClassField())) {
             return;
         }
+        serializeCalculatedValue(properties, twin, twinFieldEntity, value, twinChangesCollector);
+    }
+
+    private boolean shouldIgnoreSerialization(Properties properties, TwinEntity twin) {
+        var ignore = ignoreFlavorDataListOptionIds.extract(properties);
+        return twin.getFlavorDataListOptionId() != null
+                && ignore != null
+                && ignore.contains(twin.getFlavorDataListOptionId());
+    }
+
+    private void serializeCalculatedValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity == null) {
-            twinFieldEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, calcSum(properties, twin));
@@ -50,6 +72,22 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) throws ServiceException {
         return deserializeValueBase(properties, twinField, twinFieldEntity);
+    }
+
+    @Override
+    public void recompute(FieldRecomputeRequest request, TwinChangesCollector collector) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, request.subscriberField().getFieldTyperParams());
+        if (shouldIgnoreSerialization(properties, request.subscriberTwin())) {
+            return;
+        }
+        FieldValueText value = new FieldValueText(request.subscriberField());
+        TwinFieldDecimalEntity twinFieldEntity = request.subscriberTwin().getTwinFieldDecimalKit().get(request.subscriberField().getId());
+        serializeCalculatedValue(properties, request.subscriberTwin(), twinFieldEntity, value, collector);
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldValueSearchNumeric search) throws ServiceException {
+        return TwinSpecification.checkFieldDecimal(search);
     }
 
     private BigDecimal calcSum(Properties properties, TwinEntity twin) throws ServiceException {

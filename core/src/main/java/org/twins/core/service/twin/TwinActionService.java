@@ -27,7 +27,8 @@ import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.action.ActionRestrictionReasonService;
 import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.validator.TwinValidatorService;
+import org.twins.core.service.twinvalidator.TwinValidatorService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -115,8 +116,6 @@ public class TwinActionService {
             for (TwinClassEntity twinClassEntity : needLoadByPermissions) {
                 twinClassEntity.setActionsProtectedByPermission(new Kit<>(TwinActionPermissionEntity::getTwinAction));
                 for (var action : TwinAction.values()) {
-                    if (twinClassEntity.getActionsProtectedByPermission().get(action) != null)
-                        continue; // protectedByPermission is already detected
                     if (groupedByActionThenByClass.get(action) == null) {
                         continue; // protectedByPermission is not configured to any class
                     }
@@ -133,23 +132,24 @@ public class TwinActionService {
         if (!needLoadByValidators.isEmpty()) {
             List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRuleRepository.findByTwinClassIdIn(needLoadBysValidatorsClassIds);
             twinValidatorService.loadValidators(twinClassActionValidatorEntities);
-            Map<TwinAction, Map<UUID, TwinActionValidatorRuleEntity>> groupedByActionThenByClass = new HashMap<>();
+            Map<TwinAction, Map<UUID, List<TwinActionValidatorRuleEntity>>> groupedByActionThenByClass = new HashMap<>();
             for (var twinActionValidatorRuleEntity : twinClassActionValidatorEntities) {
-                groupedByActionThenByClass.computeIfAbsent(twinActionValidatorRuleEntity.getTwinAction(), k -> new HashMap<>()).put(twinActionValidatorRuleEntity.getTwinClassId(), twinActionValidatorRuleEntity);
+                groupedByActionThenByClass
+                        .computeIfAbsent(twinActionValidatorRuleEntity.getTwinAction(), k -> new HashMap<>())
+                        .computeIfAbsent(twinActionValidatorRuleEntity.getTwinClassId(), k -> new ArrayList<>())
+                        .add(twinActionValidatorRuleEntity);
             }
             for (TwinClassEntity twinClassEntity : needLoadByValidators) {
                 twinClassEntity.setActionsProtectedByValidatorRules(new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
                 for (var action : TwinAction.values()) {
-                    if (CollectionUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(action)))
-                        continue; // protectedByValidator is already detected
                     if (groupedByActionThenByClass.get(action) == null) {
                         continue; // protectedByValidator is not configured to any class
                     }
                     for (var extendsClassId : twinClassEntity.getExtendedClassIdSet()) { // set order is important
-                        var actionPermission = groupedByActionThenByClass.get(action).get(extendsClassId);
-                        if (actionPermission != null) {
-                            twinClassEntity.getActionsProtectedByValidatorRules().add(actionPermission);
-                            break; // no need to go deeper
+                        List<TwinActionValidatorRuleEntity> rulesForClass = groupedByActionThenByClass.get(action).get(extendsClassId);
+                        if (CollectionUtils.isNotEmpty(rulesForClass)) {
+                            twinClassEntity.getActionsProtectedByValidatorRules().addAll(rulesForClass);
+                            break; // nearest class with rules wins, take all of them
                         }
                     }
                 }

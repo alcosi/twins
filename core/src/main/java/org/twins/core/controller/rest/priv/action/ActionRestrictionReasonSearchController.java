@@ -58,8 +58,8 @@ public class ActionRestrictionReasonSearchController extends ApiController {
             @RequestBody ActionRestrictionReasonSearchRqDTOv1 request) {
         ActionRestrictionReasonSearchRsDTOv1 rs = new ActionRestrictionReasonSearchRsDTOv1();
         try {
-            PaginationResult<ActionRestrictionReasonEntity> reasonsList = actionRestrictionReasonSearchService.findActionRestrictionReasons(
-                    actionRestrictionReasonSearchRestDTOReverseMapper.convert(request.search), pagination);
+            PaginationResult<ActionRestrictionReasonEntity> reasonsList = actionRestrictionReasonSearchService.search(
+                    actionRestrictionReasonSearchRestDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(reasonsList))
                     .setActionRestrictionReasons(actionRestrictionReasonRestDTOMapper.convertCollection(reasonsList.getList(), mapperContext))

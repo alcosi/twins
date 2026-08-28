@@ -15,6 +15,8 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryPipelineStepMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.service.factory.FactoryPipelineStepService;
 
+import java.util.Collection;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = FactoryPipelineStepMode.class)
@@ -56,10 +58,12 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         }
         if (mapperContext.hasModeButNot(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE)) {
             dst.setFactoryPipelineId(src.getTwinFactoryPipelineId());
+            factoryPipelineStepService.loadPipeline(src);
             factoryPipelineRestDTOMapper.postpone(src.getTwinFactoryPipeline(), mapperContext.forkOnPoint(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.HIDE)) {
             dst.setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            factoryPipelineStepService.loadConditionSet(src);
             factoryConditionSetRestDTOMapper.postpone(src.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE)) {
@@ -68,4 +72,15 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         }
     }
 
+    @Override
+    public void beforeCollectionConversion(Collection<TwinFactoryPipelineStepEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE)) {
+            factoryPipelineStepService.loadPipeline(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.HIDE)) {
+            factoryPipelineStepService.loadConditionSet(srcCollection);
+        }
+    }
 }

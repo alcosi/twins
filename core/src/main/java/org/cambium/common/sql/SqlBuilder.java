@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.json.SerializationFeature;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
@@ -19,7 +20,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class SqlBuilder {
-    private static final ObjectMapper objectMapper = JsonMapper.builder().build();
+    // ORDER_MAP_ENTRIES_BY_KEYS makes jsonb output deterministic (sorted keys, incl. nested maps),
+    // so exported SQL is diff-stable across runs/environments.
+    private static final ObjectMapper objectMapper = JsonMapper.builder()
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .build();
     private static final Cache<Class<?>, EntityMetadata> metadataCache = Caffeine.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES)
             .build();
@@ -63,6 +68,118 @@ public class SqlBuilder {
                 .collect(Collectors.joining("\n"));
     }
 
+    /**
+     * Sorts entities by the given comparator before emitting INSERTs, so SQL exports are
+     * deterministic (diff-able across environments). Pass {@code null} to keep insertion order.
+     */
+    public <T> String buildInserts(Collection<T> entities, Comparator<? super T> comparator) {
+        if (comparator == null) {
+            return buildInserts(entities);
+        }
+        List<T> sorted = new ArrayList<>(entities);
+        sorted.sort(comparator);
+        return buildInserts(sorted);
+    }
+
+    /**
+     * Same as {@link #buildInsert(Object)} but emits {@code ON CONFLICT (<pk>) DO UPDATE SET ...}
+     * so re-importing a row whose id already exists in the target DB refreshes its definition
+     * instead of leaving a stale row. Supports composite primary keys (e.g. {@code @IdClass}).
+     * Falls back to {@code ON CONFLICT DO NOTHING} when only PK columns are present (nothing to
+     * update). Throws if the entity has no detectable single/composite {@code @Id} PK.
+     */
+    public String buildUpsert(Object entity) {
+        Class<?> clazz = getRealClass(entity.getClass());
+        EntityMetadata metadata = metadataCache.get(clazz, this::extractMetadata);
+
+        List<String> idColumnNames = metadata.idColumnNames();
+        if (idColumnNames.isEmpty()) {
+            throw new IllegalStateException("Cannot build upsert for " + clazz.getName()
+                    + ": no @Id / primary-key column detected (required as ON CONFLICT target)."
+                    + " Use buildInsert(...) (ON CONFLICT DO NOTHING) instead.");
+        }
+        Set<String> idCols = new HashSet<>(idColumnNames);
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO ").append(metadata.tableName()).append(" (");
+
+        List<String> columns = new ArrayList<>();
+        List<String> values = new ArrayList<>();
+        List<String> setClauses = new ArrayList<>();
+
+        for (int i = 0; i < metadata.columns().size(); i++) {
+            Function<Object, Object> extractor = metadata.extractors().get(i);
+            Object value = extractor.apply(entity);
+
+            if (value != null) {
+                String column = metadata.columns().get(i);
+                columns.add(column);
+                values.add(formatValue(value));
+                // PK columns are part of the conflict target, not the SET clause.
+                if (!idCols.contains(column)) {
+                    setClauses.add(column + "=EXCLUDED." + column);
+                }
+            }
+        }
+
+        if (columns.isEmpty()) {
+            log.warn("No columns to insert for entity: {}", clazz.getName());
+            return "";
+        }
+
+        sql.append(String.join(", ", columns)).append(") VALUES (");
+        sql.append(String.join(", ", values));
+        if (setClauses.isEmpty()) {
+            // Only PK columns present: a conflict means nothing to update -> keep DO NOTHING.
+            sql.append(") ON CONFLICT DO NOTHING;");
+        } else {
+            sql.append(") ON CONFLICT (").append(String.join(", ", idColumnNames))
+                    .append(") DO UPDATE SET ").append(String.join(", ", setClauses)).append(";");
+        }
+
+        return sql.toString();
+    }
+
+    public String buildUpserts(Collection<?> entities) {
+        return entities.stream()
+                .map(this::buildUpsert)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Sorts entities by the given comparator before emitting upserts, so SQL exports are
+     * deterministic (diff-able across environments). Pass {@code null} to keep insertion order.
+     */
+    public <T> String buildUpserts(Collection<T> entities, Comparator<? super T> comparator) {
+        if (comparator == null) {
+            return buildUpserts(entities);
+        }
+        List<T> sorted = new ArrayList<>(entities);
+        sorted.sort(comparator);
+        return buildUpserts(sorted);
+    }
+
+    /**
+     * Builds {@code DELETE FROM <entity table> WHERE <columnName> IN (...uuids...);} — used by the
+     * factory {@code clearElements} flow to drop orphan rows before re-importing via upsert.
+     */
+    public String buildDeleteByColumn(Class<?> entityClass, String columnName, Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return "";
+        }
+        return "DELETE FROM " + resolveTableName(entityClass) + " WHERE " + quoteIdentifier(columnName)
+                + " IN " + formatUuidInClause(ids) + ";";
+    }
+
+    private String quoteIdentifier(String name) {
+        return "\"" + name + "\"";
+    }
+
+    private String formatUuidInClause(Collection<UUID> ids) {
+        return ids.stream().map(id -> "'" + id + "'").collect(Collectors.joining(", ", "(", ")"));
+    }
+
     private String formatValue(Object value) {
         if (value == null) {
             return "NULL";
@@ -79,14 +196,18 @@ public class SqlBuilder {
                 return "''::hstore";
             }
             StringBuilder hstore = new StringBuilder();
-            for (Map.Entry<String, String> entry : hstoreMap.entrySet()) {
-                if (hstore.length() > 0) {
-                    hstore.append(", ");
-                }
-                hstore.append(formatHstoreValue(entry.getKey()))
-                        .append("=>")
-                        .append(formatHstoreValue(entry.getValue()));
-            }
+            // Sorted keys make hstore output deterministic (HashMap entry order is not).
+            hstoreMap.entrySet().stream()
+                    .sorted(Map.Entry.<String, String>comparingByKey(
+                            Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .forEach(entry -> {
+                        if (hstore.length() > 0) {
+                            hstore.append(", ");
+                        }
+                        hstore.append(formatHstoreValue(entry.getKey()))
+                                .append("=>")
+                                .append(formatHstoreValue(entry.getValue()));
+                    });
             return "'" + hstore + "'::hstore";
         }
 
@@ -152,6 +273,7 @@ public class SqlBuilder {
         String tableName = resolveTableName(clazz);
 
         List<String> columns = new ArrayList<>();
+        List<String> idColumnNames = new ArrayList<>();
         List<Function<Object, Object>> extractors = new ArrayList<>();
         List<Class<?>> fieldTypes = new ArrayList<>();
 
@@ -184,6 +306,12 @@ public class SqlBuilder {
             columns.add(columnName);
             fieldTypes.add(field.getType());
 
+            // Track the primary-key column(s) so buildUpsert can target them in ON CONFLICT (...).
+            // Supports composite keys (e.g. @IdClass with multiple @Id fields).
+            if (field.isAnnotationPresent(jakarta.persistence.Id.class)) {
+                idColumnNames.add(columnName);
+            }
+
             final String getterName = "get" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
             java.lang.reflect.Method getter;
             try {
@@ -211,7 +339,16 @@ public class SqlBuilder {
             });
         }
 
-        return new EntityMetadata(tableName, columns, extractors, fieldTypes);
+        // Fallback: no @Id detected -> assume a single-column PK named "id" if such a column exists.
+        // Lets buildUpsert work for entities that rely on the convention id column without @Id.
+        if (idColumnNames.isEmpty()) {
+            String idCol = "\"id\"";
+            if (columns.contains(idCol)) {
+                idColumnNames.add(idCol);
+            }
+        }
+
+        return new EntityMetadata(tableName, columns, idColumnNames, extractors, fieldTypes);
     }
 
     private Class<?> getRealClass(Class<?> clazz) {

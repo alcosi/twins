@@ -33,7 +33,7 @@ public abstract class TwinValidator extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, validatorParams);
         log.info("Running " + (invert ? "inverted " : "") + " validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
 
-        String cacheKey = FeaturerService.toConfigKey(this, validatorParams);
+        String cacheKey = FeaturerService.toConfigKey(this, validatorParams) + (invert ? "#inverted" : "");
 
         List<TwinEntity> twinsToValidate = new ArrayList<>();
         for (var twinEntity : twinEntityCollection) {
@@ -45,14 +45,14 @@ public abstract class TwinValidator extends FeaturerTwins {
             }
         }
 
-        // Validate only non-cached twins
+        // Validate only non-cached twins. The full result is cached, not just the flag.
         if (!twinsToValidate.isEmpty()) {
-            CollectionValidationResult validationResult = isValid(properties, twinsToValidate, false);
+            CollectionValidationResult validationResult = isValid(properties, twinsToValidate, invert);
             // Cache the results
             for (TwinEntity twinEntity : twinsToValidate) {
                 ValidationResult result = validationResult.getTwinsResults().get(twinEntity.getId());
                 if (result != null) {
-                    twinEntity.getTwinValidatorResultCache().put(cacheKey, result.isValid());
+                    twinEntity.getTwinValidatorResultCache().put(cacheKey, result);
                     log.info("Cached result for validator[{}], twin: {}, key: {}, result: {}", this.getClass().getSimpleName(), twinEntity.getId(), cacheKey, result.isValid());
                 } else {
                     throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT, "validator [" + this.getClass().getSimpleName() + "] did not return result for " + twinEntity.logShort());
@@ -63,13 +63,7 @@ public abstract class TwinValidator extends FeaturerTwins {
         // Build final result from cache for all twins
         CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
         for (var twinEntity : twinEntityCollection) {
-            Boolean cachedResult = twinEntity.getTwinValidatorResultCache().get(cacheKey);
-            ValidationResult result = buildResult(
-                    cachedResult != null && cachedResult,
-                    invert,
-                    "cached validation failed",
-                    "cached validation succeeded but inverted");
-            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), result);
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), twinEntity.getTwinValidatorResultCache().get(cacheKey));
         }
         return collectionValidationResult;
     }

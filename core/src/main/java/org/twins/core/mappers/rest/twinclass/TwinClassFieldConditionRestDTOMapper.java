@@ -15,7 +15,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+import org.twins.core.service.twinclassfield.TwinClassFieldConditionService;
 
 import java.util.Collection;
 
@@ -54,7 +54,7 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
                         .setLogicOperatorId(src.getLogicOperatorId());
                 if (src.getConditionEvaluatorFeaturerId() != null) {
                     ConditionEvaluator<?> evaluator = featurerService.getFeaturer(src.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
-                    ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src);
+                    ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src.getConditionEvaluatorParams());
                     TwinClassFieldConditionDescriptorDTO dto = conditionDescriptorMapper.convert(descriptor, mapperContext);
                     dst.setConditionDescriptor(dto);
                 }

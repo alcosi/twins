@@ -57,7 +57,8 @@ public class DataListOptionProjectionSearchController extends ApiController {
             @RequestBody DataListOptionProjectionSearchRqDTOv1 request) {
         DataListOptionProjectionSearchRsDTOv1 rs = new DataListOptionProjectionSearchRsDTOv1();
         try {
-            PaginationResult<DataListOptionProjectionEntity> dataListOptionProjectionsList = dataListOptionProjectionSearchService.findDataListOptionProjections(dataListOptionProjectionSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+            PaginationResult<DataListOptionProjectionEntity> dataListOptionProjectionsList = dataListOptionProjectionSearchService
+                    .search(dataListOptionProjectionSearchDTOReverseMapper.convert(request.getSearch()), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(dataListOptionProjectionsList))
                     .setDataListOptionProjections(dataListOptionProjectionRestDTOMapper.convertCollection(dataListOptionProjectionsList.getList(), mapperContext))

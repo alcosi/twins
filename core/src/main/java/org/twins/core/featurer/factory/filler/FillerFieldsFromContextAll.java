@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -11,7 +12,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
 
@@ -29,7 +30,7 @@ public class FillerFieldsFromContextAll extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         Map<UUID, FieldValue> contextFields = factoryItem.getFactoryContext().getFields();
-        if (contextFields == null)
+        if (CollectionUtils.isEmpty(contextFields))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No context fields present. Please check pipeline config");
         List<String> logMsgs = new ArrayList<>();
         for (Map.Entry<UUID, FieldValue> fieldValue : contextFields.entrySet()) {

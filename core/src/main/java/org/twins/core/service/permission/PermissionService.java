@@ -25,13 +25,13 @@ import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twin.TwinRole;
@@ -39,7 +39,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.twin.TwinService;
@@ -62,7 +61,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionSchemaRepository permissionSchemaRepository;
     private final PermissionGrantUserRepository permissionGrantUserRepository;
     private final PermissionGrantUserGroupRepository permissionGrantUserGroupRepository;
-    private final PermissionGrantGlobalRepository permissionGrantGlobalRepository;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
     @Lazy
@@ -72,13 +70,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
     private final I18nService i18nService;
 
-    private final TwinRepository twinRepository;
     @Lazy
     private final TwinService twinService;
     @Lazy
     private final AuthService authService;
-    @Lazy
-    private final DomainService domainService;
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserGroupService userGroupService;
     private final UserGroupFootprintService userGroupFootprintService;
@@ -383,6 +378,19 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     }
 
+    public void loadPermissionGroup(PermissionEntity permission) throws ServiceException {
+        loadPermissionGroup(Collections.singletonList(permission));
+    }
+
+    public void loadPermissionGroup(Collection<PermissionEntity> permissions) throws ServiceException {
+        permissionGroupService.load(
+                permissions,
+                PermissionEntity::getPermissionGroupId,
+                PermissionEntity::getPermissionGroup,
+                PermissionEntity::setPermissionGroup
+                );
+    }
+
     public KitGroupedObj<PermissionEntity, UUID, UUID, PermissionGroupEntity> findPermissionsForCurrentUser() throws ServiceException {
         return findPermissionsForUser(apiUser.getUser());
     }
@@ -432,6 +440,26 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return currentUserHasPermission(false, Set.of(permission.getId()));
     }
 
+    /**
+     * Hardcoded permissions of system identities (schedulers acting on behalf of the platform) —
+     * domain-independent, identical in every domain, no DB grants or user-group membership needed.
+     * Checked before the regular user-permission resolution, so a system ApiUser never touches the
+     * user_group/permission tables at all.
+     */
+    static final Map<UUID, Set<UUID>> SYSTEM_USER_PERMISSIONS = Map.of(
+            SystemIds.User.NOTIFICATION_SCHEDULER, Set.of(Permissions.DOMAIN_TWINS_VIEW_ALL.getId())
+    );
+
+    public static boolean systemUserHasPermission(UUID userId, boolean anyOf, Set<UUID> permissions) {
+        Set<UUID> systemPermissions = SYSTEM_USER_PERMISSIONS.get(userId);
+        if (systemPermissions == null) {
+            return false;
+        }
+        return anyOf
+                ? permissions.stream().anyMatch(systemPermissions::contains)
+                : systemPermissions.containsAll(permissions);
+    }
+
     public boolean currentUserHasPermission(boolean anyOf, Set<UUID> permissions) throws ServiceException {
         if (CollectionUtils.isEmpty(permissions))
             return false;
@@ -439,6 +467,9 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         ApiUser apiUser = authService.getApiUser();
         if (!apiUser.isUserSpecified())
             return false;
+
+        if (systemUserHasPermission(apiUser.getUserId(), anyOf, permissions))
+            return true;
 
         loadUserPermissions(apiUser.getUser());
         return anyOf

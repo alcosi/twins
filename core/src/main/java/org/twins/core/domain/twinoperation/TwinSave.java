@@ -19,6 +19,12 @@ public abstract class TwinSave extends TwinOperation {
     //this flag helps to simply avoid recursion factory task call during creates/updates,
     //so currently we do not support cascade factory call during such operations
     private boolean canTriggerAfterOperationFactory = true;
+    // Remaining budget of the on-create/on-update factory cascade for this operation.
+    // null = direct (top-level) operation, resolved to the configured twins.factory.cascade.max-depth.
+    // A positive value = cascade extra that may still re-trigger its own on-factory; reaching 0 stops
+    // the cascade. Managed by TwinflowFactoryService.runFactoryOn / cascadeApplyExtras and read by the
+    // runFactoryOnCreate / runFactoryOnUpdate guards in TwinService.
+    private Integer cascadeDepth;
 
     public TwinSave addField(FieldValue fieldValue) {
         if (fields == null)

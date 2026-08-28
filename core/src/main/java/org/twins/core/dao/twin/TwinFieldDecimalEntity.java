@@ -9,6 +9,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.math.BigDecimal;
@@ -65,6 +66,16 @@ public class TwinFieldDecimalEntity extends TwinFieldBaseEntity {
             default ->
                     "twinFieldDecimalEntity[id:" + getId() + (getTwinClassField() != null ? ", key:" + getTwinClassField().getKey() : "") + ", value:" + value + "]";
         };
+    }
+
+    public static TwinFieldDecimalEntity of(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) {
+        return new TwinFieldDecimalEntity()
+                .setId(UuidUtils.generate())
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(null);
     }
 
     public TwinFieldDecimalEntity cloneFor(TwinEntity dstTwinEntity) {

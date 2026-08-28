@@ -43,8 +43,10 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
         if (CollectionUtils.isEmpty(groupsToLoad))
             return;
         var loadedUserGroupsKit = userGroupService.findEntitiesSafe(groupsToLoad);
-        userGroupService.loadUserGroupType(loadedUserGroupsKit.getCollection());
         userGroupService.loadGroups(user);
+        var allGroups = new ArrayList<>(user.getUserGroups().getCollection());
+        allGroups.addAll(loadedUserGroupsKit.getCollection());
+        userGroupService.loadUserGroupType(allGroups);
         if (CollectionUtils.isNotEmpty(userGroupEnterList)) {
             if (CollectionUtils.size(userGroupEnterList) != 1)
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_ENTER_ERROR, "only one group is allowed to be entered");
@@ -62,7 +64,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             List<UserGroupEntity> exitedGroups = new ArrayList<>(), leftGroups = new ArrayList<>();
             for (UserGroupEntity currentlyEnteredGroup : user.getUserGroups().getList()) {
                 if (userGroupExitList.contains(currentlyEnteredGroup.getId()))
-                    exitedGroups.add(loadedUserGroupsKit.get(currentlyEnteredGroup.getId()));
+                    exitedGroups.add(currentlyEnteredGroup);
                 else
                     leftGroups.add(currentlyEnteredGroup);
             }

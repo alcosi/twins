@@ -10,10 +10,9 @@ import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 
 @Slf4j
-public abstract class ContextCollectorTwinBase extends ContextCollector {
+public abstract class ContextCollectorTwinBase extends ContextCollectorAtomic {
     @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");
 
@@ -41,6 +40,7 @@ public abstract class ContextCollectorTwinBase extends ContextCollector {
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
         TwinEntity twin = resolveTwin(history);
+
         if (collectId.extract(properties)) {
             context.put(collectIdKey.extract(properties), twin.getId().toString());
         }
@@ -51,8 +51,11 @@ public abstract class ContextCollectorTwinBase extends ContextCollector {
             context.put(collectDescriptionKey.extract(properties), twin.getDescription());
         }
         if (collectBusinessAccount.extract(properties)) {
-            context.put(collectBusinessAccountKey.extract(properties),  twin.getOwnerBusinessAccountId().toString());
+            if (twin.getOwnerBusinessAccountId() != null) {
+                context.put(collectBusinessAccountKey.extract(properties), twin.getOwnerBusinessAccountId().toString());
+            }
         }
+
         return context;
     }
 

@@ -1,54 +1,53 @@
 package org.twins.core.featurer.fieldtyper;
 
-import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimpleNonIndex;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.history.HistoryItem;
 
 import java.util.Properties;
+import java.util.UUID;
 
-public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch> extends FieldTyper<D, T, TwinFieldStorageSimpleNonIndex, A> {
+public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch>
+        extends FieldTyperSingleValue<D, T, TwinFieldSimpleNonIndexedEntity, String, TwinFieldStorageSimpleNonIndex, A> {
 
-    protected void detectValueChange(TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity, TwinChangesCollector twinChangesCollector, String newValue) {
-        if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldSimpleNonIndexedEntity, "field[" + twinFieldSimpleNonIndexedEntity.getTwinClassField().getKey() + "]", twinFieldSimpleNonIndexedEntity.getValue(), newValue)) {
-            if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                twinChangesCollector
-                        .getHistoryCollector(twinFieldSimpleNonIndexedEntity.getTwin())
-                        .add(historyService.fieldChangeSimpleSecret(twinFieldSimpleNonIndexedEntity.getTwinClassField(), twinFieldSimpleNonIndexedEntity.getValue()));
-            }
-
-            twinFieldSimpleNonIndexedEntity.setValue(newValue);
-        }
-    }
-
-    public TwinFieldSimpleNonIndexedEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        return twinEntity.getTwinFieldSimpleNonIndexedKit().get(twinClassFieldEntity.getId());
+    @Override
+    protected void setEntityValue(TwinFieldSimpleNonIndexedEntity twinFieldEntity, String newValue) {
+        twinFieldEntity.setValue(newValue);
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity = convertToTwinFieldEntity(twin, value.getTwinClassField());
-        if (twinFieldSimpleNonIndexedEntity == null) {
-            twinFieldSimpleNonIndexedEntity = twinService.createTwinFieldNonIndexedEntity(twin, value.getTwinClassField(), null);
-            twinChangesCollector.add(twinFieldSimpleNonIndexedEntity);
-        }
-        serializeValue(properties, twinFieldSimpleNonIndexedEntity, value, twinChangesCollector);
+    protected String getEntityValue(TwinFieldSimpleNonIndexedEntity twinFieldEntity) {
+        return twinFieldEntity.getValue();
     }
-
-    protected abstract void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldEntity, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
 
     @Override
-    protected T deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity = convertToTwinFieldEntity(twinField.getTwin(), twinField.getTwinClassField());
-        return deserializeValue(properties, twinField, twinFieldSimpleNonIndexedEntity);
+    protected Kit<TwinFieldSimpleNonIndexedEntity, UUID> getFieldKit(TwinEntity twinEntity) {
+        return twinEntity.getTwinFieldSimpleNonIndexedKit();
     }
 
-    protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleNonIndexedEntity twinFieldEntity) throws ServiceException;
+    @Override
+    protected TwinFieldSimpleNonIndexedEntity createTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassField) {
+        return TwinFieldSimpleNonIndexedEntity.of(twin, twinClassField);
+    }
 
+    @Override
+    protected HistoryItem<?> createHistoryItem(TwinFieldSimpleNonIndexedEntity twinFieldEntity, String newValue) {
+        // Secret/non-indexed fields never record the new value in history (old value hidden too).
+        return historyService.fieldChangeSimpleSecret(twinFieldEntity.getTwinClassField(), twinFieldEntity.getValue());
+    }
+
+    /**
+     * Non-indexed fields nullify on clear: the stored row is kept and its value is set to null.
+     */
+    @Override
+    protected void onCleared(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldEntity, TwinChangesCollector twinChangesCollector) {
+        detectValueChange(twinFieldEntity, twinChangesCollector, null);
+    }
 }

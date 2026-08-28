@@ -20,7 +20,6 @@ import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorRepo
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorUpdate;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
-import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCollectorUpdateDTOReverseMapper;
 
 import java.util.*;
 import java.util.function.Function;
@@ -33,7 +32,6 @@ import java.util.stream.StreamSupport;
 @Lazy
 public class HistoryNotificationRecipientCollectorService extends EntitySecureFindServiceImpl<HistoryNotificationRecipientCollectorEntity> {
     private final HistoryNotificationRecipientCollectorRepository repository;
-    private final HistoryNotificationRecipientCollectorUpdateDTOReverseMapper updateDTOReverseMapper;
     @Lazy
     private final HistoryNotificationRecipientService historyNotificationRecipientService;
 
@@ -135,5 +133,18 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
                 HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipientId,
                 HistoryNotificationRecipientCollectorEntity::getHistoryNotificationRecipient,
                 HistoryNotificationRecipientCollectorEntity::setHistoryNotificationRecipient);
+    }
+
+    /**
+     * Collector config is effectively static, so {@code findEntitySafe} results are cached globally (by id);
+     * the bulk-by-recipientIds lookup is cached via {@code @Cacheable} on the repository.
+     */
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.GLOBAL;
+    }
+
+    public Set<HistoryNotificationRecipientCollectorEntity> findByHistoryNotificationRecipientIdIn(Set<UUID> recipientIds) {
+        return repository.findAllByHistoryNotificationRecipientIdIn(recipientIds);
     }
 }

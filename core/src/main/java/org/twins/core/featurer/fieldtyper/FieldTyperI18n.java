@@ -67,10 +67,7 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
             }
 
             if (storedField == null) {
-                TwinFieldI18nEntity newTwinFieldI18n = new TwinFieldI18nEntity()
-                        .setTwin(twin)
-                        .setTwinId(twin.getId())
-                        .setTwinClassFieldId(value.getTwinClassField().getId())
+                TwinFieldI18nEntity newTwinFieldI18n = TwinFieldI18nEntity.of(twin, value.getTwinClassField())
                         .setLocale(locale)
                         .setTranslation(translation);
 

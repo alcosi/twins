@@ -19,4 +19,6 @@ public class FactoryDuplicate extends EntityDuplicate<TwinFactoryEntity, Void> {
     private boolean duplicateErasers = false;
     private boolean duplicateTriggers = false;
     private boolean duplicateConditionSets = false;
+    private boolean duplicateNextFactoryCascade = false;
+    private boolean duplicateAfterCommitFactory = false;
 }

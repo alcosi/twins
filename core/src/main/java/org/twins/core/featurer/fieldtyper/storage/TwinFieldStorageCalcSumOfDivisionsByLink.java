@@ -65,6 +65,7 @@ public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCa
                 && Objects.equals(this.srcElseDst, ((TwinFieldStorageCalcSumOfDivisionsByLink) o).srcElseDst)
                 && Objects.equals(this.linkedTwinInStatusIdList, ((TwinFieldStorageCalcSumOfDivisionsByLink) o).linkedTwinInStatusIdList)
                 && Objects.equals(this.linkedTwinOfClassIds, ((TwinFieldStorageCalcSumOfDivisionsByLink) o).linkedTwinOfClassIds)
-                && Objects.equals(this.statusExclude, ((TwinFieldStorageCalcSumOfDivisionsByLink) o).statusExclude);
+                && Objects.equals(this.statusExclude, ((TwinFieldStorageCalcSumOfDivisionsByLink) o).statusExclude)
+                && Objects.equals(this.divisionByZeroIgnore, ((TwinFieldStorageCalcSumOfDivisionsByLink) o).divisionByZeroIgnore);
     }
 }

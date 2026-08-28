@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -24,6 +24,11 @@ public class ConditionerTwinExistsByHeadAndContextLinkDst extends ConditionerTwi
     @Lazy
     @Autowired
     private TwinLinkService twinLinkService;
+
+    @Override
+    protected UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException {
+        return twinHeadService.resolveHeadTwinId(contextTwin, null);
+    }
 
     @Override
     protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {

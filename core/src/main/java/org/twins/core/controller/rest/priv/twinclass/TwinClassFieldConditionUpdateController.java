@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionUpdateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+import org.twins.core.service.twinclassfield.TwinClassFieldConditionService;
 
 import java.util.List;
 

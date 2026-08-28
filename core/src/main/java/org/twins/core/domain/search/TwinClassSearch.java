@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.twinclass.OwnerType;
@@ -39,6 +40,8 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     private Set<OwnerType> ownerTypeExcludeList;
     private Set<UUID> markerDatalistIdList;
     private Set<UUID> markerDatalistIdExcludeList;
+    private Set<UUID> flavorDatalistIdList;
+    private Set<UUID> flavorDatalistIdExcludeList;
     private Set<UUID> tagDatalistIdList;
     private Set<UUID> tagDatalistIdExcludeList;
     private Set<UUID> freezeIdList;
@@ -70,19 +73,15 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     }
 
     public TwinClassSearch addTwinClassId(UUID twinClassId, boolean exclude) {
-        if (exclude)
-            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassId);
-        else
-            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
-        return this;
+        return SetUtils.safeAdd(this, twinClassId, exclude,
+                this::getTwinClassIdList, this::setTwinClassIdList,
+                this::getTwinClassIdExcludeList, this::setTwinClassIdExcludeList);
     }
 
     public TwinClassSearch addTwinClassId(Collection<UUID> twinClassIdSet, boolean exclude) {
-        if (exclude)
-            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassIdSet);
-        else
-            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
-        return this;
+        return SetUtils.safeAddAll(this, twinClassIdSet, exclude,
+                this::getTwinClassIdList, this::setTwinClassIdList,
+                this::getTwinClassIdExcludeList, this::setTwinClassIdExcludeList);
     }
 
     public static final ImmutableList<Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>>> SET_FIELD = ImmutableList.of(
@@ -99,6 +98,8 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
             Pair.of(TwinClassSearch::getOwnerTypeExcludeList, TwinClassSearch::setOwnerTypeExcludeList),
             Pair.of(TwinClassSearch::getMarkerDatalistIdList, TwinClassSearch::setMarkerDatalistIdList),
             Pair.of(TwinClassSearch::getMarkerDatalistIdExcludeList, TwinClassSearch::setMarkerDatalistIdExcludeList),
+            Pair.of(TwinClassSearch::getFlavorDatalistIdList, TwinClassSearch::setFlavorDatalistIdList),
+            Pair.of(TwinClassSearch::getFlavorDatalistIdExcludeList, TwinClassSearch::setFlavorDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getTagDatalistIdExcludeList, TwinClassSearch::setTagDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getTagDatalistIdExcludeList, TwinClassSearch::setTagDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getViewPermissionIdList, TwinClassSearch::setViewPermissionIdList),

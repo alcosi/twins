@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleSearchService;
 
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController

@@ -2,14 +2,16 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class FactoryPipelineSearch {
+public class FactoryPipelineSearch extends EntitySearch<TwinFactoryPipelineEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> factoryIdList;
@@ -26,4 +28,5 @@ public class FactoryPipelineSearch {
     private Set<String> descriptionNotLikeList;
     private Ternary active;
     private Ternary nextFactoryLimitScope;
+    private IntegerRange factoryPipelineStepsCountRange;
 }

@@ -30,6 +30,8 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -176,10 +178,12 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
 
     private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) throws ServiceException {
         TwinTagEntity newTag = new TwinTagEntity();
-        newTag.setTwin(twinEntity);
-        newTag.setTwinId(twinEntity.getId());
-        newTag.setTagDataListOptionId(optionId);
-        newTag.setTagDataListOption(option);
+        newTag
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setTagDataListOptionId(optionId)
+                .setTagDataListOption(option)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         validateEntityAndThrow(newTag, EntitySmartService.EntityValidateMode.beforeSave);
         return newTag;
     }

@@ -13,10 +13,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.projection.ProjectionRepository;
+import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.domain.search.ProjectionSearch;
+import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 import static org.twins.core.dao.specifications.projection.ProjectionSpecification.checkFieldProjectorIdIn;
 
 @Slf4j
@@ -25,6 +26,7 @@ import static org.twins.core.dao.specifications.projection.ProjectionSpecificati
 @RequiredArgsConstructor
 public class ProjectionSearchService {
     private final ProjectionRepository projectionRepository;
+    private final AuthService authService;
 
     public PaginationResult<ProjectionEntity> findProjections(ProjectionSearch search, SimplePagination pagination) throws ServiceException {
         Specification<ProjectionEntity> spec = createProjectionSearchSpecification(search);
@@ -32,8 +34,9 @@ public class ProjectionSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<ProjectionEntity> createProjectionSearchSpecification(ProjectionSearch search) {
+    private Specification<ProjectionEntity> createProjectionSearchSpecification(ProjectionSearch search) throws ServiceException {
         return Specification.allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), ProjectionEntity.Fields.ProjectionTypeSpecOnly, ProjectionTypeEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, ProjectionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, ProjectionEntity.Fields.id),
                 checkUuidIn(search.getSrcTwinPointerIdList(), false, false, ProjectionEntity.Fields.srcTwinPointerId),

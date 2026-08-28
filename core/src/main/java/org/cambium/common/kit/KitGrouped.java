@@ -60,6 +60,12 @@ public class KitGrouped<E, K, GK> extends Kit<E, K> {
         super.clear();
     }
 
+    @Override
+    public E removeByKey(K key) {
+        groupedMap = null;
+        return super.removeByKey(key);
+    }
+
     public Map<GK, List<E>> getGroupedMap() {
         if (groupedMap != null)
             return groupedMap;

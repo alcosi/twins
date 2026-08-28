@@ -1,14 +1,14 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_pipeline")
-public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -63,44 +63,97 @@ public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable {
     @Column(name = "output_twin_status_id")
     private UUID outputTwinStatusId;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity twinFactory;
+    private TwinFactoryEntity twinFactorySpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity nextTwinFactory;
+    private TwinFactoryEntity nextTwinFactorySpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
-    private TwinClassEntity inputTwinClass;
+    private TwinClassEntity inputTwinClassSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity conditionSetSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "output_twin_status_id", insertable = false, updatable = false)
-    private TwinStatusEntity outputTwinStatus;
+    private TwinStatusEntity outputTwinStatusSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
+    private TwinEntity templateTwinSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity twinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity inputTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity templateTwin;
 
     @Transient
-    private Integer pipelineStepsCount;
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity nextTwinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity afterCommitTwinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinStatusEntity outputTwinStatus;
+
+    // Trigger-maintained counter column (created in V1.4.344.02, maintained by AFTER triggers on
+    // twin_factory_pipeline_step). insertable=false/updatable=false keeps Hibernate out of the
+    // write path; @Generated re-reads the row after INSERT/UPDATE.
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "factory_pipeline_steps_count", insertable = false, updatable = false)
+    private Integer factoryPipelineStepsCount;
 
     @Transient
     @EqualsAndHashCode.Exclude

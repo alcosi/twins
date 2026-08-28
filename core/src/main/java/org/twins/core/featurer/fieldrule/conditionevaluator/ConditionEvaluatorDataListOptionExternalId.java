@@ -5,7 +5,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorDataListOptionExternalId;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
         description = "Evaluates a basic condition against a selector field option external id")
 public class ConditionEvaluatorDataListOptionExternalId extends ConditionEvaluator<ConditionDescriptorDataListOptionExternalId> {
     @Override
-    protected ConditionDescriptorDataListOptionExternalId getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException {
+    protected ConditionDescriptorDataListOptionExternalId getConditionDescriptor(Properties properties) throws ServiceException {
         ConditionDescriptorDataListOptionExternalId descriptor = new ConditionDescriptorDataListOptionExternalId();
         descriptor.conditionOperator(conditionOperator.extract(properties))
                 .valueToCompareWith(valueToCompareWith.extract(properties));
@@ -29,7 +28,7 @@ public class ConditionEvaluatorDataListOptionExternalId extends ConditionEvaluat
     }
 
     @Override
-    protected boolean evaluate(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties, FieldValue currentValue) throws ServiceException {
+    protected boolean evaluate(Properties properties, FieldValue currentValue) throws ServiceException {
         String actualValue = normalizeDataListOptionValue(currentValue);
         var operator = conditionOperator.extract(properties);
         var expected = valueToCompareWith.extract(properties);

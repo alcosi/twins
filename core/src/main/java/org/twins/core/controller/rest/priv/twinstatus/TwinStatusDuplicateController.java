@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusDuplicateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinStatusDuplicateService;
+import org.twins.core.service.twinstatus.TwinStatusDuplicateService;
 
 @Tag(name = ApiTag.TWIN_STATUS)
 @RestController

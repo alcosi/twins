@@ -74,10 +74,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             UserEntity userEntity = selectedUserEntityList.get(0);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), null, userEntity));
-            twinChangesCollector.add(new TwinFieldUserEntity()
-                    .setTwin(twin)
-                    .setTwinId(twin.getId())
-                    .setTwinClassFieldId(value.getTwinClassField().getId())
+            twinChangesCollector.add(TwinFieldUserEntity.of(twin, value.getTwinClassField())
                     .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                     .setUser(userEntity));
             return;
@@ -101,10 +98,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             if (FieldValueChangeHelper.notSaved(userEntity.getId(), storedFieldUsers)) { // no values were saved before
                 if (twinChangesCollector.isHistoryCollectorEnabled())
                     historyItem.getContext().shotAddedUserId(userEntity.getId());
-                twinChangesCollector.add(new TwinFieldUserEntity()
-                        .setTwin(twin)
-                        .setTwinId(twin.getId())
-                        .setTwinClassFieldId(value.getTwinClassField().getId())
+                twinChangesCollector.add(TwinFieldUserEntity.of(twin, value.getTwinClassField())
                         .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                         .setUser(userEntity));
             } else {
@@ -123,7 +117,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     }
 
     public UUID checkUserAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, UserEntity userEntity) throws ServiceException {
-        return userEntity.getId(); // can be ovмrrided in case if value must be shared between twins
+        return userEntity.getId(); // can be overridden in case if value must be shared between twins
     }
 
     @Override
@@ -149,10 +143,11 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         TwinEntity twinEntity = twinField.getTwin();
         List<TwinFieldUserEntity> twinFieldUserEntityList = twinEntity.getTwinFieldUserKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
-        if (twinFieldUserEntityList != null)
-            for (TwinFieldUserEntity twinFieldDataListEntity : twinFieldUserEntityList) {
-                ret.add(twinFieldDataListEntity.getUser());
+        if (twinFieldUserEntityList != null) {
+            for (var twinFieldUser : twinFieldUserEntityList) {
+                ret.add(twinFieldUser.getUser());
             }
+        }
         return ret;
     }
 

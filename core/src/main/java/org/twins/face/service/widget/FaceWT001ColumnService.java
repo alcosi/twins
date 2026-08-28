@@ -61,6 +61,7 @@ public class FaceWT001ColumnService extends FaceVariantsService<FaceWT001ColumnE
                 FaceWT001Entity::setColumns,
                 faceWT001ColumnRepository::findByFaceWT001IdIn,
                 FaceWT001ColumnEntity::getId,
-                FaceWT001ColumnEntity::getFaceWT001Id);
+                FaceWT001ColumnEntity::getFaceWT001Id,
+                FaceWT001ColumnEntity::setFaceWT001);
     }
 }

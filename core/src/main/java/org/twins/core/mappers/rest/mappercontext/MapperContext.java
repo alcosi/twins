@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.featurer.dao.FeaturerTypeEntity;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -12,12 +13,10 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
-import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.factory.*;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
@@ -56,6 +55,8 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinStatusEntity>> relatedTwinStatusMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<LinkEntity>> relatedLinkMap = new LinkedHashMap<>();
+    @Getter
     private Map<UUID, RelatedObject<TwinTriggerEntity>> relatedTwinTriggerMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinEntity>> relatedTwinMap = new LinkedHashMap<>();
@@ -86,11 +87,25 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryMultiplierEntity>> relatedFactoryMultiplierMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<TwinFactoryBranchEntity>> relatedFactoryBranchMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryPipelineStepEntity>> relatedFactoryPipelineStepMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryMultiplierFilterEntity>> relatedFactoryMultiplierFilterMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryEraserEntity>> relatedFactoryEraserMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryTriggerEntity>> relatedFactoryTriggerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryConditionEntity>> relatedFactoryConditionMap = new LinkedHashMap<>();
+    @Getter
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
     @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<Integer, RelatedObject<FeaturerTypeEntity>> relatedFeaturerTypeMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
     @Getter
@@ -233,6 +248,8 @@ public class MapperContext {
             smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
             smartPut(relatedTwinStatusMap, twinStatus, twinStatus.getId());
+        else if (relatedObject instanceof LinkEntity link)
+            smartPut(relatedLinkMap, link, link.getId());
         else if (relatedObject instanceof TwinTriggerEntity twinTrigger)
             smartPut(relatedTwinTriggerMap, twinTrigger, twinTrigger.getId());
         else if (relatedObject instanceof TwinEntity twin) {
@@ -265,12 +282,26 @@ public class MapperContext {
             smartPut(relatedFactoryConditionSetMap, factoryConditionSet, factoryConditionSet.getId());
         else if (relatedObject instanceof TwinFactoryMultiplierEntity factoryMultiplier)
             smartPut(relatedFactoryMultiplierMap, factoryMultiplier, factoryMultiplier.getId());
+        else if (relatedObject instanceof TwinFactoryBranchEntity factoryBranch)
+            smartPut(relatedFactoryBranchMap, factoryBranch, factoryBranch.getId());
+        else if (relatedObject instanceof TwinFactoryPipelineStepEntity factoryPipelineStep)
+            smartPut(relatedFactoryPipelineStepMap, factoryPipelineStep, factoryPipelineStep.getId());
+        else if (relatedObject instanceof TwinFactoryMultiplierFilterEntity factoryMultiplierFilter)
+            smartPut(relatedFactoryMultiplierFilterMap, factoryMultiplierFilter, factoryMultiplierFilter.getId());
+        else if (relatedObject instanceof TwinFactoryEraserEntity factoryEraser)
+            smartPut(relatedFactoryEraserMap, factoryEraser, factoryEraser.getId());
+        else if (relatedObject instanceof TwinFactoryTriggerEntity factoryTrigger)
+            smartPut(relatedFactoryTriggerMap, factoryTrigger, factoryTrigger.getId());
+        else if (relatedObject instanceof TwinFactoryConditionEntity factoryCondition)
+            smartPut(relatedFactoryConditionMap, factoryCondition, factoryCondition.getId());
         else if (relatedObject instanceof FaceEntity face)
             smartPut(relatedFaceMap, face, face.getId());
         else if (relatedObject instanceof I18nEntity i18n)
             smartPut(relatedI18nMap, i18n, i18n.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
+        else if (relatedObject instanceof FeaturerTypeEntity featurerType)
+            smartPut(relatedFeaturerTypeMap, featurerType, featurerType.getId());
         else if (relatedObject instanceof TwinClassFieldEntity twinClassField)
             smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
         else if (relatedObject instanceof TwinCommentEntity entity)
@@ -496,6 +527,7 @@ public class MapperContext {
         dstMapperContext.relatedUserGroupMap = srcMapperContext.relatedUserGroupMap;
         dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
         dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
+        dstMapperContext.relatedLinkMap = srcMapperContext.relatedLinkMap;
         dstMapperContext.relatedTwinTriggerMap = srcMapperContext.relatedTwinTriggerMap;
         dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
         dstMapperContext.relatedTwinflowTransitionMap = srcMapperContext.relatedTwinflowTransitionMap;
@@ -511,9 +543,16 @@ public class MapperContext {
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
         dstMapperContext.relatedFactoryConditionSetMap = srcMapperContext.relatedFactoryConditionSetMap;
         dstMapperContext.relatedFactoryMultiplierMap = srcMapperContext.relatedFactoryMultiplierMap;
+        dstMapperContext.relatedFactoryBranchMap = srcMapperContext.relatedFactoryBranchMap;
+        dstMapperContext.relatedFactoryPipelineStepMap = srcMapperContext.relatedFactoryPipelineStepMap;
+        dstMapperContext.relatedFactoryMultiplierFilterMap = srcMapperContext.relatedFactoryMultiplierFilterMap;
+        dstMapperContext.relatedFactoryEraserMap = srcMapperContext.relatedFactoryEraserMap;
+        dstMapperContext.relatedFactoryTriggerMap = srcMapperContext.relatedFactoryTriggerMap;
+        dstMapperContext.relatedFactoryConditionMap = srcMapperContext.relatedFactoryConditionMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
+        dstMapperContext.relatedFeaturerTypeMap = srcMapperContext.relatedFeaturerTypeMap;
         dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;

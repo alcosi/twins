@@ -5,6 +5,89 @@
 **Всего сущностей с legacy `@ManyToOne`:** 97  
 **Уже мигрировано (полный цикл):** 18  
 
+## Factory batch (2026-07-08)
+
+Мигрированы 9 Factory-сущностей. 20 полей стали SpecOnly + `@Transient` runtime. Load-методы добавлены в parent services. Все 18 mappers (9 RestDTOMapper + 9 CountRestDTOMapper) обновлены с `beforeCollectionConversion` batch-load + single-load fallback в `map()`.
+
+### Полностью мигрированы
+
+| Entity | Поля → SpecOnly | Load-методы в parent service |
+|---|---|---|
+| `TwinFactoryBranchEntity` | `factory`, `nextFactory`, `conditionSet` | `FactoryBranchService.loadFactory / loadNextFactory / loadConditionSet` |
+| `TwinFactoryConditionEntity` | `conditionSet` (только, `conditionerFeaturerSpecOnly` уже был) | `FactoryConditionService.loadConditionSet` |
+| `TwinFactoryEraserEntity` | `twinFactory`, `conditionSet`, `inputTwinClass` | `FactoryEraserService.loadTwinFactory / loadConditionSet / loadInputTwinClass` |
+| `TwinFactoryMultiplierEntity` | `twinFactory`, `inputTwinClass` (только, `multiplierFeaturerSpecOnly` уже был) | `FactoryMultiplierService.loadTwinFactory / loadInputTwinClass` |
+| `TwinFactoryMultiplierFilterEntity` | `multiplier`, `conditionSet`, `inputTwinClass` | `FactoryMultiplierFilterService.loadMultiplier / loadConditionSet / loadInputTwinClass` |
+| `TwinFactoryPipelineEntity` | `twinFactory`, `nextTwinFactory`, `inputTwinClass`, `conditionSet`, `outputTwinStatus`, `templateTwin` | `FactoryPipelineService.loadTwinFactory / loadNextTwinFactory / loadInputTwinClass / loadConditionSet / loadOutputTwinStatus / loadTemplateTwin` |
+| `TwinFactoryPipelineStepEntity` | `twinFactoryPipeline`, `twinFactoryConditionSet` (только, `fillerFeaturerSpecOnly` уже был) | `FactoryPipelineStepService.loadPipeline / loadConditionSet` |
+
+### Блокирующие поля (isEntityReadDenied) — временно отключены
+
+5 полей использовались в `isEntityReadDenied()` для domain check. По решению пользователя — закомментированы с `// TODO TWINS-840`, пользователь сам перепишет domain check через Specification/service lookup:
+
+| Entity | Поле | Закомментированная логика |
+|---|---|---|
+| `TwinFactoryBranchEntity` | `factory` | `entity.getFactory().getDomainId()` |
+| `TwinFactoryEraserEntity` | `twinFactory` | `entity.getTwinFactory().getDomainId()` |
+| `TwinFactoryMultiplierEntity` | `twinFactory` | `entity.getTwinFactory().getDomainId()` |
+| `TwinFactoryPipelineEntity` | `twinFactory` | `entity.getTwinFactory().getDomainId()` |
+| `TwinFactoryPipelineStepEntity` | `twinFactoryPipeline` | `entity.getTwinFactoryPipeline().getTwinFactory().getDomainId()` (двойная навигация) |
+
+### validateEntity — упрощён (remove eager load)
+
+В `*Service.validateEntity()` удалён блок `beforeSave` eager-loading related entities (`twinFactoryService.findEntitySafe(...)`, `twinClassService.findEntitySafe(...)`, etc). Бизнес-логике не нужны eager-loaded relations для валидации (проверяется только наличие FK id).
+
+### Specifications — updated to use `*SpecOnly`
+
+В `dao/specifications/factory/*Specification.java` обновлены JOIN paths:
+- `Fields.twinFactory` → `Fields.twinFactorySpecOnly`
+- `Fields.factory` → `Fields.factorySpecOnly`
+- `Fields.twinFactoryPipeline` → `Fields.twinFactoryPipelineSpecOnly`
+- и т.д.
+
+### SearchService.createSortSpecification — updated
+
+Все 7 Factory `*SearchService.createSortSpecification` используют `*SpecOnly` для JOIN-сортировки.
+
+### Бизнес-логика — minor fixes
+
+`TwinFactoryService.runPipelineSteps`:
+- `factoryPipelineEntity.getTemplateTwin()` → `twinService.findEntitySafe(factoryPipelineEntity.getTemplateTwinId())`
+- `factoryPipelineEntity.getOutputTwinStatus()` → `twinStatusService.findEntitySafe(factoryPipelineEntity.getOutputTwinStatusId())`
+
+Duplicate services (`*DuplicateService`): `loadRequiredRelations` уже корректно вызывает load methods → runtime поля загружаются перед processing.
+
+### Mappper'ы — batch-load pattern
+
+Все 18 mapper'ов (9 RestDTOMapper + 9 CountRestDTOMapper) приведены к единому паттерну:
+
+```java
+@Override
+public void map(...) {
+    if (mapperContext.hasModeButNot(SomeMode.HIDE)) {
+        if (src.getXxx() == null) parentService.loadXxx(src);  // single-load fallback
+        xxxRestDTOMapper.convertOrPostpone(src.getXxx(), ...);
+    }
+}
+
+@Override
+public void beforeCollectionConversion(...) {
+    super.beforeCollectionConversion(srcCollection, mapperContext);
+    if (srcCollection.isEmpty()) return;
+    if (mapperContext.hasModeButNot(SomeMode.HIDE)) {
+        parentService.loadXxx(srcCollection);  // batch-load
+    }
+}
+```
+
+В Count mapper'ах conditional loading сохранён через `needLoad(mapperContext, mode, src, groupField)` — грузится только если соответствующее groupField запрошено в `request.getGroupFields()`.
+
+### Предыдущие миграции
+
+(см. ниже — список остальных мигрированных сущностей)
+
+---
+
 ## Легенда
 
 | Статус | Описание |

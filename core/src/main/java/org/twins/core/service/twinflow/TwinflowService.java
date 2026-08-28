@@ -39,10 +39,10 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinstatus.TwinStatusService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;

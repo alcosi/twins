@@ -56,18 +56,18 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.trigger.TwinTriggerService;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinstatus.TwinStatusService;
+import org.twins.core.service.twintrigger.TwinTriggerService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskService;
+import org.twins.core.service.twinvalidator.TwinValidatorService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupService;
-import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -91,7 +91,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Lazy
     private final TwinTriggerTaskService twinTriggerTaskService;
     private final TwinClassService twinClassService;
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryExecutionService factoryExecutionService;
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
     @Lazy
@@ -577,7 +577,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinflowTransitionEntity::setValidatorRulesKit,
                 twinflowTransitionValidatorRuleRepository::findAllByTwinflowTransitionIdInOrderByOrder,
                 TwinflowTransitionValidatorRuleEntity::getId,
-                TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId);
+                TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId,
+                TwinflowTransitionValidatorRuleEntity::setTwinflowTransition);
     }
 
     public Kit<TwinflowTransitionTriggerEntity, UUID> loadTriggers(TwinflowTransitionEntity transition) {
@@ -595,7 +596,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinflowTransitionEntity::setTriggersKit,
                 twinflowTransitionTriggerRepository::findAllByTwinflowTransitionIdInOrderByOrder,
                 TwinflowTransitionTriggerEntity::getId,
-                TwinflowTransitionTriggerEntity::getTwinflowTransitionId);
+                TwinflowTransitionTriggerEntity::getTwinflowTransitionId,
+                TwinflowTransitionTriggerEntity::setTwinflowTransition);
     }
 
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {
@@ -721,7 +723,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey());
             entry.setValue(factoryResultUncommited); //filling result
-            if (twinFactoryService.mustBeDrafted(factoryResultUncommited))
+            if (factoryExecutionService.mustBeDrafted(factoryResultUncommited))
                 transitionContextBatch.setMustBeDrafted(true); //this is batch decision for all results
         }
     }
@@ -746,7 +748,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         LoggerUtils.traceTreeStart();
         FactoryResultUncommited factoryResultUncommited;
         try {
-            factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(inbuiltTwinFactoryId, factoryContext);
+            factoryResultUncommited = factoryExecutionService.runFactoryAndCollectResult(inbuiltTwinFactoryId, factoryContext);
         } finally {
             LoggerUtils.traceTreeEnd();
         }
@@ -780,7 +782,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Transactional
     public TransitionResult commitFactoryResult(TransitionContext transitionContext, FactoryResultUncommited factoryResultUncommited) throws ServiceException {
-        FactoryResultCommited factoryResultCommited = twinFactoryService.commitResult(factoryResultUncommited);
+        FactoryResultCommited factoryResultCommited = factoryExecutionService.commitResult(factoryResultUncommited);
         if (factoryResultCommited instanceof FactoryResultCommitedMinor factoryResultCommitedMinor) {
             TransitionResultMinor transitionResultMinor = new TransitionResultMinor();
             transitionResultMinor.addProcessedTwins(factoryResultCommitedMinor.getCreatedTwinList());
@@ -802,7 +804,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void commitFactoriesResult(Map<TransitionContext, FactoryResultUncommited> factoryTransitions, TransitionResultMinor transitionResultMinor) throws ServiceException {
         for (var entry : factoryTransitions.entrySet()) {
             TransitionContext transitionContext = entry.getKey();
-            FactoryResultCommited factoryResultCommited = twinFactoryService.commitResult(entry.getValue());
+            FactoryResultCommited factoryResultCommited = factoryExecutionService.commitResult(entry.getValue());
             if (factoryResultCommited instanceof FactoryResultCommitedMinor factoryResultCommitedMinor) {
                 transitionResultMinor.addProcessedTwins(factoryResultCommitedMinor.getCreatedTwinList());
                 for (TwinEntity twinUpdated : factoryResultCommitedMinor.getUpdatedTwinList()) {

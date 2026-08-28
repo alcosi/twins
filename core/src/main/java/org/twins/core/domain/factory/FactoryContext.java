@@ -87,11 +87,16 @@ public class FactoryContext {
                 .setFactoryContext(this)
                 .setOutput(twinUpdate);
         // we have to do so, because all data for items can be looked up only from context
-        // see TwinFactoryService.lookupFieldValue
+        // see FactoryService.lookupFieldValue
         factoryItem
                 .setContextFactoryItemList(List.of(rootItem))
                 .setFactoryInputItem(true);
         add(factoryItem);
+    }
+
+    public void addInput(FactoryItem factoryItem) throws ServiceException {
+        add(factoryItem);
+        inputTwinList = CollectionUtils.safeAdd(inputTwinList, factoryItem.getTwin());
     }
 
     public void add(FactoryItem factoryItem) throws ServiceException {

@@ -26,6 +26,18 @@ public final class SystemIds {
 
     public static final class User {
         public static final UUID SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+        /**
+         * System user the history-notification scheduler acts on behalf of (see
+         * {@code HistoryNotificationTask}). Its permissions are hardcoded in
+         * {@code PermissionService#SYSTEM_USER_PERMISSIONS} (DOMAIN_TWINS_VIEW_ALL) — identical in
+         * every domain, so the secure loads of the chunk bulk phases pass the permission branch of
+         * {@code TwinService.isEntityReadDenied} without any DB grants or group membership.
+         */
+        public static final UUID NOTIFICATION_SCHEDULER = UUID.fromString("00000000-0000-0000-0000-000000000002");
+
+        /** All platform-level identities — bypass domain-registration membership checks (see {@code ApiUserResolverService.loadDBU}). */
+        public static final Set<UUID> ALL_SYSTEM_USERS_SET = Set.of(SYSTEM, NOTIFICATION_SCHEDULER);
     }
 
     public static final class UserGroup {
@@ -240,6 +252,15 @@ public final class SystemIds {
             public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0008-000000000003");
             public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0008-000000000004");
             public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0008-000000000005");
+        }
+
+        // TwinLink permission ids use the 0059 range (TwinPointer = 0058 was the last used holder).
+        public static final class TwinLink {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0059-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0059-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0059-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0059-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0059-000000000005");
         }
 
         public static final class Domain {
@@ -609,6 +630,14 @@ public final class SystemIds {
             public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0053-000000000005");
         }
 
+        public static final class TwinValidator {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0060-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0060-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0060-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0060-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0060-000000000005");
+        }
+
         public static final class TwinTrigger {
             public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0054-000000000001");
             public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0054-000000000002");
@@ -639,6 +668,14 @@ public final class SystemIds {
             public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0057-000000000003");
             public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0057-000000000004");
             public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0057-000000000005");
+        }
+
+        public static final class TwinPointer {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0058-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0058-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0058-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0058-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0058-000000000005");
         }
     }
 

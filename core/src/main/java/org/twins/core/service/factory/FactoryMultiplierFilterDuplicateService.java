@@ -17,10 +17,7 @@ import org.twins.core.domain.factory.FactoryMultiplierFilterDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntityDuplicateService;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -89,15 +86,15 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
         var src = duplicate.getOriginalEntity();
         UUID targetFactoryId = duplicate.getNewParentEntity().getTwinFactoryId();
         UUID newConditionSetId = src.getTwinFactoryConditionSetId();
-        if (newConditionSetId != null && src.getMultiplier().getTwinFactoryId() != targetFactoryId) {
-            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getConditionSet(), targetFactoryId, duplicateCollector);
+        if (newConditionSetId != null && !Objects.equals(src.getMultiplier().getTwinFactoryId(), targetFactoryId)) {
+            newConditionSetId = factoryConditionSetDuplicateService.lookupOrCollect(src.getTwinFactoryConditionSet(), targetFactoryId, duplicateCollector);
         }
         return new TwinFactoryMultiplierFilterEntity()
                 .setId(UuidUtils.generate())
                 .setTwinFactoryMultiplierId(src.getTwinFactoryMultiplierId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setTwinFactoryConditionSetId(newConditionSetId)
-                .setTwinFactoryConditionInvert(src.isTwinFactoryConditionInvert())
+                .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())
                 .setActive(src.isActive())
                 .setDescription(src.getDescription());
     }

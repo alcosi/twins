@@ -5,18 +5,22 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.List;
 import java.util.Properties;
@@ -33,6 +37,9 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
     @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 2)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
 
+    @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 9, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
+
     @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 10, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeFactoryInputTwin = new FeaturerParamBoolean("excludeFactoryInputTwin");
 
@@ -41,7 +48,16 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
 
     @Lazy
     @Autowired
-    private TwinSearchServiceV2 twinSearchService;
+    protected TwinSearchServiceV2 twinSearchService;
+    @Lazy
+    @Autowired
+    protected TwinService twinService;
+    @Lazy
+    @Autowired
+    protected TwinHeadService twinHeadService;
+    @Lazy
+    @Autowired
+    protected TwinLinkService twinLinkService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -52,20 +68,25 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         return twinSearchService.exists(search);
     }
 
+    protected abstract UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException;
+
     protected abstract UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
 
     private BasicSearch buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        UUID headTwinId = contextTwin.getHeadTwinId() != null ? contextTwin.getHeadTwinId() : contextTwin.getId();
+        TwinEntity rootTwin;
+        if (factoryItemElseContext.extract(properties)) {
+            rootTwin = factoryItem.getTwin();
+        } else {
+            rootTwin = factoryItem.checkSingleContextTwin();
+        }
+        UUID headTwinId = resolveHeadTwinId(rootTwin);
         if (headTwinId == null) {
-            log.debug("Context twin has no head, twin exists by head and link dst search skipped");
-            return null;
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
         }
 
-        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, contextTwin);
+        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, rootTwin);
         if (dstTwinId == null) {
-            log.debug("Link dst twin id is not resolved, twin exists by head and link dst search skipped");
-            return null;
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Dst twin not found");
         }
 
         BasicSearch search = new BasicSearch().setCheckViewPermission(false);
@@ -78,8 +99,8 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
             Set<UUID> excludeIds = factoryItem.getFactoryContext().getInputTwinList().stream()
                     .map(TwinEntity::getId)
                     .collect(Collectors.toSet());
-            if (contextTwin.getId() != null) {
-                excludeIds.add(contextTwin.getId());
+            if (rootTwin.getId() != null) {
+                excludeIds.add(rootTwin.getId());
             }
             if (!excludeIds.isEmpty()) {
                 search.setTwinIdExcludeList(excludeIds);
@@ -98,13 +119,14 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         return search;
     }
 
-    protected UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {
+    protected TwinEntity extractTwinFromFieldValue(FieldValue fieldValue) throws ServiceException {
         if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue().getId();
+            return linkSingle.getValue();
         }
         if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
             TwinLinkEntity linkEntity = link.getItems().getFirst();
-            return linkEntity.getDstTwinId();
+            twinLinkService.loadDstTwin(linkEntity);
+            return linkEntity.getDstTwin();
         }
         return null;
     }

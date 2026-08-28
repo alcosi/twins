@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinTriggerSearch {
+public class TwinTriggerSearch extends EntitySearch<TwinTriggerEntity> {
     public Set<UUID> idList;
     public Set<UUID> idExcludeList;
     public Set<Integer> triggerFeaturerIdList;

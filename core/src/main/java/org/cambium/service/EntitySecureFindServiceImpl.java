@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.FeaturerService;
@@ -17,6 +17,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.service.auth.AuthService;
 
 import java.lang.reflect.ParameterizedType;
@@ -142,42 +143,76 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public T findEntitySafe(UUID entityId) throws ServiceException {
         if (entityId == null)
             throw new ServiceException(ErrorCodeTwins.UUID_IS_NULL, "no " + entitySmartService.entityShortName(entityRepository()) + " can be found by null id");
+        T entity = getCachedEntity(entityId);
+        if (entity == null) {
+            entity = findEntitySafeUncached(entityId);
+            if (entity != null) {
+                putCachedEntity(entityId, entity);
+            }
+        }
+        return entity;
+    }
 
-        T entity = null;
+    /**
+     * Per-entity cache key — class-prefixed so different entity types never collide within the same scope.
+     * Same shape the single-id read has always used; shared by the single- and multi-id cache paths.
+     */
+    protected String entityCacheKey(UUID entityId) {
+        return getEntityClass().getSimpleName() + "_" + entityId;
+    }
+
+    /**
+     * Looks up a single entity in the configured {@link CacheSupportType} cache, or null on miss / when
+     * caching is disabled. Shared cache-read for both {@link #findEntitySafe(UUID)} and
+     * {@link #findEntitiesSafe(Collection)}. For REQUEST scope, when there is no web-request scope
+     * (schedulers on virtual threads, {@code @Async}), falls back to {@link EntityRequestCacheHolder} — the
+     * thread-local twin of the request cache — so the same dedup works outside HTTP too.
+     */
+    @SuppressWarnings("unchecked")
+    protected T getCachedEntity(UUID entityId) {
         switch (getCacheSupportType()) {
             case GLOBAL -> {
-                Class<T> clazz = getEntityClass();
-                String cacheKey = clazz.getSimpleName();
-                Cache cache = cacheManager.getCache(cacheKey);
+                Cache cache = cacheManager.getCache(getEntityClass().getSimpleName());
                 if (cache != null) {
-                    entity = cache.get(entityId, clazz);
-                    if (entity == null) {
-                        entity = findEntitySafeUncached(entityId);
-                        if (entity != null) cache.put(entityId, entity);
-                    }
+                    return cache.get(entityId, getEntityClass());
                 }
             }
             case REQUEST -> {
-                Class<T> clazz = getEntityClass();
-                String cacheKey = clazz.getSimpleName();
+                String cacheKey = entityCacheKey(entityId);
                 RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
                 if (requestAttributes != null) {
-                    String requestCacheKey = cacheKey + "_" + entityId;
-                    entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
-                    if (entity == null) {
-                        entity = findEntitySafeUncached(entityId);
-                        if (entity != null)
-                            requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
-                    }
-                } else {
-                    //todo use thread local
-                    entity = findEntitySafeUncached(entityId);
+                    return (T) requestAttributes.getAttribute(cacheKey, RequestAttributes.SCOPE_REQUEST);
+                }
+                return EntityRequestCacheHolder.get(cacheKey);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Stores a single entity by id in the configured {@link CacheSupportType} cache. No-op for
+     * {@link CacheSupportType#NONE}. For REQUEST scope, when there is no web-request scope (schedulers on
+     * virtual threads, {@code @Async}), writes to {@link EntityRequestCacheHolder} instead — see the cleanup
+     * contract documented on it. Shared cache-write for both read paths.
+     */
+    protected void putCachedEntity(UUID entityId, T entity) {
+        switch (getCacheSupportType()) {
+            case GLOBAL -> {
+                Cache cache = cacheManager.getCache(getEntityClass().getSimpleName());
+                if (cache != null) {
+                    cache.put(entityId, entity);
                 }
             }
-            case NONE -> entity = findEntitySafeUncached(entityId);
-
+            case REQUEST -> {
+                String cacheKey = entityCacheKey(entityId);
+                RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+                if (requestAttributes != null) {
+                    requestAttributes.setAttribute(cacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                } else {
+                    EntityRequestCacheHolder.put(cacheKey, entity);
+                }
+            }
         }
-        return entity;
     }
 
     @SuppressWarnings("unchecked")
@@ -192,7 +227,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         throw new IllegalStateException("Cannot determine entity class");
     }
 
-    public static enum CacheSupportType {
+    public enum CacheSupportType {
         GLOBAL, REQUEST, NONE
     }
 
@@ -216,10 +251,52 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     public Kit<T, UUID> findEntitiesSafe(Collection<UUID> entityIds) throws ServiceException {
-        return findEntities(entityIds,
+        // Same per-id cache as findEntitySafe (GLOBAL or REQUEST, shared via getCachedEntity/putCachedEntity):
+        // each requested id is looked up first, and only the misses trigger one bulk findEntities call.
+        // Resolved entities are written back by id, so a second findEntitiesSafe with the same ids (e.g. a
+        // calculated field's storage.load + calculate) is a pure in-memory read — no repeated SQL or
+        // permission checks. NONE / absent web-request scope degrade to the uncached bulk call.
+        if (getCacheSupportType() == CacheSupportType.NONE || entityIds == null || entityIds.isEmpty()) {
+            return findEntities(entityIds,
+                    EntitySmartService.ListFindMode.ifMissedThrows,
+                    EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                    EntitySmartService.EntityValidateMode.afterRead);
+        }
+        Kit<T, UUID> result = new Kit<>(entityGetIdFunction(), DuplicateKeyMode.IGNORE);
+        List<UUID> missedIds = new ArrayList<>();
+        for (UUID id : entityIds) {
+            T cached = getCachedEntity(id);
+            if (cached != null) {
+                result.add(cached);
+            } else {
+                missedIds.add(id);
+            }
+        }
+        if (missedIds.isEmpty()) {
+            return result;
+        }
+        Kit<T, UUID> loaded = findEntities(missedIds,
                 EntitySmartService.ListFindMode.ifMissedThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
                 EntitySmartService.EntityValidateMode.afterRead);
+        for (T entity : loaded.getCollection()) {
+            putCachedEntity(entityGetIdFunction().apply(entity), entity);
+            result.add(entity);
+        }
+        return result;
+    }
+
+    /**
+     * Same as {@link #findEntitiesSafe}, but skips read-permission checks and entity validation entirely.
+     * For system paths (schedulers, background jobs) that run without an ApiUser / request context and where
+     * {@code isEntityReadDenied} / {@code validateEntity} may depend on it. Callers must guarantee data
+     * isolation by other means (e.g. chunking by domain).
+     */
+    private Kit<T, UUID> findEntitiesUnsafe(Collection<UUID> entityIds) throws ServiceException {
+        return findEntities(entityIds,
+                EntitySmartService.ListFindMode.ifMissedThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.EntityValidateMode.none);
     }
 
     public T checkEntityReadAllow(T entity) throws ServiceException {
@@ -439,25 +516,77 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                          Function<? super E, UUID> functionGetGroupingId,
                          Function<? super E, T> functionGetGroupingEntity,
                          BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        load(srcCollection, functionGetGroupingId, functionGetGroupingEntity, functionSetGroupingEntity, false);
+    }
+
+    /**
+     * Bulk load without read-permission checks and entity validation (loads via {@link #findEntitiesUnsafe}).
+     * For system paths (schedulers, background jobs) that run without an ApiUser / request context and where
+     * {@code isEntityReadDenied} / {@code validateEntity} may depend on it. Callers must guarantee data
+     * isolation by other means (e.g. chunking by domain).
+     */
+    public <E> void loadUnsafe(Collection<E> srcCollection,
+                               Function<? super E, UUID> functionGetGroupingId,
+                               Function<? super E, T> functionGetGroupingEntity,
+                               BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        load(srcCollection, functionGetGroupingId, functionGetGroupingEntity, functionSetGroupingEntity, true);
+    }
+
+    private <E> void load(Collection<E> srcCollection,
+                          Function<? super E, UUID> functionGetGroupingId,
+                          Function<? super E, T> functionGetGroupingEntity,
+                          BiConsumer<E, T> functionSetGroupingEntity,
+                          boolean unsafe) throws ServiceException {
         if (CollectionUtils.isEmpty(srcCollection)) {
             return;
         }
+        if (srcCollection.size() == 1 && functionGetGroupingEntity.apply(srcCollection.iterator().next()) != null) {
+            return; //shortcut
+        }
         List<E> needLoad = null;
         Set<UUID> groupingIds = null;
+        Map<UUID, T> loadedMap = null;
         for (var item : srcCollection) {
-            if (functionGetGroupingEntity.apply(item) == null && functionGetGroupingId.apply(item) != null) {
+            UUID id = functionGetGroupingId.apply(item);
+            T entity = functionGetGroupingEntity.apply(item);
+
+            if (entity != null) {
+                if (loadedMap == null) {
+                    loadedMap = new HashMap<>();
+                }
+
+                T previous = loadedMap.put(id, entity);
+                if (previous != null && previous != entity) {
+                    log.warn(
+                            "Inconsistent grouping entity cache: multiple instances found for id={}, previousIdentity={}, currentIdentity={}",
+                            id,
+                            System.identityHashCode(previous),
+                            System.identityHashCode(entity)
+                    );
+                }
+            }
+        }
+
+        for (var item : srcCollection) {
+            T entity = functionGetGroupingEntity.apply(item);
+            UUID entityId = functionGetGroupingId.apply(item);
+            if (entity == null && entityId != null) {
+                if (loadedMap != null && loadedMap.containsKey(entityId)) {
+                    functionSetGroupingEntity.accept(item, loadedMap.get(entityId));
+                    continue;
+                }
                 if (needLoad == null) {
                     needLoad = new ArrayList<>();
                     groupingIds = new LinkedHashSet<>();
                 }
                 needLoad.add(item);
-                groupingIds.add(functionGetGroupingId.apply(item));
+                groupingIds.add(entityId);
             }
         }
         if (needLoad == null) {
             return;
         }
-        Kit<T, UUID> loaded = findEntitiesSafe(groupingIds);
+        Kit<T, UUID> loaded = unsafe ? findEntitiesUnsafe(groupingIds) : findEntitiesSafe(groupingIds);
         for (var item : needLoad) {
             functionSetGroupingEntity.accept(item, loaded.get(functionGetGroupingId.apply(item)));
         }
@@ -515,27 +644,57 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             BiConsumer<S, Kit<R, RI>> srcSetKitField,
             Function<Set<K>, Collection<R>> queryFunction,
             Function<R, RI> queryResultGetId,
-            Function<R, K> queryResultGetGroupId) {
+            Function<R, K> queryResultGetGroupId,
+            BiConsumer<R, S> setResultParent) {
+        loadKit(srcCollection, srcGetId, srcGetKitField, srcSetKitField, queryFunction, queryResultGetId, queryResultGetGroupId, setResultParent, false);
+    }
+
+    public static <S, R, K, RI> void loadKit(
+            Collection<S> srcCollection,
+            Function<S, K> srcGetId,
+            Function<S, Kit<R, RI>> srcGetKitField,
+            BiConsumer<S, Kit<R, RI>> srcSetKitField,
+            Function<Set<K>, Collection<R>> queryFunction,
+            Function<R, RI> queryResultGetId,
+            Function<R, K> queryResultGetGroupId,
+            BiConsumer<R, S> setResultParent,
+            boolean nullable) {
         Kit<S, K> needLoad = null;
         for (S src : srcCollection) {
             if (srcGetKitField.apply(src) == null) {
                 if (needLoad == null)
                     needLoad = new Kit<>(srcGetId);
-                needLoad.add(src);
+                if (nullable) {
+                    var id = srcGetId.apply(src);
+                    if (id != null)
+                        needLoad.add(src);
+                } else {
+                    needLoad.add(src);
+                }
             }
         }
         if (needLoad == null)
             return;
-        KitGrouped<R, RI, K> grouped = new KitGrouped<>(
-                queryFunction.apply(needLoad.getIdSet()),
-                queryResultGetId,
-                queryResultGetGroupId);
+        // Group query results by groupId manually instead of using KitGrouped: KitGrouped indexes
+        // the whole flat collection by queryResultGetId (e.g. locale) and throws on duplicate keys,
+        // but that key is only unique per group, not globally. See I18nService.loadTranslations.
+        Map<K, List<R>> grouped = new HashMap<>();
+        for (R r : queryFunction.apply(needLoad.getIdSet())) {
+            K groupId = queryResultGetGroupId.apply(r);
+            if (groupId != null) {
+                grouped.computeIfAbsent(groupId, k -> new ArrayList<>()).add(r);
+            }
+        }
         for (S src : needLoad) {
-            K id = srcGetId.apply(src);
-            if (grouped.containsGroupedKey(id))
-                srcSetKitField.accept(src, new Kit<>(grouped.getGrouped(id), queryResultGetId));
-            else
-                srcSetKitField.accept(src, Kit.emptyKit());
+            List<R> items = grouped.get(srcGetId.apply(src));
+            Kit<R, RI> kit = items != null && !items.isEmpty()
+                    ? new Kit<>(items, queryResultGetId)
+                    : Kit.emptyKit();
+            // link every child back to the parent entity that owns this kit
+            for (R r : kit) {
+                setResultParent.accept(r, src);
+            }
+            srcSetKitField.accept(src, kit);
         }
     }
 
@@ -559,18 +718,22 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         if (needLoad == null)
             return;
-        KitGrouped<Q, RI, K> grouped = new KitGrouped<>(
-                queryFunction.apply(needLoad.getIdSet()),
-                queryResultGetId,
-                queryResultGetGroupId);
+        // Group query results by groupId manually instead of using KitGrouped: KitGrouped indexes
+        // the whole flat collection by queryResultGetId and throws on duplicate keys, but that key
+        // is only unique per group, not globally. See the note on the overload above.
+        Map<K, List<Q>> grouped = new HashMap<>();
+        for (Q q : queryFunction.apply(needLoad.getIdSet())) {
+            K groupId = queryResultGetGroupId.apply(q);
+            if (groupId != null) {
+                grouped.computeIfAbsent(groupId, k -> new ArrayList<>()).add(q);
+            }
+        }
         for (S src : needLoad) {
-            K id = srcGetId.apply(src);
-            if (grouped.containsGroupedKey(id))
-                srcSetKitField.accept(src, new Kit<>(
-                        grouped.getGrouped(id).stream().map(transformFunction).toList(),
-                        resultGetId));
-            else
-                srcSetKitField.accept(src, Kit.emptyKit());
+            List<Q> items = grouped.get(srcGetId.apply(src));
+            srcSetKitField.accept(src,
+                    items != null && !items.isEmpty()
+                            ? new Kit<>(items.stream().map(transformFunction).toList(), resultGetId)
+                            : Kit.emptyKit());
         }
     }
 

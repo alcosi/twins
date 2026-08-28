@@ -1,9 +1,7 @@
 package org.twins.core.dao.scheduler;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -40,6 +38,14 @@ public class SchedulerLogEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private SchedulerEntity scheduler;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scheduler_id", insertable = false, updatable = false)
+    private SchedulerEntity schedulerSpecOnly;
 
     @Override
     public String easyLog(Level level) {

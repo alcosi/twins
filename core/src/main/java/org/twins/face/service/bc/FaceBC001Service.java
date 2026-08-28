@@ -66,7 +66,8 @@ public class FaceBC001Service extends FaceVariantsService<FaceBC001Entity> {
                 FaceBC001Entity::setItems,
                 faceBC001ItemRepository::findAllByFaceBC001IdIn,
                 FaceBC001ItemEntity::getId,
-                FaceBC001ItemEntity::getFaceBC001Id);
+                FaceBC001ItemEntity::getFaceBC001Id,
+                FaceBC001ItemEntity::setFaceBC001);
     }
 
     public List<Pair<FaceBC001ItemEntity, TwinEntity>> getBC001ItemToTwinPairs(FaceBC001Entity entity) throws ServiceException {

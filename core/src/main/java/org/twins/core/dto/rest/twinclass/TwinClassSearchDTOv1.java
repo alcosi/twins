@@ -62,6 +62,12 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "marker data list id exclude list")
     public Set<UUID> markerDatalistIdExcludeList;
 
+    @Schema(description = "flavor data list id list")
+    public Set<UUID> flavorDatalistIdList;
+
+    @Schema(description = "flavor data list id exclude list")
+    public Set<UUID> flavorDatalistIdExcludeList;
+
     @Schema(description = "tag data list id list")
     public Set<UUID> tagDatalistIdList;
 

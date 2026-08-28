@@ -15,6 +15,7 @@ public enum TwinClassSortField {
     headhunterFeaturerName,
     extendsTwinClassName,
     markerDataListName,
+    flavorDataListName,
     tagDataListName,
     twinflowSchemaSpace,
     twinClassSchemaSpace,

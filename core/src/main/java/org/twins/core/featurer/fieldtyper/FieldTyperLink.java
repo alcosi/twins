@@ -25,7 +25,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -187,7 +187,11 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         else
             twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
         FieldValueLink ret = new FieldValueLink(twinField.getTwinClassField());
-        ret.setItems(twinLinkEntityList);
+        if (CollectionUtils.isNotEmpty(twinLinkEntityList)) {
+            ret.setItems(twinLinkEntityList);
+        } else {
+            ret.undefine();
+        }
         ret.setForwardLink(linkDirection == LinkService.LinkDirection.forward);
         return ret;
     }

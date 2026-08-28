@@ -9,18 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -44,11 +41,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldLinkDst extends Fi
     @Override
     protected UUID getLinkId(Properties properties) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(dstFieldId);
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperLink fieldTyperLink))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not link");
-        return fieldTyperLink.getLinkId(twinClassField.getFieldTyperParams());
+        return twinClassFieldService.getConfiguredLinkSafe(dstFieldId);
     }
 
     @Override

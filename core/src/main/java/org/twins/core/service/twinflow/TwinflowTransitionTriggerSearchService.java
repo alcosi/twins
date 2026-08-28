@@ -1,0 +1,50 @@
+package org.twins.core.service.twinflow;
+
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
+import org.twins.core.domain.search.TransitionTriggerSearch;
+import org.twins.core.service.auth.AuthService;
+
+import static org.twins.core.dao.specifications.CommonSpecification.*;
+
+
+@Slf4j
+@Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
+@RequiredArgsConstructor
+public class TwinflowTransitionTriggerSearchService {
+    private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
+    private final AuthService authService;
+
+    public PaginationResult<TwinflowTransitionTriggerEntity> findTransitionTriggers(TransitionTriggerSearch search, SimplePagination pagination) throws ServiceException {
+        Specification<TwinflowTransitionTriggerEntity> spec = createTransitionTriggerSearchSpecification(search);
+        Page<TwinflowTransitionTriggerEntity> ret = twinflowTransitionTriggerRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    private Specification<TwinflowTransitionTriggerEntity> createTransitionTriggerSearchSpecification(TransitionTriggerSearch search) throws ServiceException {
+        return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionTriggerEntity.Fields.twinTrigger, TwinTriggerEntity.Fields.domainId),
+                checkUuidIn(search.getIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionTriggerEntity.Fields.id),
+                checkUuidIn(search.getTwinflowTransitionIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),
+                checkUuidIn(search.getTwinflowTransitionIdExcludeList(), true, true, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),
+                checkUuidIn(search.getTwinTriggerIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinTriggerId),
+                checkUuidIn(search.getTwinTriggerIdExcludeList(), true, true, TwinflowTransitionTriggerEntity.Fields.twinTriggerId),
+                checkTernary(search.getActive(), TwinflowTransitionTriggerEntity.Fields.active),
+                checkTernary(search.getAsync(), TwinflowTransitionTriggerEntity.Fields.async)
+        );
+    }
+}

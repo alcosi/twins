@@ -20,8 +20,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.twinstatus.TwinStatusExportSqlRqDTOv1;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinStatusExportService;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinstatus.TwinStatusExportService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.nio.charset.StandardCharsets;
 
@@ -43,8 +43,7 @@ public class TwinStatusExportSqlController extends ApiController {
     @PostMapping(value = "/private/twin_status/export/sql/v1", produces = "text/sql;charset=UTF-8")
     public ResponseEntity<byte[]> twinStatusExportSqlV1(
             @RequestBody TwinStatusExportSqlRqDTOv1 request) throws ServiceException {
-        var statuses = twinStatusService.findEntitiesSafe(request.getStatusIds());
-        String sql = twinStatusExportService.exportToSql(statuses.getCollection());
+        String sql = twinStatusExportService.exportToSql(request.getStatusIds());
         String filename = "twin_statuses_" + System.currentTimeMillis() + ".sql";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", filename);

@@ -2,14 +2,16 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class FactoryConditionSetSearch {
+public class FactoryConditionSetSearch extends EntitySearch<TwinFactoryConditionSetEntity> {
    Set<UUID> idList;
    Set<UUID> idExcludeList;
    Set<UUID> twinFactoryIdList;
@@ -19,4 +21,10 @@ public class FactoryConditionSetSearch {
    Set<String> descriptionLikeList;
    Set<String> descriptionNotLikeList;
    Ternary cachable;
+   IntegerRange usageCountPipelineRange;
+   IntegerRange usageCountPipelineStepRange;
+   IntegerRange usageCountMultiplierFilterRange;
+   IntegerRange usageCountBranchRange;
+   IntegerRange usageCountEraserRange;
+   IntegerRange usageCountTriggerRange;
 }

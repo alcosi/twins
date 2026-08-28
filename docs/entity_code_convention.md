@@ -507,7 +507,51 @@ For create / update flows, the carrier `I18nEntity` lives in a domain `XxxSave` 
 
 ---
 
-## 13. ArchUnit Rule (planned)
+## 13. DB-Maintained Columns (Triggers / Database-Generated)
+
+Some columns are owned by the database, not by JPA: counter columns maintained by `AFTER` triggers
+(see [`db_trigger_functions_convention.md`](db_trigger_functions_convention.md)), DB-generated /
+derived columns, columns populated by DB defaults only. Hibernate must never write them, otherwise:
+
+- **INSERT sends `NULL`** into a `NOT NULL DEFAULT 0` column → the DB default is **not** applied
+  (a default is used only when the column is *absent* from the INSERT list) →
+  `ConstraintViolationException` on every entity create.
+- **UPDATE clobbers the trigger**: without `@DynamicUpdate`, Hibernate issues an all-columns
+  `UPDATE` that overwrites the trigger-maintained value with the stale in-memory snapshot →
+  silent counter drift.
+
+Mandatory shape for every DB-maintained column:
+
+```java
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
+
+@EqualsAndHashCode.Exclude   // counter is metadata, not identity — exclude from Lombok
+@ToString.Exclude
+@Generated(event = {EventType.INSERT, EventType.UPDATE})   // re-read the row after write
+@Column(name = "some_count", insertable = false, updatable = false)   // Hibernate never writes it
+private Integer someCount;
+```
+
+- `insertable = false, updatable = false` — removes the column from Hibernate's INSERT/UPDATE
+  statements. The trigger stays the single source of truth.
+- `@Generated(event = {EventType.INSERT, EventType.UPDATE})` — makes Hibernate re-read the row
+  after insert/update, so the in-memory value stays correct (otherwise a freshly created entity
+  would expose `null` until reloaded).
+- `@EqualsAndHashCode.Exclude` / `@ToString.Exclude` — counters are metadata, not part of entity
+  identity; including them in `hashCode` breaks `Set`/`Map` semantics when the value changes.
+
+Precedent in the codebase: `TwinEntity` (`permission_schema_id` and the `*_space_id` columns), and
+the `factory_*_count` / `usage_count_*` / `factory_pipeline_steps_count` /
+`factory_multiplier_filters_count` columns on the factory entities.
+
+> Counter columns are **denormalized** data. There is no DB-level invariant guaranteeing
+> `counter = COUNT(*)`, so prefer pairing this pattern with a reconcile/recompute procedure for
+> drift detection and recovery.
+
+---
+
+## 14. ArchUnit Rule (planned)
 
 Access to `*SpecOnly` fields must be forbidden outside:
 

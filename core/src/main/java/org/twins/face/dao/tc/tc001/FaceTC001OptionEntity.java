@@ -50,6 +50,11 @@ public class FaceTC001OptionEntity implements EasyLoggable, FaceVariantEntity {
     @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceTC001Entity faceTC001;
+
     @Override
     public String easyLog(Level level) {
         switch (level) {

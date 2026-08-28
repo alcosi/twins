@@ -3,16 +3,18 @@ package org.twins.core.mappers.rest.factory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.FactoryPipelineSearch;
-import org.twins.core.dto.rest.factory.FactoryPipelineSearchRqDTOv1;
+import org.twins.core.dto.rest.factory.FactoryPipelineSearchDTOv1;
+import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class FactoryPipelineSearchDTOReverseMapper extends RestSimpleDTOMapper<FactoryPipelineSearchRqDTOv1, FactoryPipelineSearch> {
+public class FactoryPipelineSearchDTOReverseMapper extends RestSimpleDTOMapper<FactoryPipelineSearchDTOv1, FactoryPipelineSearch> {
+    private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
 
     @Override
-    public void map(FactoryPipelineSearchRqDTOv1 src, FactoryPipelineSearch dst, MapperContext mapperContext) {
+    public void map(FactoryPipelineSearchDTOv1 src, FactoryPipelineSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
@@ -29,6 +31,7 @@ public class FactoryPipelineSearchDTOReverseMapper extends RestSimpleDTOMapper<F
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
                 .setActive(src.getActive())
-                .setNextFactoryLimitScope(src.getNextFactoryLimitScope());
+                .setNextFactoryLimitScope(src.getNextFactoryLimitScope())
+                .setFactoryPipelineStepsCountRange(integerRangeDTOReverseMapper.convert(src.getFactoryPipelineStepsCountRange()));
     }
 }

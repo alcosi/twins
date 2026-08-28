@@ -114,7 +114,7 @@ For an entity named `{Entity}`, the following files are required:
 | `{Entity}DeleteController` | `POST /private/{entity}/delete/v1` |
 | `{Entity}ViewController` | `GET /private/{entity}/{id}/v1` |
 | `{Entity}SearchController` | `POST /private/{entity}/search/v1` |
-| `{Entity}CountController` | `POST /private/{entity}/search/count/v1` |
+| `{Entity}CountController` | `POST /private/{entity}/count/v1` |
 | `{Entity}ExportSqlController` | `POST /private/{entity}/export/sql/v1` |
 
 > Controllers are split by operation — each in its own class — for clean permission isolation via `@ProtectedBy`.

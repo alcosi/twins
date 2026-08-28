@@ -6,7 +6,7 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.Collection;
 import java.util.Properties;

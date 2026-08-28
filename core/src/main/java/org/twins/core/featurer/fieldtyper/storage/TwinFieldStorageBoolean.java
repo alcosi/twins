@@ -31,6 +31,6 @@ public class TwinFieldStorageBoolean extends TwinFieldStorageMater<TwinFieldBool
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldBooleanKit(Kit.EMPTY);
+        twinEntity.setTwinFieldBooleanKit(new Kit<>(TwinFieldBooleanEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
     }
 }

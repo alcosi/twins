@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.enums.factory.FactoryEraserAction;
 
 import java.util.Set;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class FactoryEraserSearch {
+public class FactoryEraserSearch extends EntitySearch<TwinFactoryEraserEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> factoryIdList;

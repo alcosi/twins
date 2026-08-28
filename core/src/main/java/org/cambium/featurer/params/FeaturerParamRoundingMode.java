@@ -2,6 +2,7 @@ package org.cambium.featurer.params;
 
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.annotations.FeaturerParamType;
 
 import java.math.RoundingMode;
@@ -23,10 +24,8 @@ public class FeaturerParamRoundingMode extends FeaturerParam<RoundingMode> {
 
     @Override
     public RoundingMode extract(Properties properties) {
-        String value = (String) properties.get(key);
-        return value == null
-                ? RoundingMode.HALF_UP
-                : RoundingMode.valueOf(value);
+        String value = properties.getProperty(key);
+        return StringUtils.isEmpty(value) ? null : RoundingMode.valueOf(value);
     }
 
     @Override

@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -23,6 +24,8 @@ import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
+import org.twins.core.dao.recompute.TwinRecomputeOnActionEntity;
+import org.twins.core.dao.recompute.TwinRecomputeOnActionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
@@ -49,11 +52,13 @@ import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.resource.ResourceService;
+import org.twins.core.service.twin.TwinFlavorService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -99,6 +104,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Lazy
     private final TwinTagService twinTagService;
     @Lazy
+    private final TwinFlavorService twinFlavorService;
+    @Lazy
     private final DataListService dataListService;
     @Lazy
     private final TwinService twinService;
@@ -106,6 +113,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private CacheManager cacheManager;
     @Lazy
     private final FaceService faceService;
+    @Lazy
+    private final TwinRecomputeOnActionRepository twinRecomputeOnActionRepository;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -151,6 +160,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 if (entity.getTagDataListId() != null
                         && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getTagDataListId(), apiUser.getDomainId(), entity.getTagDataListId()))
                     throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + entity.getTagDataListId() + "]");
+                if (entity.getFlavorDataListId() != null
+                        && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getFlavorDataListId(), apiUser.getDomainId(), entity.getFlavorDataListId()))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown flavor data list id[" + entity.getFlavorDataListId() + "]");
                 if (entity.getViewPermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
@@ -483,6 +495,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
             updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
             updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+            updateTwinClassFlavorDataList(dbTwinClassEntity, twinClassUpdate.getFlavorDataListUpdate(), changesHelper);
             updateTwinClassIcons(dbTwinClassEntity, iconLight, iconDark, changesHelper);
 
             if (changesHelper.hasChanges()) {
@@ -539,6 +552,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.markerDataListId, dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
             return;
         twinMarkerService.replaceMarkersForTwinsOfClass(dbTwinClassEntity, updateOperation);
+    }
+
+    public void updateTwinClassFlavorDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation updateOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.flavorDataListId, dbTwinClassEntity.getFlavorDataListId(), updateOperation.getNewId()))
+            return;
+        twinFlavorService.replaceFlavorForTwinsOfClass(dbTwinClassEntity, updateOperation);
     }
 
     public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
@@ -694,6 +713,26 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
+    public void loadFlavorDataList(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadFlavorDataList(Collections.singleton(twinClassEntity));
+    }
+
+    public void loadFlavorDataList(Collection<TwinClassEntity> entityCollection) throws ServiceException {
+        dataListService.load(
+                entityCollection,
+                TwinClassEntity::getFlavorDataListId,
+                TwinClassEntity::getFlavorDataList,
+                TwinClassEntity::setFlavorDataList);
+    }
+
+    public void loadFlavorDataList(Collection<TwinClassEntity> entityCollection, boolean loadOptions) throws ServiceException {
+        loadFlavorDataList(entityCollection);
+        if (loadOptions) {
+            var dataLists = entityCollection.stream().map(TwinClassEntity::getFlavorDataList).filter(Objects::nonNull).collect(Collectors.toSet());
+            dataListService.loadDataListOptions(dataLists);
+        }
+    }
+
     public void loadTagDataList(TwinClassEntity twinClassEntity) throws ServiceException {
         loadTagDataList(Collections.singleton(twinClassEntity));
     }
@@ -738,6 +777,36 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 TwinClassEntity::getTwinClassFreezeId,
                 TwinClassEntity::getTwinClassFreeze,
                 TwinClassEntity::setTwinClassFreeze);
+    }
+
+    /**
+     * Populates {@link TwinClassEntity#getRecomputeOnAction()} — OnAction recompute rules (TWINS-893 new
+     * {@code twin_recompute_on_action} table) where each source class is the publisher, grouped by
+     * {@link org.twins.core.enums.action.TwinAction}. One batch SQL via the cached
+     * {@link org.twins.core.dao.recompute.TwinRecomputeOnActionRepository#findByPublisherTwinClassIdIn(Collection)}.
+     */
+    public void loadRecomputeOnAction(Collection<TwinClassEntity> classes) {
+        if (classes == null || classes.isEmpty()) return;
+        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
+        for (TwinClassEntity c : classes) {
+            if (c.getRecomputeOnAction() == null) {
+                needLoad.add(c);
+            }
+        }
+        if (needLoad.isEmpty()) return;
+
+        KitGrouped<TwinRecomputeOnActionEntity, UUID, UUID> rulesByClass = new KitGrouped<>(
+                twinRecomputeOnActionRepository.findByPublisherTwinClassIdIn(needLoad.getIdSet()),
+                TwinRecomputeOnActionEntity::getId,
+                TwinRecomputeOnActionEntity::getPublisherTwinClassId);
+
+        for (TwinClassEntity c : needLoad) {
+            List<TwinRecomputeOnActionEntity> classRules = rulesByClass.getGrouped(c.getId());
+            c.setRecomputeOnAction(new KitGrouped<>(
+                    classRules,
+                    TwinRecomputeOnActionEntity::getId,
+                    TwinRecomputeOnActionEntity::getPublisherTwinAction));
+        }
     }
 
     public void loadSegments(TwinClassEntity src) {

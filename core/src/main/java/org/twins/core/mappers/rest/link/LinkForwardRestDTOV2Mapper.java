@@ -5,7 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dto.rest.link.LinkDTOv2;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -23,7 +23,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv2> {
+public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1> {
     private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
     private final LinkService linkService;
     private final PermissionService permissionService;
@@ -35,7 +35,7 @@ public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, 
     private final UserRestDTOMapper userDTOMapper;
 
     @Override
-    public void map(LinkEntity src, LinkDTOv2 dst, MapperContext mapperContext) throws Exception {
+    public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
         linkForwardRestDTOMapper.map(src, dst, mapperContext);
         if (mapperContext.hasMode(LinkMode.MANAGED)) {
             if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))

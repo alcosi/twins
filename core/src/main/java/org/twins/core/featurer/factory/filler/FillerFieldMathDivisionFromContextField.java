@@ -19,7 +19,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -71,7 +71,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
                 } else {
                     FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
                     try {
-                        Double.parseDouble(fieldValue.getValue());
+                        Double.parseDouble(fieldValue.getValue().trim().replace(',','.'));
                     } catch (NumberFormatException e) {
                         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] cant be parsed to Double");
                     }

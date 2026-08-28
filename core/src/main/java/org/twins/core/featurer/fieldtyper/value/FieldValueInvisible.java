@@ -43,7 +43,7 @@ public class FieldValueInvisible extends FieldValue {
 
     @Override
     public FieldValueInvisible clear() {
-        return null;
+        return this;
     }
 
     @Override

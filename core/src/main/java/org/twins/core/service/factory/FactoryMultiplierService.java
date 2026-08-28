@@ -20,11 +20,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -37,7 +33,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;
     @Lazy
-    private final TwinFactoryService twinFactoryService;
+    private final FactoryService factoryService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierEntity, UUID> entityRepository() {
@@ -51,7 +47,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryMultiplierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+//        return checkDomainAccessDenied(entity.getTwinFactory().getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        return false;
     }
 
     @Override
@@ -66,9 +63,9 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
-                    entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
+                    loadInputTwinClass(entity);
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
-                    entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    loadTwinFactory(entity);
                 validateAndPrepareFeaturer(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class);
         }
         return true;
@@ -120,6 +117,29 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                 TwinFactoryEntity::setTwinFactoryMultiplierKit,
                 repository::findByTwinFactoryIdIn,
                 TwinFactoryMultiplierEntity::getId,
-                TwinFactoryMultiplierEntity::getTwinFactoryId);
+                TwinFactoryMultiplierEntity::getTwinFactoryId,
+                TwinFactoryMultiplierEntity::setTwinFactory);
+    }
+
+    public void loadTwinFactory(TwinFactoryMultiplierEntity multiplier) throws ServiceException {
+        loadTwinFactory(Collections.singleton(multiplier));
+    }
+
+    public void loadTwinFactory(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
+        factoryService.load(multipliers,
+                TwinFactoryMultiplierEntity::getTwinFactoryId,
+                TwinFactoryMultiplierEntity::getTwinFactory,
+                TwinFactoryMultiplierEntity::setTwinFactory);
+    }
+
+    public void loadInputTwinClass(TwinFactoryMultiplierEntity multiplier) throws ServiceException {
+        loadInputTwinClass(Collections.singleton(multiplier));
+    }
+
+    public void loadInputTwinClass(Collection<TwinFactoryMultiplierEntity> multipliers) throws ServiceException {
+        twinClassService.load(multipliers,
+                TwinFactoryMultiplierEntity::getInputTwinClassId,
+                TwinFactoryMultiplierEntity::getInputTwinClass,
+                TwinFactoryMultiplierEntity::setInputTwinClass);
     }
 }

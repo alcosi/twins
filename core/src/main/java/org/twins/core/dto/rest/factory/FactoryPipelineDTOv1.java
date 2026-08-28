@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -50,7 +51,15 @@ public class FactoryPipelineDTOv1 {
     public String description;
 
     @Schema(description = "count pipeline steps", example = DTOExamples.COUNT)
-    public Integer pipelineStepsCount;
+    public Integer factoryPipelineStepsCount;
+
+    @Schema(description = "after commit factory id", example = DTOExamples.FACTORY_ID)
+    @RelatedObject(type = FactoryDTOv1.class, name = "afterCommitFactory")
+    public UUID afterCommitFactoryId;
+
+    @Schema(description = "pipeline step id list." )
+    @RelatedObject(type = FactoryPipelineStepDTOv1.class, name = "steps")
+    public Set<UUID> stepIdList;
 }
 
 

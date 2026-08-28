@@ -10,7 +10,6 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -21,7 +20,6 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
 import org.twins.core.domain.datalist.DataListCreate;
@@ -29,12 +27,10 @@ import org.twins.core.domain.datalist.DataListSave;
 import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -53,9 +49,9 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
     final EntitySmartService entitySmartService;
-    final TwinClassFieldService twinClassFieldService;
-    final FeaturerService featurerService;
     final DataListOptionService dataListOptionService;
+    @Lazy
+    final UserService userService;
 
     @Lazy
     final AuthService authService;
@@ -111,6 +107,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListCreate.getNameI18n()).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListCreate.getDescriptionI18n()).getId())
                 .setExternalId(dataListCreate.getExternalId())
+                .setCreatedByUserId(authService.getApiUser().getUserId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
         setAttributes(dataListEntity, dataListCreate);
 
@@ -127,6 +124,17 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                     .setOptions(new Kit<>(List.of(optionEntity), DataListOptionEntity::getId));
         }
         return dataListEntity;
+    }
+
+    public void loadCreatedByUser(DataListEntity src) throws ServiceException {
+        loadCreatedByUsers(Collections.singletonList(src));
+    }
+
+    public void loadCreatedByUsers(Collection<DataListEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                DataListEntity::getCreatedByUserId,
+                DataListEntity::getCreatedByUser,
+                DataListEntity::setCreatedByUser);
     }
 
     private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {

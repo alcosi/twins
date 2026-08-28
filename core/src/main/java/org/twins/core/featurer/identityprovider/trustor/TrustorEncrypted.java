@@ -36,7 +36,9 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 @Slf4j
 public class TrustorEncrypted extends Trustor {
+
     private final AuthService authService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public CryptKey.CryptPublicKey getActAsUserPublicKey(Properties properties) throws ServiceException {
@@ -60,21 +62,25 @@ public class TrustorEncrypted extends Trustor {
             return decrypt(encryptedKey, iv, ciphertext);
         } catch (Exception e) {
             log.error("Act as user exception:", e);
-            throw new RuntimeException(e);
+            throw new ServiceException(ErrorCodeTwins.ACT_AS_USER_INCORRECT);
         }
     }
 
+    // todo maybe need some eviction???
     private final ConcurrentMap<UUID, CryptKey> domainKeysMap = new ConcurrentHashMap<>();
 
     public CryptKey getKey() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         CryptKey domainKey = domainKeysMap.computeIfAbsent(apiUser.getDomainId(), k -> new CryptKey().setExpires(LocalDateTime.now()));
         if (domainKey.getExpires().isBefore(LocalDateTime.now())) {
-            //refresh
-            try {
-                domainKey.flush();
-            } catch (NoSuchAlgorithmException e) {
-                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION);
+            synchronized (domainKey) {
+                if (domainKey.getExpires().isBefore(LocalDateTime.now())) {
+                    try {
+                        domainKey.flush();
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION);
+                    }
+                }
             }
         }
         return domainKey;

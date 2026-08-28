@@ -174,7 +174,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
                 TwinCommentEntity::setAttachmentKit,
                 attachmentRepository::findByTwinCommentIdIn,
                 TwinAttachmentEntity::getId,
-                TwinAttachmentEntity::getTwinCommentId
+                TwinAttachmentEntity::getTwinCommentId,
+                TwinAttachmentEntity::setComment
         );
     }
 

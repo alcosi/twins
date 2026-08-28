@@ -454,6 +454,30 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    /**
+     * Membership filter against a related collection table (markers, tags, …) via EXISTS.
+     * Must not JOIN the collection: a twin matching several values would be multiplied,
+     * which breaks offset pagination and inflates {@code count(*)}.
+     */
+    public static <T, E> Specification<T> checkUuidExistsInRelated(final Collection<UUID> uuids, boolean not,
+                                                                   Class<E> relatedEntityClass, String relatedTwinIdField,
+                                                                   String relatedUuidField, String... twinIdFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
+            Path<UUID> twinIdPath = getFieldPath(root, JoinType.INNER, twinIdFieldPath);
+            Subquery<Long> subquery = query.subquery(Long.class);
+            Root<E> subRoot = subquery.from(relatedEntityClass);
+            String arrayString = collectionUuidsToSqlArray(uuids);
+            Expression<Boolean> anyExpression = cb.function("native_uuid_any", Boolean.class, subRoot.get(relatedUuidField), cb.literal(arrayString));
+            subquery.select(cb.literal(1L)).where(
+                    cb.equal(subRoot.get(relatedTwinIdField), twinIdPath),
+                    cb.isTrue(anyExpression)
+            );
+            Predicate exists = cb.exists(subquery);
+            return not ? cb.not(exists) : exists;
+        };
+    }
+
     public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
                                                                     final String twinClassIdFieldPath, final String inheritableFieldPath) {
         return checkTwinClassAndInheritable(classes, not, new String[]{twinClassIdFieldPath}, new String[]{inheritableFieldPath});
@@ -612,7 +636,24 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
-    public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
+    /**
+     * Same matching semantics as {@link #checkFieldLikeIn(Collection, boolean, boolean, String...)}, but a pattern matches
+     * when it hits the string field OR the integer field cast to text. Patterns are combined with OR.
+     * Intended for "search by name or id" use cases.
+     */
+    public static <T> Specification<T> checkNameOrIdLikeIn(final Collection<String> search, final String nameField, final String idField) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            List<Predicate> predicates = search.stream().map(pattern -> cb.or(
+                    cb.like(cb.lower(root.get(nameField)), pattern.toLowerCase(), escapeChar),
+                    cb.like(cb.lower(root.get(idField).as(String.class)), pattern.toLowerCase(), escapeChar))).toList();
+            return getPredicate(cb, predicates, true);
+        };
+    }
+
+    public static <T> Specification<T> checkFieldIn(final Collection<?> search, final boolean not,
                                                     final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))

@@ -3,13 +3,19 @@ package org.twins.core.domain.twinoperation;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.CudUtils;
+import org.cambium.common.util.MapUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 
@@ -48,14 +54,55 @@ public class TwinUpdate extends TwinSave {
     public boolean isChanged() {
         return !Objects.equals(dbTwinEntity, getTwinEntity()) ||
                 mode == Mode.sketchUpdate || // this mode helps to overcome "has changes" check logic. Sketch twin can have no direct changes, but some children dependent logic
-                !(null == attachmentCUD || attachmentCUD.isEmpty()) ||
-                !(null == twinLinkCUD || twinLinkCUD.isEmpty()) ||
-                !(null == fields || fields.isEmpty()) ||
-                !(null == tagsDelete || tagsDelete.isEmpty()) ||
-                !(null == markersDelete || markersDelete.isEmpty()) ||
-                !(null == markersAdd || markersAdd.isEmpty()) ||
-                !(null == tagsAddNew || tagsAddNew.isEmpty()) ||
-                !(null == tagsAddExisted || tagsAddExisted.isEmpty());
+                MapUtils.isNotEmpty(fields) ||
+                CollectionUtils.isNotEmpty(tagsDelete) ||
+                CollectionUtils.isNotEmpty(markersDelete) ||
+                CollectionUtils.isNotEmpty(markersAdd) ||
+                CollectionUtils.isNotEmpty(tagsAddNew) ||
+                CollectionUtils.isNotEmpty(tagsAddExisted) ||
+                CudUtils.isNotEmpty(attachmentCUD) ||
+                CudUtils.isNotEmpty(twinLinkCUD);
+    }
+
+    /**
+     * True when the only payload is attachment CUD.
+     * REST update builds a stub twin entity (unset attributes stay null); those must not count as field edits.
+     */
+    public boolean isAttachmentCUDOnly() {
+        if (CudUtils.isEmpty(attachmentCUD) || mode == Mode.sketchUpdate)
+            return false;
+        return !hasNonAttachmentChanges();
+    }
+
+    private boolean hasNonAttachmentChanges() {
+        return hasTwinAttributeChanges()
+                || MapUtils.isNotEmpty(fields)
+                || CollectionUtils.isNotEmpty(tagsDelete)
+                || CollectionUtils.isNotEmpty(markersDelete)
+                || CollectionUtils.isNotEmpty(markersAdd)
+                || CollectionUtils.isNotEmpty(tagsAddNew)
+                || CollectionUtils.isNotEmpty(tagsAddExisted)
+                || CudUtils.isNotEmpty(twinLinkCUD);
+    }
+
+    private boolean hasTwinAttributeChanges() {
+        TwinEntity db = dbTwinEntity;
+        TwinEntity update = getTwinEntity();
+        if (db == null || update == null)
+            return db != update;
+        if (db == update)
+            return false;
+        return isProvidedAndDifferent(db.getName(), update.getName())
+                || isProvidedAndDifferent(db.getDescription(), update.getDescription())
+                || isProvidedAndDifferent(db.getExternalId(), update.getExternalId())
+                || isProvidedAndDifferent(db.getHeadTwinId(), update.getHeadTwinId())
+                || isProvidedAndDifferent(db.getAssignerUserId(), update.getAssignerUserId())
+                || isProvidedAndDifferent(db.getTwinStatusId(), update.getTwinStatusId())
+                || isProvidedAndDifferent(db.getFlavorDataListOptionId(), update.getFlavorDataListOptionId());
+    }
+
+    private static boolean isProvidedAndDifferent(Object oldValue, Object newValue) {
+        return newValue != null && !newValue.equals(oldValue);
     }
 
     public enum Mode {

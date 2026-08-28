@@ -3,13 +3,14 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class FactoryPipelineStepSearch {
+public class FactoryPipelineStepSearch extends EntitySearch<TwinFactoryPipelineStepEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> factoryIdList;

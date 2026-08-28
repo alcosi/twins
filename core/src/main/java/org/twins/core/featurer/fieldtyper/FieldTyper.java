@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -24,7 +24,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -44,10 +44,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     I18nService i18nService;
-
-    @Lazy
-    @Autowired
-    private ErrorRepository errorRepository;
 
     @Lazy
     @Autowired
@@ -100,6 +96,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return twinFieldSearchType;
     }
 
+    protected TwinClassFieldService getTwinClassFieldService() {
+        return twinClassFieldService;
+    }
+
     public D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         var fieldTyperProperties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams());
         var descriptor = getFieldDescriptor(twinClassFieldEntity, fieldTyperProperties);
@@ -120,6 +120,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!validate(twin, value).isValid()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
+        var storage = getStorage(value.getTwinClassField());
+        if (!storage.isLoaded(twin)) {
+            storage.load(Kit.singleton(twin, TwinEntity::getId));
+        }
         serializeValue(properties, twin, value, twinChangesCollector);
     }
 
@@ -134,6 +138,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public T deserializeValue(TwinField twinField) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams());
+        var storage = getStorage(twinField.getTwinClassField());
+        if (!storage.isLoaded(twinField.getTwin())) {
+            storage.load(Kit.singleton(twinField.getTwin(), TwinEntity::getId));
+        }
         return deserializeValue(properties, twinField);
     }
 
@@ -199,6 +207,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (twinClassFieldService.isInvalidForClass(twin.getTwinClass(), value.getTwinClassField())) {
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
             return value.initValidationResult(new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField())));
+        }
+        var storage = getStorage(value.getTwinClassField());
+        if (!storage.isLoaded(twin)) {
+            storage.load(Kit.singleton(twin, TwinEntity::getId));
         }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         ValidationResult validationResult = validate(properties, twin, value);

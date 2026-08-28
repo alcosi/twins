@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
@@ -24,19 +23,15 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_1350,
         name = "Decimal Increment",
         description = "Decimal field with atomic increment/decrement support (+N/-N format)"
 )
 public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldValueSearchNumeric> {
-
-    private static final Pattern INCREMENT_PATTERN = Pattern.compile("^(0|[+-]\\d+(\\.\\d+)?)$");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -60,14 +55,8 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
 
         String rawValue = value.getValue();
         BigDecimal delta = parseIncrement(rawValue, value.getTwinClassField());
-
-        TwinFieldDecimalIncrement increment = new TwinFieldDecimalIncrement(
-                twin.getId(),
-                value.getTwinClassFieldId(),
-                delta
-        );
-
-        twinChangesCollector.add(increment);
+        twinChangesCollector.add(TwinFieldDecimalIncrement.of(twin, value.getTwinClassField())
+                .setDelta(delta));
     }
 
     @Override
@@ -89,7 +78,7 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
         }
 
         // Validate format: +N or -N
-        if (!INCREMENT_PATTERN.matcher(rawValue).matches()) {
+        if (!DELTA_PATTERN.matcher(rawValue).matches()) {
             return new ValidationResult(false, "Value must be in format: +N or -N (e.g. +1, -5)");
         }
 
@@ -120,7 +109,7 @@ public class FieldTyperDecimalIncrement extends FieldTyperDecimalBase<FieldDescr
                     twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " value is empty");
         }
 
-        if (!INCREMENT_PATTERN.matcher(rawValue).matches()) {
+        if (!DELTA_PATTERN.matcher(rawValue).matches()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) +
                             " value[" + rawValue + "] must be in format +N or -N");

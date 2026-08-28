@@ -9,16 +9,11 @@ import org.twins.core.dto.rest.trigger.TwinTriggerTaskDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
-import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerTaskMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskService;
 
 import java.util.Collection;
 
@@ -68,9 +63,11 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
             userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinTriggerTask2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
+            twinTriggerTaskService.loadPreviousTwinStatus(src);
             twinStatusDTOMapper.postpone(src.getPreviousTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinTriggerTask2StatusMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
+            twinTriggerTaskService.loadTwin(src);
             twinDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinTriggerTask2TwinMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
@@ -96,6 +93,12 @@ public class TwinTriggerTaskRestDTOMapper extends RestSimpleDTOMapper<TwinTrigge
         }
         if (mapperContext.hasModeButNot(TwinTriggerMode.TwinTriggerTask2TwinTriggerMode.HIDE)) {
             twinTriggerTaskService.loadTwinTriggers(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(StatusMode.TwinTriggerTask2StatusMode.HIDE)) {
+            twinTriggerTaskService.loadPreviousTwinStatuses(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinMode.TwinTriggerTask2TwinMode.HIDE)) {
+            twinTriggerTaskService.loadTwins(srcCollection);
         }
     }
 }

@@ -12,7 +12,10 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -27,7 +30,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusTriggerSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinStatusTriggerSearchService;
+import org.twins.core.service.twinstatus.TwinStatusTriggerSearchService;
 
 @Tag(name = ApiTag.TWIN_STATUS)
 @RestController
@@ -56,7 +59,7 @@ public class TwinStatusTriggerSearchController extends ApiController {
         TwinStatusTriggerSearchRsDTOv1 rs = new TwinStatusTriggerSearchRsDTOv1();
         try {
             PaginationResult<org.twins.core.dao.twin.TwinStatusTriggerEntity> statusTriggerList = twinStatusTriggerSearchService
-                    .findStatusTriggers(twinStatusTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinStatusTriggerSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setPagination(paginationMapper.convert(statusTriggerList))
                     .setTwinStatusTriggers(twinStatusTriggerRestDTOMapper.convertCollection(statusTriggerList.getList(), mapperContext))

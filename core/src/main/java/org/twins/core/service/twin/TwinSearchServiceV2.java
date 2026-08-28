@@ -31,7 +31,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.List;

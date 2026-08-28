@@ -3,47 +3,42 @@ package org.twins.core.dto.rest.related;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.dto.rest.domain.DomainBusinessAccountDTOv1;
+import org.twins.core.dto.rest.domain.DomainUserDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
-import org.twins.core.dto.rest.factory.FactoryDTOv1;
-import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
-import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
+import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerTypeDTOv1;
+import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
+import org.twins.core.dto.rest.notification.*;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
-import org.twins.core.dto.rest.notification.NotificationChannelDTOv1;
-import org.twins.core.dto.rest.notification.NotificationChannelEventDTOv1;
-import org.twins.core.dto.rest.notification.NotificationContextDTOv1;
-import org.twins.core.dto.rest.notification.NotificationSchemaDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeGroupDTOv1;
 import org.twins.core.dto.rest.scheduler.SchedulerDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
-import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
-import org.twins.core.dto.rest.domain.DomainBusinessAccountDTOv1;
-import org.twins.core.dto.rest.domain.DomainUserDTOv1;
-import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
-import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
-import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
+import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -115,6 +110,24 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related factory conditionSet map", example = "{factory conditionSet map}")
     public Map<UUID, FactoryConditionSetDTOv1> factoryConditionSetMap;
 
+    @Schema(description = "related factory branch map", example = "{factory branch map}")
+    public Map<UUID, FactoryBranchDTOv1> factoryBranchMap;
+
+    @Schema(description = "related factory pipeline step map", example = "{factory pipeline step map}")
+    public Map<UUID, FactoryPipelineStepDTOv1> factoryPipelineStepMap;
+
+    @Schema(description = "related factory multiplier filter map", example = "{factory multiplier filter map}")
+    public Map<UUID, FactoryMultiplierFilterDTOv1> factoryMultiplierFilterMap;
+
+    @Schema(description = "related factory eraser map", example = "{factory eraser map}")
+    public Map<UUID, FactoryEraserDTOv1> factoryEraserMap;
+
+    @Schema(description = "related factory trigger map", example = "{factory trigger map}")
+    public Map<UUID, FactoryTriggerDTOv1> factoryTriggerMap;
+
+    @Schema(description = "related factory condition map", example = "{factory condition map}")
+    public Map<UUID, FactoryConditionDTOv1> factoryConditionMap;
+
     @Schema(description = "related twin class schema map", example = "{twin class schema map}")
     public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap;
 
@@ -123,6 +136,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;
+
+    @Schema(description = "related featurer type map", example = "{featurer type map}")
+    public Map<Integer, FeaturerTypeDTOv1> featurerTypeMap;
 
     @Schema(description = "related face map", example = "{face map}")
     public Map<UUID, FaceDTOv1> faceMap;
@@ -233,12 +249,26 @@ public class RelatedObjectsDTOv1 {
             return (T) factoryMultiplierMap.get(id);
         } else if (relatedObjectClass == FactoryConditionSetDTOv1.class) {
             return (T) factoryConditionSetMap.get(id);
+        } else if (relatedObjectClass == FactoryBranchDTOv1.class) {
+            return (T) factoryBranchMap.get(id);
+        } else if (relatedObjectClass == FactoryPipelineStepDTOv1.class) {
+            return (T) factoryPipelineStepMap.get(id);
+        } else if (relatedObjectClass == FactoryMultiplierFilterDTOv1.class) {
+            return (T) factoryMultiplierFilterMap.get(id);
+        } else if (relatedObjectClass == FactoryEraserDTOv1.class) {
+            return (T) factoryEraserMap.get(id);
+        } else if (relatedObjectClass == FactoryTriggerDTOv1.class) {
+            return (T) factoryTriggerMap.get(id);
+        } else if (relatedObjectClass == FactoryConditionDTOv1.class) {
+            return (T) factoryConditionMap.get(id);
         } else if (relatedObjectClass == TwinClassSchemaDTOv1.class) {
             return (T) twinClassSchemaMap.get(id);
         } else if (relatedObjectClass == CommentDTOv1.class) {
             return (T) commentMap.get(id);
         } else if (relatedObjectClass == FeaturerDTOv1.class) {
             return (T) featurerMap.get(id);
+        } else if (relatedObjectClass == FeaturerTypeDTOv1.class) {
+            return (T) featurerTypeMap.get(id);
         } else if (relatedObjectClass == FaceDTOv1.class) {
             return (T) faceMap.get(id);
         } else if (relatedObjectClass == I18nDTOv1.class) {

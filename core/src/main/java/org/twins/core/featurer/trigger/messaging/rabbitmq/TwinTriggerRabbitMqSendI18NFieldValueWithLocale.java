@@ -9,7 +9,6 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nLocaleEntity;
 import org.twins.core.dao.i18n.I18nLocaleRepository;
@@ -22,7 +21,7 @@ import org.twins.core.featurer.trigger.messaging.rabbitmq.payloads.FieldTranslat
 import org.twins.core.featurer.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTranslation;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +40,7 @@ public class TwinTriggerRabbitMqSendI18NFieldValueWithLocale extends TwinTrigger
 
     private final I18nLocaleRepository i18nLocaleRepository;
 
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldService twinClassFieldService;
 
     private final AuthService authService;
 

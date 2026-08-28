@@ -56,7 +56,8 @@ public class FaceWT002ButtonService extends FaceVariantsService<FaceWT002ButtonE
                 FaceWT002Entity::setButtons,
                 faceWT002ButtonRepository::findByFaceWT002IdIn,
                 FaceWT002ButtonEntity::getId,
-                FaceWT002ButtonEntity::getFaceWT002Id);
+                FaceWT002ButtonEntity::getFaceWT002Id,
+                FaceWT002ButtonEntity::setFaceWT002);
     }
 
     @Override

@@ -14,5 +14,6 @@ public class EntityDuplicate<E extends Identifiable, P> {
     private E originalEntity;
     private E newEntity;
     private P newParentEntity;
+    private boolean cascaded = false; //true when this duplicate was built by a cascade (collectViaParentMap / lookupOrCollect), not supplied by the caller
 
 }

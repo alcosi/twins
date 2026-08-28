@@ -57,7 +57,8 @@ public class FacePG001WidgetService extends FaceVariantsService<FacePG001WidgetE
                 FacePG001Entity::setWidgets,
                 facePG001WidgetRepository::findByFacePG001IdIn,
                 FacePG001WidgetEntity::getId,
-                FacePG001WidgetEntity::getFacePG001Id);
+                FacePG001WidgetEntity::getFacePG001Id,
+                FacePG001WidgetEntity::setFacePG001);
     }
 
     @Override

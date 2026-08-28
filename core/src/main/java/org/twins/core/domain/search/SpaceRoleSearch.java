@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.space.SpaceRoleEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class SpaceRoleSearch {
+public class SpaceRoleSearch extends EntitySearch<SpaceRoleEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> twinClassIdList;

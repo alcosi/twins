@@ -30,7 +30,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusCountRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinStatusSearchService;
+import org.twins.core.service.twinstatus.TwinStatusSearchService;
 
 @Tag(name = ApiTag.TWIN_STATUS)
 @RestController

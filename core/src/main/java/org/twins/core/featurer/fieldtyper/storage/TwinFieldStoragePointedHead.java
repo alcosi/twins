@@ -4,23 +4,18 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 
 public class TwinFieldStoragePointedHead extends TwinFieldStorageSpirit {
     private final TwinService twinService;
-    private final TwinClassFieldService twinClassFieldService;
     private final TwinFieldStorage headTwinFieldStorage;
 
-    public TwinFieldStoragePointedHead(TwinService twinService, TwinClassFieldService twinClassFieldService, TwinFieldStorage headTwinFieldStorage) {
+    public TwinFieldStoragePointedHead(TwinService twinService, TwinFieldStorage headTwinFieldStorage) {
         this.twinService = twinService;
         this.headTwinFieldStorage = headTwinFieldStorage;
-        this.twinClassFieldService = twinClassFieldService;
     }
 
     @Override
@@ -33,12 +28,6 @@ public class TwinFieldStoragePointedHead extends TwinFieldStorageSpirit {
             }
         }
         twinService.loadClass(headTwins.getCollection());
-        var classes = new ArrayList<TwinClassEntity>(headTwins.size());
-        for (var entry : headTwins.getGroupedMap().entrySet()) {
-            classes.add(entry.getValue().getFirst().getTwinClass());
-        }
-        // we have to do it here, because headTwinFieldStorage needs this data
-        twinClassFieldService.loadTwinClassFields(classes);
         headTwinFieldStorage.load(headTwins);
     }
 

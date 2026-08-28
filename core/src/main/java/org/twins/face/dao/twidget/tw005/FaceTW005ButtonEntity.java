@@ -73,6 +73,11 @@ public class FaceTW005ButtonEntity implements EasyLoggable, FaceVariantEntity {
     @ToString.Exclude
     private ResourceEntity iconResource;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceTW005Entity faceTW005;
+
     @Override
     public String easyLog(EasyLoggable.Level level) {
         switch (level) {

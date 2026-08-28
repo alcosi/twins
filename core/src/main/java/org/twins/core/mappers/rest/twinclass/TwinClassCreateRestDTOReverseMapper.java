@@ -26,6 +26,7 @@ public class TwinClassCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setHeadTwinClassId(src.getHeadTwinClassId())
                 .setMarkerDataListId(src.getMarkerDataListId())
                 .setTagDataListId(src.getTagDataListId())
+                .setFlavorDataListId(src.getFlavorDataListId())
         ;
     }
 }
