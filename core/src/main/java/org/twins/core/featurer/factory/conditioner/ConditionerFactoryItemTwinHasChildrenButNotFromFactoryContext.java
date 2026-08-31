@@ -36,7 +36,7 @@ public class ConditionerFactoryItemTwinHasChildrenButNotFromFactoryContext exten
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         Set<UUID> excludeIds = new HashSet<>();
-        for (var factoryItemObj : factoryItem.getFactoryContext().getFactoryItemList()) {
+        for (var factoryItemObj : factoryItem.getFactoryContext().getAllFactoryItemList()) {
             if (factoryItemObj.getOutput() instanceof TwinUpdate twinUpdate) {
                 excludeIds.add(twinUpdate.getTwinId());
             }
