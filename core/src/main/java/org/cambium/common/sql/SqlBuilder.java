@@ -7,8 +7,8 @@ import jakarta.persistence.Table;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.json.SerializationFeature;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;

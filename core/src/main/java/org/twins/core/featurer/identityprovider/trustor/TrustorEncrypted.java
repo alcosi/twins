@@ -36,9 +36,8 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 @Slf4j
 public class TrustorEncrypted extends Trustor {
-
+    public ObjectMapper objectMapper = JsonMapper.builder().build();
     private final AuthService authService;
-    private final ObjectMapper objectMapper;
 
     @Override
     public CryptKey.CryptPublicKey getActAsUserPublicKey(Properties properties) throws ServiceException {
@@ -86,7 +85,6 @@ public class TrustorEncrypted extends Trustor {
         return domainKey;
     }
 
-    public ObjectMapper objectMapper = JsonMapper.builder().build();
 
     public static final String ACT_AS_USER_USER_ID = "userId";
     public static final String ACT_AS_USER_BUSINESS_ACCOUNT_ID = "businessAccountId";
