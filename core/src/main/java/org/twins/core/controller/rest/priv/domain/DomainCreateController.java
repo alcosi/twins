@@ -1,6 +1,5 @@
 package org.twins.core.controller.rest.priv.domain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,9 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverNotSpecified;
@@ -34,6 +32,7 @@ import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.permission.Permissions;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 

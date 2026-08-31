@@ -1,6 +1,5 @@
 package org.twins.core.featurer.identityprovider.trustor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -14,6 +13,8 @@ import org.twins.core.domain.auth.CryptKey;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -35,9 +36,8 @@ import java.util.concurrent.ConcurrentMap;
 @RequiredArgsConstructor
 @Slf4j
 public class TrustorEncrypted extends Trustor {
-
+    public ObjectMapper objectMapper = JsonMapper.builder().build();
     private final AuthService authService;
-    private final ObjectMapper objectMapper;
 
     @Override
     public CryptKey.CryptPublicKey getActAsUserPublicKey(Properties properties) throws ServiceException {
@@ -71,7 +71,6 @@ public class TrustorEncrypted extends Trustor {
     public CryptKey getKey() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         CryptKey domainKey = domainKeysMap.computeIfAbsent(apiUser.getDomainId(), k -> new CryptKey().setExpires(LocalDateTime.now()));
-
         if (domainKey.getExpires().isBefore(LocalDateTime.now())) {
             synchronized (domainKey) {
                 if (domainKey.getExpires().isBefore(LocalDateTime.now())) {
@@ -83,9 +82,9 @@ public class TrustorEncrypted extends Trustor {
                 }
             }
         }
-
         return domainKey;
     }
+
 
     public static final String ACT_AS_USER_USER_ID = "userId";
     public static final String ACT_AS_USER_BUSINESS_ACCOUNT_ID = "businessAccountId";

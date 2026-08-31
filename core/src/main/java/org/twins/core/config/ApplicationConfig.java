@@ -8,7 +8,6 @@
 package org.twins.core.config;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.bulkhead.BulkheadRegistry;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -16,8 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.micrometer.metrics.autoconfigure.MeterRegistryCustomizer;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +39,7 @@ import org.twins.core.config.filter.I18nCacheCleanupFilter;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
 import org.twins.core.featurer.scheduler.Scheduler;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
 import java.util.List;

@@ -1,13 +1,14 @@
 package org.cambium.common.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.lang.reflect.Field;
 import java.sql.Timestamp;
@@ -21,8 +22,9 @@ import java.util.stream.Collectors;
 public class SqlBuilder {
     // ORDER_MAP_ENTRIES_BY_KEYS makes jsonb output deterministic (sorted keys, incl. nested maps),
     // so exported SQL is diff-stable across runs/environments.
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    private static final ObjectMapper objectMapper = JsonMapper.builder()
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+            .build();
     private static final Cache<Class<?>, EntityMetadata> metadataCache = Caffeine.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES)
             .build();

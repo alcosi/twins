@@ -1,6 +1,5 @@
 package org.twins.core.featurer.fieldtyper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -17,6 +16,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByLinkWithTwinType;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Properties;
 
@@ -29,7 +30,7 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class FieldTyperCalcSumByLinkWithTwinType extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByLinkWithTwinType, TwinFieldSearchNotImplemented> implements FieldTyperCalcByLink {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 

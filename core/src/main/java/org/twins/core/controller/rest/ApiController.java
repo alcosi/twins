@@ -1,6 +1,5 @@
 package org.twins.core.controller.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +12,7 @@ import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.TwinBatchSaveRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSaveRsV1;
 import org.twins.core.service.i18n.I18nService;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Hashtable;
 import java.util.Map;

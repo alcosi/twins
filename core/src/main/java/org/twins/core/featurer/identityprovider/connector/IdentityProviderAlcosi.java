@@ -7,9 +7,6 @@ import com.alcosi.identity.exception.parser.ids.IdentityInvalidCredentialsParser
 import com.alcosi.identity.exception.parser.ids.IdentityInvalidRefreshTokenParserException;
 import com.alcosi.identity.service.error.IdentityErrorParser;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -38,6 +35,10 @@ import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.service.auth.AuthService;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -64,7 +65,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
 
     private final RestTemplate restTemplate;
     private final IdentityErrorParser.Implementation parser = new IdentityErrorParser.Implementation();
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
     private final AuthService authService;
     @Qualifier("logoutTaskExecutor")
     private final Executor logoutTaskExecutor;
