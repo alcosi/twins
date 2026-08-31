@@ -10,7 +10,7 @@ buildscript {
 plugins {
     // id 'war'
     id 'java'
-    id 'org.springframework.boot' version '4.0.3'
+    id 'org.springframework.boot' version '4.0.8'
     id 'net.nemerosa.versioning' version '3.1.0'
     id 'com.bmuschko.docker-remote-api' version '10.0.0'
     id 'com.google.protobuf' version '0.10.0'
@@ -84,7 +84,7 @@ task pushDockerImage(type: DockerBuildImage) {
 }
 
 dependencies {
-    implementation platform("org.springframework.boot:spring-boot-dependencies:4.0.3")
+    implementation platform("org.springframework.boot:spring-boot-dependencies:4.0.8")
     compileOnly 'org.projectlombok:lombok:1.18.46'
     annotationProcessor 'org.projectlombok:lombok:1.18.46'
     implementation("org.springframework:spring-web")
@@ -105,7 +105,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-jetty')
     implementation("org.springframework.amqp:spring-rabbit")
     implementation("org.springframework.amqp:spring-amqp")
-    implementation('org.apache.httpcomponents.client5:httpclient5:5.6.1')
+    implementation('org.apache.httpcomponents.client5:httpclient5:5.6.2')
     implementation("org.springframework.boot:spring-boot-starter-jdbc") {
         exclude group: "com.zaxxer", module: "HikariCP"
     }
@@ -113,10 +113,10 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     implementation('io.hypersistence:hypersistence-utils-hibernate-71:3.15.2')
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3')
-    implementation 'io.swagger.core.v3:swagger-core-jakarta:2.2.52'
+    implementation 'io.swagger.core.v3:swagger-core-jakarta:2.2.53'
     implementation('org.springframework.boot:spring-boot-starter-validation')
     implementation group: 'commons-validator', name: 'commons-validator', version: '1.10.1'
-    implementation group: 'com.google.guava', name: 'guava', version: '33.6.0-jre'
+    implementation group: 'com.google.guava', name: 'guava', version: '33.7.0-jre'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.cache2k:cache2k-api:2.6.1.Final', 'org.cache2k:cache2k-core:2.6.1.Final', 'org.cache2k:cache2k-spring:2.6.1.Final'
@@ -129,18 +129,18 @@ dependencies {
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.01-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation platform('org.testcontainers:testcontainers-bom:1.20.4')
+    testImplementation platform('org.testcontainers:testcontainers-bom:1.21.4')
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    runtimeOnly 'io.grpc:grpc-netty-shaded:1.82.1'
-    implementation 'io.grpc:grpc-protobuf:1.82.1'
-    implementation 'io.grpc:grpc-stub:1.82.1'
-    implementation 'com.google.protobuf:protobuf-java:4.35.1'
+    runtimeOnly 'io.grpc:grpc-netty-shaded:1.83.1'
+    implementation 'io.grpc:grpc-protobuf:1.83.1'
+    implementation 'io.grpc:grpc-stub:1.83.1'
+    implementation 'com.google.protobuf:protobuf-java:4.36.0'
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
     implementation 'io.github.resilience4j:resilience4j-spring-boot4:2.4.0'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.2'
+    implementation('tools.jackson.dataformat:jackson-dataformat-yaml')
 }
 
 configurations {
@@ -230,7 +230,7 @@ protobuf {
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.82.1'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.83.1'
         }
     }
     generateProtoTasks {

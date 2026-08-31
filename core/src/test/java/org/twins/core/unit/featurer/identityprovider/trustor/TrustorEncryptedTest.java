@@ -1,6 +1,5 @@
 package org.twins.core.featurer.identityprovider.trustor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +15,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 
 class TrustorEncryptedTest extends BaseUnitTest {
@@ -31,7 +30,7 @@ class TrustorEncryptedTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() throws ServiceException {
-        trustorEncrypted = new TrustorEncrypted(authService, new ObjectMapper());
+        trustorEncrypted = new TrustorEncrypted(authService);
     }
 
     private void stubApiUser(UUID domainId) throws ServiceException {

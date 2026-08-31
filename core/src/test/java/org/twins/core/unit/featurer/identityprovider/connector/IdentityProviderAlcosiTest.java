@@ -1,13 +1,11 @@
 package org.twins.core.featurer.identityprovider.connector;
 
-import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.auth.method.AuthMethodPassword;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.service.auth.AuthService;
 
@@ -28,7 +26,6 @@ class IdentityProviderAlcosiTest extends BaseUnitTest {
     void setUp() {
         identityProviderAlcosi = new IdentityProviderAlcosi(
                 new org.springframework.web.client.RestTemplate(),
-                new com.fasterxml.jackson.databind.ObjectMapper(),
                 authService,
                 Runnable::run);
     }
