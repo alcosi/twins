@@ -18,6 +18,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
@@ -87,7 +88,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                     .setLink(linkEntity);
         if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
-        twinLinkService.prepareTwinLinks(twin, newTwinLinks);
+        twinLinkService.prepareTwinLinks(twin, TwinLinkCreate.wrapAll(newTwinLinks));
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
         Collection<TwinLinkEntity> storedLinksList;
         twinLinkService.loadTwinLinks(twin); //todo optimize loading for backward links

@@ -6,10 +6,13 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.twinlink.TwinLinkCUD;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 
@@ -19,7 +22,7 @@ import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 public class TwinUpdate extends TwinSave {
     private TwinEntity dbTwinEntity; // entity loaded from db without changes
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
-    private EntityCUD<TwinLinkEntity> twinLinkCUD;
+    private TwinLinkCUD twinLinkCUD;
     protected Set<UUID> markersDelete;
     protected Set<UUID> tagsDelete;
     private EntityCUD<TwinFieldAttributeEntity> twinFieldAttributeCUD;

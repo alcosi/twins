@@ -30,9 +30,10 @@ import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.twinlink.TwinLinkCUD;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinCreateStage;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -124,8 +125,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return true;
     }
 
-    public void prepareTwinLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
+    public void prepareTwinLinks(TwinEntity srcTwinEntity, List<TwinLinkCreate> linksCreateList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        List<TwinLinkEntity> linksEntityList = twinLinkEntities(linksCreateList);
         loadDstTwin(linksEntityList);
         loadLink(linksEntityList);
         for (TwinLinkEntity twinLinkEntity : linksEntityList) {
@@ -161,11 +163,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public void processAlreadyExisted(List<TwinLinkEntity> linksEntityList) throws ServiceException {
-        Iterator<TwinLinkEntity> iterator = linksEntityList.listIterator();
-        loadLink(linksEntityList);
+    public void processAlreadyExisted(List<TwinLinkCreate> linksCreateList) throws ServiceException {
+        Iterator<TwinLinkCreate> iterator = linksCreateList.listIterator();
+        loadLink(twinLinkEntities(linksCreateList));
         while (iterator.hasNext()) {
-            TwinLinkEntity twinLinkEntity = iterator.next();
+            TwinLinkEntity twinLinkEntity = iterator.next().getTwinLink();
             if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
                 List<TwinLinkNoRelationsProjection> dbTwinLinkList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLinkList != null && dbTwinLinkList.size() > 1)
@@ -186,17 +188,18 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
+    public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkCreate> linksCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        addLinks(srcTwinEntity, linksEntityList, twinChangesCollector);
+        addLinks(srcTwinEntity, linksCreateList, twinChangesCollector);
         twinChangesService.applyChanges(twinChangesCollector);
     }
 
-    public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        prepareTwinLinks(srcTwinEntity, linksEntityList);
-        processAlreadyExisted(linksEntityList);
-        createRelationTwins(linksEntityList, twinChangesCollector);
-        for (TwinLinkEntity twinLinkEntity : linksEntityList) {
+    public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkCreate> linksCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        prepareTwinLinks(srcTwinEntity, linksCreateList);
+        processAlreadyExisted(linksCreateList);
+        createRelationTwins(linksCreateList, twinChangesCollector);
+        for (TwinLinkCreate linkCreate : linksCreateList) {
+            TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
             twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             twinChangesCollector.add(twinLinkEntity);
         }
@@ -206,22 +209,23 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
      * Shadow "relation twin" creation (mirrors the job_twin pattern in TwinTriggerService):
      * for every new twin_link whose link has relation_twin_class_id set, auto-create a twin of that class
      * with id == twin_link.id (ID equality) carrying the relation's extra attributes. Initial attribute
-     * values arrive pre-converted on TwinLinkEntity.relationTwinFields (reverse-mapper layer).
+     * values arrive pre-converted on TwinLinkCreate (reverse-mapper layer).
      * Batched into ONE createTwins call (single pipeline run), accumulated into the parent collector so a
      * single applyChanges persists everything — twins are flushed before twin_links (TwinChangesService),
      * so the twin_link.relation_twin_id FK holds. Deletion is DB-level: AFTER DELETE trigger on twin_link.
      */
-    private void createRelationTwins(List<TwinLinkEntity> linksEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        Map<UUID, TwinLinkEntity> candidates = new LinkedHashMap<>();
-        loadLink(linksEntityList);
-        for (TwinLinkEntity twinLinkEntity : linksEntityList) {
+    private void createRelationTwins(List<TwinLinkCreate> linksCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        loadLink(twinLinkEntities(linksCreateList));
+        Map<UUID, TwinLinkCreate> candidates = new LinkedHashMap<>();
+        for (TwinLinkCreate linkCreate : linksCreateList) {
+            TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
             LinkEntity link = twinLinkEntity.getLink(); // loaded in prepareTwinLinks (+ loadLink above as a safety)
-            // relationTwinFields arrive already converted (List<FieldValue>) and validated by TwinLinkAddRestDTOReverseMapper
+            // relationTwinFields arrive already converted and validated by TwinLinkAddRestDTOReverseMapper
             if (link == null || link.getRelationTwinClassId() == null)
                 continue;
             if (twinLinkEntity.getId() == null)
                 twinLinkEntity.setId(UuidUtils.generate()); // assign now so the relation twin can share it
-            candidates.putIfAbsent(twinLinkEntity.getId(), twinLinkEntity);
+            candidates.putIfAbsent(twinLinkEntity.getId(), linkCreate);
         }
         if (candidates.isEmpty())
             return;
@@ -230,7 +234,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         if (candidates.isEmpty())
             return;
         List<TwinCreate> twinCreates = new ArrayList<>();
-        for (TwinLinkEntity twinLinkEntity : candidates.values()) {
+        for (TwinLinkCreate linkCreate : candidates.values()) {
+            TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
             LinkEntity link = twinLinkEntity.getLink();
             if (link.getRelationTwinClass() == null)
                 linkService.loadTwinClasses(link);
@@ -248,10 +253,15 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinCreate.setCanTriggerAfterOperationFactory(false); // recursion guard (same as job_twin)
             twinCreate.setLauncher(TwinOperation.Launcher.link);
             twinCreate.setCreateStrategy(TwinCreateStrategy.AUTO); // sketch iff required relation attributes are missing
-            twinCreate.setFields(twinLinkEntity.getRelationTwinFields()); // null-safe; converted in the reverse mapper
+            twinCreate.setFields(linkCreate.getRelationTwinFields()); // null-safe; converted in the reverse mapper
             twinCreates.add(twinCreate);
         }
         twinService.createTwins(TwinCreateStage.of(twinCreates), twinChangesCollector);
+    }
+
+    /** Entity view over the composition list — same instances, for the entity-typed bulk loaders. */
+    private static List<TwinLinkEntity> twinLinkEntities(Collection<TwinLinkCreate> linksCreateList) {
+        return linksCreateList.stream().map(TwinLinkCreate::getTwinLink).toList();
     }
 
     public void updateTwinLinks(TwinEntity twinEntity, List<TwinLinkEntity> twinLinkEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -517,7 +527,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public void cudTwinLinks(TwinEntity twinEntity, TwinLinkCUD twinLinkCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinLinkCUD == null)
             return;
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getCreateList())) {

@@ -18,6 +18,7 @@ import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
@@ -186,7 +187,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         for (var copyContext : copyContextMap.values()) {
             var twinCreate = new TwinCreate();
             twinCreate
-                    .setLinksEntityList(copyContext.getLinksCopy())
+                    .setLinksCreateList(TwinLinkCreate.wrapAll(copyContext.getLinksCopy()))
                     .setTwinEntity(copyContext.getTwinCopy());
             ret.add(
                     new FactoryItem()

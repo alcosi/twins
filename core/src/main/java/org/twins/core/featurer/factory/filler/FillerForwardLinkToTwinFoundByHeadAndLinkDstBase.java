@@ -22,12 +22,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -175,7 +170,8 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
         } else if (twinOperation instanceof TwinUpdate twinUpdate
                 && twinUpdate.getTwinLinkCUD() != null
                 && twinUpdate.getTwinLinkCUD().getCreateList() != null) {
-            for (TwinLinkEntity linkEntity : twinUpdate.getTwinLinkCUD().getCreateList()) {
+            for (var linkCreate : twinUpdate.getTwinLinkCUD().getCreateList()) {
+                TwinLinkEntity linkEntity = linkCreate.getTwinLink();
                 if (!linkId.equals(linkEntity.getLinkId())) {
                     continue;
                 }

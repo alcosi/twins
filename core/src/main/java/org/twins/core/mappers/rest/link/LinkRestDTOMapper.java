@@ -70,7 +70,7 @@ public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1
         }
         if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
             dst.setDstTwinClassId(src.getDstTwinClassId());
-            twinClassRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getDstTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE)) {
             dst.setSrcTwinClassId(src.getSrcTwinClassId());

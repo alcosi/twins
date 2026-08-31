@@ -18,6 +18,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinCreateStage;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -127,6 +128,12 @@ class TwinLinkServiceRelationTwinTest {
         return link;
     }
 
+    private List<TwinLinkCreate> creates(TwinLinkEntity... twinLinks) {
+        return java.util.Arrays.stream(twinLinks)
+                .map(tl -> new TwinLinkCreate().setTwinLink(tl))
+                .toList();
+    }
+
     private TwinLinkEntity twinLinkEntity(LinkEntity link) {
         return new TwinLinkEntity()
                 .setLinkId(link.getId())
@@ -143,7 +150,7 @@ class TwinLinkServiceRelationTwinTest {
         TwinChangesCollector collector = new TwinChangesCollector();
 
         // when
-        twinLinkService.addLinks(srcTwin, List.of(twinLink), collector);
+        twinLinkService.addLinks(srcTwin, creates(twinLink), collector);
 
         // then
         ArgumentCaptor<TwinCreateStage> captor = ArgumentCaptor.forClass(TwinCreateStage.class);
@@ -170,7 +177,7 @@ class TwinLinkServiceRelationTwinTest {
         TwinLinkEntity twinLink = twinLinkEntity(link);
 
         // when
-        twinLinkService.addLinks(srcTwin, List.of(twinLink), new TwinChangesCollector());
+        twinLinkService.addLinks(srcTwin, creates(twinLink), new TwinChangesCollector());
 
         // then
         verify(twinService, never()).createTwins(any(TwinCreateStage.class), any(TwinChangesCollector.class));
@@ -186,7 +193,7 @@ class TwinLinkServiceRelationTwinTest {
         when(twinService.findExistingIds(any())).thenReturn(Set.of(twinLink.getId()));
 
         // when
-        twinLinkService.addLinks(srcTwin, List.of(twinLink), new TwinChangesCollector());
+        twinLinkService.addLinks(srcTwin, creates(twinLink), new TwinChangesCollector());
 
         // then
         verify(twinService, never()).createTwins(any(TwinCreateStage.class), any(TwinChangesCollector.class));
@@ -203,7 +210,7 @@ class TwinLinkServiceRelationTwinTest {
         TwinChangesCollector collector = new TwinChangesCollector();
 
         // when
-        twinLinkService.addLinks(srcTwin, List.of(twinLink1, twinLink2), collector);
+        twinLinkService.addLinks(srcTwin, creates(twinLink1, twinLink2), collector);
 
         // then
         ArgumentCaptor<TwinCreateStage> captor = ArgumentCaptor.forClass(TwinCreateStage.class);
@@ -216,15 +223,17 @@ class TwinLinkServiceRelationTwinTest {
 
     @Test
     void shouldSeedPreconvertedRelationTwinFieldsOnCreate() throws Exception {
-        // given: relationTwinFields arrive already converted (List<FieldValue>) from the reverse mapper
+        // given: relationTwinFields arrive already converted (List<FieldValue>) on the TwinLinkCreate composition object
         LinkEntity link = linkEntity(relationTwinClass.getId());
         TwinLinkEntity twinLink = twinLinkEntity(link);
         FieldValue fieldValue = mock(FieldValue.class);
         when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
-        twinLink.setRelationTwinFields(List.of(fieldValue));
+        TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
+                .setTwinLink(twinLink)
+                .setRelationTwinFields(List.of(fieldValue));
 
-        // when
-        twinLinkService.addLinks(srcTwin, List.of(twinLink), new TwinChangesCollector());
+        // when: the composition entry (2-arg addLinks unwraps + carries fields by identity)
+        twinLinkService.addLinks(srcTwin, List.of(twinLinkCreate));
 
         // then
         ArgumentCaptor<TwinCreateStage> captor = ArgumentCaptor.forClass(TwinCreateStage.class);
