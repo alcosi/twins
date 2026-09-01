@@ -7,7 +7,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -15,6 +14,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -217,30 +217,41 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
      * so the twin_link.relation_twin_id FK holds. Deletion is DB-level: AFTER DELETE trigger on twin_link.
      */
     private void createRelationTwins(List<TwinLinkCreate> linksCreateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        loadLink(twinLinkEntities(linksCreateList));
-        Map<UUID, TwinLinkCreate> candidates = new LinkedHashMap<>();
+        var linkEntities = twinLinkEntities(linksCreateList);
+        loadLink(linkEntities);
+        List<TwinLinkCreate> needRelationTwinCreation = null;
+        Set<LinkEntity> linkWithRelationTwinClass = null;
         for (TwinLinkCreate linkCreate : linksCreateList) {
-            TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
-            LinkEntity link = twinLinkEntity.getLink(); // loaded in prepareTwinLinks (+ loadLink above as a safety)
-            // relationTwinFields arrive already converted and validated by TwinLinkAddRestDTOReverseMapper
-            if (link == null || link.getRelationTwinClassId() == null)
+            var twinLinkEntity = linkCreate.getTwinLink();
+            var link = twinLinkEntity.getLink(); // loaded in prepareTwinLinks (+ loadLink above as a safety)
+            if (link.getRelationTwinClassId() == null)
                 continue;
             if (twinLinkEntity.getId() == null)
                 twinLinkEntity.setId(UuidUtils.generate()); // assign now so the relation twin can share it
-            candidates.putIfAbsent(twinLinkEntity.getId(), linkCreate);
+            needRelationTwinCreation = CollectionUtils.safeAdd(needRelationTwinCreation, linkCreate);
+            linkWithRelationTwinClass = CollectionUtils.safeAdd(linkWithRelationTwinClass, link);
         }
-        if (candidates.isEmpty())
+        if (CollectionUtils.isEmpty(needRelationTwinCreation))
             return;
-        // bulk idempotency: relink (processAlreadyExisted) may reuse an id whose relation twin already exists
-        candidates.keySet().removeAll(twinService.findExistingIds(candidates.keySet()));
-        if (candidates.isEmpty())
+        // dedupe by twin_link id: duplicate creates (e.g. two relinks of the same unique link) must produce ONE relation twin
+        Set<UUID> seenTwinLinkIds = new HashSet<>();
+        needRelationTwinCreation = needRelationTwinCreation.stream()
+                .filter(linkCreate -> seenTwinLinkIds.add(linkCreate.getTwinLink().getId()))
+                .toList();
+        // relink idempotency: processAlreadyExisted may reuse an existing twin_link id whose relation twin already exists
+        var existingTwinIds = twinService.findExistingIds(seenTwinLinkIds);
+        if (!existingTwinIds.isEmpty()) {
+            needRelationTwinCreation = needRelationTwinCreation.stream()
+                    .filter(linkCreate -> !existingTwinIds.contains(linkCreate.getTwinLink().getId()))
+                    .toList();
+        }
+        if (CollectionUtils.isEmpty(needRelationTwinCreation))
             return;
+        linkService.loadTwinClasses(linkWithRelationTwinClass);
         List<TwinCreate> twinCreates = new ArrayList<>();
-        for (TwinLinkCreate linkCreate : candidates.values()) {
+        for (TwinLinkCreate linkCreate : needRelationTwinCreation) {
             TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
             LinkEntity link = twinLinkEntity.getLink();
-            if (link.getRelationTwinClass() == null)
-                linkService.loadTwinClasses(link);
             TwinEntity relationTwin = new TwinEntity()
                     .setId(twinLinkEntity.getId()) // ID equality: relation_twin.id == twin_link.id (same as job_twin)
                     .setTwinClassId(link.getRelationTwinClassId())
