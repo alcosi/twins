@@ -113,7 +113,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             updateEntityFieldByValue(entity.getFileSizeMbLimit(), dbEntity, TwinAttachmentRestrictionEntity::getFileSizeMbLimit, TwinAttachmentRestrictionEntity::setFileSizeMbLimit, TwinAttachmentRestrictionEntity.Fields.fileSizeMbLimit, changesHelper);
             updateEntityFieldByValue(entity.getFileExtensionLimit(), dbEntity, TwinAttachmentRestrictionEntity::getFileExtensionLimit, TwinAttachmentRestrictionEntity::setFileExtensionLimit, TwinAttachmentRestrictionEntity.Fields.fileExtensionLimit, changesHelper);
             updateEntityFieldByValue(entity.getFileNameRegexp(), dbEntity, TwinAttachmentRestrictionEntity::getFileNameRegexp, TwinAttachmentRestrictionEntity::setFileNameRegexp, TwinAttachmentRestrictionEntity.Fields.fileNameRegexp, changesHelper);
-            changes.add(dbEntity, changesHelper);
+            if (changesHelper.hasChanges()) {
+                changes.add(dbEntity, changesHelper);
+            }
         }
         updateSafe(changes);
         return allEntities;
