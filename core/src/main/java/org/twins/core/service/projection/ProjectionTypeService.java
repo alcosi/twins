@@ -20,8 +20,6 @@ import org.twins.core.dao.projection.ProjectionTypeRepository;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -112,8 +110,10 @@ public class ProjectionTypeService extends EntitySecureFindServiceImpl<Projectio
             updateEntityFieldByEntity(entity, dbEntity, ProjectionTypeEntity::getName, ProjectionTypeEntity::setName, ProjectionTypeEntity.Fields.name, changesHelper);
             updateEntityFieldByEntity(entity, dbEntity, ProjectionTypeEntity::getKey, ProjectionTypeEntity::setKey, ProjectionTypeEntity.Fields.key, changesHelper);
             updateEntityFieldByEntity(entity, dbEntity, ProjectionTypeEntity::getProjectionTypeGroupId, ProjectionTypeEntity::setProjectionTypeGroupId, ProjectionTypeEntity.Fields.projectionTypeGroupId, changesHelper);
-            updateEntityFieldByValue(Timestamp.valueOf(LocalDateTime.now()), dbEntity, ProjectionTypeEntity::getMembershipTwinClassId, ProjectionTypeEntity::setMembershipTwinClassId, ProjectionTypeEntity.Fields.membershipTwinClassId, changesHelper);
-            changes.add(dbEntity, changesHelper);
+            updateEntityFieldByEntity(entity, dbEntity, ProjectionTypeEntity::getMembershipTwinClassId, ProjectionTypeEntity::setMembershipTwinClassId, ProjectionTypeEntity.Fields.membershipTwinClassId, changesHelper);
+            if (changesHelper.hasChanges()) {
+                changes.add(dbEntity, changesHelper);
+            }
         }
         updateSafe(changes);
 
