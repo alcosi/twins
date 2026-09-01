@@ -60,7 +60,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     private TwinflowTransitionType twinflowTransitionTypeId;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

@@ -67,7 +67,6 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     private Long size;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

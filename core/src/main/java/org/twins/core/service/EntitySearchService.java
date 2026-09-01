@@ -72,7 +72,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
-    public final Map<GF, Long> countByGroupFields(S search, GF groupField) throws ServiceException {
+    public Map<GF, Long> countByGroupFields(S search, GF groupField) throws ServiceException {
         if (search == null)
             search = emptySearch();
         Specification<E> filterSpec = createFilterSpecification(search);

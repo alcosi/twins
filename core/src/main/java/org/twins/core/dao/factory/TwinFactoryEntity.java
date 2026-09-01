@@ -67,7 +67,6 @@ public class TwinFactoryEntity implements EasyLoggable, Identifiable {
     private UUID createdByUserId;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
