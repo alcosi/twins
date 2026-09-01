@@ -116,6 +116,13 @@ public enum Permissions {
     ATTACHMENT_DELETE(SystemIds.Permission.Attachment.DELETE),
     ATTACHMENT_VALIDATE(SystemIds.Permission.Attachment.VALIDATE),
 
+    // ATTACHMENT RESTRICTION permissions
+    ATTACHMENT_RESTRICTION_MANAGE(SystemIds.Permission.AttachmentRestriction.MANAGE),
+    ATTACHMENT_RESTRICTION_CREATE(SystemIds.Permission.AttachmentRestriction.CREATE),
+    ATTACHMENT_RESTRICTION_VIEW(SystemIds.Permission.AttachmentRestriction.VIEW),
+    ATTACHMENT_RESTRICTION_UPDATE(SystemIds.Permission.AttachmentRestriction.UPDATE),
+    ATTACHMENT_RESTRICTION_DELETE(SystemIds.Permission.AttachmentRestriction.DELETE),
+
     // USER permissions
     USER_MANAGE(SystemIds.Permission.User.MANAGE),
     USER_CREATE(SystemIds.Permission.User.CREATE),

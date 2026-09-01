@@ -8,6 +8,8 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.InformationVolumeUtils;
 import org.cambium.featurer.FeaturerService;
@@ -16,10 +18,12 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.enums.action.TwinAction;
@@ -37,6 +41,7 @@ import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
 import static org.twins.core.enums.attachment.problem.AttachmentFileCreateUpdateProblem.*;
@@ -77,6 +82,40 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     @Override
     public boolean validateEntity(TwinAttachmentRestrictionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinAttachmentRestrictionEntity> createAttachmentRestrictions(List<TwinAttachmentRestrictionEntity> attachmentRestrictions) throws ServiceException {
+        if (CollectionUtils.isEmpty(attachmentRestrictions)) {
+            return Collections.emptyList();
+        }
+        ApiUser apiUser = authService.getApiUser();
+        for (TwinAttachmentRestrictionEntity entity : attachmentRestrictions) {
+            entity.setDomainId(apiUser.getDomainId());
+        }
+        return StreamSupport.stream(saveSafe(attachmentRestrictions).spliterator(), false).toList();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinAttachmentRestrictionEntity> updateAttachmentRestrictions(List<TwinAttachmentRestrictionEntity> attachmentRestrictions) throws ServiceException {
+        if (CollectionUtils.isEmpty(attachmentRestrictions)) {
+            return Collections.emptyList();
+        }
+        Kit<TwinAttachmentRestrictionEntity, UUID> dbEntitiesKit = findEntitiesSafe(attachmentRestrictions.stream().map(TwinAttachmentRestrictionEntity::getId).toList());
+        ChangesHelperMulti<TwinAttachmentRestrictionEntity> changes = new ChangesHelperMulti<>();
+        List<TwinAttachmentRestrictionEntity> allEntities = dbEntitiesKit.getList();
+        for (TwinAttachmentRestrictionEntity entity : allEntities) {
+            TwinAttachmentRestrictionEntity dbEntity = dbEntitiesKit.get(entity.getId());
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateEntityFieldByValue(entity.getMinCount(), dbEntity, TwinAttachmentRestrictionEntity::getMinCount, TwinAttachmentRestrictionEntity::setMinCount, TwinAttachmentRestrictionEntity.Fields.minCount, changesHelper);
+            updateEntityFieldByValue(entity.getMaxCount(), dbEntity, TwinAttachmentRestrictionEntity::getMaxCount, TwinAttachmentRestrictionEntity::setMaxCount, TwinAttachmentRestrictionEntity.Fields.maxCount, changesHelper);
+            updateEntityFieldByValue(entity.getFileSizeMbLimit(), dbEntity, TwinAttachmentRestrictionEntity::getFileSizeMbLimit, TwinAttachmentRestrictionEntity::setFileSizeMbLimit, TwinAttachmentRestrictionEntity.Fields.fileSizeMbLimit, changesHelper);
+            updateEntityFieldByValue(entity.getFileExtensionLimit(), dbEntity, TwinAttachmentRestrictionEntity::getFileExtensionLimit, TwinAttachmentRestrictionEntity::setFileExtensionLimit, TwinAttachmentRestrictionEntity.Fields.fileExtensionLimit, changesHelper);
+            updateEntityFieldByValue(entity.getFileNameRegexp(), dbEntity, TwinAttachmentRestrictionEntity::getFileNameRegexp, TwinAttachmentRestrictionEntity::setFileNameRegexp, TwinAttachmentRestrictionEntity.Fields.fileNameRegexp, changesHelper);
+            changes.add(dbEntity, changesHelper);
+        }
+        updateSafe(changes);
+        return allEntities;
     }
 
     public AttachmentCUDValidateResult validateAttachments(UUID twinId, UUID twinClassId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
