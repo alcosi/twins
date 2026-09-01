@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 public class TwinLinkCUD {
     private List<TwinLinkCreate> createList;
-    private List<TwinLinkEntity> updateList;
+    private List<TwinLinkUpdate> updateList;
     private List<TwinLinkEntity> deleteList;
 
     public boolean isEmpty() {
@@ -40,5 +40,10 @@ public class TwinLinkCUD {
     /** Entity view over the create list for consumers working with plain entities. */
     public List<TwinLinkEntity> getCreateEntityList() {
         return createList == null ? null : createList.stream().map(TwinLinkCreate::getTwinLink).collect(Collectors.toList());
+    }
+
+    /** Entity view over the update list for consumers working with plain entities. */
+    public List<TwinLinkEntity> getUpdateEntityList() {
+        return updateList == null ? null : updateList.stream().map(TwinLinkUpdate::getTwinLink).collect(Collectors.toList());
     }
 }

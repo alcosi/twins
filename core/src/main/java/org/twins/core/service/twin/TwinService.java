@@ -2258,9 +2258,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void validateFieldsOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
         TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
         Map<UUID, FieldValue> fields = twinUpdate.getFields();
-        if (twinEntity.getTwinClass() == null) {
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        }
+        loadClass(twinEntity);
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (var entry : fields.entrySet()) {

@@ -339,7 +339,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 if (twinUpdate.getTwinLinkCUD() == null
                         || CollectionUtils.isEmpty(twinUpdate.getTwinLinkCUD().getUpdateList()))
                     return false;
-                for (TwinLinkEntity twinLinkEntity : twinUpdate.getTwinLinkCUD().getUpdateList()) {
+                for (TwinLinkEntity twinLinkEntity : twinUpdate.getTwinLinkCUD().getUpdateEntityList()) {
                     // hope that nobody will change linkId in factory... otherwise we will have problems here
                     // also this logic currently is not suitable for Many2Many links
                     if (!twinLinkEntity.getLinkId().equals(eraseEntity.getReasonLinkId()))

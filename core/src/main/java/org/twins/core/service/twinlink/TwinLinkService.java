@@ -34,9 +34,11 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinlink.TwinLinkCUD;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
+import org.twins.core.domain.twinlink.TwinLinkUpdate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinCreateStage;
 import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -264,20 +266,34 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return linksCreateList.stream().map(TwinLinkCreate::getTwinLink).toList();
     }
 
-    public void updateTwinLinks(TwinEntity twinEntity, List<TwinLinkEntity> twinLinkEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinLinkEntityList))
+    public void updateTwinLinks(TwinEntity twinEntity, List<TwinLinkUpdate> twinLinkUpdateList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinLinkUpdateList))
             return;
-        TwinLinkEntity dbTwinLinkEntity;
+        var updateEntityKit = new Kit<>(twinLinkUpdateList.stream().map(TwinLinkUpdate::getTwinLink).toList(), TwinLinkEntity::getId);
+        var dbEntityKit = findEntitiesSafe(updateEntityKit.getIdSet());
         TwinEntity unlinkedTwinEntity = null;
         boolean forward = true;
         List<TwinLinkEntity> updatedTwinLinkEntityList = new ArrayList<>();
-        for (TwinLinkEntity updateTwinLinkEntity : twinLinkEntityList) {
-            //todo fix N+1
-            dbTwinLinkEntity = entitySmartService.findById(updateTwinLinkEntity.getId(), twinLinkRepository, EntitySmartService.FindMode.ifEmptyLogAndNull);
-            if (dbTwinLinkEntity == null)
-                continue;
-            loadTwin(dbTwinLinkEntity);
-            loadLink(dbTwinLinkEntity);
+        loadTwin(updateEntityKit.getCollection());
+        loadTwin(dbEntityKit.getCollection());
+        loadLink(dbEntityKit.getCollection());
+        List<TwinUpdate> relationTwinUpdates = new ArrayList<>();
+        for (TwinLinkUpdate twinLinkUpdate : twinLinkUpdateList) {
+            var updateTwinLinkEntity = twinLinkUpdate.getTwinLink();
+            var dbTwinLinkEntity = dbEntityKit.get(updateTwinLinkEntity.getId());
+            if (twinLinkUpdate.getRelationTwinFields() != null && !twinLinkUpdate.getRelationTwinFields().isEmpty()) {
+                TwinEntity relationTwin = updateTwinLinkEntity.getRelationTwin();
+                if (relationTwin == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
+                            "relationTwinFields provided but twin_link[" + updateTwinLinkEntity.getId() + "] has no relation twin");
+                var relationTwinUpdate = new TwinUpdate();
+                relationTwinUpdate.setDbTwinEntity(relationTwin);
+                relationTwinUpdate.setTwinEntity(relationTwin.clone()); // field-only update: no basic changes
+                relationTwinUpdate.setFields(twinLinkUpdate.getRelationTwinFields());
+                relationTwinUpdate.setCanTriggerAfterOperationFactory(false); // recursion guard (same as createRelationTwins)
+                relationTwinUpdate.setLauncher(TwinOperation.Launcher.link);
+                relationTwinUpdates.add(relationTwinUpdate);
+            }
             if (updateTwinLinkEntity.getSrcTwinId() != null && updateTwinLinkEntity.getDstTwinId() == null)
                 updateTwinLinkEntity
                         .setDstTwinId(updateTwinLinkEntity.getSrcTwinId()) //shift
@@ -301,6 +317,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinChangesCollector.add(twinLinkEntity);
         }
         entitySmartService.saveAllAndLog(updatedTwinLinkEntityList, twinLinkRepository);
+        if (!relationTwinUpdates.isEmpty())
+            twinService.updateTwin(relationTwinUpdates, twinChangesCollector, false);
     }
 
     public void loadTwinLinks(TwinEntity twinEntity) throws ServiceException {

@@ -1,5 +1,6 @@
 package org.twins.core.unit.service.twinlink;
 
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
@@ -19,9 +20,11 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
+import org.twins.core.domain.twinlink.TwinLinkUpdate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinCreateStage;
 import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.link.LinkType;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -43,6 +46,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -219,6 +223,47 @@ class TwinLinkServiceRelationTwinTest {
         assertNotEquals(twinLink1.getId(), twinLink2.getId());
         assertEquals(twinLink1.getId(), twinLink1.getRelationTwinId());
         assertEquals(twinLink2.getId(), twinLink2.getRelationTwinId());
+    }
+
+    @Test
+    void shouldBatchRelationTwinFieldUpdatesViaUpdateTwin() throws Exception {
+        // given: an existing twin_link whose update carries relation twin fields
+        LinkEntity link = linkEntity(relationTwinClass.getId());
+        TwinLinkEntity twinLink = twinLinkEntity(link);
+        twinLink.setId(UuidUtils.generate());
+        TwinLinkEntity dbTwinLink = twinLinkEntity(link);
+        dbTwinLink.setId(twinLink.getId())
+                .setSrcTwin(srcTwin)
+                .setSrcTwinId(srcTwin.getId());
+        when(entitySmartService.findById(eq(twinLink.getId()), eq(twinLinkRepository), any())).thenReturn(dbTwinLink);
+        // relation twin exists (its id equals the twin_link id by ID equality), batch-loaded
+        TwinEntity relationTwin = new TwinEntity()
+                .setId(twinLink.getId())
+                .setTwinClassId(relationTwinClass.getId())
+                .setTwinStatus(new org.twins.core.dao.twin.TwinStatusEntity().setType(org.twins.core.enums.status.StatusType.BASIC));
+        when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(relationTwin), TwinEntity::getId));
+        lenient().when(historyService.linkUpdated(any(TwinLinkEntity.class), any(TwinEntity.class), anyBoolean()))
+                .thenReturn(new HistoryCollectorMultiTwin());
+        FieldValue fieldValue = mock(FieldValue.class);
+        when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
+        TwinLinkUpdate twinLinkUpdate = new TwinLinkUpdate()
+                .setTwinLink(twinLink)
+                .setRelationTwinFields(List.of(fieldValue));
+
+        // when
+        TwinChangesCollector collector = new TwinChangesCollector();
+        twinLinkService.updateTwinLinks(srcTwin, List.of(twinLinkUpdate), collector);
+
+        // then: ONE batched updateTwin call with a properly built field-only TwinUpdate
+        ArgumentCaptor<List<TwinUpdate>> captor = ArgumentCaptor.forClass(List.class);
+        verify(twinService, times(1)).updateTwin(captor.capture(), same(collector), eq(false));
+        org.junit.jupiter.api.Assertions.assertEquals(1, captor.getValue().size());
+        TwinUpdate relationTwinUpdate = captor.getValue().get(0);
+        assertSame(relationTwin, relationTwinUpdate.getDbTwinEntity(), "db entity must be the loaded relation twin");
+        assertEquals(relationTwin.getId(), relationTwinUpdate.getTwinEntity().getId(), "field-only update: clone with same id");
+        assertFalse(relationTwinUpdate.isCanTriggerAfterOperationFactory(), "recursion guard must be on");
+        assertEquals(TwinOperation.Launcher.link, relationTwinUpdate.getLauncher());
+        assertSame(fieldValue, relationTwinUpdate.getFields().values().iterator().next(), "converted fields must be seeded as-is");
     }
 
     @Test
