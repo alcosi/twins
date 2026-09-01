@@ -39,10 +39,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.service.user.UserService;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,6 +106,29 @@ class TwinLinkServiceRelationTwinTest {
         lenient().when(authService.getApiUser()).thenReturn(apiUser);
         // linkCreated must return a real (empty) collector — add(null) would NPE
         lenient().when(historyService.linkCreated(any(TwinLinkEntity.class))).thenReturn(new HistoryCollectorMultiTwin());
+        // @InjectMocks uses constructor injection (RequiredArgsConstructor) and does NOT fill the base class'
+        // private entitySmartService — inject it manually so the inherited findEntitiesSafe path works
+        injectSuperclassField(twinLinkService, "entitySmartService", entitySmartService);
+    }
+
+    private static void injectSuperclassField(Object target, String name, Object value) throws Exception {
+        // sets EVERY field with this name along the hierarchy: the subclass field is filled by @InjectMocks
+        // already, but the base class' private twin (used by inherited findEntitiesSafe) is not
+        Class<?> clazz = target.getClass();
+        boolean injected = false;
+        while (clazz != null) {
+            try {
+                java.lang.reflect.Field field = clazz.getDeclaredField(name);
+                field.setAccessible(true);
+                field.set(target, value);
+                injected = true;
+            } catch (NoSuchFieldException ignored) {
+                // walk up
+            }
+            clazz = clazz.getSuperclass();
+        }
+        if (!injected)
+            throw new RuntimeException("field not found: " + name);
     }
 
     private TwinClassEntity classEntity() {
@@ -235,13 +255,22 @@ class TwinLinkServiceRelationTwinTest {
         dbTwinLink.setId(twinLink.getId())
                 .setSrcTwin(srcTwin)
                 .setSrcTwinId(srcTwin.getId());
-        when(entitySmartService.findById(eq(twinLink.getId()), eq(twinLinkRepository), any())).thenReturn(dbTwinLink);
-        // relation twin exists (its id equals the twin_link id by ID equality), batch-loaded
+        when(entitySmartService.findByIdIn(any(), eq(twinLinkRepository), any(), any()))
+                .thenReturn(new Kit<>(List.of(dbTwinLink), TwinLinkEntity::getId));
+        // relation twin (its id equals the twin_link id by ID equality) is loaded onto the DB entity
+        // by loadTwin's relationTwinId LoadedField — the twinService.load mock emulates that wiring
         TwinEntity relationTwin = new TwinEntity()
                 .setId(twinLink.getId())
                 .setTwinClassId(relationTwinClass.getId())
                 .setTwinStatus(new org.twins.core.dao.twin.TwinStatusEntity().setType(org.twins.core.enums.status.StatusType.BASIC));
-        when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(relationTwin), TwinEntity::getId));
+        dbTwinLink.setRelationTwinId(twinLink.getId()); // DB column value
+        doAnswer(invocation -> {
+            Collection<TwinLinkEntity> entities = invocation.getArgument(0);
+            for (TwinLinkEntity entity : entities)
+                if (relationTwin.getId().equals(entity.getRelationTwinId()))
+                    entity.setRelationTwin(relationTwin);
+            return null;
+        }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
         lenient().when(historyService.linkUpdated(any(TwinLinkEntity.class), any(TwinEntity.class), anyBoolean()))
                 .thenReturn(new HistoryCollectorMultiTwin());
         FieldValue fieldValue = mock(FieldValue.class);

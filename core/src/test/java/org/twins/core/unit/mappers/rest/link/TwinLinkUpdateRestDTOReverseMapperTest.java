@@ -72,6 +72,7 @@ class TwinLinkUpdateRestDTOReverseMapperTest {
         // then
         assertEquals(twinLinkId, result.getTwinLink().getId());
         assertEquals(dstTwinId, result.getTwinLink().getDstTwinId());
+        assertEquals(twinLinkId, result.getTwinLink().getRelationTwinId(), "relationTwinId == id (ID-equality invariant) feeds loadTwin's batch LoadedField");
         assertEquals(List.of(fieldValue), result.getRelationTwinFields());
     }
 
@@ -94,5 +95,6 @@ class TwinLinkUpdateRestDTOReverseMapperTest {
         verify(relationTwinFieldsConverter, times(1)).preloadRelationTwins(eq(Set.of(withFieldsId)), any(MapperContext.class));
         assertEquals(2, result.size());
         assertNull(result.get(1).getRelationTwinFields());
+        assertNull(result.get(1).getTwinLink().getRelationTwinId(), "no pointer without relationTwinFields — plain updates must not load/throw on a missing relation twin");
     }
 }

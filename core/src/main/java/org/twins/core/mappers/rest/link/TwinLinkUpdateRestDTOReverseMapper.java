@@ -25,14 +25,18 @@ public class TwinLinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
 
     @Override
     public void map(TwinLinkUpdateDTOv1 src, TwinLinkUpdate dst, MapperContext mapperContext) throws Exception {
-        dst.setTwinLink(new TwinLinkEntity()
+        TwinLinkEntity twinLink = new TwinLinkEntity()
                 .setDstTwin(twinService.findEntitySafe(src.getDstTwinId()))
                 .setId(src.getId())
-                .setDstTwinId(src.getDstTwinId())); // also it can be srcTwinId for backward link. it must be changed in service
+                .setDstTwinId(src.getDstTwinId()); // also it can be srcTwinId for backward link. it must be changed in service
         // Relation twin field updates (relation attributes): converted HERE, at the mapper layer —
         // resolved against the relation twin itself (its id equals the twin_link id by ID equality).
-        if (MapUtils.isNotEmpty(src.getRelationTwinFields()))
+        // The relationTwinId pointer (== id per the ID-equality invariant) feeds loadTwin's batch LoadedField.
+        if (MapUtils.isNotEmpty(src.getRelationTwinFields())) {
+            twinLink.setRelationTwinId(src.getId());
             dst.setRelationTwinFields(relationTwinFieldsConverter.convertForRelationTwin(src.getId(), src.getRelationTwinFields(), mapperContext));
+        }
+        dst.setTwinLink(twinLink);
     }
 
     @Override

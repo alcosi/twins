@@ -271,10 +271,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             return;
         var updateEntityKit = new Kit<>(twinLinkUpdateList.stream().map(TwinLinkUpdate::getTwinLink).toList(), TwinLinkEntity::getId);
         var dbEntityKit = findEntitiesSafe(updateEntityKit.getIdSet());
-        TwinEntity unlinkedTwinEntity = null;
-        boolean forward = true;
         List<TwinLinkEntity> updatedTwinLinkEntityList = new ArrayList<>();
-        loadTwin(updateEntityKit.getCollection());
         loadTwin(dbEntityKit.getCollection());
         loadLink(dbEntityKit.getCollection());
         List<TwinUpdate> relationTwinUpdates = new ArrayList<>();
@@ -282,7 +279,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             var updateTwinLinkEntity = twinLinkUpdate.getTwinLink();
             var dbTwinLinkEntity = dbEntityKit.get(updateTwinLinkEntity.getId());
             if (twinLinkUpdate.getRelationTwinFields() != null && !twinLinkUpdate.getRelationTwinFields().isEmpty()) {
-                TwinEntity relationTwin = updateTwinLinkEntity.getRelationTwin();
+                TwinEntity relationTwin = dbTwinLinkEntity.getRelationTwin();
                 if (relationTwin == null)
                     throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
                             "relationTwinFields provided but twin_link[" + updateTwinLinkEntity.getId() + "] has no relation twin");
@@ -298,6 +295,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 updateTwinLinkEntity
                         .setDstTwinId(updateTwinLinkEntity.getSrcTwinId()) //shift
                         .setSrcTwinId(null);
+            // per-link: the unlinked twin and the direction must pair with THEIR link in the history
+            TwinEntity unlinkedTwinEntity = null;
+            boolean forward = true;
             if (dbTwinLinkEntity.getSrcTwinId().equals(twinEntity.getId())) {// forward link
                 unlinkedTwinEntity = dbTwinLinkEntity.getDstTwin();
                 forward = true;
@@ -309,12 +309,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 dbTwinLinkEntity
                         .setSrcTwinId(updateTwinLinkEntity.getDstTwinId());
             }
-            if (validateEntityAndLog(dbTwinLinkEntity, EntitySmartService.EntityValidateMode.beforeSave))
+            if (validateEntityAndLog(dbTwinLinkEntity, EntitySmartService.EntityValidateMode.beforeSave)) {
                 updatedTwinLinkEntityList.add(dbTwinLinkEntity);
-        }
-        for (TwinLinkEntity twinLinkEntity : updatedTwinLinkEntityList) {
-            twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(twinLinkEntity, unlinkedTwinEntity, forward));
-            twinChangesCollector.add(twinLinkEntity);
+                twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(dbTwinLinkEntity, unlinkedTwinEntity, forward));
+                twinChangesCollector.add(dbTwinLinkEntity);
+            }
         }
         entitySmartService.saveAllAndLog(updatedTwinLinkEntityList, twinLinkRepository);
         if (!relationTwinUpdates.isEmpty())
