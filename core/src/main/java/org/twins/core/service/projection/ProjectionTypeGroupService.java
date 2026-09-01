@@ -79,7 +79,9 @@ public class ProjectionTypeGroupService extends EntitySecureFindServiceImpl<Proj
             allEntities.add(dbEntity);
             ChangesHelper changesHelper = new ChangesHelper();
             updateEntityFieldByEntity(entity, dbEntity, ProjectionTypeGroupEntity::getKey, ProjectionTypeGroupEntity::setKey, ProjectionTypeGroupEntity.Fields.key, changesHelper);
-            changes.add(dbEntity, changesHelper);
+            if (changesHelper.hasChanges()) {
+                changes.add(dbEntity, changesHelper);
+            }
         }
         updateSafe(changes);
         return allEntities;
