@@ -307,6 +307,14 @@ public final class SystemIds {
             public static final UUID VALIDATE = UUID.fromString("00000000-0000-0004-0013-000000000006");
         }
 
+        public static final class AttachmentRestriction {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0061-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0061-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0061-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0061-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0061-000000000005");
+        }
+
         public static final class User {
             public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0014-000000000001");
             public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0014-000000000002");
