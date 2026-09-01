@@ -39,6 +39,7 @@ public class AttachmentRestrictionDeleteController extends ApiController {
             @RequestBody AttachmentRestrictionDeleteRqDTOv1 request) {
         Response rs = new Response();
         try {
+            //todo add usage check
             attachmentRestrictionService.deleteSafe(request.getAttachmentRestrictionIdList());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
