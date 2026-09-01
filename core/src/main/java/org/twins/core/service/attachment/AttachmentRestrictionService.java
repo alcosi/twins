@@ -103,9 +103,10 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         }
         Kit<TwinAttachmentRestrictionEntity, UUID> dbEntitiesKit = findEntitiesSafe(attachmentRestrictions.stream().map(TwinAttachmentRestrictionEntity::getId).toList());
         ChangesHelperMulti<TwinAttachmentRestrictionEntity> changes = new ChangesHelperMulti<>();
-        List<TwinAttachmentRestrictionEntity> allEntities = dbEntitiesKit.getList();
-        for (TwinAttachmentRestrictionEntity entity : allEntities) {
+        List<TwinAttachmentRestrictionEntity> allEntities = new ArrayList<>(attachmentRestrictions.size());
+        for (TwinAttachmentRestrictionEntity entity : attachmentRestrictions) {
             TwinAttachmentRestrictionEntity dbEntity = dbEntitiesKit.get(entity.getId());
+            allEntities.add(dbEntity);
             ChangesHelper changesHelper = new ChangesHelper();
             updateEntityFieldByValue(entity.getMinCount(), dbEntity, TwinAttachmentRestrictionEntity::getMinCount, TwinAttachmentRestrictionEntity::setMinCount, TwinAttachmentRestrictionEntity.Fields.minCount, changesHelper);
             updateEntityFieldByValue(entity.getMaxCount(), dbEntity, TwinAttachmentRestrictionEntity::getMaxCount, TwinAttachmentRestrictionEntity::setMaxCount, TwinAttachmentRestrictionEntity.Fields.maxCount, changesHelper);
