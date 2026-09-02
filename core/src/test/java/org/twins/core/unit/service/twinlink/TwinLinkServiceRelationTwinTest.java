@@ -209,19 +209,59 @@ class TwinLinkServiceRelationTwinTest {
     }
 
     @Test
-    void shouldSkipCreationWhenRelationTwinAlreadyExists() throws Exception {
+    void shouldReuseSurvivingRelationTwinOnRelinkWithoutFields() throws Exception {
         // given: relink — processAlreadyExisted reuses an existing twin_link id whose relation twin exists
         LinkEntity link = linkEntity(relationTwinClass.getId());
         TwinLinkEntity twinLink = twinLinkEntity(link);
         twinLink.setId(UuidUtils.generate()); // relink path: id is already assigned before createRelationTwins runs
-        when(twinService.findExistingIds(any())).thenReturn(Set.of(twinLink.getId()));
+        TwinEntity survivingRelationTwin = new TwinEntity()
+                .setId(twinLink.getId())
+                .setTwinClassId(relationTwinClass.getId())
+                .setTwinStatus(new org.twins.core.dao.twin.TwinStatusEntity().setType(org.twins.core.enums.status.StatusType.BASIC));
+        when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(survivingRelationTwin), TwinEntity::getId));
 
         // when
         twinLinkService.addLinks(srcTwin, creates(twinLink), new TwinChangesCollector());
 
-        // then
+        // then: NO re-creation (merge would silently clobber the living twin) — instead REUSE:
+        // the pointer stays wired so the relinked row keeps the FK column (was a null-column bug)
         verify(twinService, never()).createTwins(any(TwinCreateStage.class), any(TwinChangesCollector.class));
-        assertNull(twinLink.getRelationTwinId(), "idempotency guard must leave relation_twin_id untouched");
+        verify(twinService, never()).updateTwin(any(), any(TwinChangesCollector.class), anyBoolean());
+        assertEquals(twinLink.getId(), twinLink.getRelationTwinId(), "relink must keep relation_twin_id wired (== id)");
+        assertSame(survivingRelationTwin, twinLink.getRelationTwin());
+    }
+
+    @Test
+    void shouldApplyRelinkFieldsAsUpdateToSurvivingRelationTwin() throws Exception {
+        // given: relink carrying fresh relation twin fields
+        LinkEntity link = linkEntity(relationTwinClass.getId());
+        TwinLinkEntity twinLink = twinLinkEntity(link);
+        twinLink.setId(UuidUtils.generate());
+        TwinEntity survivingRelationTwin = new TwinEntity()
+                .setId(twinLink.getId())
+                .setTwinClassId(relationTwinClass.getId())
+                .setTwinStatus(new org.twins.core.dao.twin.TwinStatusEntity().setType(org.twins.core.enums.status.StatusType.BASIC));
+        when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(survivingRelationTwin), TwinEntity::getId));
+        FieldValue fieldValue = mock(FieldValue.class);
+        when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
+        TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
+                .setTwinLink(twinLink)
+                .setRelationTwinFields(List.of(fieldValue));
+
+        // when
+        TwinChangesCollector collector = new TwinChangesCollector();
+        twinLinkService.addLinks(srcTwin, List.of(twinLinkCreate), collector);
+
+        // then: fields go as ONE batched field-only update — not through the create pipeline
+        ArgumentCaptor<List<TwinUpdate>> captor = ArgumentCaptor.forClass(List.class);
+        verify(twinService, never()).createTwins(any(TwinCreateStage.class), any(TwinChangesCollector.class));
+        verify(twinService, times(1)).updateTwin(captor.capture(), same(collector), eq(false));
+        assertEquals(1, captor.getValue().size());
+        TwinUpdate relationTwinUpdate = captor.getValue().get(0);
+        assertSame(survivingRelationTwin, relationTwinUpdate.getDbTwinEntity());
+        assertSame(fieldValue, relationTwinUpdate.getFields().values().iterator().next());
+        assertFalse(relationTwinUpdate.isCanTriggerAfterOperationFactory());
+        assertEquals(TwinOperation.Launcher.link, relationTwinUpdate.getLauncher());
     }
 
     @Test

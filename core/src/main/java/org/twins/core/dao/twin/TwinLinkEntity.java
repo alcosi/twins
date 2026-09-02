@@ -113,6 +113,14 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
     @ToString.Exclude
     private TwinEntity relationTwin;
 
+    // Same semantic as TwinEntity.createElseUpdate: true = create operation (set in prepareTwinLinks for
+    // fresh links), false = update of an existing twin_link (relink flips it in processAlreadyExisted).
+    // Drives the relation-twin REUSE decision in TwinLinkService.createRelationTwins.
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private boolean createElseUpdate = false;
+
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinLink[" + id + "]";
