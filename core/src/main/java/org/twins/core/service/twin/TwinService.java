@@ -65,6 +65,7 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.recompute.TwinRecomputeService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldValidatorService;
 import org.twins.core.service.twinfield.TwinFieldAttributeService;
 import org.twins.core.service.twinfield.TwinFieldRuleExecutionService;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
@@ -111,6 +112,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinClassFieldService twinClassFieldService;
+    @Lazy
+    private final TwinClassFieldValidatorService twinClassFieldValidatorService;
     private final EntitySmartService entitySmartService;
     private final TwinflowService twinflowService;
     private final TwinStatusTriggerService twinStatusTriggerService;
@@ -2226,6 +2229,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         Map<UUID, FieldValue> fields = twinCreate.getFields();
         loadClass(twinEntity);
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
+        twinClassFieldService.loadFieldValidators(twinEntity.getTwinClass().getTwinClassFieldKit().getCollection());
         twinFieldRuleExecutionService.applyRules(twinCreate.getFields().values(), twinEntity);
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
@@ -2247,6 +2251,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             } else if (fieldValue != null && fieldValue.isDefined()) {
                 FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
                 var validationResult = fieldTyper.validate(twinEntity, fieldValue);
+                if (validationResult.isValid()) // extra field validators run only when the typer's own validation passed
+                    validationResult = twinClassFieldValidatorService.validateFieldValue(twinEntity, twinClassFieldEntity, fieldValue, fields);
                 if (!validationResult.isValid()) {
                     invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
                 }
@@ -2262,6 +2268,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         Map<UUID, FieldValue> fields = twinUpdate.getFields();
         loadClass(twinEntity);
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
+        twinClassFieldService.loadFieldValidators(twinEntity.getTwinClass().getTwinClassFieldKit().getCollection());
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (var entry : fields.entrySet()) {
             var twinClassFieldEntity = twinEntity.getTwinClass().getTwinClassFieldKit().get(entry.getKey());
@@ -2275,6 +2282,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             // the required flag will be checked in the fieldTyper
             FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
             var validationResult = fieldTyper.validate(twinEntity, fieldValue);
+            if (validationResult.isValid()) // extra field validators run only when the typer's own validation passed
+                validationResult = twinClassFieldValidatorService.validateFieldValue(twinEntity, twinClassFieldEntity, fieldValue, fields);
             if (!validationResult.isValid()) {
                 invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
             }
