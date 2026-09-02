@@ -592,8 +592,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
-    @SafeVarargs
-    public final <E> void load(Collection<E> srcCollection, LoadedField<E, T>... loadedFields) throws ServiceException {
+    // Not final: CGLIB proxies (transaction/logging aspects) cannot override final methods.
+    // @SafeVarargs requires final/static/private, hence @SuppressWarnings here instead.
+    @SuppressWarnings("unchecked")
+    public <E> void load(Collection<E> srcCollection, LoadedField<E, T>... loadedFields) throws ServiceException {
         if (CollectionUtils.isEmpty(srcCollection)) {
             return;
         }

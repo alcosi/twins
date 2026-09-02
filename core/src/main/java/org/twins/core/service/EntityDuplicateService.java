@@ -55,7 +55,7 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
     private I18nService i18nService;
 
     @Autowired
-    public final void setI18nService(@Lazy I18nService i18nService) {
+    public void setI18nService(@Lazy I18nService i18nService) {
         this.i18nService = i18nService;
     }
 

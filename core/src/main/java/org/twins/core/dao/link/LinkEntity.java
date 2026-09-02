@@ -67,7 +67,6 @@ public class LinkEntity implements EasyLoggable {
     private UUID createdByUserId;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

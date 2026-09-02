@@ -24,10 +24,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -153,17 +150,19 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
         Kit<DataListOptionProjectionEntity, UUID> dbDataListOptionProjectionEntitiesKit = findEntitiesSafe(dataListOptionProjectionEntities.stream().map(DataListOptionProjectionEntity::getId).toList());
 
         ChangesHelperMulti<DataListOptionProjectionEntity> changes = new ChangesHelperMulti<>();
-        List<DataListOptionProjectionEntity> allEntities = dbDataListOptionProjectionEntitiesKit.getList();
-
-        for (DataListOptionProjectionEntity entity : allEntities) {
+        List<DataListOptionProjectionEntity> allEntities = new ArrayList<>(dataListOptionProjectionEntities.size());
+        for (DataListOptionProjectionEntity entity : dataListOptionProjectionEntities) {
             DataListOptionProjectionEntity dbEntity = dbDataListOptionProjectionEntitiesKit.get(entity.getId());
+            allEntities.add(dbEntity);
             ChangesHelper changesHelper = new ChangesHelper();
 
             updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getProjectionTypeId, DataListOptionProjectionEntity::setProjectionTypeId, DataListOptionProjectionEntity.Fields.projectionTypeId, changesHelper);
             updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getSrcDataListOptionId, DataListOptionProjectionEntity::setSrcDataListOptionId, DataListOptionProjectionEntity.Fields.srcDataListOptionId, changesHelper);
             updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getDstDataListOptionId, DataListOptionProjectionEntity::setDstDataListOptionId, DataListOptionProjectionEntity.Fields.dstDataListOptionId, changesHelper);
-            updateEntityFieldByValue(Timestamp.valueOf(LocalDateTime.now()), dbEntity, DataListOptionProjectionEntity::getChangedAt, DataListOptionProjectionEntity::setChangedAt, DataListOptionProjectionEntity.Fields.changedAt, changesHelper);
-            changes.add(dbEntity, changesHelper);
+            if (changesHelper.hasChanges()) {
+                updateEntityFieldByValue(Timestamp.valueOf(LocalDateTime.now()), dbEntity, DataListOptionProjectionEntity::getChangedAt, DataListOptionProjectionEntity::setChangedAt, DataListOptionProjectionEntity.Fields.changedAt, changesHelper);
+                changes.add(dbEntity, changesHelper);
+            }
         }
 
         updateSafe(changes);
