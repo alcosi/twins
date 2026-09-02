@@ -29,6 +29,8 @@ import org.twins.core.dao.recompute.TwinRecomputeOnFieldRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
+import org.twins.core.dao.validator.TwinClassFieldValidatorRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
@@ -82,6 +84,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final PermissionService permissionService;
     @Lazy
     private final TwinRecomputeOnFieldRepository twinRecomputeOnFieldRepository;
+    @Lazy
+    private final TwinClassFieldValidatorRepository twinClassFieldValidatorRepository;
 
     @Autowired
     private CacheManager cacheManager;
@@ -213,6 +217,23 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 TwinRecomputeOnFieldEntity::getId,
                 TwinRecomputeOnFieldEntity::getPublisherTwinClassFieldId,
                 TwinRecomputeOnFieldEntity::setPublisherTwinClassField
+        );
+    }
+
+    public void loadFieldValidators(TwinClassFieldEntity field) {
+        loadFieldValidators(Collections.singleton(field));
+    }
+
+    public void loadFieldValidators(Collection<TwinClassFieldEntity> fields) {
+        loadKit(
+                fields,
+                TwinClassFieldEntity::getId,
+                TwinClassFieldEntity::getFieldValidatorKit,
+                TwinClassFieldEntity::setFieldValidatorKit,
+                twinClassFieldValidatorRepository::findByTwinClassFieldIdIn,
+                TwinClassFieldValidatorEntity::getId,
+                TwinClassFieldValidatorEntity::getTwinClassFieldId,
+                TwinClassFieldValidatorEntity::setTwinClassField
         );
     }
 

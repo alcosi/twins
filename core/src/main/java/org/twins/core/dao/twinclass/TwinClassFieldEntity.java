@@ -15,6 +15,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -254,6 +255,16 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinRecomputeOnFieldEntity, UUID> recomputeOnField;
+
+    /**
+     * Backend value validators attached to this field ({@code twin_class_field_validator} table).
+     * Loaded via {@code TwinClassFieldService.loadFieldValidators(...)}; null until loaded.
+     * Empty kit means "no validators configured" — distinct from null "not loaded yet".
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldValidatorEntity, UUID> fieldValidatorKit;
 
     public String easyLog(Level level) {
         return switch (level) {
