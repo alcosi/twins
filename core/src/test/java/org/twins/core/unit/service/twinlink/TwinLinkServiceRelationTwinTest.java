@@ -1,5 +1,6 @@
 package org.twins.core.unit.service.twinlink;
 
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
@@ -214,11 +215,22 @@ class TwinLinkServiceRelationTwinTest {
         LinkEntity link = linkEntity(relationTwinClass.getId());
         TwinLinkEntity twinLink = twinLinkEntity(link);
         twinLink.setId(UuidUtils.generate()); // relink path: id is already assigned before createRelationTwins runs
+        twinLink.setRelationTwinId(twinLink.getId()); // adopted from the DB projection in processAlreadyExisted (== id per ID equality)
         TwinEntity survivingRelationTwin = new TwinEntity()
                 .setId(twinLink.getId())
                 .setTwinClassId(relationTwinClass.getId())
                 .setTwinStatus(new org.twins.core.dao.twin.TwinStatusEntity().setType(org.twins.core.enums.status.StatusType.BASIC));
-        when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(survivingRelationTwin), TwinEntity::getId));
+        // loadTwin fetches the surviving relation twin via the relation_twin_id LoadedField —
+        // the twinService.load mock emulates that wiring (same as the update-path test below);
+        // lenient: prepareTwinLinks also calls the OTHER load overload (loadDstTwin), strict stubbing
+        // would flag the varargs stub against it
+        lenient().doAnswer(invocation -> {
+            Collection<TwinLinkEntity> entities = invocation.getArgument(0);
+            for (TwinLinkEntity entity : entities)
+                if (survivingRelationTwin.getId().equals(entity.getRelationTwinId()))
+                    entity.setRelationTwin(survivingRelationTwin);
+            return null;
+        }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
 
         // when
         twinLinkService.addLinks(srcTwin, creates(twinLink), new TwinChangesCollector());
@@ -237,11 +249,18 @@ class TwinLinkServiceRelationTwinTest {
         LinkEntity link = linkEntity(relationTwinClass.getId());
         TwinLinkEntity twinLink = twinLinkEntity(link);
         twinLink.setId(UuidUtils.generate());
+        twinLink.setRelationTwinId(twinLink.getId()); // adopted from the DB projection in processAlreadyExisted
         TwinEntity survivingRelationTwin = new TwinEntity()
                 .setId(twinLink.getId())
                 .setTwinClassId(relationTwinClass.getId())
                 .setTwinStatus(new org.twins.core.dao.twin.TwinStatusEntity().setType(org.twins.core.enums.status.StatusType.BASIC));
-        when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(survivingRelationTwin), TwinEntity::getId));
+        lenient().doAnswer(invocation -> {
+            Collection<TwinLinkEntity> entities = invocation.getArgument(0);
+            for (TwinLinkEntity entity : entities)
+                if (survivingRelationTwin.getId().equals(entity.getRelationTwinId()))
+                    entity.setRelationTwin(survivingRelationTwin);
+            return null;
+        }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
         FieldValue fieldValue = mock(FieldValue.class);
         when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
         TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
@@ -262,6 +281,24 @@ class TwinLinkServiceRelationTwinTest {
         assertSame(fieldValue, relationTwinUpdate.getFields().values().iterator().next());
         assertFalse(relationTwinUpdate.isCanTriggerAfterOperationFactory());
         assertEquals(TwinOperation.Launcher.link, relationTwinUpdate.getLauncher());
+    }
+
+    @Test
+    void shouldThrowOnRelinkFieldsWhenRelationTwinMissing() {
+        // given: late-enabled relation class — the twin_link row predates it, so the DB projection
+        // carries no relation_twin_id and loadTwin wires nothing
+        LinkEntity link = linkEntity(relationTwinClass.getId());
+        TwinLinkEntity twinLink = twinLinkEntity(link);
+        twinLink.setId(UuidUtils.generate()); // relink: id adopted in processAlreadyExisted
+        FieldValue fieldValue = mock(FieldValue.class);
+        TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
+                .setTwinLink(twinLink)
+                .setRelationTwinFields(List.of(fieldValue));
+
+        // when + then: clean ServiceException (same as the update path), not an NPE from setDbTwinEntity(null)
+        ServiceException ex = assertThrows(ServiceException.class,
+                () -> twinLinkService.addLinks(srcTwin, List.of(twinLinkCreate), new TwinChangesCollector()));
+        assertTrue(ex.getMessage().contains("has no relation twin"), "actual: " + ex.getMessage());
     }
 
     @Test

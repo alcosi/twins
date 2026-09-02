@@ -180,6 +180,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                     TwinLinkNoRelationsProjection dbTwinLink = dbTwinLinkList.getFirst();
                     log.warn("Link[{}] is already exists for twin[{}]. TwinLink[{}] will be updated.", twinLinkEntity.getLinkId(), twinLinkEntity.getSrcTwinId(), dbTwinLink.id());
                     twinLinkEntity.setId(dbTwinLink.id());
+                    twinLinkEntity.setRelationTwinId(dbTwinLink.relationTwinId());
                     twinLinkEntity.setCreateElseUpdate(false); // relink: this is an UPDATE of the existing twin_link — its relation twin must be REUSED, not re-created
                 }
             } else {
@@ -252,26 +253,25 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     /**
-     * Relink REUSE: wire the relation twin pointer (ID equality — a relinked row saved with a null
-     * relation_twin_id would null the DB column) and apply the provided fields as field-only TwinUpdates
-     * for the caller to batch into ONE updateTwin call. Throws if a surviving relation twin is missing
-     * (the link got relation_twin_class_id configured after the original twin_link was created) —
-     * fail fast on the anomalous state.
+     * Relink REUSE: apply the provided fields as field-only TwinUpdates to the surviving relation twins
+     * (the relation_twin_id pointer is adopted from the DB row in processAlreadyExisted) for the caller
+     * to batch into ONE updateTwin call. Throws if fields are provided but the twin_link has no relation
+     * twin (the link got relation_twin_class_id configured after the twin_link was created) — fail fast.
      */
     private List<TwinUpdate> relationTwinUpdates(List<TwinLinkCreate> relinked) throws ServiceException {
         if (relinked.isEmpty())
             return Collections.emptyList();
-        Kit<TwinEntity, UUID> survivingRelationTwinKit = twinService.findEntitiesSafe(
-                new Kit<>(relinked, linkCreate -> linkCreate.getTwinLink().getId()).getIdSet());
+        var updateEntityKit = new Kit<>(relinked.stream().map(TwinLinkCreate::getTwinLink).toList(), TwinLinkEntity::getId);
+        loadTwin(updateEntityKit.getCollection()); // populates the surviving relation twins (throws on a broken FK reference)
         List<TwinUpdate> relationTwinUpdates = new ArrayList<>();
         for (TwinLinkCreate linkCreate : relinked) {
-            TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
-            TwinEntity survivingRelationTwin = survivingRelationTwinKit.get(twinLinkEntity.getId());
-            twinLinkEntity
-                    .setRelationTwinId(twinLinkEntity.getId())
-                    .setRelationTwin(survivingRelationTwin);
+            var twinLinkEntity = linkCreate.getTwinLink();
+            var survivingRelationTwin = twinLinkEntity.getRelationTwin();
             if (CollectionUtils.isEmpty(linkCreate.getRelationTwinFields()))
                 continue;
+            if (survivingRelationTwin == null) // late-enabled relation class: the twin_link row predates it, no relation twin exists
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
+                        "relationTwinFields provided but twin_link[" + twinLinkEntity.getId() + "] has no relation twin");
             TwinUpdate relationTwinUpdate = new TwinUpdate();
             relationTwinUpdate.setDbTwinEntity(survivingRelationTwin);
             relationTwinUpdate.setTwinEntity(survivingRelationTwin.clone()); // field-only update: no basic changes
