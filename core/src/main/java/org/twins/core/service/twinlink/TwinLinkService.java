@@ -26,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
@@ -173,18 +172,18 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         while (iterator.hasNext()) {
             TwinLinkEntity twinLinkEntity = iterator.next().getTwinLink();
             if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
-                List<TwinLinkNoRelationsProjection> dbTwinLinkList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
+                List<TwinLinkEntity> dbTwinLinkList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkEntity.class);
                 if (dbTwinLinkList != null && dbTwinLinkList.size() > 1)
                     throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, "Multiple links not valid for type[" + twinLinkEntity.getLink().getType().name() + "]");
                 else if (CollectionUtils.isNotEmpty(dbTwinLinkList) && twinLinkEntity.isUniqForSrcRelink()) {
-                    TwinLinkNoRelationsProjection dbTwinLink = dbTwinLinkList.getFirst();
-                    log.warn("Link[{}] is already exists for twin[{}]. TwinLink[{}] will be updated.", twinLinkEntity.getLinkId(), twinLinkEntity.getSrcTwinId(), dbTwinLink.id());
-                    twinLinkEntity.setId(dbTwinLink.id());
-                    twinLinkEntity.setRelationTwinId(dbTwinLink.relationTwinId());
+                    TwinLinkEntity dbTwinLink = dbTwinLinkList.getFirst();
+                    log.warn("Link[{}] is already exists for twin[{}]. TwinLink[{}] will be updated.", twinLinkEntity.getLinkId(), twinLinkEntity.getSrcTwinId(), dbTwinLink.getId());
+                    twinLinkEntity.setId(dbTwinLink.getId());
+                    twinLinkEntity.setRelationTwinId(dbTwinLink.getRelationTwinId());
                     twinLinkEntity.setCreateElseUpdate(false); // relink: this is an UPDATE of the existing twin_link — its relation twin must be REUSED, not re-created
                 }
             } else {
-                TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
+                TwinLinkEntity dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkEntity.class);
                 if (dbTwinLink != null) {
                     log.warn("Link[{}] is already exists for twin[{}].", twinLinkEntity.getLinkId(), twinLinkEntity.getSrcTwinId());
                     iterator.remove();
