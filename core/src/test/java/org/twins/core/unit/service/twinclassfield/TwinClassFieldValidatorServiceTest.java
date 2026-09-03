@@ -15,6 +15,8 @@ import org.twins.core.dao.validator.TwinClassFieldValidatorRepository;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldvalidator.FieldValidator;
+import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinclassfield.TwinClassFieldValidatorService;
 
 import java.util.List;
@@ -26,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
@@ -35,6 +36,10 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
     private TwinClassFieldValidatorRepository repository;
     @Mock
     private FeaturerService featurerService;
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+    @Mock
+    private I18nService i18nService;
     @Mock
     private FieldValidator fieldValidator;
 
@@ -45,7 +50,7 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() throws ServiceException {
-        service = new TwinClassFieldValidatorService(repository, featurerService);
+        service = new TwinClassFieldValidatorService(repository, featurerService, twinClassFieldService, i18nService);
         twinEntity = new TwinEntity();
         twinClassFieldEntity = new TwinClassFieldEntity().setId(UUID.randomUUID());
         fieldValue = new FieldValueText(twinClassFieldEntity).setValue("some value");
