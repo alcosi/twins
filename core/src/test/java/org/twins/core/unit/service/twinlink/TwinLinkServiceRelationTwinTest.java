@@ -154,9 +154,13 @@ class TwinLinkServiceRelationTwinTest {
     }
 
     private List<TwinLinkCreate> creates(TwinLinkEntity... twinLinks) {
-        return java.util.Arrays.stream(twinLinks)
-                .map(tl -> new TwinLinkCreate().setTwinLink(tl))
-                .toList();
+        List<TwinLinkCreate> result = new ArrayList<>();
+        for (TwinLinkEntity tl : twinLinks) {
+            TwinLinkCreate linkCreate = new TwinLinkCreate();
+            linkCreate.setTwinLink(tl);
+            result.add(linkCreate);
+        }
+        return result;
     }
 
     private TwinLinkEntity twinLinkEntity(LinkEntity link) {
@@ -263,9 +267,9 @@ class TwinLinkServiceRelationTwinTest {
         }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
         FieldValue fieldValue = mock(FieldValue.class);
         when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
-        TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
-                .setTwinLink(twinLink)
-                .setRelationTwinFields(List.of(fieldValue));
+        TwinLinkCreate twinLinkCreate = new TwinLinkCreate();
+        twinLinkCreate.setTwinLink(twinLink);
+        twinLinkCreate.setRelationTwinFields(List.of(fieldValue));
 
         // when
         TwinChangesCollector collector = new TwinChangesCollector();
@@ -291,9 +295,9 @@ class TwinLinkServiceRelationTwinTest {
         TwinLinkEntity twinLink = twinLinkEntity(link);
         twinLink.setId(UuidUtils.generate()); // relink: id adopted in processAlreadyExisted
         FieldValue fieldValue = mock(FieldValue.class);
-        TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
-                .setTwinLink(twinLink)
-                .setRelationTwinFields(List.of(fieldValue));
+        TwinLinkCreate twinLinkCreate = new TwinLinkCreate();
+        twinLinkCreate.setTwinLink(twinLink);
+        twinLinkCreate.setRelationTwinFields(List.of(fieldValue));
 
         // when + then: clean ServiceException (same as the update path), not an NPE from setDbTwinEntity(null)
         ServiceException ex = assertThrows(ServiceException.class,
@@ -352,9 +356,9 @@ class TwinLinkServiceRelationTwinTest {
                 .thenReturn(new HistoryCollectorMultiTwin());
         FieldValue fieldValue = mock(FieldValue.class);
         when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
-        TwinLinkUpdate twinLinkUpdate = new TwinLinkUpdate()
-                .setTwinLink(twinLink)
-                .setRelationTwinFields(List.of(fieldValue));
+        TwinLinkUpdate twinLinkUpdate = new TwinLinkUpdate();
+        twinLinkUpdate.setTwinLink(twinLink);
+        twinLinkUpdate.setRelationTwinFields(List.of(fieldValue));
 
         // when
         TwinChangesCollector collector = new TwinChangesCollector();
@@ -379,9 +383,9 @@ class TwinLinkServiceRelationTwinTest {
         TwinLinkEntity twinLink = twinLinkEntity(link);
         FieldValue fieldValue = mock(FieldValue.class);
         when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
-        TwinLinkCreate twinLinkCreate = new TwinLinkCreate()
-                .setTwinLink(twinLink)
-                .setRelationTwinFields(List.of(fieldValue));
+        TwinLinkCreate twinLinkCreate = new TwinLinkCreate();
+        twinLinkCreate.setTwinLink(twinLink);
+        twinLinkCreate.setRelationTwinFields(List.of(fieldValue));
 
         // when: the composition entry (2-arg addLinks unwraps + carries fields by identity)
         twinLinkService.addLinks(srcTwin, List.of(twinLinkCreate));

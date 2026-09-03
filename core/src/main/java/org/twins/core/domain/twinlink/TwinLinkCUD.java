@@ -33,7 +33,9 @@ public class TwinLinkCUD {
 
     /** Convenience for factory fillers and other producers of plain entities. */
     public TwinLinkCUD addCreate(TwinLinkEntity twinLinkEntity) {
-        getCreateListSafe().add(new TwinLinkCreate().setTwinLink(twinLinkEntity));
+        TwinLinkCreate linkCreate = new TwinLinkCreate();
+        linkCreate.setTwinLink(twinLinkEntity);
+        getCreateListSafe().add(linkCreate);
         return this;
     }
 

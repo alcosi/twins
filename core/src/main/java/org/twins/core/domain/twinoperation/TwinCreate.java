@@ -32,7 +32,9 @@ public class TwinCreate extends TwinSave {
 
     /** Convenience for factory fillers and other producers of plain entities. */
     public TwinCreate addLink(TwinLinkEntity link) {
-        return addLink(new TwinLinkCreate().setTwinLink(link));
+        TwinLinkCreate linkCreate = new TwinLinkCreate();
+        linkCreate.setTwinLink(link);
+        return addLink(linkCreate);
     }
 
     /** Entity view over {@link #linksCreateList} for consumers working with plain entities (fillers, lookupers). */
