@@ -73,9 +73,12 @@ public class FactoryMultiplierFilterSearchService extends EntitySearchService
     }
 
     @Override
+    protected FactoryMultiplierFilterSortField defaultSortField() {
+        return FactoryMultiplierFilterSortField.active;
+    }
+
+    @Override
     public Specification<TwinFactoryMultiplierFilterEntity> createSortSpecification(FactoryMultiplierFilterSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = FactoryMultiplierFilterSortField.active;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case active ->

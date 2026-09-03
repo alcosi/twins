@@ -65,9 +65,12 @@ public class ActionRestrictionReasonSearchService extends EntitySearchService
     }
 
     @Override
+    protected ActionRestrictionReasonSortField defaultSortField() {
+        return ActionRestrictionReasonSortField.type;
+    }
+
+    @Override
     public Specification<ActionRestrictionReasonEntity> createSortSpecification(ActionRestrictionReasonSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = ActionRestrictionReasonSortField.type;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case type ->

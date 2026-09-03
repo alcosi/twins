@@ -72,9 +72,12 @@ public class TwinValidatorSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinValidatorSortField defaultSortField() {
+        return TwinValidatorSortField.order;
+    }
+
+    @Override
     public Specification<TwinValidatorEntity> createSortSpecification(TwinValidatorSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinValidatorSortField.order;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case order -> toSortSpecification(ascending, TwinValidatorEntity.Fields.order);

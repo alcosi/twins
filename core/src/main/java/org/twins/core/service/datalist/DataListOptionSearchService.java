@@ -175,9 +175,12 @@ public class DataListOptionSearchService extends EntitySearchService
     }
 
     @Override
+    protected DataListOptionSortField defaultSortField() {
+        return DataListOptionSortField.createdAt;
+    }
+
+    @Override
     public Specification<DataListOptionEntity> createSortSpecification(DataListOptionSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = DataListOptionSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case createdAt ->

@@ -72,9 +72,12 @@ public class FactoryBranchSearchService extends EntitySearchService
     }
 
     @Override
+    protected FactoryBranchSortField defaultSortField() {
+        return FactoryBranchSortField.active;
+    }
+
+    @Override
     public Specification<TwinFactoryBranchEntity> createSortSpecification(FactoryBranchSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = FactoryBranchSortField.active;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case active ->

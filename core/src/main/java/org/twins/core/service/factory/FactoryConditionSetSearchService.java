@@ -74,9 +74,12 @@ public class FactoryConditionSetSearchService extends EntitySearchService
     }
 
     @Override
+    protected FactoryConditionSetSortField defaultSortField() {
+        return FactoryConditionSetSortField.createdAt;
+    }
+
+    @Override
     public Specification<TwinFactoryConditionSetEntity> createSortSpecification(FactoryConditionSetSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = FactoryConditionSetSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case name ->

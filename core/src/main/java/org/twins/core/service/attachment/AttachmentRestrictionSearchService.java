@@ -64,9 +64,12 @@ public class AttachmentRestrictionSearchService extends EntitySearchService
     }
 
     @Override
+    protected AttachmentRestrictionSortField defaultSortField() {
+        return AttachmentRestrictionSortField.minCount;
+    }
+
+    @Override
     public Specification<TwinAttachmentRestrictionEntity> createSortSpecification(AttachmentRestrictionSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = AttachmentRestrictionSortField.minCount;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case minCount -> toSortSpecification(ascending, TwinAttachmentRestrictionEntity.Fields.minCount);

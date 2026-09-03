@@ -97,9 +97,12 @@ public class AttachmentSearchService extends EntitySearchService
     }
 
     @Override
+    protected AttachmentSortField defaultSortField() {
+        return AttachmentSortField.createdAt;
+    }
+
+    @Override
     public Specification<TwinAttachmentEntity> createSortSpecification(AttachmentSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = AttachmentSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case createdAt -> toSortSpecification(ascending, TwinAttachmentEntity.Fields.createdAt);

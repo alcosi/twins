@@ -75,9 +75,12 @@ public class SpaceRoleSearchService extends EntitySearchService
     }
 
     @Override
+    protected SpaceRoleSortField defaultSortField() {
+        return SpaceRoleSortField.key;
+    }
+
+    @Override
     public Specification<SpaceRoleEntity> createSortSpecification(SpaceRoleSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = SpaceRoleSortField.key;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, SpaceRoleEntity.Fields.key);

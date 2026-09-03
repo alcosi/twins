@@ -76,9 +76,12 @@ public class DataListOptionProjectionSearchService extends EntitySearchService
     }
 
     @Override
+    protected DataListOptionProjectionSortField defaultSortField() {
+        return DataListOptionProjectionSortField.changedAt;
+    }
+
+    @Override
     public Specification<DataListOptionProjectionEntity> createSortSpecification(DataListOptionProjectionSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = DataListOptionProjectionSortField.changedAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case changedAt ->

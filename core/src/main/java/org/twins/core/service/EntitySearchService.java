@@ -42,6 +42,8 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     }
 
     public PaginationResult<E> search(S search, SimplePagination pagination, SF sortField, SortDirection sortDirection) throws ServiceException {
+        if (sortField == null)
+            sortField = defaultSortField();
         Map<SF, SortDirection> sortFields;
         if (sortField != null) {
             sortFields = Map.of(sortField, sortDirection != null ? sortDirection : SortDirection.ASC);
@@ -49,6 +51,13 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
             sortFields = Collections.emptyMap();
         return search(search, pagination, sortFields);
     }
+
+    /**
+     * Default sort field applied when the caller passes no sortField.
+     * Every search service must explicitly declare its default;
+     * returning null keeps legacy behavior: no ORDER BY.
+     */
+    protected abstract SF defaultSortField();
 
     public PaginationResult<E> search(S search, SimplePagination pagination, Map<SF, SortDirection> sortFields) throws ServiceException {
         if (search == null)

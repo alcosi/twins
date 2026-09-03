@@ -67,9 +67,12 @@ public class TwinPointerSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinPointerSortField defaultSortField() {
+        return TwinPointerSortField.name;
+    }
+
+    @Override
     public Specification<TwinPointerEntity> createSortSpecification(TwinPointerSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = TwinPointerSortField.name;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case name -> toSortSpecification(ascending, TwinPointerEntity.Fields.name);

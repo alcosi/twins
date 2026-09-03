@@ -69,9 +69,12 @@ public class TwinStatusTriggerSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinStatusTriggerSortField defaultSortField() {
+        return TwinStatusTriggerSortField.order;
+    }
+
+    @Override
     public Specification<TwinStatusTriggerEntity> createSortSpecification(TwinStatusTriggerSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinStatusTriggerSortField.order;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case order -> toSortSpecification(ascending, TwinStatusTriggerEntity.Fields.order);

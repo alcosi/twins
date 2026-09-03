@@ -72,9 +72,12 @@ public class PermissionSearchService extends EntitySearchService
     }
 
     @Override
+    protected PermissionSortField defaultSortField() {
+        return PermissionSortField.key;
+    }
+
+    @Override
     public Specification<PermissionEntity> createSortSpecification(PermissionSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = PermissionSortField.key;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, PermissionEntity.Fields.key);

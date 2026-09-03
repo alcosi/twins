@@ -59,9 +59,12 @@ public class ProjectionTypeGroupSearchService extends EntitySearchService
     }
 
     @Override
+    protected ProjectionTypeGroupSortField defaultSortField() {
+        return ProjectionTypeGroupSortField.key;
+    }
+
+    @Override
     public Specification<ProjectionTypeGroupEntity> createSortSpecification(ProjectionTypeGroupSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = ProjectionTypeGroupSortField.key;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, ProjectionTypeGroupEntity.Fields.key);

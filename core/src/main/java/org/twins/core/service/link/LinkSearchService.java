@@ -93,9 +93,12 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
     }
 
     @Override
+    protected LinkSortField defaultSortField() {
+        return LinkSortField.createdAt;
+    }
+
+    @Override
     public Specification<LinkEntity> createSortSpecification(LinkSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = LinkSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case createdAt ->

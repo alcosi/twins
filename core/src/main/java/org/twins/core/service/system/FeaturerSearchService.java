@@ -67,9 +67,12 @@ public class FeaturerSearchService extends EntitySearchService
     }
 
     @Override
+    protected FeaturerSortField defaultSortField() {
+        return FeaturerSortField.name;
+    }
+
+    @Override
     public Specification<FeaturerEntity> createSortSpecification(FeaturerSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = FeaturerSortField.name;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case name -> toSortSpecification(ascending, FeaturerEntity.Fields.name);

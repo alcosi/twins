@@ -70,9 +70,12 @@ public class TwinflowFactorySearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinflowFactorySortField defaultSortField() {
+        return TwinflowFactorySortField.twinFactoryLauncherId;
+    }
+
+    @Override
     public Specification<TwinflowFactoryEntity> createSortSpecification(TwinflowFactorySortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinflowFactorySortField.twinFactoryLauncherId;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case twinFactoryLauncherId -> toSortSpecification(ascending, TwinflowFactoryEntity.Fields.twinFactoryLauncher);

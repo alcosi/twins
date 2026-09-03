@@ -96,9 +96,12 @@ public class DataListSearchService extends EntitySearchService
     }
 
     @Override
+    protected DataListSortField defaultSortField() {
+        return DataListSortField.key;
+    }
+
+    @Override
     public Specification<DataListEntity> createSortSpecification(DataListSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = DataListSortField.key;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, DataListEntity.Fields.key);

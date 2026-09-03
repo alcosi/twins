@@ -66,9 +66,12 @@ public class DomainBusinessAccountUserSearchService extends EntitySearchService
     }
 
     @Override
+    protected DomainBusinessAccountUserSortField defaultSortField() {
+        return DomainBusinessAccountUserSortField.createdAt;
+    }
+
+    @Override
     public Specification<DomainBusinessAccountUserEntity> createSortSpecification(DomainBusinessAccountUserSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = DomainBusinessAccountUserSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case createdAt ->

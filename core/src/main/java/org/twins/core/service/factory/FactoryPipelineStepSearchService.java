@@ -73,9 +73,12 @@ public class FactoryPipelineStepSearchService extends EntitySearchService
     }
 
     @Override
+    protected FactoryPipelineStepSortField defaultSortField() {
+        return FactoryPipelineStepSortField.order;
+    }
+
+    @Override
     public Specification<TwinFactoryPipelineStepEntity> createSortSpecification(FactoryPipelineStepSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = FactoryPipelineStepSortField.order;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case order ->

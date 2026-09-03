@@ -74,9 +74,12 @@ public class TwinStatusSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinStatusSortField defaultSortField() {
+        return TwinStatusSortField.key;
+    }
+
+    @Override
     public Specification<TwinStatusEntity> createSortSpecification(TwinStatusSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinStatusSortField.key;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key -> toSortSpecification(ascending, TwinStatusEntity.Fields.key);

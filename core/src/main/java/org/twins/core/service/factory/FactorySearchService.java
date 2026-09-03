@@ -71,9 +71,12 @@ public class FactorySearchService extends EntitySearchService
     }
 
     @Override
+    protected FactorySortField defaultSortField() {
+        return FactorySortField.createdAt;
+    }
+
+    @Override
     public Specification<TwinFactoryEntity> createSortSpecification(FactorySortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = FactorySortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case key ->

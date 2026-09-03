@@ -117,6 +117,11 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     }
 
     @Override
+    protected UUID defaultSortField() {
+        return SystemIds.TwinClassField.Base.CREATED_AT;
+    }
+
+    @Override
     public Specification<TwinEntity> createSortSpecification(UUID twinClassFieldId, SortDirection sortDirection, Locale locale) throws ServiceException {
         if (twinClassFieldId == null)
             return (root, query, cb) -> cb.conjunction();

@@ -76,9 +76,12 @@ public class FactoryEraserSearchService extends EntitySearchService
     }
 
     @Override
+    protected FactoryEraserSortField defaultSortField() {
+        return FactoryEraserSortField.active;
+    }
+
+    @Override
     public Specification<TwinFactoryEraserEntity> createSortSpecification(FactoryEraserSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = FactoryEraserSortField.active;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case active ->

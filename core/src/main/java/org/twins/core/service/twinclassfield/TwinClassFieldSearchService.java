@@ -123,9 +123,12 @@ public class TwinClassFieldSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinClassFieldSortField defaultSortField() {
+        return TwinClassFieldSortField.order;
+    }
+
+    @Override
     public Specification<TwinClassFieldEntity> createSortSpecification(TwinClassFieldSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinClassFieldSortField.order;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case order -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.order);

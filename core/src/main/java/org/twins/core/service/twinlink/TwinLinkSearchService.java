@@ -88,9 +88,12 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
     }
 
     @Override
+    protected TwinLinkSortField defaultSortField() {
+        return TwinLinkSortField.createdAt;
+    }
+
+    @Override
     public Specification<TwinLinkEntity> createSortSpecification(TwinLinkSortField sortField, SortDirection sortDirection, Locale locale) {
-        if (sortField == null)
-            sortField = TwinLinkSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case createdAt ->

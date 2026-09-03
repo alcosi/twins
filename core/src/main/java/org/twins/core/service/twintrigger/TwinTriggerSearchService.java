@@ -68,9 +68,12 @@ public class TwinTriggerSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinTriggerSortField defaultSortField() {
+        return TwinTriggerSortField.name;
+    }
+
+    @Override
     public Specification<TwinTriggerEntity> createSortSpecification(TwinTriggerSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinTriggerSortField.name;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case name -> toSortSpecification(ascending, TwinTriggerEntity.Fields.name);

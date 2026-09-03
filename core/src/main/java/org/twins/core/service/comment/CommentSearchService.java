@@ -74,10 +74,13 @@ public class CommentSearchService extends EntitySearchService<CommentSearch, Twi
     }
 
     @Override
+    protected CommentSortField defaultSortField() {
+        return CommentSortField.createdAt;
+    }
+
+    @Override
     public Specification<TwinCommentEntity> createSortSpecification(
             CommentSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = CommentSortField.createdAt;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case createdAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdAt);

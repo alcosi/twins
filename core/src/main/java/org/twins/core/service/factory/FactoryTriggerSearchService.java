@@ -72,9 +72,12 @@ public class FactoryTriggerSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinFactoryTriggerSortField defaultSortField() {
+        return TwinFactoryTriggerSortField.active;
+    }
+
+    @Override
     public Specification<TwinFactoryTriggerEntity> createSortSpecification(TwinFactoryTriggerSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
-        if (sortField == null)
-            sortField = TwinFactoryTriggerSortField.active;
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case active -> toSortSpecification(ascending, TwinFactoryTriggerEntity.Fields.active);
