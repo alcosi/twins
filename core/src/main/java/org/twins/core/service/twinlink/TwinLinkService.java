@@ -46,6 +46,7 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -70,6 +71,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final TwinLinkRepository twinLinkRepository;
     private final TwinService twinService;
     private final TwinSearchService twinSearchService;
+    @Lazy
+    private final TwinHeadService twinHeadService;
     @Lazy
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
@@ -283,9 +286,16 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return relationTwinUpdates;
     }
 
-    /** Builds the fresh relation twin batch: one TwinEntity per twin_link (ID equality) + its TwinCreate. */
+    /**
+     * Builds the fresh relation twin batch: one TwinEntity per twin_link (ID equality) + its TwinCreate.
+     * When the relation twin's class requires a head (headTwinClassId set), the head is resolved from the
+     * twin_link's src twin head hierarchy ({@link TwinHeadService#resolveHeadTwinId(TwinEntity, UUID)} —
+     * srcTwin is populated by prepareTwinLinks, per link); the createTwins pipeline (setHeadSafe) then loads
+     * the head entity, validates it and fills hierarchyTree/permission space.
+     */
     private List<TwinCreate> relationTwinCreates(List<TwinLinkCreate> toCreate) throws ServiceException {
         linkService.loadTwinClasses(toCreate.stream().map(linkCreate -> linkCreate.getTwinLink().getLink()).toList());
+        Map<UUID, Map<UUID, UUID>> headTwinIdCache = new HashMap<>(); // srcTwinId -> (headTwinClassId -> headTwinId): ONE hierarchy resolve per (src, class) pair
         List<TwinCreate> twinCreates = new ArrayList<>(toCreate.size());
         for (TwinLinkCreate linkCreate : toCreate) {
             TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
@@ -295,6 +305,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                     .setTwinClassId(link.getRelationTwinClassId())
                     .setTwinClass(link.getRelationTwinClass())
                     .setName("relation twin");
+            UUID requiredHeadTwinClassId = link.getRelationTwinClass().getHeadTwinClassId();
+            if (requiredHeadTwinClassId != null)
+                relationTwin.setHeadTwinId(relationTwinHeadTwinId(twinLinkEntity.getSrcTwin(), requiredHeadTwinClassId, headTwinIdCache));
             // redundant (== id) but hosts the FK; safe to set now — rollback is shared via the collector tx
             twinLinkEntity
                     .setRelationTwinId(twinLinkEntity.getId())
@@ -309,6 +322,26 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinCreates.add(twinCreate);
         }
         return twinCreates;
+    }
+
+    /**
+     * Resolves the head twin for a relation twin from the twin_link's src twin head hierarchy, memoized per
+     * (srcTwin, head class) pair within the batch — no point re-querying the same hierarchy per link.
+     * Throws when the hierarchy has no twin of the required class — a relation twin whose class demands a
+     * head cannot be created headless.
+     */
+    private UUID relationTwinHeadTwinId(TwinEntity srcTwin, UUID headTwinClassId, Map<UUID, Map<UUID, UUID>> headTwinIdCache) throws ServiceException {
+        UUID cached = headTwinIdCache
+                .computeIfAbsent(srcTwin.getId(), id -> new HashMap<>())
+                .get(headTwinClassId);
+        if (cached != null)
+            return cached;
+        UUID headTwinId = twinHeadService.resolveHeadTwinId(srcTwin, headTwinClassId);
+        if (headTwinId == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED,
+                    srcTwin.logShort() + " head hierarchy has no twin of class[" + headTwinClassId + "] for a relation twin head");
+        headTwinIdCache.get(srcTwin.getId()).put(headTwinClassId, headTwinId);
+        return headTwinId;
     }
 
     /** Entity view over the composition list — same instances, for the entity-typed bulk loaders. */

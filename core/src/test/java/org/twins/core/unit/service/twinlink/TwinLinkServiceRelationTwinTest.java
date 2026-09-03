@@ -28,12 +28,14 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.link.LinkType;
 import org.twins.core.enums.twin.TwinCreateStrategy;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -65,6 +67,8 @@ class TwinLinkServiceRelationTwinTest {
     private TwinService twinService;
     @Mock
     private TwinSearchService twinSearchService;
+    @Mock
+    private TwinHeadService twinHeadService;
     @Mock
     private AuthService authService;
     @Mock
@@ -396,5 +400,57 @@ class TwinLinkServiceRelationTwinTest {
         TwinCreate twinCreate = captor.getValue().getTwinCreates().iterator().next();
         assertNotNull(twinCreate.getFields(), "pre-converted fields must be seeded on the TwinCreate as-is");
         assertSame(fieldValue, twinCreate.getFields().values().iterator().next());
+    }
+
+    @Test
+    void shouldResolveHeadTwinIdForRelationTwinWithHeadClass() throws Exception {
+        // given: the relation twin's class demands a head — it must be resolved from the src twin's hierarchy
+        UUID headTwinClassId = UuidUtils.generate();
+        UUID headTwinId = UuidUtils.generate();
+        relationTwinClass.setHeadTwinClassId(headTwinClassId);
+        LinkEntity link = linkEntity(relationTwinClass.getId());
+        TwinLinkEntity twinLink = twinLinkEntity(link);
+        when(twinHeadService.resolveHeadTwinId(srcTwin, headTwinClassId)).thenReturn(headTwinId);
+
+        // when
+        twinLinkService.addLinks(srcTwin, creates(twinLink), new TwinChangesCollector());
+
+        // then
+        ArgumentCaptor<TwinCreateStage> captor = ArgumentCaptor.forClass(TwinCreateStage.class);
+        verify(twinService).createTwins(captor.capture(), any(TwinChangesCollector.class));
+        TwinEntity relationTwin = captor.getValue().getTwinCreates().iterator().next().getTwinEntity();
+        assertEquals(headTwinId, relationTwin.getHeadTwinId(),
+                "head twin id must be resolved from the src twin's hierarchy (setHeadSafe completes the wiring)");
+    }
+
+    @Test
+    void shouldResolveHeadTwinIdOncePerDistinctClassInBatch() throws Exception {
+        // given: two links sharing the relation twin class — ONE hierarchy resolve for the whole batch
+        UUID headTwinClassId = UuidUtils.generate();
+        relationTwinClass.setHeadTwinClassId(headTwinClassId);
+        LinkEntity link1 = linkEntity(relationTwinClass.getId());
+        LinkEntity link2 = linkEntity(relationTwinClass.getId());
+        when(twinHeadService.resolveHeadTwinId(srcTwin, headTwinClassId)).thenReturn(UuidUtils.generate());
+
+        // when
+        twinLinkService.addLinks(srcTwin, creates(twinLinkEntity(link1), twinLinkEntity(link2)), new TwinChangesCollector());
+
+        // then
+        verify(twinHeadService, times(1)).resolveHeadTwinId(srcTwin, headTwinClassId);
+    }
+
+    @Test
+    void shouldThrowWhenHierarchyHasNoTwinOfRequiredHeadClass() throws Exception {
+        // given: no twin of the required class anywhere in the src twin's head hierarchy
+        UUID headTwinClassId = UuidUtils.generate();
+        relationTwinClass.setHeadTwinClassId(headTwinClassId);
+        LinkEntity link = linkEntity(relationTwinClass.getId());
+        when(twinHeadService.resolveHeadTwinId(srcTwin, headTwinClassId)).thenReturn(null);
+
+        // when + then: fail fast instead of letting the create pipeline die on a headless twin
+        ServiceException ex = assertThrows(ServiceException.class,
+                () -> twinLinkService.addLinks(srcTwin, creates(twinLinkEntity(link)), new TwinChangesCollector()));
+        assertEquals(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED.getCode(), ex.getErrorCode());
+        verify(twinService, never()).createTwins(any(TwinCreateStage.class), any(TwinChangesCollector.class));
     }
 }
