@@ -146,7 +146,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         if (saveElseDelete) {
             kit.add(field);
         } else {
-            kit.removeByKey(field.getId());
+            kit.remove(field);
         }
         invalidateTwin(twin, TwinInvalidate.fieldValuesKit);
         if (extraInvalidations != null && extraInvalidations.length > 0) {
