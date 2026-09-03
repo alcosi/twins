@@ -11,19 +11,24 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.enums.link.LinkType;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.*;
 
 class FieldTyperLinkTest extends BaseUnitTest {
 
@@ -202,6 +207,58 @@ class FieldTyperLinkTest extends BaseUnitTest {
             assertEquals(1, result.getItems().size());
             assertSame(link1, result.getItems().get(0));
             assertFalse(result.isForwardLink());
+        }
+    }
+
+    @Nested
+    class SerializeValue {
+
+        @Test
+        void serializeValue_linkWithRelationTwinClass_failsFast() throws ServiceException {
+            // Intended (TWINS-913): link-field writes create/update twin_links directly, bypassing the
+            // relation twin lifecycle — a link with relation_twin_class_id must be rejected instead of
+            // silently creating a twin_link without its relation twin.
+            var linkId = UUID.randomUUID();
+            var link = new LinkEntity()
+                    .setId(linkId)
+                    .setType(LinkType.OneToOne)
+                    .setRelationTwinClassId(UUID.randomUUID());
+            var classField = classFieldWithTwinClass();
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            when(linkService.findEntitySafe(linkId)).thenReturn(link);
+            var value = new FieldValueLink(classField);
+            value.setItems(List.of(new TwinLinkEntity()
+                    .setId(UUID.randomUUID())
+                    .setLinkId(linkId)
+                    .setSrcTwinId(twin.getId())
+                    .setDstTwinId(UUID.randomUUID())));
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
+
+            assertEquals(ErrorCodeTwins.TWIN_LINK_INCORRECT.getCode(), ex.getErrorCode());
+            verify(twinLinkService, never()).prepareTwinLinks(any(), anyList());
+        }
+
+        @Test
+        void serializeValue_linkWithRelationTwinClass_emptyValuePureDelete_allowed() throws ServiceException {
+            // Intended: pure deletion (empty value) stays allowed — the DB AFTER DELETE trigger on
+            // twin_link removes the relation twin, no relation twin support is needed on this path.
+            var linkId = UUID.randomUUID();
+            var link = new LinkEntity()
+                    .setId(linkId)
+                    .setType(LinkType.OneToOne)
+                    .setRelationTwinClassId(UUID.randomUUID());
+            var classField = classFieldWithTwinClass();
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            when(linkService.findEntitySafe(linkId)).thenReturn(link);
+            when(linkService.detectLinkDirection(link, classField.getTwinClass()))
+                    .thenReturn(LinkService.LinkDirection.forward);
+            twin.setTwinLinks(new TwinLinkService.FindTwinLinksResult());
+            var value = new FieldValueLink(classField);
+            value.setItems(null);
+
+            assertDoesNotThrow(() -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
         }
     }
 }

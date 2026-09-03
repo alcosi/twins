@@ -28,6 +28,10 @@ public class TwinLinkViewDTOv1 {
     @RelatedObject(type = TwinDTOv2.class, name = "dstTwin")
     public UUID dstTwinId;
 
+    @Schema(description = "Relation twin id", example = DTOExamples.TWIN_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "relationTwinId")
+    public UUID relationTwinId;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
