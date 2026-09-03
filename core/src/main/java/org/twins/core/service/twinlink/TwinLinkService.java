@@ -277,6 +277,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             relationTwinUpdate.setFields(linkCreate.getRelationTwinFields());
             relationTwinUpdate.setCanTriggerAfterOperationFactory(false); // recursion guard
             relationTwinUpdate.setLauncher(TwinOperation.Launcher.link);
+            relationTwinUpdate.setCheckEditPermission(true); // carries user-provided field values — EDIT permission applies (unlike job_twin)
             relationTwinUpdates.add(relationTwinUpdate);
         }
         return relationTwinUpdates;
@@ -302,6 +303,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinCreate.setTwinEntity(relationTwin);
             twinCreate.setCanTriggerAfterOperationFactory(false); // recursion guard (same as job_twin)
             twinCreate.setLauncher(TwinOperation.Launcher.link);
+            twinCreate.setCheckCreatePermission(true); // carries user-provided field values — create permission applies (unlike job_twin)
             twinCreate.setCreateStrategy(TwinCreateStrategy.AUTO); // sketch iff required relation attributes are missing
             twinCreate.setFields(linkCreate.getRelationTwinFields()); // null-safe; converted in the reverse mapper
             twinCreates.add(twinCreate);
@@ -337,6 +339,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 relationTwinUpdate.setFields(twinLinkUpdate.getRelationTwinFields());
                 relationTwinUpdate.setCanTriggerAfterOperationFactory(false); // recursion guard (same as createRelationTwins)
                 relationTwinUpdate.setLauncher(TwinOperation.Launcher.link);
+                relationTwinUpdate.setCheckEditPermission(true); // carries user-provided field values — EDIT permission applies
                 relationTwinUpdates.add(relationTwinUpdate);
             }
             if (updateTwinLinkEntity.getSrcTwinId() != null && updateTwinLinkEntity.getDstTwinId() == null)
