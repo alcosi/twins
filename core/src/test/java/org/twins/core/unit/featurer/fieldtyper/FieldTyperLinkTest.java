@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.link.LinkEntity;
@@ -214,10 +215,36 @@ class FieldTyperLinkTest extends BaseUnitTest {
     class SerializeValue {
 
         @Test
-        void serializeValue_linkWithRelationTwinClass_failsFast() throws ServiceException {
-            // Intended (TWINS-913): link-field writes create/update twin_links directly, bypassing the
-            // relation twin lifecycle — a link with relation_twin_class_id must be rejected instead of
-            // silently creating a twin_link without its relation twin.
+        void serializeValue_delegatesDesiredSetToReconcileLinks() throws ServiceException {
+            // Intended: the field value is a DESIRED link set — the whole write goes through the standard
+            // link pipeline (reconcileLinks); the typer carries no twin_link logic of its own.
+            var linkId = UUID.randomUUID();
+            var link = new LinkEntity().setId(linkId).setType(LinkType.ManyToMany);
+            var classField = classFieldWithTwinClass();
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            when(linkService.findEntitySafe(linkId)).thenReturn(link);
+            var item = new TwinLinkEntity().setDstTwinId(UUID.randomUUID());
+            var value = new FieldValueLink(classField);
+            value.setItems(List.of(item));
+            var collector = new TwinChangesCollector();
+
+            fieldTyper.serializeValue(properties(linkId), twin, value, collector);
+
+            @SuppressWarnings("unchecked")
+            var captor = ArgumentCaptor.forClass((Class<List<org.twins.core.domain.twinlink.TwinLinkCreate>>) (Class<?>) List.class);
+            verify(twinLinkService).reconcileLinks(org.mockito.ArgumentMatchers.same(twin),
+                    org.mockito.ArgumentMatchers.same(link), captor.capture(), org.mockito.ArgumentMatchers.same(collector));
+            assertEquals(1, captor.getValue().size());
+            assertSame(item, captor.getValue().get(0).getTwinLink());
+            assertEquals(linkId, item.getLinkId(), "items must carry the resolved link id");
+            assertSame(link, item.getLink(), "items must carry the resolved link entity");
+        }
+
+        @Test
+        void serializeValue_linkWithRelationTwinClass_allowed() throws ServiceException {
+            // Intended (supersedes the old fail-fast): a link with relation_twin_class_id is written the
+            // same way — reconcileLinks creates an empty AUTO relation twin; the field value carries no
+            // relation attributes.
             var linkId = UUID.randomUUID();
             var link = new LinkEntity()
                     .setId(linkId)
@@ -227,38 +254,51 @@ class FieldTyperLinkTest extends BaseUnitTest {
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
             var value = new FieldValueLink(classField);
-            value.setItems(List.of(new TwinLinkEntity()
-                    .setId(UUID.randomUUID())
-                    .setLinkId(linkId)
-                    .setSrcTwinId(twin.getId())
-                    .setDstTwinId(UUID.randomUUID())));
+            value.setItems(List.of(new TwinLinkEntity().setDstTwinId(UUID.randomUUID())));
+
+            assertDoesNotThrow(() -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
+            verify(twinLinkService).reconcileLinks(org.mockito.ArgumentMatchers.same(twin),
+                    org.mockito.ArgumentMatchers.same(link), anyList(), any(TwinChangesCollector.class));
+        }
+
+        @Test
+        void serializeValue_emptyValue_delegatesEmptySet() throws ServiceException {
+            // Intended: an empty value is a pure delete-all — delegated as an empty desired set
+            var linkId = UUID.randomUUID();
+            var link = new LinkEntity().setId(linkId).setType(LinkType.OneToOne);
+            var classField = classFieldWithTwinClass();
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            when(linkService.findEntitySafe(linkId)).thenReturn(link);
+            var value = new FieldValueLink(classField);
+            value.setItems(null);
+
+            fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector());
+
+            @SuppressWarnings("unchecked")
+            var captor = ArgumentCaptor.forClass((Class<List<org.twins.core.domain.twinlink.TwinLinkCreate>>) (Class<?>) List.class);
+            verify(twinLinkService).reconcileLinks(any(), any(), captor.capture(), any(TwinChangesCollector.class));
+            assertTrue(captor.getValue().isEmpty());
+        }
+
+        @Test
+        void serializeValue_multiplyNotAllowed_throws() throws ServiceException {
+            // Intended: the field-level multiplicity guard stays in the typer — two items on a
+            // single-valued link type are rejected before any write
+            var linkId = UUID.randomUUID();
+            var link = new LinkEntity().setId(linkId).setType(LinkType.OneToOne);
+            var classField = classFieldWithTwinClass();
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            when(linkService.findEntitySafe(linkId)).thenReturn(link);
+            var value = new FieldValueLink(classField);
+            value.setItems(List.of(
+                    new TwinLinkEntity().setDstTwinId(UUID.randomUUID()),
+                    new TwinLinkEntity().setDstTwinId(UUID.randomUUID())));
 
             var ex = assertThrows(ServiceException.class,
                     () -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
 
-            assertEquals(ErrorCodeTwins.TWIN_LINK_INCORRECT.getCode(), ex.getErrorCode());
-            verify(twinLinkService, never()).prepareTwinLinks(any(), anyList());
-        }
-
-        @Test
-        void serializeValue_linkWithRelationTwinClass_emptyValuePureDelete_allowed() throws ServiceException {
-            // Intended: pure deletion (empty value) stays allowed — the DB AFTER DELETE trigger on
-            // twin_link removes the relation twin, no relation twin support is needed on this path.
-            var linkId = UUID.randomUUID();
-            var link = new LinkEntity()
-                    .setId(linkId)
-                    .setType(LinkType.OneToOne)
-                    .setRelationTwinClassId(UUID.randomUUID());
-            var classField = classFieldWithTwinClass();
-            var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
-            when(linkService.findEntitySafe(linkId)).thenReturn(link);
-            when(linkService.detectLinkDirection(link, classField.getTwinClass()))
-                    .thenReturn(LinkService.LinkDirection.forward);
-            twin.setTwinLinks(new TwinLinkService.FindTwinLinksResult());
-            var value = new FieldValueLink(classField);
-            value.setItems(null);
-
-            assertDoesNotThrow(() -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED.getCode(), ex.getErrorCode());
+            verify(twinLinkService, never()).reconcileLinks(any(), any(), anyList(), any(TwinChangesCollector.class));
         }
     }
 }
