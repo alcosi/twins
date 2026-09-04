@@ -61,7 +61,7 @@ public class TwinUpdate extends TwinSave {
                 CollectionUtils.isNotEmpty(tagsAddNew) ||
                 CollectionUtils.isNotEmpty(tagsAddExisted) ||
                 CudUtils.isNotEmpty(attachmentCUD) ||
-                CudUtils.isNotEmpty(twinLinkCUD);
+                hasTwinLinkChanges();
     }
 
     /**
@@ -82,7 +82,11 @@ public class TwinUpdate extends TwinSave {
                 || CollectionUtils.isNotEmpty(markersAdd)
                 || CollectionUtils.isNotEmpty(tagsAddNew)
                 || CollectionUtils.isNotEmpty(tagsAddExisted)
-                || CudUtils.isNotEmpty(twinLinkCUD);
+                || hasTwinLinkChanges();
+    }
+
+    private boolean hasTwinLinkChanges() {
+        return twinLinkCUD != null && !twinLinkCUD.isEmpty();
     }
 
     private boolean hasTwinAttributeChanges() {
