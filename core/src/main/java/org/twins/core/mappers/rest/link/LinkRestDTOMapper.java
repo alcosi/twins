@@ -33,7 +33,8 @@ public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1
 
     @Lazy
     @Autowired
-    @MapperModePointerBinding(modes = {TwinClassMode.LinkDst2TwinClassMode.class, TwinClassMode.LinkSrc2TwinClassMode.class,})
+    @MapperModePointerBinding(modes = {TwinClassMode.LinkDst2TwinClassMode.class, TwinClassMode.LinkSrc2TwinClassMode.class,
+            TwinClassMode.LinkRelationTwin2TwinClassMode.class})
     private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = {UserMode.Link2UserMode.class})
@@ -53,6 +54,7 @@ public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1
                         .setId(src.getId())
                         .setName(I18nCacheHolder.addId(src.getForwardNameI18NId()))
                         .setDstTwinClassId(src.getDstTwinClassId())
+                        .setRelationTwinClassId(src.getRelationTwinClassId())
                         .setLinkStrengthId(src.getLinkStrengthId())
                         .setType(src.getType());
                 break;
@@ -61,15 +63,22 @@ public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1
                         .setId(src.getId())
                         .setName(I18nCacheHolder.addId(src.getForwardNameI18NId()));
         }
-        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)
+                || mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE)
+                || (mapperContext.hasModeButNot(TwinClassMode.LinkRelationTwin2TwinClassMode.HIDE) && src.getRelationTwinClassId() != null)) {
             linkService.loadTwinClasses(src);
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
             dst.setDstTwinClassId(src.getDstTwinClassId());
-            twinClassRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getDstTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE)) {
-            linkService.loadTwinClasses(src);
             dst.setSrcTwinClassId(src.getSrcTwinClassId());
             twinClassRestDTOMapper.postpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkSrc2TwinClassMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkRelationTwin2TwinClassMode.HIDE) && src.getRelationTwinClassId() != null) {
+            dst.setRelationTwinClassId(src.getRelationTwinClassId());
+            twinClassRestDTOMapper.postpone(src.getRelationTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkRelationTwin2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
@@ -89,7 +98,9 @@ public class LinkRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1
         if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE)) {
             linkService.loadCreatedBy(srcCollection);
         }
-        if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE) || mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)
+                || mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE)
+                || mapperContext.hasModeButNot(TwinClassMode.LinkRelationTwin2TwinClassMode.HIDE)) {
             linkService.loadTwinClasses(srcCollection);
         }
     }

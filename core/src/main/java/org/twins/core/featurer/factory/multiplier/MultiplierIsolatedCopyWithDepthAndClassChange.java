@@ -24,6 +24,7 @@ import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
@@ -275,7 +276,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             }
             var twinCreate = new TwinCreate();
             twinCreate
-                    .setLinksEntityList(ctx.getLinksCopy())
+                    .setLinksCreateList(TwinLinkCreate.wrapAll(ctx.getLinksCopy()))
                     .setTwinEntity(ctx.getTwinCopy());
             ret.add(
                     new FactoryItem()

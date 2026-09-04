@@ -59,7 +59,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
 
         dst
                 .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))
-                .setLinksEntityList(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(src.getLinks()))
+                .setLinksCreateList(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(src.getLinks()))
                 .setTwinFieldAttributeEntityList(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(src.getFieldAttributes()))
                 .setTagsAddNew(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::newTags)
@@ -130,6 +130,15 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                     if (link.getDstTwinId() != null) {
                         link.setDstTwinId(resolveTemporalOrReturnOriginal(link.getDstTwinId(),
                                 dto.getTemporalId() + ".link"));
+                    }
+                    // relation twin field values may reference twins from the same batch (twin-type attributes)
+                    if (link.getRelationTwinFields() != null) {
+                        for (Map.Entry<String, String> entry : link.getRelationTwinFields().entrySet()) {
+                            if (entry.getValue() != null) {
+                                entry.setValue(resolveTemporalOrReturnOriginal(entry.getValue(),
+                                        dto.getTemporalId() + ".link.relationTwinFields." + entry.getKey()));
+                            }
+                        }
                     }
                 }
             }

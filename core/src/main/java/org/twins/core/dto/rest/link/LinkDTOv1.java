@@ -28,6 +28,11 @@ public class LinkDTOv1 {
     @RelatedObject(type = TwinClassDTOv1.class, name = "dstTwinClass")
     public UUID dstTwinClassId;
 
+    @Schema(description = "Relation twin class id — when set, each twin_link of this link gets a shadow twin "
+            + "of that class carrying the relation's extra attributes", example = DTOExamples.TWIN_CLASS_ID)
+    @RelatedObject(type = TwinClassDTOv1.class, name = "relationTwinClass")
+    public UUID relationTwinClassId;
+
     @Schema(description = "name", example = "Serial number")
     public String name;
 

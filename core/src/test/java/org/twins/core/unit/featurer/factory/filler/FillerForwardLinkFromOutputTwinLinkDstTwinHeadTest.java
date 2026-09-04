@@ -18,8 +18,6 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -81,7 +79,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
         var output = new TwinCreate();
         output.setTwinEntity(outputTwinEntity);
         if (outputLink != null)
-            output.setLinksEntityList(new ArrayList<>(List.of(outputLink)));
+            output.addLink(outputLink);
         return new FactoryItem().setOutput(output);
     }
 
@@ -139,10 +137,8 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var dst2 = new TwinEntity().setId(UUID.randomUUID());
             var output = new TwinCreate();
             output.setTwinEntity(new TwinEntity().setId(UUID.randomUUID()));
-            output.setLinksEntityList(new ArrayList<>(List.of(
-                    new TwinLinkEntity().setLinkId(HEAD_FROM_LINK_ID).setDstTwin(dst1).setDstTwinId(dst1.getId()),
-                    new TwinLinkEntity().setLinkId(HEAD_FROM_LINK_ID).setDstTwin(dst2).setDstTwinId(dst2.getId())
-            )));
+            output.addLink(new TwinLinkEntity().setLinkId(HEAD_FROM_LINK_ID).setDstTwin(dst1).setDstTwinId(dst1.getId()));
+            output.addLink(new TwinLinkEntity().setLinkId(HEAD_FROM_LINK_ID).setDstTwin(dst2).setDstTwinId(dst2.getId()));
             var factoryItem = new FactoryItem().setOutput(output);
 
             var ex = assertThrows(ServiceException.class,

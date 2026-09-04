@@ -18,6 +18,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
@@ -87,7 +88,13 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                     .setLink(linkEntity);
         if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
-        twinLinkService.prepareTwinLinks(twin, newTwinLinks);
+        if (linkEntity.getRelationTwinClassId() != null && !newTwinLinks.isEmpty())
+            // link-field writes create/update twin_links directly, bypassing the relation twin lifecycle
+            // (no relationTwinFields carrier here, no relink relationTwinId wiring) — fail fast instead of a silent half-entity.
+            // Pure deletion (empty list) stays allowed: the twin_link AFTER DELETE trigger removes the relation twin.
+            throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
+                    linkEntity.logShort() + " with relation_twin_class_id is not supported via link-typed fields: use the twin links[] API");
+        twinLinkService.prepareTwinLinks(twin, TwinLinkCreate.wrapAll(newTwinLinks));
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
         Collection<TwinLinkEntity> storedLinksList;
         twinLinkService.loadTwinLinks(twin); //todo optimize loading for backward links
@@ -107,13 +114,13 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.logShort() + " can not detect link direction for " + twin.getTwinClass().logShort());
         }
         if (FieldValueChangeHelper.isSingleValueAdd(newTwinLinks, storedLinksMap)) {
-            TwinLinkEntity twinLinkEntity = newTwinLinks.get(0);
+            TwinLinkEntity twinLinkEntity = newTwinLinks.getFirst();
             twinChangesCollector.add(twinLinkEntity);
             twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             return;
         }
         if (FieldValueChangeHelper.isAnyToSingleValueUpdate(newTwinLinks, storedLinksMap)) {
-            TwinLinkEntity newLink = newTwinLinks.get(0); //wh have only one element
+            TwinLinkEntity newLink = newTwinLinks.getFirst(); //wh have only one element
             TwinLinkEntity storedLink = MapUtils.pullAny(storedLinksMap); // we will update any of existed link it doesn't matter which one. all other will be deleted
             if (!TwinLinkService.equalsInSrcTwinIdAndDstTwinId(newLink, storedLink)) {
                 newLink.setId(storedLink.getId());

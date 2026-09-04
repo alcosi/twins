@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -16,4 +17,9 @@ public class TwinLinkAddDTOv2 {
 
     @Schema(description = "Destination twin id (can be UUID or temporalId:XXX reference)", example = DTOExamples.TWIN_ID)
     public String dstTwinId;
+
+    @Schema(description = "Initial field values for the relation twin (relation attributes); values may reference "
+            + "temporalId:XXX twins from the same batch. Only applicable when the link has relation_twin_class_id "
+            + "configured; keys are relation-twin-class field ids or keys, same format as TwinCreate fields")
+    public Map<String, String> relationTwinFields;
 }

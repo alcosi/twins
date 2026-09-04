@@ -96,7 +96,7 @@ public class TwinCreateController extends ApiController {
                             .setDescription(request.getDescription()));
             twinCreate
                     .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
-                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
+                    .setLinksCreateList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
                     .setCheckCreatePermission(true)
                     .setLauncher(TwinOperation.Launcher.direct);
 

@@ -4,12 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.link.LinkStrength;
-import org.twins.core.enums.link.LinkType;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -40,5 +41,9 @@ public class LinkSaveDTOv1 extends Request {
 
     @Schema(description = "[optional] destination twin class inheritable")
     public Boolean dstTwinClassInheritable;
+
+    @Schema(description = "[optional] relation twin class id. When set, creating a twin_link of this link "
+            + "auto-creates a shadow twin of that class carrying the relation's extra attributes")
+    public UUID relationTwinClassId;
 
 }

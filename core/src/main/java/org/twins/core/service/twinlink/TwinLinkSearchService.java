@@ -106,6 +106,8 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
                     toSortSpecification(ascending, TwinLinkEntity.Fields.dstTwinSpecOnly, TwinEntity.Fields.name);
             case linkName ->
                     I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinLinkEntity.Fields.linkSpecOnly, LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly);
+            case relationTwinName ->
+                    toSortSpecification(ascending, TwinLinkEntity.Fields.relationTwinSpecOnly, TwinEntity.Fields.name);
         };
     }
 
@@ -116,6 +118,7 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
             case dstTwinId -> TwinLinkEntity.Fields.dstTwinId;
             case linkId -> TwinLinkEntity.Fields.linkId;
             case createdByUserId -> TwinLinkEntity.Fields.createdByUserId;
+            case relationTwinId -> TwinLinkEntity.Fields.relationTwinId;
         };
     }
 
@@ -126,6 +129,7 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
             case dstTwinId -> entity.setDstTwinId((UUID) o);
             case linkId -> entity.setLinkId((UUID) o);
             case createdByUserId -> entity.setCreatedByUserId((UUID) o);
+            case relationTwinId -> entity.setRelationTwinId((UUID) o);
         }
     }
 }

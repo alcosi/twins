@@ -6,8 +6,8 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinlink.TwinLinkCUD;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
@@ -48,11 +48,9 @@ public abstract class FillerLinks extends Filler {
                 twinCreate.addLink(twinLinkEntity);
         } else if (outputTwin instanceof TwinUpdate twinUpdate) {
             if (twinUpdate.getTwinLinkCUD() == null)
-                twinUpdate.setTwinLinkCUD(new EntityCUD<>());
-            if (twinUpdate.getTwinLinkCUD().getCreateList() == null)
-                twinUpdate.getTwinLinkCUD().setCreateList(new ArrayList<>());
-            if (missed(twinUpdate.getTwinEntity().getId(), twinUpdate.getTwinLinkCUD().getCreateList(), twinLinkEntity))
-                twinUpdate.getTwinLinkCUD().getCreateList().add(twinLinkEntity);
+                twinUpdate.setTwinLinkCUD(new TwinLinkCUD());
+            if (missed(twinUpdate.getTwinEntity().getId(), twinUpdate.getTwinLinkCUD().getCreateEntityList(), twinLinkEntity))
+                twinUpdate.getTwinLinkCUD().addCreate(twinLinkEntity);
         }
     }
 

@@ -472,8 +472,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
                 attachmentService.addAttachments(twinCreate.getAttachmentEntityList(), twinChangesCollector);
             }
-            if (CollectionUtils.isNotEmpty(twinCreate.getLinksEntityList())) {
-                twinLinkService.addLinks(twinEntity, twinCreate.getLinksEntityList(), twinChangesCollector);
+            if (CollectionUtils.isNotEmpty(twinCreate.getLinksCreateList())) {
+                twinLinkService.addLinks(twinEntity, twinCreate.getLinksCreateList(), twinChangesCollector);
             }
             if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd())) {
                 twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd(), twinChangesCollector);
@@ -2260,9 +2260,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void validateFieldsOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
         TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
         Map<UUID, FieldValue> fields = twinUpdate.getFields();
-        if (twinEntity.getTwinClass() == null) {
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        }
+        loadClass(twinEntity);
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (var entry : fields.entrySet()) {

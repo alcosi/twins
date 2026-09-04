@@ -138,7 +138,7 @@ class FillerForwardLinksFromContextTwinAllTest extends BaseUnitTest {
             assertNotNull(update.getTwinLinkCUD());
             assertNotNull(update.getTwinLinkCUD().getCreateList());
             assertEquals(1, update.getTwinLinkCUD().getCreateList().size());
-            assertEquals(LINK_ID, update.getTwinLinkCUD().getCreateList().get(0).getLinkId());
+            assertEquals(LINK_ID, update.getTwinLinkCUD().getCreateList().get(0).getTwinLink().getLinkId());
         }
     }
 }

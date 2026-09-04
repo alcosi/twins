@@ -117,6 +117,8 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
                     I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly);
             case backwardName ->
                     I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.backwardNameI18nTranslationsSpecOnly);
+            case relationTwinClassName ->
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale, LinkEntity.Fields.relationTwinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
         };
     }
 
@@ -130,6 +132,7 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case createdByUserId -> LinkEntity.Fields.createdByUserId;
             case srcTwinClassInheritable -> LinkEntity.Fields.srcTwinClassInheritable;
             case dstTwinClassInheritable -> LinkEntity.Fields.dstTwinClassInheritable;
+            case relationTwinClassId -> LinkEntity.Fields.relationTwinClassId;
         };
     }
 
@@ -143,6 +146,7 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
             case linkStrength -> entity.setLinkStrengthId((LinkStrength) o);
             case srcTwinClassInheritable -> entity.setSrcTwinClassInheritable((Boolean) o);
             case dstTwinClassInheritable -> entity.setDstTwinClassInheritable((Boolean) o);
+            case relationTwinClassId -> entity.setRelationTwinClassId((UUID) o);
         }
     }
 

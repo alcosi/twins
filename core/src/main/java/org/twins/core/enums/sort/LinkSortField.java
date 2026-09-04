@@ -8,5 +8,6 @@ public enum LinkSortField {
     srcTwinClassName,
     dstTwinClassName,
     forwardName,
-    backwardName
+    backwardName,
+    relationTwinClassName
 }

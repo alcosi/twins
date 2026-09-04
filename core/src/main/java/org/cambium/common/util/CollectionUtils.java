@@ -112,6 +112,14 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                 .toList();
     }
 
+    /** Keeps the first element per key in encounter order, dropping later elements whose key was already seen. */
+    public static <T, K> List<T> distinctBy(Collection<T> collection, Function<T, K> keyExtractor) {
+        Set<K> seenKeys = new HashSet<>();
+        return collection.stream()
+                .filter(item -> seenKeys.add(keyExtractor.apply(item)))
+                .toList();
+    }
+
     public static <S, T> Set<T> collect(
             Collection<S> source,
             Function<S, T> extractor) {

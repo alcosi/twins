@@ -30,8 +30,6 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.LinkUpdate;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.enums.link.LinkStrength;
-import org.twins.core.enums.link.LinkType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.linker.Linker;
@@ -91,6 +89,10 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     entity.setSrcTwinClass(twinClassService.findEntitySafe(entity.getSrcTwinClassId()));
                 if (entity.getDstTwinClass() == null || !entity.getDstTwinClass().getId().equals(entity.getDstTwinClassId()))
                     entity.setDstTwinClass(twinClassService.findEntitySafe(entity.getDstTwinClassId()));
+                if (entity.getRelationTwinClassId() != null && (entity.getRelationTwinClass() == null || !entity.getRelationTwinClass().getId().equals(entity.getRelationTwinClassId())))
+                    entity.setRelationTwinClass(twinClassService.findEntitySafe(entity.getRelationTwinClassId()));
+                if (entity.getRelationTwinClass() != null && !entity.getRelationTwinClass().getDomainId().equals(entity.getDomainId()))
+                    return logErrorAndReturnFalse(entity.logNormal() + " relation twin class [" + entity.getRelationTwinClass().logShort() + "] is from another domain");
                 if (entity.getCreatedByUser() == null)
                     entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
             default:
@@ -147,9 +149,17 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         i18nService.updateI18nFieldForEntity(backwardNameI18n, I18nType.LINK_BACKWARD_NAME, dbLinkEntity, LinkEntity::getBackwardNameI18NId, LinkEntity::setBackwardNameI18NId, LinkEntity.Fields.backwardNameI18NId, changesHelper);
         updateLinkSrcTwinClassId(dbLinkEntity, linkUpdate.getSrcTwinClassUpdate(), changesHelper);
         updateLinkDstTwinClassId(dbLinkEntity, linkUpdate.getDstTwinClassUpdate(), changesHelper);
-        updateLinkType(dbLinkEntity, linkUpdate.getType(), changesHelper);
-        updateLinkStrength(dbLinkEntity, linkUpdate.getLinkStrengthId(), changesHelper);
-        updateLinkerFeaturer(dbLinkEntity, linkUpdate.getLinkerFeaturerId(), linkUpdate.getLinkerParams(), changesHelper);
+        updateEntityFieldByValue(linkUpdate.getType(), dbLinkEntity,
+                LinkEntity::getType, LinkEntity::setType, LinkEntity.Fields.type, changesHelper);
+        updateEntityFieldByValue(linkUpdate.getLinkStrengthId(), dbLinkEntity,
+                LinkEntity::getLinkStrengthId, LinkEntity::setLinkStrengthId, LinkEntity.Fields.linkStrengthId, changesHelper);
+        updateEntityFeaturerField(dbLinkEntity, linkUpdate.getLinkerFeaturerId(), linkUpdate.getLinkerParams(),
+                LinkEntity::getLinkerFeaturerId, LinkEntity::setLinkerFeaturerId,
+                LinkEntity::getLinkerParams, LinkEntity::setLinkerParams,
+                LinkEntity.Fields.linkerFeaturerId, LinkEntity.Fields.linkerParams,
+                Linker.class, changesHelper);
+        updateEntityFieldByValue(linkUpdate.getRelationTwinClassId(), dbLinkEntity,
+                LinkEntity::getRelationTwinClassId, LinkEntity::setRelationTwinClassId, LinkEntity.Fields.relationTwinClassId, changesHelper);
         updateEntityFieldByValue(linkUpdate.getSrcTwinClassInheritable(), dbLinkEntity,
                 LinkEntity::getSrcTwinClassInheritable, LinkEntity::setSrcTwinClassInheritable, LinkEntity.Fields.srcTwinClassInheritable, changesHelper);
         updateEntityFieldByValue(linkUpdate.getDstTwinClassInheritable(), dbLinkEntity,
@@ -244,26 +254,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         }
         dbLinkEntity.setSrcTwinClassId(newSrcTwinClassEntity.getId());
         dbLinkEntity.setSrcTwinClass(newSrcTwinClassEntity);
-    }
-
-    private void updateLinkStrength(LinkEntity dbLinkEntity, LinkStrength linkStrengthId, ChangesHelper changesHelper) throws ServiceException {
-        if (linkStrengthId == null || !changesHelper.isChanged(LinkEntity.Fields.linkStrengthId, dbLinkEntity.getLinkStrengthId(), linkStrengthId))
-            return;
-        dbLinkEntity.setLinkStrengthId(linkStrengthId);
-    }
-
-    private void updateLinkType(LinkEntity dbLinkEntity, LinkType type, ChangesHelper changesHelper) {
-        if (type == null || !changesHelper.isChanged(LinkEntity.Fields.type, dbLinkEntity.getType(), type))
-            return;
-        dbLinkEntity.setType(type);
-    }
-
-    public void updateLinkerFeaturer(LinkEntity dbLinkEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> linkerParams, ChangesHelper changesHelper) throws ServiceException {
-        updateEntityFeaturerField(dbLinkEntity, newHeadhunterFeaturerId, linkerParams,
-                LinkEntity::getLinkerFeaturerId, LinkEntity::setLinkerFeaturerId,
-                LinkEntity::getLinkerParams, LinkEntity::setLinkerParams,
-                LinkEntity.Fields.linkerFeaturerId, LinkEntity.Fields.linkerParams,
-                Linker.class, changesHelper);
     }
 
     public FindTwinClassLinksResult findLinks(UUID twinClassId) throws ServiceException {
@@ -417,7 +407,11 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 new LoadedField<>(
                         LinkEntity::getDstTwinClassId,
                         LinkEntity::getDstTwinClass,
-                        LinkEntity::setDstTwinClass)
-                );
+                        LinkEntity::setDstTwinClass),
+                new LoadedField<>(
+                        LinkEntity::getRelationTwinClassId,
+                        LinkEntity::getRelationTwinClass,
+                        LinkEntity::setRelationTwinClass)
+        );
     }
 }
