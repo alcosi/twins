@@ -84,7 +84,7 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
      *                      during cross-field validation, see {@link FieldValidator#resolveFieldValue}
      */
     public ValidationResult validateFieldValue(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, FieldValue fieldValue, Map<UUID, FieldValue> contextFields) throws ServiceException {
-        List<FieldValidateItem> items = collectItems(twinEntity, twinClassFieldEntity, fieldValue, contextFields);
+        List<FieldValidateItem> items = collectItems(twinEntity, fieldValue, contextFields);
         if (items.isEmpty())
             return ValidationResult.VALID;
         validateFieldValues(items);
@@ -122,8 +122,8 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
     /**
      * Builds {@link FieldValidateItem}s for every validator attached to the field (empty if kit is unloaded/empty).
      */
-    public List<FieldValidateItem> collectItems(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, FieldValue fieldValue, Map<UUID, FieldValue> contextFields) {
-        Kit<TwinClassFieldValidatorEntity, UUID> fieldValidatorKit = twinClassFieldEntity.getFieldValidatorKit();
+    public List<FieldValidateItem> collectItems(TwinEntity twinEntity, FieldValue fieldValue, Map<UUID, FieldValue> contextFields) {
+        Kit<TwinClassFieldValidatorEntity, UUID> fieldValidatorKit = fieldValue.getTwinClassField().getFieldValidatorKit();
         if (fieldValidatorKit == null || fieldValidatorKit.isEmpty())
             return Collections.emptyList();
         List<FieldValidateItem> items = new ArrayList<>(fieldValidatorKit.size());

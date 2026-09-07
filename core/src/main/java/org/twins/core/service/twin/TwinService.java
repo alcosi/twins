@@ -2256,7 +2256,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 if (!validationResult.isValid()) {
                     invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
                 } else {
-                    fieldValidatorItems.addAll(twinClassFieldValidatorService.collectItems(twinEntity, twinClassFieldEntity, fieldValue, fields));
+                    fieldValidatorItems.addAll(twinClassFieldValidatorService.collectItems(twinEntity, fieldValue, fields));
                 }
             }
         }
@@ -2289,7 +2289,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (!validationResult.isValid()) {
                 invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
             } else {
-                fieldValidatorItems.addAll(twinClassFieldValidatorService.collectItems(twinEntity, twinClassFieldEntity, fieldValue, fields));
+                fieldValidatorItems.addAll(twinClassFieldValidatorService.collectItems(twinEntity, fieldValue, fields));
             }
         }
         collectFieldValidatorFailures(fieldValidatorItems, invalidFieldIds);
