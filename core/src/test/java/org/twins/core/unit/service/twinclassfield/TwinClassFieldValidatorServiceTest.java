@@ -18,6 +18,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldvalidator.FieldValidator;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinclassfield.TwinClassFieldValidatorService;
 
@@ -44,6 +45,8 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
     @Mock
     private I18nService i18nService;
     @Mock
+    private TwinService twinService;
+    @Mock
     private FieldValidator fieldValidator;
 
     private TwinClassFieldValidatorService service;
@@ -53,7 +56,7 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() throws ServiceException {
-        service = new TwinClassFieldValidatorService(repository, featurerService, twinClassFieldService, i18nService);
+        service = new TwinClassFieldValidatorService(repository, featurerService, twinClassFieldService, i18nService, twinService);
         twinEntity = new TwinEntity();
         twinClassFieldEntity = new TwinClassFieldEntity().setId(UUID.randomUUID());
         fieldValue = new FieldValueText(twinClassFieldEntity).setValue("some value");

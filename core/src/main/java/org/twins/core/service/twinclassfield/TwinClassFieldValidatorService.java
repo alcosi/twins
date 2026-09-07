@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -29,7 +30,9 @@ import org.twins.core.domain.twinclass.TwinClassFieldValidatorUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldvalidator.FieldValidator;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -46,6 +49,8 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     private final I18nService i18nService;
+    @Lazy
+    private final TwinService twinService;
 
     @Override
     public CrudRepository<TwinClassFieldValidatorEntity, UUID> entityRepository() {
@@ -101,6 +106,8 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
     /**
      * Runs field validators in batch: groups items by {@code (featurerId, params)} and makes one
      * {@link FieldValidator#isValidBatch} call per group (preload once, then in-memory per item).
+     * After all groups, resolves {@link ValidationResult#message} once from collected
+     * {@code messageI18nId}s (single i18n bulk query for every failed item across groups).
      * Each item must already have {@code validatorEntity}, {@code twinEntity}, {@code value}, {@code contextFields};
      * results are written to {@link FieldValidateItem#getResult()}.
      */
@@ -117,6 +124,41 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
             FieldValidateBatch batch = new FieldValidateBatch().addAll(group.getItems());
             fieldValidator.isValidBatch(batch, group.getParams());
         }
+        fillErrorMessages(items);
+    }
+
+    /**
+     * Resolves {@link ValidationResult#message} from {@link ValidationResult#messageI18nId}
+     * via one {@link I18nService#translateToLocale(Set)} for the whole collection.
+     */
+    private void fillErrorMessages(List<FieldValidateItem> items) throws ServiceException {
+        Set<UUID> i18nIds = new HashSet<>();
+        for (FieldValidateItem item : items) {
+            ValidationResult result = item.getResult();
+            if (result == null || result.isValid() || StringUtils.isNotBlank(result.getMessage()))
+                continue;
+            if (result.getMessageI18nId() != null)
+                i18nIds.add(result.getMessageI18nId());
+        }
+        Map<UUID, String> translations = i18nIds.isEmpty()
+                ? Map.of()
+                : i18nService.translateToLocale(i18nIds);
+        for (FieldValidateItem item : items) {
+            ValidationResult result = item.getResult();
+            if (result == null || result.isValid() || StringUtils.isNotBlank(result.getMessage()))
+                continue;
+            result.setMessage(resolveErrorMessage(item, translations));
+        }
+    }
+
+    private String resolveErrorMessage(FieldValidateItem item, Map<UUID, String> translations) throws ServiceException {
+        ValidationResult result = item.getResult();
+        if (result.getMessageI18nId() != null) {
+            String message = translations.get(result.getMessageI18nId());
+            if (StringUtils.isNotBlank(message))
+                return message;
+        }
+        return twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, item.getValue().getTwinClassField());
     }
 
     /**

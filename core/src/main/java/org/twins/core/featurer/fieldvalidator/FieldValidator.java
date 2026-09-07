@@ -11,17 +11,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
 import org.twins.core.domain.twinclass.FieldValidateBatch;
 import org.twins.core.domain.twinclass.FieldValidateItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -32,6 +29,10 @@ import java.util.UUID;
  * {@link #extractProperties} runs once per group. Implementers extend
  * {@link FieldValidatorAtomic} (preload in {@code beforeValidate}, in-memory per item) or override
  * {@link #isValidBatch(FieldValidateBatch, Properties)} directly for query-result strategies.
+ * <p>
+ * On failure, {@link ValidationResult#messageI18nId} is attached from the validator config
+ * (no DB). Translations are resolved once for all groups by
+ * {@link org.twins.core.service.twinclassfield.TwinClassFieldValidatorService#validateFieldValues}.
  */
 @FeaturerType(id = FeaturerTwins.TYPE_56,
         name = "FieldValidator",
@@ -41,15 +42,12 @@ public abstract class FieldValidator extends FeaturerTwins {
 
     @Lazy
     @Autowired
-    protected I18nService i18nService;
-
-    @Lazy
-    @Autowired
     protected TwinService twinService;
 
     /**
      * Public batch entry — params exactly as stored on {@link TwinClassFieldValidatorEntity}.
-     * Extracts {@link Properties} once, then delegates.
+     * Extracts {@link Properties} once, then delegates. Attaches {@code messageI18nId} on
+     * failures; does not translate (caller bulk-resolves after all groups).
      */
     public void isValidBatch(FieldValidateBatch batch, HashMap<String, String> fieldValidatorParams) throws ServiceException {
         if (batch.isEmpty())
@@ -57,13 +55,14 @@ public abstract class FieldValidator extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, fieldValidatorParams != null ? fieldValidatorParams : new HashMap<>());
         log.info("Running field validator[{}] for {} item(s) with params: {}", this.getClass().getSimpleName(), batch.getItems().size(), properties);
         isValidBatch(batch, properties);
-        fillErrorMessages(batch);
+        attachMessageI18nIds(batch.getItems());
     }
 
     public abstract void isValidBatch(FieldValidateBatch batch, Properties properties) throws ServiceException;
 
     /**
-     * Single-item convenience for tests / non-batch callers. Extracts params and runs a one-item batch.
+     * Single-item convenience for tests / non-batch callers.
+     * Attaches {@code messageI18nId} on failure; does not resolve {@code message} (no i18n bulk here).
      */
     public ValidationResult isValid(TwinClassFieldValidatorEntity validatorEntity, TwinEntity twinEntity, FieldValue value, Map<UUID, FieldValue> contextFields) throws ServiceException {
         FieldValidateItem item = new FieldValidateItem()
@@ -77,44 +76,20 @@ public abstract class FieldValidator extends FeaturerTwins {
     }
 
     /**
-     * Resolves messages for failed items without a message yet.
-     * <p>
-     * Validation errors land in {@code invalidTwinFieldErrors} as plain strings on the exception,
-     * so translations must be resolved here. Bulk {@link I18nService#translateToLocale(Set)} —
-     * one query for the whole batch, not per-item {@code translateToLocale(UUID)}.
+     * Copies {@code beValidationErrorI18nId} onto failed results that have neither a ready
+     * {@code message} nor {@code messageI18nId}. No DB access.
      */
-    protected void fillErrorMessages(FieldValidateBatch batch) throws ServiceException {
-        Set<UUID> i18nIds = new HashSet<>();
-        for (FieldValidateItem item : batch.getItems()) {
+    protected void attachMessageI18nIds(Collection<FieldValidateItem> items) {
+        for (FieldValidateItem item : items) {
             ValidationResult result = item.getResult();
-            if (result == null || result.isValid() || StringUtils.isNotBlank(result.getMessage()))
+            if (result == null || result.isValid())
+                continue;
+            if (result.getMessageI18nId() != null || StringUtils.isNotBlank(result.getMessage()))
                 continue;
             UUID i18nId = item.getValidatorEntity().getBeValidationErrorI18nId();
             if (i18nId != null)
-                i18nIds.add(i18nId);
+                result.setMessageI18nId(i18nId);
         }
-        Map<UUID, String> translations = i18nIds.isEmpty()
-                ? Map.of()
-                : i18nService.translateToLocale(i18nIds);
-        for (FieldValidateItem item : batch.getItems()) {
-            ValidationResult result = item.getResult();
-            if (result == null || result.isValid() || StringUtils.isNotBlank(result.getMessage()))
-                continue;
-            result.setMessage(errorMessage(item.getValidatorEntity(), item.getValue(), translations));
-        }
-    }
-
-    /**
-     * Prefer the validator's configured i18n (from the preloaded {@code translations} map).
-     * Fallback: generic field-incorrect message.
-     */
-    protected String errorMessage(TwinClassFieldValidatorEntity validatorEntity, FieldValue value, Map<UUID, String> translations) throws ServiceException {
-        if (validatorEntity.getBeValidationErrorI18nId() != null) {
-            String message = translations.get(validatorEntity.getBeValidationErrorI18nId());
-            if (StringUtils.isNotBlank(message))
-                return message;
-        }
-        return twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField());
     }
 
     /**

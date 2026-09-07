@@ -178,6 +178,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                     new ValidationResult()
                             .setValid(!original.isValid())
                             .setMessage(original.getMessage())
+                            .setMessageI18nId(original.getMessageI18nId())
             );
         }
     }
