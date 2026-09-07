@@ -1,10 +1,10 @@
--- LVL-9372: configurable backend validators for twin class field values.
+-- TWINS-917: configurable backend validators for twin class field values.
 -- Validators are attached to a twin class field and executed during twin create/update field validation
 -- (FieldTyper.validate -> TwinService.validateFieldsOnCreate/OnUpdate), failures are reported
 -- via the existing invalidTwinFieldErrors mechanism.
 -- Featurer type 56 "FieldValidator":
 --   5601 "Date compare" — compares the field date with another date field of the same twin
---   5602 "Duration equals date diff" — duration == (end date - start date) in whole days
+--   5602 "Duration equals date diff" — duration == (end date - start date + 1) in whole days (inclusive)
 --   5603 "Date compare with parent" — compares the field date with a date field of the head twin
 -- Featurer stub: class/name/description are filled from @Featurer at app startup.
 

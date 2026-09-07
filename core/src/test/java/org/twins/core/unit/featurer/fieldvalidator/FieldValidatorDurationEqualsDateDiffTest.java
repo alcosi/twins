@@ -15,7 +15,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldvalidator.FieldValidatorDurationEqualsDateDiff;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
@@ -38,8 +37,6 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
     private FeaturerService featurerService;
     @Mock
     private TwinService twinService;
-    @Mock
-    private I18nService i18nService;
 
     private final UUID durationFieldId = UUID.randomUUID();
     private final UUID startFieldId = UUID.randomUUID();
@@ -54,7 +51,6 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
         validator = new FieldValidatorDurationEqualsDateDiff();
         validator.featurerService = featurerService;
         setField(validator, "twinService", twinService);
-        setField(validator, "i18nService", i18nService);
         lenient().when(featurerService.extractProperties(any(org.cambium.featurer.Featurer.class), any(HashMap.class))).thenAnswer(invocation -> {
             HashMap<String, String> params = invocation.getArgument(1);
             Properties properties = new Properties();
@@ -100,8 +96,9 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
     }
 
     @Test
-    void passesWhenDurationMatchesDayDiff() throws Exception {
-        var result = isValid(durationValue("9"), Map.of(
+    void passesWhenDurationMatchesInclusiveDayDiff() throws Exception {
+        // 2030-01-01 .. 2030-01-10 inclusive = 10 days
+        var result = isValid(durationValue("10"), Map.of(
                 startFieldId, dateValue(startFieldId, "2030-01-01"),
                 endFieldId, dateValue(endFieldId, "2030-01-10")));
         assertTrue(result.isValid());
@@ -109,7 +106,7 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
 
     @Test
     void failsWhenDurationDoesNotMatch() throws Exception {
-        var result = isValid(durationValue("5"), Map.of(
+        var result = isValid(durationValue("9"), Map.of(
                 startFieldId, dateValue(startFieldId, "2030-01-01"),
                 endFieldId, dateValue(endFieldId, "2030-01-10")));
         assertFalse(result.isValid());
@@ -130,8 +127,8 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
     }
 
     @Test
-    void passesOnEqualDatesWithZeroDuration() throws Exception {
-        var result = isValid(durationValue("0"), Map.of(
+    void passesOnEqualDatesWithOneDayDuration() throws Exception {
+        var result = isValid(durationValue("1"), Map.of(
                 startFieldId, dateValue(startFieldId, "2030-01-10"),
                 endFieldId, dateValue(endFieldId, "2030-01-10")));
         assertTrue(result.isValid());

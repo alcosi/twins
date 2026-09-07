@@ -22,6 +22,7 @@ import org.twins.core.service.EntitySearchService;
 import java.util.Locale;
 import java.util.UUID;
 
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.toSortSpecificationDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -53,6 +54,11 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
     }
 
     @Override
+    protected TwinClassFieldValidatorSortField defaultSortField() {
+        return TwinClassFieldValidatorSortField.twinClassFieldName;
+    }
+
+    @Override
     public Specification<TwinClassFieldValidatorEntity> createFilterSpecification(TwinClassFieldValidatorSearch search, UUID domainId, Locale locale) throws ServiceException {
         // Domain isolation via twin_class_field -> twin_class.domain_id (no domain_id on twin_class_field_validator).
         return Specification.allOf(
@@ -69,13 +75,15 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
     @Override
     public Specification<TwinClassFieldValidatorEntity> createSortSpecification(TwinClassFieldValidatorSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
         if (sortField == null)
-            sortField = TwinClassFieldValidatorSortField.twinClassFieldId;
+            sortField = defaultSortField();
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
-            case twinClassFieldId -> toSortSpecification(ascending, TwinClassFieldValidatorEntity.Fields.twinClassFieldId);
-            case fieldValidatorFeaturerId -> toSortSpecification(ascending, TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerId);
-            case twinClassFieldKey -> toSortSpecification(ascending, TwinClassFieldValidatorEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.key);
-            case fieldValidatorFeaturerName -> toSortSpecification(ascending, TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerSpecOnly, FeaturerEntity.Fields.name);
+            case twinClassFieldName -> toSortSpecificationDirect(ascending, locale,
+                    TwinClassFieldValidatorEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.nameI18nTranslationsSpecOnly);
+            case twinClassFieldKey -> toSortSpecification(ascending,
+                    TwinClassFieldValidatorEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.key);
+            case fieldValidatorFeaturerName -> toSortSpecification(ascending,
+                    TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerSpecOnly, FeaturerEntity.Fields.name);
         };
     }
 

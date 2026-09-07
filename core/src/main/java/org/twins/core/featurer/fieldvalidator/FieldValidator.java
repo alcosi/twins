@@ -14,7 +14,7 @@ import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.HashMap;
@@ -36,10 +36,6 @@ import java.util.UUID;
         description = "Backend validation of twin class field value")
 @Slf4j
 public abstract class FieldValidator extends FeaturerTwins {
-
-    @Lazy
-    @Autowired
-    protected I18nService i18nService;
 
     @Lazy
     @Autowired
@@ -78,12 +74,14 @@ public abstract class FieldValidator extends FeaturerTwins {
         return item.getResult() != null ? item.getResult() : ValidationResult.VALID;
     }
 
+    /**
+     * Prefer the validator's configured i18n via {@link I18nCacheHolder#addId(UUID)}
+     * (placeholder resolved in bulk on response write — same pattern as REST mappers).
+     * Fallback: generic field-incorrect message.
+     */
     protected String errorMessage(TwinClassFieldValidatorEntity validatorEntity, FieldValue value) throws ServiceException {
-        if (validatorEntity != null && validatorEntity.getBeValidationErrorI18nId() != null) {
-            String message = i18nService.translateToLocale(validatorEntity.getBeValidationErrorI18nId());
-            if (StringUtils.isNotBlank(message))
-                return message;
-        }
+        if (validatorEntity != null && validatorEntity.getBeValidationErrorI18nId() != null)
+            return I18nCacheHolder.addId(validatorEntity.getBeValidationErrorI18nId());
         return twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField());
     }
 

@@ -14,7 +14,6 @@ import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldvalidator.FieldValidatorDateCompareWithParent;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
@@ -39,8 +38,6 @@ class FieldValidatorDateCompareWithParentTest extends BaseUnitTest {
     private FeaturerService featurerService;
     @Mock
     private TwinService twinService;
-    @Mock
-    private I18nService i18nService;
 
     private final UUID thisFieldId = UUID.randomUUID();
     private final UUID parentFieldId = UUID.randomUUID();
@@ -55,7 +52,6 @@ class FieldValidatorDateCompareWithParentTest extends BaseUnitTest {
         validator = new FieldValidatorDateCompareWithParent();
         validator.featurerService = featurerService;
         setField(validator, "twinService", twinService);
-        setField(validator, "i18nService", i18nService);
         lenient().when(featurerService.extractProperties(any(org.cambium.featurer.Featurer.class), any(HashMap.class))).thenAnswer(invocation -> {
             HashMap<String, String> params = invocation.getArgument(1);
             Properties properties = new Properties();

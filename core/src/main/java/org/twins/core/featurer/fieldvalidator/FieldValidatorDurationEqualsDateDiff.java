@@ -21,14 +21,15 @@ import java.util.Properties;
 import java.util.UUID;
 
 /**
- * Checks that a duration field equals {@code (end date - start date)} in whole days when all three
- * are filled. Preloads twin field values once per batch; per-item check is in-memory.
+ * Checks that a duration field equals {@code (end date - start date + 1)} in whole days
+ * (inclusive day count) when all three are filled. Preloads twin field values once per batch;
+ * per-item check is in-memory.
  */
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_5602,
         name = "Duration equals date diff",
-        description = "Checks that a duration field equals (end date - start date) in whole days when all three values are filled")
+        description = "Checks that a duration field equals (end date - start date + 1) in whole days when all three values are filled")
 public class FieldValidatorDurationEqualsDateDiff extends FieldValidatorAtomic {
     @FeaturerParam(name = "Start date field", description = "uuid of the start date twin class field", order = 1)
     public static final FeaturerParamUUID startDateTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("startDateTwinClassFieldId");
@@ -78,7 +79,7 @@ public class FieldValidatorDurationEqualsDateDiff extends FieldValidatorAtomic {
             return new ValidationResult(false);
         }
 
-        long expectedDays = ChronoUnit.DAYS.between(startDate.getDate().toLocalDate(), endDate.getDate().toLocalDate());
+        long expectedDays = ChronoUnit.DAYS.between(startDate.getDate().toLocalDate(), endDate.getDate().toLocalDate()) + 1;
         boolean isValid = duration.compareTo(BigDecimal.valueOf(expectedDays)) == 0;
         return isValid ? ValidationResult.VALID : new ValidationResult(false);
     }

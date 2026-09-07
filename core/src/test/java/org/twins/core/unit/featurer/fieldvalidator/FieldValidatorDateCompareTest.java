@@ -15,7 +15,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldvalidator.FieldValidatorDateCompare;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
@@ -28,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
@@ -40,8 +38,6 @@ class FieldValidatorDateCompareTest extends BaseUnitTest {
     private FeaturerService featurerService;
     @Mock
     private TwinService twinService;
-    @Mock
-    private I18nService i18nService;
 
     private final UUID thisFieldId = UUID.randomUUID();
     private final UUID otherFieldId = UUID.randomUUID();
@@ -55,7 +51,6 @@ class FieldValidatorDateCompareTest extends BaseUnitTest {
         validator = new FieldValidatorDateCompare();
         validator.featurerService = featurerService;
         setField(validator, "twinService", twinService);
-        setField(validator, "i18nService", i18nService);
         lenient().when(featurerService.extractProperties(any(org.cambium.featurer.Featurer.class), any(HashMap.class))).thenAnswer(invocation -> {
             HashMap<String, String> params = invocation.getArgument(1);
             Properties properties = new Properties();
