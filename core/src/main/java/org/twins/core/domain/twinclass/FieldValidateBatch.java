@@ -19,6 +19,8 @@ public class FieldValidateBatch {
 
     public FieldValidateBatch add(FieldValidateItem item) {
         items.add(item);
+        // Lazy caches of derived views — must invalidate when items change,
+        // otherwise getTwins()/getHeadTwins() would return a stale projection.
         twins = null;
         headTwins = null;
         return this;

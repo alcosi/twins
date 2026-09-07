@@ -18,6 +18,11 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class FieldValidateItem {
     private TwinClassFieldValidatorEntity validatorEntity;
+    /**
+     * Twin under validation. Needed for batch preload ({@code FieldValidateBatch#getTwins}),
+     * DB field fallback via {@code fieldValuesKit}, and head access (compare-with-parent).
+     * Distinct from {@link #contextFields} (current create/update payload).
+     */
     private TwinEntity twinEntity;
     private FieldValue value;
     /** Payload fields of the current create/update — win over DB values during cross-field checks. */

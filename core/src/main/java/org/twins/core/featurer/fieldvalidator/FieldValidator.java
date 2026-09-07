@@ -14,12 +14,14 @@ import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.holder.I18nCacheHolder;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -39,6 +41,10 @@ public abstract class FieldValidator extends FeaturerTwins {
 
     @Lazy
     @Autowired
+    protected I18nService i18nService;
+
+    @Lazy
+    @Autowired
     protected TwinService twinService;
 
     /**
@@ -51,11 +57,7 @@ public abstract class FieldValidator extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, fieldValidatorParams != null ? fieldValidatorParams : new HashMap<>());
         log.info("Running field validator[{}] for {} item(s) with params: {}", this.getClass().getSimpleName(), batch.getItems().size(), properties);
         isValidBatch(batch, properties);
-        for (FieldValidateItem item : batch.getItems()) {
-            ValidationResult result = item.getResult();
-            if (result != null && !result.isValid() && StringUtils.isBlank(result.getMessage()))
-                result.setMessage(errorMessage(item.getValidatorEntity(), item.getValue()));
-        }
+        fillErrorMessages(batch);
     }
 
     public abstract void isValidBatch(FieldValidateBatch batch, Properties properties) throws ServiceException;
@@ -75,13 +77,43 @@ public abstract class FieldValidator extends FeaturerTwins {
     }
 
     /**
-     * Prefer the validator's configured i18n via {@link I18nCacheHolder#addId(UUID)}
-     * (placeholder resolved in bulk on response write — same pattern as REST mappers).
+     * Resolves messages for failed items without a message yet.
+     * <p>
+     * Validation errors land in {@code invalidTwinFieldErrors} as plain strings on the exception,
+     * so translations must be resolved here. Bulk {@link I18nService#translateToLocale(Set)} —
+     * one query for the whole batch, not per-item {@code translateToLocale(UUID)}.
+     */
+    protected void fillErrorMessages(FieldValidateBatch batch) throws ServiceException {
+        Set<UUID> i18nIds = new HashSet<>();
+        for (FieldValidateItem item : batch.getItems()) {
+            ValidationResult result = item.getResult();
+            if (result == null || result.isValid() || StringUtils.isNotBlank(result.getMessage()))
+                continue;
+            UUID i18nId = item.getValidatorEntity().getBeValidationErrorI18nId();
+            if (i18nId != null)
+                i18nIds.add(i18nId);
+        }
+        Map<UUID, String> translations = i18nIds.isEmpty()
+                ? Map.of()
+                : i18nService.translateToLocale(i18nIds);
+        for (FieldValidateItem item : batch.getItems()) {
+            ValidationResult result = item.getResult();
+            if (result == null || result.isValid() || StringUtils.isNotBlank(result.getMessage()))
+                continue;
+            result.setMessage(errorMessage(item.getValidatorEntity(), item.getValue(), translations));
+        }
+    }
+
+    /**
+     * Prefer the validator's configured i18n (from the preloaded {@code translations} map).
      * Fallback: generic field-incorrect message.
      */
-    protected String errorMessage(TwinClassFieldValidatorEntity validatorEntity, FieldValue value) throws ServiceException {
-        if (validatorEntity != null && validatorEntity.getBeValidationErrorI18nId() != null)
-            return I18nCacheHolder.addId(validatorEntity.getBeValidationErrorI18nId());
+    protected String errorMessage(TwinClassFieldValidatorEntity validatorEntity, FieldValue value, Map<UUID, String> translations) throws ServiceException {
+        if (validatorEntity.getBeValidationErrorI18nId() != null) {
+            String message = translations.get(validatorEntity.getBeValidationErrorI18nId());
+            if (StringUtils.isNotBlank(message))
+                return message;
+        }
         return twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField());
     }
 
