@@ -10,6 +10,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -21,6 +22,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorRepository;
+import org.twins.core.domain.twinclass.FieldValidateBatch;
+import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.domain.twinclass.TwinClassFieldValidatorCreate;
 import org.twins.core.domain.twinclass.TwinClassFieldValidatorUpdate;
 import org.twins.core.enums.i18n.I18nType;
@@ -75,23 +78,63 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
     /**
      * Runs the backend field validators attached to the twin class field ({@code twin_class_field_validator} table).
      * Meant to be called after the field typer's own validation has passed.
+     * Single-field convenience over {@link #validateFieldValues(List)}.
      *
      * @param contextFields fields from the current create/update payload — payload values win over db values
      *                      during cross-field validation, see {@link FieldValidator#resolveFieldValue}
      */
     public ValidationResult validateFieldValue(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, FieldValue fieldValue, Map<UUID, FieldValue> contextFields) throws ServiceException {
-        Kit<TwinClassFieldValidatorEntity, UUID> fieldValidatorKit = twinClassFieldEntity.getFieldValidatorKit();
-        if (fieldValidatorKit == null) // validators are not loaded for this field — skip silently
+        List<FieldValidateItem> items = collectItems(twinEntity, twinClassFieldEntity, fieldValue, contextFields);
+        if (items.isEmpty())
             return ValidationResult.VALID;
-        for (TwinClassFieldValidatorEntity validatorEntity : fieldValidatorKit.getCollection()) {
-            FieldValidator fieldValidator = featurerService.getFeaturer(validatorEntity.getFieldValidatorFeaturerId(), FieldValidator.class);
-            ValidationResult validationResult = fieldValidator.isValid(validatorEntity, twinEntity, fieldValue, contextFields);
-            if (!validationResult.isValid()) {
-                log.error("{} value failed {}", twinClassFieldEntity.logNormal(), validatorEntity.logNormal());
+        validateFieldValues(items);
+        for (FieldValidateItem item : items) {
+            ValidationResult validationResult = item.getResult();
+            if (validationResult != null && !validationResult.isValid()) {
+                log.error("{} value failed {}", twinClassFieldEntity.logNormal(), item.getValidatorEntity().logShort());
                 return validationResult;
             }
         }
         return ValidationResult.VALID;
+    }
+
+    /**
+     * Runs field validators in batch: groups items by {@code (featurerId, params)} and makes one
+     * {@link FieldValidator#isValidBatch} call per group (preload once, then in-memory per item).
+     * Each item must already have {@code validatorEntity}, {@code twinEntity}, {@code value}, {@code contextFields};
+     * results are written to {@link FieldValidateItem#getResult()}.
+     */
+    public void validateFieldValues(List<FieldValidateItem> items) throws ServiceException {
+        if (items == null || items.isEmpty())
+            return;
+        for (FeaturerGroup<FieldValidateItem> group : FeaturerGroup.groupByFeaturerParams(
+                items,
+                item -> item.getValidatorEntity().getFieldValidatorFeaturerId(),
+                item -> item.getValidatorEntity().getFieldValidatorParams() != null
+                        ? item.getValidatorEntity().getFieldValidatorParams()
+                        : new HashMap<>())) {
+            FieldValidator fieldValidator = featurerService.getFeaturer(group.getFeaturerId(), FieldValidator.class);
+            FieldValidateBatch batch = new FieldValidateBatch().addAll(group.getItems());
+            fieldValidator.isValidBatch(batch, group.getParams());
+        }
+    }
+
+    /**
+     * Builds {@link FieldValidateItem}s for every validator attached to the field (empty if kit is unloaded/empty).
+     */
+    public List<FieldValidateItem> collectItems(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, FieldValue fieldValue, Map<UUID, FieldValue> contextFields) {
+        Kit<TwinClassFieldValidatorEntity, UUID> fieldValidatorKit = twinClassFieldEntity.getFieldValidatorKit();
+        if (fieldValidatorKit == null || fieldValidatorKit.isEmpty())
+            return Collections.emptyList();
+        List<FieldValidateItem> items = new ArrayList<>(fieldValidatorKit.size());
+        for (TwinClassFieldValidatorEntity validatorEntity : fieldValidatorKit.getCollection()) {
+            items.add(new FieldValidateItem()
+                    .setValidatorEntity(validatorEntity)
+                    .setTwinEntity(twinEntity)
+                    .setValue(fieldValue)
+                    .setContextFields(contextFields));
+        }
+        return items;
     }
 
     @Transactional(rollbackFor = Throwable.class)

@@ -27,6 +27,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.lenient;
 
 class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
@@ -62,11 +63,14 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
         });
         lenient().when(twinService.getErrorMessage(any(), any())).thenReturn("value is incorrect");
         lenient().doAnswer(invocation -> {
-            TwinEntity twin = invocation.getArgument(0);
-            if (twin.getFieldValuesKit() == null)
-                twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
+            @SuppressWarnings("unchecked")
+            java.util.Collection<TwinEntity> twins = invocation.getArgument(0);
+            for (TwinEntity twin : twins) {
+                if (twin.getFieldValuesKit() == null)
+                    twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
+            }
             return null;
-        }).when(twinService).loadFieldsValues(any(TwinEntity.class));
+        }).when(twinService).loadFieldsValues(anyCollection());
 
         twinEntity = new TwinEntity();
         twinEntity.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));

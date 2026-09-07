@@ -12,6 +12,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorRepository;
+import org.twins.core.domain.twinclass.FieldValidateBatch;
+import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.fieldvalidator.FieldValidator;
@@ -19,6 +21,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinclassfield.TwinClassFieldValidatorService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -27,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
 
@@ -55,7 +58,12 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
         twinClassFieldEntity = new TwinClassFieldEntity().setId(UUID.randomUUID());
         fieldValue = new FieldValueText(twinClassFieldEntity).setValue("some value");
         lenient().when(featurerService.getFeaturer(any(Integer.class), eq(FieldValidator.class))).thenReturn(fieldValidator);
-        lenient().when(fieldValidator.isValid(any(TwinClassFieldValidatorEntity.class), any(TwinEntity.class), any(FieldValue.class), any())).thenReturn(ValidationResult.VALID);
+        lenient().doAnswer(invocation -> {
+            FieldValidateBatch batch = invocation.getArgument(0);
+            for (FieldValidateItem item : batch.getItems())
+                item.setResult(ValidationResult.VALID);
+            return null;
+        }).when(fieldValidator).isValidBatch(any(FieldValidateBatch.class), any(HashMap.class));
     }
 
     @Test
@@ -80,8 +88,12 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
 
     @Test
     void validatorFails_returnsItsResult() throws Exception {
-        ValidationResult invalid = new ValidationResult(false, "value is incorrect");
-        when(fieldValidator.isValid(any(TwinClassFieldValidatorEntity.class), any(TwinEntity.class), any(FieldValue.class), any())).thenReturn(invalid);
+        doAnswer(invocation -> {
+            FieldValidateBatch batch = invocation.getArgument(0);
+            for (FieldValidateItem item : batch.getItems())
+                item.setResult(new ValidationResult(false, "value is incorrect"));
+            return null;
+        }).when(fieldValidator).isValidBatch(any(FieldValidateBatch.class), any(HashMap.class));
         twinClassFieldEntity.setFieldValidatorKit(new Kit<>(List.of(validatorEntity()), TwinClassFieldValidatorEntity::getId));
         var result = service.validateFieldValue(twinEntity, twinClassFieldEntity, fieldValue, Map.of());
         assertFalse(result.isValid());
@@ -92,6 +104,7 @@ class TwinClassFieldValidatorServiceTest extends BaseUnitTest {
         return new TwinClassFieldValidatorEntity()
                 .setId(UUID.randomUUID())
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
-                .setFieldValidatorFeaturerId(5601);
+                .setFieldValidatorFeaturerId(5601)
+                .setFieldValidatorParams(new HashMap<>());
     }
 }

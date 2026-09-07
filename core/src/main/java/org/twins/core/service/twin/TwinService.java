@@ -38,6 +38,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.domain.*;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.domain.twinoperation.*;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.action.TwinClassFieldAction;
@@ -2232,6 +2233,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinClassFieldService.loadFieldValidators(twinEntity.getTwinClass().getTwinClassFieldKit().getCollection());
         twinFieldRuleExecutionService.applyRules(twinCreate.getFields().values(), twinEntity);
         Map<UUID, String> invalidFieldIds = new HashMap<>();
+        List<FieldValidateItem> fieldValidatorItems = new ArrayList<>();
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             var fieldValue = getFieldValueSafe(fields, twinClassFieldEntity);
             boolean isMissed = fieldValue == null || fieldValue.isEmpty();
@@ -2251,13 +2253,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             } else if (fieldValue != null && fieldValue.isDefined()) {
                 FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
                 var validationResult = fieldTyper.validate(twinEntity, fieldValue);
-                if (validationResult.isValid()) // extra field validators run only when the typer's own validation passed
-                    validationResult = twinClassFieldValidatorService.validateFieldValue(twinEntity, twinClassFieldEntity, fieldValue, fields);
                 if (!validationResult.isValid()) {
                     invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
+                } else {
+                    fieldValidatorItems.addAll(twinClassFieldValidatorService.collectItems(twinEntity, twinClassFieldEntity, fieldValue, fields));
                 }
             }
         }
+        collectFieldValidatorFailures(fieldValidatorItems, invalidFieldIds);
         if (!invalidFieldIds.isEmpty()) {
             throw new TwinFieldValidationException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, twinEntity.getId(), invalidFieldIds);
         }
@@ -2270,6 +2273,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         twinClassFieldService.loadFieldValidators(twinEntity.getTwinClass().getTwinClassFieldKit().getCollection());
         Map<UUID, String> invalidFieldIds = new HashMap<>();
+        List<FieldValidateItem> fieldValidatorItems = new ArrayList<>();
         for (var entry : fields.entrySet()) {
             var twinClassFieldEntity = twinEntity.getTwinClass().getTwinClassFieldKit().get(entry.getKey());
             if (twinClassFieldEntity == null) {
@@ -2282,14 +2286,29 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             // the required flag will be checked in the fieldTyper
             FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
             var validationResult = fieldTyper.validate(twinEntity, fieldValue);
-            if (validationResult.isValid()) // extra field validators run only when the typer's own validation passed
-                validationResult = twinClassFieldValidatorService.validateFieldValue(twinEntity, twinClassFieldEntity, fieldValue, fields);
             if (!validationResult.isValid()) {
                 invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
+            } else {
+                fieldValidatorItems.addAll(twinClassFieldValidatorService.collectItems(twinEntity, twinClassFieldEntity, fieldValue, fields));
             }
         }
+        collectFieldValidatorFailures(fieldValidatorItems, invalidFieldIds);
         if (!invalidFieldIds.isEmpty()) {
             throw new TwinFieldValidationException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, twinEntity.getId(), invalidFieldIds);
+        }
+    }
+
+    private void collectFieldValidatorFailures(List<FieldValidateItem> fieldValidatorItems, Map<UUID, String> invalidFieldIds) throws ServiceException {
+        if (fieldValidatorItems.isEmpty())
+            return;
+        twinClassFieldValidatorService.validateFieldValues(fieldValidatorItems);
+        for (FieldValidateItem item : fieldValidatorItems) {
+            var result = item.getResult();
+            if (result == null || result.isValid())
+                continue;
+            UUID fieldId = item.getValue().getTwinClassField().getId();
+            invalidFieldIds.putIfAbsent(fieldId, result.getMessage());
+            log.error("{} value failed {}", item.getValue().getTwinClassField().logNormal(), item.getValidatorEntity().logShort());
         }
     }
 

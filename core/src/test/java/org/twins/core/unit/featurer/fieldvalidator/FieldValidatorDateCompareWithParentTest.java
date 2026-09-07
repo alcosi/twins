@@ -26,8 +26,10 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 class FieldValidatorDateCompareWithParentTest extends BaseUnitTest {
 
@@ -64,16 +66,26 @@ class FieldValidatorDateCompareWithParentTest extends BaseUnitTest {
         });
         lenient().when(twinService.getErrorMessage(any(), any())).thenReturn("value is incorrect");
         lenient().doAnswer(invocation -> {
-            TwinEntity twin = invocation.getArgument(0);
-            if (twin.getFieldValuesKit() == null)
-                twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
+            @SuppressWarnings("unchecked")
+            java.util.Collection<TwinEntity> twins = invocation.getArgument(0);
+            for (TwinEntity twin : twins) {
+                twin.setHeadTwin(headTwin);
+            }
             return null;
-        }).when(twinService).loadFieldsValues(any(TwinEntity.class));
+        }).when(twinService).loadHead(anyCollection());
+        lenient().doAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            java.util.Collection<TwinEntity> twins = invocation.getArgument(0);
+            for (TwinEntity twin : twins) {
+                if (twin.getFieldValuesKit() == null)
+                    twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
+            }
+            return null;
+        }).when(twinService).loadFieldsValues(anyCollection());
 
-        twinEntity = new TwinEntity();
-        headTwin = new TwinEntity();
+        twinEntity = new TwinEntity().setId(UUID.randomUUID());
+        headTwin = new TwinEntity().setId(UUID.randomUUID());
         headTwin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
-        when(twinService.loadHead(twinEntity)).thenReturn(headTwin);
 
         validatorEntity = new TwinClassFieldValidatorEntity()
                 .setTwinClassFieldId(thisFieldId)
@@ -103,6 +115,8 @@ class FieldValidatorDateCompareWithParentTest extends BaseUnitTest {
     void lt_passesWhenBeforeParent() throws Exception {
         headTwin.getFieldValuesKit().add(dateValue(parentFieldId, "2030-01-10"));
         assertTrue(isValid(dateValue("2030-01-01")).isValid());
+        verify(twinService).loadHead(anyCollection());
+        verify(twinService).loadFieldsValues(anyCollection());
     }
 
     @Test
@@ -119,7 +133,7 @@ class FieldValidatorDateCompareWithParentTest extends BaseUnitTest {
 
     @Test
     void passesWhenNoHead() throws Exception {
-        when(twinService.loadHead(twinEntity)).thenReturn(null);
+        doAnswer(invocation -> null).when(twinService).loadHead(anyCollection());
         assertTrue(isValid(dateValue("2030-01-01")).isValid());
     }
 

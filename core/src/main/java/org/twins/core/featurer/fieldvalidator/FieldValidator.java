@@ -9,16 +9,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
+import org.twins.core.domain.twinclass.FieldValidateBatch;
+import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+/**
+ * Backend field-value validators ({@code twin_class_field_validator}).
+ * <p>
+ * Batch-first contract: the public entry takes raw config params ({@link HashMap}) and a
+ * {@link FieldValidateBatch} of items sharing the same {@code (featurerId, params)};
+ * {@link #extractProperties} runs once per group. Implementers extend
+ * {@link FieldValidatorAtomic} (preload in {@code beforeValidate}, in-memory per item) or override
+ * {@link #isValidBatch(FieldValidateBatch, Properties)} directly for query-result strategies.
+ */
 @FeaturerType(id = FeaturerTwins.TYPE_56,
         name = "FieldValidator",
         description = "Backend validation of twin class field value")
@@ -33,21 +45,41 @@ public abstract class FieldValidator extends FeaturerTwins {
     @Autowired
     protected TwinService twinService;
 
-    public ValidationResult isValid(TwinClassFieldValidatorEntity validatorEntity, TwinEntity twinEntity, FieldValue value, Map<UUID, FieldValue> contextFields) throws ServiceException {
-        if (value.isEmpty()) // validators are applied only to filled values
-            return ValidationResult.VALID;
-        Properties properties = featurerService.extractProperties(this, validatorEntity.getFieldValidatorParams());
-        log.info("Running field validator[{}] for {} with params: {}", this.getClass().getSimpleName(), value.getTwinClassField().logNormal(), properties);
-        ValidationResult validationResult = isValid(properties, twinEntity, value, contextFields);
-        if (!validationResult.isValid() && StringUtils.isBlank(validationResult.getMessage()))
-            validationResult.setMessage(errorMessage(validatorEntity, value));
-        return validationResult;
+    /**
+     * Public batch entry — params exactly as stored on {@link TwinClassFieldValidatorEntity}.
+     * Extracts {@link Properties} once, then delegates.
+     */
+    public void isValidBatch(FieldValidateBatch batch, HashMap<String, String> fieldValidatorParams) throws ServiceException {
+        if (batch.isEmpty())
+            return;
+        Properties properties = featurerService.extractProperties(this, fieldValidatorParams != null ? fieldValidatorParams : new HashMap<>());
+        log.info("Running field validator[{}] for {} item(s) with params: {}", this.getClass().getSimpleName(), batch.getItems().size(), properties);
+        isValidBatch(batch, properties);
+        for (FieldValidateItem item : batch.getItems()) {
+            ValidationResult result = item.getResult();
+            if (result != null && !result.isValid() && StringUtils.isBlank(result.getMessage()))
+                result.setMessage(errorMessage(item.getValidatorEntity(), item.getValue()));
+        }
     }
 
-    protected abstract ValidationResult isValid(Properties properties, TwinEntity twinEntity, FieldValue value, Map<UUID, FieldValue> contextFields) throws ServiceException;
+    public abstract void isValidBatch(FieldValidateBatch batch, Properties properties) throws ServiceException;
+
+    /**
+     * Single-item convenience for tests / non-batch callers. Extracts params and runs a one-item batch.
+     */
+    public ValidationResult isValid(TwinClassFieldValidatorEntity validatorEntity, TwinEntity twinEntity, FieldValue value, Map<UUID, FieldValue> contextFields) throws ServiceException {
+        FieldValidateItem item = new FieldValidateItem()
+                .setValidatorEntity(validatorEntity)
+                .setTwinEntity(twinEntity)
+                .setValue(value)
+                .setContextFields(contextFields);
+        FieldValidateBatch batch = new FieldValidateBatch().add(item);
+        isValidBatch(batch, validatorEntity.getFieldValidatorParams());
+        return item.getResult() != null ? item.getResult() : ValidationResult.VALID;
+    }
 
     protected String errorMessage(TwinClassFieldValidatorEntity validatorEntity, FieldValue value) throws ServiceException {
-        if (validatorEntity.getBeValidationErrorI18nId() != null) {
+        if (validatorEntity != null && validatorEntity.getBeValidationErrorI18nId() != null) {
             String message = i18nService.translateToLocale(validatorEntity.getBeValidationErrorI18nId());
             if (StringUtils.isNotBlank(message))
                 return message;
@@ -56,16 +88,18 @@ public abstract class FieldValidator extends FeaturerTwins {
     }
 
     /**
-     * Resolves the value of another twin class field for cross-field validation.
-     * The payload value wins: an explicitly empty value in the payload means there is nothing to compare yet.
-     * Otherwise, the value is loaded from the database (idempotent).
+     * Resolves another twin class field value for cross-field validation.
+     * Payload wins; an explicitly empty payload value means there is nothing to compare yet.
+     * DB fallback reads {@link TwinEntity#getFieldValuesKit()} — must already be preloaded
+     * in {@code beforeValidate} (no DB access here).
      */
-    protected FieldValue resolveFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> contextFields, UUID twinClassFieldId) throws ServiceException {
+    protected FieldValue resolveFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> contextFields, UUID twinClassFieldId) {
         if (contextFields != null && contextFields.containsKey(twinClassFieldId)) {
             FieldValue fieldValue = contextFields.get(twinClassFieldId);
             return fieldValue == null || fieldValue.isEmpty() ? null : fieldValue;
         }
-        twinService.loadFieldsValues(twinEntity);
+        if (twinEntity.getFieldValuesKit() == null)
+            return null;
         return twinEntity.getFieldValuesKit().get(twinClassFieldId);
     }
 }

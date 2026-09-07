@@ -8,6 +8,8 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.twinclass.FieldValidateBatch;
+import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.enums.twinclass.FieldValidatorCompareOperator;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -16,16 +18,19 @@ import org.twins.core.featurer.params.FeaturerParamStringTwinsFieldValidatorComp
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+/**
+ * Compares this field's date with a date field of the head (parent) twin.
+ * Preloads heads and their field values once per batch; per-item compare is in-memory.
+ */
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_5603,
         name = "Date compare with parent",
         description = "Compares this field's date value with a date field of the head (parent) twin")
-public class FieldValidatorDateCompareWithParent extends FieldValidator {
+public class FieldValidatorDateCompareWithParent extends FieldValidatorAtomic {
     @FeaturerParam(name = "Parent twin class field to compare with", description = "uuid of the date twin class field on the head twin", order = 1)
     public static final FeaturerParamUUID parentTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("parentTwinClassFieldId");
 
@@ -33,15 +38,22 @@ public class FieldValidatorDateCompareWithParent extends FieldValidator {
     public static final FeaturerParamStringTwinsFieldValidatorCompareOperatorType compareOperator = new FeaturerParamStringTwinsFieldValidatorCompareOperatorType("compareOperator");
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, FieldValue value, Map<UUID, FieldValue> contextFields) throws ServiceException {
+    protected void beforeValidate(FieldValidateBatch batch, Properties properties) throws ServiceException {
+        twinService.loadHead(batch.getTwins());
+        batch.invalidateHeadTwinsCache();
+        twinService.loadFieldsValues(batch.getHeadTwins());
+    }
+
+    @Override
+    protected ValidationResult isValid(Properties properties, FieldValidateItem item) {
         UUID parentFieldId = parentTwinClassFieldId.extract(properties);
         FieldValidatorCompareOperator operator = compareOperator.extract(properties);
+        FieldValue value = item.getValue();
 
-        TwinEntity headTwin = twinService.loadHead(twinEntity);
+        TwinEntity headTwin = item.getTwinEntity().getHeadTwin();
         if (headTwin == null)
             return ValidationResult.VALID; // no parent — nothing to compare
 
-        twinService.loadFieldsValues(headTwin);
         FieldValue parentValue = headTwin.getFieldValuesKit() == null ? null : headTwin.getFieldValuesKit().get(parentFieldId);
         if (parentValue == null || parentValue.isEmpty())
             return ValidationResult.VALID; // parent field is not filled — skip
