@@ -29,7 +29,7 @@ public class TwinLinkViewDTOv1 {
     public UUID dstTwinId;
 
     @Schema(description = "Relation twin id", example = DTOExamples.TWIN_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "relationTwinId")
+    @RelatedObject(type = TwinDTOv2.class, name = "relationTwin")
     public UUID relationTwinId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
