@@ -1,0 +1,31 @@
+package org.twins.core.domain.twinclass;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.cambium.common.ValidationResult;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * One field-validator invocation unit for {@link org.twins.core.featurer.fieldvalidator.FieldValidator}
+ * batch processing. The caller owns the list; the featurer writes {@link #result}.
+ */
+@Data
+@Accessors(chain = true)
+public class FieldValidateItem {
+    private TwinClassFieldValidatorEntity validatorEntity;
+    /**
+     * Twin under validation. Needed for batch preload ({@code FieldValidateBatch#getTwins}),
+     * DB field fallback via {@code fieldValuesKit}, and head access (compare-with-parent).
+     * Distinct from {@link #contextFields} (current create/update payload).
+     */
+    private TwinEntity twinEntity;
+    private FieldValue value;
+    /** Payload fields of the current create/update — win over DB values during cross-field checks. */
+    private Map<UUID, FieldValue> contextFields;
+    private ValidationResult result;
+}
