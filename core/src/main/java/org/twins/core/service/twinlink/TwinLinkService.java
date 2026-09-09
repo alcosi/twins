@@ -521,7 +521,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
         if (linkEntity.getLinkerFeaturerId() != null) {
             Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
-            linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), twinEntity, basicSearch);
+            linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), linkEntity, true, twinEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
     }
@@ -560,6 +560,14 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public Set<UUID> findDstTwinIdsByLinkId(@NonNull UUID linkId) {
         return twinLinkRepository.findDstTwinIdsByLinkId(linkId);
+    }
+
+    public boolean existsSrcTwinIdsByLinkId( @NonNull UUID srcTwinId, @NonNull UUID linkId) {
+        return twinLinkRepository.existsBySrcTwinIdAndLinkId(srcTwinId, linkId);
+    }
+
+    public boolean existsDstTwinIdsByLinkId( @NonNull UUID dstTwinId, @NonNull UUID linkId) {
+        return twinLinkRepository.existsByDstTwinIdAndLinkId(dstTwinId, linkId);
     }
 
     public Map<UUID, Integer> countBackwardLinks(Collection<UUID> dstTwinIdList, UUID linkId) {

@@ -14,17 +14,20 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_3001,
-        name = "Impl",
+@Featurer(id = FeaturerTwins.ID_3003,
+        name = "By head",
         description = "")
-public class LinkerImpl extends Linker {
-    @Override
-    protected void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException {
+public class LinkerByHead extends Linker {
 
+    @Override
+    protected void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+        basicSearch
+                .addHeadTwinId(twinEntity.getId());
     }
 
     @Override
     public void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) {
-
+        basicSearch
+                .addHeadTwinId(twinEntity.getId());
     }
 }

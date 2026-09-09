@@ -104,6 +104,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_NAME_IS_NOT_UNIQUE(10906, "This name is already in use", HttpStatus.CONFLICT),
     TWIN_FIELD_ACCESS_DENIED(10907, "twin field access denied", HttpStatus.FORBIDDEN),
     TWIN_FIELD_CALCULATED_VALUE_CONFLICT(10908, "twin field has a value both as stored and as calculated — single source of truth violation"),
+    TWIN_LINK_CONFLICTED(10909, "link could not be created because there is a conflicting link"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),

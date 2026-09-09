@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -34,7 +35,7 @@ public class LinkerByStatus extends Linker {
     }
 
     @Override
-    public void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, BasicSearch basicSearch) {
+    public void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) {
         basicSearch
                 .addStatusId(statusIds.extract(properties), excludeStatusInput.extract(properties));
     }

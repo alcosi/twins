@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -41,6 +42,8 @@ class LinkerImplTest extends BaseUnitTest {
 
             linker.expandValidLinkedTwinSearch(
                     new Properties(),
+                    new LinkEntity(),
+                    true,
                     new TwinEntity(),
                     search
             );

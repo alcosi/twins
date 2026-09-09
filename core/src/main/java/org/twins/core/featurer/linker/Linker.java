@@ -3,6 +3,7 @@ package org.twins.core.featurer.linker;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -24,11 +25,11 @@ public abstract class Linker extends FeaturerTwins {
 
     protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException;
 
-    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
-        expandValidLinkedTwinSearch(properties, twinEntity, basicSearch);
+        expandValidLinkedTwinSearch(properties, linkEntity, forwardElseBackward, twinEntity, basicSearch);
     }
 
-    public abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, BasicSearch basicSearch);
+    public abstract void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException;
 }

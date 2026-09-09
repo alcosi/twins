@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -84,6 +85,8 @@ class LinkerByStatusTest extends BaseUnitTest {
 
             linker.expandValidLinkedTwinSearch(
                     props(statusId1 + "," + statusId2, false),
+                    new LinkEntity(),
+                    true,
                     new TwinEntity(),
                     search
             );
@@ -100,6 +103,8 @@ class LinkerByStatusTest extends BaseUnitTest {
 
             linker.expandValidLinkedTwinSearch(
                     props(statusId1 + "," + statusId2, true),
+                    new LinkEntity(),
+                    true,
                     new TwinEntity(),
                     search
             );
