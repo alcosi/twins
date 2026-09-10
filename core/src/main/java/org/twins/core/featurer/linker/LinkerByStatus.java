@@ -35,7 +35,7 @@ public class LinkerByStatus extends Linker {
     }
 
     @Override
-    public void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) {
+    public void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch, boolean throwOrEmpty) {
         basicSearch
                 .addStatusId(statusIds.extract(properties), excludeStatusInput.extract(properties));
     }

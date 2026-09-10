@@ -88,7 +88,8 @@ class LinkerByStatusTest extends BaseUnitTest {
                     new LinkEntity(),
                     true,
                     new TwinEntity(),
-                    search
+                    search,
+                    false
             );
 
             assertNull(search.getStatusIdExcludeList());
@@ -106,7 +107,8 @@ class LinkerByStatusTest extends BaseUnitTest {
                     new LinkEntity(),
                     true,
                     new TwinEntity(),
-                    search
+                    search,
+                    false
             );
 
             assertNull(search.getStatusIdList());

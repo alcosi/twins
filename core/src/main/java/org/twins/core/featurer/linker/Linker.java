@@ -28,8 +28,16 @@ public abstract class Linker extends FeaturerTwins {
     public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
-        expandValidLinkedTwinSearch(properties, linkEntity, forwardElseBackward, twinEntity, basicSearch);
+
+        expandValidLinkedTwinSearch(properties, linkEntity, forwardElseBackward, twinEntity, basicSearch, false);
     }
 
-    public abstract void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException;
+    public void validateLink(HashMap<String, String> linkerParams, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, linkerParams);
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "].validateLink with params: " + properties.toString());
+
+        expandValidLinkedTwinSearch(properties, linkEntity, forwardElseBackward, twinEntity, basicSearch, true);
+    }
+
+    public abstract void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch, boolean throwOrEmpty) throws ServiceException;
 }

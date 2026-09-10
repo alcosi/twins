@@ -45,7 +45,8 @@ class LinkerImplTest extends BaseUnitTest {
                     new LinkEntity(),
                     true,
                     new TwinEntity(),
-                    search
+                    search,
+                    false
             );
 
             assertNull(search.getStatusIdList());

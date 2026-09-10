@@ -8,6 +8,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
@@ -20,14 +21,16 @@ import java.util.Properties;
 public class LinkerByHead extends Linker {
 
     @Override
-    protected void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+    protected void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException {
+        if (headTwinEntity == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "headTwinId is required for this link (LinkerByHead)");
         basicSearch
-                .addHeadTwinId(twinEntity.getId());
+                .addHeadTwinId(headTwinEntity.getId());
     }
 
     @Override
-    public void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) {
+    public void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch, boolean throwOrEmpty) {
         basicSearch
-                .addHeadTwinId(twinEntity.getId());
+                .addHeadTwinId(twinEntity.getHeadTwinId());
     }
 }
