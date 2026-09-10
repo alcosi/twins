@@ -43,7 +43,7 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
 
     boolean existsBySrcTwinIdAndLinkId(UUID srcTwinId, UUID linkId);
 
-    boolean existsByDstTwinIdAndLinkId(UUID srcTwinId, UUID linkId);
+    boolean existsByDstTwinIdAndLinkId(UUID dstTwinId, UUID linkId);
 
     <T> T findBySrcTwinIdAndDstTwinIdAndLinkId(UUID srcTwinId, UUID dstTwinId, UUID linkId, Class<T> type);
 
