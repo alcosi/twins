@@ -30,7 +30,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = TwinLinkMode.class)
 public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkDTOv1> {
 
-    @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
+    @MapperModePointerBinding(modes = {TwinMode.TwinLink2TwinMode.class, RelationTwinMode.TwinByLinkMode.class})
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
