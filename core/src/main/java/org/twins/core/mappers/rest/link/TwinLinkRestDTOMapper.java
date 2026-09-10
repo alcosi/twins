@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.link.TwinLinkDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
+import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
@@ -29,7 +30,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = TwinLinkMode.class)
 public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkDTOv1> {
 
-    @MapperModePointerBinding(modes = TwinMode.TwinLink2TwinMode.class)
+    @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
@@ -64,9 +65,9 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                     .setDstTwinId(src.getDstTwinId())
                     .setRelationTwinId(src.getRelationTwinId());
             twinLinkService.loadTwin(src);
-            twinBaseRestDTOMapper.postpone(src.getSrcTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
-            twinBaseRestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
-            twinBaseRestDTOMapper.postpone(src.getRelationTwin(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinLink2TwinMode.SHORT)));
+            twinBaseRestDTOMapper.postpone(src.getSrcTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
+            twinBaseRestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
+            twinBaseRestDTOMapper.postpone(src.getRelationTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
         }
         if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
             twinLinkService.loadLink(src);
