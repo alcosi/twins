@@ -15,19 +15,24 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.recompute.*;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldBaseEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
+import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.recomputer.Recomputer;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinfield.TwinFieldDecimalService;
+import org.twins.core.service.twinfield.TwinFieldTimestampService;
 import org.twins.core.service.twinpointer.TwinPointerService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -53,6 +58,7 @@ public class TwinRecomputeService {
     private final TwinClassService twinClassService;
     private final FeaturerService featurerService;
     private final TwinFieldDecimalService twinFieldDecimalService;
+    private final TwinFieldTimestampService twinFieldTimestampService;
     private final TwinService twinService;
     private final TwinRecomputeOnFieldService twinRecomputeOnFieldService;
     private final TwinRecomputeOnActionService twinRecomputeOnActionService;
@@ -90,6 +96,11 @@ public class TwinRecomputeService {
     }
 
     private void collectFieldWithRecompute(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {
+        collectDecimalFieldWithRecompute(collector, recomputePlan);
+        collectTimestampFieldWithRecompute(collector, recomputePlan);
+    }
+
+    private void collectDecimalFieldWithRecompute(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {
         if (collector.getSaveEntities(TwinFieldDecimalEntity.class).isEmpty() && collector.getDeletes(TwinFieldDecimalEntity.class).isEmpty())
             return;
         var unprocessedDecimalFields = new ArrayList<TwinFieldDecimalEntity>();
@@ -138,6 +149,62 @@ public class TwinRecomputeService {
                 if (!passesCondition(recomputeOnField, triggerField)
                         || !passesValidatorRules(publisherTwin, recomputeOnField.getValidatorRulesKit(), TwinRecomputeOnFieldValidatorRuleEntity::isActive)) {
                     continue; // publisher twin failed every active validator set for this rule
+                }
+                recomputePlan.add(triggerField, recomputeOnField);
+            }
+        }
+    }
+
+    /**
+     * Timestamp publishers for field-edit date/duration recalculation.
+     * Deletes and null saves are ignored for now (no clear/cascade-on-delete behavior).
+     */
+    private void collectTimestampFieldWithRecompute(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {
+        if (collector.getSaveEntities(TwinFieldTimestampEntity.class).isEmpty())
+            return;
+        var unprocessedTimestampFields = new ArrayList<TwinFieldTimestampEntity>();
+        for (var timestampField : collector.getSaveEntities(TwinFieldTimestampEntity.class)) {
+            if (timestampField.getValue() == null) {
+                continue; // cleared/null — do nothing for now
+            }
+            if (recomputePlan.isVisitedPublisher(toKey(timestampField))) {
+                continue; //circle protection
+            }
+            unprocessedTimestampFields.add(timestampField);
+        }
+        if (unprocessedTimestampFields.isEmpty()) {
+            return;
+        }
+        twinFieldTimestampService.loadTwinClassField(unprocessedTimestampFields);
+        twinFieldTimestampService.loadTwin(unprocessedTimestampFields);
+        var timestampFieldsKit = new KitGroupedObj<>(
+                unprocessedTimestampFields,
+                TwinFieldTimestampEntity::getId,
+                TwinFieldTimestampEntity::getTwinClassFieldId,
+                TwinFieldTimestampEntity::getTwinClassField);
+        twinClassFieldService.loadRecomputeOnField(timestampFieldsKit.getGroupingObjectMap().values());
+        List<TwinFieldTimestampEntity> hasRecomputes = null;
+        List<TwinRecomputeOnFieldEntity> recomputeOnFields = null;
+        for (var groupedField : timestampFieldsKit.getGroupedList()) {
+            var twinClassField = groupedField.left;
+            var twinFieldsTimestamp = groupedField.right;
+            if (KitUtils.isNotEmpty(twinClassField.getRecomputeOnField())) {
+                hasRecomputes = CollectionUtils.safeAdd(hasRecomputes, twinFieldsTimestamp);
+                recomputeOnFields = CollectionUtils.safeAdd(recomputeOnFields, twinClassField.getRecomputeOnField().getCollection());
+            }
+        }
+        if (hasRecomputes == null)
+            return;
+        timestampFieldsKit.clear();
+        timestampFieldsKit.addAll(hasRecomputes);
+        twinRecomputeOnFieldService.loadSubscriber(recomputeOnFields);
+        twinRecomputeOnFieldService.loadValidators(recomputeOnFields);
+        for (var triggerField : timestampFieldsKit.getCollection()) {
+            TwinEntity publisherTwin = triggerField.getTwin();
+            for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnField()) {
+                if (!passesCondition(recomputeOnField, triggerField)
+                        || !passesValidatorRules(publisherTwin, recomputeOnField.getValidatorRulesKit(), TwinRecomputeOnFieldValidatorRuleEntity::isActive)) {
+                    continue;
                 }
                 recomputePlan.add(triggerField, recomputeOnField);
             }
@@ -193,11 +260,26 @@ public class TwinRecomputeService {
     /**
      * Returns true if the publisher field's current value passes the rule's {@link ConditionEvaluator}.
      */
-    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldDecimalEntity triggerField) throws ServiceException {
-        FieldValueText currentValue = new FieldValueText(triggerField.getTwinClassField())
-                .setValue(triggerField.getValue() != null ? triggerField.getValue().toPlainString() : null);
+    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldBaseEntity triggerField) throws ServiceException {
+        FieldValue currentValue = toConditionFieldValue(triggerField);
         ConditionEvaluator evaluator = featurerService.getFeaturer(recomputeOnField.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
         return evaluator.evaluate(recomputeOnField.getConditionEvaluatorParams(), currentValue);
+    }
+
+    private FieldValue toConditionFieldValue(TwinFieldBaseEntity triggerField) throws ServiceException {
+        if (triggerField instanceof TwinFieldDecimalEntity decimalField) {
+            return new FieldValueText(decimalField.getTwinClassField())
+                    .setValue(decimalField.getValue() != null ? decimalField.getValue().toPlainString() : null);
+        }
+        if (triggerField instanceof TwinFieldTimestampEntity timestampField) {
+            String pattern = twinClassFieldService.getDateFieldPattern(timestampField.getTwinClassField());
+            FieldValueDate value = new FieldValueDate(timestampField.getTwinClassField(), pattern);
+            if (timestampField.getValue() != null) {
+                value.setDate(timestampField.getValue().toLocalDateTime());
+            }
+            return value;
+        }
+        return new FieldValueText(triggerField.getTwinClassField());
     }
 
     /**
@@ -213,8 +295,8 @@ public class TwinRecomputeService {
         return activeRules.isEmpty() || twinValidatorSetService.isValid(List.of(twin), activeRules).get(twin.getId()).isValid();
     }
 
-    private static String toKey(TwinFieldDecimalEntity twinFieldDecimal) {
-        return toKey(twinFieldDecimal.getTwinId(), twinFieldDecimal.getTwinClassFieldId());
+    private static String toKey(TwinFieldBaseEntity twinField) {
+        return toKey(twinField.getTwinId(), twinField.getTwinClassFieldId());
     }
 
     private static String toKey(UUID twinId, UUID twinClassFieldId) {
@@ -259,7 +341,7 @@ public class TwinRecomputeService {
             return loops.get(currentLoop - 1);
         }
 
-        public void add(TwinFieldDecimalEntity triggerField, TwinRecomputeOnFieldEntity recomputeOnField) {
+        public void add(TwinFieldBaseEntity triggerField, TwinRecomputeOnFieldEntity recomputeOnField) {
             init();
             visitedPublishers.add(toKey(triggerField));
             TwinRecomputeSubscriberEntity subscriber = recomputeOnField.getSubscriber();
