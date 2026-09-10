@@ -31,6 +31,18 @@ public class TwinLinkCUD {
         return createList;
     }
 
+    public List<TwinLinkUpdate> getUpdateListSafe() {
+        if (updateList == null)
+            updateList = new ArrayList<>();
+        return updateList;
+    }
+
+    public List<TwinLinkEntity> getDeleteListSafe() {
+        if (deleteList == null)
+            deleteList = new ArrayList<>();
+        return deleteList;
+    }
+
     /** Convenience for factory fillers and other producers of plain entities. */
     public TwinLinkCUD addCreate(TwinLinkEntity twinLinkEntity) {
         TwinLinkCreate linkCreate = new TwinLinkCreate();

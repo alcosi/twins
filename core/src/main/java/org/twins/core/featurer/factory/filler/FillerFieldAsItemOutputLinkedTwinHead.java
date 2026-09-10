@@ -44,23 +44,13 @@ public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         var srcTwinClassFieldId = linkedTwinByTwinClassFieldId.extract(properties);
         FieldValue fieldValue = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, srcTwinClassFieldId);
-        if (fieldValue instanceof FieldValueLink itemOutputFieldLink) {
-            if (itemOutputFieldLink.isEmpty()) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} does not contain a links", factoryItem.getTwin());
-            }
-            if (itemOutputFieldLink.getItems().size() != 1) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} contains more than one link in field[{}]", factoryItem.getTwin(), srcTwinClassFieldId );
-            }
-            var link = itemOutputFieldLink.getItems().getFirst();
-            twinLinkService.loadDstTwin(link);
-            var headTwinId = link.getDstTwin().getHeadTwinId();
-            if (headTwinId == null) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} does not contain a head twin", link.getDstTwin().logShort());
-            }
-            var dstFieldValue = twinService.createFieldValue(dstTwinClassFieldId.extract(properties), String.valueOf(headTwinId));
-            factoryItem.getOutput().addField(dstFieldValue);
-        } else {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Field is not of type link");
+        var linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(fieldValue);
+        twinService.loadHead(linkedTwin);
+        var detectedHeadTwin = linkedTwin.getHeadTwin();
+        if (detectedHeadTwin == null) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} does not contain a head twin", linkedTwin.logShort());
         }
+        var dstFieldValue = twinService.createFieldValue(dstTwinClassFieldId.extract(properties), detectedHeadTwin);
+        factoryItem.getOutput().addField(dstFieldValue);
     }
 }

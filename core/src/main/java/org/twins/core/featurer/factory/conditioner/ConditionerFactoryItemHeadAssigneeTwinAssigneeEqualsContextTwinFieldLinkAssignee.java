@@ -9,14 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.Objects;
 import java.util.Properties;
@@ -35,18 +33,13 @@ public class ConditionerFactoryItemHeadAssigneeTwinAssigneeEqualsContextTwinFiel
     @Autowired
     TwinService twinService;
 
-    @Lazy
-    @Autowired
-    TwinLinkService twinLinkService;
-
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
-        TwinLinkEntity twinLinkEntity = fieldValue.getItems().getFirst();
-        twinLinkService.loadDstTwin(twinLinkEntity);
+        var fieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(fieldValue);
         TwinEntity headTwin = twinService.loadHead(factoryItem.getTwin());
         if(null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItem.getTwin().logDetailed());
-        return Objects.equals(twinLinkEntity.getDstTwin().getAssignerUserId(), headTwin.getAssignerUserId());
+        return Objects.equals(linkedTwin.getAssignerUserId(), headTwin.getAssignerUserId());
     }
 }

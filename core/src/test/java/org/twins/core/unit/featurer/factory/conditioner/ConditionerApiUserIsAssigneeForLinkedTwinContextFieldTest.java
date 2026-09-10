@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -16,7 +15,6 @@ import org.twins.core.featurer.factory.conditioner.ConditionerApiUserIsAssigneeF
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -35,16 +33,12 @@ class ConditionerApiUserIsAssigneeForLinkedTwinContextFieldTest extends BaseUnit
     @Mock
     private ApiUser apiUser;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private ConditionerApiUserIsAssigneeForLinkedTwinContextField conditioner;
 
     @BeforeEach
     void setUp() throws Exception {
         conditioner = new ConditionerApiUserIsAssigneeForLinkedTwinContextField();
         setField(conditioner, "authService", authService);
-        setField(conditioner, "twinLinkService", twinLinkService);
         // lenient: the throwing tests below never reach the authService call
         lenient().when(authService.getApiUser()).thenReturn(apiUser);
     }
@@ -90,13 +84,11 @@ class ConditionerApiUserIsAssigneeForLinkedTwinContextFieldTest extends BaseUnit
             var apiUserId = UUID.randomUUID();
             when(apiUser.getUserId()).thenReturn(apiUserId);
 
-            var link = mock(TwinLinkEntity.class);
             var fvl = mock(FieldValueLink.class);
             when(fvl.size()).thenReturn(1);
-            when(fvl.getItems()).thenReturn(List.of(link));
-            var dstTwin = mock(TwinEntity.class);
+            var dstTwin = mock(TwinEntity.class); // items carry the far twins
+            when(fvl.getItems()).thenReturn(List.of(dstTwin));
             when(dstTwin.getAssignerUserId()).thenReturn(apiUserId);
-            when(twinLinkService.getDstTwinSafe(link)).thenReturn(dstTwin);
 
             assertTrue(conditioner.check(props(fieldId), itemWithContextField(fieldId, fvl)));
         }
@@ -106,13 +98,11 @@ class ConditionerApiUserIsAssigneeForLinkedTwinContextFieldTest extends BaseUnit
             var fieldId = UUID.randomUUID();
             when(apiUser.getUserId()).thenReturn(UUID.randomUUID());
 
-            var link = mock(TwinLinkEntity.class);
             var fvl = mock(FieldValueLink.class);
             when(fvl.size()).thenReturn(1);
-            when(fvl.getItems()).thenReturn(List.of(link));
-            var dstTwin = mock(TwinEntity.class);
+            var dstTwin = mock(TwinEntity.class); // items carry the far twins
+            when(fvl.getItems()).thenReturn(List.of(dstTwin));
             when(dstTwin.getAssignerUserId()).thenReturn(UUID.randomUUID());
-            when(twinLinkService.getDstTwinSafe(link)).thenReturn(dstTwin);
 
             assertFalse(conditioner.check(props(fieldId), itemWithContextField(fieldId, fvl)));
         }

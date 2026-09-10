@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -46,22 +45,14 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         if (assigneeField == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + assigneeFieldId + "] is not present in context ");
-        if (assigneeField instanceof FieldValueLink fieldValueLink) {
-            if (fieldValueLink.isEmpty())
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " is not filled");
-            else if (fieldValueLink.size() > 1) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " is filled by multiply twins");
-            } else {
-                log.info(outputTwinEntity.logShort() + " [assignee] will be filled from twin " + fieldValueLink.getItems());
-                TwinLinkEntity linkEntity = fieldValueLink.getItems().getFirst();
-                UserEntity assignee = twinService.getTwinAssignee(linkEntity.getDstTwinId());
-                if (assignee == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for twin[" + linkEntity.getDstTwinId() + "]");
-                outputTwinEntity
-                        .setAssignerUser(assignee)
-                        .setAssignerUserId(assignee.getId());
-            }
-        } else
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " has unexpected type");
+        TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(assigneeField);
+        log.info(outputTwinEntity.logShort() + " [assignee] will be filled from twin " + linkedTwin);
+        twinService.loadUser(linkedTwin);
+        UserEntity assignee = linkedTwin.getAssignerUser();
+        if (assignee == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for twin[" + linkedTwin.getId() + "]");
+        outputTwinEntity
+                .setAssignerUser(assignee)
+                .setAssignerUserId(assignee.getId());
     }
 }

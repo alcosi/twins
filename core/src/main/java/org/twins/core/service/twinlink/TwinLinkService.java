@@ -15,6 +15,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.CudUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
@@ -34,12 +35,14 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinlink.TwinLinkCUD;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
+import org.twins.core.domain.twinlink.TwinLinkReconcile;
 import org.twins.core.domain.twinlink.TwinLinkUpdate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinCreateStage;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.linker.Linker;
@@ -57,7 +60,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkStrength;
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkUuidIn;
@@ -139,28 +141,43 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         List<TwinLinkEntity> linksEntityList = twinLinkEntities(linksCreateList);
         loadDstTwin(linksEntityList);
         loadLink(linksEntityList);
-        for (TwinLinkEntity twinLinkEntity : linksEntityList) {
+        for (TwinLinkCreate linkCreate : linksCreateList) {
+            TwinLinkEntity twinLinkEntity = linkCreate.getTwinLink();
             if (twinLinkEntity.getId() == null)
                 twinLinkEntity.setCreateElseUpdate(true); // fresh link entering the create flow (relink flips it back)
             Set<UUID> srcTwinExtendedClasses = srcTwinEntity.getTwinClass().getExtendedClassIdSet();
             Set<UUID> dstTwinExtendedClasses = twinLinkEntity.getDstTwin().getTwinClass().getExtendedClassIdSet();
-            if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId())) { // forward link creation
-                log.info("Forward link creation");
-                twinLinkEntity
-                        .setSrcTwin(srcTwinEntity)
-                        .setSrcTwinId(srcTwinEntity.getId()); //dst is already filled
-            } else if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId())) { // backward link creation, dst and src twins had to change places
-                log.info("Backward link creation");
-                twinLinkEntity
-                        .setSrcTwin(twinLinkEntity.getDstTwin())
-                        .setDstTwin(srcTwinEntity)
-                        .setSrcTwinId(twinLinkEntity.getDstTwinId())
-                        .setDstTwinId(srcTwinEntity.getId());
-                Set<UUID> temp = srcTwinExtendedClasses;
-                srcTwinExtendedClasses = dstTwinExtendedClasses;
-                dstTwinExtendedClasses = temp;
-            } else {
-                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created for twinId[" + srcTwinEntity.getId() + "]");
+            // an EXPLICIT direction on the create (set by callers that know it — e.g. the link field typers via
+            // reconcileLinks) overrides class-based detection; required for a link configured between the same
+            // twin class on both ends, where both class checks match
+            LinkService.LinkDirection effectiveDirection = linkCreate.getLinkDirection();
+            if (effectiveDirection == null) {
+                if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId()))
+                    effectiveDirection = LinkService.LinkDirection.forward;
+                else if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId()))
+                    effectiveDirection = LinkService.LinkDirection.backward;
+                else
+                    throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created for twinId[" + srcTwinEntity.getId() + "]");
+            }
+            switch (effectiveDirection) {
+                case forward -> { // forward link creation
+                    log.info("Forward link creation");
+                    twinLinkEntity
+                            .setSrcTwin(srcTwinEntity)
+                            .setSrcTwinId(srcTwinEntity.getId()); //dst is already filled
+                }
+                case backward -> { // backward link creation, dst and src twins had to change places
+                    log.info("Backward link creation");
+                    twinLinkEntity
+                            .setSrcTwin(twinLinkEntity.getDstTwin())
+                            .setDstTwin(srcTwinEntity)
+                            .setSrcTwinId(twinLinkEntity.getDstTwinId())
+                            .setDstTwinId(srcTwinEntity.getId());
+                    Set<UUID> temp = srcTwinExtendedClasses;
+                    srcTwinExtendedClasses = dstTwinExtendedClasses;
+                    dstTwinExtendedClasses = temp;
+                }
+                default -> throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created for twinId[" + srcTwinEntity.getId() + "]");
             }
             if (!srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created from twinId[" + twinLinkEntity.getSrcTwinId() + "] of twinClass[" + twinLinkEntity.getSrcTwin().getTwinClassId() + "]");
@@ -650,57 +667,122 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     /**
-     * State-based twin_link write: reconciles the stored links of (twin, link) with the desired set through
-     * the standard CUD pipeline, so a link-typed field (which serializes into a DESIRED link set) and the
-     * links[] API share one write path — relation twin lifecycle (empty AUTO twin on create, reuse on
-     * relink), link history and the MANDATORY delete guard behave identically. Desired links carry the far
-     * endpoint in dstTwinId (raw input convention; prepareTwinLinks inside addLinks applies the link
-     * direction). The diff: a desired link whose far endpoint already has a stored link is a no-op; extra
-     * desired links beyond the stored count pair with out-of-date stored links (id adoption = UPDATE); the
-     * rest are CREATED; leftover stored links are DELETED.
+     * State-based twin_link write, single pair — convenience delegate to the batch form below (a link-typed
+     * field serializes into exactly one pair).
      */
-    public void reconcileLinks(TwinEntity twin, LinkEntity linkEntity, List<TwinLinkCreate> desiredLinks, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
-        Map<UUID, TwinLinkEntity> storedLinksMap = storedLinksMap(twin, linkEntity, linkDirection); // key: far endpoint twin id
-        List<TwinLinkCreate> desired = new ArrayList<>(desiredLinks); // do not mutate the caller's list
-        if (MapUtils.isNotEmpty(storedLinksMap)) {
-            // unchanged links (same far endpoint) drop out of both sides — no event, no write
-            desired.removeIf(linkCreate -> storedLinksMap.remove(linkCreate.getTwinLink().getDstTwinId()) != null);
+    public void reconcileLinks(TwinEntity twin, LinkEntity linkEntity, LinkService.LinkDirection linkDirection, List<TwinEntity> toTwins, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        reconcileLinks(List.of(new TwinLinkReconcile(twin, linkEntity, linkDirection, toTwins)), twinChangesCollector);
+    }
+
+    /**
+     * State-based twin_link write (batch): each {@link TwinLinkReconcile} carries the DESIRED far twins for one
+     * (twin, link, direction) triple — the direction is the caller's EXPLICIT intent (the field typer knows it;
+     * class-based detection is ambiguous for a link configured between the same twin class on both ends).
+     * Stored links load with one query per direction, each pair is diffed against its stored set, and the
+     * per-twin merged TwinLinkCUD goes through ONE cudTwinLinks call — so a link-typed field and the links[]
+     * API share one write path: relation twin lifecycle (empty AUTO twin on create, reuse on relink), link
+     * history and the MANDATORY delete guard behave identically. The diff: a desired twin whose id already
+     * has a stored link is a no-op; extra desired twins beyond the stored count pair with out-of-date stored
+     * links (id adoption = UPDATE); the rest are CREATED; leftover stored links are DELETED. Built twin_links
+     * carry the far endpoint in dstTwinId (raw input convention), and each create carries its pair's direction
+     * — prepareTwinLinks applies it, falling back to class-based detection for direction-less creates.
+     */
+    public void reconcileLinks(Collection<TwinLinkReconcile> reconciles, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(reconciles))
+            return;
+        loadStoredLinks(reconciles); // one query per direction for the whole batch, grouped per pair
+        // one CUD run per twin: all pairs of the twin (any direction) merge into a single cudTwinLinks call —
+        // the direction travels ON each TwinLinkCreate (set by the diff), not on the batch
+        Map<UUID, List<TwinLinkReconcile>> byTwinId = new LinkedHashMap<>();
+        for (TwinLinkReconcile reconcile : reconciles)
+            byTwinId.computeIfAbsent(reconcile.getTwin().getId(), id -> new ArrayList<>()).add(reconcile);
+        for (List<TwinLinkReconcile> twinReconciles : byTwinId.values()) {
+            TwinLinkCUD twinLinkCUD = new TwinLinkCUD();
+            for (TwinLinkReconcile reconcile : twinReconciles)
+                diffIntoCud(reconcile, twinLinkCUD);
+            if (CudUtils.isNotEmpty(twinLinkCUD))
+                cudTwinLinks(twinReconciles.getFirst().getTwin(), twinLinkCUD, twinChangesCollector);
         }
-        List<TwinLinkCreate> createList = new ArrayList<>(desired.size());
-        List<TwinLinkUpdate> updateList = new ArrayList<>(desired.size());
-        for (TwinLinkCreate linkCreate : desired) {
+    }
+
+    /**
+     * Loads the stored twin_links of every pair, one batch query per direction: forward = the twin's OWN src
+     * side (bounded by the twin's own writes); backward = the dst side, safe ONLY because backward reconcile
+     * is restricted to OneToOne links where uniqForDstTwin bounds a twin's backward links to at most one.
+     * The batch result is grouped by the twin-side endpoint (the bounded side), and each pair reads its own
+     * twin's group — no per-pair filtering over the whole batch. Keyed per pair by the far endpoint twin id.
+     */
+    private void loadStoredLinks(Collection<TwinLinkReconcile> reconciles) throws ServiceException {
+        Set<UUID> forwardTwinIds = new LinkedHashSet<>();
+        Set<UUID> forwardLinkIds = new LinkedHashSet<>();
+        Set<UUID> backwardTwinIds = new LinkedHashSet<>();
+        Set<UUID> backwardLinkIds = new LinkedHashSet<>();
+        for (TwinLinkReconcile reconcile : reconciles) {
+            if (reconcile.getLinkDirection() == null || reconcile.getLinkDirection() == LinkService.LinkDirection.undetected)
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
+                        reconcile.getLink().logShort() + " direction is undetected for twinClass[" + reconcile.getTwin().getTwinClassId() + "] — set the direction explicitly");
+            if (reconcile.getLinkDirection() == LinkService.LinkDirection.backward
+                    && !LinkType.OneToOne.equals(reconcile.getLink().getType()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
+                        reconcile.getLink().logShort() + " backward reconcile is only supported for OneToOne links — a twin's backward side must stay bounded");
+            if (reconcile.getLinkDirection() == LinkService.LinkDirection.forward) {
+                forwardTwinIds.add(reconcile.getTwin().getId());
+                forwardLinkIds.add(reconcile.getLink().getId());
+            } else {
+                backwardTwinIds.add(reconcile.getTwin().getId());
+                backwardLinkIds.add(reconcile.getLink().getId());
+            }
+        }
+        KitGrouped<TwinLinkEntity, UUID, UUID> forwardStored = new KitGrouped<>(
+                forwardTwinIds.isEmpty() ? List.of() : twinLinkRepository.findBySrcTwinIdInAndLinkIdIn(forwardTwinIds, forwardLinkIds),
+                TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
+        KitGrouped<TwinLinkEntity, UUID, UUID> backwardStored = new KitGrouped<>(
+                backwardTwinIds.isEmpty() ? List.of() : twinLinkRepository.findByDstTwinIdInAndLinkIdIn(backwardTwinIds, backwardLinkIds),
+                TwinLinkEntity::getId, TwinLinkEntity::getDstTwinId);
+        for (TwinLinkReconcile reconcile : reconciles) {
+            boolean forward = reconcile.getLinkDirection() == LinkService.LinkDirection.forward;
+            UUID linkId = reconcile.getLink().getId();
+            Map<UUID, TwinLinkEntity> storedLinksMap = new LinkedHashMap<>();
+            for (TwinLinkEntity storedTwinLink : (forward ? forwardStored : backwardStored).getGrouped(reconcile.getTwin().getId())) {
+                if (!storedTwinLink.getLinkId().equals(linkId))
+                    continue; // the twin's group spans all its links of the batch — keep only this pair's link
+                // key: far endpoint twin id; first wins on duplicate far endpoints in bad data
+                storedLinksMap.putIfAbsent(forward ? storedTwinLink.getDstTwinId() : storedTwinLink.getSrcTwinId(), storedTwinLink);
+            }
+            reconcile.setStoredLinksMap(storedLinksMap.isEmpty() ? null : storedLinksMap);
+        }
+    }
+
+    /** The diff: unchanged desired twins drop out of both sides; extras pair with out-of-date stored links (id adoption = UPDATE); leftovers go to create/delete. */
+    private void diffIntoCud(TwinLinkReconcile reconcile, TwinLinkCUD twinLinkCUD) {
+        List<TwinEntity> toTwins = new ArrayList<>(reconcile.getToTwins()); // do not mutate the caller's list
+        Map<UUID, TwinLinkEntity> storedLinksMap = reconcile.getStoredLinksMap();
+        if (MapUtils.isNotEmpty(storedLinksMap)) {
+            // unchanged links (same far twin) drop out of both sides — no event, no write
+            toTwins.removeIf(toTwin -> storedLinksMap.remove(toTwin.getId()) != null);
+        }
+        for (TwinEntity toTwin : toTwins) {
+            TwinLinkEntity twinLinkEntity = new TwinLinkEntity()
+                    .setLinkId(reconcile.getLink().getId())
+                    .setLink(reconcile.getLink())
+                    .setDstTwinId(toTwin.getId())
+                    .setDstTwin(toTwin); // raw convention: the far endpoint in dstTwinId; prepareTwinLinks applies the direction
             // pair with any out-of-date stored link — id adoption turns the write into an UPDATE
             TwinLinkEntity storedTwinLink = MapUtils.pullAny(storedLinksMap);
             if (storedTwinLink == null) {
-                createList.add(linkCreate);
+                TwinLinkCreate twinLinkCreate = new TwinLinkCreate();
+                twinLinkCreate.setTwinLink(twinLinkEntity);
+                twinLinkCreate.setLinkDirection(reconcile.getLinkDirection()); // the pair's explicit direction travels WITH the create
+                twinLinkCUD.getCreateListSafe().add(twinLinkCreate);
             } else {
-                linkCreate.getTwinLink().setId(storedTwinLink.getId());
+                twinLinkEntity.setId(storedTwinLink.getId());
                 TwinLinkUpdate twinLinkUpdate = new TwinLinkUpdate();
-                twinLinkUpdate.setTwinLink(linkCreate.getTwinLink());
-                updateList.add(twinLinkUpdate);
+                twinLinkUpdate.setTwinLink(twinLinkEntity);
+                twinLinkCUD.getUpdateListSafe().add(twinLinkUpdate);
             }
         }
-        cudTwinLinks(twin, new TwinLinkCUD()
-                .setCreateList(createList)
-                .setUpdateList(updateList)
-                .setDeleteList(storedLinksMap == null ? null : new ArrayList<>(storedLinksMap.values())),
-                twinChangesCollector);
-    }
-
-    /** Stored twin_links of (twin, link) keyed by the far endpoint twin id (dst for forward, src for backward). */
-    private Map<UUID, TwinLinkEntity> storedLinksMap(TwinEntity twin, LinkEntity linkEntity, LinkService.LinkDirection linkDirection) throws ServiceException {
-        List<TwinLinkEntity> storedLinks = switch (linkDirection) {
-            case forward -> twinLinkRepository.findBySrcTwinIdAndLinkId(twin.getId(), linkEntity.getId(), TwinLinkEntity.class);
-            case backward -> twinLinkRepository.findByDstTwinIdAndLinkId(twin.getId(), linkEntity.getId(), TwinLinkEntity.class);
-            default -> throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.logShort() + " can not detect link direction for " + twin.getTwinClass().logShort());
-        };
-        if (CollectionUtils.isEmpty(storedLinks))
-            return null;
-        return storedLinks.stream().collect(Collectors.toMap(
-                linkDirection == LinkService.LinkDirection.forward ? TwinLinkEntity::getDstTwinId : TwinLinkEntity::getSrcTwinId,
-                Function.identity(),
-                (one, two) -> one)); // duplicate far endpoints in bad data: first wins, same as a groupBy view
+        if (MapUtils.isNotEmpty(storedLinksMap))
+            twinLinkCUD.getDeleteListSafe().addAll(storedLinksMap.values());
     }
 
     public TwinEntity getDstTwinSafe(TwinLinkEntity twinLinkEntity) throws ServiceException {

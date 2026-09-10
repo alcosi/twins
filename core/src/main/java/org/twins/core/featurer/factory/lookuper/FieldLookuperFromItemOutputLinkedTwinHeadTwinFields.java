@@ -16,13 +16,7 @@ public class FieldLookuperFromItemOutputLinkedTwinHeadTwinFields extends FieldLo
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
         TwinEntity twinEntity = factoryItem.getTwin();
         FieldValue itemOutputField = getFreshestValue(twinEntity, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item fields");
-        if (!(itemOutputField instanceof FieldValueLink itemOutputFieldLink))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is not of type link");
-        if (itemOutputFieldLink.isEmpty())
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is empty for " + twinEntity);
-        if (itemOutputFieldLink.size() > 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputFieldLink.size() +  " linked twins in  " + twinEntity);
-        TwinEntity itemOutputLinkedTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getItems().getFirst());
+        TwinEntity itemOutputLinkedTwin = FieldValueLink.getSingleLinkedTwinSafe(itemOutputField);
         TwinEntity headTwin = twinService.loadHead(itemOutputLinkedTwin);
         if (headTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] can not be loaded from item output linked twin head twin, because head is null");

@@ -5,15 +5,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.Objects;
 import java.util.Properties;
@@ -24,19 +21,13 @@ import java.util.Properties;
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee extends Conditioner {
-
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
-    @Lazy
-    @Autowired
-    TwinLinkService twinLinkService;
-
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
-        TwinLinkEntity twinLinkEntity = fieldValue.getItems().getFirst();
-        twinLinkService.loadDstTwin(twinLinkEntity);
-        return Objects.equals(twinLinkEntity.getDstTwin().getAssignerUserId(), factoryItem.getTwin().getAssignerUserId());
+        var fieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(fieldValue);
+        return Objects.equals(linkedTwin.getAssignerUserId(), factoryItem.getTwin().getAssignerUserId());
     }
 }

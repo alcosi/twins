@@ -14,6 +14,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +23,9 @@ import java.util.UUID;
 public abstract class FieldLookuper {
     @Autowired
     protected TwinService twinService;
+
+    @Autowired
+    protected TwinLinkService twinLinkService;
 
     @Autowired
     protected TwinClassFieldService twinClassFieldService;
@@ -52,7 +56,8 @@ public abstract class FieldLookuper {
                         .filter(twinLink -> linkId.equals(twinLink.getLinkId()))
                         .toList();
                 if (!matchedLinks.isEmpty()) {
-                    return new FieldValueLink(twinClassField).setItems(matchedLinks);
+                    twinLinkService.loadTwin(matchedLinks);
+                    return new FieldValueLink(twinClassField).setItems(matchedLinks.stream().map(TwinLinkEntity::getDstTwin).toList());
                 }
             }
         }

@@ -39,7 +39,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldinitializer.FieldInitializer;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperDateTime;
-import org.twins.core.featurer.fieldtyper.FieldTyperLink;
+import org.twins.core.featurer.fieldtyper.FieldTyperForwardLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemIdLookup;
@@ -323,7 +323,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_FOR_LINK, key = "#twinClassId + '' + #linkId")
     public TwinClassFieldEntity getFieldIdConfiguredForLink(UUID twinClassId, UUID linkId) {
-        return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
+        return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperForwardLink.ID), "%" + linkId + "%");
     }
 
     public Kit<TwinClassFieldEntity, UUID> getBaseFieldsKit() {
@@ -662,7 +662,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public UUID getConfiguredLink(TwinClassFieldEntity twinClassField) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperLink fieldTyperLink))
+        if (!(fieldTyper instanceof FieldTyperForwardLink fieldTyperLink))
             return null;
         return fieldTyperLink.getLinkId(twinClassField.getFieldTyperParams());
     }

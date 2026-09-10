@@ -31,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
-class FieldTyperLinkTest extends BaseUnitTest {
+class FieldTyperForwardLinkTest extends BaseUnitTest {
 
     @Mock
     private LinkService linkService;
@@ -39,11 +39,11 @@ class FieldTyperLinkTest extends BaseUnitTest {
     @Mock
     private TwinLinkService twinLinkService;
 
-    private FieldTyperLink fieldTyper;
+    private FieldTyperForwardLink fieldTyper;
 
     @BeforeEach
     void setUp() throws Exception {
-        fieldTyper = new FieldTyperLink();
+        fieldTyper = new FieldTyperForwardLink();
         setField(fieldTyper, "linkService", linkService);
         setField(fieldTyper, "twinLinkService", twinLinkService);
     }
@@ -66,18 +66,11 @@ class FieldTyperLinkTest extends BaseUnitTest {
         throw new RuntimeException("Field not found: " + fieldName);
     }
 
-    // FindTwinLinksResult.forwardLinks/backwardLinks are package-private (org.twins.core.service.link);
-    // populate them via reflection from this package.
+    // FindTwinLinksResult.forwardLinks is package-private (org.twins.core.service.link);
+    // populate it via reflection from this package.
     @SuppressWarnings("unchecked")
     private void addForwardLink(TwinLinkService.FindTwinLinksResult result, TwinLinkEntity link) throws Exception {
         var f = TwinLinkService.FindTwinLinksResult.class.getDeclaredField("forwardLinks");
-        f.setAccessible(true);
-        ((org.cambium.common.kit.KitGrouped<TwinLinkEntity, UUID, UUID>) f.get(result)).add(link);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void addBackwardLink(TwinLinkService.FindTwinLinksResult result, TwinLinkEntity link) throws Exception {
-        var f = TwinLinkService.FindTwinLinksResult.class.getDeclaredField("backwardLinks");
         f.setAccessible(true);
         ((org.cambium.common.kit.KitGrouped<TwinLinkEntity, UUID, UUID>) f.get(result)).add(link);
     }
@@ -157,57 +150,46 @@ class FieldTyperLinkTest extends BaseUnitTest {
     class DeserializeValue {
 
         @Test
-        void deserializeValue_forwardLink_collectsForwardLinksForLink() throws Exception {
+        void deserializeValue_forwardLink_itemsAreFarTwins() throws Exception {
             // Intended: for a forward link, deserialization reads the twin's forward links for this link id
-            // into the value and marks the value as a forward link.
+            // and maps them to the FAR TWINS — the value carries twins, not twin_links.
             var linkId = UUID.randomUUID();
             var link = new LinkEntity().setId(linkId).setType(LinkType.OneToOne);
             var classField = classFieldWithTwinClass();
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            var dstTwin = new TwinEntity().setId(UUID.randomUUID());
             var link1 = new TwinLinkEntity()
                     .setId(UUID.randomUUID())
                     .setLinkId(linkId)
                     .setSrcTwinId(twin.getId())
-                    .setDstTwinId(UUID.randomUUID());
+                    .setDstTwinId(dstTwin.getId())
+                    .setDstTwin(dstTwin); // loadDstTwin is mocked — pre-wire the far twin
             var linksResult = new TwinLinkService.FindTwinLinksResult();
             addForwardLink(linksResult, link1);
             twin.setTwinLinks(linksResult);
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
-            when(linkService.detectLinkDirection(link, classField.getTwinClass()))
-                    .thenReturn(LinkService.LinkDirection.forward);
 
             FieldValueLink result = fieldTyper.deserializeValue(properties(linkId), twinField(twin, classField));
 
             assertEquals(1, result.getItems().size());
-            assertSame(link1, result.getItems().get(0));
+            assertSame(dstTwin, result.getItems().get(0));
             assertTrue(result.isForwardLink());
         }
 
         @Test
-        void deserializeValue_backwardLink_collectsBackwardLinksForLink() throws Exception {
-            // Intended: for a backward link, deserialization reads the twin's backward links and flags
-            // the value as NOT a forward link.
+        void deserializeValue_noStoredLinks_undefined() throws Exception {
+            // Intended: no stored forward links -> the value is undefined
             var linkId = UUID.randomUUID();
-            var link = new LinkEntity().setId(linkId).setType(LinkType.ManyToMany);
+            var link = new LinkEntity().setId(linkId).setType(LinkType.OneToOne);
             var classField = classFieldWithTwinClass();
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
-            var link1 = new TwinLinkEntity()
-                    .setId(UUID.randomUUID())
-                    .setLinkId(linkId)
-                    .setSrcTwinId(UUID.randomUUID())
-                    .setDstTwinId(twin.getId());
-            var linksResult = new TwinLinkService.FindTwinLinksResult();
-            addBackwardLink(linksResult, link1);
-            twin.setTwinLinks(linksResult);
+            twin.setTwinLinks(new TwinLinkService.FindTwinLinksResult());
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
-            when(linkService.detectLinkDirection(link, classField.getTwinClass()))
-                    .thenReturn(LinkService.LinkDirection.backward);
 
             FieldValueLink result = fieldTyper.deserializeValue(properties(linkId), twinField(twin, classField));
 
-            assertEquals(1, result.getItems().size());
-            assertSame(link1, result.getItems().get(0));
-            assertFalse(result.isForwardLink());
+            assertTrue(result.isUndefined());
+            assertTrue(result.isForwardLink());
         }
     }
 
@@ -223,21 +205,20 @@ class FieldTyperLinkTest extends BaseUnitTest {
             var classField = classFieldWithTwinClass();
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
-            var item = new TwinLinkEntity().setDstTwinId(UUID.randomUUID());
+            var farTwin = new TwinEntity().setId(UUID.randomUUID());
             var value = new FieldValueLink(classField);
-            value.setItems(List.of(item));
+            value.setItems(List.of(farTwin));
             var collector = new TwinChangesCollector();
 
             fieldTyper.serializeValue(properties(linkId), twin, value, collector);
 
             @SuppressWarnings("unchecked")
-            var captor = ArgumentCaptor.forClass((Class<List<org.twins.core.domain.twinlink.TwinLinkCreate>>) (Class<?>) List.class);
+            var captor = ArgumentCaptor.forClass((Class<List<TwinEntity>>) (Class<?>) List.class);
             verify(twinLinkService).reconcileLinks(org.mockito.ArgumentMatchers.same(twin),
-                    org.mockito.ArgumentMatchers.same(link), captor.capture(), org.mockito.ArgumentMatchers.same(collector));
+                    org.mockito.ArgumentMatchers.same(link), org.mockito.ArgumentMatchers.eq(LinkService.LinkDirection.forward),
+                    captor.capture(), org.mockito.ArgumentMatchers.same(collector));
             assertEquals(1, captor.getValue().size());
-            assertSame(item, captor.getValue().get(0).getTwinLink());
-            assertEquals(linkId, item.getLinkId(), "items must carry the resolved link id");
-            assertSame(link, item.getLink(), "items must carry the resolved link entity");
+            assertSame(farTwin, captor.getValue().get(0));
         }
 
         @Test
@@ -254,11 +235,12 @@ class FieldTyperLinkTest extends BaseUnitTest {
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
             var value = new FieldValueLink(classField);
-            value.setItems(List.of(new TwinLinkEntity().setDstTwinId(UUID.randomUUID())));
+            value.setItems(List.of(new TwinEntity().setId(UUID.randomUUID())));
 
             assertDoesNotThrow(() -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
             verify(twinLinkService).reconcileLinks(org.mockito.ArgumentMatchers.same(twin),
-                    org.mockito.ArgumentMatchers.same(link), anyList(), any(TwinChangesCollector.class));
+                    org.mockito.ArgumentMatchers.same(link), org.mockito.ArgumentMatchers.eq(LinkService.LinkDirection.forward),
+                    anyList(), any(TwinChangesCollector.class));
         }
 
         @Test
@@ -275,8 +257,8 @@ class FieldTyperLinkTest extends BaseUnitTest {
             fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector());
 
             @SuppressWarnings("unchecked")
-            var captor = ArgumentCaptor.forClass((Class<List<org.twins.core.domain.twinlink.TwinLinkCreate>>) (Class<?>) List.class);
-            verify(twinLinkService).reconcileLinks(any(), any(), captor.capture(), any(TwinChangesCollector.class));
+            var captor = ArgumentCaptor.forClass((Class<List<TwinEntity>>) (Class<?>) List.class);
+            verify(twinLinkService).reconcileLinks(any(), any(), any(), captor.capture(), any(TwinChangesCollector.class));
             assertTrue(captor.getValue().isEmpty());
         }
 
@@ -291,14 +273,14 @@ class FieldTyperLinkTest extends BaseUnitTest {
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
             var value = new FieldValueLink(classField);
             value.setItems(List.of(
-                    new TwinLinkEntity().setDstTwinId(UUID.randomUUID()),
-                    new TwinLinkEntity().setDstTwinId(UUID.randomUUID())));
+                    new TwinEntity().setId(UUID.randomUUID()),
+                    new TwinEntity().setId(UUID.randomUUID())));
 
             var ex = assertThrows(ServiceException.class,
                     () -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED.getCode(), ex.getErrorCode());
-            verify(twinLinkService, never()).reconcileLinks(any(), any(), anyList(), any(TwinChangesCollector.class));
+            verify(twinLinkService, never()).reconcileLinks(any(), any(), any(), anyList(), any(TwinChangesCollector.class));
         }
     }
 }

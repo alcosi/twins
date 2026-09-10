@@ -352,13 +352,19 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         return twinClassService.isInstanceOf(twinClassEntity, linkEntity.getDstTwinClassId());
     }
 
+    /**
+     * Class-based direction detection. NOTE: for a link configured between the same twin class on both ends
+     * BOTH isForwardLink and isBackwardLink are true (they are not mutually exclusive) — this method then
+     * reports forward. A caller that knows the intended direction (e.g. FieldTyperForwardLink vs
+     * FieldTyperBackwardLink) must set it explicitly instead of relying on detection.
+     */
     public LinkDirection detectLinkDirection(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
         if (isForwardLink(linkEntity, twinClassEntity))
             return LinkDirection.forward;
         else if (isBackwardLink(linkEntity, twinClassEntity))
             return LinkDirection.backward;
         else
-            return LinkDirection.invalid;
+            return LinkDirection.undetected;
     }
 
     public List<LinkEntity> findLinks(TwinClassEntity srcTwinClass, TwinClassEntity dstTwinClass) {
@@ -368,7 +374,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     public enum LinkDirection {
         forward,
         backward,
-        invalid,
+        undetected,
     }
 
     @Data

@@ -10,12 +10,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
-import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -45,29 +42,11 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldLinkDst extends Fi
     }
 
     @Override
-    protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
+    protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                 .lookupFieldValue(factoryItem, dstFieldId);
-        return extractTwinIdFromFieldValue(dstFieldValue);
-    }
-
-    private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) throws ServiceException {
-        if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue() != null ? linkSingle.getValue().getId() : null;
-        }
-        if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
-            var linkEntity = link.getItems().getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
-            return linkEntity.getDstTwinId();
-        }
-        if (fieldValue instanceof FieldValueText) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
-                    "dstTwinClassFieldId is expected to be a link field, but it's FieldValueText.");
-        }
-        return null;
+        return FieldValueLink.getSingleLinkedTwinSafe(dstFieldValue);
     }
 }
 

@@ -18,6 +18,13 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     List<TwinLinkEntity> findBySrcTwinIdOrDstTwinId(UUID srcTwinId, UUID dstTwinId);
     List<TwinLinkEntity> findBySrcTwinIdInOrDstTwinIdIn(Set<UUID> srcTwinIdList, Set<UUID> dstTwinIdList);
     List<TwinLinkEntity> findBySrcTwinIdIn(Set<UUID> srcTwinIdList);
+    /** Forward-side batch load — deliberately src-only: a twin's backward links are unbounded. */
+    List<TwinLinkEntity> findBySrcTwinIdInAndLinkIdIn(Collection<UUID> srcTwinIdList, Collection<UUID> linkIdList);
+    /**
+     * Backward-side batch load — dst-side must only be queried for OneToOne links, where uniqForDstTwin
+     * bounds a twin's backward links to at most one (a many-typed link's backward side is unbounded).
+     */
+    List<TwinLinkEntity> findByDstTwinIdInAndLinkIdIn(Collection<UUID> dstTwinIdList, Collection<UUID> linkIdList);
 
     @Modifying
     @Query(value = "from TwinLinkEntity twinLink " +

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.service.link.LinkService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +21,14 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class TwinLinkCreate extends TwinLinkSave {
+
+    /**
+     * The EXPLICIT link direction for this create — set by callers that know it (the link field typers via
+     * TwinLinkService.reconcileLinks); required for a link configured between the same twin class on both
+     * ends, where class-based detection is ambiguous. Null keeps the historical class-based detection
+     * (the links[] API default).
+     */
+    private LinkService.LinkDirection linkDirection;
 
     /** Wraps plain entities into composition objects (no relation twin fields); null-safe — null stays null. */
     public static List<TwinLinkCreate> wrapAll(Collection<TwinLinkEntity> twinLinks) {

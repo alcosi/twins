@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryContext;
@@ -22,13 +21,13 @@ import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest {
 
@@ -91,8 +90,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
         @Test
         void fill_singleLink_setsAssigneeFromLinkedTwin() throws ServiceException {
             var dstTwinId = UUID.randomUUID();
-            var link = new TwinLinkEntity().setDstTwinId(dstTwinId);
-            var fieldValue = new FieldValueLink(buildField()).add(link);
+            var fieldValue = new FieldValueLink(buildField()).add(new TwinEntity().setId(dstTwinId)); // items carry the far twins
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             var assignee = new UserEntity().setId(UUID.randomUUID());
@@ -130,8 +128,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
         @Test
         void fill_linkedTwinHasNoAssignee_throwsStepError() throws ServiceException {
             var dstTwinId = UUID.randomUUID();
-            var link = new TwinLinkEntity().setDstTwinId(dstTwinId);
-            var fieldValue = new FieldValueLink(buildField()).add(link);
+            var fieldValue = new FieldValueLink(buildField()).add(new TwinEntity().setId(dstTwinId)); // items carry the far twins
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
             when(twinService.getTwinAssignee(dstTwinId)).thenReturn(null);
 

@@ -81,7 +81,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
         UUID extractedTwinClassId = twinClassId.extract(properties);
         UUID linkId = getLinkId(properties);
-        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, rootTwin);
+        UUID dstTwinId = resolveDstTwin(properties, factoryItem, rootTwin).getId();
         if (dstTwinId == null) {
             log.info("Link dst twin id is not resolved, twin found by head and link dst search skipped");
             return Optional.empty();
@@ -126,7 +126,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
         return search;
     }
 
-    protected abstract UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
+    protected abstract TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
 
     protected abstract UUID getLinkId(Properties properties) throws ServiceException;
 

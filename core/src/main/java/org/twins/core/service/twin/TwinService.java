@@ -78,6 +78,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -1504,7 +1505,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
     }
 
+    public FieldValue createFieldValue(UUID twinClassFieldEntityId, Object value) throws ServiceException {
+        return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
+    }
+
     public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        var fieldValue = createFieldValue(twinClassFieldEntity);
+        setFieldValue(fieldValue, value);
+        return fieldValue;
+    }
+
+    public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, Object value) throws ServiceException {
         var fieldValue = createFieldValue(twinClassFieldEntity);
         setFieldValue(fieldValue, value);
         return fieldValue;
@@ -1596,8 +1607,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 } catch (Exception e) {
                     throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueLink.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
                 }
-                ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
-                        .setDstTwinId(dstTwinUUID));
+                ((FieldValueLink) fieldValue).add(new TwinEntity()
+                        .setId(dstTwinUUID));
             }
         }
         if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
@@ -1606,6 +1617,121 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
+            if (translations == null) {
+                throw new ServiceException(
+                        ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                        fieldValueI18n.getTwinClassField().logShort() + " can't deserialize i18n");
+            }
+            fieldValueI18n.setTranslations(translations);
+        }
+    }
+
+    public void setFieldValue(FieldValue fieldValue, Object value) throws ServiceException {
+        if (value == null) {
+            fieldValue.clear();
+            return;
+        }
+        // typed branches (e.g. Date) consume the Object itself; every text-ish branch below works on its string form
+        String stringValue = value.toString();
+        if (fieldValue instanceof FieldValueText fieldValueText)
+            fieldValueText.setValue((String) value);
+        if (fieldValue instanceof FieldValueColorHEX fieldValueColorHEX)
+            fieldValueColorHEX.setValue((String) value);
+        if (fieldValue instanceof FieldValueDate fieldValueDate) {
+            if (value instanceof LocalDateTime valueDate)
+                fieldValueDate.setDate(valueDate);
+            else
+                fieldValueDate.setDate(stringValue);
+        }
+        if (fieldValue instanceof FieldValueBoolean fieldValueBoolean) {
+            if (value instanceof Boolean parsedBoolean)
+                fieldValueBoolean.setValue(parsedBoolean);
+            else
+                fieldValueBoolean.setValue(Boolean.parseBoolean(stringValue));
+        }
+        if (fieldValue instanceof FieldValueAttachment fieldValueAttachment) {
+            // Parse the value as JSON to extract name and base64Content
+            // For simplicity, we'll assume the value is in the format "name:base64Content"
+            if (stringValue.contains(":")) {
+                String[] parts = stringValue.split(":", 2);
+                fieldValueAttachment.setName(parts[0]);
+                fieldValueAttachment.setBase64Content(stringValue);
+            } else {
+                fieldValueAttachment.setName("data");
+                fieldValueAttachment.setBase64Content(stringValue);
+            }
+        }
+        if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
+            for (var id : stringValue.split(LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(id)) {
+                    continue;
+                }
+
+                UUID uuid;
+                try {
+                    uuid = UUID.fromString(id);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueTwinClassList.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect class id[" + id + "]");
+                }
+                fieldValueTwinClassList.add(new TwinClassEntity().setId(uuid));
+            }
+        }
+        if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
+            for (String dataListOption : stringValue.split(LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(dataListOption)) continue;
+                DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
+                if (UuidUtils.isUUID(dataListOption)) {
+                    dataListOptionEntity.setId(UUID.fromString(dataListOption));
+                } else if (dataListOption.startsWith(FieldTyperList.EXTERNAL_ID_PREFIX)) {
+                    dataListOptionEntity.setExternalId(StringUtils.substringAfter(dataListOption, FieldTyperList.EXTERNAL_ID_PREFIX));
+                } else {
+                    dataListOptionEntity.setOption(dataListOption);
+                }
+                fieldValueSelect.add(dataListOptionEntity);
+            }
+        }
+        if (fieldValue instanceof FieldValueUser fieldValueUser) {
+            for (String userId : stringValue.split(LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(userId))
+                    continue;
+                UUID userUUID;
+                try {
+                    userUUID = UUID.fromString(userId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueUser.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
+                }
+                fieldValueUser.add(new UserEntity()
+                        .setId(userUUID));
+            }
+        }
+        if (fieldValue instanceof FieldValueUserSingle fieldValueUserSingle) {
+            UUID userId = UuidUtils.fromString(stringValue);
+            fieldValueUserSingle.setValue(new UserEntity().setId(userId));
+        }
+        if (fieldValue instanceof FieldValueStatus fieldValueStatus) {
+            UUID statusId = UuidUtils.fromString(stringValue);
+            fieldValueStatus.setValue(new TwinStatusEntity().setId(statusId));
+        }
+        if (fieldValue instanceof FieldValueLink fieldValueLink) {
+            for (String dstTwinId : stringValue.split(LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(dstTwinId))
+                    continue;
+                UUID dstTwinUUID;
+                try {
+                    dstTwinUUID = UUID.fromString(dstTwinId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueLink.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
+                }
+                ((FieldValueLink) fieldValue).add(new TwinEntity()
+                        .setId(dstTwinUUID));
+            }
+        }
+        if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
+            UUID twinId = UuidUtils.fromString(stringValue);
+            fieldValueLinkSingle.setValue(new TwinEntity().setId(twinId));
+        }
+        if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
+            Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(stringValue);
             if (translations == null) {
                 throw new ServiceException(
                         ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
@@ -2407,8 +2533,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (t.getFields() != null) {
             for (FieldValue value : t.getFields().values()) {
                 if (value instanceof FieldValueLink fieldValueLink) {
-                    for (var link : fieldValueLink.getItems()) {
-                        addIfRefOnNew(link.getDstTwinId(), newTwinsWithIds, result);
+                    for (var toTwin : fieldValueLink.getItems()) { // items carry the far twins
+                        addIfRefOnNew(toTwin.getId(), newTwinsWithIds, result);
                     }
                 }
             }
