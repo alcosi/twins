@@ -13,8 +13,8 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.enums.link.LinkType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.link.LinkService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -35,17 +35,11 @@ public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
         if (CollectionUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No backward links for contextTwin " + contextTwin.logShort());
         TwinOperation outputTwin = factoryItem.getOutput();
-        List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : contextTwinLinksList) {
             if (contextTwinLinkEntity.getLink().getType() == LinkType.ManyToMany
-                    || uniqForSrcRelink.extract(properties))
-                twinLinkEntityList.add(new TwinLinkEntity()
-                        .setDstTwin(contextTwinLinkEntity.getSrcTwin()) //setting dst, because TwinLinkService.prepareTwinLinks will hold it
-                        .setDstTwinId(contextTwinLinkEntity.getSrcTwinId())
-                        .setLink(contextTwinLinkEntity.getLink())
-                        .setLinkId(contextTwinLinkEntity.getLinkId())
-                );
+                    || uniqForSrcRelink.extract(properties)) {
+                addLink(outputTwin, contextTwinLinkEntity.getLink(), contextTwinLinkEntity.getSrcTwin(), LinkService.LinkDirection.backward, uniqForSrcRelink.extract(properties));
+            }
         }
-        addLinks(outputTwin, twinLinkEntityList);
     }
 }

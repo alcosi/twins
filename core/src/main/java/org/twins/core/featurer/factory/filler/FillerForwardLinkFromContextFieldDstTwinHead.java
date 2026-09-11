@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -51,7 +50,6 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
         FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
         TwinEntity dstTwin = FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue);
-
         TwinEntity linkDstTwin;
         if (useDstTwinHead.extract(properties)) {
             linkDstTwin = twinService.loadHead(dstTwin);
@@ -61,17 +59,7 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         } else {
             linkDstTwin = dstTwin;
         }
-
-        TwinEntity outputTwin = factoryItem.getTwin();
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setSrcTwinId(outputTwin.getId())
-                .setSrcTwin(outputTwin)
-                .setDstTwin(linkDstTwin)
-                .setDstTwinId(linkDstTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), link, linkDstTwin);
     }
-
 }

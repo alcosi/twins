@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 /**
  * CUD - create, update, delete. Specialized replacement for the generic EntityCUD&lt;TwinLinkEntity&gt;:
- * the create list carries {@link TwinLinkCreate} composition objects (entity + creation-only relation
- * twin fields), while update/delete operate on plain entities.
+ * the create list carries {@link TwinLinkCreate} declarative intents (twin + link + direction + far twins —
+ * the rows are built by prepareTwinLinks), while update/delete operate on plain entities.
  */
 @Data
 @Accessors(chain = true)
@@ -43,17 +43,16 @@ public class TwinLinkCUD {
         return deleteList;
     }
 
-    /** Convenience for factory fillers and other producers of plain entities. */
-    public TwinLinkCUD addCreate(TwinLinkEntity twinLinkEntity) {
-        TwinLinkCreate linkCreate = new TwinLinkCreate();
-        linkCreate.setTwinLink(twinLinkEntity);
+    public TwinLinkCUD addCreate(TwinLinkCreate linkCreate) {
         getCreateListSafe().add(linkCreate);
         return this;
     }
 
-    /** Entity view over the create list for consumers working with plain entities. */
+    /** Flattened built rows over the create list — meaningful after prepareTwinLinks ran. */
     public List<TwinLinkEntity> getCreateEntityList() {
-        return createList == null ? null : createList.stream().map(TwinLinkCreate::getTwinLink).collect(Collectors.toList());
+        return createList == null ? null : createList.stream()
+                .flatMap(linkCreate -> linkCreate.getTwinLinksSafe().stream())
+                .collect(Collectors.toList());
     }
 
     /** Entity view over the update list for consumers working with plain entities. */

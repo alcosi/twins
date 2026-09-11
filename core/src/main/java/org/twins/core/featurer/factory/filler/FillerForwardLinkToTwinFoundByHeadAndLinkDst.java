@@ -11,7 +11,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -61,14 +60,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndLinkDst extends FillerLinks {
                 .orElseThrow(() -> new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Twin of class[" + twinClassId.extract(properties) + "] not found by head"));
 
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setSrcTwinId(outputTwin.getId())
-                .setSrcTwin(outputTwin)
-                .setDstTwin(foundTwin)
-                .setDstTwinId(foundTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), link, foundTwin);
     }
 
     private Optional<TwinEntity> findTwin(Properties properties, FactoryItem factoryItem) throws ServiceException {

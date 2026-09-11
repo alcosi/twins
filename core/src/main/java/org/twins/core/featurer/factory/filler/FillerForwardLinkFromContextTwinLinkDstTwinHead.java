@@ -8,7 +8,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -28,7 +27,6 @@ import java.util.Properties;
                 "Get head of this dst twin. " +
                 "Create new link of given type from current twin pointing to this head")
 public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks {
-
     @Lazy
     @Autowired
     TwinService twinService;
@@ -51,13 +49,8 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
         var dstTwin = contextTwinLinksList.getFirst().getDstTwin();
         twinService.loadHead(dstTwin);
         var detectedHead = dstTwin.getHeadTwin();
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        var link = linkService.findEntitySafe(newLinksId.extract(properties));
+        addLink(factoryItem.getOutput(), link, detectedHead);
     }
 
     //todo optimize with hierarchy

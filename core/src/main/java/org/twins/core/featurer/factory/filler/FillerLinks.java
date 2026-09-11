@@ -5,16 +5,22 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinlink.TwinLinkCUD;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 public abstract class FillerLinks extends Filler {
@@ -30,27 +36,34 @@ public abstract class FillerLinks extends Filler {
         twinLinkService.loadDstTwin(twinLinkList);
         twinLinkService.loadLink(twinLinkList);
         TwinOperation outputTwin = factoryItem.getOutput();
-        List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : twinLinkList) {
-            twinLinkEntityList.add(new TwinLinkEntity()
-                    .setDstTwin(contextTwinLinkEntity.getDstTwin())
-                    .setDstTwinId(contextTwinLinkEntity.getDstTwinId())
-                    .setLink(contextTwinLinkEntity.getLink())
-                    .setLinkId(contextTwinLinkEntity.getLinkId())
-            );
+            addLink(outputTwin, contextTwinLinkEntity.getLink(), contextTwinLinkEntity.getDstTwin());
         }
-        addLinks(outputTwin, twinLinkEntityList);
     }
 
-    protected void addLink(TwinOperation outputTwin, TwinLinkEntity twinLinkEntity) {
-        if (outputTwin instanceof TwinCreate twinCreate) {
+    protected void addLink(TwinOperation twinOperation, LinkEntity link, TwinEntity toTwin) {
+        addLink(twinOperation, link, toTwin, false);
+    }
+
+    protected void addLink(TwinOperation twinOperation, LinkEntity link, TwinEntity toTwin, boolean uniqForSrcRelink) {
+        addLink(twinOperation, link, toTwin, LinkService.LinkDirection.forward, false);
+    }
+
+    protected void addLink(TwinOperation twinOperation, LinkEntity link, TwinEntity toTwin, LinkService.LinkDirection linkDirection, boolean uniqForSrcRelink) {
+        var twinLinkCreate = new TwinLinkCreate()
+                .setTwin(twinOperation.getTwinEntity())
+                .setLink(link)
+                .setLinkDirection(linkDirection)
+                .addToTwin(toTwin)
+                .setUniqForSrcRelink(uniqForSrcRelink);
+        if (twinOperation instanceof TwinCreate twinCreate) {
             if (missed(twinCreate.getTwinEntity().getId(), twinCreate.getLinksEntityList(), twinLinkEntity))
-                twinCreate.addLink(twinLinkEntity);
-        } else if (outputTwin instanceof TwinUpdate twinUpdate) {
+                twinCreate.addLink(twinLinkCreate);
+        } else if (twinOperation instanceof TwinUpdate twinUpdate) {
             if (twinUpdate.getTwinLinkCUD() == null)
                 twinUpdate.setTwinLinkCUD(new TwinLinkCUD());
             if (missed(twinUpdate.getTwinEntity().getId(), twinUpdate.getTwinLinkCUD().getCreateEntityList(), twinLinkEntity))
-                twinUpdate.getTwinLinkCUD().addCreate(twinLinkEntity);
+                twinUpdate.getTwinLinkCUD().addCreate(twinLinkCreate);
         }
     }
 
@@ -66,11 +79,5 @@ public abstract class FillerLinks extends Filler {
                 return false;
         }
         return true;
-    }
-
-    protected void addLinks(TwinOperation outputTwin, List<TwinLinkEntity> twinLinkEntityList) {
-        for (TwinLinkEntity twinLinkEntity : twinLinkEntityList) {
-            addLink(outputTwin, twinLinkEntity);
-        }
     }
 }

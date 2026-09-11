@@ -9,13 +9,11 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -40,18 +38,6 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
         }
         LinkEntity linkEntity = linkEntityList.getFirst();
         TwinOperation outputTwin = factoryItem.getOutput();
-        List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
-        // todo why loop? we have already call factoryItem.checkSingleContextTwin();
-        for (FactoryItem contextItem : factoryItem.getContextFactoryItemList()) {
-            TwinEntity contextTwinEntity = contextItem.getTwin();
-            twinLinkEntityList.add(new TwinLinkEntity()
-                    .setDstTwin(contextTwinEntity) //setting dst, because TwinLinkService.prepareTwinLinks will hold it
-                    .setDstTwinId(contextTwinEntity.getId())
-                    .setLink(linkEntity)
-                    .setLinkId(linkEntity.getId())
-                    .setUniqForSrcRelink(uniqForSrcRelink.extract(properties))
-            );
-        }
-        addLinks(outputTwin, twinLinkEntityList);
+        addLink(outputTwin, linkEntity, contextTwin, uniqForSrcRelink.extract(properties));
     }
 }

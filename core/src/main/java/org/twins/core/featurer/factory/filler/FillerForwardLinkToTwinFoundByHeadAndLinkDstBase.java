@@ -56,14 +56,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
                         "Twin of class[" + twinClassId.extract(properties) + "] not found by head and link dst"));
 
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setSrcTwinId(outputTwin.getId())
-                .setSrcTwin(outputTwin)
-                .setDstTwin(foundTwin)
-                .setDstTwinId(foundTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), link, foundTwin);
     }
 
     private Optional<TwinEntity> findTwin(Properties properties, FactoryItem factoryItem) throws ServiceException {

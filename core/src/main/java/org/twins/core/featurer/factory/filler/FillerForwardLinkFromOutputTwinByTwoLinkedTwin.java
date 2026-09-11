@@ -72,12 +72,7 @@ public class FillerForwardLinkFromOutputTwinByTwoLinkedTwin extends FillerLinks 
                 : getHeadTwin(firstHopDstTwin);
 
         LinkEntity link = linkService.findEntitySafe(newLinkId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(finalDstTwin)
-                .setDstTwinId(finalDstTwin.getId());
-        addLink(factoryItem.getOutput(), newLink);
+        addLink(factoryItem.getOutput(), link, finalDstTwin);
     }
 
     private TwinEntity getHeadTwin(TwinEntity twin) throws ServiceException {

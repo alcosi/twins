@@ -9,7 +9,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.featurer.FeaturerTwins;
@@ -34,12 +33,6 @@ public class FillerBackwardLinkAsContextTwin extends FillerLinks {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin(); // all context twins must be the same class
         LinkEntity linkEntity = linkService.findEntitySafe(linkId.extract(properties));
         TwinOperation outputTwin = factoryItem.getOutput();
-        addLink(outputTwin, new TwinLinkEntity()
-                .setDstTwin(contextTwin) //setting dst, because TwinLinkService.prepareTwinLinks will hold it
-                .setDstTwinId(contextTwin.getId())
-                .setLink(linkEntity)
-                .setLinkId(linkEntity.getId())
-                .setUniqForSrcRelink(uniqForSrcRelink.extract(properties))
-        );
+        addLink(outputTwin, linkEntity, contextTwin, uniqForSrcRelink.extract(properties));
     }
 }

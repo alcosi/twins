@@ -5,10 +5,12 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.enums.twin.TwinCreateStrategy;
+import org.twins.core.service.link.LinkService;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,16 +32,24 @@ public class TwinCreate extends TwinSave {
         return this;
     }
 
-    /** Convenience for factory fillers and other producers of plain entities. */
+    /**
+     * Convenience for factory fillers and other producers of already-oriented rows: derives the declarative
+     * intent from the row (the anchor is this create's twin — src for forward rows, dst for backward rows).
+     */
     public TwinCreate addLink(TwinLinkEntity link) {
-        TwinLinkCreate linkCreate = new TwinLinkCreate();
-        linkCreate.setTwinLink(link);
+        boolean forward = link.getSrcTwinId() != null && link.getSrcTwinId().equals(twinEntity.getId());
+        TwinEntity farTwin = forward ? link.getDstTwin() : link.getSrcTwin();
+        UUID farTwinId = forward ? link.getDstTwinId() : link.getSrcTwinId();
+        TwinLinkCreate linkCreate = new TwinLinkCreate()
+                .setTwin(twinEntity)
+                .setLink(link.getLink())
+                .setLinkDirection(forward ? LinkService.LinkDirection.forward : LinkService.LinkDirection.backward)
+                .setUniqForSrcRelink(link.isUniqForSrcRelink());
+        if (farTwin != null)
+            linkCreate.addToTwin(farTwin);
+        else if (farTwinId != null)
+            linkCreate.addToTwin(new TwinEntity().setId(farTwinId)); // id stub — prepare loads the real twin
         return addLink(linkCreate);
-    }
-
-    /** Entity view over {@link #linksCreateList} for consumers working with plain entities (fillers, lookupers). */
-    public List<TwinLinkEntity> getLinksEntityList() {
-        return linksCreateList == null ? null : linksCreateList.stream().map(TwinLinkCreate::getTwinLink).toList();
     }
 
     public TwinCreate addAttachment(TwinAttachmentEntity attachment) {
