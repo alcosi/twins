@@ -149,4 +149,20 @@ class RecomputerFieldDateShiftByDurationTest extends BaseUnitTest {
             verify(fieldTyper, never()).serializeValue(any(), any(), any());
         }
     }
+
+    @Nested
+    class WhenOnlyIfEmpty {
+        @Test
+        void skipsWhenTargetAlreadyFilled() throws ServiceException {
+            TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+            when(twinClassFieldService.getTimestampValue(twin, TARGET_ID, null))
+                    .thenReturn(Timestamp.valueOf(LocalDateTime.of(2026, 3, 10, 0, 0)));
+            var p = props(false);
+            p.setProperty("onlyIfEmpty", "true");
+
+            recomputer.recompute(request(twin), collector, p);
+
+            verify(fieldTyper, never()).serializeValue(any(), any(), any());
+        }
+    }
 }

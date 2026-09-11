@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,7 @@ import java.util.UUID;
 /**
  * Recomputes the subscriber duration field as {@code (end - start + 1)} inclusive days
  * (same semantics as filler 2369 / validator 5602). Skips when either date is missing.
- * Always overwrites the subscriber field (field-edit recalculation, not fill-if-empty).
+ * When {@code onlyIfEmpty} is true, skips if the subscriber duration already has a value.
  */
 @Component
 @Featurer(id = FeaturerTwins.ID_5504,
@@ -45,6 +46,9 @@ public class RecomputerFieldDurationBetweenDates extends Recomputer {
     @FeaturerParam(name = "End date twin class field id", description = "End date field", order = 2)
     public static final FeaturerParamUUID endDateTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("endDateTwinClassFieldId");
 
+    @FeaturerParam(name = "Only if empty", description = "If true, do not overwrite an already filled subscriber duration", order = 3, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean onlyIfEmpty = new FeaturerParamBoolean("onlyIfEmpty");
+
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -58,6 +62,12 @@ public class RecomputerFieldDurationBetweenDates extends Recomputer {
         UUID endFieldId = endDateTwinClassFieldId.extract(properties);
 
         twinService.loadTwinFields(twin);
+
+        if (Boolean.TRUE.equals(onlyIfEmpty.extract(properties))
+                && !twinClassFieldService.isDecimalFieldEmpty(twin, durationField.getId())) {
+            log.trace("subscriber duration[{}] already set on twin[{}], onlyIfEmpty skip", durationField.getId(), twin.getId());
+            return;
+        }
 
         Timestamp startTs = twinClassFieldService.getTimestampValue(twin, startFieldId, null);
         Timestamp endTs = twinClassFieldService.getTimestampValue(twin, endFieldId, null);

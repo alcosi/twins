@@ -82,6 +82,12 @@ class RecomputerFieldDurationBetweenDatesTest extends BaseUnitTest {
         return p;
     }
 
+    private Properties propsOnlyIfEmpty() {
+        var p = props();
+        p.setProperty("onlyIfEmpty", "true");
+        return p;
+    }
+
     private FieldRecomputeRequest request(TwinEntity twin) {
         return new FieldRecomputeRequest(twin, DURATION_FIELD, List.of());
     }
@@ -114,6 +120,19 @@ class RecomputerFieldDurationBetweenDatesTest extends BaseUnitTest {
                     .thenReturn(Timestamp.valueOf(LocalDateTime.of(2026, 3, 5, 0, 0)));
 
             recomputer.recompute(request(twin), collector, props());
+
+            verify(fieldTyper, never()).serializeValue(any(), any(), any());
+        }
+    }
+
+    @Nested
+    class WhenOnlyIfEmpty {
+        @Test
+        void skipsWhenDurationAlreadyFilled() throws ServiceException {
+            TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+            when(twinClassFieldService.isDecimalFieldEmpty(twin, DURATION_ID)).thenReturn(false);
+
+            recomputer.recompute(request(twin), collector, propsOnlyIfEmpty());
 
             verify(fieldTyper, never()).serializeValue(any(), any(), any());
         }

@@ -29,7 +29,7 @@ import java.util.UUID;
 /**
  * Recomputes the subscriber date field as {@code sourceDate ± (duration - 1)} inclusive days
  * (same semantics as filler 2368 / validator 5602). Skips when any operand is missing.
- * Always overwrites the subscriber field (field-edit recalculation, not fill-if-empty).
+ * When {@code onlyIfEmpty} is true, skips if the subscriber field already has a value.
  */
 @Component
 @Featurer(id = FeaturerTwins.ID_5503,
@@ -48,6 +48,9 @@ public class RecomputerFieldDateShiftByDuration extends Recomputer {
     @FeaturerParam(name = "Subtract duration", description = "If true, target = source - (duration - 1); if false, target = source + (duration - 1)", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean subtractDuration = new FeaturerParamBoolean("subtractDuration");
 
+    @FeaturerParam(name = "Only if empty", description = "If true, do not overwrite an already filled subscriber date", order = 4, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean onlyIfEmpty = new FeaturerParamBoolean("onlyIfEmpty");
+
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -61,6 +64,12 @@ public class RecomputerFieldDateShiftByDuration extends Recomputer {
         UUID durationFieldId = durationTwinClassFieldId.extract(properties);
 
         twinService.loadTwinFields(twin);
+
+        if (Boolean.TRUE.equals(onlyIfEmpty.extract(properties))
+                && twinClassFieldService.getTimestampValue(twin, targetField.getId(), null) != null) {
+            log.trace("subscriber date[{}] already set on twin[{}], onlyIfEmpty skip", targetField.getId(), twin.getId());
+            return;
+        }
 
         Timestamp sourceTs = twinClassFieldService.getTimestampValue(twin, sourceFieldId, null);
         BigDecimal duration = twinClassFieldService.getDecimalValue(twin, durationFieldId, null);

@@ -16,7 +16,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 public record RecomputeTriggerOnField(
         TwinEntity publisherTwin,
         TwinClassFieldEntity publisherField,
-        boolean async
+        boolean async,
+        boolean cleared
 ) implements RecomputeTrigger {
 
     @Override

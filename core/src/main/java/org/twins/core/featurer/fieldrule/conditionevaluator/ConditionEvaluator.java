@@ -69,22 +69,24 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
     protected abstract boolean evaluate(Properties properties, FieldValue currentValue) throws ServiceException;
 
     public static boolean evaluateOperator(String actualValue, TwinClassFieldConditionOperator operator, String expected) {
+        boolean isNullish = StringUtils.isEmpty(actualValue);
+        // hstore may store unquoted null as SQL NULL; treat that the same as the "null" token
+        boolean expectedIsNullToken = expected == null || "null".equalsIgnoreCase(expected.trim());
+
         if (expected == null)
             expected = "";
         else
             expected = expected.trim();
 
-        boolean isNullish = StringUtils.isEmpty(actualValue);
-
         switch (operator) {
             case eq:
-                if ("null".equalsIgnoreCase(expected))
+                if (expectedIsNullToken)
                     return isNullish;
                 Integer eqCompare = compareNumbers(actualValue, expected);
                 // numeric equality if both parse as numbers (10 == 10.0), else case-insensitive string eq
                 return eqCompare != null ? eqCompare == 0 : Strings.CI.equals(actualValue, expected);
             case neq:
-                if ("null".equalsIgnoreCase(expected))
+                if (expectedIsNullToken)
                     return !isNullish;
                 if (actualValue == null)
                     return false;

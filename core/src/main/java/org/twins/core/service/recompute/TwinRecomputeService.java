@@ -104,9 +104,13 @@ public class TwinRecomputeService {
         if (collector.getSaveEntities(TwinFieldDecimalEntity.class).isEmpty() && collector.getDeletes(TwinFieldDecimalEntity.class).isEmpty())
             return;
         var unprocessedDecimalFields = new ArrayList<TwinFieldDecimalEntity>();
+        var clearedPublisherKeys = new HashSet<String>();
         for (var decimalField : collector.getSaveEntities(TwinFieldDecimalEntity.class)) {
             if (recomputePlan.isVisitedPublisher(toKey(decimalField))) {
                 continue; //circle protection
+            }
+            if (decimalField.getValue() == null) {
+                clearedPublisherKeys.add(toKey(decimalField));
             }
             unprocessedDecimalFields.add(decimalField);
         }
@@ -114,6 +118,7 @@ public class TwinRecomputeService {
             if (recomputePlan.isVisitedPublisher(toKey(decimalField))) {
                 continue; //circle protection
             }
+            clearedPublisherKeys.add(toKey(decimalField));
             unprocessedDecimalFields.add(decimalField);
         }
         if (unprocessedDecimalFields.isEmpty()) {
@@ -145,31 +150,41 @@ public class TwinRecomputeService {
         twinRecomputeOnFieldService.loadValidators(recomputeOnFields);
         for (var triggerField : decimalFieldsKit.getCollection()) {
             TwinEntity publisherTwin = triggerField.getTwin();
+            boolean cleared = clearedPublisherKeys.contains(toKey(triggerField));
             for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnField()) {
-                if (!passesCondition(recomputeOnField, triggerField)
+                if (!passesCondition(recomputeOnField, triggerField, cleared)
                         || !passesValidatorRules(publisherTwin, recomputeOnField.getValidatorRulesKit(), TwinRecomputeOnFieldValidatorRuleEntity::isActive)) {
                     continue; // publisher twin failed every active validator set for this rule
                 }
-                recomputePlan.add(triggerField, recomputeOnField);
+                recomputePlan.add(triggerField, recomputeOnField, cleared);
             }
         }
     }
 
     /**
      * Timestamp publishers for field-edit date/duration recalculation.
-     * Deletes and null saves are ignored for now (no clear/cascade-on-delete behavior).
+     * Clears/deletes are publishers too (condition eq null → refill the cleared field from the other two).
      */
     private void collectTimestampFieldWithRecompute(TwinChangesCollector collector, RecomputePlan recomputePlan) throws ServiceException {
-        if (collector.getSaveEntities(TwinFieldTimestampEntity.class).isEmpty())
+        if (collector.getSaveEntities(TwinFieldTimestampEntity.class).isEmpty()
+                && collector.getDeletes(TwinFieldTimestampEntity.class).isEmpty())
             return;
         var unprocessedTimestampFields = new ArrayList<TwinFieldTimestampEntity>();
+        var clearedPublisherKeys = new HashSet<String>();
         for (var timestampField : collector.getSaveEntities(TwinFieldTimestampEntity.class)) {
-            if (timestampField.getValue() == null) {
-                continue; // cleared/null — do nothing for now
-            }
             if (recomputePlan.isVisitedPublisher(toKey(timestampField))) {
                 continue; //circle protection
             }
+            if (timestampField.getValue() == null) {
+                clearedPublisherKeys.add(toKey(timestampField));
+            }
+            unprocessedTimestampFields.add(timestampField);
+        }
+        for (var timestampField : collector.getDeletes(TwinFieldTimestampEntity.class)) {
+            if (recomputePlan.isVisitedPublisher(toKey(timestampField))) {
+                continue; //circle protection
+            }
+            clearedPublisherKeys.add(toKey(timestampField));
             unprocessedTimestampFields.add(timestampField);
         }
         if (unprocessedTimestampFields.isEmpty()) {
@@ -201,12 +216,13 @@ public class TwinRecomputeService {
         twinRecomputeOnFieldService.loadValidators(recomputeOnFields);
         for (var triggerField : timestampFieldsKit.getCollection()) {
             TwinEntity publisherTwin = triggerField.getTwin();
+            boolean cleared = clearedPublisherKeys.contains(toKey(triggerField));
             for (var recomputeOnField : triggerField.getTwinClassField().getRecomputeOnField()) {
-                if (!passesCondition(recomputeOnField, triggerField)
+                if (!passesCondition(recomputeOnField, triggerField, cleared)
                         || !passesValidatorRules(publisherTwin, recomputeOnField.getValidatorRulesKit(), TwinRecomputeOnFieldValidatorRuleEntity::isActive)) {
                     continue;
                 }
-                recomputePlan.add(triggerField, recomputeOnField);
+                recomputePlan.add(triggerField, recomputeOnField, cleared);
             }
         }
     }
@@ -259,11 +275,20 @@ public class TwinRecomputeService {
 
     /**
      * Returns true if the publisher field's current value passes the rule's {@link ConditionEvaluator}.
+     * Cleared/deleted publishers are evaluated as empty field values (for eq/neq null conditions).
      */
-    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldBaseEntity triggerField) throws ServiceException {
-        FieldValue currentValue = toConditionFieldValue(triggerField);
+    private boolean passesCondition(TwinRecomputeOnFieldEntity recomputeOnField, TwinFieldBaseEntity triggerField, boolean cleared) throws ServiceException {
+        FieldValue currentValue = cleared ? emptyConditionFieldValue(triggerField) : toConditionFieldValue(triggerField);
         ConditionEvaluator evaluator = featurerService.getFeaturer(recomputeOnField.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
         return evaluator.evaluate(recomputeOnField.getConditionEvaluatorParams(), currentValue);
+    }
+
+    private FieldValue emptyConditionFieldValue(TwinFieldBaseEntity triggerField) throws ServiceException {
+        if (triggerField instanceof TwinFieldTimestampEntity timestampField) {
+            String pattern = twinClassFieldService.getDateFieldPattern(timestampField.getTwinClassField());
+            return new FieldValueDate(timestampField.getTwinClassField(), pattern).clear();
+        }
+        return new FieldValueText(triggerField.getTwinClassField()).clear();
     }
 
     private FieldValue toConditionFieldValue(TwinFieldBaseEntity triggerField) throws ServiceException {
@@ -276,6 +301,8 @@ public class TwinRecomputeService {
             FieldValueDate value = new FieldValueDate(timestampField.getTwinClassField(), pattern);
             if (timestampField.getValue() != null) {
                 value.setDate(timestampField.getValue().toLocalDateTime());
+            } else {
+                value.clear();
             }
             return value;
         }
@@ -341,7 +368,7 @@ public class TwinRecomputeService {
             return loops.get(currentLoop - 1);
         }
 
-        public void add(TwinFieldBaseEntity triggerField, TwinRecomputeOnFieldEntity recomputeOnField) {
+        public void add(TwinFieldBaseEntity triggerField, TwinRecomputeOnFieldEntity recomputeOnField, boolean cleared) {
             init();
             visitedPublishers.add(toKey(triggerField));
             TwinRecomputeSubscriberEntity subscriber = recomputeOnField.getSubscriber();
@@ -360,7 +387,7 @@ public class TwinRecomputeService {
             getLoop().recomputeTriggersByUnresolvedPointer
                     .computeIfAbsent(unresolvedPointer, _ -> new HashMap<>())
                     .computeIfAbsent(subscriber.getSubscriberTwinClassFieldId(), _ -> new ArrayList<>())
-                    .add(new RecomputeTriggerOnField(triggerField.getTwin(), triggerField.getTwinClassField(), recomputeOnField.isAsync()));
+                    .add(new RecomputeTriggerOnField(triggerField.getTwin(), triggerField.getTwinClassField(), recomputeOnField.isAsync(), cleared));
         }
 
         public void add(TwinEntity twin, TwinAction twinAction, TwinRecomputeOnActionEntity recomputeOnAction) {
@@ -508,6 +535,13 @@ public class TwinRecomputeService {
         for (var entry : recomputePlan.getLoop().getRecomputeTriggersByTarget().entrySet()) {
             var target = entry.getKey();
             var triggers = entry.getValue();
+            String subscriberKey = toKey(target.subscriberTwinId(), target.subscriberFieldId());
+            // Do not overwrite a field the user already changed in this plan —
+            // e.g. start+end in one request: skip start→end, keep end→duration.
+            // Exception: refill after clear (publisher cleared == subscriber field).
+            if (recomputePlan.isVisitedPublisher(subscriberKey) && !isClearedFieldRefill(triggers, subscriberKey)) {
+                continue;
+            }
             Set<String> publisherKeys = triggers.stream()
                     .map(RecomputeTrigger::publisherKey)
                     .collect(Collectors.toSet());
@@ -523,6 +557,18 @@ public class TwinRecomputeService {
                     target.recomputerParams()));
         }
         return tasks;
+    }
+
+    /** True when a clear/delete of the subscriber field itself requested refill of that field. */
+    private static boolean isClearedFieldRefill(List<RecomputeTrigger> triggers, String subscriberKey) {
+        for (RecomputeTrigger trigger : triggers) {
+            if (trigger instanceof RecomputeTriggerOnField onField && onField.cleared()) {
+                if (subscriberKey.equals(toKey(onField.publisherTwin().getId(), onField.publisherField().getId()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void dispatchRecompute(FieldRecomputeRequest request, TwinChangesCollector collector,
