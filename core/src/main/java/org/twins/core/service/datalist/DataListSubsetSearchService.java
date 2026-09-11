@@ -20,6 +20,7 @@ import org.twins.core.service.EntitySearchService;
 import java.util.Locale;
 import java.util.UUID;
 
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.toSortSpecificationDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -60,8 +61,8 @@ public class DataListSubsetSearchService extends EntitySearchService
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListSubsetEntity.Fields.id),
                 checkUuidIn(search.getDataListIdList(), false, false, DataListSubsetEntity.Fields.dataListId),
                 checkUuidIn(search.getDataListIdExcludeList(), true, false, DataListSubsetEntity.Fields.dataListId),
-                checkFieldLikeIn(search.getNameLikeList(), false, true, DataListSubsetEntity.Fields.name),
-                checkFieldLikeIn(search.getNameNotLikeList(), true, true, DataListSubsetEntity.Fields.name),
+                joinAndSearchByI18NFieldDirect(DataListSubsetEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, false, false),
+                joinAndSearchByI18NFieldDirect(DataListSubsetEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameNotLikeList(), locale, true, true),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, DataListSubsetEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, DataListSubsetEntity.Fields.key));
     }
@@ -75,7 +76,7 @@ public class DataListSubsetSearchService extends EntitySearchService
     public Specification<DataListSubsetEntity> createSortSpecification(DataListSubsetSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
-            case name -> toSortSpecification(ascending, DataListSubsetEntity.Fields.name);
+            case name -> toSortSpecificationDirect(ascending, locale, DataListSubsetEntity.Fields.nameI18nTranslationsSpecOnly);
             case key -> toSortSpecification(ascending, DataListSubsetEntity.Fields.key);
             case dataListName -> toSortSpecificationDirect(ascending, locale, DataListSubsetEntity.Fields.dataListSpecOnly, DataListEntity.Fields.nameI18nTranslationsSpecOnly);
         };

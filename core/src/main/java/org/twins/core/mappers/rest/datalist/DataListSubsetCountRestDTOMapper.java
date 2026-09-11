@@ -35,7 +35,7 @@ public class DataListSubsetCountRestDTOMapper extends RestSimpleDTOMapper<CountR
                 .setDataListId(entity.getDataListId())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, DataListMode.DataListSubset2DataListMode.HIDE, src, DataListSubsetGroupField.dataListId)) {
-            dataListSubsetService.loadDataLists(entity);
+            dataListSubsetService.loadDataList(entity);
             dataListRestDTOMapper.convertOrPostpone(entity.getDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListSubset2DataListMode.SHORT)));
         }
     }
@@ -51,7 +51,7 @@ public class DataListSubsetCountRestDTOMapper extends RestSimpleDTOMapper<CountR
         }
         var sample = srcCollection.iterator().next();
         if (needLoad(mapperContext, DataListMode.DataListSubset2DataListMode.HIDE, sample, DataListSubsetGroupField.dataListId)) {
-            dataListSubsetService.loadDataLists(entityCollection);
+            dataListSubsetService.loadDataList(entityCollection);
         }
     }
 }

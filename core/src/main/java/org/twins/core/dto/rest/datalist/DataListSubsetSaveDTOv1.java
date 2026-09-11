@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.datalist;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.UUID;
 
@@ -13,12 +14,12 @@ public class DataListSubsetSaveDTOv1 {
     @Schema(description = "Data list id. Immutable after creation")
     public UUID dataListId;
 
-    @Schema(description = "Data list subset name")
-    public String name;
-
-    @Schema(description = "Data list subset description")
-    public String description;
-
     @Schema(description = "Data list subset key. Unique within the data list")
     public String key;
+
+    @Schema(description = "Name translations")
+    public I18nSaveDTOv1 nameI18n;
+
+    @Schema(description = "Description translations")
+    public I18nSaveDTOv1 descriptionI18n;
 }

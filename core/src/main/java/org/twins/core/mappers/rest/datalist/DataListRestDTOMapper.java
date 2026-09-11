@@ -5,13 +5,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.datalist.DataListService;
+
+import java.util.Collection;
 
 import static org.cambium.common.util.DateUtils.convertOrNull;
 
@@ -20,8 +25,10 @@ import static org.cambium.common.util.DateUtils.convertOrNull;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DataListMode.class)
 public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, DataListDTOv1> {
+    @MapperModePointerBinding(modes = UserMode.DataList2UserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
 
-    private final I18nService i18nService;
+    private final DataListService dataListService;
     private final DataListAttributeRestDTOMapper dataListAttributeRestDTOMapper;
 
     @Override
@@ -34,6 +41,7 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
                         .setCreatedAt(convertOrNull(src.getCreatedAt()))
+                        .setCreatedByUserId(src.getCreatedByUserId())
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
                         .setExternalId(src.getExternalId());
                 if (StringUtils.isNotBlank(src.getAttribute1key()))
@@ -59,10 +67,22 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setId(src.getId())
                         .setName(I18nCacheHolder.addId(src.getNameI18nId()));
         }
+        if (mapperContext.hasModeButNot(UserMode.DataList2UserMode.HIDE)) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+            dataListService.loadUser(src);
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DataList2UserMode.SHORT)));
+        }
     }
     
     @Override
     public String getObjectCacheId(DataListEntity src) {
         return src.getId().toString();
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<DataListEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasModeButNot(UserMode.DataList2UserMode.HIDE)) {
+            dataListService.loadUser(srcCollection);
+        }
     }
 }
