@@ -7,7 +7,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -40,10 +39,17 @@ public class DataListSubsetEntity implements EasyLoggable {
     @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(mappedBy = "dataListSubset", fetch = FetchType.LAZY)
-    private Set<DataListSubsetOptionEntity> subsetOptionsSpecOnly;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
+    private DataListEntity dataListSpecOnly;
+
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    DataListEntity dataList;
 
     public String easyLog(Level level) {
-        return "dataList[id:" + id + ", key:" + key + "]";
+        return "dataListSubset[id:" + id + ", key:" + key + "]";
     }
 }
