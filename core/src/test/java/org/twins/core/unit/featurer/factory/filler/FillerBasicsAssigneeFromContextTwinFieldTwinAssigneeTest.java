@@ -95,12 +95,12 @@ class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitT
         @Test
         void fill_usesContextTwinDbFieldsLookuper_thenLinkedTwinAssignee() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            var dstTwinId = UUID.randomUUID();
-            var fieldValue = new FieldValueLink(buildField()).add(new TwinEntity().setId(dstTwinId)); // items carry the far twins
-            when(lookuper.lookupFieldValue(factoryItem, LINK_FIELD_ID)).thenReturn(fieldValue);
-
             var assignee = new UserEntity().setId(UUID.randomUUID());
-            when(twinService.getTwinAssignee(dstTwinId)).thenReturn(assignee);
+            var linkedTwin = new TwinEntity().setId(UUID.randomUUID())
+                    .setAssignerUser(assignee)
+                    .setAssignerUserId(assignee.getId());
+            var fieldValue = new FieldValueLink(buildField()).add(linkedTwin); // items carry the far twins
+            when(lookuper.lookupFieldValue(factoryItem, LINK_FIELD_ID)).thenReturn(fieldValue);
 
             filler.fill(props(), factoryItem, null);
 

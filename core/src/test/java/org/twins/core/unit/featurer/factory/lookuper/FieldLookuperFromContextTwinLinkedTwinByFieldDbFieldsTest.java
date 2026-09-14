@@ -41,7 +41,8 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
     // contract: from the SINGLE context twin, read the link FIELD (linkedTwinByTwinClassFieldId)
     //           from its loaded field-values kit; it MUST be a FieldValueLink. Take its single
     //           item (the far twin), then resolve lookupTwinClassFieldId from that twin's DB.
-    //           Missing link field / wrong type / null dst value -> ServiceException(FACTORY_PIPELINE_STEP_ERROR).
+    //           Missing link field / wrong type / empty / ambiguous -> ServiceException(TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT)
+    //           from FieldValueLink.getSingleLinkedTwinSafe; null dst value -> ServiceException(FACTORY_PIPELINE_STEP_ERROR).
     //           Source: ONLY the far twin linked via the context twin's link field.
 
     @Nested
@@ -82,7 +83,7 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
         }
 
@@ -101,7 +102,7 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
         }
 
@@ -138,7 +139,7 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
         }
 
@@ -161,7 +162,7 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
         }
     }

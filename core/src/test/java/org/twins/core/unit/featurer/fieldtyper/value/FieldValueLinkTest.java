@@ -149,7 +149,7 @@ class FieldValueLinkTest extends BaseUnitTest {
     class CopyValueTo {
 
         @Test
-        void copyValueTo_clonesEachLinkAndPreservesForwardFlag() {
+        void copyValueTo_copiesItemsByReferenceAndPreservesForwardFlag() {
             var src = new FieldValueLink(field);
             var dstId = UUID.randomUUID();
             src.add(link(dstId));
@@ -159,8 +159,8 @@ class FieldValueLinkTest extends BaseUnitTest {
             src.copyValueTo(dst);
 
             assertEquals(1, dst.size());
-            // each link is cloned into a distinct entity
-            assertNotSame(src.getItems().get(0), dst.getItems().get(0));
+            // shallow copy: the same far twin instances are shared, not cloned
+            assertSame(src.getItems().get(0), dst.getItems().get(0));
             assertEquals(dstId, dst.getItems().get(0).getId());
             assertTrue(dst.isForwardLink());
         }

@@ -78,7 +78,7 @@ class FieldLookuperFromItemOutputLinkedTwinFieldsTest extends BaseUnitTest {
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
         }
 
         @Test
@@ -95,7 +95,7 @@ class FieldLookuperFromItemOutputLinkedTwinFieldsTest extends BaseUnitTest {
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
         }
 
         @Test
@@ -113,7 +113,7 @@ class FieldLookuperFromItemOutputLinkedTwinFieldsTest extends BaseUnitTest {
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
         }
     }
 

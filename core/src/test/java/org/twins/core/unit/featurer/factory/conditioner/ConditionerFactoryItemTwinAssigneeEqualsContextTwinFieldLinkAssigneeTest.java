@@ -75,6 +75,7 @@ class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
         var fieldValue = mock(FieldValueLink.class);
         when(lookuper.lookupFieldValue(any(FactoryItem.class), eq(fieldId))).thenReturn(fieldValue);
         when(fieldValue.getItems()).thenReturn(List.of(linkedTwin)); // items carry the far twins
+        when(fieldValue.size()).thenReturn(1); // single far twin
         return fieldValue;
     }
 

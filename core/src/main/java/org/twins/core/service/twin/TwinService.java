@@ -1505,14 +1505,139 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return fieldValue.undefine();
     }
 
+    // value types whose string form is a list of entity ids — parsed into FieldValueReference, never into id-only stub entities
+    private static final Set<Class<? extends FieldValue>> REFERENCE_VALUE_TYPES = Set.of(
+            FieldValueLink.class, FieldValueUser.class, FieldValueTwinClassList.class);
+
     public FieldValue createFieldValue(UUID twinClassFieldEntityId, String value) throws ServiceException {
         return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
     }
 
     public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        // Single-value resolve by design: a one-off call for one field (filler params, service code) costs one
+        // query per referenced type — N = 1, not an N+1 loop. Batch callers (REST reverse mapping) must use
+        // parseFieldValue + materializeFieldValues to keep the whole batch at one query per entity type.
+        return materializeFieldValue(parseFieldValue(twinClassFieldEntity, value));
+    }
+
+    /**
+     * Parses a string field value WITHOUT loading the referenced entities: reference types (link, user, twin
+     * class list) come back as {@link FieldValueReference} — a pure id carrier with no entity accessors.
+     * Simple types are returned fully parsed — there is nothing to load for them. Callers iterating a batch
+     * must finish with {@link #materializeFieldValues} over the whole batch before using the values.
+     */
+    public FieldValue parseFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        Class<? extends FieldValue> valueType = fieldValueType(twinClassFieldEntity);
+        if (REFERENCE_VALUE_TYPES.contains(valueType))
+            return new FieldValueReference(twinClassFieldEntity, valueType, parseReferenceUuidList(twinClassFieldEntity, value));
         var fieldValue = createFieldValue(twinClassFieldEntity);
         setFieldValue(fieldValue, value);
         return fieldValue;
+    }
+
+    private List<UUID> parseReferenceUuidList(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        if (value == null)
+            return new ArrayList<>(); // null input clears the value, mirroring the old setFieldValue(null) -> clear()
+        List<UUID> ids = new ArrayList<>();
+        for (String id : value.split(LIST_SPLITTER)) {
+            if (StringUtils.isEmpty(id))
+                continue;
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(id);
+            } catch (Exception e) {
+                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, twinClassFieldEntity.logShort() + " incorrect reference UUID[" + id + "]");
+            }
+            if (UuidUtils.isNullifyMarker(uuid))
+                return new ArrayList<>(); // nullify marker clears the whole value, mirroring FieldValueCollection.add
+            ids.add(uuid);
+        }
+        return ids;
+    }
+
+    public FieldValue materializeFieldValue(FieldValue fieldValue) throws ServiceException {
+        return materializeFieldValues(new ArrayList<>(List.of(fieldValue))).getFirst();
+    }
+
+    /**
+     * Bulk-replaces {@link FieldValueReference} entries with concrete values carrying LOADED entities — the
+     * second, batch-level phase of the parse/materialize split. One query per entity type for the whole batch
+     * (no N+1); a missing referenced id fails fast here instead of surfacing later in serialize.
+     * <p>
+     * Mutates the given list IN PLACE (references are swapped for concrete values — a FieldValueReference
+     * cannot become a FieldValueLink, the entry itself is replaced) and returns the same list, so the call
+     * composes. The list must be mutable.
+     */
+    public List<FieldValue> materializeFieldValues(List<FieldValue> values) throws ServiceException {
+        if (values == null || values.isEmpty())
+            return values;
+        Set<UUID> twinIds = new LinkedHashSet<>();
+        Set<UUID> userIds = new LinkedHashSet<>();
+        Set<UUID> twinClassIds = new LinkedHashSet<>();
+        for (FieldValue value : values) {
+            if (!(value instanceof FieldValueReference reference) || reference.getIds() == null)
+                continue;
+            Class<? extends FieldValue> valueType = reference.getValueType();
+            if (valueType == FieldValueLink.class)
+                twinIds.addAll(reference.getIds());
+            else if (valueType == FieldValueUser.class)
+                userIds.addAll(reference.getIds());
+            else if (valueType == FieldValueTwinClassList.class)
+                twinClassIds.addAll(reference.getIds());
+            else
+                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, valueType + " is not a reference value type");
+        }
+        if (twinIds.isEmpty() && userIds.isEmpty() && twinClassIds.isEmpty())
+            return values;
+        Map<UUID, TwinEntity> twins = twinIds.isEmpty() ? Map.of() : findEntitiesSafe(twinIds).getMap();
+        Map<UUID, UserEntity> users = userIds.isEmpty() ? Map.of() : userService.findEntitiesSafe(userIds).getMap();
+        Map<UUID, TwinClassEntity> twinClasses = twinClassIds.isEmpty() ? Map.of() : twinClassService.findEntitiesSafe(twinClassIds).getMap();
+        for (int i = 0; i < values.size(); i++) {
+            if (values.get(i) instanceof FieldValueReference reference)
+                values.set(i, buildReferencedValue(reference, twins, users, twinClasses));
+        }
+        return values;
+    }
+
+    private FieldValue buildReferencedValue(FieldValueReference reference, Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users, Map<UUID, TwinClassEntity> twinClasses) throws ServiceException {
+        Class<? extends FieldValue> valueType = reference.getValueType();
+        List<UUID> ids = reference.getIds();
+        if (valueType == FieldValueLink.class) {
+            FieldValueLink value = new FieldValueLink(reference.getTwinClassField());
+            if (ids == null)
+                return value; // undefined
+            if (ids.isEmpty())
+                return (FieldValueLink) value.clear();
+            for (UUID id : ids)
+                value.add(twins.get(id));
+            return value;
+        }
+        if (valueType == FieldValueUser.class) {
+            FieldValueUser value = new FieldValueUser(reference.getTwinClassField());
+            if (ids == null)
+                return value; // undefined
+            if (ids.isEmpty())
+                return (FieldValueUser) value.clear();
+            for (UUID id : ids)
+                value.add(users.get(id));
+            return value;
+        }
+        if (valueType == FieldValueTwinClassList.class) {
+            FieldValueTwinClassList value = new FieldValueTwinClassList(reference.getTwinClassField());
+            if (ids == null)
+                return value; // undefined
+            if (ids.isEmpty())
+                return (FieldValueTwinClassList) value.clear();
+            for (UUID id : ids)
+                value.add(twinClasses.get(id));
+            return value;
+        }
+        throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, valueType + " is not a reference value type");
+    }
+
+    private Class<? extends FieldValue> fieldValueType(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+        return fieldTyper.getValueType(twinClassFieldEntity);
     }
 
     public FieldValue createFieldValue(UUID twinClassFieldEntityId, TwinEntity value) throws ServiceException {
@@ -1555,15 +1680,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 fieldValueAttachment.setBase64Content(value);
             }
         }
-        if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
-            for (var id : value.split(LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(id)) {
-                    continue;
-                }
-                UUID uuid = UuidUtils.fromString(id);
-                fieldValueTwinClassList.add(new TwinClassEntity().setId(uuid));
-            }
-        }
+        // reference types (link, user, twin class list) are parsed by parseFieldValue into FieldValueReference
+        // and materialized by materializeFieldValues — never as id-only stub entities here;
+        // select stays on this legacy path: its resolution needs featurer params (dataListId, supportCustomValue)
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
             for (String dataListOption : value.split(LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOption)) continue;
@@ -1577,34 +1696,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 }
                 fieldValueSelect.add(dataListOptionEntity);
             }
-        }
-        if (fieldValue instanceof FieldValueUser fieldValueUser) {
-            for (String userId : value.split(LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(userId))
-                    continue;
-                UUID userUUID = UuidUtils.fromString(userId);
-                fieldValueUser.add(new UserEntity().setId(userUUID));
-            }
-        }
-        if (fieldValue instanceof FieldValueUserSingle fieldValueUserSingle) {
-            UUID userId = UuidUtils.fromString(value);
-            fieldValueUserSingle.setValue(new UserEntity().setId(userId));
-        }
-        if (fieldValue instanceof FieldValueStatus fieldValueStatus) {
-            UUID statusId = UuidUtils.fromString(value);
-            fieldValueStatus.setValue(new TwinStatusEntity().setId(statusId));
-        }
-        if (fieldValue instanceof FieldValueLink fieldValueLink) {
-            for (String dstTwinId : value.split(LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(dstTwinId))
-                    continue;
-                UUID dstTwinUUID = UuidUtils.fromString(dstTwinId);
-                fieldValueLink.add(new TwinEntity().setId(dstTwinUUID));
-            }
-        }
-        if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
-            UUID twinId = UuidUtils.fromString(value);
-            fieldValueLinkSingle.setValue(new TwinEntity().setId(twinId));
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);

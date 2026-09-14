@@ -67,6 +67,7 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
         var fieldValue = mock(FieldValueLink.class);
         when(lookuper.lookupFieldValue(org.mockito.ArgumentMatchers.any(FactoryItem.class), any(UUID.class))).thenReturn(fieldValue);
         when(fieldValue.getItems()).thenReturn(List.of(dstTwin)); // items carry the far twins
+        when(fieldValue.size()).thenReturn(1); // single far twin
 
         var contextTwin = mock(TwinEntity.class);
         when(contextTwin.getAssignerUserId()).thenReturn(contextAssignerId);
@@ -111,6 +112,7 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
             var fetched = mock(TwinEntity.class);
             when(fetched.getAssignerUserId()).thenReturn(assignerId);
             when(fieldValue.getItems()).thenReturn(List.of(fetched));
+            when(fieldValue.size()).thenReturn(1); // single far twin
 
             var contextTwin = mock(TwinEntity.class);
             when(contextTwin.getAssignerUserId()).thenReturn(assignerId);

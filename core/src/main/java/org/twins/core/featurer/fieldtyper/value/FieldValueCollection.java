@@ -10,6 +10,10 @@ import java.util.function.Function;
 /**
  * Collection can be updated outside an object.
  * So isCleared and isUndefined are detected on the fly (based on a collection)
+ * <p>
+ * Invariant: the collection carries LOADED entities only — never id-only stubs. A string input must first be
+ * parsed into {@link FieldValueReference} and then bulk-materialized (TwinService.parseFieldValue /
+ * materializeFieldValues), so that no reader ever sees a half-loaded entity.
  * @param <T>
  */
 public abstract class FieldValueCollection<T> extends FieldValue {

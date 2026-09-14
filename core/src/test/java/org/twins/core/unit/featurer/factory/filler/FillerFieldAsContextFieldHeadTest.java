@@ -23,8 +23,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
 
@@ -89,14 +88,14 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
 
         @Test
         void fill_linkFieldWithDstTwinHead_writesHeadIdToDst() throws ServiceException {
-            // NAME promises: take head of the dst twin of the CONTEXT LINK FIELD's value, write head id to dst field.
-            var headId = UUID.randomUUID();
-            var dstTwin = new TwinEntity().setHeadTwinId(headId);
+            // NAME promises: take head of the dst twin of the CONTEXT LINK FIELD's value, write head twin to dst field.
+            var headTwin = new TwinEntity().setId(UUID.randomUUID());
+            var dstTwin = new TwinEntity().setHeadTwin(headTwin);
             var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(dstTwin); // items carry the far twins
             var factoryItem = buildFactoryItem();
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
             var createdHeadLink = new FieldValueLink(field(DST_FIELD_ID));
-            when(twinService.createFieldValue(DST_FIELD_ID, headId.toString())).thenReturn(createdHeadLink);
+            when(twinService.createFieldValue(DST_FIELD_ID, headTwin)).thenReturn(createdHeadLink);
 
             filler.fill(props(), factoryItem, null);
 
@@ -111,7 +110,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
 
@@ -123,13 +122,13 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
 
         @Test
         void fill_dstTwinHasNoHead_throwsStepError() throws ServiceException {
-            var dstTwin = new TwinEntity(); // headTwinId == null
+            var dstTwin = new TwinEntity(); // headTwin == null
             var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(dstTwin); // items carry the far twins
             var factoryItem = buildFactoryItem();
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
@@ -137,7 +136,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verifyNoInteractions(twinService);
+            verify(twinService).loadHead(dstTwin); // loaded before the null check throws
         }
     }
 }

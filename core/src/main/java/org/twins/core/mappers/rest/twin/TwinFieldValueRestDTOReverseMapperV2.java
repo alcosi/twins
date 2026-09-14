@@ -35,7 +35,9 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
 
     @Override
     public FieldValue convert(FieldValueText fieldValueText, MapperContext mapperContext) throws Exception {
-        return twinService.createFieldValue(fieldValueText.getTwinClassField(), fieldValueText.getValue());
+        // parse only: reference types come back as FieldValueReference (ids, no entities) — manual callers
+        // iterating convert() on their own must finish with twinService.materializeFieldValues over the batch
+        return twinService.parseFieldValue(fieldValueText.getTwinClassField(), fieldValueText.getValue());
     }
 
     public FieldValueText createValueByClassIdAndFieldKey(UUID twinClassId, String fieldKey, String fieldValue) {
@@ -113,7 +115,8 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         }
         fields.addAll(createValuesByClassIdAndFieldKeys(twinClassId, mapFieldKeys));
         fields.addAll(createValuesByClassIdAndFieldIds(twinClassId, mapFieldIds));
-        return convertCollection(fields);
+        // batch-level materialization: one query per referenced entity type for the whole fields map
+        return twinService.materializeFieldValues(convertCollection(fields));
     }
 
     public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
@@ -126,6 +129,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                         fields,
                         createValueByTwinClassFieldId(entry.getKey(), entry.getValue()));
             }
-        return convertCollection(fields);
+        // batch-level materialization: one query per referenced entity type for the whole fields map
+        return twinService.materializeFieldValues(convertCollection(fields));
     }
 }

@@ -46,11 +46,15 @@ public class FieldValueLink extends FieldValueCollection<TwinEntity> {
     }
 
     public static TwinEntity getSingleLinkedTwinSafe(FieldValue fieldValue) throws ServiceException {
+        if (fieldValue == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, "TwinClassField value is empty");
         TwinEntity linkedTwin = null;
         if (fieldValue instanceof FieldValueLink fieldValueLink) {
             if (fieldValueLink.size() > 1) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, "TwinClassField[" + fieldValue.getTwinClassFieldId() + "] has " + fieldValueLink.size() + " linked twins");
             }
+            if (fieldValueLink.size() == 0)
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, "TwinClassField[" + fieldValue.getTwinClassFieldId() + "] is empty");
             linkedTwin = fieldValueLink.getItems().getFirst(); // items carry the far twins
         } else if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
             linkedTwin = fieldValueLinkSingle.getValue();

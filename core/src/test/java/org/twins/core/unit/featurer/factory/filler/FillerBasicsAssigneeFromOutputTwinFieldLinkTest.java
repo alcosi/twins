@@ -91,21 +91,20 @@ class FillerBasicsAssigneeFromOutputTwinFieldLinkTest extends BaseUnitTest {
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
         }
 
         @Test
-        void fill_nonLinkField_doesNothing() throws ServiceException {
+        void fill_nonLinkField_throwsStepError() {
             var output = new TwinCreate();
             output.setTwinEntity(new TwinEntity());
             output.addField(new FieldValueText(buildField()));
             var factoryItem = new FactoryItem().setOutput(output);
 
-            // field present but not a FieldValueLink -> silently skips (no throw, no set).
-            filler.fill(props(), factoryItem, null);
-
-            var outputTwin = factoryItem.getOutput().getTwinEntity();
-            assertNull(outputTwin.getAssignerUser());
+            // field present but not a link -> FieldValueLink.getSingleLinkedTwinSafe fails fast
+            var ex = assertThrows(ServiceException.class,
+                    () -> filler.fill(props(), factoryItem, null));
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
         }
     }
 }
