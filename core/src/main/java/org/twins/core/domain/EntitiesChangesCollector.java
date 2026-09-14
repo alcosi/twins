@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.Hibernate;
+import org.twins.core.dao.twin.TwinFieldBaseEntity;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -103,6 +104,39 @@ public class EntitiesChangesCollector {
     public void delete(Identifiable entity) {
         Set<Object> entityClassDeletions = deleteEntityMap.computeIfAbsent(Hibernate.getClass(entity), k -> new HashSet<>());
         entityClassDeletions.add(entity);
+    }
+
+    /**
+     * If a twin-field row was marked for delete in this collector and we are about to write a new
+     * value for the same (twinId, twinClassFieldId), pull it back so the change becomes an UPDATE
+     * of the existing row instead of DELETE+INSERT (unique constraint on twin_id + field_id).
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends TwinFieldBaseEntity> T pullDeletedTwinField(UUID twinId, UUID twinClassFieldId) {
+        if (twinId == null || twinClassFieldId == null || deleteEntityMap.isEmpty()) {
+            return null;
+        }
+        for (Map.Entry<Class<?>, Set<Object>> entry : deleteEntityMap.entrySet()) {
+            if (!TwinFieldBaseEntity.class.isAssignableFrom(entry.getKey())) {
+                continue;
+            }
+            Set<Object> deletes = entry.getValue();
+            if (deletes == null || deletes.isEmpty()) {
+                continue;
+            }
+            Iterator<Object> it = deletes.iterator();
+            while (it.hasNext()) {
+                TwinFieldBaseEntity field = (TwinFieldBaseEntity) it.next();
+                if (twinId.equals(field.getTwinId()) && twinClassFieldId.equals(field.getTwinClassFieldId())) {
+                    it.remove();
+                    if (deletes.isEmpty()) {
+                        deleteEntityMap.remove(entry.getKey());
+                    }
+                    return (T) field;
+                }
+            }
+        }
+        return null;
     }
 
     public <T> Set<T> getDeletes(Class<T> entityClass) {

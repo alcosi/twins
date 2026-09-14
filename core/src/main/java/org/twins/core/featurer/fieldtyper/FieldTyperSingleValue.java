@@ -41,8 +41,20 @@ public abstract class FieldTyperSingleValue<
             return;
         var twinFieldEntity = resolveTwinFieldEntity(twin, value.getTwinClassField());
         if (twinFieldEntity == null && value.isNotEmpty()) {
-            // create
-            twinFieldEntity = createTwinFieldEntity(twin, value.getTwinClassField());
+            // Prefer reviving a row deleted earlier in this collector (clear→refill) over INSERT
+            // of a second row for the same (twin, field) — unique index would reject that.
+            twinFieldEntity = twinChangesCollector.pullDeletedTwinField(twin.getId(), value.getTwinClassField().getId());
+            if (twinFieldEntity == null) {
+                twinFieldEntity = createTwinFieldEntity(twin, value.getTwinClassField());
+            } else {
+                twinFieldEntity.setTwin(twin);
+                twinFieldEntity.setTwinClassField(value.getTwinClassField());
+                // delete() removed it from the kit; put it back even if value is unchanged
+                Kit<E, UUID> kit = getFieldKit(twin);
+                if (kit != null) {
+                    kit.add(twinFieldEntity);
+                }
+            }
             detectValueChange(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
         } else if (twinFieldEntity != null && value.isCleared()) {
             onCleared(properties, twinFieldEntity, twinChangesCollector);
