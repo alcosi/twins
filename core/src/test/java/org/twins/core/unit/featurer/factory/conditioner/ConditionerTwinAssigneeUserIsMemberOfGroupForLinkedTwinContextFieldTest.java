@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.factory.FactoryContext;
@@ -17,7 +16,6 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.conditioner.ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextField;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.lang.reflect.Field;
@@ -34,16 +32,12 @@ class ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextFieldTest ex
     @Mock
     private UserGroupService userGroupService;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextField conditioner;
 
     @BeforeEach
     void setUp() throws Exception {
         conditioner = new ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextField();
         setField(conditioner, "userGroupService", userGroupService);
-        setField(conditioner, "twinLinkService", twinLinkService);
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
@@ -102,13 +96,11 @@ class ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextFieldTest ex
             kit.add(group);
             var assignerUser = userWithGroups(kit);
 
-            var link = mock(TwinLinkEntity.class);
             var fvl = mock(FieldValueLink.class);
             when(fvl.size()).thenReturn(1);
-            when(fvl.getItems()).thenReturn(List.of(link));
-            var dstTwin = mock(TwinEntity.class);
+            var dstTwin = mock(TwinEntity.class); // items carry the far twins
+            when(fvl.getItems()).thenReturn(List.of(dstTwin));
             when(dstTwin.getAssignerUser()).thenReturn(assignerUser);
-            when(twinLinkService.getDstTwinSafe(link)).thenReturn(dstTwin);
 
             assertTrue(conditioner.check(props(fieldId, groupId), itemWithContextField(fieldId, fvl)));
             verify(userGroupService).loadGroups(assignerUser);
@@ -125,13 +117,11 @@ class ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextFieldTest ex
             kit.add(group);
             var assignerUser = userWithGroups(kit);
 
-            var link = mock(TwinLinkEntity.class);
             var fvl = mock(FieldValueLink.class);
             when(fvl.size()).thenReturn(1);
-            when(fvl.getItems()).thenReturn(List.of(link));
-            var dstTwin = mock(TwinEntity.class);
+            var dstTwin = mock(TwinEntity.class); // items carry the far twins
+            when(fvl.getItems()).thenReturn(List.of(dstTwin));
             when(dstTwin.getAssignerUser()).thenReturn(assignerUser);
-            when(twinLinkService.getDstTwinSafe(link)).thenReturn(dstTwin);
 
             assertFalse(conditioner.check(props(fieldId, UUID.randomUUID()), itemWithContextField(fieldId, fvl)));
         }
@@ -142,13 +132,11 @@ class ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextFieldTest ex
 
             var assignerUser = userWithGroups(new Kit<>(UserGroupEntity::getId));
 
-            var link = mock(TwinLinkEntity.class);
             var fvl = mock(FieldValueLink.class);
             when(fvl.size()).thenReturn(1);
-            when(fvl.getItems()).thenReturn(List.of(link));
-            var dstTwin = mock(TwinEntity.class);
+            var dstTwin = mock(TwinEntity.class); // items carry the far twins
+            when(fvl.getItems()).thenReturn(List.of(dstTwin));
             when(dstTwin.getAssignerUser()).thenReturn(assignerUser);
-            when(twinLinkService.getDstTwinSafe(link)).thenReturn(dstTwin);
 
             assertFalse(conditioner.check(props(fieldId, UUID.randomUUID()), itemWithContextField(fieldId, fvl)));
         }

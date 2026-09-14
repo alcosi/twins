@@ -7,14 +7,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -34,16 +32,12 @@ class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
     @Mock
     private FieldLookuperFromContextFields lookuper;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee conditioner;
 
     @BeforeEach
     void setUp() throws Exception {
         conditioner = new ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee();
         setField(conditioner, "fieldLookupers", fieldLookupers);
-        setField(conditioner, "twinLinkService", twinLinkService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 
@@ -77,10 +71,11 @@ class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
         return new FactoryItem().setOutput(output);
     }
 
-    private void stubLinkField(UUID fieldId, TwinLinkEntity link) throws ServiceException {
+    private FieldValueLink stubLinkField(UUID fieldId, TwinEntity linkedTwin) throws ServiceException {
         var fieldValue = mock(FieldValueLink.class);
         when(lookuper.lookupFieldValue(any(FactoryItem.class), eq(fieldId))).thenReturn(fieldValue);
-        when(fieldValue.getItems()).thenReturn(List.of(link));
+        when(fieldValue.getItems()).thenReturn(List.of(linkedTwin)); // items carry the far twins
+        return fieldValue;
     }
 
     @Nested
@@ -92,9 +87,7 @@ class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
             var fieldId = UUID.randomUUID();
             var assignerId = UUID.randomUUID();
             var dstTwin = new TwinEntity().setAssignerUserId(assignerId);
-            var link = mock(TwinLinkEntity.class);
-            when(link.getDstTwin()).thenReturn(dstTwin);
-            stubLinkField(fieldId, link);
+            stubLinkField(fieldId, dstTwin);
 
             assertTrue(conditioner.check(props(fieldId), item(assignerId)));
         }
@@ -103,26 +96,22 @@ class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
         void check_dstTwinAssignerDiffersFromOutputTwinAssigner_returnsFalse() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var dstTwin = new TwinEntity().setAssignerUserId(UUID.randomUUID());
-            var link = mock(TwinLinkEntity.class);
-            when(link.getDstTwin()).thenReturn(dstTwin);
-            stubLinkField(fieldId, link);
+            stubLinkField(fieldId, dstTwin);
 
             assertFalse(conditioner.check(props(fieldId), item(UUID.randomUUID())));
         }
 
         @Test
-        void check_dstTwinLoadedViaTwinLinkService() throws ServiceException {
-            // contract: the link's dst twin is loaded via twinLinkService.loadDstTwin before comparison.
+        void check_dstTwinTakenFromFieldValueItems() throws ServiceException {
+            // contract: the compared dst twin is the far twin carried as the field value's first item.
             var fieldId = UUID.randomUUID();
             var assignerId = UUID.randomUUID();
-            var link = mock(TwinLinkEntity.class);
             var fetched = new TwinEntity().setAssignerUserId(assignerId);
-            when(link.getDstTwin()).thenReturn(fetched);
-            stubLinkField(fieldId, link);
+            var fieldValue = stubLinkField(fieldId, fetched);
 
             assertTrue(conditioner.check(props(fieldId), item(assignerId)));
 
-            verify(twinLinkService).loadDstTwin(link);
+            verify(fieldValue).getItems();
         }
 
         @Test
@@ -132,9 +121,7 @@ class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
             var fieldId = UUID.randomUUID();
             var assignerId = UUID.randomUUID();
             var dstTwin = new TwinEntity().setAssignerUserId(assignerId);
-            var link = mock(TwinLinkEntity.class);
-            when(link.getDstTwin()).thenReturn(dstTwin);
-            stubLinkField(fieldId, link);
+            stubLinkField(fieldId, dstTwin);
 
             conditioner.check(props(fieldId), item(assignerId));
 

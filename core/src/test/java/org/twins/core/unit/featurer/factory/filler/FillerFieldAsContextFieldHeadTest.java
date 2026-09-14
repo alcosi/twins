@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -18,7 +17,6 @@ import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.Properties;
@@ -39,9 +37,6 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private FillerFieldAsContextFieldHead filler;
 
     private static final UUID SRC_FIELD_ID = UUID.randomUUID();
@@ -52,7 +47,6 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         filler = new FillerFieldAsContextFieldHead();
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
-        inject(filler, "twinLinkService", twinLinkService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 
@@ -98,8 +92,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             // NAME promises: take head of the dst twin of the CONTEXT LINK FIELD's value, write head id to dst field.
             var headId = UUID.randomUUID();
             var dstTwin = new TwinEntity().setHeadTwinId(headId);
-            var link = new TwinLinkEntity().setDstTwin(dstTwin);
-            var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(link);
+            var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(dstTwin); // items carry the far twins
             var factoryItem = buildFactoryItem();
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
             var createdHeadLink = new FieldValueLink(field(DST_FIELD_ID));
@@ -137,8 +130,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         @Test
         void fill_dstTwinHasNoHead_throwsStepError() throws ServiceException {
             var dstTwin = new TwinEntity(); // headTwinId == null
-            var link = new TwinLinkEntity().setDstTwin(dstTwin);
-            var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(link);
+            var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(dstTwin); // items carry the far twins
             var factoryItem = buildFactoryItem();
             when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
 

@@ -163,11 +163,13 @@ class FieldTyperLinkTest extends BaseUnitTest {
             var link = new LinkEntity().setId(linkId).setType(LinkType.OneToOne);
             var classField = classFieldWithTwinClass();
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            var farTwin = new TwinEntity().setId(UUID.randomUUID());
             var link1 = new TwinLinkEntity()
                     .setId(UUID.randomUUID())
                     .setLinkId(linkId)
                     .setSrcTwinId(twin.getId())
-                    .setDstTwinId(UUID.randomUUID());
+                    .setDstTwinId(farTwin.getId())
+                    .setDstTwin(farTwin);
             var linksResult = new TwinLinkService.FindTwinLinksResult();
             addForwardLink(linksResult, link1);
             twin.setTwinLinks(linksResult);
@@ -178,7 +180,7 @@ class FieldTyperLinkTest extends BaseUnitTest {
             FieldValueLink result = fieldTyper.deserializeValue(properties(linkId), twinField(twin, classField));
 
             assertEquals(1, result.getItems().size());
-            assertSame(link1, result.getItems().get(0));
+            assertSame(farTwin, result.getItems().get(0)); // items carry the far twins
             assertTrue(result.isForwardLink());
         }
 
@@ -190,10 +192,12 @@ class FieldTyperLinkTest extends BaseUnitTest {
             var link = new LinkEntity().setId(linkId).setType(LinkType.ManyToMany);
             var classField = classFieldWithTwinClass();
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
+            var farTwin = new TwinEntity().setId(UUID.randomUUID());
             var link1 = new TwinLinkEntity()
                     .setId(UUID.randomUUID())
                     .setLinkId(linkId)
-                    .setSrcTwinId(UUID.randomUUID())
+                    .setSrcTwinId(farTwin.getId())
+                    .setSrcTwin(farTwin)
                     .setDstTwinId(twin.getId());
             var linksResult = new TwinLinkService.FindTwinLinksResult();
             addBackwardLink(linksResult, link1);
@@ -205,7 +209,7 @@ class FieldTyperLinkTest extends BaseUnitTest {
             FieldValueLink result = fieldTyper.deserializeValue(properties(linkId), twinField(twin, classField));
 
             assertEquals(1, result.getItems().size());
-            assertSame(link1, result.getItems().get(0));
+            assertSame(farTwin, result.getItems().get(0)); // items carry the far twins
             assertFalse(result.isForwardLink());
         }
     }
@@ -227,11 +231,7 @@ class FieldTyperLinkTest extends BaseUnitTest {
             var twin = new TwinEntity().setId(UUID.randomUUID()).setTwinClass(classField.getTwinClass());
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
             var value = new FieldValueLink(classField);
-            value.setItems(List.of(new TwinLinkEntity()
-                    .setId(UUID.randomUUID())
-                    .setLinkId(linkId)
-                    .setSrcTwinId(twin.getId())
-                    .setDstTwinId(UUID.randomUUID())));
+            value.setItems(List.of(new TwinEntity().setId(UUID.randomUUID()))); // items carry the far twins
 
             var ex = assertThrows(ServiceException.class,
                     () -> fieldTyper.serializeValue(properties(linkId), twin, value, new TwinChangesCollector()));

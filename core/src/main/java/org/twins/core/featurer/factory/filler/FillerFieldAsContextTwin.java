@@ -33,7 +33,7 @@ public class FillerFieldAsContextTwin extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         var twin = factoryItem.checkSingleContextTwin();
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twin.getId().toString());
+        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twin);
         factoryItem.getOutput().addField(fieldValue);
     }
 }

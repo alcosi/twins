@@ -50,14 +50,7 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
         FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
-        if (!(srcFieldValue instanceof FieldValueLink fieldValueLink)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not instance of link field");
-        }
-        if (fieldValueLink.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "srcTwinClassField[" + extractedSrcTwinClassFieldId + "] is not filled");
-        }
-
-        TwinEntity dstTwin = resolveDstTwin(fieldValueLink.getItems().getFirst());
+        TwinEntity dstTwin = FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue);
         TwinEntity linkDstTwin;
         if (useDstTwinHead.extract(properties)) {
             linkDstTwin = twinService.loadHead(dstTwin);
@@ -78,10 +71,5 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
                 .setDstTwin(linkDstTwin)
                 .setDstTwinId(linkDstTwin.getId());
         addLink(factoryItem.getOutput(), newLink);
-    }
-
-    private TwinEntity resolveDstTwin(TwinLinkEntity matchedLink) throws ServiceException {
-        twinLinkService.loadDstTwin(matchedLink);
-        return matchedLink.getDstTwin();
     }
 }

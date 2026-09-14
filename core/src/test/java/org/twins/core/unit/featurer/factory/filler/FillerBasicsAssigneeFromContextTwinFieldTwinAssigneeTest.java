@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -23,8 +22,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitTest {
 
@@ -95,8 +96,7 @@ class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitT
         void fill_usesContextTwinDbFieldsLookuper_thenLinkedTwinAssignee() throws ServiceException {
             var factoryItem = buildFactoryItem();
             var dstTwinId = UUID.randomUUID();
-            var link = new TwinLinkEntity().setDstTwinId(dstTwinId);
-            var fieldValue = new FieldValueLink(buildField()).add(link);
+            var fieldValue = new FieldValueLink(buildField()).add(new TwinEntity().setId(dstTwinId)); // items carry the far twins
             when(lookuper.lookupFieldValue(factoryItem, LINK_FIELD_ID)).thenReturn(fieldValue);
 
             var assignee = new UserEntity().setId(UUID.randomUUID());

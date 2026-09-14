@@ -8,6 +8,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
@@ -141,6 +142,8 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
             return o.getId() != null ? o.getId().toString() : null;
         if (value instanceof UserEntity u)
             return u.getId() != null ? u.getId().toString() : null;
+        if (value instanceof TwinEntity t) // FieldValueLink items carry the far twins
+            return t.getId() != null ? t.getId().toString() : null;
         if (value instanceof TwinLinkEntity l)
             return l.getDstTwinId() != null ? l.getDstTwinId().toString() : null;
 

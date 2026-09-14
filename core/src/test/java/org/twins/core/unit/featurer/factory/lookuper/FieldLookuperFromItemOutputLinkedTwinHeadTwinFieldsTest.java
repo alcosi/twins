@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -18,7 +17,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
@@ -31,16 +29,12 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
     @Mock
     private TwinService twinService;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private FieldLookuperFromItemOutputLinkedTwinHeadTwinFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromItemOutputLinkedTwinHeadTwinFields();
         setField(lookuper, "twinService", twinService);
-        setField(lookuper, "twinLinkService", twinLinkService);
     }
 
     // contract: read the link FIELD (linkedTwinByTwinClassFieldId) from factoryItem.getTwin() freshest value;
@@ -65,12 +59,10 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             when(twinService.loadHead(dstTwin)).thenReturn(dstHeadTwin);
             var expected = fieldValue(lookupFieldId, "dst-head-val");
             when(twinService.getTwinFieldValue(dstHeadTwin, lookupFieldId)).thenReturn(expected);
-            when(twinLinkService.getDstTwinSafe(linkField.getItems().getFirst())).thenReturn(dstTwin);
 
             var result = lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId);
 
             assertSame(expected, result);
-            verify(twinLinkService).getDstTwinSafe(linkField.getItems().getFirst());
             verify(twinService).loadHead(dstTwin);
             verify(twinService).getTwinFieldValue(dstHeadTwin, lookupFieldId);
             // Must NOT consult the item twin itself for the lookup field.
@@ -88,7 +80,6 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
 
             when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(linkField);
             when(twinService.loadHead(dstTwin)).thenReturn(null);
-            when(twinLinkService.getDstTwinSafe(linkField.getItems().getFirst())).thenReturn(dstTwin);
 
             var ex = assertThrows(ServiceException.class,
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
@@ -104,8 +95,8 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
             var multiLink = new FieldValueLink(new TwinClassFieldEntity().setId(linkFieldId));
-            multiLink.add(new TwinLinkEntity().setId(UUID.randomUUID()).setDstTwinId(UUID.randomUUID()));
-            multiLink.add(new TwinLinkEntity().setId(UUID.randomUUID()).setDstTwinId(UUID.randomUUID()));
+            multiLink.add(new TwinEntity().setId(UUID.randomUUID()));
+            multiLink.add(new TwinEntity().setId(UUID.randomUUID()));
 
             when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(multiLink);
 
@@ -113,17 +104,12 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verify(twinLinkService, never()).getDstTwinSafe(any());
         }
     }
 
     private FieldValueLink singleLinkField(UUID linkFieldId, TwinEntity dstTwin) {
-        var link = new TwinLinkEntity()
-                .setId(UUID.randomUUID())
-                .setDstTwin(dstTwin)
-                .setDstTwinId(dstTwin.getId());
         var fv = new FieldValueLink(new TwinClassFieldEntity().setId(linkFieldId));
-        fv.add(link);
+        fv.add(dstTwin); // items carry the far twins
         return fv;
     }
 

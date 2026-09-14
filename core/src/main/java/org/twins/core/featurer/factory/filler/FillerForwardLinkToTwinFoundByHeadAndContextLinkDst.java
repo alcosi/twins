@@ -34,7 +34,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextLinkDst extends FillerF
     }
 
     @Override
-    protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
+    protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID linkId = dstLinkId.extract(properties);
         twinLinkService.loadTwinLinks(contextTwin);
 
@@ -45,10 +45,8 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextLinkDst extends FillerF
                 return null;
             }
             var linkEntity = forwardLinks.getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
-            return linkEntity.getDstTwinId();
+            twinLinkService.loadTwin(linkEntity);
+            return linkEntity.getDstTwin();
         } catch (Exception e) {
             log.debug("Link dst twin resolve failed by link [{}] on context twin [{}]: {}", linkId, contextTwin.logShort(), e.getMessage());
             return null;

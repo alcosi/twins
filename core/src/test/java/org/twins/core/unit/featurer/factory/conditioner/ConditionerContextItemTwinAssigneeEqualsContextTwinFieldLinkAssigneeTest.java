@@ -7,13 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.factory.conditioner.ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssignee;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -33,16 +31,12 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
     @Mock
     private FieldLookuperFromContextFields lookuper;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssignee conditioner;
 
     @BeforeEach
     void setUp() throws Exception {
         conditioner = new ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssignee();
         setField(conditioner, "fieldLookupers", fieldLookupers);
-        setField(conditioner, "twinLinkService", twinLinkService);
         when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
     }
 
@@ -70,15 +64,9 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
     }
 
     private FactoryItem buildItem(TwinEntity dstTwin, UUID contextAssignerId) throws ServiceException {
-        var link = mock(TwinLinkEntity.class);
         var fieldValue = mock(FieldValueLink.class);
         when(lookuper.lookupFieldValue(org.mockito.ArgumentMatchers.any(FactoryItem.class), any(UUID.class))).thenReturn(fieldValue);
-        when(fieldValue.getItems()).thenReturn(List.of(link));
-        if (dstTwin != null) {
-            when(link.getDstTwin()).thenReturn(dstTwin);
-        } else {
-            when(link.getDstTwin()).thenReturn(null);
-        }
+        when(fieldValue.getItems()).thenReturn(List.of(dstTwin)); // items carry the far twins
 
         var contextTwin = mock(TwinEntity.class);
         when(contextTwin.getAssignerUserId()).thenReturn(contextAssignerId);
@@ -112,20 +100,17 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
         }
 
         @Test
-        void check_dstTwinLoadedViaTwinLinkServiceThenCompared() throws ServiceException {
-            // contract: the link's dstTwin is loaded via twinLinkService.loadDstTwin before comparison
+        void check_dstTwinTakenFromFieldValueItemsThenCompared() throws ServiceException {
+            // contract: the compared twin is the far twin carried as the field value's first item
             var fieldId = UUID.randomUUID();
             var assignerId = UUID.randomUUID();
 
-            var link = mock(TwinLinkEntity.class);
             var fieldValue = mock(FieldValueLink.class);
             when(lookuper.lookupFieldValue(org.mockito.ArgumentMatchers.any(FactoryItem.class),
                     eq(fieldId))).thenReturn(fieldValue);
-            when(fieldValue.getItems()).thenReturn(List.of(link));
             var fetched = mock(TwinEntity.class);
             when(fetched.getAssignerUserId()).thenReturn(assignerId);
-            // loadDstTwin populates the link; model that by having getDstTwin() return the loaded twin
-            when(link.getDstTwin()).thenReturn(fetched);
+            when(fieldValue.getItems()).thenReturn(List.of(fetched));
 
             var contextTwin = mock(TwinEntity.class);
             when(contextTwin.getAssignerUserId()).thenReturn(assignerId);
@@ -136,7 +121,7 @@ class ConditionerContextItemTwinAssigneeEqualsContextTwinFieldLinkAssigneeTest e
 
             assertTrue(conditioner.check(props(fieldId), factoryItem));
 
-            org.mockito.Mockito.verify(twinLinkService).loadDstTwin(link);
+            org.mockito.Mockito.verify(fieldValue).getItems();
         }
 
         @Test

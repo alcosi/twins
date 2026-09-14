@@ -757,7 +757,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (CollectionUtils.isNotEmpty(missedPermissions))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED,  "{} does not have permissions [{}] to create",
+            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, "{} does not have permissions [{}] to create",
                     authService.getApiUser().getUser().logNormal(),
                     StringUtils.join(missedPermissions, ","));
     }
@@ -975,7 +975,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (batchFieldValidationException != null) {
             throw batchFieldValidationException;
         }
-        twinRecomputeService.triggerAffected(twinChangesCollector);;
+        twinRecomputeService.triggerAffected(twinChangesCollector);
+        ;
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
@@ -1514,6 +1515,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return fieldValue;
     }
 
+    public FieldValue createFieldValue(UUID twinClassFieldEntityId, TwinEntity value) throws ServiceException {
+        return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
+    }
+
+    public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, TwinEntity value) throws ServiceException {
+        var fieldValue = createFieldValue(twinClassFieldEntity);
+        if (fieldValue instanceof FieldValueLink fieldValueLink)
+            fieldValueLink.add(value);
+        else if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle)
+            fieldValueLinkSingle.setValue(value);
+        else
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, twinClassFieldEntity.logShort() + " is not of type link");
+        return fieldValue;
+    }
+
     public void setFieldValue(FieldValue fieldValue, String value) throws ServiceException {
         if (value == null) {
             fieldValue.clear();
@@ -1544,13 +1560,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 if (StringUtils.isEmpty(id)) {
                     continue;
                 }
-
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(id);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueTwinClassList.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect class id[" + id + "]");
-                }
+                UUID uuid = UuidUtils.fromString(id);
                 fieldValueTwinClassList.add(new TwinClassEntity().setId(uuid));
             }
         }
@@ -1572,14 +1582,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (String userId : value.split(LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(userId))
                     continue;
-                UUID userUUID;
-                try {
-                    userUUID = UUID.fromString(userId);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueUser.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
-                }
-                fieldValueUser.add(new UserEntity()
-                        .setId(userUUID));
+                UUID userUUID = UuidUtils.fromString(userId);
+                fieldValueUser.add(new UserEntity().setId(userUUID));
             }
         }
         if (fieldValue instanceof FieldValueUserSingle fieldValueUserSingle) {
@@ -1594,14 +1598,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (String dstTwinId : value.split(LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dstTwinId))
                     continue;
-                UUID dstTwinUUID;
-                try {
-                    dstTwinUUID = UUID.fromString(dstTwinId);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueLink.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
-                }
-                ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
-                        .setDstTwinId(dstTwinUUID));
+                UUID dstTwinUUID = UuidUtils.fromString(dstTwinId);
+                fieldValueLink.add(new TwinEntity().setId(dstTwinUUID));
             }
         }
         if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
@@ -1843,11 +1841,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     /**
      * Shared logic for {@link #loadEditableFlag(Collection)} and {@link #loadViewableFlag(Collection)}.
      * Per TwinField:
-     *   1. Shortcut — if the twin's accessibility map is already populated (from a prior
-     *      {@code loadFieldEditability}/{@code loadFieldViewability} call in the same request),
-     *      take the value from there. No DB hits, no rule evaluation.
-     *   2. Otherwise check permission + validation rules for THIS specific field only
-     *      (not the whole class — that's what the twin-level loaders are for).
+     * 1. Shortcut — if the twin's accessibility map is already populated (from a prior
+     * {@code loadFieldEditability}/{@code loadFieldViewability} call in the same request),
+     * take the value from there. No DB hits, no rule evaluation.
+     * 2. Otherwise check permission + validation rules for THIS specific field only
+     * (not the whole class — that's what the twin-level loaders are for).
      * Validation rules are bulk-loaded once for all unique fields, and rule evaluation is
      * batched per field (all twins sharing a field → one {@code isValid} call), mirroring
      * {@link #loadFieldAccessibility}.
@@ -1968,14 +1966,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      * Shared logic for {@link #loadFieldEditability(Collection)} and {@link #loadFieldViewability(Collection)}.
      * For every twin in the collection populates the supplied map (key = fieldId, value = accessible?)
      * with the following rules:
-     *   - if {@code skipBaseFields}: base fields are always accessible (true)
-     *   - if {@code checkNotSerializable}: non-serializable fields are never accessible (false)
-     *   - fields without a permission requirement: subject to validation rules only
-     *   - fields with a permission requirement: user must have it (globally or for the twin),
-     *     otherwise marked false without rule check
-     *   - surviving fields are checked against the {@code action} validation rules; failing twins
-     *     are marked false
-     *
+     * - if {@code skipBaseFields}: base fields are always accessible (true)
+     * - if {@code checkNotSerializable}: non-serializable fields are never accessible (false)
+     * - fields without a permission requirement: subject to validation rules only
+     * - fields with a permission requirement: user must have it (globally or for the twin),
+     * otherwise marked false without rule check
+     * - surviving fields are checked against the {@code action} validation rules; failing twins
+     * are marked false
+     * <p>
      * Per-(twin, permissionId) results are de-duplicated by the request-scoped
      * {@code permissionCheckRequestCache} inside {@link PermissionService#hasPermission}.
      */
@@ -2244,7 +2242,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     case STRICT:
                         log.error("{} is required for {}", twinClassFieldEntity.logNormal(), twinEntity.logShort());
                         invalidFieldIds.put(twinClassFieldEntity.getId(), getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity));
-                         break;
+                        break;
                     case AUTO:
                         log.info("{} is required, but missed on create. {} will be created as sketch", twinClassFieldEntity.logNormal(), twinEntity.logShort());
                         twinCreate.setSketchMode(true);
@@ -2422,7 +2420,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity entity = t.getTwinEntity();
 
         // --- headTwinId ---
-        addIfRefOnNew(entity.getHeadTwinId(), newTwinsWithIds,  result);
+        addIfRefOnNew(entity.getHeadTwinId(), newTwinsWithIds, result);
 
         // --- links ---
         if (t.getLinksEntityList() != null) {
@@ -2435,8 +2433,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (t.getFields() != null) {
             for (FieldValue value : t.getFields().values()) {
                 if (value instanceof FieldValueLink fieldValueLink) {
-                    for (var link : fieldValueLink.getItems()) {
-                        addIfRefOnNew(link.getDstTwinId(), newTwinsWithIds, result);
+                    for (var toTwin : fieldValueLink.getItems()) { // items carry the far twins
+                        addIfRefOnNew(toTwin.getId(), newTwinsWithIds, result);
                     }
                 }
             }

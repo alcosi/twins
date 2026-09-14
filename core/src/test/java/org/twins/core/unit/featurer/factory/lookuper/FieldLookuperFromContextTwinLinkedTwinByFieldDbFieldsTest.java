@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -18,7 +17,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -32,23 +30,19 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
     @Mock
     private TwinService twinService;
 
-    @Mock
-    private TwinLinkService twinLinkService;
-
     private FieldLookuperFromContextTwinLinkedTwinByFieldDbFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromContextTwinLinkedTwinByFieldDbFields();
         setField(lookuper, "twinService", twinService);
-        setField(lookuper, "twinLinkService", twinLinkService);
     }
 
     // contract: from the SINGLE context twin, read the link FIELD (linkedTwinByTwinClassFieldId)
-    //           from its loaded field-values kit; it MUST be a FieldValueLink. Take its first
-    //           link's dstTwin, then resolve lookupTwinClassFieldId from that dst twin's DB.
+    //           from its loaded field-values kit; it MUST be a FieldValueLink. Take its single
+    //           item (the far twin), then resolve lookupTwinClassFieldId from that twin's DB.
     //           Missing link field / wrong type / null dst value -> ServiceException(FACTORY_PIPELINE_STEP_ERROR).
-    //           Source: ONLY the dst twin of the context twin's link field.
+    //           Source: ONLY the far twin linked via the context twin's link field.
 
     @Nested
     class LookupFieldValue {
@@ -64,7 +58,6 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
 
             // loadFieldsValues is a side-effect call on TwinService.
             doNothing().when(twinService).loadFieldsValues(contextTwin);
-            when(twinLinkService.getDstTwinSafe(any(TwinLinkEntity.class))).thenReturn(dstTwin);
             var expected = fieldValue(lookupFieldId, "dst-db-val");
             when(twinService.getTwinFieldValue(dstTwin, lookupFieldId)).thenReturn(expected);
 
@@ -122,7 +115,6 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
             var factoryItem = itemWithSingleContext(contextTwin);
 
             doNothing().when(twinService).loadFieldsValues(contextTwin);
-            when(twinLinkService.getDstTwinSafe(any(TwinLinkEntity.class))).thenReturn(dstTwin);
             when(twinService.getTwinFieldValue(dstTwin, lookupFieldId)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
@@ -147,7 +139,6 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verify(twinLinkService, never()).getDstTwinSafe(any(TwinLinkEntity.class));
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
         }
 
@@ -160,8 +151,8 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
             var dstA = new TwinEntity().setId(UUID.randomUUID());
             var dstB = new TwinEntity().setId(UUID.randomUUID());
             var linkField = new FieldValueLink(new TwinClassFieldEntity().setId(linkFieldId));
-            linkField.add(new TwinLinkEntity().setDstTwin(dstA).setDstTwinId(dstA.getId()));
-            linkField.add(new TwinLinkEntity().setDstTwin(dstB).setDstTwinId(dstB.getId()));
+            linkField.add(dstA); // items carry the far twins
+            linkField.add(dstB);
             contextTwin.setFieldValuesKit(new Kit<>(List.of(linkField), FieldValue::getTwinClassFieldId));
             var factoryItem = itemWithSingleContext(contextTwin);
 
@@ -171,7 +162,6 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
                     () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verify(twinLinkService, never()).getDstTwinSafe(any(TwinLinkEntity.class));
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
         }
     }
@@ -179,8 +169,7 @@ class FieldLookuperFromContextTwinLinkedTwinByFieldDbFieldsTest extends BaseUnit
     private void plantLinkField(TwinEntity contextTwin, UUID linkFieldId, TwinEntity dstTwin) {
         var twinClassField = new TwinClassFieldEntity().setId(linkFieldId);
         var linkValue = new FieldValueLink(twinClassField);
-        var link = new TwinLinkEntity().setDstTwin(dstTwin).setDstTwinId(dstTwin.getId());
-        linkValue.add(link);
+        linkValue.add(dstTwin); // items carry the far twins
         contextTwin.setFieldValuesKit(new Kit<>(List.of(linkValue), FieldValue::getTwinClassFieldId));
     }
 
