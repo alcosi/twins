@@ -63,7 +63,7 @@ public class FillerFieldDateShiftByDuration extends Filler {
 
         FieldValue targetExisting = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, targetFieldId);
         if (targetExisting != null && targetExisting.isNotEmpty()) {
-            log.trace("target twinClassField[{}] already filled, skip date shift", targetFieldId);
+            log.info("target twinClassField[{}] already filled, skip date shift", targetFieldId);
             return;
         }
 
@@ -71,7 +71,7 @@ public class FillerFieldDateShiftByDuration extends Filler {
         FieldValue durationValue = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, durationFieldId);
         if (!(sourceValue instanceof FieldValueDate sourceDate) || sourceDate.isEmpty()
                 || !(durationValue instanceof FieldValueText durationText) || durationText.isEmpty()) {
-            log.trace("source date[{}] or duration[{}] missing, skip date shift into [{}]", sourceFieldId, durationFieldId, targetFieldId);
+            log.info("source date[{}] or duration[{}] missing, skip date shift into [{}]", sourceFieldId, durationFieldId, targetFieldId);
             return;
         }
 
@@ -99,6 +99,6 @@ public class FillerFieldDateShiftByDuration extends Filler {
         }
         targetDate.setDate(result);
         factoryItem.getOutput().addField(targetDate);
-        log.trace("Set twinClassField[{}] = {} from source[{}] duration[{}]", targetFieldId, result, sourceFieldId, durationFieldId);
+        log.info("Set twinClassField[{}] = {} from source[{}] duration[{}]", targetFieldId, result, sourceFieldId, durationFieldId);
     }
 }

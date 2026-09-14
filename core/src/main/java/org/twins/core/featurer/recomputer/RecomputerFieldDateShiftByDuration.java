@@ -67,14 +67,14 @@ public class RecomputerFieldDateShiftByDuration extends Recomputer {
 
         if (Boolean.TRUE.equals(onlyIfEmpty.extract(properties))
                 && twinClassFieldService.getTimestampValue(twin, targetField.getId(), null) != null) {
-            log.trace("subscriber date[{}] already set on twin[{}], onlyIfEmpty skip", targetField.getId(), twin.getId());
+            log.info("subscriber date[{}] already set on twin[{}], onlyIfEmpty skip", targetField.getId(), twin.getId());
             return;
         }
 
         Timestamp sourceTs = twinClassFieldService.getTimestampValue(twin, sourceFieldId, null);
         BigDecimal duration = twinClassFieldService.getDecimalValue(twin, durationFieldId, null);
         if (sourceTs == null || duration == null) {
-            log.trace("source date[{}] or duration[{}] missing on twin[{}], skip date shift into [{}]",
+            log.info("source date[{}] or duration[{}] missing on twin[{}], skip date shift into [{}]",
                     sourceFieldId, durationFieldId, twin.getId(), targetField.getId());
             return;
         }
@@ -92,6 +92,6 @@ public class RecomputerFieldDateShiftByDuration extends Recomputer {
         FieldValueDate value = new FieldValueDate(targetField, pattern).setDate(result);
         FieldTyper fieldTyper = featurerService.getFeaturer(targetField.getFieldTyperFeaturerId(), FieldTyper.class);
         fieldTyper.serializeValue(twin, value, collector);
-        log.trace("Recomputed twinClassField[{}] = {} from source[{}] duration[{}]", targetField.getId(), result, sourceFieldId, durationFieldId);
+        log.info("Recomputed twinClassField[{}] = {} from source[{}] duration[{}]", targetField.getId(), result, sourceFieldId, durationFieldId);
     }
 }

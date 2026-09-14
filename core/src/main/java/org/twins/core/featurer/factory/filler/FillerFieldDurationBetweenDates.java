@@ -59,7 +59,7 @@ public class FillerFieldDurationBetweenDates extends Filler {
 
         FieldValue durationExisting = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, durationFieldId);
         if (durationExisting != null && durationExisting.isNotEmpty()) {
-            log.trace("duration twinClassField[{}] already filled, skip", durationFieldId);
+            log.info("duration twinClassField[{}] already filled, skip", durationFieldId);
             return;
         }
 
@@ -67,7 +67,7 @@ public class FillerFieldDurationBetweenDates extends Filler {
         FieldValue endValue = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, endFieldId);
         if (!(startValue instanceof FieldValueDate startDate) || startDate.isEmpty()
                 || !(endValue instanceof FieldValueDate endDate) || endDate.isEmpty()) {
-            log.trace("start[{}] or end[{}] missing, skip duration into [{}]", startFieldId, endFieldId, durationFieldId);
+            log.info("start[{}] or end[{}] missing, skip duration into [{}]", startFieldId, endFieldId, durationFieldId);
             return;
         }
 
@@ -84,6 +84,6 @@ public class FillerFieldDurationBetweenDates extends Filler {
         }
         durationText.setValue(BigDecimalUtil.getProcessedString(BigDecimal.valueOf(days)));
         factoryItem.getOutput().addField(durationText);
-        log.trace("Set duration twinClassField[{}] = {}", durationFieldId, days);
+        log.info("Set duration twinClassField[{}] = {}", durationFieldId, days);
     }
 }

@@ -46,7 +46,7 @@ public class FillerFieldDateCurrent extends Filler {
         UUID fieldId = twinClassFieldId.extract(properties);
         FieldValue existing = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, fieldId);
         if (existing != null && existing.isNotEmpty()) {
-            log.trace("twinClassField[{}] already filled, skip current date", fieldId);
+            log.info("twinClassField[{}] already filled, skip current date", fieldId);
             return;
         }
         FieldValue created = twinService.createFieldValue(twinClassFieldService.findEntitySafe(fieldId));
@@ -56,6 +56,6 @@ public class FillerFieldDateCurrent extends Filler {
         }
         dateValue.setDate(LocalDateTime.now());
         factoryItem.getOutput().addField(dateValue);
-        log.trace("Set twinClassField[{}] to current date-time", fieldId);
+        log.info("Set twinClassField[{}] to current date-time", fieldId);
     }
 }
