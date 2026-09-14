@@ -15,6 +15,7 @@ import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -166,6 +167,41 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     public TwinChangesCollector addPostponedTrigger(UUID twinId, UUID previousTwinStatusId, UUID twinTriggerId) throws ServiceException {
         postponedTriggers.add(twinId, previousTwinStatusId, twinTriggerId);
         return this;
+    }
+
+    /**
+     * If a twin-field row was marked for delete in this collector and we are about to write a new
+     * value for the same (twinId, twinClassFieldId), pull it back so the change becomes an UPDATE
+     * of the existing row instead of DELETE+INSERT (unique constraint on twin_id + field_id).
+     * Intended for single-value mater fields; multi-select storages (datalist/user/class) must not
+     * use this — several rows share one twinClassFieldId.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends TwinFieldBaseEntity> T pullDeletedTwinField(UUID twinId, UUID twinClassFieldId) {
+        if (twinId == null || twinClassFieldId == null || getDeleteEntityMap().isEmpty()) {
+            return null;
+        }
+        for (Map.Entry<Class<?>, Set<Object>> entry : getDeleteEntityMap().entrySet()) {
+            if (!TwinFieldBaseEntity.class.isAssignableFrom(entry.getKey())) {
+                continue;
+            }
+            Set<Object> deletes = entry.getValue();
+            if (deletes == null || deletes.isEmpty()) {
+                continue;
+            }
+            Iterator<Object> it = deletes.iterator();
+            while (it.hasNext()) {
+                TwinFieldBaseEntity field = (TwinFieldBaseEntity) it.next();
+                if (twinId.equals(field.getTwinId()) && twinClassFieldId.equals(field.getTwinClassFieldId())) {
+                    it.remove();
+                    if (deletes.isEmpty()) {
+                        getDeleteEntityMap().remove(entry.getKey());
+                    }
+                    return (T) field;
+                }
+            }
+        }
+        return null;
     }
 
     public void clear() {
