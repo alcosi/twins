@@ -8,13 +8,25 @@ ALTER TABLE data_list_subset ADD COLUMN IF NOT EXISTS description_i18n_id uuid;
 
 -- transfer existing varchar name/description values into i18n + 'en' translations
 -- (domain_id of each i18n is taken from the owning data list — precedent V1.3.215.02)
+-- guarded by column existence: the legacy name/description columns are dropped below,
+-- a re-run of this file must not fail on them
 DO $$
 DECLARE
     r RECORD;
     nameI18nId uuid;
     descriptionI18nId uuid;
     domainId uuid;
+    legacyNameColumnExists boolean;
 BEGIN
+    SELECT count(*) > 0 INTO legacyNameColumnExists
+    FROM information_schema.columns
+    WHERE table_schema = current_schema()
+      AND table_name = 'data_list_subset'
+      AND column_name = 'name';
+    IF NOT legacyNameColumnExists THEN
+        RAISE NOTICE 'data_list_subset.name is already migrated, skipping legacy transfer';
+        RETURN;
+    END IF;
     FOR r IN SELECT * FROM data_list_subset WHERE (name IS NOT NULL AND name_i18n_id IS NULL) OR (description IS NOT NULL AND description_i18n_id IS NULL) LOOP
         SELECT domain_id INTO domainId FROM data_list WHERE data_list.id = r.data_list_id;
         IF r.name IS NOT NULL AND r.name_i18n_id IS NULL THEN
@@ -39,4 +51,31 @@ ALTER TABLE data_list_subset DROP COLUMN IF EXISTS description;
 ALTER TABLE data_list_subset ADD COLUMN IF NOT EXISTS created_at timestamp;
 ALTER TABLE data_list_subset ADD COLUMN IF NOT EXISTS created_by_user_id uuid;
 
+-- fk to i18n (precedent V1.3.215.02, idempotent through the pg_constraint check)
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list_subset'::regclass
+              AND conname = 'fk_data_list_subset_name_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list_subset ADD CONSTRAINT fk_data_list_subset_name_i18n
+                FOREIGN KEY (name_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list_subset'::regclass
+              AND conname = 'fk_data_list_subset_description_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list_subset ADD CONSTRAINT fk_data_list_subset_description_i18n
+                FOREIGN KEY (description_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+    END $$;
+
+-- "index for every fk column" convention (precedent V1.4.97.01)
+CREATE INDEX IF NOT EXISTS idx_data_list_subset_name_i18n_id ON data_list_subset(name_i18n_id);
+CREATE INDEX IF NOT EXISTS idx_data_list_subset_description_i18n_id ON data_list_subset(description_i18n_id);
 CREATE INDEX IF NOT EXISTS idx_data_list_subset_created_by_user_id ON data_list_subset(created_by_user_id);

@@ -30,7 +30,9 @@ public class DataListSubsetDeleteController extends ApiController {
     private final DataListSubsetService dataListSubsetService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "dataListSubsetDeleteV1", summary = "Data list subset delete")
+    @Operation(operationId = "dataListSubsetDeleteV1", summary = "Data list subset delete",
+            description = "Deletes data list subsets. Rejected with DATALIST_SUBSET_IS_ALREADY_IN_USE when a subset still has options linked — remove the options first. " +
+                    "Consumers that filter options by subset key have to be updated separately, the delete does not track them.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Data list subsets deleted"),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
@@ -39,7 +41,6 @@ public class DataListSubsetDeleteController extends ApiController {
             @RequestBody DataListSubsetDeleteRqDTOv1 request) {
         Response rs = new Response();
         try {
-            //todo add usage check
             dataListSubsetService.deleteDataListSubsets(request.getDataListSubsetIdList());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

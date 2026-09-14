@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -56,7 +57,7 @@ public class DataListSubsetSearchController extends ApiController {
     public ResponseEntity<?> dataListSubsetSearchV1(
             @MapperContextBinding(roots = DataListSubsetRestDTOMapper.class, response = DataListSubsetSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody DataListSubsetSearchRqDTOv1 request) {
+            @RequestBody @Valid DataListSubsetSearchRqDTOv1 request) {
         DataListSubsetSearchRsDTOv1 rs = new DataListSubsetSearchRsDTOv1();
         try {
             PaginationResult<DataListSubsetEntity> dataListSubsets = dataListSubsetSearchService

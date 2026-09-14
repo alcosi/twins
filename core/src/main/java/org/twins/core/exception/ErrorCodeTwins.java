@@ -91,6 +91,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     DATALIST_KEY_INCORRECT(10606, "invalid datalist key"),
     DATALIST_SUBSET_KEY_IS_NOT_UNIQUE(10607, "data list subset with this key is not unique"),
     DATALIST_SUBSET_OPTION_IS_NOT_VALID(10608, "data list option is not valid for current data list subset"),
+    DATALIST_SUBSET_KEY_INCORRECT(10609, "invalid data list subset key"),
+    DATALIST_SUBSET_IS_ALREADY_IN_USE(10610, "data list subset is already in use by options"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "head twin must be specified"),

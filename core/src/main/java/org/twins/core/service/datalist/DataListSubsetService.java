@@ -10,15 +10,13 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KeyUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dao.datalist.DataListSubsetEntity;
-import org.twins.core.dao.datalist.DataListSubsetOptionRepository;
-import org.twins.core.dao.datalist.DataListSubsetRepository;
+import org.twins.core.dao.datalist.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListSubsetCreate;
 import org.twins.core.domain.datalist.DataListSubsetUpdate;
@@ -90,16 +88,23 @@ public class DataListSubsetService extends EntitySecureFindServiceImpl<DataListS
         Kit<DataListEntity, UUID> dataListsKit = dataListService.findEntitiesSafe(
                 dataListSubsetCreates.stream().map(DataListSubsetCreate::getDataListId).collect(Collectors.toSet()));
         List<DataListSubsetEntity> entities = new ArrayList<>(dataListSubsetCreates.size());
+        Set<String> batchUniqueKeys = new HashSet<>(dataListSubsetCreates.size() * 2);
         for (DataListSubsetCreate create : dataListSubsetCreates) {
             if (!dataListsKit.containsKey(create.getDataListId()))
                 throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "unknown data list id[" + create.getDataListId() + "]");
-            entities.add(new DataListSubsetEntity()
+            DataListSubsetEntity entity = new DataListSubsetEntity()
                     .setDataListId(create.getDataListId())
-                    .setKey(create.getKey())
+                    .setKey(KeyUtils.lowerCaseNullSafe(create.getKey(), ErrorCodeTwins.DATALIST_SUBSET_KEY_INCORRECT))
                     .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_SUBSET_NAME, create.getNameI18n()).getId())
                     .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_SUBSET_DESCRIPTION, create.getDescriptionI18n()).getId())
                     .setCreatedByUserId(apiUser.getUserId())
-                    .setCreatedAt(Timestamp.from(Instant.now())));
+                    .setCreatedAt(Timestamp.from(Instant.now()));
+            // validateEntity checks the db state only, so duplicates inside one batch would silently pass
+            if (!batchUniqueKeys.add(entity.getDataListId() + "|" + entity.getKey()))
+                throw new ServiceException(ErrorCodeTwins.DATALIST_SUBSET_KEY_IS_NOT_UNIQUE, "duplicate key[" + entity.getKey() + "] inside request for data list[" + entity.getDataListId() + "]");
+            // bulk saveSafe(Collection) never calls validateEntity per entity (cambium validateEntities is a no-op by default) — check the db explicitly
+            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
+            entities.add(entity);
         }
         return StreamSupport.stream(saveSafe(entities).spliterator(), false).toList();
     }
@@ -118,7 +123,7 @@ public class DataListSubsetService extends EntitySecureFindServiceImpl<DataListS
             ChangesHelper changesHelper = new ChangesHelper();
             i18nService.updateI18nFieldForEntity(update.getNameI18n(), I18nType.DATA_LIST_SUBSET_NAME, dbEntity, DataListSubsetEntity::getNameI18nId, DataListSubsetEntity::setNameI18nId, DataListSubsetEntity.Fields.nameI18nId, changesHelper);
             i18nService.updateI18nFieldForEntity(update.getDescriptionI18n(), I18nType.DATA_LIST_SUBSET_DESCRIPTION, dbEntity, DataListSubsetEntity::getDescriptionI18NId, DataListSubsetEntity::setDescriptionI18NId, DataListSubsetEntity.Fields.descriptionI18NId, changesHelper);
-            updateEntityFieldByValueIfNotNull(update.getKey(), dbEntity, DataListSubsetEntity::getKey, DataListSubsetEntity::setKey, DataListSubsetEntity.Fields.key, changesHelper);
+            updateEntityFieldByValueIfNotNull(KeyUtils.lowerCaseNullFriendly(update.getKey(), ErrorCodeTwins.DATALIST_SUBSET_KEY_INCORRECT), dbEntity, DataListSubsetEntity::getKey, DataListSubsetEntity::setKey, DataListSubsetEntity.Fields.key, changesHelper);
             if (changesHelper.hasChanges()) {
                 changes.add(dbEntity, changesHelper);
             }
@@ -133,8 +138,10 @@ public class DataListSubsetService extends EntitySecureFindServiceImpl<DataListS
             return;
         }
         findEntitiesSafe(dataListSubsetIdList);
-        //db fk on data_list_subset_option also cascades, manual cleanup keeps the intent explicit
-        dataListSubsetOptionRepository.deleteAllByDataListSubsetIdIn(dataListSubsetIdList);
+        List<DataListSubsetOptionEntity> linkedOptions = dataListSubsetOptionRepository.findByDataListSubsetIdIn(dataListSubsetIdList);
+        if (CollectionUtils.isNotEmpty(linkedOptions))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_SUBSET_IS_ALREADY_IN_USE, "data list subsets are used by [" + linkedOptions.size() + "] option(s), remove the options first");
+        //db fk on data_list_subset_option cascades the rest in case of a concurrent option link
         deleteSafe(dataListSubsetIdList);
     }
 

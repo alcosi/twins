@@ -63,7 +63,7 @@ public class DataListSubsetRestDTOMapper extends RestSimpleDTOMapper<DataListSub
         if (mapperContext.hasModeButNot(DataListMode.DataListSubset2DataListMode.HIDE)) {
             dst.setDataListId(src.getDataListId());
             dataListSubsetService.loadDataList(src);
-            dataListRestDTOMapper.postpone(src.getDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListOption2DataListMode.SHORT)));
+            dataListRestDTOMapper.postpone(src.getDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListSubset2DataListMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.DataListSubset2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
