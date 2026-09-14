@@ -8,4 +8,7 @@ import java.util.UUID;
 
 @Repository
 public interface DataListSubsetRepository extends CrudRepository<DataListSubsetEntity, UUID>, JpaSpecificationExecutor<DataListSubsetEntity> {
+    boolean existsByDataListIdAndKey(UUID dataListId, String key);
+
+    boolean existsByDataListIdAndKeyAndIdNot(UUID dataListId, String key, UUID id);
 }

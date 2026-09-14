@@ -126,11 +126,11 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return dataListEntity;
     }
 
-    public void loadCreatedByUser(DataListEntity src) throws ServiceException {
-        loadCreatedByUsers(Collections.singletonList(src));
+    public void loadUser(DataListEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
     }
 
-    public void loadCreatedByUsers(Collection<DataListEntity> srcCollection) throws ServiceException {
+    public void loadUser(Collection<DataListEntity> srcCollection) throws ServiceException {
         userService.load(srcCollection,
                 DataListEntity::getCreatedByUserId,
                 DataListEntity::getCreatedByUser,
