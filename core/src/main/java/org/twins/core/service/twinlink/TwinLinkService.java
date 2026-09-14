@@ -543,11 +543,10 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public PaginationResult<TwinEntity> findValidDstTwins(UUID twinId, UUID linkId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkId);
         TwinEntity twinEntity = twinService.findEntitySafe(twinId);
-        boolean forwardElseBackward = linkService.isForwardLink(linkEntity, twinEntity.getTwinClass()); // must match the direction create-time validation will use (prepareTwinLinks)
         addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
         for (LinkValidatorEntity linkValidatorEntity : findLinkValidators(linkId)) {
             Linker linker = featurerService.getFeaturer(linkValidatorEntity.getLinkerFeaturerId(), Linker.class);
-            linker.expandValidLinkedTwinSearch(linkValidatorEntity.getLinkerParams(), linkEntity, forwardElseBackward, twinEntity, basicSearch);
+            linker.expandValidLinkedTwinSearch(linkValidatorEntity.getLinkerParams(), false, twinEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
     }
@@ -566,9 +565,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         basicSearch.addTwinId(candidateTwinId, false); // narrow the search to the candidate twin only
         for (LinkValidatorEntity linkValidatorEntity : linkValidatorEntityList) {
             Linker linker = featurerService.getFeaturer(linkValidatorEntity.getLinkerFeaturerId(), Linker.class);
-            linker.validateLink(linkValidatorEntity.getLinkerParams(), linkEntity, forwardElseBackward, twinEntity, basicSearch);
+            linker.validateLink(linkValidatorEntity.getLinkerParams(), forwardElseBackward, twinEntity, basicSearch);
         }
-        if (twinSearchService.count(basicSearch) == 0) // existence check only — no twin hydration
+        if (basicSearch.isEmptyResult() || twinSearchService.count(basicSearch) == 0) // existence check only — no twin hydration
             throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
                     linkEntity.logNormal() + " twinId[" + candidateTwinId + "] is not a valid dst twin for twinId[" + twinEntity.getId() + "] (linker validation failed)");
     }
@@ -607,14 +606,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public Set<UUID> findDstTwinIdsByLinkId(@NonNull UUID linkId) {
         return twinLinkRepository.findDstTwinIdsByLinkId(linkId);
-    }
-
-    public boolean existsSrcTwinIdsByLinkId( @NonNull UUID srcTwinId, @NonNull UUID linkId) {
-        return twinLinkRepository.existsBySrcTwinIdAndLinkId(srcTwinId, linkId);
-    }
-
-    public boolean existsDstTwinIdsByLinkId( @NonNull UUID dstTwinId, @NonNull UUID linkId) {
-        return twinLinkRepository.existsByDstTwinIdAndLinkId(dstTwinId, linkId);
     }
 
     public Map<UUID, Integer> countBackwardLinks(Collection<UUID> dstTwinIdList, UUID linkId) {
@@ -663,12 +654,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getBackwardLinks() != null)
             return twinEntity.getTwinLinks().getBackwardLinks().containsGroupedKey(linkId);
         return twinLinkRepository.existsByDstTwinIdAndLinkId(twinEntity.getId(), linkId);
-    }
-
-    public List<TwinLinkEntity> findTwinLinksBySrcTwinAndLinkId(TwinEntity twinEntity, UUID linkId) {
-        if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getBackwardLinks() != null)
-            return twinEntity.getTwinLinks().getForwardLinks().getGrouped(linkId);
-        return twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkId, TwinLinkEntity.class);
     }
 
     public boolean isLinkDstTwinStatusIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {

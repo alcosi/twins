@@ -3,7 +3,6 @@ package org.twins.core.featurer.linker;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -25,19 +24,25 @@ public abstract class Linker extends FeaturerTwins {
 
     protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException;
 
-    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+    /** Valid-twins picker: the linker narrows the user-facing search (filter). */
+    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
 
-        expandValidLinkedTwinSearch(properties, linkEntity, forwardElseBackward, twinEntity, basicSearch, false);
+        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch, true);
     }
 
-    public void validateLink(HashMap<String, String> linkerParams, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+    /** twin_link validation: the linker rules the candidate in/out (empty result rejects the link). */
+    public void validateLink(HashMap<String, String> linkerParams, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].validateLink with params: " + properties.toString());
 
-        expandValidLinkedTwinSearch(properties, linkEntity, forwardElseBackward, twinEntity, basicSearch, true);
+        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch, false);
     }
 
-    public abstract void expandValidLinkedTwinSearch(Properties properties, LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch, boolean throwOrEmpty) throws ServiceException;
+    /**
+     * @param searchElseValidate true — valid-twins picker (narrow the user-facing search);
+     *                           false — twin_link validation (empty result = link rejected)
+     */
+    public abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch, boolean searchElseValidate);
 }
