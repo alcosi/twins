@@ -48,7 +48,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
 
         dst
                 .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
-                .setFields(twinFieldValueRestDTOReverseMapperV2.parseFields(src.getClassId(), src.getFields())) // parse only — materialized batch-wide in afterCollectionConversion
+                .setFields(twinFieldValueRestDTOReverseMapperV2.parse(src.getClassId(), src.getFields())) // parse only — materialized batch-wide in afterCollectionConversion
                 .setTwinEntity(new TwinEntity()
                         .setId(temporalIdContext.resolve(src.getTemporalId()))
                         .setTwinClassId(src.getClassId())

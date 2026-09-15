@@ -1576,7 +1576,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return values;
         for (int i = 0; i < values.size(); i++) {
             if (values.get(i) instanceof FieldValueReference reference)
-                values.set(i, buildReferencedValue(reference, loaded.twins(), loaded.users(), loaded.twinClasses()));
+                values.set(i, buildReferencedValue(reference, loaded));
         }
         return values;
     }
@@ -1601,7 +1601,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 continue;
             for (Map.Entry<UUID, FieldValue> entry : group.entrySet()) {
                 if (entry.getValue() instanceof FieldValueReference reference)
-                    group.put(entry.getKey(), buildReferencedValue(reference, loaded.twins(), loaded.users(), loaded.twinClasses()));
+                    group.put(entry.getKey(), buildReferencedValue(reference, loaded));
             }
         }
     }
@@ -1636,40 +1636,30 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 twinClassIds.isEmpty() ? Map.of() : twinClassService.findEntitiesSafe(twinClassIds).getMap());
     }
 
-    private FieldValue buildReferencedValue(FieldValueReference reference, Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users, Map<UUID, TwinClassEntity> twinClasses) throws ServiceException {
+    private FieldValue buildReferencedValue(FieldValueReference reference, LoadedReferences loaded) throws ServiceException {
         Class<? extends FieldValue> valueType = reference.getValueType();
         List<UUID> ids = reference.getIds();
-        if (valueType == FieldValueLink.class) {
-            FieldValueLink value = new FieldValueLink(reference.getTwinClassField());
-            if (ids == null)
-                return value; // undefined
-            if (ids.isEmpty())
-                return value.clear();
-            for (UUID id : ids)
-                value.add(twins.get(id));
-            return value;
-        }
-        if (valueType == FieldValueUser.class) {
-            FieldValueUser value = new FieldValueUser(reference.getTwinClassField());
-            if (ids == null)
-                return value; // undefined
-            if (ids.isEmpty())
-                return value.clear();
-            for (UUID id : ids)
-                value.add(users.get(id));
-            return value;
-        }
-        if (valueType == FieldValueTwinClassList.class) {
-            FieldValueTwinClassList value = new FieldValueTwinClassList(reference.getTwinClassField());
-            if (ids == null)
-                return value; // undefined
-            if (ids.isEmpty())
-                return value.clear();
-            for (UUID id : ids)
-                value.add(twinClasses.get(id));
-            return value;
-        }
+        if (valueType == FieldValueLink.class)
+            return fill(new FieldValueLink(reference.getTwinClassField()), ids, loaded.twins(), FieldValueLink::add);
+        if (valueType == FieldValueUser.class)
+            return fill(new FieldValueUser(reference.getTwinClassField()), ids, loaded.users(), FieldValueUser::add);
+        if (valueType == FieldValueTwinClassList.class)
+            return fill(new FieldValueTwinClassList(reference.getTwinClassField()), ids, loaded.twinClasses(), FieldValueTwinClassList::add);
         throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, valueType + " is not a reference value type");
+    }
+
+    // null ids = UNDEFINED, empty ids = CLEARED, otherwise each loaded entity is added by id.
+    // FieldValueCollection and FieldValueCollectionImmutable share the add/clear shape but not the hierarchy — hence the adder.
+    private <V extends FieldValue, T> V fill(V value, List<UUID> ids, Map<UUID, T> loaded, BiConsumer<V, T> adder) {
+        if (ids == null)
+            return value;
+        if (ids.isEmpty()) {
+            value.clear();
+            return value;
+        }
+        for (UUID id : ids)
+            adder.accept(value, loaded.get(id));
+        return value;
     }
 
     private Class<? extends FieldValue> fieldValueType(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
