@@ -49,6 +49,8 @@ public class FieldValidatorDateCompareWithParent extends FieldValidatorAtomic {
         UUID parentFieldId = parentTwinClassFieldId.extract(properties);
         FieldValidatorCompareOperator operator = compareOperator.extract(properties);
         FieldValue value = item.getValue();
+        if (value == null || value.isEmpty())
+            return ValidationResult.VALID; // cleared/empty — refill/recompute may restore; skip compare
 
         TwinEntity headTwin = item.getTwinEntity().getHeadTwin();
         if (headTwin == null)

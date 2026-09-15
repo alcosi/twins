@@ -53,6 +53,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -657,6 +658,14 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
         BigDecimal ret = storedValue != null ? storedValue : calculatedValue;
         return ret != null ? ret : defaultValue;
+    }
+
+    public Timestamp getTimestampValue(TwinEntity twin, UUID fieldId, Timestamp defaultValue) {
+        if (twin.getTwinFieldTimestampKit() != null && twin.getTwinFieldTimestampKit().containsKey(fieldId)) {
+            Timestamp value = twin.getTwinFieldTimestampKit().get(fieldId).getValue();
+            return value != null ? value : defaultValue;
+        }
+        return defaultValue;
     }
 
     public boolean isDecimalFieldEmpty(TwinEntity twin, UUID fieldId) {

@@ -46,6 +46,8 @@ public class FieldValidatorDateCompare extends FieldValidatorAtomic {
         UUID otherFieldId = twinClassFieldIdToCompare.extract(properties);
         FieldValidatorCompareOperator operator = compareOperator.extract(properties);
         FieldValue value = item.getValue();
+        if (value == null || value.isEmpty())
+            return ValidationResult.VALID; // cleared/empty — refill/recompute may restore; skip compare
         FieldValue otherValue = resolveFieldValue(item.getTwinEntity(), item.getContextFields(), otherFieldId);
         if (otherValue == null || otherValue.isEmpty())
             return ValidationResult.VALID; // the other field is not filled — nothing to compare yet

@@ -24,6 +24,11 @@ import java.util.UUID;
  * Checks that a duration field equals {@code (end date - start date + 1)} in whole days
  * (inclusive day count) when all three are filled. Preloads twin field values once per batch;
  * per-item check is in-memory.
+ * <p>
+ * Skips when the end date is not in the current create/update payload: field-edit recompute
+ * ({@code duration→end} / {@code start→end}) will realign end after validation, and comparing
+ * against a stale DB end would reject legitimate {@code start}+{@code duration} (or duration-only) updates.
+ * When end is present in the payload, the triangle must already be consistent.
  */
 @Slf4j
 @Component
@@ -53,6 +58,10 @@ public class FieldValidatorDurationEqualsDateDiff extends FieldValidatorAtomic {
         FieldValue value = item.getValue();
         if (durationFieldId == null)
             durationFieldId = value.getTwinClassField().getId();
+
+        // End not in payload → do not compare against DB end; recompute will update it.
+        if (item.getContextFields() == null || !item.getContextFields().containsKey(endFieldId))
+            return ValidationResult.VALID;
 
         FieldValue durationValue = resolveValidatedOrContextValue(item, durationFieldId);
         FieldValue startValue = resolveValidatedOrContextValue(item, startFieldId);
