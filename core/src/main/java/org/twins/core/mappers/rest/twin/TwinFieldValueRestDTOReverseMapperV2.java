@@ -102,9 +102,43 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
     }
 
     public List<FieldValue> mapFields(UUID twinClassId, Map<String, String> fieldsMap) throws Exception {
+        return convertCollection(classIdFieldsToTexts(twinClassId, fieldsMap)); // afterCollectionConversion materializes the whole map
+    }
+
+    public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
+        return convertCollection(fieldIdFieldsToTexts(fieldsMap)); // afterCollectionConversion materializes the whole map
+    }
+
+    /**
+     * Parse-only variant for callers that map fields per item of an OUTER batch (e.g. every TwinCreate inside
+     * TwinCreateRqRestDTOReverseMapper) and materialize all the collected references once, batch-wide, in their
+     * own afterCollectionConversion — going through mapFields/convertCollection here would resolve each inner
+     * collection separately and bring the N+1 back.
+     */
+    public List<FieldValue> parseFields(UUID twinClassId, Map<String, String> fieldsMap) throws Exception {
+        return parseCollection(classIdFieldsToTexts(twinClassId, fieldsMap));
+    }
+
+    /**
+     * Parse-only variant of {@link #mapFields(Map)} — see {@link #parseFields(UUID, Map)}.
+     */
+    public List<FieldValue> parseFields(Map<UUID, String> fieldsMap) throws Exception {
+        return parseCollection(fieldIdFieldsToTexts(fieldsMap));
+    }
+
+    @Override
+    public void afterCollectionConversion(Collection<FieldValue> dstCollection, MapperContext mapperContext) throws Exception {
+        // batch-level materialization: ONE query per referenced entity type for the whole converted collection
+        // (convert() parses only). convertCollection passes its mutable result list, so the in-place swap
+        // reaches the caller; convertMap's values() view is not replaceable and is not used for this mapper.
+        if (dstCollection instanceof List<FieldValue> values)
+            twinService.materializeFieldValues(values);
+    }
+
+    private List<FieldValueText> classIdFieldsToTexts(UUID twinClassId, Map<String, String> fieldsMap) throws ServiceException {
         List<FieldValueText> fields = new ArrayList<>();
         if (fieldsMap == null)
-            return convertCollection(fields);
+            return fields;
         Map<String, String> mapFieldKeys = new HashMap<>();
         Map<UUID, String> mapFieldIds = new HashMap<>();
         for (Map.Entry<String, String> entry : fieldsMap.entrySet()) {
@@ -115,11 +149,10 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         }
         fields.addAll(createValuesByClassIdAndFieldKeys(twinClassId, mapFieldKeys));
         fields.addAll(createValuesByClassIdAndFieldIds(twinClassId, mapFieldIds));
-        // batch-level materialization: one query per referenced entity type for the whole fields map
-        return twinService.materializeFieldValues(convertCollection(fields));
+        return fields;
     }
 
-    public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
+    private List<FieldValueText> fieldIdFieldsToTexts(Map<UUID, String> fieldsMap) throws ServiceException {
         List<FieldValueText> fields = new ArrayList<>();
         if (fieldsMap != null)
             for (Map.Entry<UUID, String> entry : fieldsMap.entrySet()) {
@@ -129,7 +162,16 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                         fields,
                         createValueByTwinClassFieldId(entry.getKey(), entry.getValue()));
             }
-        // batch-level materialization: one query per referenced entity type for the whole fields map
-        return twinService.materializeFieldValues(convertCollection(fields));
+        return fields;
+    }
+
+    private List<FieldValue> parseCollection(Collection<FieldValueText> fields) throws Exception {
+        List<FieldValue> ret = new ArrayList<>(fields.size());
+        for (FieldValueText src : fields) {
+            FieldValue converted = this.convert(src, new MapperContext()); // parse only, no materialization
+            if (converted != null)
+                ret.add(converted);
+        }
+        return ret;
     }
 }

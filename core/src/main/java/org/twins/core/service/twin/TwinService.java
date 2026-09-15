@@ -1571,6 +1571,47 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public List<FieldValue> materializeFieldValues(List<FieldValue> values) throws ServiceException {
         if (values == null || values.isEmpty())
             return values;
+        LoadedReferences loaded = loadReferences(values);
+        if (loaded == EMPTY_REFERENCES)
+            return values;
+        for (int i = 0; i < values.size(); i++) {
+            if (values.get(i) instanceof FieldValueReference reference)
+                values.set(i, buildReferencedValue(reference, loaded.twins(), loaded.users(), loaded.twinClasses()));
+        }
+        return values;
+    }
+
+    /**
+     * Grouped variant for batch flows (e.g. every TwinCreate of a mapped batch, each with its own fields kit):
+     * the SAME single bulk load shared across all groups — one query per entity type for the whole batch,
+     * with the in-place replacement applied per group.
+     */
+    public void materializeFieldValues(Collection<Map<UUID, FieldValue>> fieldGroups) throws ServiceException {
+        List<FieldValue> allValues = new ArrayList<>();
+        for (Map<UUID, FieldValue> group : fieldGroups)
+            if (MapUtils.isNotEmpty(group))
+                allValues.addAll(group.values());
+        if (allValues.isEmpty())
+            return;
+        LoadedReferences loaded = loadReferences(allValues);
+        if (loaded == EMPTY_REFERENCES)
+            return;
+        for (Map<UUID, FieldValue> group : fieldGroups) {
+            if (MapUtils.isEmpty(group))
+                continue;
+            for (Map.Entry<UUID, FieldValue> entry : group.entrySet()) {
+                if (entry.getValue() instanceof FieldValueReference reference)
+                    group.put(entry.getKey(), buildReferencedValue(reference, loaded.twins(), loaded.users(), loaded.twinClasses()));
+            }
+        }
+    }
+
+    private record LoadedReferences(Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users, Map<UUID, TwinClassEntity> twinClasses) {
+    }
+
+    private static final LoadedReferences EMPTY_REFERENCES = new LoadedReferences(Map.of(), Map.of(), Map.of());
+
+    private LoadedReferences loadReferences(Collection<FieldValue> values) throws ServiceException {
         Set<UUID> twinIds = new LinkedHashSet<>();
         Set<UUID> userIds = new LinkedHashSet<>();
         Set<UUID> twinClassIds = new LinkedHashSet<>();
@@ -1588,15 +1629,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, valueType + " is not a reference value type");
         }
         if (twinIds.isEmpty() && userIds.isEmpty() && twinClassIds.isEmpty())
-            return values;
-        Map<UUID, TwinEntity> twins = twinIds.isEmpty() ? Map.of() : findEntitiesSafe(twinIds).getMap();
-        Map<UUID, UserEntity> users = userIds.isEmpty() ? Map.of() : userService.findEntitiesSafe(userIds).getMap();
-        Map<UUID, TwinClassEntity> twinClasses = twinClassIds.isEmpty() ? Map.of() : twinClassService.findEntitiesSafe(twinClassIds).getMap();
-        for (int i = 0; i < values.size(); i++) {
-            if (values.get(i) instanceof FieldValueReference reference)
-                values.set(i, buildReferencedValue(reference, twins, users, twinClasses));
-        }
-        return values;
+            return EMPTY_REFERENCES;
+        return new LoadedReferences(
+                twinIds.isEmpty() ? Map.of() : findEntitiesSafe(twinIds).getMap(),
+                userIds.isEmpty() ? Map.of() : userService.findEntitiesSafe(userIds).getMap(),
+                twinClassIds.isEmpty() ? Map.of() : twinClassService.findEntitiesSafe(twinClassIds).getMap());
     }
 
     private FieldValue buildReferencedValue(FieldValueReference reference, Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users, Map<UUID, TwinClassEntity> twinClasses) throws ServiceException {
@@ -1607,7 +1644,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (ids == null)
                 return value; // undefined
             if (ids.isEmpty())
-                return (FieldValueLink) value.clear();
+                return value.clear();
             for (UUID id : ids)
                 value.add(twins.get(id));
             return value;
@@ -1617,7 +1654,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (ids == null)
                 return value; // undefined
             if (ids.isEmpty())
-                return (FieldValueUser) value.clear();
+                return value.clear();
             for (UUID id : ids)
                 value.add(users.get(id));
             return value;
@@ -1627,7 +1664,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (ids == null)
                 return value; // undefined
             if (ids.isEmpty())
-                return (FieldValueTwinClassList) value.clear();
+                return value.clear();
             for (UUID id : ids)
                 value.add(twinClasses.get(id));
             return value;
