@@ -39,6 +39,7 @@ public class TwinClassFieldValidatorRestDTOMapper extends RestSimpleDTOMapper<Tw
                     .setTwinClassFieldId(src.getTwinClassFieldId())
                     .setFieldValidatorFeaturerId(src.getFieldValidatorFeaturerId())
                     .setFieldValidatorParams(src.getFieldValidatorParams())
+                    .setActive(src.getActive())
                     .setBeValidationErrorI18nId(src.getBeValidationErrorI18nId())
                     .setBeValidationError(I18nCacheHolder.addId(src.getBeValidationErrorI18nId()));
             case SHORT -> dst

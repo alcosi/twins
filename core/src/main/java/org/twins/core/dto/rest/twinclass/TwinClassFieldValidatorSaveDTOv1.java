@@ -22,6 +22,9 @@ public class TwinClassFieldValidatorSaveDTOv1 {
     @Schema(description = "field validator featurer params")
     public HashMap<String, String> fieldValidatorParams;
 
+    @Schema(description = "active")
+    public Boolean active;
+
     @Schema(description = "backend validation error i18n")
     public I18nSaveDTOv1 beValidationErrorI18n;
 }

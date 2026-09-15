@@ -1,12 +1,9 @@
 package org.twins.core.dao.validator;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -62,6 +59,9 @@ public class TwinClassFieldValidatorEntity implements EasyLoggable, Identifiable
     @Column(name = "field_validator_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldValidatorParams;
 
+    @Column(name = "active", nullable = false)
+    private Boolean active;
+
     @Column(name = "be_validation_error_i18n_id")
     private UUID beValidationErrorI18nId;
 
@@ -94,6 +94,15 @@ public class TwinClassFieldValidatorEntity implements EasyLoggable, Identifiable
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity twinClassField;
+
+    /**
+     * Null-safe primitive view of {@link #active} (null yields false — i.e. treated as inactive).
+     */
+    @Transient
+    @JsonIgnore
+    public boolean isActive() {
+        return Boolean.TRUE.equals(active);
+    }
 
     @Override
     public String easyLog(Level level) {

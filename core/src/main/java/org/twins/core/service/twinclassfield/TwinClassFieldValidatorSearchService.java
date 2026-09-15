@@ -68,7 +68,8 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
                 checkUuidIn(search.getTwinClassFieldIdList(), false, false, TwinClassFieldValidatorEntity.Fields.twinClassFieldId),
                 checkUuidIn(search.getTwinClassFieldIdExcludeList(), true, false, TwinClassFieldValidatorEntity.Fields.twinClassFieldId),
                 checkIntegerIn(search.getFieldValidatorFeaturerIdList(), false, TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerId),
-                checkIntegerIn(search.getFieldValidatorFeaturerIdExcludeList(), true, TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerId)
+                checkIntegerIn(search.getFieldValidatorFeaturerIdExcludeList(), true, TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerId),
+                checkTernary(search.getActive(), TwinClassFieldValidatorEntity.Fields.active)
         );
     }
 
@@ -92,6 +93,7 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
         return switch (groupField) {
             case twinClassFieldId -> TwinClassFieldValidatorEntity.Fields.twinClassFieldId;
             case fieldValidatorFeaturerId -> TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerId;
+            case active -> TwinClassFieldValidatorEntity.Fields.active;
         };
     }
 
@@ -100,6 +102,7 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
         switch (field) {
             case twinClassFieldId -> entity.setTwinClassFieldId((UUID) o);
             case fieldValidatorFeaturerId -> entity.setFieldValidatorFeaturerId((Integer) o);
+            case active -> entity.setActive((Boolean) o);
         }
     }
 }
