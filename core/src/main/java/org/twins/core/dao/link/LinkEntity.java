@@ -70,13 +70,6 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "linker_featurer_id")
-    private Integer linkerFeaturerId;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "linker_params", columnDefinition = "hstore")
-    private HashMap<String, String> linkerParams;
-
     @Column(name = "relation_twin_class_id")
     private UUID relationTwinClassId;
 

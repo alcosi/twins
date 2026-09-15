@@ -9,7 +9,6 @@ import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -29,12 +28,6 @@ public class LinkSaveDTOv1 extends Request {
 
     @Schema(description = "Link strength (MANDATORY, OPTIONAL, OPTIONAL_BUT_DELETE_CASCADE)")
     public LinkStrength linkStrength;
-
-    @Schema(description = "[optional] an id of linker featurer", example = "")
-    public Integer linkerFeaturerId;
-
-    @Schema(description = "[optional] linker featurer params", example = "")
-    public HashMap<String, String> linkerParams;
 
     @Schema(description = "[optional] source twin class inheritable")
     public Boolean srcTwinClassInheritable;
