@@ -85,6 +85,8 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
                     TwinClassFieldValidatorEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.key);
             case fieldValidatorFeaturerName -> toSortSpecification(ascending,
                     TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerSpecOnly, FeaturerEntity.Fields.name);
+            case active -> toSortSpecification(ascending,
+                    TwinClassFieldValidatorEntity.Fields.active);
         };
     }
 
