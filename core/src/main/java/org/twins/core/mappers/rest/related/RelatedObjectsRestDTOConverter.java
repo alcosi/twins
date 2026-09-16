@@ -29,6 +29,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -61,6 +62,7 @@ import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowFactoryDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -97,6 +99,7 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.*;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOMapperV1;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -129,6 +132,7 @@ public class RelatedObjectsRestDTOConverter {
     private final PermissionRestDTOMapper permissionRestDTOMapper;
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
+    private final TwinflowFactoryRestDTOMapperV1 twinflowFactoryRestDTOMapperV1;
     private final TwinClassSchemaDTOMapper twinClassSchemaDTOMapper;
     private final TwinflowSchemaRestDTOMapper twinflowSchemaRestDTOMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
@@ -183,6 +187,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, PermissionDTOv1> permissionMap = new HashMap<>();
         Map<UUID, PermissionSchemaDTOv1> permissionSchemaMap = new HashMap<>();
         Map<UUID, TwinflowBaseDTOv1> twinflowMap = new HashMap<>();
+        Map<UUID, TwinflowFactoryDTOv1> twinflowFactoryMap = new HashMap<>();
         Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
         Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
         Map<UUID, FactoryConditionSetDTOv1> factoryConditionSetMap = new HashMap<>();
@@ -250,6 +255,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContext.getRelatedTwinflowMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
+        if (!mapperContext.getRelatedTwinflowFactoryMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedTwinflowFactoryMap(), twinflowFactoryRestDTOMapperV1, mapperContextLevel2, twinflowFactoryMap, TwinflowFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryPipelineMap().isEmpty())
@@ -349,8 +356,10 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
-        if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
+        if (!mapperContextLevel2.getRelatedTwinflowMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
+        if (!mapperContextLevel2.getRelatedTwinflowFactoryMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedTwinflowFactoryMap(), twinflowFactoryRestDTOMapperV1, mapperContextLevel3, twinflowFactoryMap, TwinflowFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryPipelineMap().isEmpty())
@@ -453,6 +462,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
+        if (!mapperContextLevel3.getRelatedTwinflowFactoryMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedTwinflowFactoryMap(), twinflowFactoryRestDTOMapperV1, mapperContextLevel3, twinflowFactoryMap, TwinflowFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())
@@ -537,6 +548,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setPermissionMap(permissionMap.isEmpty() ? null : permissionMap)
                 .setPermissionSchemaMap(permissionSchemaMap.isEmpty() ? null : permissionSchemaMap)
                 .setTwinflowMap(twinflowMap.isEmpty() ? null : twinflowMap)
+                .setTwinflowFactoryMap(twinflowFactoryMap.isEmpty() ? null : twinflowFactoryMap)
                 .setFactoryMap(factoryMap.isEmpty() ? null : factoryMap)
                 .setFactoryPipelineMap(factoryPipelineMap.isEmpty() ? null : factoryPipelineMap)
                 .setFactoryConditionSetMap(factoryConditionSetMap.isEmpty() ? null : factoryConditionSetMap)

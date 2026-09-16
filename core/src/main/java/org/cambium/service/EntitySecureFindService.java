@@ -2,10 +2,10 @@ package org.cambium.service;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.twins.core.domain.usage.Usage;
+import org.twins.core.enums.usage.UsageType;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 
 public interface EntitySecureFindService<T> {
     UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException;
@@ -37,4 +37,11 @@ public interface EntitySecureFindService<T> {
     }
 
     void beforeValidateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode);
+
+    static void addUsage(Map<UUID, List<Usage>> usagesMap, UUID usageOf, UsageType usageType, UUID usageEntityId, Object usageEntity) {
+        if (usageOf == null)
+            return;
+        List<Usage> usages = usagesMap.computeIfAbsent(usageOf, k -> new ArrayList<>());
+        usages.add(new Usage().setUsageType(usageType).setId(usageEntityId).setEntity(usageEntity));
+    }
 }

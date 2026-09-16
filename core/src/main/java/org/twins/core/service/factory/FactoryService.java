@@ -10,6 +10,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
+import org.cambium.service.EntitySecureFindService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -19,10 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.usage.Usage;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.usage.UsageType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.factoryprocessor.FactoryProcessor;
@@ -48,12 +53,8 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
     private final AuthService authService;
     private final I18nService i18nService;
     private final UserService userService;
-    private final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
-    private final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
     private final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
-    private final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
-    private final TwinFactoryEraserRepository twinFactoryEraserRepository;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowFactoryRepository twinflowFactoryRepository;
     @Lazy
@@ -189,6 +190,42 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
             int twinFactoryPipelineCount = pipelineNextTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0) + pipelineAfterCommitTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0);
             twinFactory.setFactoryUsagesCount(twinflowCount + twinFactoryBranchCount + twinFactoryPipelineCount);
         });
+    }
+
+    public void loadFactoryUsages(TwinFactoryEntity twinFactory) {
+        loadFactoryUsages(Collections.singletonList(twinFactory));
+    }
+
+    /**
+     * Loads the list of usages (places where the factory is referenced from) into the transient
+     * {@code factoryUsages} field: pipeline.nextTwinFactoryId, pipeline.afterCommitTwinFactoryId,
+     * branch.nextTwinFactoryId, transition.inbuiltTwinFactoryId and twinflow_factory rows (any
+     * launcher). Each usage holds the referencing entity so mappers can postpone it into
+     * relatedObjects.
+     */
+    public void loadFactoryUsages(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getUsages() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        Map<UUID, List<Usage>> usagesMap = new HashMap<>();
+        for (TwinFactoryPipelineEntity pipeline : twinFactoryPipelineRepository.findByNextTwinFactoryIdIn(needLoad.getIdSet()))
+            EntitySecureFindService.addUsage(usagesMap, pipeline.getNextTwinFactoryId(), UsageType.FACTORY_PIPELINE_NEXT_FACTORY, pipeline.getId(), pipeline);
+        for (TwinFactoryPipelineEntity pipeline : twinFactoryPipelineRepository.findByAfterCommitTwinFactoryIdIn(needLoad.getIdSet()))
+            EntitySecureFindService.addUsage(usagesMap, pipeline.getAfterCommitTwinFactoryId(), UsageType.FACTORY_PIPELINE_AFTER_COMMIT_FACTORY, pipeline.getId(), pipeline);
+        for (TwinFactoryBranchEntity branch : twinFactoryBranchRepository.findByNextTwinFactoryIdIn(needLoad.getIdSet()))
+            EntitySecureFindService.addUsage(usagesMap, branch.getNextTwinFactoryId(), UsageType.FACTORY_BRANCH_NEXT_FACTORY, branch.getId(), branch);
+        for (TwinflowTransitionEntity transition : twinflowTransitionRepository.findByInbuiltTwinFactoryIdIn(needLoad.getIdSet()))
+            EntitySecureFindService.addUsage(usagesMap, transition.getInbuiltTwinFactoryId(), UsageType.TWINFLOW_TRANSITION_INBUILT_FACTORY, transition.getId(), transition);
+        for (TwinflowFactoryEntity twinflowFactory : twinflowFactoryRepository.findByTwinFactoryIdIn(needLoad.getIdSet()))
+            EntitySecureFindService.addUsage(usagesMap, twinflowFactory.getTwinFactoryId(), UsageType.TWINFLOW_FACTORY_LAUNCHER, twinflowFactory.getId(), twinflowFactory);
+        for (TwinFactoryEntity twinFactory : needLoad.getCollection()) {
+            List<Usage> usages = usagesMap.get(twinFactory.getId());
+            twinFactory.setUsages(usages == null ? List.of() : usages);
+        }
     }
 
     public void loadCreatedByUser(TwinFactoryEntity entity) throws ServiceException {
