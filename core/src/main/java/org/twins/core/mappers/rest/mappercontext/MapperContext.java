@@ -30,6 +30,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -78,6 +79,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<PermissionEntity>> relatedPermissionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinflowEntity>> relatedTwinflowMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinflowFactoryEntity>> relatedTwinflowFactoryMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryEntity>> relatedFactoryMap = new LinkedHashMap<>();
     @Getter
@@ -274,6 +277,8 @@ public class MapperContext {
             smartPut(relatedPermissionSchemaMap, permissionSchema, permissionSchema.getId());
         else if (relatedObject instanceof TwinflowEntity twinflow)
             smartPut(relatedTwinflowMap, twinflow, twinflow.getId());
+        else if (relatedObject instanceof TwinflowFactoryEntity twinflowFactory)
+            smartPut(relatedTwinflowFactoryMap, twinflowFactory, twinflowFactory.getId());
         else if (relatedObject instanceof TwinFactoryEntity twinFactory)
             smartPut(relatedFactoryMap, twinFactory, twinFactory.getId());
         else if (relatedObject instanceof TwinFactoryPipelineEntity twinFactoryPipeline)
@@ -539,6 +544,7 @@ public class MapperContext {
         dstMapperContext.relatedPermissionMap = srcMapperContext.relatedPermissionMap;
         dstMapperContext.relatedPermissionSchemaMap = srcMapperContext.relatedPermissionSchemaMap;
         dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
+        dstMapperContext.relatedTwinflowFactoryMap = srcMapperContext.relatedTwinflowFactoryMap;
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
         dstMapperContext.relatedFactoryConditionSetMap = srcMapperContext.relatedFactoryConditionSetMap;

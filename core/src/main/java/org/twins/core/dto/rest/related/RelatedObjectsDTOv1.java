@@ -32,6 +32,7 @@ import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowFactoryDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -91,6 +92,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related twinflow map", example = "{twinflow map}")
     public Map<UUID, TwinflowBaseDTOv1> twinflowMap;
+
+    @Schema(description = "related twinflow factory map", example = "{twinflow factory map}")
+    public Map<UUID, TwinflowFactoryDTOv1> twinflowFactoryMap;
 
     @Schema(description = "related twinflow schema map", example = "{twinflow schema map}")
     public Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap;

@@ -12,9 +12,10 @@ import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.usage.UsageRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.factory.FactoryService;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.Collection;
 
@@ -27,10 +28,9 @@ import java.util.Collection;
         FactoryMultipliersCountMode.class,
         FactoryBranchesCountMode.class,
         FactoryErasersCountMode.class,
-        FactoryCascadeMode.class})
+        FactoryCascadeMode.class,
+        FactoryUsagesMode.class})
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
-
-    private final I18nService i18nService;
     private final FactoryService factoryService;
 
     @MapperModePointerBinding(modes = UserMode.Factory2UserMode.class)
@@ -65,6 +65,11 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
     @Autowired
     @MapperModePointerBinding(modes = FactoryTriggerMode.Factory2FactoryTriggerMode.class)
     private FactoryTriggerRestDTOMapper factoryTriggerRestDTOMapper;
+
+    @Lazy
+    @Autowired
+    @MapperModePointerBinding(modes = FactoryUsagesMode.class)
+    private UsageRestDTOMapper usageRestDTOMapper;
 
     @Override
     public void map(TwinFactoryEntity src, FactoryDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -139,6 +144,10 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             dst.setTriggerIdList(src.getTwinFactoryTriggerKit().getIdSet());
             factoryTriggerRestDTOMapper.postpone(src.getTwinFactoryTriggerKit(), mapperContext.forkOnPoint(FactoryTriggerMode.Factory2FactoryTriggerMode.SHORT));
         }
+        if (showWithPermissionCheck(mapperContext, FactoryUsagesMode.HIDE, Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE)) {
+            factoryService.loadFactoryUsages(src);
+            dst.setUsages(usageRestDTOMapper.convertCollection(src.getUsages(), mapperContext.forkOnPoint(FactoryUsagesMode.SHORT)));
+        }
     }
 
     private static boolean showFactoryUsagesCount(MapperContext mapperContext) {
@@ -177,5 +186,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
         if (showPipelines || showBranches || showMultipliers || showConditionSets || showErasers || showTriggers) {
             factoryService.loadFactoryElements(srcCollection);
         }
+        if (showWithPermissionCheck(mapperContext, FactoryUsagesMode.HIDE, Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE))
+            factoryService.loadFactoryUsages(srcCollection);
     }
 }
