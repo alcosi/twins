@@ -612,8 +612,8 @@ public class MapperContext {
 
     private void debugLog(Object obj, String message) {
         if (obj instanceof EasyLoggable loggable)
-            log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + message);
+            log.debug("{}{}", loggable.easyLog(EasyLoggable.Level.NORMAL), message);
         else
-            log.debug("Object of class[" + obj.getClass().getSimpleName() + "]" + message);
+            log.debug("Object of class[{}]{}", obj.getClass().getSimpleName(), message);
     }
 }
