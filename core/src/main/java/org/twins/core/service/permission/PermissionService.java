@@ -460,6 +460,13 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 : systemPermissions.containsAll(permissions);
     }
 
+    public boolean currentUserHasPermission(boolean anyOf, Permissions... permissions) throws ServiceException {
+        Set<UUID> permissionIds = Arrays.stream(permissions)
+                .map(Permissions::getId)
+                .collect(Collectors.toSet());
+       return currentUserHasPermission(anyOf, permissionIds);
+    }
+
     public boolean currentUserHasPermission(boolean anyOf, Set<UUID> permissions) throws ServiceException {
         if (CollectionUtils.isEmpty(permissions))
             return false;

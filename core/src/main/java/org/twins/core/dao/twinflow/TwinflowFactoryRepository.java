@@ -15,8 +15,6 @@ public interface TwinflowFactoryRepository extends CrudRepository<TwinflowFactor
 
     List<TwinflowFactoryEntity> findByTwinflowId(UUID twinflowId);
     List<TwinflowFactoryEntity> findByTwinflowIdIn(Collection<UUID> twinflowId);
-
-    List<TwinflowFactoryEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
     boolean existsByTwinflowIdAndTwinFactoryLauncher(UUID twinflowId, FactoryLauncher launcher);
     boolean existsByTwinflowIdAndTwinFactoryLauncherAndIdNot(UUID twinflowId, FactoryLauncher launcher, UUID id);
 

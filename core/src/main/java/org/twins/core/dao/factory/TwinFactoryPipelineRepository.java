@@ -13,10 +13,6 @@ import java.util.UUID;
 public interface TwinFactoryPipelineRepository extends CrudRepository<TwinFactoryPipelineEntity, UUID>, JpaSpecificationExecutor<TwinFactoryPipelineEntity> {
     List<TwinFactoryPipelineEntity> findByTwinFactoryIdIn(Collection<UUID> twinFactoryIds);
 
-    List<TwinFactoryPipelineEntity> findByNextTwinFactoryIdIn(Collection<UUID> nextTwinFactoryIds);
-
-    List<TwinFactoryPipelineEntity> findByAfterCommitTwinFactoryIdIn(Collection<UUID> afterCommitTwinFactoryIds);
-
     List<TwinFactoryPipelineEntity> findByTwinFactoryIdAndActiveTrue(UUID twinFactoryId);
 
     @Query("SELECT p.nextTwinFactoryId, COUNT(p) FROM TwinFactoryPipelineEntity p WHERE p.nextTwinFactoryId IN :ids GROUP BY p.nextTwinFactoryId")

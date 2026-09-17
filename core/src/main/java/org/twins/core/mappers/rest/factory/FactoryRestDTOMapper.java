@@ -15,7 +15,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.usage.UsageRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.factory.FactoryService;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.Collection;
 
@@ -31,8 +31,6 @@ import java.util.Collection;
         FactoryCascadeMode.class,
         FactoryUsagesMode.class})
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
-
-    private final I18nService i18nService;
     private final FactoryService factoryService;
 
     @MapperModePointerBinding(modes = UserMode.Factory2UserMode.class)
@@ -146,7 +144,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             dst.setTriggerIdList(src.getTwinFactoryTriggerKit().getIdSet());
             factoryTriggerRestDTOMapper.postpone(src.getTwinFactoryTriggerKit(), mapperContext.forkOnPoint(FactoryTriggerMode.Factory2FactoryTriggerMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(FactoryUsagesMode.HIDE)) {
+        if (showWithPermissionCheck(mapperContext, FactoryUsagesMode.HIDE, Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE)) {
             factoryService.loadFactoryUsages(src);
             dst.setUsages(usageRestDTOMapper.convertCollection(src.getUsages(), mapperContext.forkOnPoint(FactoryUsagesMode.SHORT)));
         }
@@ -188,7 +186,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
         if (showPipelines || showBranches || showMultipliers || showConditionSets || showErasers || showTriggers) {
             factoryService.loadFactoryElements(srcCollection);
         }
-        if (mapperContext.hasModeButNot(FactoryUsagesMode.HIDE))
+        if (showWithPermissionCheck(mapperContext, FactoryUsagesMode.HIDE, Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE))
             factoryService.loadFactoryUsages(srcCollection);
     }
 }

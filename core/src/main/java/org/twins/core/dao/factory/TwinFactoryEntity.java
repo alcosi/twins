@@ -17,6 +17,7 @@ import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.usage.Usage;
+import org.twins.core.domain.usage.UsageHolder;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -28,7 +29,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory")
-public class TwinFactoryEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryEntity implements EasyLoggable, Identifiable, UsageHolder {
     @Id
     private UUID id;
 
