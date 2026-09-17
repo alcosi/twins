@@ -2,12 +2,14 @@ package org.twins.core.featurer.params;
 
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParamUUIDList;
+import org.twins.core.dao.link.LinkEntity;
 
 @FeaturerParamType(
         id = "UUID_LIST:TWINS:LINK_ID",
         description = "",
         regexp = FeaturerParamUUIDList.UUID_LIST_REGEXP,
-        example = FeaturerParamUUIDList.UUID_LIST_EXAMPLE)
+        example = FeaturerParamUUIDList.UUID_LIST_EXAMPLE,
+        targetEntity = LinkEntity.class)
 public class FeaturerParamUUIDListTwinsLinkId extends FeaturerParamUUIDList {
     public FeaturerParamUUIDListTwinsLinkId(String key) {
         super(key);

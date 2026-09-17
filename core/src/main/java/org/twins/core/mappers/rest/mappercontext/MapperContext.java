@@ -11,6 +11,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -27,6 +28,7 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -147,6 +149,15 @@ public class MapperContext {
     private Map<String, RelatedObject<HistoryTypeEntity>> relatedHistoryTypeMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<ActionRestrictionReasonEntity>> relatedActionRestrictionReasonMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinPointerEntity>> relatedTwinPointerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<DataListSubsetEntity>> relatedDataListSubsetMap = new LinkedHashMap<>();
+    //internal transport maps: never exposed in relatedObjects, drained by RelatedObjectsRestDTOConverter
+    @Getter
+    private Map<String, RelatedObject<FeaturerParams>> relatedFeaturerParamsMap = new LinkedHashMap<>();
+    @Getter
+    private Map<String, RelatedObject<EntityRef>> relatedEntityRefMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -243,7 +254,15 @@ public class MapperContext {
     public boolean addRelatedObject(Object relatedObject) {
         if (relatedObject == null)
             return true;
-        if (relatedObject instanceof UserEntity user)
+        if (relatedObject instanceof FeaturerParams featurerParams)
+            smartPut(relatedFeaturerParamsMap, featurerParams, featurerParams.cacheKey());
+        else if (relatedObject instanceof EntityRef entityRef)
+            smartPut(relatedEntityRefMap, entityRef, entityRef.cacheKey());
+        else if (relatedObject instanceof TwinPointerEntity twinPointer)
+            smartPut(relatedTwinPointerMap, twinPointer, twinPointer.getId());
+        else if (relatedObject instanceof DataListSubsetEntity dataListSubset)
+            smartPut(relatedDataListSubsetMap, dataListSubset, dataListSubset.getId());
+        else if (relatedObject instanceof UserEntity user)
             smartPut(relatedUserMap, user, user.getId());
         else if (relatedObject instanceof UserGroupEntity userGroup)
             smartPut(relatedUserGroupMap, userGroup, userGroup.getId());
@@ -578,6 +597,10 @@ public class MapperContext {
         dstMapperContext.relatedNotificationChannelEventMap = srcMapperContext.relatedNotificationChannelEventMap;
         dstMapperContext.relatedHistoryTypeMap = srcMapperContext.relatedHistoryTypeMap;
         dstMapperContext.relatedActionRestrictionReasonMap = srcMapperContext.relatedActionRestrictionReasonMap;
+        dstMapperContext.relatedTwinPointerMap = srcMapperContext.relatedTwinPointerMap;
+        dstMapperContext.relatedDataListSubsetMap = srcMapperContext.relatedDataListSubsetMap;
+        dstMapperContext.relatedFeaturerParamsMap = srcMapperContext.relatedFeaturerParamsMap;
+        dstMapperContext.relatedEntityRefMap = srcMapperContext.relatedEntityRefMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

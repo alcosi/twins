@@ -188,6 +188,15 @@ public class FeaturerService {
         return (T) featurer;
     }
 
+    /**
+     * In-memory param definitions of the featurer (synced from annotations at startup), mapped by param key.
+     * The runtime class of each FeaturerParam carries the @FeaturerParamType annotation with the param type id.
+     */
+    public Map<String, org.cambium.featurer.params.FeaturerParam<?>> getFeaturerParams(Integer featurerId) {
+        Map<String, org.cambium.featurer.params.FeaturerParam<?>> params = featurerParamsMap.get(featurerId);
+        return params != null ? params : Collections.emptyMap();
+    }
+
     @Cacheable("FeaturerEntityListCache")
     public List<FeaturerEntity> getFeaturerEntityList(Class<? extends Featurer> type) {
         FeaturerType featurerTypeAnnotation = type.getAnnotation(FeaturerType.class);

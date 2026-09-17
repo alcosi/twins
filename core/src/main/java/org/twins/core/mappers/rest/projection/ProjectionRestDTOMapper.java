@@ -8,7 +8,7 @@ import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.projection.ProjectionDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -35,7 +35,7 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
     private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.Projection2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @Override
     public void map(ProjectionEntity src, ProjectionDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -90,7 +90,7 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
         }
         if (mapperContext.hasModeButNot(FeaturerMode.Projection2FeaturerMode.HIDE)) {
             dst.setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId());
-            featurerRestDTOMapper.postpone(src.getFieldProjectorFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Projection2FeaturerMode.SHORT)));
+            featurerParametrizedRestDTOMapper.postpone(src.getFieldProjectorFeaturerId(), src.getFieldProjectorParams(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Projection2FeaturerMode.SHORT)));
         }
     }
 

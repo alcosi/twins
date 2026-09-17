@@ -10,6 +10,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -26,6 +27,7 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -41,6 +43,7 @@ import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.dto.rest.datalist.DataListSubsetDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.*;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
@@ -65,6 +68,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowFactoryDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
+import org.twins.core.dto.rest.twinpointer.TwinPointerDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
@@ -76,13 +80,16 @@ import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListSubsetRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.factory.*;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerTypeRestDTOMapper;
 import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.FeaturerParams;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.notification.*;
@@ -93,6 +100,7 @@ import org.twins.core.mappers.rest.projection.ProjectionTypeGroupRestDTOMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.scheduler.SchedulerRestDTOMapperV1;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
+import org.twins.core.mappers.rest.system.EntityRefRestDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
@@ -101,6 +109,7 @@ import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOMapperV1;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
+import org.twins.core.mappers.rest.twinpointer.TwinPointerRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
@@ -166,10 +175,17 @@ public class RelatedObjectsRestDTOConverter {
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
     private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
     private final ActionRestrictionReasonRestDTOMapper actionRestrictionReasonRestDTOMapper;
+    private final TwinPointerRestDTOMapper twinPointerRestDTOMapper;
+    private final DataListSubsetRestDTOMapper dataListSubsetRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
+    private final EntityRefRestDTOMapper entityRefRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
             return null;
+        //resolve featurer param entity refs postponed during the main conversion: loaded entities are postponed
+        //into their typed related maps and rendered on level 1
+        entityRefRestDTOMapper.resolve(mapperContext);
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
@@ -221,6 +237,8 @@ public class RelatedObjectsRestDTOConverter {
         Map<String, HistoryTypeDTOv1> historyTypeMap = new HashMap<>();
         Map<UUID, TwinValidatorSetDTOv1> twinValidatorSetMap = new HashMap<>();
         Map<UUID, ActionRestrictionReasonDTOv1> actionRestrictionReasonMap = new HashMap<>();
+        Map<UUID, TwinPointerDTOv1> twinPointerMap = new HashMap<>();
+        Map<UUID, DataListSubsetDTOv1> dataListSubsetMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -323,9 +341,17 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel2, historyTypeMap, HistoryTypeEntity::getId);
         if (!mapperContext.getRelatedActionRestrictionReasonMap().isEmpty())
             convertAndPut(mapperContext.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel2, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
+        if (!mapperContext.getRelatedTwinPointerMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedTwinPointerMap(), twinPointerRestDTOMapper, mapperContextLevel2, twinPointerMap, TwinPointerEntity::getId);
+        if (!mapperContext.getRelatedDataListSubsetMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedDataListSubsetMap(), dataListSubsetRestDTOMapper, mapperContextLevel2, dataListSubsetMap, DataListSubsetEntity::getId);
+        if (!mapperContext.getRelatedFeaturerParamsMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedFeaturerParamsMap(), featurerParametrizedRestDTOMapper, mapperContextLevel2, featurerMap, FeaturerParams::getFeaturerId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
+        //resolve entity refs postponed during level 1 conversions (e.g. featurer params pairs): rendered on level 2
+        entityRefRestDTOMapper.resolve(mapperContextLevel2);
         if (!mapperContextLevel2.getRelatedTwinClassMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinClassMap(), twinClassRestDTOMapper, mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinMap().isEmpty())
@@ -426,10 +452,19 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedActionRestrictionReasonMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
+        if (!mapperContextLevel2.getRelatedTwinPointerMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedTwinPointerMap(), twinPointerRestDTOMapper, mapperContextLevel3, twinPointerMap, TwinPointerEntity::getId);
+        if (!mapperContextLevel2.getRelatedDataListSubsetMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedDataListSubsetMap(), dataListSubsetRestDTOMapper, mapperContextLevel3, dataListSubsetMap, DataListSubsetEntity::getId);
+        if (!mapperContextLevel2.getRelatedFeaturerParamsMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedFeaturerParamsMap(), featurerParametrizedRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerParams::getFeaturerId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
         mapperContextLevel3.setLazyRelations(true); // on such depth we will not collect related objects anymore
+        //resolve entity refs postponed during level 2 conversions: loaded and rendered on this level, the cascade
+        //stops here because postpone is a no-op with lazyRelations=true
+        entityRefRestDTOMapper.resolve(mapperContextLevel3);
         if (!mapperContextLevel3.getRelatedTwinClassMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinClassMap(), twinClassRestDTOMapper, mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinMap().isEmpty())
@@ -530,6 +565,12 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedActionRestrictionReasonMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
+        if (!mapperContextLevel3.getRelatedTwinPointerMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedTwinPointerMap(), twinPointerRestDTOMapper, mapperContextLevel3, twinPointerMap, TwinPointerEntity::getId);
+        if (!mapperContextLevel3.getRelatedDataListSubsetMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedDataListSubsetMap(), dataListSubsetRestDTOMapper, mapperContextLevel3, dataListSubsetMap, DataListSubsetEntity::getId);
+        if (!mapperContextLevel3.getRelatedFeaturerParamsMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedFeaturerParamsMap(), featurerParametrizedRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerParams::getFeaturerId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -582,11 +623,13 @@ public class RelatedObjectsRestDTOConverter {
                 .setHistoryTypeMap(historyTypeMap.isEmpty() ? null : historyTypeMap)
                 .setTwinValidatorSetMap(twinValidatorSetMap.isEmpty() ? null : twinValidatorSetMap)
                 .setActionRestrictionReasonMap(actionRestrictionReasonMap.isEmpty() ? null : actionRestrictionReasonMap)
+                .setTwinPointerMap(twinPointerMap.isEmpty() ? null : twinPointerMap)
+                .setDataListSubsetMap(dataListSubsetMap.isEmpty() ? null : dataListSubsetMap)
         ;
         return ret;
     }
 
-    public <E, D, K> void convertAndPut(Map<K, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, ? extends D> mapper, MapperContext mapperContext, Map<K, D> map, Function<? super E, ? extends K> functionGetId) throws Exception {
+    public <E, D, K, KD> void convertAndPut(Map<K, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, ? extends D> mapper, MapperContext mapperContext, Map<KD, D> map, Function<? super E, ? extends KD> functionGetId) throws Exception {
         for (RelatedObject<E> relatedObject : relatedObjects.values())
             map.put(functionGetId.apply(relatedObject.getObject()), mapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
     }
