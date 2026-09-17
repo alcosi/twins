@@ -1,8 +1,6 @@
 package org.twins.core.unit.mappers.rest.featurer;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.DuplicateKeyMode;
-import org.cambium.common.kit.Kit;
 import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,87 +12,76 @@ import org.twins.core.mappers.rest.mappercontext.EntityRef;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.mappers.rest.related.RestDTOMapperRegistry;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinPointerMode;
+import org.twins.core.mappers.rest.related.EntityRestMapperRegistry;
 import org.twins.core.mappers.rest.system.EntityRefRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.attachment.AttachmentRestrictionService;
-import org.twins.core.service.datalist.DataListOptionService;
-import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.datalist.DataListSubsetService;
-import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.link.LinkService;
-import org.twins.core.service.permission.PermissionSchemaService;
-import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.projection.ProjectionTypeGroupService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFreezeService;
-import org.twins.core.service.twinclass.TwinClassSchemaService;
-import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.twinclassfield.TwinClassFieldService;
-import org.twins.core.service.twinflow.TwinflowSchemaService;
-import org.twins.core.service.twinpointer.TwinPointerService;
-import org.twins.core.service.twinstatus.TwinStatusService;
-import org.twins.core.service.user.UserService;
-import org.twins.core.service.usergroup.UserGroupService;
+import org.twins.core.service.EntityServiceRegistry;
 
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
 
 /**
- * EntityRefRestDTOMapper.resolve: drains postponed EntityRefs grouped by entity class,
- * one findEntitiesSafe per class, and postpones loaded entities into their typed related
- * maps at (at least) SHORT mode. Fail fast: a missing/deleted reference propagates ServiceException.
+ * EntityRefRestDTOMapper: delegates the pattern load of lazy EntityRefs to EntityServiceRegistry
+ * (bulk loading itself is covered by EntityServiceRegistryTest) and postpones the loaded entities
+ * into their typed related maps at (at least) the SHORT mode from EntityRestMapperRegistry;
+ * single-ref convert produces the entity DTO via the registry mapper.
+ * Fail fast: load exceptions propagate.
  */
 public class EntityRefRestDTOMapperTest {
 
-    private final TwinClassService twinClassService = mock(TwinClassService.class);
-    private final TwinClassFieldService twinClassFieldService = mock(TwinClassFieldService.class);
-    private final TwinClassSchemaService twinClassSchemaService = mock(TwinClassSchemaService.class);
-    private final TwinflowSchemaService twinflowSchemaService = mock(TwinflowSchemaService.class);
-    private final TwinService twinService = mock(TwinService.class);
-    private final TwinStatusService twinStatusService = mock(TwinStatusService.class);
-    private final LinkService linkService = mock(LinkService.class);
-    private final DataListService dataListService = mock(DataListService.class);
-    private final DataListOptionService dataListOptionService = mock(DataListOptionService.class);
-    private final DataListSubsetService dataListSubsetService = mock(DataListSubsetService.class);
-    private final TwinPointerService twinPointerService = mock(TwinPointerService.class);
-    private final PermissionService permissionService = mock(PermissionService.class);
-    private final PermissionSchemaService permissionSchemaService = mock(PermissionSchemaService.class);
-    private final I18nService i18nService = mock(I18nService.class);
-    private final AttachmentRestrictionService attachmentRestrictionService = mock(AttachmentRestrictionService.class);
-    private final UserGroupService userGroupService = mock(UserGroupService.class);
-    private final UserService userService = mock(UserService.class);
-    private final ProjectionTypeGroupService projectionTypeGroupService = mock(ProjectionTypeGroupService.class);
-    private final TwinClassFreezeService twinClassFreezeService = mock(TwinClassFreezeService.class);
+    private final EntityServiceRegistry entityServiceRegistry = mock(EntityServiceRegistry.class);
     private final TwinClassRestDTOMapper twinClassRestDTOMapper = mock(TwinClassRestDTOMapper.class);
-    private final RestDTOMapperRegistry restDTOMapperRegistry = mock(RestDTOMapperRegistry.class);
+    private final EntityRestMapperRegistry entityRestMapperRegistry = mock(EntityRestMapperRegistry.class);
 
-    private final EntityRefRestDTOMapper mapper = new EntityRefRestDTOMapper(
-            twinClassService, twinClassFieldService, twinClassSchemaService, twinflowSchemaService,
-            twinService, twinStatusService, linkService, dataListService, dataListOptionService,
-            dataListSubsetService, twinPointerService, permissionService, permissionSchemaService,
-            i18nService, attachmentRestrictionService, userGroupService, userService,
-            projectionTypeGroupService, twinClassFreezeService);
+    private final EntityRefRestDTOMapper mapper = new EntityRefRestDTOMapper(entityServiceRegistry);
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.invokeMethod(mapper, "initRegistry");
-        ReflectionTestUtils.setField(mapper, "restDTOMapperRegistry", restDTOMapperRegistry);
+        ReflectionTestUtils.setField(mapper, "entityRestMapperRegistry", entityRestMapperRegistry);
+        doReturn(TwinClassMode.SHORT).when(entityRestMapperRegistry).getShortMode(TwinClassEntity.class);
+        doReturn(TwinPointerMode.SHORT).when(entityRestMapperRegistry).getShortMode(TwinPointerEntity.class);
+    }
+
+    /**
+     * Simulates the registry load: fills refs from the given id -> entity map (both load overloads).
+     */
+    private void stubLoad(Map<UUID, Object> entitiesById) throws ServiceException {
+        doAnswer(invocation -> {
+            fill(invocation.getArgument(0), entitiesById);
+            return null;
+        }).when(entityServiceRegistry).load(anyCollection());
+        doAnswer(invocation -> {
+            fill(List.of((EntityRef) invocation.getArgument(0)), entitiesById);
+            return null;
+        }).when(entityServiceRegistry).load(any(EntityRef.class));
+    }
+
+    private static void fill(Collection<EntityRef> refs, Map<UUID, Object> entitiesById) {
+        for (EntityRef ref : refs) {
+            Object entity = entitiesById.get(ref.getId());
+            if (entity != null)
+                ref.setEntity(entity);
+        }
     }
 
     @Test
-    public void refsAreBulkLoadedPerClassAndPostponedAtShortMode() throws Exception {
+    public void resolvePostponesLoadedEntitiesAtShortMode() throws Exception {
         UUID twinClassId1 = UUID.randomUUID();
         UUID twinClassId2 = UUID.randomUUID();
         UUID twinPointerId = UUID.randomUUID();
         TwinClassEntity twinClass1 = new TwinClassEntity().setId(twinClassId1);
         TwinClassEntity twinClass2 = new TwinClassEntity().setId(twinClassId2);
         TwinPointerEntity twinPointer = new TwinPointerEntity().setId(twinPointerId);
-        when(twinClassService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinClassEntity::getId, twinClass1, twinClass2));
-        when(twinPointerService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinPointerEntity::getId, twinPointer));
+        Map<UUID, Object> entitiesById = Map.of(
+                twinClassId1, twinClass1,
+                twinClassId2, twinClass2,
+                twinPointerId, twinPointer);
+        stubLoad(entitiesById);
 
         MapperContext mapperContext = new MapperContext().setLazyRelations(false);
         mapperContext.addRelatedObject(new EntityRef(TwinClassEntity.class, twinClassId1));
@@ -103,8 +90,7 @@ public class EntityRefRestDTOMapperTest {
 
         mapper.resolve(mapperContext);
 
-        verify(twinClassService, times(1)).findEntitiesSafe(anySet()); // one bulk query per class
-        verify(twinPointerService, times(1)).findEntitiesSafe(anySet());
+        verify(entityServiceRegistry, times(1)).load(anyCollection()); // one bulk load for all refs
         assertEquals(2, mapperContext.getRelatedTwinClassMap().size());
         assertEquals(1, mapperContext.getRelatedTwinPointerMap().size());
         RelatedObject<TwinClassEntity> relatedTwinClass = mapperContext.getRelatedTwinClassMap().get(twinClassId1);
@@ -116,7 +102,8 @@ public class EntityRefRestDTOMapperTest {
     @Test
     public void clientRequestedDetailedModeIsNotDowngradedToShort() throws Exception {
         UUID twinClassId = UUID.randomUUID();
-        when(twinClassService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinClassEntity::getId, new TwinClassEntity().setId(twinClassId)));
+        TwinClassEntity twinClass = new TwinClassEntity().setId(twinClassId);
+        stubLoad(Map.of(twinClassId, twinClass));
 
         MapperContext mapperContext = new MapperContext()
                 .setLazyRelations(false)
@@ -131,7 +118,8 @@ public class EntityRefRestDTOMapperTest {
     @Test
     public void sameRefPostponedTwiceIsLoadedOnce() throws Exception {
         UUID twinClassId = UUID.randomUUID();
-        when(twinClassService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinClassEntity::getId, new TwinClassEntity().setId(twinClassId)));
+        TwinClassEntity twinClass = new TwinClassEntity().setId(twinClassId);
+        stubLoad(Map.of(twinClassId, twinClass));
 
         MapperContext mapperContext = new MapperContext().setLazyRelations(false);
         mapperContext.addRelatedObject(new EntityRef(TwinClassEntity.class, twinClassId));
@@ -139,13 +127,13 @@ public class EntityRefRestDTOMapperTest {
 
         mapper.resolve(mapperContext);
 
-        verify(twinClassService, times(1)).findEntitiesSafe(anySet());
-        assertEquals(1, mapperContext.getRelatedTwinClassMap().size());
+        verify(entityServiceRegistry, times(1)).load(anyCollection());
+        assertEquals(1, mapperContext.getRelatedTwinClassMap().size()); // smartPut dedup
     }
 
     @Test
-    public void missingEntityFailsFast() throws Exception {
-        when(twinClassService.findEntitiesSafe(anySet())).thenThrow(new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION));
+    public void loadFailureFailsFast() throws Exception {
+        doThrow(new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION)).when(entityServiceRegistry).load(anyCollection());
 
         MapperContext mapperContext = new MapperContext().setLazyRelations(false);
         mapperContext.addRelatedObject(new EntityRef(TwinClassEntity.class, UUID.randomUUID()));
@@ -157,37 +145,20 @@ public class EntityRefRestDTOMapperTest {
     public void emptyContextIsANoOp() throws Exception {
         MapperContext mapperContext = new MapperContext().setLazyRelations(false);
         mapper.resolve(mapperContext);
-        verifyNoInteractions(twinClassService, twinPointerService, dataListSubsetService);
+        verifyNoInteractions(entityServiceRegistry, entityRestMapperRegistry);
     }
 
     @Test
-    public void beforeCollectionConversionLoadsEntitiesIntoRefs() throws Exception {
-        UUID twinClassId1 = UUID.randomUUID();
-        UUID twinClassId2 = UUID.randomUUID();
-        TwinClassEntity twinClass1 = new TwinClassEntity().setId(twinClassId1);
-        TwinClassEntity twinClass2 = new TwinClassEntity().setId(twinClassId2);
-        when(twinClassService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinClassEntity::getId, twinClass1, twinClass2));
-
-        EntityRef ref1 = new EntityRef(TwinClassEntity.class, twinClassId1);
-        EntityRef ref2 = new EntityRef(TwinClassEntity.class, twinClassId2);
-        mapper.convertCollection(java.util.List.of(ref1, ref2), new MapperContext());
-
-        verify(twinClassService, times(1)).findEntitiesSafe(anySet()); // one bulk query per class
-        assertEquals(twinClass1, ref1.getEntity()); // pattern load: loaded entities distributed via setters
-        assertEquals(twinClass2, ref2.getEntity());
-    }
-
-    @Test
-    public void alreadyLoadedRefIsNotReQueried() throws Exception {
+    public void beforeCollectionConversionDelegatesToRegistryLoad() throws Exception {
         UUID twinClassId = UUID.randomUUID();
-        TwinClassEntity alreadyLoaded = new TwinClassEntity().setId(twinClassId);
+        TwinClassEntity twinClass = new TwinClassEntity().setId(twinClassId);
+        stubLoad(new HashMap<>(Map.of(twinClassId, twinClass)));
+
         EntityRef ref = new EntityRef(TwinClassEntity.class, twinClassId);
-        ref.setEntity(alreadyLoaded); // needLoad filter must skip it
+        mapper.convertCollection(List.of(ref), new MapperContext());
 
-        mapper.convertCollection(java.util.List.of(ref), new MapperContext());
-
-        verifyNoInteractions(twinClassService);
-        assertEquals(alreadyLoaded, ref.getEntity());
+        verify(entityServiceRegistry, times(1)).load(anyCollection());
+        assertEquals(twinClass, ref.getEntity()); // loaded by the registry, distributed via setters
     }
 
     @Test
@@ -195,22 +166,14 @@ public class EntityRefRestDTOMapperTest {
         UUID twinClassId = UUID.randomUUID();
         TwinClassEntity twinClass = new TwinClassEntity().setId(twinClassId);
         TwinClassDTOv1 dto = new TwinClassDTOv1();
-        when(twinClassService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinClassEntity::getId, twinClass));
-        doReturn(twinClassRestDTOMapper).when(restDTOMapperRegistry).getMapper(TwinClassEntity.class);
+        stubLoad(Map.of(twinClassId, twinClass));
+        doReturn(twinClassRestDTOMapper).when(entityRestMapperRegistry).getMapper(TwinClassEntity.class);
         when(twinClassRestDTOMapper.convert(any(TwinClassEntity.class), any(MapperContext.class))).thenReturn(dto);
 
         EntityRef ref = new EntityRef(TwinClassEntity.class, twinClassId);
         Object result = mapper.convert(ref, new MapperContext());
 
-        assertEquals(dto, result); // DTO of the concrete entity, resolved via RestDTOMapperRegistry
+        assertEquals(dto, result); // DTO of the concrete entity, resolved via EntityRestMapperRegistry
         assertEquals(twinClass, ref.getEntity());
-    }
-
-    @SafeVarargs
-    private static <T> Kit<T, UUID> kitOf(java.util.function.Function<T, UUID> getId, T... entities) {
-        Kit<T, UUID> kit = new Kit<>(getId, DuplicateKeyMode.IGNORE);
-        for (T entity : entities)
-            kit.add(entity);
-        return kit;
     }
 }

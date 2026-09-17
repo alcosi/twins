@@ -88,7 +88,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class RelatedObjectsRestDTOConverter {
 
-    private final RestDTOMapperRegistry restDTOMapperRegistry;
+    private final EntityRestMapperRegistry entityRestMapperRegistry;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -149,338 +149,338 @@ public class RelatedObjectsRestDTOConverter {
 
         //resolve featurer param entity refs postponed during the main conversion: loaded entities are postponed
         //into their typed related maps and rendered on level 1
-        restDTOMapperRegistry.getEntityRefRestDTOMapper().resolve(mapperContext);
+        entityRestMapperRegistry.getEntityRefRestDTOMapper().resolve(mapperContext);
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassMap(), restDTOMapperRegistry.getTwinClassRestDTOMapper(), mapperContextLevel2, twinClassMap, TwinClassEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinClassMap(), entityRestMapperRegistry.getTwinClassRestDTOMapper(), mapperContextLevel2, twinClassMap, TwinClassEntity::getId);
         if (!mapperContext.getRelatedTwinMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinMap(), restDTOMapperRegistry.getTwinRestDTOMapperV2(), mapperContextLevel2, twinMap, TwinEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinMap(), entityRestMapperRegistry.getTwinRestDTOMapperV2(), mapperContextLevel2, twinMap, TwinEntity::getId);
         if (!mapperContext.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinStatusMap(), restDTOMapperRegistry.getTwinStatusRestDTOMapper(), mapperContextLevel2, statusMap, TwinStatusEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinStatusMap(), entityRestMapperRegistry.getTwinStatusRestDTOMapper(), mapperContextLevel2, statusMap, TwinStatusEntity::getId);
         if (!mapperContext.getRelatedLinkMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedLinkMap(), restDTOMapperRegistry.getLinkRestDTOMapper(), mapperContextLevel2, linkMap, LinkEntity::getId);
+            convertAndPut(mapperContext.getRelatedLinkMap(), entityRestMapperRegistry.getLinkRestDTOMapper(), mapperContextLevel2, linkMap, LinkEntity::getId);
         if (!mapperContext.getRelatedTwinTriggerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinTriggerMap(), restDTOMapperRegistry.getTwinTriggerRestDTOMapper(), mapperContextLevel2, triggerMap, TwinTriggerEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinTriggerMap(), entityRestMapperRegistry.getTwinTriggerRestDTOMapper(), mapperContextLevel2, triggerMap, TwinTriggerEntity::getId);
         if (!mapperContext.getRelatedUserMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserMap(), restDTOMapperRegistry.getUserRestDTOMapper(), mapperContextLevel2, userMap, UserEntity::getId);
+            convertAndPut(mapperContext.getRelatedUserMap(), entityRestMapperRegistry.getUserRestDTOMapper(), mapperContextLevel2, userMap, UserEntity::getId);
         if (!mapperContext.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserGroupMap(), restDTOMapperRegistry.getUserGroupRestDTOMapper(), mapperContextLevel2, userGroupMap, UserGroupEntity::getId);
+            convertAndPut(mapperContext.getRelatedUserGroupMap(), entityRestMapperRegistry.getUserGroupRestDTOMapper(), mapperContextLevel2, userGroupMap, UserGroupEntity::getId);
         if (!mapperContext.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowTransitionMap(), restDTOMapperRegistry.getTransitionBaseV1RestDTOMapper(), mapperContextLevel2, twinflowTransitionMap, TwinflowTransitionEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowTransitionMap(), entityRestMapperRegistry.getTransitionBaseV1RestDTOMapper(), mapperContextLevel2, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContext.getRelatedDataListMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedDataListMap(), restDTOMapperRegistry.getDataListRestDTOMapper(), mapperContextLevel2, dataListMap, DataListEntity::getId);
+            convertAndPut(mapperContext.getRelatedDataListMap(), entityRestMapperRegistry.getDataListRestDTOMapper(), mapperContextLevel2, dataListMap, DataListEntity::getId);
         if (!mapperContext.getRelatedDataListOptionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedDataListOptionMap(), restDTOMapperRegistry.getDataListOptionRestDTOMapper(), mapperContextLevel2, dataListOptionMap, DataListOptionEntity::getId);
+            convertAndPut(mapperContext.getRelatedDataListOptionMap(), entityRestMapperRegistry.getDataListOptionRestDTOMapper(), mapperContextLevel2, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContext.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), restDTOMapperRegistry.getSpaceRoleDTOMapper(), mapperContextLevel2, spaceRoleMap, SpaceRoleEntity::getId);
+            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), entityRestMapperRegistry.getSpaceRoleDTOMapper(), mapperContextLevel2, spaceRoleMap, SpaceRoleEntity::getId);
         if (!mapperContext.getRelatedBusinessAccountMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedBusinessAccountMap(), restDTOMapperRegistry.getBusinessAccountDTOMapper(), mapperContextLevel2, businessAccountMap, BusinessAccountEntity::getId);
+            convertAndPut(mapperContext.getRelatedBusinessAccountMap(), entityRestMapperRegistry.getBusinessAccountDTOMapper(), mapperContextLevel2, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContext.getRelatedPermissionGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionGroupMap(), restDTOMapperRegistry.getPermissionGroupRestDTOMapper(), mapperContextLevel2, permissionGroupMap, PermissionGroupEntity::getId);
+            convertAndPut(mapperContext.getRelatedPermissionGroupMap(), entityRestMapperRegistry.getPermissionGroupRestDTOMapper(), mapperContextLevel2, permissionGroupMap, PermissionGroupEntity::getId);
         if (!mapperContext.getRelatedPermissionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionMap(), restDTOMapperRegistry.getPermissionRestDTOMapper(), mapperContextLevel2, permissionMap, PermissionEntity::getId);
+            convertAndPut(mapperContext.getRelatedPermissionMap(), entityRestMapperRegistry.getPermissionRestDTOMapper(), mapperContextLevel2, permissionMap, PermissionEntity::getId);
         if (!mapperContext.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), restDTOMapperRegistry.getPermissionSchemaRestDTOMapper(), mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), entityRestMapperRegistry.getPermissionSchemaRestDTOMapper(), mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContext.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowMap(), restDTOMapperRegistry.getTwinflowBaseV1RestDTOMapper(), mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowMap(), entityRestMapperRegistry.getTwinflowBaseV1RestDTOMapper(), mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
         if (!mapperContext.getRelatedTwinflowFactoryMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowFactoryMap(), restDTOMapperRegistry.getTwinflowFactoryRestDTOMapperV1(), mapperContextLevel2, twinflowFactoryMap, TwinflowFactoryEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowFactoryMap(), entityRestMapperRegistry.getTwinflowFactoryRestDTOMapperV1(), mapperContextLevel2, twinflowFactoryMap, TwinflowFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryMap(), restDTOMapperRegistry.getFactoryRestDTOMapper(), mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryMap(), entityRestMapperRegistry.getFactoryRestDTOMapper(), mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryPipelineMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryPipelineMap(), restDTOMapperRegistry.getFactoryPipelineRestDTOMapper(), mapperContextLevel2, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryPipelineMap(), entityRestMapperRegistry.getFactoryPipelineRestDTOMapper(), mapperContextLevel2, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContext.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryConditionSetMap(), restDTOMapperRegistry.getFactoryConditionSetRestDTOMapper(), mapperContextLevel2, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryConditionSetMap(), entityRestMapperRegistry.getFactoryConditionSetRestDTOMapper(), mapperContextLevel2, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
         if (!mapperContext.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryMultiplierMap(), restDTOMapperRegistry.getFactoryMultiplierRestDTOMapper(), mapperContextLevel2, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryMultiplierMap(), entityRestMapperRegistry.getFactoryMultiplierRestDTOMapper(), mapperContextLevel2, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
         if (!mapperContext.getRelatedFactoryBranchMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryBranchMap(), restDTOMapperRegistry.getFactoryBranchRestDTOMapper(), mapperContextLevel2, factoryBranchMap, TwinFactoryBranchEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryBranchMap(), entityRestMapperRegistry.getFactoryBranchRestDTOMapper(), mapperContextLevel2, factoryBranchMap, TwinFactoryBranchEntity::getId);
         if (!mapperContext.getRelatedFactoryPipelineStepMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryPipelineStepMap(), restDTOMapperRegistry.getFactoryPipelineStepRestDTOMapper(), mapperContextLevel2, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryPipelineStepMap(), entityRestMapperRegistry.getFactoryPipelineStepRestDTOMapper(), mapperContextLevel2, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
         if (!mapperContext.getRelatedFactoryMultiplierFilterMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryMultiplierFilterMap(), restDTOMapperRegistry.getFactoryMultiplierFilterRestDTOMapper(), mapperContextLevel2, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryMultiplierFilterMap(), entityRestMapperRegistry.getFactoryMultiplierFilterRestDTOMapper(), mapperContextLevel2, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
         if (!mapperContext.getRelatedFactoryEraserMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryEraserMap(), restDTOMapperRegistry.getFactoryEraserRestDTOMapper(), mapperContextLevel2, factoryEraserMap, TwinFactoryEraserEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryEraserMap(), entityRestMapperRegistry.getFactoryEraserRestDTOMapper(), mapperContextLevel2, factoryEraserMap, TwinFactoryEraserEntity::getId);
         if (!mapperContext.getRelatedFactoryTriggerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryTriggerMap(), restDTOMapperRegistry.getFactoryTriggerRestDTOMapper(), mapperContextLevel2, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryTriggerMap(), entityRestMapperRegistry.getFactoryTriggerRestDTOMapper(), mapperContextLevel2, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
         if (!mapperContext.getRelatedFactoryConditionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryConditionMap(), restDTOMapperRegistry.getFactoryConditionRestDTOMapper(), mapperContextLevel2, factoryConditionMap, TwinFactoryConditionEntity::getId);
+            convertAndPut(mapperContext.getRelatedFactoryConditionMap(), entityRestMapperRegistry.getFactoryConditionRestDTOMapper(), mapperContextLevel2, factoryConditionMap, TwinFactoryConditionEntity::getId);
         if (!mapperContext.getRelatedFaceMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFaceMap(), restDTOMapperRegistry.getFaceRestDTOMapper(), mapperContextLevel2, faceMap, FaceEntity::getId);
+            convertAndPut(mapperContext.getRelatedFaceMap(), entityRestMapperRegistry.getFaceRestDTOMapper(), mapperContextLevel2, faceMap, FaceEntity::getId);
         if (!mapperContext.getRelatedCommentMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedCommentMap(), restDTOMapperRegistry.getCommentRestDTOMapper(), mapperContextLevel2, commentMap, TwinCommentEntity::getId);
+            convertAndPut(mapperContext.getRelatedCommentMap(), entityRestMapperRegistry.getCommentRestDTOMapper(), mapperContextLevel2, commentMap, TwinCommentEntity::getId);
         if (!mapperContext.getRelatedI18nMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedI18nMap(), restDTOMapperRegistry.getI18nRestDTOMapper(), mapperContextLevel2, i18nMap, I18nEntity::getId);
+            convertAndPut(mapperContext.getRelatedI18nMap(), entityRestMapperRegistry.getI18nRestDTOMapper(), mapperContextLevel2, i18nMap, I18nEntity::getId);
         if (!mapperContext.getRelatedFeaturerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFeaturerMap(), restDTOMapperRegistry.getFeaturerRestDTOMapper(), mapperContextLevel2, featurerMap, FeaturerEntity::getId);
+            convertAndPut(mapperContext.getRelatedFeaturerMap(), entityRestMapperRegistry.getFeaturerRestDTOMapper(), mapperContextLevel2, featurerMap, FeaturerEntity::getId);
         if (!mapperContext.getRelatedFeaturerTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFeaturerTypeMap(), restDTOMapperRegistry.getFeaturerTypeRestDTOMapper(), mapperContextLevel2, featurerTypeMap, FeaturerTypeEntity::getId);
+            convertAndPut(mapperContext.getRelatedFeaturerTypeMap(), entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), mapperContextLevel2, featurerTypeMap, FeaturerTypeEntity::getId);
         if (!mapperContext.getRelatedTwinClassFieldMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassFieldMap(), restDTOMapperRegistry.getTwinClassFieldRestDTOMapper(), mapperContextLevel2, twinClassFiledMap, TwinClassFieldEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinClassFieldMap(), entityRestMapperRegistry.getTwinClassFieldRestDTOMapper(), mapperContextLevel2, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContext.getRelatedTwinClassSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassSchemaMap(), restDTOMapperRegistry.getTwinClassSchemaDTOMapper(), mapperContextLevel2, twinClassSchemaMap, TwinClassSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinClassSchemaMap(), entityRestMapperRegistry.getTwinClassSchemaDTOMapper(), mapperContextLevel2, twinClassSchemaMap, TwinClassSchemaEntity::getId);
         if (!mapperContext.getRelatedTwinflowSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), restDTOMapperRegistry.getTwinflowSchemaRestDTOMapper(), mapperContextLevel2, twinflowSchemaMap, TwinflowSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), entityRestMapperRegistry.getTwinflowSchemaRestDTOMapper(), mapperContextLevel2, twinflowSchemaMap, TwinflowSchemaEntity::getId);
         if (!mapperContext.getRelatedTierMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTierMap(), restDTOMapperRegistry.getTierRestDTOMapper(), mapperContextLevel2, tierMap, TierEntity::getId);
+            convertAndPut(mapperContext.getRelatedTierMap(), entityRestMapperRegistry.getTierRestDTOMapper(), mapperContextLevel2, tierMap, TierEntity::getId);
         if (!mapperContext.getRelatedAttachmentRestrictionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedAttachmentRestrictionMap(), restDTOMapperRegistry.getAttachmentRestrictionRestDTOMapper(), mapperContextLevel2, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
+            convertAndPut(mapperContext.getRelatedAttachmentRestrictionMap(), entityRestMapperRegistry.getAttachmentRestrictionRestDTOMapper(), mapperContextLevel2, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
         if (!mapperContext.getRelatedTwinClassFreezeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassFreezeMap(), restDTOMapperRegistry.getTwinClassFreezeDTOMapper(), mapperContextLevel2, twinClassFreezeMap, TwinClassFreezeEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinClassFreezeMap(), entityRestMapperRegistry.getTwinClassFreezeDTOMapper(), mapperContextLevel2, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContext.getRelatedClassFieldRuleMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedClassFieldRuleMap(), restDTOMapperRegistry.getTwinClassFieldRuleRestDTOMapper(), mapperContextLevel2, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+            convertAndPut(mapperContext.getRelatedClassFieldRuleMap(), entityRestMapperRegistry.getTwinClassFieldRuleRestDTOMapper(), mapperContextLevel2, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
         if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), restDTOMapperRegistry.getProjectionTypeGroupRestDTOMapper(), mapperContextLevel2, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), entityRestMapperRegistry.getProjectionTypeGroupRestDTOMapper(), mapperContextLevel2, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
         if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), restDTOMapperRegistry.getProjectionTypeRestDTOMapper(), mapperContextLevel2, projectionTypeMap, ProjectionTypeEntity::getId);
+            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), entityRestMapperRegistry.getProjectionTypeRestDTOMapper(), mapperContextLevel2, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContext.getRelatedSchedulerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedSchedulerMap(), restDTOMapperRegistry.getSchedulerRestDTOMapperV1(), mapperContextLevel2, schedulerMap, SchedulerEntity::getId);
+            convertAndPut(mapperContext.getRelatedSchedulerMap(), entityRestMapperRegistry.getSchedulerRestDTOMapperV1(), mapperContextLevel2, schedulerMap, SchedulerEntity::getId);
         if (!mapperContext.getRelatedHistoryNotificationRecipientMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedHistoryNotificationRecipientMap(), restDTOMapperRegistry.getHistoryNotificationRecipientDTOMapper(), mapperContextLevel2, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
+            convertAndPut(mapperContext.getRelatedHistoryNotificationRecipientMap(), entityRestMapperRegistry.getHistoryNotificationRecipientDTOMapper(), mapperContextLevel2, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
         if (!mapperContext.getRelatedNotificationSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationSchemaMap(), restDTOMapperRegistry.getNotificationSchemaRestDTOMapper(), mapperContextLevel2, notificationSchemaMap, NotificationSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedNotificationSchemaMap(), entityRestMapperRegistry.getNotificationSchemaRestDTOMapper(), mapperContextLevel2, notificationSchemaMap, NotificationSchemaEntity::getId);
         if (!mapperContext.getRelatedNotificationChannelMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationChannelMap(), restDTOMapperRegistry.getNotificationChannelRestDTOMapper(), mapperContextLevel2, notificationChannelMap, NotificationChannelEntity::getId);
+            convertAndPut(mapperContext.getRelatedNotificationChannelMap(), entityRestMapperRegistry.getNotificationChannelRestDTOMapper(), mapperContextLevel2, notificationChannelMap, NotificationChannelEntity::getId);
         if (!mapperContext.getRelatedNotificationContextMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationContextMap(), restDTOMapperRegistry.getNotificationContextRestDTOMapper(), mapperContextLevel2, notificationContextMap, NotificationContextEntity::getId);
+            convertAndPut(mapperContext.getRelatedNotificationContextMap(), entityRestMapperRegistry.getNotificationContextRestDTOMapper(), mapperContextLevel2, notificationContextMap, NotificationContextEntity::getId);
         if (!mapperContext.getRelatedNotificationChannelEventMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationChannelEventMap(), restDTOMapperRegistry.getNotificationChannelEventRestDTOMapper(), mapperContextLevel2, notificationChannelEventMap, NotificationChannelEventEntity::getId);
+            convertAndPut(mapperContext.getRelatedNotificationChannelEventMap(), entityRestMapperRegistry.getNotificationChannelEventRestDTOMapper(), mapperContextLevel2, notificationChannelEventMap, NotificationChannelEventEntity::getId);
         if (!mapperContext.getRelatedTwinValidatorSetMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinValidatorSetMap(), restDTOMapperRegistry.getTwinValidatorSetRestDTOMapper(), mapperContextLevel2, twinValidatorSetMap, TwinValidatorSetEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinValidatorSetMap(), entityRestMapperRegistry.getTwinValidatorSetRestDTOMapper(), mapperContextLevel2, twinValidatorSetMap, TwinValidatorSetEntity::getId);
         if (!mapperContext.getRelatedHistoryTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedHistoryTypeMap(), restDTOMapperRegistry.getHistoryTypeRestDTOMapper(), mapperContextLevel2, historyTypeMap, HistoryTypeEntity::getId);
+            convertAndPut(mapperContext.getRelatedHistoryTypeMap(), entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), mapperContextLevel2, historyTypeMap, HistoryTypeEntity::getId);
         if (!mapperContext.getRelatedActionRestrictionReasonMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedActionRestrictionReasonMap(), restDTOMapperRegistry.getActionRestrictionReasonRestDTOMapper(), mapperContextLevel2, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
+            convertAndPut(mapperContext.getRelatedActionRestrictionReasonMap(), entityRestMapperRegistry.getActionRestrictionReasonRestDTOMapper(), mapperContextLevel2, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
         if (!mapperContext.getRelatedTwinPointerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinPointerMap(), restDTOMapperRegistry.getTwinPointerRestDTOMapper(), mapperContextLevel2, twinPointerMap, TwinPointerEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinPointerMap(), entityRestMapperRegistry.getTwinPointerRestDTOMapper(), mapperContextLevel2, twinPointerMap, TwinPointerEntity::getId);
         if (!mapperContext.getRelatedDataListSubsetMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedDataListSubsetMap(), restDTOMapperRegistry.getDataListSubsetRestDTOMapper(), mapperContextLevel2, dataListSubsetMap, DataListSubsetEntity::getId);
+            convertAndPut(mapperContext.getRelatedDataListSubsetMap(), entityRestMapperRegistry.getDataListSubsetRestDTOMapper(), mapperContextLevel2, dataListSubsetMap, DataListSubsetEntity::getId);
         if (!mapperContext.getRelatedFeaturerParamsMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFeaturerParamsMap(), restDTOMapperRegistry.getFeaturerParametrizedRestDTOMapper(), mapperContextLevel2, featurerMap, FeaturerParams::getFeaturerId);
+            convertAndPut(mapperContext.getRelatedFeaturerParamsMap(), entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), mapperContextLevel2, featurerMap, FeaturerParams::getFeaturerId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
         //resolve entity refs postponed during level 1 conversions (e.g. featurer params pairs): rendered on level 2
-        restDTOMapperRegistry.getEntityRefRestDTOMapper().resolve(mapperContextLevel2);
+        entityRestMapperRegistry.getEntityRefRestDTOMapper().resolve(mapperContextLevel2);
         if (!mapperContextLevel2.getRelatedTwinClassMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassMap(), restDTOMapperRegistry.getTwinClassRestDTOMapper(), mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinClassMap(), entityRestMapperRegistry.getTwinClassRestDTOMapper(), mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinMap(), restDTOMapperRegistry.getTwinRestDTOMapperV2(), mapperContextLevel3, twinMap, TwinEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinMap(), entityRestMapperRegistry.getTwinRestDTOMapperV2(), mapperContextLevel3, twinMap, TwinEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinStatusMap(), restDTOMapperRegistry.getTwinStatusRestDTOMapper(), mapperContextLevel3, statusMap, TwinStatusEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinStatusMap(), entityRestMapperRegistry.getTwinStatusRestDTOMapper(), mapperContextLevel3, statusMap, TwinStatusEntity::getId);
         if (!mapperContextLevel2.getRelatedLinkMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedLinkMap(), restDTOMapperRegistry.getLinkRestDTOMapper(), mapperContextLevel3, linkMap, LinkEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedLinkMap(), entityRestMapperRegistry.getLinkRestDTOMapper(), mapperContextLevel3, linkMap, LinkEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinTriggerMap(), restDTOMapperRegistry.getTwinTriggerRestDTOMapper(), mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinTriggerMap(), entityRestMapperRegistry.getTwinTriggerRestDTOMapper(), mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
         if (!mapperContextLevel2.getRelatedUserMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedUserMap(), restDTOMapperRegistry.getUserRestDTOMapper(), mapperContextLevel3, userMap, UserEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedUserMap(), entityRestMapperRegistry.getUserRestDTOMapper(), mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel2.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedUserGroupMap(), restDTOMapperRegistry.getUserGroupRestDTOMapper(), mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedUserGroupMap(), entityRestMapperRegistry.getUserGroupRestDTOMapper(), mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowTransitionMap(), restDTOMapperRegistry.getTransitionBaseV1RestDTOMapper(), mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinflowTransitionMap(), entityRestMapperRegistry.getTransitionBaseV1RestDTOMapper(), mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel2.getRelatedDataListMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedDataListMap(), restDTOMapperRegistry.getDataListRestDTOMapper(), mapperContextLevel3, dataListMap, DataListEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedDataListMap(), entityRestMapperRegistry.getDataListRestDTOMapper(), mapperContextLevel3, dataListMap, DataListEntity::getId);
         if (!mapperContextLevel2.getRelatedDataListOptionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedDataListOptionMap(), restDTOMapperRegistry.getDataListOptionRestDTOMapper(), mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedDataListOptionMap(), entityRestMapperRegistry.getDataListOptionRestDTOMapper(), mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContextLevel2.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), restDTOMapperRegistry.getSpaceRoleDTOMapper(), mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), entityRestMapperRegistry.getSpaceRoleDTOMapper(), mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
         if (!mapperContextLevel2.getRelatedBusinessAccountMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedBusinessAccountMap(), restDTOMapperRegistry.getBusinessAccountDTOMapper(), mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedBusinessAccountMap(), entityRestMapperRegistry.getBusinessAccountDTOMapper(), mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionGroupMap(), restDTOMapperRegistry.getPermissionGroupRestDTOMapper(), mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedPermissionGroupMap(), entityRestMapperRegistry.getPermissionGroupRestDTOMapper(), mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionMap(), restDTOMapperRegistry.getPermissionRestDTOMapper(), mapperContextLevel3, permissionMap, PermissionEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedPermissionMap(), entityRestMapperRegistry.getPermissionRestDTOMapper(), mapperContextLevel3, permissionMap, PermissionEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), restDTOMapperRegistry.getPermissionSchemaRestDTOMapper(), mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), entityRestMapperRegistry.getPermissionSchemaRestDTOMapper(), mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), restDTOMapperRegistry.getTwinflowBaseV1RestDTOMapper(), mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), entityRestMapperRegistry.getTwinflowBaseV1RestDTOMapper(), mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinflowFactoryMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowFactoryMap(), restDTOMapperRegistry.getTwinflowFactoryRestDTOMapperV1(), mapperContextLevel3, twinflowFactoryMap, TwinflowFactoryEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinflowFactoryMap(), entityRestMapperRegistry.getTwinflowFactoryRestDTOMapperV1(), mapperContextLevel3, twinflowFactoryMap, TwinflowFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), restDTOMapperRegistry.getFactoryRestDTOMapper(), mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), entityRestMapperRegistry.getFactoryRestDTOMapper(), mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryPipelineMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineMap(), restDTOMapperRegistry.getFactoryPipelineRestDTOMapper(), mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineMap(), entityRestMapperRegistry.getFactoryPipelineRestDTOMapper(), mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionSetMap(), restDTOMapperRegistry.getFactoryConditionSetRestDTOMapper(), mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionSetMap(), entityRestMapperRegistry.getFactoryConditionSetRestDTOMapper(), mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierMap(), restDTOMapperRegistry.getFactoryMultiplierRestDTOMapper(), mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierMap(), entityRestMapperRegistry.getFactoryMultiplierRestDTOMapper(), mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryBranchMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryBranchMap(), restDTOMapperRegistry.getFactoryBranchRestDTOMapper(), mapperContextLevel3, factoryBranchMap, TwinFactoryBranchEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryBranchMap(), entityRestMapperRegistry.getFactoryBranchRestDTOMapper(), mapperContextLevel3, factoryBranchMap, TwinFactoryBranchEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryPipelineStepMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineStepMap(), restDTOMapperRegistry.getFactoryPipelineStepRestDTOMapper(), mapperContextLevel3, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineStepMap(), entityRestMapperRegistry.getFactoryPipelineStepRestDTOMapper(), mapperContextLevel3, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryMultiplierFilterMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierFilterMap(), restDTOMapperRegistry.getFactoryMultiplierFilterRestDTOMapper(), mapperContextLevel3, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierFilterMap(), entityRestMapperRegistry.getFactoryMultiplierFilterRestDTOMapper(), mapperContextLevel3, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryEraserMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryEraserMap(), restDTOMapperRegistry.getFactoryEraserRestDTOMapper(), mapperContextLevel3, factoryEraserMap, TwinFactoryEraserEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryEraserMap(), entityRestMapperRegistry.getFactoryEraserRestDTOMapper(), mapperContextLevel3, factoryEraserMap, TwinFactoryEraserEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryTriggerMap(), restDTOMapperRegistry.getFactoryTriggerRestDTOMapper(), mapperContextLevel3, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryTriggerMap(), entityRestMapperRegistry.getFactoryTriggerRestDTOMapper(), mapperContextLevel3, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryConditionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionMap(), restDTOMapperRegistry.getFactoryConditionRestDTOMapper(), mapperContextLevel3, factoryConditionMap, TwinFactoryConditionEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionMap(), entityRestMapperRegistry.getFactoryConditionRestDTOMapper(), mapperContextLevel3, factoryConditionMap, TwinFactoryConditionEntity::getId);
         if (!mapperContextLevel2.getRelatedFaceMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFaceMap(), restDTOMapperRegistry.getFaceRestDTOMapper(), mapperContextLevel3, faceMap, FaceEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFaceMap(), entityRestMapperRegistry.getFaceRestDTOMapper(), mapperContextLevel3, faceMap, FaceEntity::getId);
         if (!mapperContextLevel2.getRelatedCommentMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedCommentMap(), restDTOMapperRegistry.getCommentRestDTOMapper(), mapperContextLevel3, commentMap, TwinCommentEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedCommentMap(), entityRestMapperRegistry.getCommentRestDTOMapper(), mapperContextLevel3, commentMap, TwinCommentEntity::getId);
         if (!mapperContextLevel2.getRelatedI18nMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedI18nMap(), restDTOMapperRegistry.getI18nRestDTOMapper(), mapperContextLevel3, i18nMap, I18nEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedI18nMap(), entityRestMapperRegistry.getI18nRestDTOMapper(), mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel2.getRelatedFeaturerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), restDTOMapperRegistry.getFeaturerRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), entityRestMapperRegistry.getFeaturerRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerEntity::getId);
         if (!mapperContextLevel2.getRelatedFeaturerTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFeaturerTypeMap(), restDTOMapperRegistry.getFeaturerTypeRestDTOMapper(), mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedFeaturerTypeMap(), entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassFieldMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassFieldMap(), restDTOMapperRegistry.getTwinClassFieldRestDTOMapper(), mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinClassFieldMap(), entityRestMapperRegistry.getTwinClassFieldRestDTOMapper(), mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassSchemaMap(), restDTOMapperRegistry.getTwinClassSchemaDTOMapper(), mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinClassSchemaMap(), entityRestMapperRegistry.getTwinClassSchemaDTOMapper(), mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinflowSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), restDTOMapperRegistry.getTwinflowSchemaRestDTOMapper(), mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), entityRestMapperRegistry.getTwinflowSchemaRestDTOMapper(), mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedTierMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTierMap(), restDTOMapperRegistry.getTierRestDTOMapper(), mapperContextLevel3, tierMap, TierEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTierMap(), entityRestMapperRegistry.getTierRestDTOMapper(), mapperContextLevel3, tierMap, TierEntity::getId);
         if (!mapperContextLevel2.getRelatedAttachmentRestrictionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedAttachmentRestrictionMap(), restDTOMapperRegistry.getAttachmentRestrictionRestDTOMapper(), mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedAttachmentRestrictionMap(), entityRestMapperRegistry.getAttachmentRestrictionRestDTOMapper(), mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassFreezeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), restDTOMapperRegistry.getTwinClassFreezeDTOMapper(), mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), entityRestMapperRegistry.getTwinClassFreezeDTOMapper(), mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), restDTOMapperRegistry.getTwinClassFieldRuleRestDTOMapper(), mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), entityRestMapperRegistry.getTwinClassFieldRuleRestDTOMapper(), mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
         if (!mapperContextLevel2.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeGroupMap(), restDTOMapperRegistry.getProjectionTypeGroupRestDTOMapper(), mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeGroupMap(), entityRestMapperRegistry.getProjectionTypeGroupRestDTOMapper(), mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
         if (!mapperContextLevel2.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeMap(), restDTOMapperRegistry.getProjectionTypeRestDTOMapper(), mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeMap(), entityRestMapperRegistry.getProjectionTypeRestDTOMapper(), mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedSchedulerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedSchedulerMap(), restDTOMapperRegistry.getSchedulerRestDTOMapperV1(), mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedSchedulerMap(), entityRestMapperRegistry.getSchedulerRestDTOMapperV1(), mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
         if (!mapperContextLevel2.getRelatedHistoryNotificationRecipientMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedHistoryNotificationRecipientMap(), restDTOMapperRegistry.getHistoryNotificationRecipientDTOMapper(), mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedHistoryNotificationRecipientMap(), entityRestMapperRegistry.getHistoryNotificationRecipientDTOMapper(), mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
         if (!mapperContextLevel2.getRelatedNotificationSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationSchemaMap(), restDTOMapperRegistry.getNotificationSchemaRestDTOMapper(), mapperContextLevel3, notificationSchemaMap, NotificationSchemaEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedNotificationSchemaMap(), entityRestMapperRegistry.getNotificationSchemaRestDTOMapper(), mapperContextLevel3, notificationSchemaMap, NotificationSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedNotificationChannelMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationChannelMap(), restDTOMapperRegistry.getNotificationChannelRestDTOMapper(), mapperContextLevel3, notificationChannelMap, NotificationChannelEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedNotificationChannelMap(), entityRestMapperRegistry.getNotificationChannelRestDTOMapper(), mapperContextLevel3, notificationChannelMap, NotificationChannelEntity::getId);
         if (!mapperContextLevel2.getRelatedNotificationContextMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationContextMap(), restDTOMapperRegistry.getNotificationContextRestDTOMapper(), mapperContextLevel3, notificationContextMap, NotificationContextEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedNotificationContextMap(), entityRestMapperRegistry.getNotificationContextRestDTOMapper(), mapperContextLevel3, notificationContextMap, NotificationContextEntity::getId);
         if (!mapperContextLevel2.getRelatedNotificationChannelEventMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationChannelEventMap(), restDTOMapperRegistry.getNotificationChannelEventRestDTOMapper(), mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedNotificationChannelEventMap(), entityRestMapperRegistry.getNotificationChannelEventRestDTOMapper(), mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinValidatorSetMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinValidatorSetMap(), restDTOMapperRegistry.getTwinValidatorSetRestDTOMapper(), mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinValidatorSetMap(), entityRestMapperRegistry.getTwinValidatorSetRestDTOMapper(), mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
         if (!mapperContextLevel2.getRelatedHistoryTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedHistoryTypeMap(), restDTOMapperRegistry.getHistoryTypeRestDTOMapper(), mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedHistoryTypeMap(), entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedActionRestrictionReasonMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedActionRestrictionReasonMap(), restDTOMapperRegistry.getActionRestrictionReasonRestDTOMapper(), mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedActionRestrictionReasonMap(), entityRestMapperRegistry.getActionRestrictionReasonRestDTOMapper(), mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinPointerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinPointerMap(), restDTOMapperRegistry.getTwinPointerRestDTOMapper(), mapperContextLevel3, twinPointerMap, TwinPointerEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinPointerMap(), entityRestMapperRegistry.getTwinPointerRestDTOMapper(), mapperContextLevel3, twinPointerMap, TwinPointerEntity::getId);
         if (!mapperContextLevel2.getRelatedDataListSubsetMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedDataListSubsetMap(), restDTOMapperRegistry.getDataListSubsetRestDTOMapper(), mapperContextLevel3, dataListSubsetMap, DataListSubsetEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedDataListSubsetMap(), entityRestMapperRegistry.getDataListSubsetRestDTOMapper(), mapperContextLevel3, dataListSubsetMap, DataListSubsetEntity::getId);
         if (!mapperContextLevel2.getRelatedFeaturerParamsMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFeaturerParamsMap(), restDTOMapperRegistry.getFeaturerParametrizedRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerParams::getFeaturerId);
+            convertAndPut(mapperContextLevel2.getRelatedFeaturerParamsMap(), entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerParams::getFeaturerId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
         mapperContextLevel3.setLazyRelations(true); // on such depth we will not collect related objects anymore
         //resolve entity refs postponed during level 2 conversions: loaded and rendered on this level, the cascade
         //stops here because postpone is a no-op with lazyRelations=true
-        restDTOMapperRegistry.getEntityRefRestDTOMapper().resolve(mapperContextLevel3);
+        entityRestMapperRegistry.getEntityRefRestDTOMapper().resolve(mapperContextLevel3);
         if (!mapperContextLevel3.getRelatedTwinClassMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassMap(), restDTOMapperRegistry.getTwinClassRestDTOMapper(), mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinClassMap(), entityRestMapperRegistry.getTwinClassRestDTOMapper(), mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinMap(), restDTOMapperRegistry.getTwinRestDTOMapperV2(), mapperContextLevel3, twinMap, TwinEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinMap(), entityRestMapperRegistry.getTwinRestDTOMapperV2(), mapperContextLevel3, twinMap, TwinEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinStatusMap(), restDTOMapperRegistry.getTwinStatusRestDTOMapper(), mapperContextLevel3, statusMap, TwinStatusEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinStatusMap(), entityRestMapperRegistry.getTwinStatusRestDTOMapper(), mapperContextLevel3, statusMap, TwinStatusEntity::getId);
         if (!mapperContextLevel3.getRelatedLinkMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedLinkMap(), restDTOMapperRegistry.getLinkRestDTOMapper(), mapperContextLevel3, linkMap, LinkEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedLinkMap(), entityRestMapperRegistry.getLinkRestDTOMapper(), mapperContextLevel3, linkMap, LinkEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinTriggerMap(), restDTOMapperRegistry.getTwinTriggerRestDTOMapper(), mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinTriggerMap(), entityRestMapperRegistry.getTwinTriggerRestDTOMapper(), mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
         if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedUserMap(), restDTOMapperRegistry.getUserRestDTOMapper(), mapperContextLevel3, userMap, UserEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedUserMap(), entityRestMapperRegistry.getUserRestDTOMapper(), mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel3.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedUserGroupMap(), restDTOMapperRegistry.getUserGroupRestDTOMapper(), mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedUserGroupMap(), entityRestMapperRegistry.getUserGroupRestDTOMapper(), mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), restDTOMapperRegistry.getTransitionBaseV1RestDTOMapper(), mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), entityRestMapperRegistry.getTransitionBaseV1RestDTOMapper(), mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedDataListMap(), restDTOMapperRegistry.getDataListRestDTOMapper(), mapperContextLevel3, dataListMap, DataListEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedDataListMap(), entityRestMapperRegistry.getDataListRestDTOMapper(), mapperContextLevel3, dataListMap, DataListEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListOptionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedDataListOptionMap(), restDTOMapperRegistry.getDataListOptionRestDTOMapper(), mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedDataListOptionMap(), entityRestMapperRegistry.getDataListOptionRestDTOMapper(), mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContextLevel3.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), restDTOMapperRegistry.getSpaceRoleDTOMapper(), mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), entityRestMapperRegistry.getSpaceRoleDTOMapper(), mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
         if (!mapperContextLevel3.getRelatedBusinessAccountMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedBusinessAccountMap(), restDTOMapperRegistry.getBusinessAccountDTOMapper(), mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedBusinessAccountMap(), entityRestMapperRegistry.getBusinessAccountDTOMapper(), mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContextLevel3.getRelatedPermissionGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionGroupMap(), restDTOMapperRegistry.getPermissionGroupRestDTOMapper(), mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedPermissionGroupMap(), entityRestMapperRegistry.getPermissionGroupRestDTOMapper(), mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
         if (!mapperContextLevel3.getRelatedPermissionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionMap(), restDTOMapperRegistry.getPermissionRestDTOMapper(), mapperContextLevel3, permissionMap, PermissionEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedPermissionMap(), entityRestMapperRegistry.getPermissionRestDTOMapper(), mapperContextLevel3, permissionMap, PermissionEntity::getId);
         if (!mapperContextLevel3.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), restDTOMapperRegistry.getPermissionSchemaRestDTOMapper(), mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), entityRestMapperRegistry.getPermissionSchemaRestDTOMapper(), mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), restDTOMapperRegistry.getTwinflowBaseV1RestDTOMapper(), mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), entityRestMapperRegistry.getTwinflowBaseV1RestDTOMapper(), mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowFactoryMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowFactoryMap(), restDTOMapperRegistry.getTwinflowFactoryRestDTOMapperV1(), mapperContextLevel3, twinflowFactoryMap, TwinflowFactoryEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinflowFactoryMap(), entityRestMapperRegistry.getTwinflowFactoryRestDTOMapperV1(), mapperContextLevel3, twinflowFactoryMap, TwinflowFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), restDTOMapperRegistry.getFactoryRestDTOMapper(), mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), entityRestMapperRegistry.getFactoryRestDTOMapper(), mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), restDTOMapperRegistry.getFactoryPipelineRestDTOMapper(), mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), entityRestMapperRegistry.getFactoryPipelineRestDTOMapper(), mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionSetMap(), restDTOMapperRegistry.getFactoryConditionSetRestDTOMapper(), mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionSetMap(), entityRestMapperRegistry.getFactoryConditionSetRestDTOMapper(), mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierMap(), restDTOMapperRegistry.getFactoryMultiplierRestDTOMapper(), mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierMap(), entityRestMapperRegistry.getFactoryMultiplierRestDTOMapper(), mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryBranchMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryBranchMap(), restDTOMapperRegistry.getFactoryBranchRestDTOMapper(), mapperContextLevel3, factoryBranchMap, TwinFactoryBranchEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryBranchMap(), entityRestMapperRegistry.getFactoryBranchRestDTOMapper(), mapperContextLevel3, factoryBranchMap, TwinFactoryBranchEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryPipelineStepMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineStepMap(), restDTOMapperRegistry.getFactoryPipelineStepRestDTOMapper(), mapperContextLevel3, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineStepMap(), entityRestMapperRegistry.getFactoryPipelineStepRestDTOMapper(), mapperContextLevel3, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMultiplierFilterMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierFilterMap(), restDTOMapperRegistry.getFactoryMultiplierFilterRestDTOMapper(), mapperContextLevel3, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierFilterMap(), entityRestMapperRegistry.getFactoryMultiplierFilterRestDTOMapper(), mapperContextLevel3, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryEraserMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryEraserMap(), restDTOMapperRegistry.getFactoryEraserRestDTOMapper(), mapperContextLevel3, factoryEraserMap, TwinFactoryEraserEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryEraserMap(), entityRestMapperRegistry.getFactoryEraserRestDTOMapper(), mapperContextLevel3, factoryEraserMap, TwinFactoryEraserEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryTriggerMap(), restDTOMapperRegistry.getFactoryTriggerRestDTOMapper(), mapperContextLevel3, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryTriggerMap(), entityRestMapperRegistry.getFactoryTriggerRestDTOMapper(), mapperContextLevel3, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryConditionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionMap(), restDTOMapperRegistry.getFactoryConditionRestDTOMapper(), mapperContextLevel3, factoryConditionMap, TwinFactoryConditionEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionMap(), entityRestMapperRegistry.getFactoryConditionRestDTOMapper(), mapperContextLevel3, factoryConditionMap, TwinFactoryConditionEntity::getId);
         if (!mapperContextLevel3.getRelatedFaceMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFaceMap(), restDTOMapperRegistry.getFaceRestDTOMapper(), mapperContextLevel3, faceMap, FaceEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFaceMap(), entityRestMapperRegistry.getFaceRestDTOMapper(), mapperContextLevel3, faceMap, FaceEntity::getId);
         if (!mapperContextLevel3.getRelatedCommentMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedCommentMap(), restDTOMapperRegistry.getCommentRestDTOMapper(), mapperContextLevel3, commentMap, TwinCommentEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedCommentMap(), entityRestMapperRegistry.getCommentRestDTOMapper(), mapperContextLevel3, commentMap, TwinCommentEntity::getId);
         if (!mapperContext.getRelatedI18nMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedI18nMap(), restDTOMapperRegistry.getI18nRestDTOMapper(), mapperContextLevel3, i18nMap, I18nEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedI18nMap(), entityRestMapperRegistry.getI18nRestDTOMapper(), mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), restDTOMapperRegistry.getFeaturerRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), entityRestMapperRegistry.getFeaturerRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFeaturerTypeMap(), restDTOMapperRegistry.getFeaturerTypeRestDTOMapper(), mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFeaturerTypeMap(), entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassFieldMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassFieldMap(), restDTOMapperRegistry.getTwinClassFieldRestDTOMapper(), mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinClassFieldMap(), entityRestMapperRegistry.getTwinClassFieldRestDTOMapper(), mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassSchemaMap(), restDTOMapperRegistry.getTwinClassSchemaDTOMapper(), mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinClassSchemaMap(), entityRestMapperRegistry.getTwinClassSchemaDTOMapper(), mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), restDTOMapperRegistry.getTwinflowSchemaRestDTOMapper(), mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), entityRestMapperRegistry.getTwinflowSchemaRestDTOMapper(), mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTierMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTierMap(), restDTOMapperRegistry.getTierRestDTOMapper(), mapperContextLevel3, tierMap, TierEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTierMap(), entityRestMapperRegistry.getTierRestDTOMapper(), mapperContextLevel3, tierMap, TierEntity::getId);
         if (!mapperContextLevel3.getRelatedAttachmentRestrictionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedAttachmentRestrictionMap(), restDTOMapperRegistry.getAttachmentRestrictionRestDTOMapper(), mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedAttachmentRestrictionMap(), entityRestMapperRegistry.getAttachmentRestrictionRestDTOMapper(), mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassFreezeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), restDTOMapperRegistry.getTwinClassFreezeDTOMapper(), mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), entityRestMapperRegistry.getTwinClassFreezeDTOMapper(), mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), restDTOMapperRegistry.getTwinClassFieldRuleRestDTOMapper(), mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), entityRestMapperRegistry.getTwinClassFieldRuleRestDTOMapper(), mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
         if (!mapperContextLevel3.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeGroupMap(), restDTOMapperRegistry.getProjectionTypeGroupRestDTOMapper(), mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeGroupMap(), entityRestMapperRegistry.getProjectionTypeGroupRestDTOMapper(), mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
         if (!mapperContextLevel3.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeMap(), restDTOMapperRegistry.getProjectionTypeRestDTOMapper(), mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeMap(), entityRestMapperRegistry.getProjectionTypeRestDTOMapper(), mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedSchedulerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedSchedulerMap(), restDTOMapperRegistry.getSchedulerRestDTOMapperV1(), mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedSchedulerMap(), entityRestMapperRegistry.getSchedulerRestDTOMapperV1(), mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
         if (!mapperContextLevel3.getRelatedHistoryNotificationRecipientMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedHistoryNotificationRecipientMap(), restDTOMapperRegistry.getHistoryNotificationRecipientDTOMapper(), mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedHistoryNotificationRecipientMap(), entityRestMapperRegistry.getHistoryNotificationRecipientDTOMapper(), mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
         if (!mapperContextLevel3.getRelatedNotificationSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationSchemaMap(), restDTOMapperRegistry.getNotificationSchemaRestDTOMapper(), mapperContextLevel3, notificationSchemaMap, NotificationSchemaEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedNotificationSchemaMap(), entityRestMapperRegistry.getNotificationSchemaRestDTOMapper(), mapperContextLevel3, notificationSchemaMap, NotificationSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedNotificationChannelMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationChannelMap(), restDTOMapperRegistry.getNotificationChannelRestDTOMapper(), mapperContextLevel3, notificationChannelMap, NotificationChannelEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedNotificationChannelMap(), entityRestMapperRegistry.getNotificationChannelRestDTOMapper(), mapperContextLevel3, notificationChannelMap, NotificationChannelEntity::getId);
         if (!mapperContextLevel3.getRelatedNotificationContextMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationContextMap(), restDTOMapperRegistry.getNotificationContextRestDTOMapper(), mapperContextLevel3, notificationContextMap, NotificationContextEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedNotificationContextMap(), entityRestMapperRegistry.getNotificationContextRestDTOMapper(), mapperContextLevel3, notificationContextMap, NotificationContextEntity::getId);
         if (!mapperContextLevel3.getRelatedNotificationChannelEventMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationChannelEventMap(), restDTOMapperRegistry.getNotificationChannelEventRestDTOMapper(), mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedNotificationChannelEventMap(), entityRestMapperRegistry.getNotificationChannelEventRestDTOMapper(), mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinValidatorSetMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinValidatorSetMap(), restDTOMapperRegistry.getTwinValidatorSetRestDTOMapper(), mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinValidatorSetMap(), entityRestMapperRegistry.getTwinValidatorSetRestDTOMapper(), mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
         if (!mapperContextLevel3.getRelatedHistoryTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedHistoryTypeMap(), restDTOMapperRegistry.getHistoryTypeRestDTOMapper(), mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedHistoryTypeMap(), entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedActionRestrictionReasonMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedActionRestrictionReasonMap(), restDTOMapperRegistry.getActionRestrictionReasonRestDTOMapper(), mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedActionRestrictionReasonMap(), entityRestMapperRegistry.getActionRestrictionReasonRestDTOMapper(), mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinPointerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinPointerMap(), restDTOMapperRegistry.getTwinPointerRestDTOMapper(), mapperContextLevel3, twinPointerMap, TwinPointerEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinPointerMap(), entityRestMapperRegistry.getTwinPointerRestDTOMapper(), mapperContextLevel3, twinPointerMap, TwinPointerEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListSubsetMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedDataListSubsetMap(), restDTOMapperRegistry.getDataListSubsetRestDTOMapper(), mapperContextLevel3, dataListSubsetMap, DataListSubsetEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedDataListSubsetMap(), entityRestMapperRegistry.getDataListSubsetRestDTOMapper(), mapperContextLevel3, dataListSubsetMap, DataListSubsetEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerParamsMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFeaturerParamsMap(), restDTOMapperRegistry.getFeaturerParametrizedRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerParams::getFeaturerId);
+            convertAndPut(mapperContextLevel3.getRelatedFeaturerParamsMap(), entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), mapperContextLevel3, featurerMap, FeaturerParams::getFeaturerId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
