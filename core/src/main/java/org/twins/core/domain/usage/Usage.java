@@ -1,23 +1,28 @@
 package org.twins.core.domain.usage;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.experimental.Accessors;
+import lombok.Getter;
+import org.twins.core.mappers.rest.mappercontext.EntityRef;
 
 import java.util.UUID;
 
 /**
- * A single usage of an entity: where it is referenced from.
- * {@code entity} holds the referencing entity instance (pipeline, branch, transition,
- * twinflow_factory, ...) so that mappers can postpone it into relatedObjects.
+ * A single usage of an entity: where it is referenced from. Extends {@link EntityRef} so the
+ * referencing entity is a lazy reference resolvable in bulk via EntityServiceRegistry: the
+ * inherited {@code id} + {@code entityClass} (taken from the usage type) identify the referencing
+ * entity (pipeline, branch, transition, twinflow_factory, ...), the loaded instance lands in the
+ * inherited {@code entity} field and is postponed into relatedObjects by UsageRestDTOMapper.
  */
-@Data
-@Accessors(chain = true)
-public class Usage {
-    private UsageType usageType;
-    private UUID id;
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private Object entity;
+@Getter
+public class Usage extends EntityRef {
+    private final UsageType usageType;
+
+    public Usage(UsageType usageType, UUID id) {
+        super(usageType.getEntityClass(), id);
+        this.usageType = usageType;
+    }
+
+    @Override
+    public String toString() {
+        return "usage[" + usageType + " " + cacheKey() + "]";
+    }
 }

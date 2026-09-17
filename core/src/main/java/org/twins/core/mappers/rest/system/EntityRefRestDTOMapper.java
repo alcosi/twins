@@ -23,8 +23,8 @@ import java.util.*;
  * (no N+1), then distributes the loaded entities back into the refs.
  * RelatedObjectsRestDTOConverter calls {@link #resolve(MapperContext)} between conversion levels, when all
  * refs of the level are collected: it runs the bulk load and postpones the loaded entities into their typed
- * relatedXxxMap at (at least) SHORT mode (the SHORT mode comes from EntityRestMapperRegistry), so they are
- * rendered by the next conversion level.
+ * relatedXxxMap at the default show mode of their mapper (DETAILED where available — see
+ * EntityRestMapperRegistry.getShowMode), so they are rendered by the next conversion level.
  * {@link #convert(EntityRef, MapperContext)} resolves a single ref (one findEntitiesSafe call, REQUEST-cached)
  * and converts the loaded entity into its DTO via the mapper resolved from EntityRestMapperRegistry by entity class.
  * Fail fast by design: findEntitiesSafe throws ServiceException on a missing/deleted reference or read denial.
@@ -87,9 +87,9 @@ public class EntityRefRestDTOMapper extends RestSimpleDTOMapper<EntityRef, Objec
                 continue;
             MapperContext fork = forks.computeIfAbsent(entityRef.getEntityClass(), entityClass -> {
                 MapperContext newFork = mapperContext.fork();
-                MapperMode shortMode = entityRestMapperRegistry.getShortMode(entityClass);
-                if (shortMode != null)
-                    newFork.setPriorityMinMode(shortMode); // respects a more detailed mode explicitly requested by the client
+                MapperMode showMode = entityRestMapperRegistry.getShowMode(entityClass);
+                if (showMode != null)
+                    newFork.setPriorityMinMode(showMode); // default DETAILED; a mode explicitly requested by the client keeps priority
                 return newFork;
             });
             fork.addRelatedObject(entity);

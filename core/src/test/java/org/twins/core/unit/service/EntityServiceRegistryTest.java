@@ -3,14 +3,16 @@ package org.twins.core.unit.service;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.usage.Usage;
+import org.twins.core.domain.usage.UsageType;
 import org.twins.core.mappers.rest.mappercontext.EntityRef;
 import org.twins.core.service.EntityServiceRegistry;
 import org.twins.core.service.datalist.DataListSubsetService;
+import org.twins.core.service.factory.FactoryPipelineService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinpointer.TwinPointerService;
 
@@ -23,22 +25,18 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.*;
 
 /**
- * EntityServiceRegistry: entity class -> EntitySecureFindServiceImpl lookup, strict bulk-load delegation
- * and the EntityRef pattern load (needLoad filter, one query per entity class, distribute via setters).
+ * EntityServiceRegistry: entity class -> EntitySecureFindServiceImpl lookup (entity type resolved from the
+ * generic superclass), strict bulk-load delegation and the EntityRef pattern load (needLoad filter,
+ * one query per entity class, distribute via setters).
  */
 public class EntityServiceRegistryTest {
 
     private final TwinClassService twinClassService = mock(TwinClassService.class);
     private final TwinPointerService twinPointerService = mock(TwinPointerService.class);
     private final DataListSubsetService dataListSubsetService = mock(DataListSubsetService.class);
+    private final FactoryPipelineService factoryPipelineService = mock(FactoryPipelineService.class);
     private final EntityServiceRegistry entityServiceRegistry = new EntityServiceRegistry(
-            twinClassService, null, null, null, null, null, null, null, null,
-            dataListSubsetService, twinPointerService, null, null, null, null, null, null, null, null);
-
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.invokeMethod(entityServiceRegistry, "initRegistry");
-    }
+            java.util.List.of(twinClassService, twinPointerService, dataListSubsetService, factoryPipelineService));
 
     @Test
     public void resolvesServiceByEntityClass() {
@@ -110,6 +108,18 @@ public class EntityServiceRegistryTest {
         entityServiceRegistry.load(ref);
 
         assertEquals(twinClass, ref.getEntity());
+    }
+
+    @Test
+    public void usageAsEntityRefIsBulkLoadedByItsUsageTypeEntityClass() throws ServiceException {
+        UUID pipelineId = UUID.randomUUID();
+        TwinFactoryPipelineEntity pipeline = new TwinFactoryPipelineEntity().setId(pipelineId);
+        when(factoryPipelineService.findEntitiesSafe(anySet())).thenReturn(kitOf(TwinFactoryPipelineEntity::getId, pipeline));
+
+        Usage usage = new Usage(UsageType.FACTORY_PIPELINE_NEXT_FACTORY, pipelineId); // lazy: referencing entity not loaded yet
+        entityServiceRegistry.load(java.util.List.of(usage));
+
+        assertEquals(pipeline, usage.getEntity()); // resolved via the class taken from the usage type
     }
 
     @SafeVarargs

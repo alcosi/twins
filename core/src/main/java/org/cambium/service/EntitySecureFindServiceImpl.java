@@ -680,7 +680,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             usages = new ArrayList<>();
             target.setUsages(usages);
         }
-        usages.add(new Usage().setUsageType(usageType).setId(usageEntityId).setEntity(usageEntity));
+        Usage usage = new Usage(usageType, usageEntityId);
+        usage.setEntity(usageEntity);
+        usages.add(usage);
     }
 
     public static <S, R, K, RI> void loadKit(

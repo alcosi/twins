@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.mappercontext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
  * and fills {@link #entity} — exactly the needLoad -> bulk load -> distribute-setter cycle.
  */
 @Getter
+@Accessors(chain = true)
 @RequiredArgsConstructor
 public class EntityRef {
     final Class<?> entityClass;

@@ -157,61 +157,57 @@ public class EntityRestMapperRegistry {
     @PostConstruct
     void initByEntityClass() {
         register(TwinClassEntity.class, twinClassRestDTOMapper, TwinClassMode.DETAILED);
-        register(TwinEntity.class, twinRestDTOMapperV2, TwinMode.DETAILED);
+        register(TwinEntity.class, twinRestDTOMapperV2, TwinFieldCollectionMode.SHOW); // V2 mapper is driven by TwinFieldCollectionMode, not TwinMode
         register(TwinStatusEntity.class, twinStatusRestDTOMapper, StatusMode.DETAILED);
         register(LinkEntity.class, linkRestDTOMapper, LinkMode.DETAILED);
-        register(TwinTriggerEntity.class, twinTriggerRestDTOMapper);
+        register(TwinTriggerEntity.class, twinTriggerRestDTOMapper, TwinTriggerMode.DETAILED);
         register(UserEntity.class, userRestDTOMapper, UserMode.DETAILED);
         register(UserGroupEntity.class, userGroupRestDTOMapper, UserGroupMode.DETAILED);
-        register(TwinflowTransitionEntity.class, transitionBaseV1RestDTOMapper);
+        register(TwinflowTransitionEntity.class, transitionBaseV1RestDTOMapper, TransitionMode.DETAILED);
         register(DataListEntity.class, dataListRestDTOMapper, DataListMode.DETAILED);
         register(DataListOptionEntity.class, dataListOptionRestDTOMapper, DataListOptionMode.DETAILED);
         register(DataListSubsetEntity.class, dataListSubsetRestDTOMapper, DataListSubsetMode.DETAILED);
-        register(SpaceRoleEntity.class, spaceRoleDTOMapper);
-        register(BusinessAccountEntity.class, businessAccountDTOMapper);
-        register(PermissionGroupEntity.class, permissionGroupRestDTOMapper);
+        register(SpaceRoleEntity.class, spaceRoleDTOMapper, SpaceRoleMode.DETAILED);
+        register(BusinessAccountEntity.class, businessAccountDTOMapper, BusinessAccountMode.DETAILED);
+        register(PermissionGroupEntity.class, permissionGroupRestDTOMapper, PermissionGroupMode.DETAILED);
         register(PermissionEntity.class, permissionRestDTOMapper, PermissionMode.DETAILED);
         register(PermissionSchemaEntity.class, permissionSchemaRestDTOMapper, PermissionSchemaMode.DETAILED);
-        register(TwinflowEntity.class, twinflowBaseV1RestDTOMapper);
-        register(TwinflowFactoryEntity.class, twinflowFactoryRestDTOMapperV1);
-        register(TwinClassSchemaEntity.class, twinClassSchemaDTOMapper, TwinClassSchemaMode.SHORT);
-        register(TwinflowSchemaEntity.class, twinflowSchemaRestDTOMapper, TwinflowSchemaMode.SHORT);
-        register(TwinFactoryEntity.class, factoryRestDTOMapper);
-        register(TwinFactoryPipelineEntity.class, factoryPipelineRestDTOMapper);
-        register(TwinFactoryConditionSetEntity.class, factoryConditionSetRestDTOMapper);
-        register(TwinFactoryMultiplierEntity.class, factoryMultiplierRestDTOMapper);
-        register(TwinFactoryBranchEntity.class, factoryBranchRestDTOMapper);
-        register(TwinFactoryPipelineStepEntity.class, factoryPipelineStepRestDTOMapper);
-        register(TwinFactoryMultiplierFilterEntity.class, factoryMultiplierFilterRestDTOMapper);
-        register(TwinFactoryEraserEntity.class, factoryEraserRestDTOMapper);
-        register(TwinFactoryTriggerEntity.class, factoryTriggerRestDTOMapper);
-        register(TwinFactoryConditionEntity.class, factoryConditionRestDTOMapper);
-        register(FeaturerEntity.class, featurerRestDTOMapper);
-        register(FeaturerTypeEntity.class, featurerTypeRestDTOMapper);
-        register(FaceEntity.class, faceRestDTOMapper);
+        register(TwinflowEntity.class, twinflowBaseV1RestDTOMapper, TwinflowMode.DETAILED);
+        register(TwinflowFactoryEntity.class, twinflowFactoryRestDTOMapperV1, TwinflowFactoryMode.DETAILED);
+        register(TwinClassSchemaEntity.class, twinClassSchemaDTOMapper, TwinClassSchemaMode.DETAILED);
+        register(TwinflowSchemaEntity.class, twinflowSchemaRestDTOMapper, TwinflowSchemaMode.DETAILED);
+        register(TwinFactoryEntity.class, factoryRestDTOMapper, FactoryMode.DETAILED);
+        register(TwinFactoryPipelineEntity.class, factoryPipelineRestDTOMapper, FactoryPipelineMode.DETAILED);
+        register(TwinFactoryConditionSetEntity.class, factoryConditionSetRestDTOMapper, FactoryConditionSetMode.DETAILED);
+        register(TwinFactoryMultiplierEntity.class, factoryMultiplierRestDTOMapper, FactoryMultiplierMode.DETAILED);
+        register(TwinFactoryBranchEntity.class, factoryBranchRestDTOMapper, FactoryBranchMode.DETAILED);
+        register(TwinFactoryPipelineStepEntity.class, factoryPipelineStepRestDTOMapper, FactoryPipelineStepMode.DETAILED);
+        register(TwinFactoryMultiplierFilterEntity.class, factoryMultiplierFilterRestDTOMapper, FactoryMultiplierFilterMode.DETAILED);
+        register(TwinFactoryEraserEntity.class, factoryEraserRestDTOMapper, FactoryEraserMode.DETAILED);
+        register(TwinFactoryTriggerEntity.class, factoryTriggerRestDTOMapper, FactoryTriggerMode.DETAILED);
+        register(TwinFactoryConditionEntity.class, factoryConditionRestDTOMapper, FactoryConditionMode.DETAILED);
+        register(FeaturerEntity.class, featurerRestDTOMapper, FeaturerMode.DETAILED);
+        register(FeaturerTypeEntity.class, featurerTypeRestDTOMapper, FeaturerTypeMode.SHOW); // HIDE/SHOW mode enum
+        register(FaceEntity.class, faceRestDTOMapper, FaceMode.DETAILED);
         register(TwinClassFieldEntity.class, twinClassFieldRestDTOMapper, TwinClassFieldMode.DETAILED);
-        register(TwinCommentEntity.class, commentRestDTOMapper);
+        register(TwinCommentEntity.class, commentRestDTOMapper, CommentMode.DETAILED);
         register(I18nEntity.class, i18nRestDTOMapper, I18nMode.DETAILED);
-        register(TierEntity.class, tierRestDTOMapper);
-        register(TwinAttachmentRestrictionEntity.class, attachmentRestrictionRestDTOMapper); // mapper has no mode binding
+        register(TierEntity.class, tierRestDTOMapper, TierMode.DETAILED);
+        register(TwinAttachmentRestrictionEntity.class, attachmentRestrictionRestDTOMapper, AttachmentRestrictionMode.SHOW); // HIDE/SHOW mode enum
         register(TwinClassFreezeEntity.class, twinClassFreezeDTOMapper, TwinClassFreezeMode.DETAILED);
-        register(TwinClassFieldRuleEntity.class, twinClassFieldRuleRestDTOMapper);
-        register(ProjectionTypeGroupEntity.class, projectionTypeGroupRestDTOMapper); // mapper has no mode binding
-        register(ProjectionTypeEntity.class, projectionTypeRestDTOMapper);
-        register(SchedulerEntity.class, schedulerRestDTOMapperV1);
-        register(HistoryNotificationRecipientEntity.class, historyNotificationRecipientDTOMapper);
-        register(NotificationSchemaEntity.class, notificationSchemaRestDTOMapper);
-        register(NotificationChannelEntity.class, notificationChannelRestDTOMapper);
-        register(NotificationContextEntity.class, notificationContextRestDTOMapper);
-        register(NotificationChannelEventEntity.class, notificationChannelEventRestDTOMapper);
-        register(TwinValidatorSetEntity.class, twinValidatorSetRestDTOMapper);
-        register(HistoryTypeEntity.class, historyTypeRestDTOMapper);
-        register(ActionRestrictionReasonEntity.class, actionRestrictionReasonRestDTOMapper);
-        register(TwinPointerEntity.class, twinPointerRestDTOMapper, TwinPointerMode.SHORT);
-    }
-
-    private void register(Class<?> entityClass, RestSimpleDTOMapper<?, ?> mapper) {
-        register(entityClass, mapper, null);
+        register(TwinClassFieldRuleEntity.class, twinClassFieldRuleRestDTOMapper, TwinClassFieldRuleMode.DETAILED);
+        register(ProjectionTypeGroupEntity.class, projectionTypeGroupRestDTOMapper, ProjectionTypeGroupMode.SHOW); // HIDE/SHOW mode enum
+        register(ProjectionTypeEntity.class, projectionTypeRestDTOMapper, ProjectionTypeMode.DETAILED);
+        register(SchedulerEntity.class, schedulerRestDTOMapperV1, SchedulerMode.DETAILED);
+        register(HistoryNotificationRecipientEntity.class, historyNotificationRecipientDTOMapper, HistoryNotificationRecipientMode.DETAILED);
+        register(NotificationSchemaEntity.class, notificationSchemaRestDTOMapper, NotificationSchemaMode.DETAILED);
+        register(NotificationChannelEntity.class, notificationChannelRestDTOMapper, NotificationChannelMode.DETAILED);
+        register(NotificationContextEntity.class, notificationContextRestDTOMapper, NotificationContextMode.DETAILED);
+        register(NotificationChannelEventEntity.class, notificationChannelEventRestDTOMapper, NotificationChannelEventMode.DETAILED);
+        register(TwinValidatorSetEntity.class, twinValidatorSetRestDTOMapper, TwinValidatorSetMode.DETAILED);
+        register(HistoryTypeEntity.class, historyTypeRestDTOMapper, HistoryTypeMode.DETAILED);
+        register(ActionRestrictionReasonEntity.class, actionRestrictionReasonRestDTOMapper, ActionRestrictionReasonMode.DETAILED);
+        register(TwinPointerEntity.class, twinPointerRestDTOMapper, TwinPointerMode.DETAILED);
     }
 
     private void register(Class<?> entityClass, RestSimpleDTOMapper<?, ?> mapper, MapperMode defaultShowMode) {
@@ -231,10 +227,11 @@ public class EntityRestMapperRegistry {
     }
 
     /**
-     * SHORT show mode of the mapper serving the given entity class (the mode postponed entities are
-     * rendered at, e.g. by EntityRefRestDTOMapper), or null if the mapper has no mode binding.
+     * Default show mode of the mapper serving the given entity class — the mode postponed entities are
+     * rendered at when the client did not request a more detailed one (e.g. by EntityRefRestDTOMapper
+     * via setPriorityMinMode). DETAILED where the mode enum has it, SHOW for HIDE/SHOW enums.
      */
-    public MapperMode getShortMode(Class<?> entityClass) {
+    public MapperMode getShowMode(Class<?> entityClass) {
         return defaultShowModeByEntityClass.get(entityClass);
     }
 }

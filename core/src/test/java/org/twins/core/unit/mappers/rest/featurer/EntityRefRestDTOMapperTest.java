@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 /**
  * EntityRefRestDTOMapper: delegates the pattern load of lazy EntityRefs to EntityServiceRegistry
  * (bulk loading itself is covered by EntityServiceRegistryTest) and postpones the loaded entities
- * into their typed related maps at (at least) the SHORT mode from EntityRestMapperRegistry;
+ * into their typed related maps at the default show mode (DETAILED) from EntityRestMapperRegistry;
  * single-ref convert produces the entity DTO via the registry mapper.
  * Fail fast: load exceptions propagate.
  */
@@ -43,8 +43,8 @@ public class EntityRefRestDTOMapperTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(mapper, "entityRestMapperRegistry", entityRestMapperRegistry);
-        doReturn(TwinClassMode.SHORT).when(entityRestMapperRegistry).getShortMode(TwinClassEntity.class);
-        doReturn(TwinPointerMode.SHORT).when(entityRestMapperRegistry).getShortMode(TwinPointerEntity.class);
+        doReturn(TwinClassMode.DETAILED).when(entityRestMapperRegistry).getShowMode(TwinClassEntity.class);
+        doReturn(TwinPointerMode.DETAILED).when(entityRestMapperRegistry).getShowMode(TwinPointerEntity.class);
     }
 
     /**
@@ -70,7 +70,7 @@ public class EntityRefRestDTOMapperTest {
     }
 
     @Test
-    public void resolvePostponesLoadedEntitiesAtShortMode() throws Exception {
+    public void resolvePostponesLoadedEntitiesAtDefaultShowMode() throws Exception {
         UUID twinClassId1 = UUID.randomUUID();
         UUID twinClassId2 = UUID.randomUUID();
         UUID twinPointerId = UUID.randomUUID();
@@ -95,7 +95,7 @@ public class EntityRefRestDTOMapperTest {
         assertEquals(1, mapperContext.getRelatedTwinPointerMap().size());
         RelatedObject<TwinClassEntity> relatedTwinClass = mapperContext.getRelatedTwinClassMap().get(twinClassId1);
         assertNotNull(relatedTwinClass);
-        assertEquals(TwinClassMode.SHORT, relatedTwinClass.getModes().get(TwinClassMode.class));
+        assertEquals(TwinClassMode.DETAILED, relatedTwinClass.getModes().get(TwinClassMode.class)); // default show mode
         assertTrue(mapperContext.getRelatedEntityRefMap().isEmpty()); // drained
     }
 
