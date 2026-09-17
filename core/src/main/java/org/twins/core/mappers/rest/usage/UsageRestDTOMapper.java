@@ -20,7 +20,14 @@ public class UsageRestDTOMapper extends RestSimpleDTOMapper<Usage, UsageDTOv1> {
                             .setId(src.getId())
                             .setUsageType(src.getUsageType());
         }
-        if (mapperContext.hasMode(UsagesMode.DETAILED) && src.getEntity() != null)
-            mapperContext.addRelatedObject(src.getEntity());
+        if (mapperContext.hasMode(UsagesMode.DETAILED) && src.getEntity() != null) {
+            // the referencing entity must carry an explicit show mode of its own mapper class —
+            // mappers with hideMode = hasModeOrEmpty(HIDE) drop entities that have no mode at all.
+            // defaultShowMode is applied only when the caller has not configured that mode itself.
+            mapperContext
+                    .fork()
+                    .setModeIfNotPresent(src.getUsageType().getDefaultShowMode())
+                    .addRelatedObject(src.getEntity());
+        }
     }
 }
