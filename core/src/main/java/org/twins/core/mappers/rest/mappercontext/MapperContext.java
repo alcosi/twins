@@ -40,7 +40,6 @@ import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.service.SystemIdLookup;
 
 import java.util.*;
-import java.util.function.Function;
 
 @Slf4j
 public class MapperContext {
@@ -114,18 +113,6 @@ public class MapperContext {
             TwinPointerEntity.class,
             FeaturerParams.class,
             EntityRef.class);
-
-    /**
-     * Id getters of the postponable types that can not implement org.twins.core.domain.Identifiable:
-     * immutable transport objects without setId (FeaturerParams identity is its composite cache key,
-     * EntityRef carries a plain UUID id) and the cambium featurer entities (primitive int id, so
-     * lombok generates a primitive getId that can not implement Identifiable<Integer>).
-     */
-    private static final Map<Class<?>, Function<Object, Object>> TRANSPORT_ID_GETTERS = Map.of(
-            FeaturerParams.class, o -> ((FeaturerParams) o).cacheKey(),
-            EntityRef.class, o -> ((EntityRef) o).getId(),
-            FeaturerEntity.class, o -> ((FeaturerEntity) o).getId(),
-            FeaturerTypeEntity.class, o -> ((FeaturerTypeEntity) o).getId());
 
     /**
      * Resolves the registered related class for the given class: exact match first, then the superclass
@@ -233,13 +220,9 @@ public class MapperContext {
         if (relatedObject instanceof TwinEntity twin && SystemIdLookup.isSystemClass(twin.getTwinClassId()))
             return true; // system twins (user and business account) are skipped
         Class<?> relatedClass = resolveRelatedClass(relatedObject.getClass());
-        Object id = null;
-        if (relatedClass != null) {
-            if (relatedObject instanceof org.twins.core.domain.Identifiable<?> identifiable) // regular entities
-                id = identifiable.getId();
-            else
-                id = TRANSPORT_ID_GETTERS.get(relatedClass).apply(relatedObject);
-        }
+        Object id = relatedClass == null || !(relatedObject instanceof org.twins.core.domain.Identifiable<?> identifiable)
+                ? null
+                : identifiable.getId();
         if (id == null) {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;

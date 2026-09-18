@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -17,13 +18,18 @@ import java.util.UUID;
 @Getter
 @Accessors(chain = true)
 @RequiredArgsConstructor
-public class EntityRef {
+public class EntityRef implements Identifiable<UUID> {
     final Class<?> entityClass;
     final UUID id;
 
     /** Loaded entity; null until EntityRefRestDTOMapper resolves the reference. */
     @Setter
     Object entity;
+
+    @Override
+    public Identifiable<UUID> setId(UUID id) {
+        throw new UnsupportedOperationException("EntityRef is immutable");
+    }
 
     public String cacheKey() {
         return entityClass.getSimpleName() + ":" + id;
