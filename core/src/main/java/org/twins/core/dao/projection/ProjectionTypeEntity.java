@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "projection_type")
-public class ProjectionTypeEntity implements EasyLoggable {
+public class ProjectionTypeEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

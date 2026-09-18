@@ -18,6 +18,12 @@ public class FeaturerParams {
     final Integer featurerId;
     final HashMap<String, String> params;
 
+    /**
+     * Identity of a postponed pair: the composite cache key, NOT the bare featurer id — the same
+     * featurer in different roles (e.g. fieldTyper and twinSorter) carries different params and
+     * both pairs must survive the dedup. Used as the MapperContext related-map key (FeaturerParams
+     * is immutable, so it can not implement Identifiable with setId).
+     */
     public String cacheKey() {
         return featurerId + "|" + (params == null ? 0 : params.hashCode());
     }

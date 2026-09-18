@@ -23,7 +23,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_factory_multiplier")
-public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

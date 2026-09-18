@@ -20,7 +20,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_status")
 @FieldNameConstants
-public class TwinStatusEntity implements EasyLoggable, Identifiable {
+public class TwinStatusEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_recompute_on_action_validator_rule")
 @FieldNameConstants
-public class TwinRecomputeOnActionValidatorRuleEntity implements EasyLoggable, Identifiable, ContainsTwinValidatorSet {
+public class TwinRecomputeOnActionValidatorRuleEntity implements EasyLoggable, Identifiable<UUID>, ContainsTwinValidatorSet {
 
     @Id
     @Column(name = "id")

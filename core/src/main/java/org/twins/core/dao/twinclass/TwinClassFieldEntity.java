@@ -28,7 +28,7 @@ import java.util.*;
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants
-public class TwinClassFieldEntity implements EasyLoggable, Identifiable {
+public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
     private UUID id;

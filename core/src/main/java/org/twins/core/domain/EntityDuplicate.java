@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class EntityDuplicate<E extends Identifiable, P> {
+public class EntityDuplicate<E extends Identifiable<UUID>, P> {
     private UUID originalEntityId;
     private UUID newParentEntityId; //optional - target parent when copying to a different parent
     private String newKey; //optional

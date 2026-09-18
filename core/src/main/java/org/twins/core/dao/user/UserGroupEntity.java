@@ -11,6 +11,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.user.UserGroupType;
 
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "user_group")
 @FieldNameConstants
-public class UserGroupEntity implements EasyLoggable {
+public class UserGroupEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

@@ -48,82 +48,84 @@ public class MapperContext {
     @Getter
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
+    private MapperModeMap modes = new MapperModeMap();
+    private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
     /**
      * Postponed related objects: outer key is the registered class of the postponed object (see
-     * {@link #RELATED_ID_GETTERS}), inner key is the object id (dedup + mode merging in smartPut).
+     * {@link #RELATED_CLASSES}), inner key is the object id (dedup + mode merging in smartPut).
      * Inner maps are created lazily; cloneIgnoreRelatedObjects starts a fresh outer map (level isolation),
      * fork() shares it by reference (see linkToRelatedObjects).
      */
     private Map<Class<?>, Map<Object, RelatedObject<?>>> relatedMaps = new LinkedHashMap<>();
 
-    /** Id getters of all postponable classes; doubles as the whitelist checked by addRelatedObject. */
-    private static final Map<Class<?>, Function<Object, Object>> RELATED_ID_GETTERS = buildRelatedIdGetters();
+    /** All postponable classes; everything else is rejected by addRelatedObject (so convertOrPostpone falls back to inline conversion). */
+    private static final Set<Class<?>> RELATED_CLASSES = Set.of(
+            UserEntity.class,
+            UserGroupEntity.class,
+            TwinClassEntity.class,
+            TwinStatusEntity.class,
+            LinkEntity.class,
+            TwinTriggerEntity.class,
+            TwinEntity.class,
+            TwinflowTransitionEntity.class,
+            TwinflowFactoryEntity.class,
+            DataListEntity.class,
+            DataListOptionEntity.class,
+            DataListSubsetEntity.class,
+            SpaceRoleEntity.class,
+            BusinessAccountEntity.class,
+            PermissionGroupEntity.class,
+            PermissionSchemaEntity.class,
+            PermissionEntity.class,
+            TwinflowEntity.class,
+            TwinFactoryEntity.class,
+            TwinFactoryPipelineEntity.class,
+            TwinFactoryConditionSetEntity.class,
+            TwinFactoryMultiplierEntity.class,
+            TwinFactoryBranchEntity.class,
+            TwinFactoryPipelineStepEntity.class,
+            TwinFactoryMultiplierFilterEntity.class,
+            TwinFactoryEraserEntity.class,
+            TwinFactoryTriggerEntity.class,
+            TwinFactoryConditionEntity.class,
+            FeaturerEntity.class,
+            FeaturerTypeEntity.class,
+            FaceEntity.class,
+            TwinClassFieldEntity.class,
+            TwinCommentEntity.class,
+            TwinClassSchemaEntity.class,
+            TwinflowSchemaEntity.class,
+            TierEntity.class,
+            TwinAttachmentRestrictionEntity.class,
+            TwinClassFreezeEntity.class,
+            TwinClassFieldRuleEntity.class,
+            TwinValidatorSetEntity.class,
+            ProjectionTypeGroupEntity.class,
+            ProjectionTypeEntity.class,
+            SchedulerEntity.class,
+            HistoryNotificationRecipientEntity.class,
+            NotificationSchemaEntity.class,
+            NotificationChannelEntity.class,
+            NotificationContextEntity.class,
+            NotificationChannelEventEntity.class,
+            HistoryTypeEntity.class,
+            ActionRestrictionReasonEntity.class,
+            TwinPointerEntity.class,
+            FeaturerParams.class,
+            EntityRef.class);
 
-    private static Map<Class<?>, Function<Object, Object>> buildRelatedIdGetters() {
-        Map<Class<?>, Function<Object, Object>> idGetters = new HashMap<>();
-        register(idGetters, UserEntity.class, UserEntity::getId);
-        register(idGetters, UserGroupEntity.class, UserGroupEntity::getId);
-        register(idGetters, TwinClassEntity.class, TwinClassEntity::getId);
-        register(idGetters, TwinStatusEntity.class, TwinStatusEntity::getId);
-        register(idGetters, LinkEntity.class, LinkEntity::getId);
-        register(idGetters, TwinTriggerEntity.class, TwinTriggerEntity::getId);
-        register(idGetters, TwinEntity.class, TwinEntity::getId);
-        register(idGetters, TwinflowTransitionEntity.class, TwinflowTransitionEntity::getId);
-        register(idGetters, TwinflowFactoryEntity.class, TwinflowFactoryEntity::getId);
-        register(idGetters, DataListEntity.class, DataListEntity::getId);
-        register(idGetters, DataListOptionEntity.class, DataListOptionEntity::getId);
-        register(idGetters, DataListSubsetEntity.class, DataListSubsetEntity::getId);
-        register(idGetters, SpaceRoleEntity.class, SpaceRoleEntity::getId);
-        register(idGetters, BusinessAccountEntity.class, BusinessAccountEntity::getId);
-        register(idGetters, PermissionGroupEntity.class, PermissionGroupEntity::getId);
-        register(idGetters, PermissionSchemaEntity.class, PermissionSchemaEntity::getId);
-        register(idGetters, PermissionEntity.class, PermissionEntity::getId);
-        register(idGetters, TwinflowEntity.class, TwinflowEntity::getId);
-        register(idGetters, TwinFactoryEntity.class, TwinFactoryEntity::getId);
-        register(idGetters, TwinFactoryPipelineEntity.class, TwinFactoryPipelineEntity::getId);
-        register(idGetters, TwinFactoryConditionSetEntity.class, TwinFactoryConditionSetEntity::getId);
-        register(idGetters, TwinFactoryMultiplierEntity.class, TwinFactoryMultiplierEntity::getId);
-        register(idGetters, TwinFactoryBranchEntity.class, TwinFactoryBranchEntity::getId);
-        register(idGetters, TwinFactoryPipelineStepEntity.class, TwinFactoryPipelineStepEntity::getId);
-        register(idGetters, TwinFactoryMultiplierFilterEntity.class, TwinFactoryMultiplierFilterEntity::getId);
-        register(idGetters, TwinFactoryEraserEntity.class, TwinFactoryEraserEntity::getId);
-        register(idGetters, TwinFactoryTriggerEntity.class, TwinFactoryTriggerEntity::getId);
-        register(idGetters, TwinFactoryConditionEntity.class, TwinFactoryConditionEntity::getId);
-        register(idGetters, FeaturerEntity.class, FeaturerEntity::getId);
-        register(idGetters, FeaturerTypeEntity.class, FeaturerTypeEntity::getId);
-        register(idGetters, FaceEntity.class, FaceEntity::getId);
-        register(idGetters, TwinClassFieldEntity.class, TwinClassFieldEntity::getId);
-        register(idGetters, TwinCommentEntity.class, TwinCommentEntity::getId);
-        register(idGetters, TwinClassSchemaEntity.class, TwinClassSchemaEntity::getId);
-        register(idGetters, TwinflowSchemaEntity.class, TwinflowSchemaEntity::getId);
-        register(idGetters, TierEntity.class, TierEntity::getId);
-        register(idGetters, TwinAttachmentRestrictionEntity.class, TwinAttachmentRestrictionEntity::getId);
-        register(idGetters, TwinClassFreezeEntity.class, TwinClassFreezeEntity::getId);
-        register(idGetters, TwinClassFieldRuleEntity.class, TwinClassFieldRuleEntity::getId);
-        register(idGetters, TwinValidatorSetEntity.class, TwinValidatorSetEntity::getId);
-        register(idGetters, ProjectionTypeGroupEntity.class, ProjectionTypeGroupEntity::getId);
-        register(idGetters, ProjectionTypeEntity.class, ProjectionTypeEntity::getId);
-        register(idGetters, SchedulerEntity.class, SchedulerEntity::getId);
-        register(idGetters, HistoryNotificationRecipientEntity.class, HistoryNotificationRecipientEntity::getId);
-        register(idGetters, NotificationSchemaEntity.class, NotificationSchemaEntity::getId);
-        register(idGetters, NotificationChannelEntity.class, NotificationChannelEntity::getId);
-        register(idGetters, NotificationContextEntity.class, NotificationContextEntity::getId);
-        register(idGetters, NotificationChannelEventEntity.class, NotificationChannelEventEntity::getId);
-        register(idGetters, HistoryTypeEntity.class, HistoryTypeEntity::getId);
-        register(idGetters, ActionRestrictionReasonEntity.class, ActionRestrictionReasonEntity::getId);
-        register(idGetters, TwinPointerEntity.class, TwinPointerEntity::getId);
-        //internal transport types: never exposed in relatedObjects, drained by RelatedObjectsRestDTOConverter
-        register(idGetters, FeaturerParams.class, FeaturerParams::cacheKey);
-        register(idGetters, EntityRef.class, EntityRef::cacheKey);
-        return Collections.unmodifiableMap(idGetters);
-    }
-
-    private static <E> void register(Map<Class<?>, Function<Object, Object>> idGetters, Class<E> relatedClass, Function<E, Object> idGetter) {
-        Function<Object, Object> previous = idGetters.put(relatedClass, object -> idGetter.apply(relatedClass.cast(object)));
-        if (previous != null)
-            log.error("Duplicate related id getter registration for class[{}]", relatedClass.getName());
-    }
+    /**
+     * Id getters of the postponable types that can not implement org.twins.core.domain.Identifiable:
+     * immutable transport objects without setId (FeaturerParams identity is its composite cache key,
+     * EntityRef carries a plain UUID id) and the cambium featurer entities (primitive int id, so
+     * lombok generates a primitive getId that can not implement Identifiable<Integer>).
+     */
+    private static final Map<Class<?>, Function<Object, Object>> TRANSPORT_ID_GETTERS = Map.of(
+            FeaturerParams.class, o -> ((FeaturerParams) o).cacheKey(),
+            EntityRef.class, o -> ((EntityRef) o).getId(),
+            FeaturerEntity.class, o -> ((FeaturerEntity) o).getId(),
+            FeaturerTypeEntity.class, o -> ((FeaturerTypeEntity) o).getId());
 
     /**
      * Resolves the registered related class for the given class: exact match first, then the superclass
@@ -131,13 +133,10 @@ public class MapperContext {
      */
     private static Class<?> resolveRelatedClass(Class<?> cls) {
         for (Class<?> c = cls; c != null; c = c.getSuperclass())
-            if (RELATED_ID_GETTERS.containsKey(c))
+            if (RELATED_CLASSES.contains(c))
                 return c;
         return null;
     }
-
-    private MapperModeMap modes = new MapperModeMap();
-    private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
     public static MapperContext create() {
         return new MapperContext();
@@ -234,11 +233,18 @@ public class MapperContext {
         if (relatedObject instanceof TwinEntity twin && SystemIdLookup.isSystemClass(twin.getTwinClassId()))
             return true; // system twins (user and business account) are skipped
         Class<?> relatedClass = resolveRelatedClass(relatedObject.getClass());
-        if (relatedClass == null) {
+        Object id = null;
+        if (relatedClass != null) {
+            if (relatedObject instanceof org.twins.core.domain.Identifiable<?> identifiable) // regular entities
+                id = identifiable.getId();
+            else
+                id = TRANSPORT_ID_GETTERS.get(relatedClass).apply(relatedObject);
+        }
+        if (id == null) {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
         }
-        smartPutRelated(relatedClass, relatedObject, RELATED_ID_GETTERS.get(relatedClass).apply(relatedObject));
+        smartPutRelated(relatedClass, relatedObject, id);
         if (relatedObject instanceof EasyLoggable loggable)
             log.debug("{} will be converted later", loggable.logNormal());
         return true;

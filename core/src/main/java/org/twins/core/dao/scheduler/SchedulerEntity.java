@@ -10,6 +10,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 @FieldNameConstants
 @Data
-public class SchedulerEntity implements EasyLoggable {
+public class SchedulerEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
     private UUID id;

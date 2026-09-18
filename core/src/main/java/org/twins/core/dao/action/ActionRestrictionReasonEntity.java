@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "action_restriction_reason")
-public class ActionRestrictionReasonEntity implements EasyLoggable {
+public class ActionRestrictionReasonEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

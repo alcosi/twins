@@ -17,7 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_eraser")
-public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
+public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable<UUID>, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 

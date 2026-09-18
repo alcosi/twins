@@ -15,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public abstract class TwinFieldBaseEntity implements EasyLoggable, Identifiable {
+public abstract class TwinFieldBaseEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     protected UUID id;
 
