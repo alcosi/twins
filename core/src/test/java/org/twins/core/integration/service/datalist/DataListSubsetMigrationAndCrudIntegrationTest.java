@@ -54,9 +54,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DataListSubsetMigrationAndCrudIntegrationTest extends BaseIntegrationTest {
 
     private static final String BACKLOG_INDEXES =
-            "db/migration_backlog/V1.4.xx.04__TWINS-923_data_list_subset_search_sort_indexes.sql";
+            "db/migration_backlog/V1.4.370.02__TWINS-923_data_list_subset_search_sort_indexes.sql";
     private static final String BACKLOG_I18N_AUDIT =
-            "db/migration_backlog/V1.4.xx.05__TWINS-923_data_list_subset_i18n_audit.sql";
+            "db/migration_backlog/V1.4.370.03__TWINS-923_data_list_subset_i18n_audit.sql";
 
     @Autowired
     private DataListSubsetService dataListSubsetService;
