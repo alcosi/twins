@@ -70,7 +70,7 @@ public class RelatedObjectsRestDTOConverter {
     private final EntityServiceRegistry entityServiceRegistry;
     private final EntityRefRestDTOMapper entityRefRestDTOMapper;
 
-    private List<RelatedMapDescriptor<?, ?, ?, ?>> descriptors;
+    private List<RelatedMapDescriptor<?, ?, ?>> descriptors;
 
     @PostConstruct
     void initDescriptors() {
@@ -78,58 +78,58 @@ public class RelatedObjectsRestDTOConverter {
         //the owning descriptor applies the setter, the pairs descriptor drains into the same map with a null setter
         Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
         descriptors = List.of(
-                descriptor(MapperContext::getRelatedTwinClassMap, TwinClassEntity.class, RelatedObjectsDTOv1::setTwinClassMap),
-                descriptor(MapperContext::getRelatedTwinMap, TwinEntity.class, RelatedObjectsDTOv1::setTwinMap),
-                descriptor(MapperContext::getRelatedTwinStatusMap, TwinStatusEntity.class, RelatedObjectsDTOv1::setStatusMap),
-                descriptor(MapperContext::getRelatedLinkMap, LinkEntity.class, RelatedObjectsDTOv1::setLinkMap),
-                descriptor(MapperContext::getRelatedTwinTriggerMap, TwinTriggerEntity.class, RelatedObjectsDTOv1::setTriggerMap),
-                descriptor(MapperContext::getRelatedUserMap, UserEntity.class, RelatedObjectsDTOv1::setUserMap),
-                descriptor(MapperContext::getRelatedUserGroupMap, UserGroupEntity.class, RelatedObjectsDTOv1::setUserGroupMap),
-                descriptor(MapperContext::getRelatedTwinflowTransitionMap, TwinflowTransitionEntity.class, RelatedObjectsDTOv1::setTransitionsMap),
-                descriptor(MapperContext::getRelatedDataListMap, DataListEntity.class, RelatedObjectsDTOv1::setDataListsMap),
-                descriptor(MapperContext::getRelatedDataListOptionMap, DataListOptionEntity.class, RelatedObjectsDTOv1::setDataListsOptionMap),
-                descriptor(MapperContext::getRelatedSpaceRoleMap, SpaceRoleEntity.class, RelatedObjectsDTOv1::setSpaceRoleMap),
-                descriptor(MapperContext::getRelatedBusinessAccountMap, BusinessAccountEntity.class, RelatedObjectsDTOv1::setBusinessAccountMap),
-                descriptor(MapperContext::getRelatedPermissionGroupMap, PermissionGroupEntity.class, RelatedObjectsDTOv1::setPermissionGroupMap),
-                descriptor(MapperContext::getRelatedPermissionMap, PermissionEntity.class, RelatedObjectsDTOv1::setPermissionMap),
-                descriptor(MapperContext::getRelatedPermissionSchemaMap, PermissionSchemaEntity.class, RelatedObjectsDTOv1::setPermissionSchemaMap),
-                descriptor(MapperContext::getRelatedTwinflowMap, TwinflowEntity.class, RelatedObjectsDTOv1::setTwinflowMap),
-                descriptor(MapperContext::getRelatedTwinflowFactoryMap, TwinflowFactoryEntity.class, RelatedObjectsDTOv1::setTwinflowFactoryMap),
-                descriptor(MapperContext::getRelatedFactoryMap, TwinFactoryEntity.class, RelatedObjectsDTOv1::setFactoryMap),
-                descriptor(MapperContext::getRelatedFactoryPipelineMap, TwinFactoryPipelineEntity.class, RelatedObjectsDTOv1::setFactoryPipelineMap),
-                descriptor(MapperContext::getRelatedFactoryConditionSetMap, TwinFactoryConditionSetEntity.class, RelatedObjectsDTOv1::setFactoryConditionSetMap),
-                descriptor(MapperContext::getRelatedFactoryMultiplierMap, TwinFactoryMultiplierEntity.class, RelatedObjectsDTOv1::setFactoryMultiplierMap),
-                descriptor(MapperContext::getRelatedFactoryBranchMap, TwinFactoryBranchEntity.class, RelatedObjectsDTOv1::setFactoryBranchMap),
-                descriptor(MapperContext::getRelatedFactoryPipelineStepMap, TwinFactoryPipelineStepEntity.class, RelatedObjectsDTOv1::setFactoryPipelineStepMap),
-                descriptor(MapperContext::getRelatedFactoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity.class, RelatedObjectsDTOv1::setFactoryMultiplierFilterMap),
-                descriptor(MapperContext::getRelatedFactoryEraserMap, TwinFactoryEraserEntity.class, RelatedObjectsDTOv1::setFactoryEraserMap),
-                descriptor(MapperContext::getRelatedFactoryTriggerMap, TwinFactoryTriggerEntity.class, RelatedObjectsDTOv1::setFactoryTriggerMap),
-                descriptor(MapperContext::getRelatedFactoryConditionMap, TwinFactoryConditionEntity.class, RelatedObjectsDTOv1::setFactoryConditionMap),
-                descriptor(MapperContext::getRelatedFaceMap, FaceEntity.class, RelatedObjectsDTOv1::setFaceMap),
-                descriptor(MapperContext::getRelatedCommentMap, TwinCommentEntity.class, RelatedObjectsDTOv1::setCommentMap),
-                descriptor(MapperContext::getRelatedFeaturerMap, entityRestMapperRegistry.getFeaturerRestDTOMapper(), FeaturerEntity::getId, featurerMap, RelatedObjectsDTOv1::setFeaturerMap),
-                descriptor(MapperContext::getRelatedFeaturerTypeMap, entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), FeaturerTypeEntity::getId, RelatedObjectsDTOv1::setFeaturerTypeMap), // Integer id: no EntitySecureFindServiceImpl service to derive from
-                descriptor(MapperContext::getRelatedTwinClassFieldMap, TwinClassFieldEntity.class, RelatedObjectsDTOv1::setTwinClassFieldMap),
-                descriptor(MapperContext::getRelatedTwinClassSchemaMap, TwinClassSchemaEntity.class, RelatedObjectsDTOv1::setTwinClassSchemaMap),
-                descriptor(MapperContext::getRelatedTwinflowSchemaMap, TwinflowSchemaEntity.class, RelatedObjectsDTOv1::setTwinflowSchemaMap),
-                descriptor(MapperContext::getRelatedTierMap, TierEntity.class, RelatedObjectsDTOv1::setTierMap),
-                descriptor(MapperContext::getRelatedAttachmentRestrictionMap, TwinAttachmentRestrictionEntity.class, RelatedObjectsDTOv1::setAttachmentRestrictionMap),
-                descriptor(MapperContext::getRelatedTwinClassFreezeMap, TwinClassFreezeEntity.class, RelatedObjectsDTOv1::setTwinClassFreezeMap),
-                descriptor(MapperContext::getRelatedClassFieldRuleMap, TwinClassFieldRuleEntity.class, RelatedObjectsDTOv1::setFieldRuleMap),
-                descriptor(MapperContext::getRelatedProjectionTypeGroupMap, ProjectionTypeGroupEntity.class, RelatedObjectsDTOv1::setProjectionTypeGroupMap),
-                descriptor(MapperContext::getRelatedProjectionTypeMap, ProjectionTypeEntity.class, RelatedObjectsDTOv1::setProjectionTypeMap),
-                descriptor(MapperContext::getRelatedSchedulerMap, SchedulerEntity.class, RelatedObjectsDTOv1::setSchedulerMap),
-                descriptor(MapperContext::getRelatedHistoryNotificationRecipientMap, HistoryNotificationRecipientEntity.class, RelatedObjectsDTOv1::setHistoryNotificationRecipientMap),
-                descriptor(MapperContext::getRelatedNotificationSchemaMap, NotificationSchemaEntity.class, RelatedObjectsDTOv1::setNotificationSchemaMap),
-                descriptor(MapperContext::getRelatedNotificationChannelMap, NotificationChannelEntity.class, RelatedObjectsDTOv1::setNotificationChannelMap),
-                descriptor(MapperContext::getRelatedNotificationContextMap, NotificationContextEntity.class, RelatedObjectsDTOv1::setNotificationContextMap),
-                descriptor(MapperContext::getRelatedNotificationChannelEventMap, NotificationChannelEventEntity.class, RelatedObjectsDTOv1::setNotificationChannelEventMap),
-                descriptor(MapperContext::getRelatedTwinValidatorSetMap, TwinValidatorSetEntity.class, RelatedObjectsDTOv1::setTwinValidatorSetMap),
-                descriptor(MapperContext::getRelatedHistoryTypeMap, entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), HistoryTypeEntity::getId, RelatedObjectsDTOv1::setHistoryTypeMap), // String id: does not fit Function<T, UUID>
-                descriptor(MapperContext::getRelatedActionRestrictionReasonMap, ActionRestrictionReasonEntity.class, RelatedObjectsDTOv1::setActionRestrictionReasonMap),
-                descriptor(MapperContext::getRelatedTwinPointerMap, TwinPointerEntity.class, RelatedObjectsDTOv1::setTwinPointerMap),
-                descriptor(MapperContext::getRelatedDataListSubsetMap, DataListSubsetEntity.class, RelatedObjectsDTOv1::setDataListSubsetMap),
-                descriptor(MapperContext::getRelatedFeaturerParamsMap, entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), FeaturerParams::getFeaturerId, featurerMap, null) // shares the featurerMap accumulator
+                descriptor(TwinClassEntity.class, RelatedObjectsDTOv1::setTwinClassMap),
+                descriptor(TwinEntity.class, RelatedObjectsDTOv1::setTwinMap),
+                descriptor(TwinStatusEntity.class, RelatedObjectsDTOv1::setStatusMap),
+                descriptor(LinkEntity.class, RelatedObjectsDTOv1::setLinkMap),
+                descriptor(TwinTriggerEntity.class, RelatedObjectsDTOv1::setTriggerMap),
+                descriptor(UserEntity.class, RelatedObjectsDTOv1::setUserMap),
+                descriptor(UserGroupEntity.class, RelatedObjectsDTOv1::setUserGroupMap),
+                descriptor(TwinflowTransitionEntity.class, RelatedObjectsDTOv1::setTransitionsMap),
+                descriptor(DataListEntity.class, RelatedObjectsDTOv1::setDataListsMap),
+                descriptor(DataListOptionEntity.class, RelatedObjectsDTOv1::setDataListsOptionMap),
+                descriptor(SpaceRoleEntity.class, RelatedObjectsDTOv1::setSpaceRoleMap),
+                descriptor(BusinessAccountEntity.class, RelatedObjectsDTOv1::setBusinessAccountMap),
+                descriptor(PermissionGroupEntity.class, RelatedObjectsDTOv1::setPermissionGroupMap),
+                descriptor(PermissionEntity.class, RelatedObjectsDTOv1::setPermissionMap),
+                descriptor(PermissionSchemaEntity.class, RelatedObjectsDTOv1::setPermissionSchemaMap),
+                descriptor(TwinflowEntity.class, RelatedObjectsDTOv1::setTwinflowMap),
+                descriptor(TwinflowFactoryEntity.class, RelatedObjectsDTOv1::setTwinflowFactoryMap),
+                descriptor(TwinFactoryEntity.class, RelatedObjectsDTOv1::setFactoryMap),
+                descriptor(TwinFactoryPipelineEntity.class, RelatedObjectsDTOv1::setFactoryPipelineMap),
+                descriptor(TwinFactoryConditionSetEntity.class, RelatedObjectsDTOv1::setFactoryConditionSetMap),
+                descriptor(TwinFactoryMultiplierEntity.class, RelatedObjectsDTOv1::setFactoryMultiplierMap),
+                descriptor(TwinFactoryBranchEntity.class, RelatedObjectsDTOv1::setFactoryBranchMap),
+                descriptor(TwinFactoryPipelineStepEntity.class, RelatedObjectsDTOv1::setFactoryPipelineStepMap),
+                descriptor(TwinFactoryMultiplierFilterEntity.class, RelatedObjectsDTOv1::setFactoryMultiplierFilterMap),
+                descriptor(TwinFactoryEraserEntity.class, RelatedObjectsDTOv1::setFactoryEraserMap),
+                descriptor(TwinFactoryTriggerEntity.class, RelatedObjectsDTOv1::setFactoryTriggerMap),
+                descriptor(TwinFactoryConditionEntity.class, RelatedObjectsDTOv1::setFactoryConditionMap),
+                descriptor(FaceEntity.class, RelatedObjectsDTOv1::setFaceMap),
+                descriptor(TwinCommentEntity.class, RelatedObjectsDTOv1::setCommentMap),
+                descriptor(FeaturerEntity.class, entityRestMapperRegistry.getFeaturerRestDTOMapper(), FeaturerEntity::getId, featurerMap, RelatedObjectsDTOv1::setFeaturerMap),
+                descriptor(FeaturerTypeEntity.class, entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), FeaturerTypeEntity::getId, RelatedObjectsDTOv1::setFeaturerTypeMap), // Integer id: no EntitySecureFindServiceImpl service to derive from
+                descriptor(TwinClassFieldEntity.class, RelatedObjectsDTOv1::setTwinClassFieldMap),
+                descriptor(TwinClassSchemaEntity.class, RelatedObjectsDTOv1::setTwinClassSchemaMap),
+                descriptor(TwinflowSchemaEntity.class, RelatedObjectsDTOv1::setTwinflowSchemaMap),
+                descriptor(TierEntity.class, RelatedObjectsDTOv1::setTierMap),
+                descriptor(TwinAttachmentRestrictionEntity.class, RelatedObjectsDTOv1::setAttachmentRestrictionMap),
+                descriptor(TwinClassFreezeEntity.class, RelatedObjectsDTOv1::setTwinClassFreezeMap),
+                descriptor(TwinClassFieldRuleEntity.class, RelatedObjectsDTOv1::setFieldRuleMap),
+                descriptor(ProjectionTypeGroupEntity.class, RelatedObjectsDTOv1::setProjectionTypeGroupMap),
+                descriptor(ProjectionTypeEntity.class, RelatedObjectsDTOv1::setProjectionTypeMap),
+                descriptor(SchedulerEntity.class, RelatedObjectsDTOv1::setSchedulerMap),
+                descriptor(HistoryNotificationRecipientEntity.class, RelatedObjectsDTOv1::setHistoryNotificationRecipientMap),
+                descriptor(NotificationSchemaEntity.class, RelatedObjectsDTOv1::setNotificationSchemaMap),
+                descriptor(NotificationChannelEntity.class, RelatedObjectsDTOv1::setNotificationChannelMap),
+                descriptor(NotificationContextEntity.class, RelatedObjectsDTOv1::setNotificationContextMap),
+                descriptor(NotificationChannelEventEntity.class, RelatedObjectsDTOv1::setNotificationChannelEventMap),
+                descriptor(TwinValidatorSetEntity.class, RelatedObjectsDTOv1::setTwinValidatorSetMap),
+                descriptor(HistoryTypeEntity.class, entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), HistoryTypeEntity::getId, RelatedObjectsDTOv1::setHistoryTypeMap), // String id: does not fit Function<T, UUID>
+                descriptor(ActionRestrictionReasonEntity.class, RelatedObjectsDTOv1::setActionRestrictionReasonMap),
+                descriptor(TwinPointerEntity.class, RelatedObjectsDTOv1::setTwinPointerMap),
+                descriptor(DataListSubsetEntity.class, RelatedObjectsDTOv1::setDataListSubsetMap),
+                descriptor(FeaturerParams.class, entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), FeaturerParams::getFeaturerId, featurerMap, null) // shares the featurerMap accumulator
         );
     }
 
@@ -140,8 +140,8 @@ public class RelatedObjectsRestDTOConverter {
      * keyed by the featurer id. {@code destinationSetter} is null for descriptors sharing an accumulated
      * map with the owning descriptor (featurerMap collects both FeaturerEntity and FeaturerParams conversions).
      */
-    private record RelatedMapDescriptor<E, SK, DK, D>(
-            Function<MapperContext, Map<SK, RelatedObject<E>>> sourceMapGetter,
+    private record RelatedMapDescriptor<E, DK, D>(
+            Class<E> relatedClass,
             RestSimpleDTOMapper<E, ? extends D> mapper,
             Function<? super E, ? extends DK> idGetter,
             Map<DK, D> accumulatedMap,
@@ -149,8 +149,8 @@ public class RelatedObjectsRestDTOConverter {
 
         @SuppressWarnings("unchecked")
         private void drain(MapperContext sourceContext, MapperContext mapperContext) throws Exception {
-            Map<SK, RelatedObject<E>> source = sourceMapGetter.apply(sourceContext);
-            if (source.isEmpty())
+            Map<Object, RelatedObject<E>> source = sourceContext.getRelatedMap(relatedClass);
+            if (source == null || source.isEmpty())
                 return;
             Map<Object, Object> accumulated = (Map<Object, Object>) accumulatedMap;
             Function<Object, Object> id = (Function<Object, Object>) idGetter;
@@ -166,22 +166,22 @@ public class RelatedObjectsRestDTOConverter {
         }
     }
 
-    private static <E, SK, DK, D> RelatedMapDescriptor<E, SK, DK, D> descriptor(
-            Function<MapperContext, Map<SK, RelatedObject<E>>> sourceMapGetter,
+    private static <E, DK, D> RelatedMapDescriptor<E, DK, D> descriptor(
+            Class<E> relatedClass,
             RestSimpleDTOMapper<E, ? extends D> mapper,
             Function<? super E, ? extends DK> idGetter,
             BiConsumer<RelatedObjectsDTOv1, Map<DK, D>> destinationSetter) {
-        return new RelatedMapDescriptor<>(sourceMapGetter, mapper, idGetter, new HashMap<>(), destinationSetter);
+        return new RelatedMapDescriptor<>(relatedClass, mapper, idGetter, new HashMap<>(), destinationSetter);
     }
 
     /** Overload for descriptors sharing an accumulated map with another descriptor (see featurerMap). */
-    private static <E, SK, DK, D> RelatedMapDescriptor<E, SK, DK, D> descriptor(
-            Function<MapperContext, Map<SK, RelatedObject<E>>> sourceMapGetter,
+    private static <E, DK, D> RelatedMapDescriptor<E, DK, D> descriptor(
+            Class<E> relatedClass,
             RestSimpleDTOMapper<E, ? extends D> mapper,
             Function<? super E, ? extends DK> idGetter,
             Map<DK, D> accumulatedMap,
             BiConsumer<RelatedObjectsDTOv1, Map<DK, D>> destinationSetter) {
-        return new RelatedMapDescriptor<>(sourceMapGetter, mapper, idGetter, accumulatedMap, destinationSetter);
+        return new RelatedMapDescriptor<>(relatedClass, mapper, idGetter, accumulatedMap, destinationSetter);
     }
 
     /**
@@ -191,8 +191,7 @@ public class RelatedObjectsRestDTOConverter {
      * FeaturerParams is not an entity) and historyType (String id): those use the explicit overloads.
      */
     @SuppressWarnings("unchecked")
-    private <E, D> RelatedMapDescriptor<E, UUID, UUID, D> descriptor(
-            Function<MapperContext, Map<UUID, RelatedObject<E>>> sourceMapGetter,
+    private <E, D> RelatedMapDescriptor<E, UUID, D> descriptor(
             Class<E> entityClass,
             BiConsumer<RelatedObjectsDTOv1, Map<UUID, D>> destinationSetter) {
         RestSimpleDTOMapper<E, ?> mapper = (RestSimpleDTOMapper<E, ?>) entityRestMapperRegistry.getMapper(entityClass);
@@ -203,7 +202,7 @@ public class RelatedObjectsRestDTOConverter {
         if (service == null)
             throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
                     + "] has no service registered in EntityServiceRegistry");
-        return new RelatedMapDescriptor<E, UUID, UUID, D>(sourceMapGetter, (RestSimpleDTOMapper<E, ? extends D>) mapper,
+        return new RelatedMapDescriptor<E, UUID, D>(entityClass, (RestSimpleDTOMapper<E, ? extends D>) mapper,
                 service.entityGetIdFunction(), new HashMap<>(), destinationSetter);
     }
 
@@ -226,13 +225,13 @@ public class RelatedObjectsRestDTOConverter {
         entityRefRestDTOMapper.resolve(mapperContextLevel3);
         drain(mapperContextLevel3, mapperContextLevel3);
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
-        for (RelatedMapDescriptor<?, ?, ?, ?> descriptor : descriptors)
+        for (RelatedMapDescriptor<?, ?, ?> descriptor : descriptors)
             descriptor.applyResult(ret);
         return ret;
     }
 
     private void drain(MapperContext sourceContext, MapperContext mapperContext) throws Exception {
-        for (RelatedMapDescriptor<?, ?, ?, ?> descriptor : descriptors)
+        for (RelatedMapDescriptor<?, ?, ?> descriptor : descriptors)
             descriptor.drain(sourceContext, mapperContext);
     }
 }

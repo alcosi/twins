@@ -91,12 +91,12 @@ public class EntityRefRestDTOMapperTest {
         mapper.resolve(mapperContext);
 
         verify(entityServiceRegistry, times(1)).load(anyCollection()); // one bulk load for all refs
-        assertEquals(2, mapperContext.getRelatedTwinClassMap().size());
-        assertEquals(1, mapperContext.getRelatedTwinPointerMap().size());
-        RelatedObject<TwinClassEntity> relatedTwinClass = mapperContext.getRelatedTwinClassMap().get(twinClassId1);
+        assertEquals(2, mapperContext.getRelatedMap(TwinClassEntity.class).size());
+        assertEquals(1, mapperContext.getRelatedMap(TwinPointerEntity.class).size());
+        RelatedObject<TwinClassEntity> relatedTwinClass = mapperContext.getRelatedMap(TwinClassEntity.class).get(twinClassId1);
         assertNotNull(relatedTwinClass);
         assertEquals(TwinClassMode.DETAILED, relatedTwinClass.getModes().get(TwinClassMode.class)); // default show mode
-        assertTrue(mapperContext.getRelatedEntityRefMap().isEmpty()); // drained
+        assertTrue(mapperContext.getRelatedMap(EntityRef.class).isEmpty()); // drained
     }
 
     @Test
@@ -112,7 +112,7 @@ public class EntityRefRestDTOMapperTest {
 
         mapper.resolve(mapperContext);
 
-        assertEquals(TwinClassMode.DETAILED, mapperContext.getRelatedTwinClassMap().get(twinClassId).getModes().get(TwinClassMode.class));
+        assertEquals(TwinClassMode.DETAILED, mapperContext.getRelatedMap(TwinClassEntity.class).get(twinClassId).getModes().get(TwinClassMode.class));
     }
 
     @Test
@@ -128,7 +128,7 @@ public class EntityRefRestDTOMapperTest {
         mapper.resolve(mapperContext);
 
         verify(entityServiceRegistry, times(1)).load(anyCollection());
-        assertEquals(1, mapperContext.getRelatedTwinClassMap().size()); // smartPut dedup
+        assertEquals(1, mapperContext.getRelatedMap(TwinClassEntity.class).size()); // smartPut dedup
     }
 
     @Test

@@ -70,8 +70,8 @@ public class EntityRefRestDTOMapper extends RestSimpleDTOMapper<EntityRef, Objec
      * refs of the given context and postpones the loaded entities into their typed related maps.
      */
     public void resolve(MapperContext mapperContext) throws ServiceException {
-        Map<String, RelatedObject<EntityRef>> relatedEntityRefMap = mapperContext.getRelatedEntityRefMap();
-        if (relatedEntityRefMap.isEmpty())
+        Map<Object, RelatedObject<EntityRef>> relatedEntityRefMap = mapperContext.getRelatedMap(EntityRef.class);
+        if (relatedEntityRefMap == null || relatedEntityRefMap.isEmpty())
             return;
         List<EntityRef> entityRefs = new ArrayList<>(relatedEntityRefMap.size());
         for (RelatedObject<EntityRef> relatedObject : relatedEntityRefMap.values())
