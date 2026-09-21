@@ -24,7 +24,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_recompute_on_field")
 @FieldNameConstants
-public class TwinRecomputeOnFieldEntity implements EasyLoggable, Identifiable {
+public class TwinRecomputeOnFieldEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
     @Column(name = "id")

@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.i18n.I18nType;
 
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "i18n")
 @FieldNameConstants
-public class I18nEntity {
+public class I18nEntity implements Identifiable<UUID> {
     @Id
     @Column(name = "id")
     private UUID id;

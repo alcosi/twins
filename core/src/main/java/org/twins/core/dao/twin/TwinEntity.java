@@ -75,7 +75,7 @@ import java.util.function.Function;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable<UUID> {
     @Id
     private UUID id;
 

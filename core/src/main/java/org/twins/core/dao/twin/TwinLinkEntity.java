@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable, Identifiable {
+public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

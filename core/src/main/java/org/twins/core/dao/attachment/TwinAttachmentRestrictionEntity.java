@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment_restriction")
-public class TwinAttachmentRestrictionEntity implements EasyLoggable {
+public class TwinAttachmentRestrictionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

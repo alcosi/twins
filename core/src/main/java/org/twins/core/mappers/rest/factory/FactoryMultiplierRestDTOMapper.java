@@ -9,7 +9,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -33,7 +33,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.FactoryMultiplier2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
     private final FactoryMultiplierService factoryMultiplierService;
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
 
@@ -73,7 +73,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
             dst.setMultiplierFeaturerId(src.getMultiplierFeaturerId());
-            featurerRestDTOMapper.postpone(src.getMultiplierFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getMultiplierFeaturerId(), src.getMultiplierParams(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FactoryMultiplierFilterMode.FactoryMultiplier2FactoryMultiplierFilterMode.HIDE)) {
             factoryMultiplierFilterService.loadFactoryMultiplierFilters(src);

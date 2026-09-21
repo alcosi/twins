@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "data_list")
 @FieldNameConstants
-public class DataListEntity implements EasyLoggable {
+public class DataListEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

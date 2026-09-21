@@ -23,6 +23,7 @@ public class TwinClassFieldValidatorSaveRestDTOReverseMapper extends RestSimpleD
                                 .setTwinClassFieldId(src.getTwinClassFieldId())
                                 .setFieldValidatorFeaturerId(src.getFieldValidatorFeaturerId())
                                 .setFieldValidatorParams(src.getFieldValidatorParams())
+                                .setActive(src.getActive())
                 );
     }
 }

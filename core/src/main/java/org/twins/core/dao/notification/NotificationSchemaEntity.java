@@ -9,6 +9,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class NotificationSchemaEntity implements EasyLoggable {
+public class NotificationSchemaEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

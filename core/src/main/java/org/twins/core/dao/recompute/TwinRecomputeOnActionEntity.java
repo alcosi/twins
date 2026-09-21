@@ -22,7 +22,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_recompute_on_action")
 @FieldNameConstants
-public class TwinRecomputeOnActionEntity implements EasyLoggable, Identifiable {
+public class TwinRecomputeOnActionEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
     @Column(name = "id")

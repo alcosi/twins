@@ -5,13 +5,10 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryCascadeMode;
 import org.twins.core.service.factory.FactoryService;
 
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * Wraps {@link FactoryRestDTOMapper}: when {@link FactoryCascadeMode#SHOW} is active, walks the
@@ -35,12 +32,9 @@ public class FactoryCascadeMapper {
                     List.of(root), FactoryService.FACTORY_CASCADE_HARD_CAP);
             factoryService.countFactoryUsages(cascade);
             factoryService.loadCreatedByUser(cascade);
-            Map<UUID, RelatedObject<TwinFactoryEntity>> factoryMap = mapperContext.getRelatedFactoryMap();
-            for (TwinFactoryEntity factory : cascade) {
-                if (!factory.getId().equals(root.getId())) {
-                    mapperContext.smartPut(factoryMap, factory, factory.getId());
-                }
-            }
+            for (TwinFactoryEntity factory : cascade)
+                if (!factory.getId().equals(root.getId()))
+                    mapperContext.addRelatedObject(factory);
         }
         return factoryRestDTOMapper.convert(root, mapperContext);
     }

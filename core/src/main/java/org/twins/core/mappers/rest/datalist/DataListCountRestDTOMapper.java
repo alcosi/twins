@@ -39,7 +39,7 @@ public class DataListCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<
                 .setCreatedByUserId(entity.getCreatedByUserId())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, UserMode.DataList2UserMode.HIDE, src, DataListGroupField.createdByUserId)) {
-            dataListService.loadCreatedByUser(entity);
+            dataListService.loadUser(entity);
             userRestDTOMapper.convertOrPostpone(entity.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DataList2UserMode.SHORT)));
         }
     }
@@ -55,7 +55,7 @@ public class DataListCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<
         }
         var sample = srcCollection.iterator().next();
         if (needLoad(mapperContext, UserMode.DataList2UserMode.HIDE, sample, DataListGroupField.createdByUserId)) {
-            dataListService.loadCreatedByUsers(entityCollection);
+            dataListService.loadUser(entityCollection);
         }
     }
 }

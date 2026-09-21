@@ -10,6 +10,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_pointer")
-public class TwinPointerEntity implements EasyLoggable {
+public class TwinPointerEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     @Column(name = "id")
     private UUID id;

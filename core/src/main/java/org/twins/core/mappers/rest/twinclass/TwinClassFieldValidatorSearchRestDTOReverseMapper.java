@@ -19,6 +19,7 @@ public class TwinClassFieldValidatorSearchRestDTOReverseMapper extends RestSimpl
                 .setTwinClassFieldIdList(src.getTwinClassFieldIdList())
                 .setTwinClassFieldIdExcludeList(src.getTwinClassFieldIdExcludeList())
                 .setFieldValidatorFeaturerIdList(src.getFieldValidatorFeaturerIdList())
-                .setFieldValidatorFeaturerIdExcludeList(src.getFieldValidatorFeaturerIdExcludeList());
+                .setFieldValidatorFeaturerIdExcludeList(src.getFieldValidatorFeaturerIdExcludeList())
+                .setActive(src.getActive());
     }
 }

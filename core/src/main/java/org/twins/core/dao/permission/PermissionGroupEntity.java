@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "permission_group")
-public class PermissionGroupEntity implements EasyLoggable {
+public class PermissionGroupEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
