@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.twins.core.base.BaseUnitTest;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -208,10 +209,11 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
     class Mapping {
 
         @Test
-        void map_withTemporalId_resolvesIdInTwinEntity() throws Exception {
+        void map_withTemporalId_populatesRegisteredBatchTwinInPlace() throws Exception {
             var twinId = UUID.randomUUID();
             var headTwinId = UUID.randomUUID();
-            when(temporalIdContext.resolve("PROJECT-1")).thenReturn(twinId);
+            var batchTwin = new TwinEntity().setId(twinId); // as registered by collectTemporalIds
+            when(temporalIdContext.resolveTwinByTemporalId("PROJECT-1")).thenReturn(batchTwin);
 
             var d = dto("PROJECT-1");
             d.setHeadTwinId(headTwinId.toString());
@@ -219,14 +221,13 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
             var twinCreate = new TwinCreate();
             mapper.map(d, twinCreate, mapperContext);
 
+            assertSame(batchTwin, twinCreate.getTwinEntity()); // the registered entity is populated, not rebuilt
             assertEquals(twinId, twinCreate.getTwinEntity().getId());
             assertEquals(headTwinId, twinCreate.getTwinEntity().getHeadTwinId());
         }
 
         @Test
-        void map_withoutTemporalId_setsNullId() throws Exception {
-            when(temporalIdContext.resolve(null)).thenReturn(null);
-
+        void map_withoutTemporalId_buildsFreshEntityWithNullId() throws Exception {
             var d = dto(null);
             d.setHeadTwinId(UUID.randomUUID().toString());
 

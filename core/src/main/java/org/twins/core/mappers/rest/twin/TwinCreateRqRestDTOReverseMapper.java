@@ -46,20 +46,26 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
 
+        // the batch twin registered by collectTemporalIds — populate it in place, so temporal references
+        // resolved at any point carry this very entity; a fresh entity for dtos without temporalId
+        TwinEntity twinEntity = src.getTemporalId() == null
+                ? new TwinEntity()
+                : temporalIdContext.resolveTwinByTemporalId(src.getTemporalId());
+        twinEntity
+                .setTwinClassId(src.getClassId())
+                .setName(src.getName() == null ? "" : src.getName())
+                .setCreatedByUserId(apiUser.getUser().getId())
+                .setCreatedByUser(apiUser.getUser())
+                .setHeadTwinId(UuidUtils.fromStringOrNull(src.getHeadTwinId()))
+                .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                .setFlavorDataListOptionId(src.getFlavorDataListOptionId())
+                .setDescription(src.getDescription())
+                .setExternalId(src.getExternalId());
+
         dst
                 .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
                 .setFields(twinFieldValueRestDTOReverseMapperV2.parse(src.getClassId(), src.getFields())) // parse only — materialized batch-wide in afterCollectionConversion
-                .setTwinEntity(new TwinEntity()
-                        .setId(temporalIdContext.resolve(src.getTemporalId()))
-                        .setTwinClassId(src.getClassId())
-                        .setName(src.getName() == null ? "" : src.getName())
-                        .setCreatedByUserId(apiUser.getUser().getId())
-                        .setCreatedByUser(apiUser.getUser())
-                        .setHeadTwinId(UuidUtils.fromStringOrNull(src.getHeadTwinId()))
-                        .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
-                        .setFlavorDataListOptionId(src.getFlavorDataListOptionId())
-                        .setDescription(src.getDescription())
-                        .setExternalId(src.getExternalId()));
+                .setTwinEntity(twinEntity);
 
         dst
                 .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))

@@ -20,6 +20,7 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.ScopeNotActiveException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -113,6 +114,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinClassFieldService twinClassFieldService;
+    // request-scoped: ids of the not-yet-persisted twins of the current create batch, see resolveTwinReferences
+    private final TemporalIdContext temporalIdContext;
     @Lazy
     private final TwinClassFieldValidatorService twinClassFieldValidatorService;
     private final EntitySmartService entitySmartService;
@@ -1611,6 +1614,40 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private static final LoadedReferences EMPTY_REFERENCES = new LoadedReferences(Map.of(), Map.of(), Map.of());
 
+    /**
+     * Batch-aware resolution of twin references, shared by {@link #loadReferences} (REST field values) and
+     * featurer lookupers (output links): ids generated for the not-yet-persisted twins of the current create
+     * batch ({@link TemporalIdContext}) resolve to the batch entities themselves — no DB hit, no permission
+     * check (the entity does not exist yet), creation order is handled by extractDependencies; everything
+     * else loads strictly ({@code findEntitiesSafe}: ifMissedThrows + read permission check).
+     */
+    public Map<UUID, TwinEntity> resolveTwinReferences(Collection<UUID> ids) throws ServiceException {
+        Map<UUID, TwinEntity> batchTwins = currentBatchTwins();
+        Map<UUID, TwinEntity> result = new HashMap<>();
+        Set<UUID> toLoad = new LinkedHashSet<>();
+        for (UUID id : ids) {
+            if (id == null)
+                continue;
+            TwinEntity batchTwin = batchTwins.get(id);
+            if (batchTwin != null)
+                result.put(id, batchTwin);
+            else
+                toLoad.add(id);
+        }
+        if (!toLoad.isEmpty())
+            result.putAll(findEntitiesSafe(toLoad).getMap());
+        return result;
+    }
+
+    // no active web-request scope (e.g. a background flow) — no create batch, nothing batch-internal to resolve
+    private Map<UUID, TwinEntity> currentBatchTwins() {
+        try {
+            return temporalIdContext.getBatchTwinsById();
+        } catch (ScopeNotActiveException e) {
+            return Map.of();
+        }
+    }
+
     private LoadedReferences loadReferences(Collection<FieldValue> values) throws ServiceException {
         Set<UUID> twinIds = new LinkedHashSet<>();
         Set<UUID> userIds = new LinkedHashSet<>();
@@ -1631,7 +1668,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinIds.isEmpty() && userIds.isEmpty() && twinClassIds.isEmpty())
             return EMPTY_REFERENCES;
         return new LoadedReferences(
-                twinIds.isEmpty() ? Map.of() : findEntitiesSafe(twinIds).getMap(),
+                twinIds.isEmpty() ? Map.of() : resolveTwinReferences(twinIds),
                 userIds.isEmpty() ? Map.of() : userService.findEntitiesSafe(userIds).getMap(),
                 twinClassIds.isEmpty() ? Map.of() : twinClassService.findEntitiesSafe(twinClassIds).getMap());
     }

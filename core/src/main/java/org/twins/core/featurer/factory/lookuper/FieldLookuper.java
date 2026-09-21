@@ -56,6 +56,10 @@ public abstract class FieldLookuper {
                         .filter(twinLink -> linkId.equals(twinLink.getLinkId()))
                         .toList();
                 if (!matchedLinks.isEmpty()) {
+                    // dstTwin is @Transient: batch-internal links arrive with dstTwin already set by
+                    // TwinLinkAddTemporalRestDTOReverseMapper (TemporalIdContext registry), the rest are existing
+                    // twins — the bulk load covers them and short-circuits on already-loaded entities
+                    twinLinkService.loadDstTwin(matchedLinks);
                     return new FieldValueLink(twinClassField).setItems(matchedLinks.stream().map(TwinLinkEntity::getDstTwin).toList());
                 }
             }
