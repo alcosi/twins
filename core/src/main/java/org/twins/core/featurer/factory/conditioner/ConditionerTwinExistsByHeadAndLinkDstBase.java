@@ -8,13 +8,9 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinHeadService;
@@ -117,17 +113,5 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
         }
 
         return search;
-    }
-
-    protected TwinEntity extractTwinFromFieldValue(FieldValue fieldValue) throws ServiceException {
-        if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue();
-        }
-        if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
-            TwinLinkEntity linkEntity = link.getItems().getFirst();
-            twinLinkService.loadDstTwin(linkEntity);
-            return linkEntity.getDstTwin();
-        }
-        return null;
     }
 }

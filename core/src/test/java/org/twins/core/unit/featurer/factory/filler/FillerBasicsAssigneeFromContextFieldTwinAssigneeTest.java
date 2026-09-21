@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryContext;
@@ -22,13 +21,12 @@ import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest {
 
@@ -90,18 +88,17 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
 
         @Test
         void fill_singleLink_setsAssigneeFromLinkedTwin() throws ServiceException {
-            var dstTwinId = UUID.randomUUID();
-            var link = new TwinLinkEntity().setDstTwinId(dstTwinId);
-            var fieldValue = new FieldValueLink(buildField()).add(link);
-            var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
-
             var assignee = new UserEntity().setId(UUID.randomUUID());
-            when(twinService.getTwinAssignee(dstTwinId)).thenReturn(assignee);
+            var linkedTwin = new TwinEntity().setId(UUID.randomUUID())
+                    .setAssignerUser(assignee)
+                    .setAssignerUserId(assignee.getId());
+            var fieldValue = new FieldValueLink(buildField()).add(linkedTwin); // items carry the far twins
+            var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             filler.fill(props(), factoryItem, null);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
-            // NAME promises: assignee FROM the linked twin's assignee (looked up by dst twin id).
+            // NAME promises: assignee FROM the linked twin's assignee.
             assertSame(assignee, outputTwin.getAssignerUser());
             assertEquals(assignee.getId(), outputTwin.getAssignerUserId());
         }
@@ -123,17 +120,14 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
 
         @Test
         void fill_linkedTwinHasNoAssignee_throwsStepError() throws ServiceException {
-            var dstTwinId = UUID.randomUUID();
-            var link = new TwinLinkEntity().setDstTwinId(dstTwinId);
-            var fieldValue = new FieldValueLink(buildField()).add(link);
+            var fieldValue = new FieldValueLink(buildField()).add(new TwinEntity().setId(UUID.randomUUID())); // items carry the far twins
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
-            when(twinService.getTwinAssignee(dstTwinId)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
@@ -147,7 +141,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
     }

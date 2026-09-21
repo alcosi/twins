@@ -20,6 +20,7 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.ScopeNotActiveException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -113,6 +114,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinClassFieldService twinClassFieldService;
+    // request-scoped: ids of the not-yet-persisted twins of the current create batch, see resolveTwinReferences
+    private final TemporalIdContext temporalIdContext;
     @Lazy
     private final TwinClassFieldValidatorService twinClassFieldValidatorService;
     private final EntitySmartService entitySmartService;
@@ -757,7 +760,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (CollectionUtils.isNotEmpty(missedPermissions))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED,  "{} does not have permissions [{}] to create",
+            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, "{} does not have permissions [{}] to create",
                     authService.getApiUser().getUser().logNormal(),
                     StringUtils.join(missedPermissions, ","));
     }
@@ -975,7 +978,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (batchFieldValidationException != null) {
             throw batchFieldValidationException;
         }
-        twinRecomputeService.triggerAffected(twinChangesCollector);;
+        twinRecomputeService.triggerAffected(twinChangesCollector);
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
@@ -1504,13 +1507,214 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return fieldValue.undefine();
     }
 
+    // value types whose string form is a list of entity ids — parsed into FieldValueReference, never into id-only stub entities
+    private static final Set<Class<? extends FieldValue>> REFERENCE_VALUE_TYPES = Set.of(
+            FieldValueLink.class, FieldValueUser.class, FieldValueTwinClassList.class);
+
     public FieldValue createFieldValue(UUID twinClassFieldEntityId, String value) throws ServiceException {
         return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
     }
 
     public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        // Single-value resolve by design: a one-off call for one field (filler params, service code) costs one
+        // query per referenced type — N = 1, not an N+1 loop. Batch callers (REST reverse mapping) must use
+        // parseFieldValue + materializeFieldValues to keep the whole batch at one query per entity type.
+        return materializeFieldValue(parseFieldValue(twinClassFieldEntity, value));
+    }
+
+    /**
+     * Parses a string field value WITHOUT loading the referenced entities: reference types (link, user, twin
+     * class list) come back as {@link FieldValueReference} — a pure id carrier with no entity accessors.
+     * Simple types are returned fully parsed — there is nothing to load for them. Callers iterating a batch
+     * must finish with {@link #materializeFieldValues} over the whole batch before using the values.
+     */
+    public FieldValue parseFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        Class<? extends FieldValue> valueType = fieldValueType(twinClassFieldEntity);
+        if (REFERENCE_VALUE_TYPES.contains(valueType))
+            return new FieldValueReference(twinClassFieldEntity, valueType, parseReferenceUuidList(twinClassFieldEntity, value));
         var fieldValue = createFieldValue(twinClassFieldEntity);
         setFieldValue(fieldValue, value);
+        return fieldValue;
+    }
+
+    private List<UUID> parseReferenceUuidList(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        if (value == null)
+            return new ArrayList<>(); // null input clears the value, mirroring the old setFieldValue(null) -> clear()
+        List<UUID> ids = new ArrayList<>();
+        for (String id : value.split(LIST_SPLITTER)) {
+            if (StringUtils.isEmpty(id))
+                continue;
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(id);
+            } catch (Exception e) {
+                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, twinClassFieldEntity.logShort() + " incorrect reference UUID[" + id + "]");
+            }
+            if (UuidUtils.isNullifyMarker(uuid))
+                return new ArrayList<>(); // nullify marker clears the whole value, mirroring FieldValueCollection.add
+            ids.add(uuid);
+        }
+        return ids;
+    }
+
+    public FieldValue materializeFieldValue(FieldValue fieldValue) throws ServiceException {
+        return materializeFieldValues(new ArrayList<>(List.of(fieldValue))).getFirst();
+    }
+
+    /**
+     * Bulk-replaces {@link FieldValueReference} entries with concrete values carrying LOADED entities — the
+     * second, batch-level phase of the parse/materialize split. One query per entity type for the whole batch
+     * (no N+1); a missing referenced id fails fast here instead of surfacing later in serialize.
+     * <p>
+     * Mutates the given list IN PLACE (references are swapped for concrete values — a FieldValueReference
+     * cannot become a FieldValueLink, the entry itself is replaced) and returns the same list, so the call
+     * composes. The list must be mutable.
+     */
+    public List<FieldValue> materializeFieldValues(List<FieldValue> values) throws ServiceException {
+        if (values == null || values.isEmpty())
+            return values;
+        LoadedReferences loaded = loadReferences(values);
+        if (loaded == EMPTY_REFERENCES)
+            return values;
+        for (int i = 0; i < values.size(); i++) {
+            if (values.get(i) instanceof FieldValueReference reference)
+                values.set(i, buildReferencedValue(reference, loaded));
+        }
+        return values;
+    }
+
+    /**
+     * Grouped variant for batch flows (e.g. every TwinCreate of a mapped batch, each with its own fields kit):
+     * the SAME single bulk load shared across all groups — one query per entity type for the whole batch,
+     * with the in-place replacement applied per group.
+     */
+    public void materializeFieldValues(Collection<Map<UUID, FieldValue>> fieldGroups) throws ServiceException {
+        List<FieldValue> allValues = new ArrayList<>();
+        for (Map<UUID, FieldValue> group : fieldGroups)
+            if (MapUtils.isNotEmpty(group))
+                allValues.addAll(group.values());
+        if (allValues.isEmpty())
+            return;
+        LoadedReferences loaded = loadReferences(allValues);
+        if (loaded == EMPTY_REFERENCES)
+            return;
+        for (Map<UUID, FieldValue> group : fieldGroups) {
+            if (MapUtils.isEmpty(group))
+                continue;
+            for (Map.Entry<UUID, FieldValue> entry : group.entrySet()) {
+                if (entry.getValue() instanceof FieldValueReference reference)
+                    group.put(entry.getKey(), buildReferencedValue(reference, loaded));
+            }
+        }
+    }
+
+    private record LoadedReferences(Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users, Map<UUID, TwinClassEntity> twinClasses) {
+    }
+
+    private static final LoadedReferences EMPTY_REFERENCES = new LoadedReferences(Map.of(), Map.of(), Map.of());
+
+    /**
+     * Batch-aware resolution of twin references, shared by {@link #loadReferences} (REST field values) and
+     * featurer lookupers (output links): ids generated for the not-yet-persisted twins of the current create
+     * batch ({@link TemporalIdContext}) resolve to the batch entities themselves — no DB hit, no permission
+     * check (the entity does not exist yet), creation order is handled by extractDependencies; everything
+     * else loads strictly ({@code findEntitiesSafe}: ifMissedThrows + read permission check).
+     */
+    public Map<UUID, TwinEntity> resolveTwinReferences(Collection<UUID> ids) throws ServiceException {
+        Map<UUID, TwinEntity> batchTwins = currentBatchTwins();
+        Map<UUID, TwinEntity> result = new HashMap<>();
+        Set<UUID> toLoad = new LinkedHashSet<>();
+        for (UUID id : ids) {
+            if (id == null)
+                continue;
+            TwinEntity batchTwin = batchTwins.get(id);
+            if (batchTwin != null)
+                result.put(id, batchTwin);
+            else
+                toLoad.add(id);
+        }
+        if (!toLoad.isEmpty())
+            result.putAll(findEntitiesSafe(toLoad).getMap());
+        return result;
+    }
+
+    // no active web-request scope (e.g. a background flow) — no create batch, nothing batch-internal to resolve
+    private Map<UUID, TwinEntity> currentBatchTwins() {
+        try {
+            return temporalIdContext.getBatchTwinsById();
+        } catch (ScopeNotActiveException e) {
+            return Map.of();
+        }
+    }
+
+    private LoadedReferences loadReferences(Collection<FieldValue> values) throws ServiceException {
+        Set<UUID> twinIds = new LinkedHashSet<>();
+        Set<UUID> userIds = new LinkedHashSet<>();
+        Set<UUID> twinClassIds = new LinkedHashSet<>();
+        for (FieldValue value : values) {
+            if (!(value instanceof FieldValueReference reference) || reference.getIds() == null)
+                continue;
+            Class<? extends FieldValue> valueType = reference.getValueType();
+            if (valueType == FieldValueLink.class)
+                twinIds.addAll(reference.getIds());
+            else if (valueType == FieldValueUser.class)
+                userIds.addAll(reference.getIds());
+            else if (valueType == FieldValueTwinClassList.class)
+                twinClassIds.addAll(reference.getIds());
+            else
+                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, valueType + " is not a reference value type");
+        }
+        if (twinIds.isEmpty() && userIds.isEmpty() && twinClassIds.isEmpty())
+            return EMPTY_REFERENCES;
+        return new LoadedReferences(
+                twinIds.isEmpty() ? Map.of() : resolveTwinReferences(twinIds),
+                userIds.isEmpty() ? Map.of() : userService.findEntitiesSafe(userIds).getMap(),
+                twinClassIds.isEmpty() ? Map.of() : twinClassService.findEntitiesSafe(twinClassIds).getMap());
+    }
+
+    private FieldValue buildReferencedValue(FieldValueReference reference, LoadedReferences loaded) throws ServiceException {
+        Class<? extends FieldValue> valueType = reference.getValueType();
+        List<UUID> ids = reference.getIds();
+        if (valueType == FieldValueLink.class)
+            return fill(new FieldValueLink(reference.getTwinClassField()), ids, loaded.twins(), FieldValueLink::add);
+        if (valueType == FieldValueUser.class)
+            return fill(new FieldValueUser(reference.getTwinClassField()), ids, loaded.users(), FieldValueUser::add);
+        if (valueType == FieldValueTwinClassList.class)
+            return fill(new FieldValueTwinClassList(reference.getTwinClassField()), ids, loaded.twinClasses(), FieldValueTwinClassList::add);
+        throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, valueType + " is not a reference value type");
+    }
+
+    // null ids = UNDEFINED, empty ids = CLEARED, otherwise each loaded entity is added by id.
+    // FieldValueCollection and FieldValueCollectionImmutable share the add/clear shape but not the hierarchy — hence the adder.
+    private <V extends FieldValue, T> V fill(V value, List<UUID> ids, Map<UUID, T> loaded, BiConsumer<V, T> adder) {
+        if (ids == null)
+            return value;
+        if (ids.isEmpty()) {
+            value.clear();
+            return value;
+        }
+        for (UUID id : ids)
+            adder.accept(value, loaded.get(id));
+        return value;
+    }
+
+    private Class<? extends FieldValue> fieldValueType(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+        return fieldTyper.getValueType(twinClassFieldEntity);
+    }
+
+    public FieldValue createFieldValue(UUID twinClassFieldEntityId, TwinEntity value) throws ServiceException {
+        return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
+    }
+
+    public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, TwinEntity value) throws ServiceException {
+        var fieldValue = createFieldValue(twinClassFieldEntity);
+        if (fieldValue instanceof FieldValueLink fieldValueLink)
+            fieldValueLink.add(value);
+        else if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle)
+            fieldValueLinkSingle.setValue(value);
+        else
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, twinClassFieldEntity.logShort() + " is not of type link");
         return fieldValue;
     }
 
@@ -1539,21 +1743,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 fieldValueAttachment.setBase64Content(value);
             }
         }
-        if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
-            for (var id : value.split(LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(id)) {
-                    continue;
-                }
-
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(id);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueTwinClassList.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect class id[" + id + "]");
-                }
-                fieldValueTwinClassList.add(new TwinClassEntity().setId(uuid));
-            }
-        }
+        // reference types (link, user, twin class list) are parsed by parseFieldValue into FieldValueReference
+        // and materialized by materializeFieldValues — never as id-only stub entities here;
+        // select stays on this legacy path: its resolution needs featurer params (dataListId, supportCustomValue)
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
             for (String dataListOption : value.split(LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOption)) continue;
@@ -1567,46 +1759,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 }
                 fieldValueSelect.add(dataListOptionEntity);
             }
-        }
-        if (fieldValue instanceof FieldValueUser fieldValueUser) {
-            for (String userId : value.split(LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(userId))
-                    continue;
-                UUID userUUID;
-                try {
-                    userUUID = UUID.fromString(userId);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueUser.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
-                }
-                fieldValueUser.add(new UserEntity()
-                        .setId(userUUID));
-            }
-        }
-        if (fieldValue instanceof FieldValueUserSingle fieldValueUserSingle) {
-            UUID userId = UuidUtils.fromString(value);
-            fieldValueUserSingle.setValue(new UserEntity().setId(userId));
-        }
-        if (fieldValue instanceof FieldValueStatus fieldValueStatus) {
-            UUID statusId = UuidUtils.fromString(value);
-            fieldValueStatus.setValue(new TwinStatusEntity().setId(statusId));
-        }
-        if (fieldValue instanceof FieldValueLink fieldValueLink) {
-            for (String dstTwinId : value.split(LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(dstTwinId))
-                    continue;
-                UUID dstTwinUUID;
-                try {
-                    dstTwinUUID = UUID.fromString(dstTwinId);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueLink.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
-                }
-                ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
-                        .setDstTwinId(dstTwinUUID));
-            }
-        }
-        if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
-            UUID twinId = UuidUtils.fromString(value);
-            fieldValueLinkSingle.setValue(new TwinEntity().setId(twinId));
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
@@ -1843,11 +1995,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     /**
      * Shared logic for {@link #loadEditableFlag(Collection)} and {@link #loadViewableFlag(Collection)}.
      * Per TwinField:
-     *   1. Shortcut — if the twin's accessibility map is already populated (from a prior
-     *      {@code loadFieldEditability}/{@code loadFieldViewability} call in the same request),
-     *      take the value from there. No DB hits, no rule evaluation.
-     *   2. Otherwise check permission + validation rules for THIS specific field only
-     *      (not the whole class — that's what the twin-level loaders are for).
+     * 1. Shortcut — if the twin's accessibility map is already populated (from a prior
+     * {@code loadFieldEditability}/{@code loadFieldViewability} call in the same request),
+     * take the value from there. No DB hits, no rule evaluation.
+     * 2. Otherwise check permission + validation rules for THIS specific field only
+     * (not the whole class — that's what the twin-level loaders are for).
      * Validation rules are bulk-loaded once for all unique fields, and rule evaluation is
      * batched per field (all twins sharing a field → one {@code isValid} call), mirroring
      * {@link #loadFieldAccessibility}.
@@ -1968,14 +2120,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      * Shared logic for {@link #loadFieldEditability(Collection)} and {@link #loadFieldViewability(Collection)}.
      * For every twin in the collection populates the supplied map (key = fieldId, value = accessible?)
      * with the following rules:
-     *   - if {@code skipBaseFields}: base fields are always accessible (true)
-     *   - if {@code checkNotSerializable}: non-serializable fields are never accessible (false)
-     *   - fields without a permission requirement: subject to validation rules only
-     *   - fields with a permission requirement: user must have it (globally or for the twin),
-     *     otherwise marked false without rule check
-     *   - surviving fields are checked against the {@code action} validation rules; failing twins
-     *     are marked false
-     *
+     * - if {@code skipBaseFields}: base fields are always accessible (true)
+     * - if {@code checkNotSerializable}: non-serializable fields are never accessible (false)
+     * - fields without a permission requirement: subject to validation rules only
+     * - fields with a permission requirement: user must have it (globally or for the twin),
+     * otherwise marked false without rule check
+     * - surviving fields are checked against the {@code action} validation rules; failing twins
+     * are marked false
+     * <p>
      * Per-(twin, permissionId) results are de-duplicated by the request-scoped
      * {@code permissionCheckRequestCache} inside {@link PermissionService#hasPermission}.
      */
@@ -2244,7 +2396,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     case STRICT:
                         log.error("{} is required for {}", twinClassFieldEntity.logNormal(), twinEntity.logShort());
                         invalidFieldIds.put(twinClassFieldEntity.getId(), getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity));
-                         break;
+                        break;
                     case AUTO:
                         log.info("{} is required, but missed on create. {} will be created as sketch", twinClassFieldEntity.logNormal(), twinEntity.logShort());
                         twinCreate.setSketchMode(true);
@@ -2422,7 +2574,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity entity = t.getTwinEntity();
 
         // --- headTwinId ---
-        addIfRefOnNew(entity.getHeadTwinId(), newTwinsWithIds,  result);
+        addIfRefOnNew(entity.getHeadTwinId(), newTwinsWithIds, result);
 
         // --- links ---
         if (t.getLinksEntityList() != null) {
@@ -2435,8 +2587,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (t.getFields() != null) {
             for (FieldValue value : t.getFields().values()) {
                 if (value instanceof FieldValueLink fieldValueLink) {
-                    for (var link : fieldValueLink.getItems()) {
-                        addIfRefOnNew(link.getDstTwinId(), newTwinsWithIds, result);
+                    for (var toTwin : fieldValueLink.getItems()) { // items carry the far twins
+                        addIfRefOnNew(toTwin.getId(), newTwinsWithIds, result);
                     }
                 }
             }

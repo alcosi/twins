@@ -142,6 +142,58 @@ class TemporalIdContextTest extends BaseUnitTest {
     }
 
     @Nested
+    class BatchTwinRegistry {
+
+        @Test
+        void put_registersIdOnlyShells() {
+            var batch = ctx.getBatchTwinsById();
+
+            assertEquals(3, batch.size());
+            assertEquals(projectUuid, batch.get(projectUuid).getId());
+        }
+
+        @Test
+        void resolveTwinByTemporalId_returnsRegisteredTwin_sameInstanceAsByIdLookup() {
+            var shell = ctx.resolveTwinByTemporalId("PROJECT-1");
+
+            assertEquals(projectUuid, shell.getId());
+            assertSame(shell, ctx.getBatchTwinsById().get(projectUuid)); // the very entity map() will populate
+            assertNull(ctx.resolveTwinByTemporalId("UNKNOWN"));
+            assertNull(ctx.resolveTwinByTemporalId(null));
+        }
+
+        @Test
+        void resolveTwin_unknownOrNullId_returnsNull() {
+            assertNull(ctx.resolveTwin(UUID.randomUUID()));
+            assertNull(ctx.resolveTwin(null));
+        }
+
+        @Test
+        void getBatchTwinsById_returnsDefensiveCopy() {
+            ctx.getBatchTwinsById().clear();
+
+            assertEquals(3, ctx.getBatchTwinsById().size());
+        }
+
+        @Test
+        void getTemporalIdMap_returnsGeneratedIds() {
+            var ids = ctx.getTemporalIdMap();
+
+            assertEquals(3, ids.size());
+            assertEquals(projectUuid, ids.get("PROJECT-1"));
+            assertEquals(taskUuid, ids.get("TASK-1"));
+        }
+
+        @Test
+        void afterClear_registryIsEmpty() {
+            ctx.clear();
+
+            assertTrue(ctx.getBatchTwinsById().isEmpty());
+            assertNull(ctx.resolveTwin(projectUuid));
+        }
+    }
+
+    @Nested
     class Clear {
 
         @Test

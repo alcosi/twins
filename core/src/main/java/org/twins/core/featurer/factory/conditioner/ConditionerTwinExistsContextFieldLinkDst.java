@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinHeadService;
 
@@ -36,7 +37,7 @@ public class ConditionerTwinExistsContextFieldLinkDst extends ConditionerTwinExi
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields()
                 .lookupFieldValue(factoryItem, dstFieldId);
-        TwinEntity childTwin = extractTwinFromFieldValue(dstFieldValue);
+        TwinEntity childTwin = FieldValueLink.getSingleLinkedTwin(dstFieldValue);
 
         if (childTwin == null) {
             log.debug("Link dst twin id is not resolved from context field [{}]", dstFieldId);

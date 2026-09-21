@@ -12,7 +12,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldAsContextTwin;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.twin.TwinService;
 
@@ -83,12 +82,12 @@ class FillerFieldAsContextTwinTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(contextTwin);
             var linkFieldEntity = new TwinClassFieldEntity().setId(LINK_FIELD_ID);
             var createdLink = new FieldValueLink(linkFieldEntity);
-            when(twinService.createFieldValue(LINK_FIELD_ID, contextTwinId.toString())).thenReturn(createdLink);
+            when(twinService.createFieldValue(LINK_FIELD_ID, contextTwin)).thenReturn(createdLink);
 
             filler.fill(props(), factoryItem, null);
 
             assertSame(createdLink, factoryItem.getOutput().getField(LINK_FIELD_ID));
-            verify(twinService).createFieldValue(LINK_FIELD_ID, contextTwinId.toString());
+            verify(twinService).createFieldValue(LINK_FIELD_ID, contextTwin);
         }
 
         @Test

@@ -10,6 +10,13 @@ import java.util.function.Function;
 /**
  * Collection can be updated outside an object.
  * So isCleared and isUndefined are detected on the fly (based on a collection)
+ * <p>
+ * Invariant: the collection carries LOADED entities only — never id-only stubs, with ONE documented exception:
+ * batch-internal references to the not-yet-persisted twins of the current create batch resolve to the batch
+ * entities themselves — possibly id-only shells until the dto is mapped (TemporalIdContext /
+ * TwinService.resolveTwinReferences); creation order for those is handled by extractDependencies.
+ * A string input must first be parsed into {@link FieldValueReference} and then bulk-materialized
+ * (TwinService.parseFieldValue / materializeFieldValues), so that no reader ever sees a half-loaded entity.
  * @param <T>
  */
 public abstract class FieldValueCollection<T> extends FieldValue {
@@ -41,6 +48,10 @@ public abstract class FieldValueCollection<T> extends FieldValue {
     }
 
     public FieldValueCollection<T> setItems(Collection<T> newCollection) {
+        if (newCollection != null)
+            for (T item : newCollection)
+                if (item == null) // fail fast with context instead of an NPE deep inside id extraction below
+                    throw new IllegalArgumentException("Null item in the value collection of TwinClassField[" + getTwinClassFieldId() + "]");
         if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
             clear();
         } else {

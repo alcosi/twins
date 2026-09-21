@@ -81,11 +81,14 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueLink value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
-        List<TwinLinkEntity> newTwinLinks = value.getItems() != null ? value.getItems() : new ArrayList<>();
-        for (TwinLinkEntity newTwinLinkEntity : newTwinLinks) //we have to set link, because it can be empty
-            newTwinLinkEntity
+        List<TwinEntity> farTwins = value.getItems() != null ? value.getItems() : new ArrayList<>();
+        List<TwinLinkEntity> newTwinLinks = new ArrayList<>(farTwins.size());
+        for (TwinEntity farTwin : farTwins) // the field value carries only the far twins, the twin_link to each is built here
+            newTwinLinks.add(new TwinLinkEntity()
                     .setLinkId(linkEntity.getId())
-                    .setLink(linkEntity);
+                    .setLink(linkEntity)
+                    .setDstTwinId(farTwin.getId())
+                    .setDstTwin(farTwin));
         if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
         if (linkEntity.getRelationTwinClassId() != null && !newTwinLinks.isEmpty())
@@ -195,7 +198,15 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
         FieldValueLink ret = new FieldValueLink(twinField.getTwinClassField());
         if (CollectionUtils.isNotEmpty(twinLinkEntityList)) {
-            ret.setItems(twinLinkEntityList);
+            // the far twins ARE the field value — the twin_link to each is rebuilt on serialize
+            if (linkDirection == LinkService.LinkDirection.forward)
+                twinLinkService.loadDstTwin(twinLinkEntityList);
+            else
+                twinLinkService.loadSrcTwin(twinLinkEntityList);
+            List<TwinEntity> farTwins = new ArrayList<>(twinLinkEntityList.size());
+            for (TwinLinkEntity twinLinkEntity : twinLinkEntityList)
+                farTwins.add(linkDirection == LinkService.LinkDirection.forward ? twinLinkEntity.getDstTwin() : twinLinkEntity.getSrcTwin());
+            ret.setItems(farTwins);
         } else {
             ret.undefine();
         }

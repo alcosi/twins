@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySmartService;
@@ -13,12 +14,14 @@ import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddTemporalRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TemporalIdContext;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
@@ -36,26 +39,33 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     private final UserService userService;
     private final AuthService authService;
     private final TemporalIdContext temporalIdContext;
+    private final TwinService twinService;
 
 
     @Override
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
 
+        // the batch twin registered by collectTemporalIds — populate it in place, so temporal references
+        // resolved at any point carry this very entity; a fresh entity for dtos without temporalId
+        TwinEntity twinEntity = src.getTemporalId() == null
+                ? new TwinEntity()
+                : temporalIdContext.resolveTwinByTemporalId(src.getTemporalId());
+        twinEntity
+                .setTwinClassId(src.getClassId())
+                .setName(src.getName() == null ? "" : src.getName())
+                .setCreatedByUserId(apiUser.getUser().getId())
+                .setCreatedByUser(apiUser.getUser())
+                .setHeadTwinId(UuidUtils.fromStringOrNull(src.getHeadTwinId()))
+                .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                .setFlavorDataListOptionId(src.getFlavorDataListOptionId())
+                .setDescription(src.getDescription())
+                .setExternalId(src.getExternalId());
+
         dst
                 .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
-                .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()))
-                .setTwinEntity(new TwinEntity()
-                        .setId(temporalIdContext.resolve(src.getTemporalId()))
-                        .setTwinClassId(src.getClassId())
-                        .setName(src.getName() == null ? "" : src.getName())
-                        .setCreatedByUserId(apiUser.getUser().getId())
-                        .setCreatedByUser(apiUser.getUser())
-                        .setHeadTwinId(UuidUtils.fromStringOrNull(src.getHeadTwinId()))
-                        .setAssignerUserId(userService.checkId(src.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
-                        .setFlavorDataListOptionId(src.getFlavorDataListOptionId())
-                        .setDescription(src.getDescription())
-                        .setExternalId(src.getExternalId()));
+                .setFields(twinFieldValueRestDTOReverseMapperV2.parse(src.getClassId(), src.getFields())) // parse only — materialized batch-wide in afterCollectionConversion
+                .setTwinEntity(twinEntity);
 
         dst
                 .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))
@@ -67,6 +77,31 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                 .setTagsAddExisted(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::existingTags)
                         .orElseGet(HashSet::new));
+    }
+
+    @Override
+    public TwinCreate convert(TwinCreateRqDTOv2 src, MapperContext mapperContext) throws Exception {
+        // route a single item through the collection path, so afterCollectionConversion materializes it too
+        return convertCollection(List.of(src), mapperContext).getFirst();
+    }
+
+    @Override
+    public List<TwinCreate> convertCollection(Collection<TwinCreateRqDTOv2> srcCollection, MapperContext mapperContext) throws Exception {
+        if (srcCollection == null)
+            return null;
+        if (srcCollection.isEmpty())
+            return Collections.emptyList();
+        beforeCollectionConversion(srcCollection, mapperContext);
+        List<TwinCreate> ret = new ArrayList<>();
+        for (TwinCreateRqDTOv2 src : srcCollection) {
+            // super.convert bypasses the single-item convert() above (which loops back here) — each twin's
+            // fields stay parsed-only and the whole batch materializes once, in afterCollectionConversion below
+            TwinCreate converted = super.convert(src, mapperContext);
+            if (converted != null)
+                ret.add(converted);
+        }
+        afterCollectionConversion(ret, mapperContext);
+        return ret;
     }
 
     @Override
@@ -83,6 +118,13 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     @Override
     public void afterCollectionConversion(Collection<TwinCreate> dstCollection, MapperContext mapperContext) throws Exception {
         super.afterCollectionConversion(dstCollection, mapperContext);
+        // ONE bulk load per referenced entity type for the whole batch of created twins (map() parses only) —
+        // a per-twin mapFields call would cost one query set per twin, the very N+1 this split avoids
+        List<Map<UUID, FieldValue>> fieldGroups = new ArrayList<>();
+        for (TwinCreate twinCreate : dstCollection)
+            if (MapUtils.isNotEmpty(twinCreate.getFields()))
+                fieldGroups.add(twinCreate.getFields());
+        twinService.materializeFieldValues(fieldGroups);
     }
 
     /**

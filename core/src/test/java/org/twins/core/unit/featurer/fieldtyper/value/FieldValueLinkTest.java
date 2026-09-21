@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
-import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 
@@ -23,8 +23,8 @@ class FieldValueLinkTest extends BaseUnitTest {
         field = new TwinClassFieldEntity();
     }
 
-    private TwinLinkEntity link(UUID dstTwinId) {
-        return new TwinLinkEntity().setDstTwinId(dstTwinId);
+    private TwinEntity link(UUID id) {
+        return new TwinEntity().setId(id);
     }
 
     @Nested
@@ -106,7 +106,7 @@ class FieldValueLinkTest extends BaseUnitTest {
             value.setItems(List.of(b));
 
             assertEquals(1, value.size());
-            assertEquals(b.getDstTwinId(), value.getItems().get(0).getDstTwinId());
+            assertEquals(b.getId(), value.getItems().get(0).getId());
         }
     }
 
@@ -149,7 +149,7 @@ class FieldValueLinkTest extends BaseUnitTest {
     class CopyValueTo {
 
         @Test
-        void copyValueTo_clonesEachLinkAndPreservesForwardFlag() {
+        void copyValueTo_copiesItemsByReferenceAndPreservesForwardFlag() {
             var src = new FieldValueLink(field);
             var dstId = UUID.randomUUID();
             src.add(link(dstId));
@@ -159,9 +159,9 @@ class FieldValueLinkTest extends BaseUnitTest {
             src.copyValueTo(dst);
 
             assertEquals(1, dst.size());
-            // each link is cloned into a distinct entity
-            assertNotSame(src.getItems().get(0), dst.getItems().get(0));
-            assertEquals(dstId, dst.getItems().get(0).getDstTwinId());
+            // shallow copy: the same far twin instances are shared, not cloned
+            assertSame(src.getItems().get(0), dst.getItems().get(0));
+            assertEquals(dstId, dst.getItems().get(0).getId());
             assertTrue(dst.isForwardLink());
         }
 
@@ -211,7 +211,7 @@ class FieldValueLinkTest extends BaseUnitTest {
             assertNotSame(original, clone);
             assertEquals(original, clone);
             assertEquals(1, ((FieldValueLink) clone).size());
-            assertEquals(dstId, ((FieldValueLink) clone).getItems().get(0).getDstTwinId());
+            assertEquals(dstId, ((FieldValueLink) clone).getItems().get(0).getId());
         }
     }
 }
