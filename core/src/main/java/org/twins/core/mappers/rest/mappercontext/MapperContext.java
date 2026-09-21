@@ -16,6 +16,7 @@ import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.history.HistoryTypeEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -93,6 +94,7 @@ public class MapperContext {
             FaceEntity.class,
             TwinClassFieldEntity.class,
             TwinCommentEntity.class,
+            I18nEntity.class,
             TwinClassSchemaEntity.class,
             TwinflowSchemaEntity.class,
             TierEntity.class,

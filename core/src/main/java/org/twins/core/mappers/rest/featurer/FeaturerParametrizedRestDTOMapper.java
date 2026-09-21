@@ -44,7 +44,7 @@ public class FeaturerParametrizedRestDTOMapper extends RestSimpleDTOMapper<Featu
             postponeEntityRefs(src, mapperContext);
         if (src.getFeaturerId() == null)
             return null;
-        return featurerRestDTOMapper.convert(featurerService.getFeaturerEntity(src.getFeaturerId()), mapperContext);
+        return featurerRestDTOMapper.convert(featurerService.findEntitySafe(src.getFeaturerId()), mapperContext);
     }
 
     public void postpone(Integer featurerId, HashMap<String, String> params, MapperContext mapperContext) {

@@ -13,8 +13,8 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.EntityRef;
 import org.twins.core.mappers.rest.mappercontext.FeaturerParams;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.system.EntityRefRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
+import org.twins.core.mappers.rest.system.EntityRefRestDTOMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +45,7 @@ public class FeaturerParametrizedRestDTOMapperTest {
 
     private void stubFeaturer(Map<String, org.cambium.featurer.params.FeaturerParam<?>> paramDefinitions) throws Exception {
         when(featurerService.getFeaturerParams(FEATURER_ID)).thenReturn(paramDefinitions);
-        when(featurerService.getFeaturerEntity(FEATURER_ID)).thenReturn(mock(FeaturerEntity.class));
+        when(featurerService.findEntitySafe(FEATURER_ID)).thenReturn(mock(FeaturerEntity.class));
         when(featurerRestDTOMapper.convert(any(FeaturerEntity.class), any(MapperContext.class))).thenReturn(new FeaturerDTOv1());
     }
 

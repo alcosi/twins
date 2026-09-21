@@ -361,10 +361,6 @@ public class FeaturerService {
         }
     }
 
-    public FeaturerEntity getFeaturerEntity(Integer featurerId) {
-        return featurerRepository.findById(featurerId).get();
-    }
-
     public FeaturerEntity findEntitySafe(Integer featurerId) throws ServiceException {
         var featurerEntity = featurerEntityKit.get(featurerId);
         if (featurerEntity == null)
