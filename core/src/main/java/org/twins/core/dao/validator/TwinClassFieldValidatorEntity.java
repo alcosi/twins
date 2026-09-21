@@ -24,7 +24,7 @@ import java.util.UUID;
 @Table(name = "twin_class_field_validator")
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinClassFieldValidatorEntity implements EasyLoggable, Identifiable {
+public class TwinClassFieldValidatorEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

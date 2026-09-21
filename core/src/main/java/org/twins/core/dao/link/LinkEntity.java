@@ -12,6 +12,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
@@ -25,7 +26,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Entity
 @Table(name = "link")
-public class LinkEntity implements EasyLoggable {
+public class LinkEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

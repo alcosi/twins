@@ -14,11 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -45,18 +41,18 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     }
 
     @Override
-    protected ChangesHelper detectChangesHelper(Identifiable entity) {
+    protected ChangesHelper detectChangesHelper(Identifiable<UUID> entity) {
         syncRelations(entity, true);
         return super.detectChangesHelper(entity);
     }
 
     @Override
-    public void delete(Identifiable entity) {
+    public void delete(Identifiable<UUID> entity) {
         syncRelations(entity, false);
         super.delete(entity);
     }
 
-    private void syncRelations(Identifiable entity, boolean saveElseDelete) {
+    private void syncRelations(Identifiable<UUID> entity, boolean saveElseDelete) {
         Set<TwinInvalidate> invalidates;
         if (entity instanceof TwinMarkerEntity twinMarkerEntity) {
             invalidateTwin(twinMarkerEntity.getTwin(), TwinInvalidate.markersKit);

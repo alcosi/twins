@@ -14,7 +14,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
@@ -42,7 +42,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @Lazy
     @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.class)
@@ -100,9 +100,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
                     dst.setFieldInitializerFeaturerId(src.getFieldInitializerFeaturerId());
                     dst.setTwinSorterFeaturerId(src.getTwinSorterFeaturerId());
-                    featurerRestDTOMapper.postpone(src.getFieldTyperFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
-                    featurerRestDTOMapper.postpone(src.getFieldInitializerFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
-                    featurerRestDTOMapper.postpone(src.getTwinSorterFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getFieldTyperFeaturerId(), src.getFieldTyperParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getFieldInitializerFeaturerId(), src.getFieldInitializerParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getTwinSorterFeaturerId(), src.getTwinSorterParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
                 }
                 if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
                     twinClassFieldService.loadPermissions(src);

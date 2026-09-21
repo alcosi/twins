@@ -12,6 +12,7 @@ import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow")
 @FieldNameConstants
-public class TwinflowEntity implements EasyLoggable {
+public class TwinflowEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

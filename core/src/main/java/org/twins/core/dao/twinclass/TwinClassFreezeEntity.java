@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_class_freeze")
-public class TwinClassFreezeEntity implements EasyLoggable {
+public class TwinClassFreezeEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

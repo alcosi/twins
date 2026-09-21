@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.user.UserStatus;
 
 import java.sql.Timestamp;
@@ -21,7 +22,7 @@ import static org.twins.core.service.user.UserService.maskEmail;
 @Accessors(chain = true)
 @Table(name = "user")
 @FieldNameConstants
-public class UserEntity implements EasyLoggable {
+public class UserEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

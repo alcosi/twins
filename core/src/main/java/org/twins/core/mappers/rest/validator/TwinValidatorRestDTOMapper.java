@@ -8,7 +8,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dto.rest.validator.TwinValidatorDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
@@ -26,7 +26,7 @@ public class TwinValidatorRestDTOMapper extends RestSimpleDTOMapper<TwinValidato
     private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinValidator2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     private final TwinValidatorService twinValidatorService;
 
@@ -57,7 +57,7 @@ public class TwinValidatorRestDTOMapper extends RestSimpleDTOMapper<TwinValidato
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE)) {
             dst.setValidatorFeaturerId(src.getTwinValidatorFeaturerId());
-            featurerRestDTOMapper.postpone(src.getTwinValidatorFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getTwinValidatorFeaturerId(), src.getTwinValidatorParams(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT));
         }
     }
 

@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.field.rule.ConditionNode;
 
 import java.util.HashMap;
@@ -30,7 +31,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinClassFieldRuleEntity implements EasyLoggable {
+public class TwinClassFieldRuleEntity implements EasyLoggable, Identifiable<UUID> {
 
     /**
      * Primary key

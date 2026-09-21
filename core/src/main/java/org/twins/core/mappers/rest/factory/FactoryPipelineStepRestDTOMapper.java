@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryPipelineMode;
@@ -29,7 +29,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.FactoryPipelineStep2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
     private final FactoryPipelineStepService factoryPipelineStepService;
 
     @Override
@@ -68,7 +68,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE)) {
             dst.setFillerFeaturerId(src.getFillerFeaturerId());
-            featurerRestDTOMapper.postpone(src.getFillerFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getFillerFeaturerId(), src.getFillerParams(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT));
         }
     }
 

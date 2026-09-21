@@ -29,7 +29,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory")
-public class TwinFactoryEntity implements EasyLoggable, Identifiable, UsageHolder {
+public class TwinFactoryEntity implements EasyLoggable, Identifiable<UUID>, UsageHolder {
     @Id
     private UUID id;
 
