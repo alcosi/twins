@@ -979,7 +979,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw batchFieldValidationException;
         }
         twinRecomputeService.triggerAffected(twinChangesCollector);
-        ;
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {

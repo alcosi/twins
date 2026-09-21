@@ -2,6 +2,8 @@ package org.twins.core.unit.service.twin;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -10,9 +12,11 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueReference;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TemporalIdContext;
 import org.twins.core.service.twin.TwinService;
 
@@ -21,6 +25,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
 
 /**
  * Unit contract of TwinService.resolveTwinReferences — the batch-aware seam behind materializeFieldValues
@@ -38,6 +43,9 @@ class TwinServiceResolveTwinReferencesTest extends BaseUnitTest {
 
     @Mock
     private TemporalIdContext temporalIdContext;
+
+    @Mock
+    private FeaturerService featurerService;
 
     @Captor
     private ArgumentCaptor<Collection<UUID>> idsCaptor;
@@ -139,6 +147,73 @@ class TwinServiceResolveTwinReferencesTest extends BaseUnitTest {
 
             assertInstanceOf(FieldValueLink.class, out.get(0));
             assertEquals(List.of(existingTwin), ((FieldValueLink) out.get(0)).getItems());
+        }
+    }
+
+    @Nested
+    class ParseFieldValue {
+
+        private TwinClassFieldEntity fieldTypedAs(Class<? extends FieldValue> valueType) throws ServiceException {
+            var field = new TwinClassFieldEntity();
+            field.setId(UUID.randomUUID());
+            field.setFieldTyperFeaturerId(42);
+            FieldTyper fieldTyper = mock(FieldTyper.class);
+            when(featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class)).thenReturn(fieldTyper);
+            when(fieldTyper.getValueType(field)).thenReturn((Class) valueType);
+            return field;
+        }
+
+        @Test
+        void linkTypedField_returnsReferenceCarrierWithoutLoading() throws ServiceException {
+            UUID id1 = UUID.randomUUID();
+            UUID id2 = UUID.randomUUID();
+            var field = fieldTypedAs(FieldValueLink.class);
+
+            FieldValue parsed = twinService.parseFieldValue(field, id1 + LIST_SPLITTER + id2);
+
+            assertInstanceOf(FieldValueReference.class, parsed);
+            var reference = (FieldValueReference) parsed;
+            assertEquals(FieldValueLink.class, reference.getValueType());
+            assertEquals(List.of(id1, id2), reference.getIds());
+        }
+
+        @Test
+        void nullValue_parsesAsCleared() throws ServiceException {
+            var field = fieldTypedAs(FieldValueLink.class);
+
+            FieldValue parsed = twinService.parseFieldValue(field, null);
+
+            assertInstanceOf(FieldValueReference.class, parsed);
+            var ids = ((FieldValueReference) parsed).getIds();
+            assertNotNull(ids); // empty list = CLEARED, not UNDEFINED
+            assertTrue(ids.isEmpty());
+        }
+
+        @Test
+        void nullifyMarker_clearsTheWholeValue() throws ServiceException {
+            var field = fieldTypedAs(FieldValueLink.class);
+
+            FieldValue parsed = twinService.parseFieldValue(field, UuidUtils.NULLIFY_MARKER.toString());
+
+            assertInstanceOf(FieldValueReference.class, parsed);
+            assertTrue(((FieldValueReference) parsed).getIds().isEmpty());
+        }
+
+        @Test
+        void incorrectUuid_failsFast() throws ServiceException {
+            var field = fieldTypedAs(FieldValueLink.class);
+
+            assertThrows(ServiceException.class, () -> twinService.parseFieldValue(field, "not-a-uuid"));
+        }
+
+        @Test
+        void textTypedField_stillParsesInPlace() throws ServiceException {
+            var field = fieldTypedAs(FieldValueText.class);
+
+            FieldValue parsed = twinService.parseFieldValue(field, "hello");
+
+            assertInstanceOf(FieldValueText.class, parsed);
+            assertEquals("hello", ((FieldValueText) parsed).getValue());
         }
     }
 
