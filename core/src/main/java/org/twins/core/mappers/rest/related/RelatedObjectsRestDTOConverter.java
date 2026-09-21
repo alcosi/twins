@@ -156,27 +156,37 @@ public class RelatedObjectsRestDTOConverter {
                 Function<? super E, ? extends DK> idGetter) {
         }
 
+        /**
+         * Drains the postponed objects of all sources into this descriptor's accumulator map. The map is
+         * created lazily, on the first drained object only — a typical request postpones a few classes,
+         * the rest must not allocate anything.
+         */
         @SuppressWarnings("unchecked")
-        private void drain(MapperContext sourceContext, MapperContext mapperContext, Map<Object, Object> accumulated) throws Exception {
-            for (Source<?, DK, D> source : sources)
-                drainSource(sourceContext, mapperContext, accumulated, source.relatedClass(),
-                        (Function<Object, Object>) source.idGetter(), (RestSimpleDTOMapper<Object, Object>) source.mapper());
+        private void drain(MapperContext sourceContext, MapperContext mapperContext,
+                           Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators) throws Exception {
+            for (Source<?, DK, D> source : sources) {
+                Map<Object, RelatedObject<Object>> postponed = postponedMap(sourceContext, source.relatedClass());
+                if (postponed == null || postponed.isEmpty())
+                    continue;
+                Map<Object, Object> accumulated = accumulators.computeIfAbsent(this, descriptor -> new HashMap<>());
+                Function<Object, Object> id = (Function<Object, Object>) source.idGetter();
+                RestSimpleDTOMapper<Object, Object> convertingMapper = (RestSimpleDTOMapper<Object, Object>) source.mapper();
+                for (RelatedObject<Object> relatedObject : postponed.values())
+                    accumulated.put(id.apply(relatedObject.getObject()),
+                            convertingMapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
+            }
         }
 
-        private static void drainSource(MapperContext sourceContext, MapperContext mapperContext, Map<Object, Object> accumulated,
-                                        Class<?> relatedClass, Function<Object, Object> id, RestSimpleDTOMapper<Object, Object> convertingMapper) throws Exception {
-            Map<Object, RelatedObject<Object>> source = (Map<Object, RelatedObject<Object>>) (Map<?, ?>) sourceContext.getRelatedMap(relatedClass);
-            if (source == null || source.isEmpty())
-                return;
-            for (RelatedObject<Object> relatedObject : source.values())
-                accumulated.put(id.apply(relatedObject.getObject()),
-                        convertingMapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
+        @SuppressWarnings("unchecked")
+        private static Map<Object, RelatedObject<Object>> postponedMap(MapperContext sourceContext, Class<?> relatedClass) {
+            return (Map<Object, RelatedObject<Object>>) (Map<?, ?>) sourceContext.getRelatedMap(relatedClass);
         }
 
         @SuppressWarnings("unchecked")
-        private void applyResult(RelatedObjectsDTOv1 ret, Map<Object, Object> accumulated) {
+        private void applyResult(RelatedObjectsDTOv1 ret, Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators) {
+            Map<Object, Object> accumulated = accumulators.get(this); // null when nothing was drained
             ((BiConsumer<RelatedObjectsDTOv1, Map<Object, Object>>) (BiConsumer<?, ?>) destinationSetter)
-                    .accept(ret, accumulated.isEmpty() ? null : accumulated);
+                    .accept(ret, accumulated == null || accumulated.isEmpty() ? null : accumulated);
         }
     }
 
@@ -217,11 +227,9 @@ public class RelatedObjectsRestDTOConverter {
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
             return null;
-        //per-convert accumulators, one per descriptor: the descriptors are a shared singleton config,
-        //the maps must die with the request (no data leaking between requests/tenants)
+        //per-convert accumulators, created lazily on first drained object (see RelatedMapDescriptor.drain):
+        //the descriptors are a shared singleton config, the maps must die with the request
         Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators = new HashMap<>();
-        for (RelatedMapDescriptor<?, ?> descriptor : descriptors)
-            accumulators.put(descriptor, new HashMap<>());
         //resolve featurer param entity refs postponed during the main conversion: rendered on level 1
         entityRefRestDTOMapper.resolve(mapperContext);
         //run mappers one more time, because related objects can also contain relations (they were added to the isolated context on the previous step)
@@ -239,12 +247,12 @@ public class RelatedObjectsRestDTOConverter {
         drain(mapperContextLevel3, mapperContextLevel3, accumulators);
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         for (RelatedMapDescriptor<?, ?> descriptor : descriptors)
-            descriptor.applyResult(ret, accumulators.get(descriptor));
+            descriptor.applyResult(ret, accumulators);
         return ret;
     }
 
     private void drain(MapperContext sourceContext, MapperContext mapperContext, Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators) throws Exception {
         for (RelatedMapDescriptor<?, ?> descriptor : descriptors)
-            descriptor.drain(sourceContext, mapperContext, accumulators.get(descriptor));
+            descriptor.drain(sourceContext, mapperContext, accumulators);
     }
 }
