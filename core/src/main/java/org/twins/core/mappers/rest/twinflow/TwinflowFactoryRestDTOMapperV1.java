@@ -12,6 +12,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowFactoryMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowMode;
+import org.twins.core.service.twinflow.TwinflowFactoryService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +23,8 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
 
     @MapperModePointerBinding(modes = TwinflowMode.TwinflowFactory2TwinflowMode.class)
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
+
+    private final TwinflowFactoryService twinflowFactoryService;
 
     @MapperModePointerBinding(modes = FactoryMode.TwinflowFactory2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapperV2;
@@ -37,12 +42,27 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
 
         if (mapperContext.hasModeButNot(TwinflowMode.TwinflowFactory2TwinflowMode.HIDE)) {
             dst.setTwinflowId(src.getTwinflowId());
+            twinflowFactoryService.loadTwinflow(src);
             twinflowBaseV1RestDTOMapper.postpone(src.getTwinflow(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(FactoryMode.TwinflowFactory2FactoryMode.HIDE)) {
             dst.setFactoryId(src.getTwinFactoryId());
+            twinflowFactoryService.loadTwinFactory(src);
             factoryRestDTOMapperV2.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.TwinflowFactory2FactoryMode.SHORT)));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinflowFactoryEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
+        if (mapperContext.hasModeButNot(TwinflowMode.TwinflowFactory2TwinflowMode.HIDE)) {
+            twinflowFactoryService.loadTwinflow(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryMode.TwinflowFactory2FactoryMode.HIDE)) {
+            twinflowFactoryService.loadTwinFactory(srcCollection);
         }
     }
 }

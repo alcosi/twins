@@ -47,7 +47,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
 
     @Query(value = "select tt from TwinflowTransitionEntity tt " +
             "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
-            "and tt.twinflowTransitionAlias.alias = :alias " +
+            "and tt.twinflowTransitionAliasSpecOnly.alias = :alias " +
             "and tt.twinflowTransitionTypeId not in :excludedTransitionTypes " +
             "and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     TwinflowTransitionEntity findTransitionByAlias(

@@ -9,6 +9,7 @@ import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,8 @@ import java.util.function.Function;
 public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImpl<TwinflowTransitionTriggerEntity> {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinTriggerService twinTriggerService;
+    @Lazy
+    private final TwinflowTransitionService twinflowTransitionService;
     private final AuthService authService;
 
     @Override
@@ -116,6 +119,8 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
     }
 
     public void loadTrigger(TwinflowTransitionTriggerEntity src) throws ServiceException {
+        if (src.getTwinTrigger() != null)
+            return;
         loadTriggers(Collections.singleton(src));
     }
 
@@ -124,5 +129,18 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
                 TwinflowTransitionTriggerEntity::getTwinTriggerId,
                 TwinflowTransitionTriggerEntity::getTwinTrigger,
                 TwinflowTransitionTriggerEntity::setTwinTrigger);
+    }
+
+    public void loadTwinflowTransition(TwinflowTransitionTriggerEntity src) throws ServiceException {
+        if (src.getTwinflowTransition() != null)
+            return;
+        loadTwinflowTransitions(Collections.singleton(src));
+    }
+
+    public void loadTwinflowTransitions(Collection<TwinflowTransitionTriggerEntity> srcCollection) throws ServiceException {
+        twinflowTransitionService.load(srcCollection,
+                TwinflowTransitionTriggerEntity::getTwinflowTransitionId,
+                TwinflowTransitionTriggerEntity::getTwinflowTransition,
+                TwinflowTransitionTriggerEntity::setTwinflowTransition);
     }
 }

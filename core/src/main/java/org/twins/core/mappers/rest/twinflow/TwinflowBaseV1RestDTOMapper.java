@@ -61,6 +61,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         }
         if (mapperContext.hasModeButNot(TwinClassMode.Twinflow2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
+            twinflowService.loadTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twinflow2TwinClassMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.Twinflow2UserMode.HIDE) && src.getCreatedByUserId() != null) {
@@ -71,6 +72,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         if (mapperContext.hasModeButNot(StatusMode.TwinflowInitStatus2StatusMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setInitialStatusId(src.getInitialTwinStatusId());
             dst.setInitialSketchStatusId(src.getInitialSketchTwinStatusId());
+            twinflowService.loadStatuses(src);
             twinStatusRestDTOMapper.postpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatus2StatusMode.SHORT)));
             twinStatusRestDTOMapper.postpone(src.getInitialSketchTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatus2StatusMode.SHORT)));
         }
@@ -79,8 +81,16 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
     @Override
     public void beforeCollectionConversion(Collection<TwinflowEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
         if (mapperContext.hasModeButNot(UserMode.Twinflow2UserMode.HIDE)) {
             twinflowService.loadCreatedByUser(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.Twinflow2TwinClassMode.HIDE)) {
+            twinflowService.loadTwinClass(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(StatusMode.TwinflowInitStatus2StatusMode.HIDE)) {
+            twinflowService.loadStatuses(srcCollection);
         }
     }
 
