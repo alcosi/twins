@@ -451,12 +451,23 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         }
 
         @Test
-        void updateClearedImmutable_isRestricted() throws ServiceException {
-            // Intended: null on update still means "clear this field" and stays permission-gated.
+        void updateClearedImmutable_isNotRestricted() throws ServiceException {
+            // Intended: null on update of an immutable field is ignored, not a 400.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(false);
             var value = new FieldValueText(classField);
             value.clear();
+
+            assertFalse(fieldTyper.updateRestricted(twin, value));
+            verify(twinService, never()).isFieldImmutable(any(), any());
+        }
+
+        @Test
+        void updatePresentImmutable_isRestricted() throws ServiceException {
+            // Intended: a real value on update of an immutable field is still blocked.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(false);
+            var value = new FieldValueText(classField).setValue("10");
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
 
             assertTrue(fieldTyper.updateRestricted(twin, value));

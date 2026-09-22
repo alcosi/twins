@@ -120,6 +120,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!validate(twin, value).isValid()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
+        // Full-form updates send null for keys the user cannot edit. Ignore those clears
+        // instead of wiping a protected value.
+        if (value.isCleared() && twinService.isFieldImmutable(twin, value.getTwinClassField())) {
+            log.info("{} is immutable and cleared, serialization will be skipped", value.getTwinClassField().logNormal());
+            return;
+        }
         var storage = getStorage(value.getTwinClassField());
         if (!storage.isLoaded(twin)) {
             storage.load(Kit.singleton(twin, TwinEntity::getId));
@@ -219,10 +225,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     public boolean updateRestricted(TwinEntity twin, T value) throws ServiceException {
-        // On create, a null/cleared field is not an edit: clients often send the full field map,
-        // including keys the user cannot fill. Skip permission check for those. On update, null
-        // still means "clear this field" and stays permission-gated.
-        if (twin.isCreateElseUpdate() && value.isCleared()) {
+        // null/cleared is not "set this value". Clients often send the full field map, including
+        // keys the user cannot fill. Skip permission for those. A non-empty value stays gated.
+        // On update, mutable fields still clear in serializeValue; immutable clears are skipped there.
+        if (value.isCleared()) {
             return false;
         }
         return value.isDefined() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField());
