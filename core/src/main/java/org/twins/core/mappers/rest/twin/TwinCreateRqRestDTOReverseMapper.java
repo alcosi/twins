@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySmartService;
@@ -64,7 +65,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
 
         dst
                 .setCreateStrategy(src.getCreateStrategy() != null ? src.getCreateStrategy() : Boolean.TRUE.equals(src.isSketch) ? TwinCreateStrategy.SKETCH : TwinCreateStrategy.STRICT) //legacy support
-                .setFields(twinFieldValueRestDTOReverseMapperV2.parse(src.getClassId(), src.getFields())) // parse only — materialized batch-wide in afterCollectionConversion
+                .setFields(twinFieldValueRestDTOReverseMapperV2.parse(src.getClassId(), withoutEmptyFieldValues(src.getFields()))) // parse only — materialized batch-wide in afterCollectionConversion
                 .setTwinEntity(twinEntity);
 
         dst
@@ -185,6 +186,21 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                 }
             }
         }
+    }
+
+    /**
+     * On create, null/blank field values are not an edit — drop them so they never enter validation.
+     * Update keeps explicit null as "clear this field".
+     */
+    private static Map<String, String> withoutEmptyFieldValues(Map<String, String> fields) {
+        if (fields == null || fields.isEmpty())
+            return fields;
+        Map<String, String> filled = new HashMap<>();
+        for (var entry : fields.entrySet()) {
+            if (StringUtils.isNotBlank(entry.getValue()))
+                filled.put(entry.getKey(), entry.getValue());
+        }
+        return filled;
     }
 
     private String resolveTemporalOrReturnOriginal(String value, String contextPath) throws ServiceException {

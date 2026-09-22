@@ -219,6 +219,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     public boolean updateRestricted(TwinEntity twin, T value) throws ServiceException {
+        // On create, a null/cleared field is not an edit: clients often send the full field map,
+        // including keys the user cannot fill. Skip permission check for those. On update, null
+        // still means "clear this field" and stays permission-gated.
+        if (twin.isCreateElseUpdate() && value.isCleared()) {
+            return false;
+        }
         return value.isDefined() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField());
     }
 

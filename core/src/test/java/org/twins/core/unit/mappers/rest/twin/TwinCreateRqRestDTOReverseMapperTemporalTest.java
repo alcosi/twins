@@ -23,6 +23,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldAttributeCreateRestDTOReverseMa
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TemporalIdContext;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
@@ -44,6 +45,7 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
     @Mock private UserService userService;
     @Mock private AuthService authService;
     @Mock private TemporalIdContext temporalIdContext;
+    @Mock private TwinService twinService;
     @Mock private ApiUser apiUser;
     @Mock private UserEntity userEntity;
 
@@ -59,6 +61,7 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
         when(apiUser.getUser()).thenReturn(userEntity);
         when(userEntity.getId()).thenReturn(UUID.randomUUID());
         when(userService.checkId(any(), any())).thenReturn(null);
+        when(twinFieldValueRestDTOReverseMapperV2.parse(any(), any())).thenReturn(Collections.emptyList());
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(any(), any())).thenReturn(Collections.emptyList());
         when(attachmentCreateRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
         when(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
@@ -235,6 +238,22 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
             mapper.map(d, twinCreate, mapperContext);
 
             assertNull(twinCreate.getTwinEntity().getId());
+        }
+
+        @Test
+        void map_skipsEmptyFieldValues() throws Exception {
+            var d = dto(null);
+            var fields = new HashMap<String, String>();
+            fields.put("plannedDuration", null);
+            fields.put("plannedStart", "");
+            fields.put("progress", "  ");
+            fields.put("plannedScope", "34.0");
+            d.setFields(fields);
+
+            mapper.map(d, new TwinCreate(), mapperContext);
+
+            verify(twinFieldValueRestDTOReverseMapperV2).parse(eq(classId), argThat(passed ->
+                    passed.size() == 1 && "34.0".equals(passed.get("plannedScope"))));
         }
     }
 

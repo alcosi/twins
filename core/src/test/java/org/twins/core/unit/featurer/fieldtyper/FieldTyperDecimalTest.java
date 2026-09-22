@@ -24,6 +24,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FieldTyperDecimalTest extends BaseUnitTest {
 
@@ -418,6 +421,45 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             var twin = twinWithoutDecimalField(classField);
             var value = new FieldValueText(classField).setValue("-5");
             assertFalse(fieldTyper.validate(props, twin, value).isValid());
+        }
+    }
+
+    @Nested
+    class UpdateRestricted {
+
+        @Test
+        void createClearedImmutable_isNotRestricted() throws ServiceException {
+            // Intended: null on create is not an edit — skip permission even if the field is immutable.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(true);
+            var value = new FieldValueText(classField);
+            value.clear();
+
+            assertFalse(fieldTyper.updateRestricted(twin, value));
+            verify(twinService, never()).isFieldImmutable(any(), any());
+        }
+
+        @Test
+        void createPresentImmutable_isRestricted() throws ServiceException {
+            // Intended: a real value on create of an immutable field is still blocked.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(true);
+            var value = new FieldValueText(classField).setValue("10");
+            when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
+
+            assertTrue(fieldTyper.updateRestricted(twin, value));
+        }
+
+        @Test
+        void updateClearedImmutable_isRestricted() throws ServiceException {
+            // Intended: null on update still means "clear this field" and stays permission-gated.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(false);
+            var value = new FieldValueText(classField);
+            value.clear();
+            when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
+
+            assertTrue(fieldTyper.updateRestricted(twin, value));
         }
     }
 }
