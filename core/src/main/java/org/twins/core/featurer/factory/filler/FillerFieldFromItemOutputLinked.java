@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Slf4j
-public abstract class FillerFieldFromItemOutputLinked extends Filler {
+public abstract class FillerFieldFromItemOutputLinked extends FillerAtomic {
     @Lazy
     @Autowired
     TwinService twinService;

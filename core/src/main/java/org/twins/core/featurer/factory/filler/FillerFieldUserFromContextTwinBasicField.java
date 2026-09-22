@@ -27,7 +27,7 @@ import java.util.Properties;
         name = "Field user from context twin basic field",
         description = "Fill the user field with assignee-or-creator of context twin")
 @Slf4j
-public class FillerFieldUserFromContextTwinBasicField extends Filler {
+public class FillerFieldUserFromContextTwinBasicField extends FillerAtomic {
 
     @FeaturerParam(name = "Twin class field id", description = "TwinClassFieldId for filling", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");

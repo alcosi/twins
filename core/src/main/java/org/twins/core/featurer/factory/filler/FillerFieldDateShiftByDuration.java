@@ -37,7 +37,7 @@ import java.util.UUID;
         description = "Sets target date from source date ± (duration - 1) inclusive days when target is empty")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldDateShiftByDuration extends Filler {
+public class FillerFieldDateShiftByDuration extends FillerAtomic {
     @FeaturerParam(name = "Target twin class field id", description = "Date field to fill when empty", order = 1)
     public static final FeaturerParamUUID targetTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("targetTwinClassFieldId");
 

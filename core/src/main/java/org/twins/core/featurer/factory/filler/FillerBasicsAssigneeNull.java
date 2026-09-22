@@ -15,7 +15,7 @@ import java.util.Properties;
         name = "Basics assignee null",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeNull extends Filler {
+public class FillerBasicsAssigneeNull extends FillerAtomic {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {

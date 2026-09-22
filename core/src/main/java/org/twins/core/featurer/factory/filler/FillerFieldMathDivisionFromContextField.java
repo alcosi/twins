@@ -32,7 +32,7 @@ import java.util.UUID;
         description = "")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldMathDivisionFromContextField extends Filler {
+public class FillerFieldMathDivisionFromContextField extends FillerAtomic {
     @FeaturerParam(name = "Dividend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID dividendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dividendTwinClassFieldId");
     @FeaturerParam(name = "Divisor twin class field id", description = "", order = 2)

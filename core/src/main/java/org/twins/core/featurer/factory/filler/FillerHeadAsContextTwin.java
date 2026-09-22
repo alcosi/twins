@@ -14,7 +14,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_2301,
         name = "Head as context twin",
         description = "")
-public class FillerHeadAsContextTwin extends Filler {
+public class FillerHeadAsContextTwin extends FillerAtomic {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         var contextTwin = factoryItem.checkSingleContextTwin();

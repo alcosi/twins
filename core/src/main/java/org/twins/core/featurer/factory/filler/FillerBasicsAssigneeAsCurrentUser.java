@@ -17,7 +17,7 @@ import java.util.Properties;
         name = "Basics assignee as current user",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeAsCurrentUser extends Filler {
+public class FillerBasicsAssigneeAsCurrentUser extends FillerAtomic {
     @Autowired
     AuthService authService;
 

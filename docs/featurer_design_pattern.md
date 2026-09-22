@@ -197,6 +197,10 @@ access by overriding the wrong method, and the "preload once, then loop" shape i
 Implementers must read these getters instead of re-collecting the same sets from the histories —
 re-deriving them in every featurer re-does the caller's work N times per chunk.
 
+`FactoryItemsBatch` (factory pipeline steps) is the pre-derived-view half of this shape: the step's
+items plus `getTwins()` / `getTwinIds()` maintained incrementally by the idempotent `add(item)`.
+Fillers write results into the items themselves, so it carries no accumulator.
+
 ### How to write a batch featurer
 
 **Default: extend the Atomic class.**
@@ -285,6 +289,19 @@ placeholders at notify-event build time.
 `NotifierAtomic` mirrors the template for notifiers: a `final` batch method looping over
 `notify(...)` per event, plus per-event error isolation — a failing event is collected and returned
 instead of aborting the rest of the batch, so the caller can attribute the failure per task.
+
+`Filler`/`FillerAtomic` follow the same shape for factory pipelines. `FactoryProcessorImpl.runPipelineSteps`
+runs step-major: for each pipeline step it collects the items whose condition check passes into a
+`FactoryItemsBatch` and makes one `fill(fillerParams, batch, templateTwin, logMsg, optionalStep)` call
+for the whole batch. The `optionalStep` flag carries the caller's `step.getOptional() && canBeOptional()`
+policy into the per-item error isolation: a failing item of an optional step is logged and skipped, a
+mandatory failure aborts the batch. `FillerAtomic` is the `final` batch template — a `beforeFill`
+bulk-preload hook plus the per-item `fill` — while direct batch overrides exist where one param- or
+template-keyed query answers every item at once (`FillerFieldAsFoundTwinOfClass`,
+`FillerHeadFromTemplateTwinHead`). `FillerForwardLinksFromTemplateTwinAll` is deliberately NOT a
+direct override: its template-keyed loads are cached on the entity itself, so the first item loads
+and the rest read in-memory — the `FillerLinks` helpers it needs are only available under
+`FillerAtomic`.
 
 When adding a new featurer *family*, follow this shape: batch API on the base, `final` template +
 `before*` hook + abstract item method in the `...Atomic` intermediate class, direct batch override

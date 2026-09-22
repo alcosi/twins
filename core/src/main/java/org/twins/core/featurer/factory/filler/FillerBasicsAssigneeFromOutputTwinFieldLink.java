@@ -21,7 +21,7 @@ import java.util.Properties;
         name = "Basics assignee from output twin field link",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeFromOutputTwinFieldLink extends Filler {
+public class FillerBasicsAssigneeFromOutputTwinFieldLink extends FillerAtomic {
 
     @FeaturerParam(name = "twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");

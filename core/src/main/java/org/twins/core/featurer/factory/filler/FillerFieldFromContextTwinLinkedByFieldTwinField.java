@@ -25,7 +25,7 @@ import java.util.UUID;
         name = "Field from context twin head field",
         description = "")
 @Slf4j
-public class FillerFieldFromContextTwinLinkedByFieldTwinField extends Filler {
+public class FillerFieldFromContextTwinLinkedByFieldTwinField extends FillerAtomic {
     @FeaturerParam(name = "Context twin field id", description = "", order = 1)
     public static final FeaturerParamUUID contextTwinFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("contextTwinFieldId");
 

@@ -27,7 +27,7 @@ import java.util.Properties;
         name = "Field user from output twin basic field",
         description = "Fill the user field with assignee-or-creator of the same factory item output twin")
 @Slf4j
-public class FillerFieldUserFromOutputTwinBasicField extends Filler {
+public class FillerFieldUserFromOutputTwinBasicField extends FillerAtomic {
 
     @FeaturerParam(name = "Twin class field id", description = "TwinClassFieldId for filling", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
@@ -39,6 +39,8 @@ public class FillerFieldUserFromOutputTwinBasicField extends Filler {
     @Autowired
     private TwinClassFieldService twinClassFieldService;
 
+    @Lazy
+    @Autowired
     private TwinService twinService;
 
     @Override

@@ -36,7 +36,7 @@ import java.util.UUID;
         description = "Sets duration = (end - start + 1) inclusive days when duration is empty and both dates are filled")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldDurationBetweenDates extends Filler {
+public class FillerFieldDurationBetweenDates extends FillerAtomic {
     @FeaturerParam(name = "Duration twin class field id", description = "Numeric duration field to fill when empty", order = 1)
     public static final FeaturerParamUUID durationTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("durationTwinClassFieldId");
 

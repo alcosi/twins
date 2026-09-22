@@ -24,7 +24,7 @@ import java.util.Properties;
         name = "Field as item output linked twin head",
         description = "")
 @Slf4j
-public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
+public class FillerFieldAsItemOutputLinkedTwinHead extends FillerAtomic {
     @Lazy
     @Autowired
     TwinService twinService;

@@ -32,7 +32,7 @@ import java.util.UUID;
         description = "")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldMathDifferenceFromContextField extends Filler {
+public class FillerFieldMathDifferenceFromContextField extends FillerAtomic {
     @FeaturerParam(name = "Minuend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID minuendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("minuendTwinClassFieldId");
     @FeaturerParam(name = "Subtrahend twin class field id", description = "Value from this field will be ", order = 2)

@@ -6,7 +6,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 
@@ -23,13 +23,15 @@ public abstract class Filler extends FeaturerTwins {
     @Autowired
     FieldLookupers fieldLookupers;
 
-    public void fill(HashMap<String, String> fillerParams, FactoryItem factoryItem, TwinEntity templateTwin, String logMsg) throws ServiceException {
+    public void fill(HashMap<String, String> fillerParams, FactoryItemsBatch batch, TwinEntity templateTwin, String logMsg, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
         Properties properties = featurerService.extractProperties(this, fillerParams);
-        log.info(logMsg + ": running filler[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        fill(properties, factoryItem, templateTwin);
+        log.info("{}: running filler[{}] for {} factory item(s) with params: {}", logMsg, this.getClass().getSimpleName(), batch.size(), properties);
+        fill(properties, batch, templateTwin, optionalStep);
     }
 
-    public abstract void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException;
+    public abstract void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException;
 
     public boolean canBeOptional() {
         return true; // most steps can be option by default. otherwise method must be overridden

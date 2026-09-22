@@ -32,7 +32,7 @@ import java.util.UUID;
         description = "")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldMathSumFromContextField extends Filler {
+public class FillerFieldMathSumFromContextField extends FillerAtomic {
     @FeaturerParam(name = "Addend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID addendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("addendTwinClassFieldId");
     @FeaturerParam(name = "Augend twin class field id", description = "", order = 2)

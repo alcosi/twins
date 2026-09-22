@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -43,21 +44,43 @@ public class FillerFieldAsFoundTwinOfClass extends Filler {
     @Autowired
     TwinService twinService;
 
+    /**
+     * Direct batch override (not a {@code FillerAtomic} subclass): the search is keyed only by params,
+     * so one query answers every item of the batch — see featurer_design_pattern.md.
+     */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        BasicSearch search = new BasicSearch();
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
         UUID extractedTwinClassId = twinClassId.extract(properties);
+        BasicSearch search = new BasicSearch();
         search
                 .addTwinClassId(extractedTwinClassId, false);
-        var entityList = twinSearchService.findTwins(search);
+        var entityList = twinSearchService.findTwins(search); // ONE query for the whole batch
         if (entityList.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are no twins of class[" + extractedTwinClassId + "] found.");
         }
         if (entityList.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are more than one twin of class[" + extractedTwinClassId + "] found.");
         }
-        var twinEntity = entityList.getFirst();
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twinEntity);
+        UUID fieldId = twinClassFieldLinkId.extract(properties);
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                fillWithFoundTwin(factoryItem, fieldId, entityList.getFirst());
+            } catch (Exception ex) {
+                if (optionalStep) {
+                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                            factoryItem.logShort(),
+                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+                } else {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    protected void fillWithFoundTwin(FactoryItem factoryItem, UUID fieldId, TwinEntity foundTwin) throws ServiceException {
+        FieldValue fieldValue = twinService.createFieldValue(fieldId, foundTwin);
         factoryItem.getOutput().addField(fieldValue);
     }
 }

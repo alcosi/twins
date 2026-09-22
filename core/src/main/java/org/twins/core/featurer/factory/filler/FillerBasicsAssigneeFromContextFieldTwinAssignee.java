@@ -26,7 +26,7 @@ import java.util.UUID;
         name = "Basics assignee from context field twin assignee",
         description = "If value of context field is an id of other twin (link) we will get assignee from that twin")
 @Slf4j
-public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
+public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends FillerAtomic {
     @FeaturerParam(name = "Link field", description = "", order = 1)
     public static final FeaturerParamUUID linkField = new FeaturerParamUUIDTwinsTwinClassFieldId("linkField");
 
@@ -46,7 +46,7 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
         if (assigneeField == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + assigneeFieldId + "] is not present in context ");
         TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(assigneeField);
-        log.info(outputTwinEntity.logShort() + " [assignee] will be filled from twin " + linkedTwin);
+        log.info("{} [assignee] will be filled from twin {}", outputTwinEntity.logShort(), linkedTwin);
         twinService.loadUser(linkedTwin);
         UserEntity assignee = linkedTwin.getAssignerUser();
         if (assignee == null)

@@ -17,7 +17,7 @@ import org.twins.core.service.twinlink.TwinLinkService;
 import java.util.*;
 
 @Slf4j
-public abstract class FillerLinks extends Filler {
+public abstract class FillerLinks extends FillerAtomic {
     @Lazy
     @Autowired
     TwinLinkService twinLinkService;

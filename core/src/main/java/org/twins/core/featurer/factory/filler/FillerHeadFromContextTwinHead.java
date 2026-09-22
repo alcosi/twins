@@ -21,7 +21,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_2302,
         name = "Head from context twin head",
         description = "Walks the context twin head hierarchy N levels up (see 'depth' param) and sets the result as the new twin's head. ")
-public class FillerHeadFromContextTwinHead extends Filler {
+public class FillerHeadFromContextTwinHead extends FillerAtomic {
 
     @Lazy
     @Autowired

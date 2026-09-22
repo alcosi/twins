@@ -25,7 +25,7 @@ import java.util.UUID;
         description = "Sets output twin flavor_data_list_option_id from configured data list option id"
 )
 @Slf4j
-public class FillerBasicsFlavorDataListOption extends Filler {
+public class FillerBasicsFlavorDataListOption extends FillerAtomic {
 
     @FeaturerParam(name = "Data list option id", description = "", order = 1)
     public static final FeaturerParamUUID dataListOptionId = new FeaturerParamUUIDTwinsDataListOptionId("dataListOptionId");

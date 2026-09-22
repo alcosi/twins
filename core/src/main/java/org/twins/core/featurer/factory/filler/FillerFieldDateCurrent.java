@@ -32,7 +32,7 @@ import java.util.UUID;
         description = "Sets the target date field to now when it is empty; does not overwrite an existing value")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldDateCurrent extends Filler {
+public class FillerFieldDateCurrent extends FillerAtomic {
     @FeaturerParam(name = "Twin class field id", description = "Date field to set to the current date-time when empty", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 

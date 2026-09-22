@@ -21,7 +21,7 @@ import java.util.Properties;
         name = "Comment field",
         description = "")
 @Slf4j
-public class FillerComment extends Filler {
+public class FillerComment extends FillerAtomic {
 
     @FeaturerParam(name = "Field id", description = "", order = 1)
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
