@@ -50,7 +50,7 @@ public class TwinflowSearchService {
         Locale locale = apiUser.getLocale();
         return
                 checkSchemas(TwinflowEntity.Fields.schemaMappingsSpecOnly, search.getTwinflowSchemaIdList(), true, false)
-                .and(checkUuid(apiUser.getDomainId(), false, false, TwinflowEntity.Fields.twinClass, TwinClassEntity.Fields.domainId))
+                .and(checkUuid(apiUser.getDomainId(), false, false, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId))
                 .and(checkSchemas(TwinflowEntity.Fields.schemaMappingsSpecOnly, search.getTwinflowSchemaIdExcludeList(), true, true))
                 .and(checkUuidIn(search.getIdList(), false, false, TwinflowEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))

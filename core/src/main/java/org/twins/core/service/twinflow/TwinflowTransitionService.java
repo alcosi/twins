@@ -57,6 +57,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.FactoryExecutionService;
+import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinService;
@@ -83,6 +84,7 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
 
     private final TwinflowTransitionRepository twinflowTransitionRepository;
+    private final TwinflowTransitionTriggerService twinflowTransitionTriggerService;
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
@@ -92,6 +94,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinTriggerTaskService twinTriggerTaskService;
     private final TwinClassService twinClassService;
     private final FactoryExecutionService factoryExecutionService;
+    @Lazy
+    private final FactoryService factoryService;
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
     @Lazy
@@ -153,6 +157,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 if (entity.getCreatedByUser() == null || !entity.getCreatedByUser().getId().equals(entity.getCreatedByUserId()))
                     entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
             default:
+                if (entity.getSrcTwinStatusId() != null && entity.getSrcTwinStatus() == null)
+                    entity.setSrcTwinStatus(twinStatusService.findEntitySafe(entity.getSrcTwinStatusId()));
+                if (entity.getDstTwinStatus() == null)
+                    entity.setDstTwinStatus(twinStatusService.findEntitySafe(entity.getDstTwinStatusId()));
+                if (entity.getTwinflow() == null)
+                    entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
+                twinflowService.loadTwinClass(entity.getTwinflow()); // no-op when already loaded
                 if (entity.getSrcTwinStatusId() != null
                         && (!twinClassService.isInstanceOf(entity.getSrcTwinStatus().getTwinClass(), entity.getDstTwinStatus().getTwinClassId())
                         || !twinClassService.isInstanceOf(entity.getDstTwinStatus().getTwinClass(), entity.getSrcTwinStatus().getTwinClassId())))
@@ -335,6 +346,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
             if (changesHelper.hasChanges()) {
                 changes.add(dbTwinflowTransitionEntity, changesHelper);
+                loadTwinflow(dbTwinflowTransitionEntity);
                 cacheEvictCollector
                         .add(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId(), TwinClassRepository.CACHE_TWIN_CLASS_BY_ID)
                         .add(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId(), TwinClassEntity.class.getSimpleName());
@@ -381,9 +393,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void updateTransitionSrcStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.srcTwinStatusId, dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
-        if (null != statusId && !UuidUtils.isNullifyMarker(statusId) && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+        if (null == statusId || UuidUtils.isNullifyMarker(statusId)) {
+            dbTwinflowTransitionEntity.setSrcTwinStatusId(UuidUtils.nullifyIfNecessary(statusId));
+            return;
+        }
+        loadTwinflowWithTwinClass(dbTwinflowTransitionEntity);
+        if (!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
-        dbTwinflowTransitionEntity.setSrcTwinStatusId(UuidUtils.nullifyIfNecessary(statusId));
+        dbTwinflowTransitionEntity.setSrcTwinStatusId(statusId);
     }
 
     public void updateTransitionDstStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
@@ -391,9 +408,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return;
         if (null == statusId)
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "Dst status for transition can't be null");
+        loadTwinflowWithTwinClass(dbTwinflowTransitionEntity);
         if (!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
         dbTwinflowTransitionEntity.setDstTwinStatusId(statusId);
+    }
+
+    private void loadTwinflowWithTwinClass(TwinflowTransitionEntity entity) throws ServiceException {
+        loadTwinflow(entity);
+        twinflowService.loadTwinClass(entity.getTwinflow());
     }
 
 
@@ -646,6 +669,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             validateTransition(transitionContext);
             fillAttachmentsTransition(transitionContext);
         }
+        loadDstTwinStatus(transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList());
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         runFactories(transitionContextBatch, twinChangesCollector);
         DraftCollector draftCollector = draftService.beginDraft();
@@ -685,6 +709,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             validateTransition(transitionContext);
             fillAttachmentsTransition(transitionContext);
         }
+        loadDstTwinStatus(transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList());
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         runFactories(transitionContextBatch, twinChangesCollector);
         TransitionResult transitionResult = null;
@@ -827,7 +852,16 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Transactional
     public void runTriggers(TransitionContextBatch transitionContextBatch, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        loadTriggers(transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList());
+        List<TwinflowTransitionEntity> transitionEntities = transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList();
+        loadTriggers(transitionEntities);
+        loadTwinStatuses(transitionEntities);
+        // batch load twinTrigger for all active sync triggers to avoid per-trigger queries below
+        List<TwinflowTransitionTriggerEntity> syncTriggers = new ArrayList<>();
+        for (TwinflowTransitionEntity transitionEntity : transitionEntities)
+            for (TwinflowTransitionTriggerEntity transitionTrigger : transitionEntity.getTriggersKit())
+                if (transitionTrigger.getActive() && !transitionTrigger.getAsync() && transitionTrigger.getTwinTrigger() == null)
+                    syncTriggers.add(transitionTrigger);
+        twinflowTransitionTriggerService.loadTriggers(syncTriggers);
         for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
             TwinflowTransitionEntity transitionEntity = transitionContext.getTransitionEntity();
             //todo run status input/output triggers
@@ -896,6 +930,92 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinflowTransitionEntity::getCreatedByUser,
                 TwinflowTransitionEntity::setCreatedByUser
         );
+    }
+
+    public void loadTwinflow(TwinflowTransitionEntity src) throws ServiceException {
+        if (src.getTwinflow() != null)
+            return;
+        loadTwinflow(Collections.singletonList(src));
+    }
+
+    public void loadTwinflow(Collection<TwinflowTransitionEntity> srcCollection) throws ServiceException {
+        twinflowService.load(srcCollection,
+                TwinflowTransitionEntity::getTwinflowId,
+                TwinflowTransitionEntity::getTwinflow,
+                TwinflowTransitionEntity::setTwinflow);
+    }
+
+    public void loadDstTwinStatus(TwinflowTransitionEntity src) throws ServiceException {
+        if (src.getDstTwinStatus() != null)
+            return;
+        loadDstTwinStatus(Collections.singletonList(src));
+    }
+
+    public void loadDstTwinStatus(Collection<TwinflowTransitionEntity> srcCollection) throws ServiceException {
+        twinStatusService.load(srcCollection,
+                TwinflowTransitionEntity::getDstTwinStatusId,
+                TwinflowTransitionEntity::getDstTwinStatus,
+                TwinflowTransitionEntity::setDstTwinStatus);
+    }
+
+    public void loadTwinStatuses(TwinflowTransitionEntity src) throws ServiceException {
+        if (src.getDstTwinStatus() != null && src.getSrcTwinStatus() != null)
+            return;
+        loadTwinStatuses(Collections.singletonList(src));
+    }
+
+    public void loadTwinStatuses(Collection<TwinflowTransitionEntity> srcCollection) throws ServiceException {
+        twinStatusService.load(srcCollection,
+                new LoadedField<>(
+                        TwinflowTransitionEntity::getDstTwinStatusId,
+                        TwinflowTransitionEntity::getDstTwinStatus,
+                        TwinflowTransitionEntity::setDstTwinStatus),
+                new LoadedField<>(
+                        TwinflowTransitionEntity::getSrcTwinStatusId,
+                        TwinflowTransitionEntity::getSrcTwinStatus,
+                        TwinflowTransitionEntity::setSrcTwinStatus));
+    }
+
+    public void loadFactories(TwinflowTransitionEntity src) throws ServiceException {
+        if (src.getInbuiltFactory() != null && src.getDraftingFactory() != null)
+            return;
+        loadFactories(Collections.singletonList(src));
+    }
+
+    public void loadFactories(Collection<TwinflowTransitionEntity> srcCollection) throws ServiceException {
+        factoryService.load(srcCollection,
+                new LoadedField<>(
+                        TwinflowTransitionEntity::getInbuiltTwinFactoryId,
+                        TwinflowTransitionEntity::getInbuiltFactory,
+                        TwinflowTransitionEntity::setInbuiltFactory),
+                new LoadedField<>(
+                        TwinflowTransitionEntity::getDraftingTwinFactoryId,
+                        TwinflowTransitionEntity::getDraftingFactory,
+                        TwinflowTransitionEntity::setDraftingFactory)
+        );
+    }
+
+    public void loadTwinflowTransitionAlias(TwinflowTransitionEntity src) {
+        if (src.getTwinflowTransitionAlias() != null)
+            return;
+        loadTwinflowTransitionAlias(Collections.singletonList(src));
+    }
+
+    public void loadTwinflowTransitionAlias(Collection<TwinflowTransitionEntity> srcCollection) {
+        Set<UUID> needLoad = new HashSet<>();
+        for (TwinflowTransitionEntity src : srcCollection) {
+            if (src.getTwinflowTransitionAlias() != null || src.getTwinflowTransitionAliasId() == null)
+                continue;
+            needLoad.add(src.getTwinflowTransitionAliasId());
+        }
+        if (needLoad.isEmpty())
+            return;
+        Map<UUID, TwinflowTransitionAliasEntity> aliasMap = new HashMap<>();
+        for (TwinflowTransitionAliasEntity alias : twinflowTransitionAliasRepository.findAllById(needLoad))
+            aliasMap.put(alias.getId(), alias);
+        for (TwinflowTransitionEntity src : srcCollection)
+            if (src.getTwinflowTransitionAlias() == null && src.getTwinflowTransitionAliasId() != null)
+                src.setTwinflowTransitionAlias(aliasMap.get(src.getTwinflowTransitionAliasId()));
     }
 }
 

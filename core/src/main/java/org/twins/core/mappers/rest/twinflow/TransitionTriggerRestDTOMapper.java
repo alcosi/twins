@@ -10,8 +10,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionTriggerMode;
-import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
+import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionTriggerService;
 
 import java.util.Collection;
@@ -51,6 +51,7 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
         }
         if (mapperContext.hasModeButNot(TransitionMode.TransitionTrigger2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
+            twinflowTransitionTriggerService.loadTwinflowTransition(src);
             transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.TransitionTrigger2TransitionMode.SHORT)));
         }
     }
@@ -58,8 +59,13 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
     @Override
     public void beforeCollectionConversion(Collection<TwinflowTransitionTriggerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
         if (mapperContext.hasModeButNot(TwinTriggerMode.TransitionTrigger2TwinTriggerMode.HIDE)) {
             twinflowTransitionTriggerService.loadTriggers(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TransitionMode.TransitionTrigger2TransitionMode.HIDE)) {
+            twinflowTransitionTriggerService.loadTwinflowTransitions(srcCollection);
         }
     }
 }

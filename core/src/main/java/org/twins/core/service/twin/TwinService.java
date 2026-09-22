@@ -663,6 +663,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private void setInitStatus(TwinEntity twinEntity) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
+        twinflowService.loadInitialTwinStatus(twinflowEntity);
         twinEntity
                 .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                 .setTwinStatus(twinflowEntity.getInitialTwinStatus());

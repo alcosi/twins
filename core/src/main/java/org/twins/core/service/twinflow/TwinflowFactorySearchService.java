@@ -57,7 +57,7 @@ public class TwinflowFactorySearchService extends EntitySearchService
     @Override
     public Specification<TwinflowFactoryEntity> createFilterSpecification(TwinflowFactorySearch search, UUID domainId, Locale locale) throws ServiceException {
         return Specification.allOf(
-                checkUuid(domainId, false, true, TwinflowFactoryEntity.Fields.twinflow, TwinflowEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuid(domainId, false, true, TwinflowFactoryEntity.Fields.twinflowSpecOnly, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdSet(), false, false, TwinflowFactoryEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, true, TwinflowFactoryEntity.Fields.id),
                 checkUuidIn(search.getTwinflowIdSet(), false, false, TwinflowFactoryEntity.Fields.twinflowId),
@@ -79,8 +79,8 @@ public class TwinflowFactorySearchService extends EntitySearchService
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
             case twinFactoryLauncherId -> toSortSpecification(ascending, TwinflowFactoryEntity.Fields.twinFactoryLauncher);
-            case twinflowName -> toSortSpecificationDirect(ascending, locale, TwinflowFactoryEntity.Fields.twinflow, TwinflowEntity.Fields.nameI18nTranslationsSpecOnly);
-            case factoryName -> toSortSpecificationDirect(ascending, locale, TwinflowFactoryEntity.Fields.twinFactory, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
+            case twinflowName -> toSortSpecificationDirect(ascending, locale, TwinflowFactoryEntity.Fields.twinflowSpecOnly, TwinflowEntity.Fields.nameI18nTranslationsSpecOnly);
+            case factoryName -> toSortSpecificationDirect(ascending, locale, TwinflowFactoryEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.nameI18nTranslationsSpecOnly);
         };
     }
 
