@@ -1,13 +1,11 @@
--- FillerBasicsAssigneeFromOutputTwinFieldLink (featurer id 2343) lost its "linkId" featurer param:
--- the filler no longer filters the field's links by link id (the field value already belongs to ONE
--- configured link), so the stored key is obsolete. Cleanup only, NOT a functional prerequisite: the
--- featurer runtime ignores extra stored params (FeaturerService checks for MISSING required params only),
--- so the new code works with or without this migration.
--- Scope: this filler's pipeline steps only, other hstore keys are untouched.
--- Idempotent: hstore key subtraction on a missing key is a no-op.
--- Rollback: the dropped linkId uuids are not recoverable from the db — restore from a pre-migration
--- snapshot if ever needed.
+-- Remove obsolete filler param key "linkId" from FillerBasicsAssigneeFromOutputTwinFieldLink (featurer 2343).
+-- The filler no longer filters links by this key; the field value already belongs to one configured link.
+-- Cleanup only: runtime ignores extra stored params, so the new code works with or without this migration.
+-- Scope: pipeline steps of this filler only. Other hstore keys are untouched.
+-- Idempotent: delete() on a missing key is a no-op.
+-- Use delete(hstore, text): the minus operator is overloaded as hstore-hstore, so a bare
+-- 'linkId' literal is parsed as hstore and fails with "unexpected end of string".
 UPDATE twin_factory_pipeline_step
-SET filler_params = filler_params - 'linkId'
+SET filler_params = delete(filler_params, 'linkId')
 WHERE filler_featurer_id = 2343
-  AND filler_params ? 'linkId';
+  AND exist(filler_params, 'linkId');
