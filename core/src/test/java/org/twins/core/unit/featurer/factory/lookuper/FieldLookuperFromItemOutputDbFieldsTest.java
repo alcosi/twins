@@ -20,7 +20,8 @@ import java.lang.reflect.Field;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
 
@@ -45,28 +46,30 @@ class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
         @Test
         void lookupFieldValue_fieldPresentInOutputTwinDb_returnsValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var outputTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithOutputTwin(outputTwin);
             var expected = fieldValue(fieldId, "db-val");
 
-            when(twinService.getTwinFieldValue(outputTwin, fieldId)).thenReturn(expected);
+            when(twinService.getTwinFieldValue(outputTwin, field)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field);
 
             assertSame(expected, result);
-            verify(twinService).getTwinFieldValue(outputTwin, fieldId);
+            verify(twinService).getTwinFieldValue(outputTwin, field);
         }
 
         @Test
         void lookupFieldValue_fieldAbsentInOutputTwinDb_throwsFactoryPipelineError() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var outputTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithOutputTwin(outputTwin);
 
-            when(twinService.getTwinFieldValue(outputTwin, fieldId)).thenReturn(null);
+            when(twinService.getTwinFieldValue(outputTwin, field)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }

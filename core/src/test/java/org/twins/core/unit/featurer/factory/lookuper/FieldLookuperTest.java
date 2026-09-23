@@ -60,13 +60,14 @@ class FieldLookuperTest extends BaseUnitTest {
 
         @Test
         void getFreshestValue_uncommittedPresent_returnsUncommittedAndSkipsDb() throws Exception {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
-            var uncommitted = fieldValue(fieldId, "uncommitted");
+            var uncommitted = fieldValue(field.getId(), "uncommitted");
             registerOutputFieldInContext(ctx, twin.getId(), uncommitted);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
 
-            var result = lookuper.callGetFreshestValue(twin, fieldId, ctx, "msg");
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx, "msg");
 
             assertSame(uncommitted, result);
             verifyNoInteractions(twinService);
@@ -74,29 +75,31 @@ class FieldLookuperTest extends BaseUnitTest {
 
         @Test
         void getFreshestValue_uncommittedNull_fallsBackToDb() throws ServiceException {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
-            var dbValue = fieldValue(fieldId, "db-val");
+            var dbValue = fieldValue(field.getId(), "db-val");
 
-            when(twinService.getTwinFieldValue(twin, fieldId)).thenReturn(dbValue);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinService.getTwinFieldValue(twin, field)).thenReturn(dbValue);
 
-            var result = lookuper.callGetFreshestValue(twin, fieldId, ctx, "msg");
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx, "msg");
 
             assertSame(dbValue, result);
-            verify(twinService).getTwinFieldValue(twin, fieldId);
+            verify(twinService).getTwinFieldValue(twin, field);
         }
 
         @Test
         void getFreshestValue_uncommittedNullAndDbNull_throwsWithSuppliedMessage() throws ServiceException {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
 
-            when(twinService.getTwinFieldValue(twin, fieldId)).thenReturn(null);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinService.getTwinFieldValue(twin, field)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.callGetFreshestValue(twin, fieldId, ctx, "custom-msg"));
+                    () -> lookuper.callGetFreshestValue(twin, field.getId(), ctx, "custom-msg"));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }

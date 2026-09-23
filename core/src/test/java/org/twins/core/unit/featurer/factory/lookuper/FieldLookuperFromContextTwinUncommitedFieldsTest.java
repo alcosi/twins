@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class FieldLookuperFromContextTwinUncommitedFieldsTest extends BaseUnitTest {
 
@@ -46,6 +46,7 @@ class FieldLookuperFromContextTwinUncommitedFieldsTest extends BaseUnitTest {
         @Test
         void lookupFieldValue_fieldPresentInContextItemOutput_returnsValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var expected = fieldValue(fieldId, "uncommitted-val");
             var output = new TwinCreate();
@@ -53,7 +54,7 @@ class FieldLookuperFromContextTwinUncommitedFieldsTest extends BaseUnitTest {
             var contextItem = new FactoryItem().setOutput(output);
             var factoryItem = new FactoryItem().setContextFactoryItemList(List.of(contextItem));
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field);
 
             assertSame(expected, result);
             verifyNoInteractions(twinService);
@@ -61,13 +62,13 @@ class FieldLookuperFromContextTwinUncommitedFieldsTest extends BaseUnitTest {
 
         @Test
         void lookupFieldValue_fieldAbsentInContextItemOutput_throwsFactoryPipelineError() {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var output = new TwinCreate();
             var contextItem = new FactoryItem().setOutput(output);
             var factoryItem = new FactoryItem().setContextFactoryItemList(List.of(contextItem));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
@@ -75,11 +76,11 @@ class FieldLookuperFromContextTwinUncommitedFieldsTest extends BaseUnitTest {
 
         @Test
         void lookupFieldValue_noContextItem_throwsFactoryPipelineError() {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var factoryItem = new FactoryItem(); // empty context list
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);

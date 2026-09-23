@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinBasicFields;
@@ -128,6 +129,10 @@ public class FactoryContext {
         if (fields == null)
             fields = new HashMap<>(); //to be sure that no one set in to null
         return fields;
+    }
+
+    public FieldValue getField(TwinClassFieldEntity twinClassField) {
+        return getFields().get(twinClassField.getId());
     }
 
     @Override

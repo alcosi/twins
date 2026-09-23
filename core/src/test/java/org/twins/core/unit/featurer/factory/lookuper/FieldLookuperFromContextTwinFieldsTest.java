@@ -11,6 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuper;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinFields;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -39,8 +40,13 @@ class FieldLookuperFromContextTwinFieldsTest extends BaseUnitTest {
         lookuper = new FieldLookuperFromContextTwinFields();
         setField(lookuper, "twinService", twinService);
         setField(lookuper, "twinClassFieldService", twinClassFieldService);
+        // FieldLookuperNearest re-declares twinClassFieldService, shadowing FieldLookuper's own field —
+        // setField above hits the Nearest one, while getValueFromOutputLinks(entity, ...) reads the BASE
+        // field, so it has to be injected separately.
+        var baseField = FieldLookuper.class.getDeclaredField("twinClassFieldService");
+        baseField.setAccessible(true);
+        baseField.set(lookuper, twinClassFieldService);
         // getValueFromOutputLinks guard for non-link fields: no configured link -> no uncommitted link value
-        lenient().when(twinClassFieldService.findEntitySafe(any(UUID.class))).thenReturn(new TwinClassFieldEntity());
         lenient().when(twinClassFieldService.getConfiguredLink(any(TwinClassFieldEntity.class))).thenReturn(null);
     }
 
@@ -54,6 +60,7 @@ class FieldLookuperFromContextTwinFieldsTest extends BaseUnitTest {
         @Test
         void lookupFieldValue_fieldPresentInContextItemOutput_returnsUncommittedAndSkipsDb() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var expected = fieldValue(fieldId, "uncommitted-val");
             var output = new TwinCreate();
@@ -62,7 +69,7 @@ class FieldLookuperFromContextTwinFieldsTest extends BaseUnitTest {
             var contextItem = new FactoryItem().setOutput(output);
             var factoryItem = new FactoryItem().setContextFactoryItemList(List.of(contextItem));
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field);
 
             assertSame(expected, result);
             verifyNoInteractions(twinService);
@@ -71,6 +78,7 @@ class FieldLookuperFromContextTwinFieldsTest extends BaseUnitTest {
         @Test
         void lookupFieldValue_notInUncommitted_fallsBackToDb() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var dbValue = fieldValue(fieldId, "db-val");
             var output = new TwinCreate();
@@ -78,38 +86,39 @@ class FieldLookuperFromContextTwinFieldsTest extends BaseUnitTest {
             var contextItem = new FactoryItem().setOutput(output);
             var factoryItem = new FactoryItem().setContextFactoryItemList(List.of(contextItem));
 
-            when(twinService.getTwinFieldValue(contextTwin, fieldId)).thenReturn(dbValue);
+            when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(dbValue);
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field);
 
             assertSame(dbValue, result);
-            verify(twinService).getTwinFieldValue(contextTwin, fieldId);
+            verify(twinService).getTwinFieldValue(contextTwin, field);
         }
 
         @Test
         void lookupFieldValue_nowhere_throwsFactoryPipelineError() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var output = new TwinCreate();
             output.setTwinEntity(contextTwin);
             var contextItem = new FactoryItem().setOutput(output);
             var factoryItem = new FactoryItem().setContextFactoryItemList(List.of(contextItem));
 
-            when(twinService.getTwinFieldValue(contextTwin, fieldId)).thenReturn(null);
+            when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
         @Test
         void lookupFieldValue_noContextItem_throwsFactoryPipelineError() {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var factoryItem = new FactoryItem();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);

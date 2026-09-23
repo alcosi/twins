@@ -1,20 +1,17 @@
 package org.twins.core.featurer.factory.lookuper;
 
 import org.cambium.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public abstract class FieldLookuperNearest extends FieldLookuper {
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
+    // twinClassFieldService is inherited (protected) from FieldLookuper — do not re-declare it here
 
     public Map<FactoryItem, FieldValue> lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID lookupTwinClassFieldId) throws ServiceException {
         var ret =  new HashMap<FactoryItem, FieldValue>(factoryItemsBatch.size());
@@ -22,9 +19,18 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
         if (!factoryItemsBatch.getTwins().isEmpty())
             beforeLookup(factoryItemsBatch, twinClassField);
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
-            ret.put(factoryItem, lookupFieldValue(factoryItem, lookupTwinClassFieldId));
+            ret.put(factoryItem, lookupFieldValue(factoryItem, twinClassField));
         }
         return ret;
+    }
+
+    /**
+     * UUID-based convenience for per-item callers that did not resolve the field entity yet —
+     * the entity is resolved per call (cached service lookup); batch callers use the batch entry,
+     * which resolves it once per batch.
+     */
+    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException {
+        return lookupFieldValue(factoryItem, twinClassFieldService.findEntitySafe(lookupTwinClassFieldId));
     }
 
     /**
@@ -35,5 +41,5 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
     protected void beforeLookup(FactoryItemsBatch batch, TwinClassFieldEntity twinClassField) throws ServiceException {
     }
 
-    public abstract FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException;
+    public abstract FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException;
 }

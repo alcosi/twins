@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -30,26 +31,40 @@ public abstract class FieldLookuper {
     @Autowired
     protected TwinClassFieldService twinClassFieldService;
 
+    /**
+     * UUID-based convenience for callers that did not resolve the field entity yet — the Linked
+     * lookuper family still uses it; prefer the entity variant.
+     */
     public FieldValue getFreshestValue(TwinEntity twinEntity, UUID twinClassFieldId, FactoryContext factoryContext, String onExceptionMsg) throws ServiceException {
+        return getFreshestValue(twinEntity, twinClassFieldService.findEntitySafe(twinClassFieldId), factoryContext, onExceptionMsg);
+    }
+
+    public FieldValue getFreshestValue(TwinEntity twinEntity, TwinClassFieldEntity twinClassField, FactoryContext factoryContext, String onExceptionMsg) throws ServiceException {
         FactoryItem factoryItem = factoryContext.getFactoryItem(twinEntity.getId());
         FieldValue fieldValue = null;
         if (factoryItem != null) {
-            fieldValue = factoryItem.getOutput().getField(twinClassFieldId); // first we will try to get uncommited field
+            fieldValue = factoryItem.getOutput().getField(twinClassField); // first we will try to get uncommited field
             if (fieldValue == null) {
-                fieldValue = getValueFromOutputLinks(twinClassFieldId, factoryItem.getOutput());
+                fieldValue = getValueFromOutputLinks(twinClassField, factoryItem.getOutput());
             }
         }
         if (fieldValue == null) {
-            fieldValue = twinService.getTwinFieldValue(twinEntity, twinClassFieldId);
+            fieldValue = twinService.getTwinFieldValue(twinEntity, twinClassField);
             if (fieldValue == null)
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, onExceptionMsg);
         }
         return fieldValue;
     }
 
+    /**
+     * UUID-based convenience — resolves the field entity (cached service lookup); prefer the entity variant.
+     */
     public FieldValue getValueFromOutputLinks(UUID twinClassFieldId, TwinSave twinSave) throws ServiceException {
+        return getValueFromOutputLinks(twinClassFieldService.findEntitySafe(twinClassFieldId), twinSave);
+    }
+
+    public FieldValue getValueFromOutputLinks(TwinClassFieldEntity twinClassField, TwinSave twinSave) throws ServiceException {
         if (twinSave instanceof TwinCreate twinCreate) {
-            var twinClassField = twinClassFieldService.findEntitySafe(twinClassFieldId);
             var linkId = twinClassFieldService.getConfiguredLink(twinClassField);
             if (linkId != null) {
                 List<TwinLinkEntity> matchedLinks = twinCreate.getLinksEntityList().stream()

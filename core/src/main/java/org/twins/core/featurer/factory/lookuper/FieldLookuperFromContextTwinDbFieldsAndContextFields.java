@@ -10,8 +10,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.UUID;
-
 @Component
 public class FieldLookuperFromContextTwinDbFieldsAndContextFields extends FieldLookuperNearest {
 
@@ -23,20 +21,20 @@ public class FieldLookuperFromContextTwinDbFieldsAndContextFields extends FieldL
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException {
+    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        FieldValue fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassFieldId);
+        FieldValue fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
         // we will try to look deeper
         contextTwin = factoryItem.checkSingleContextItem().checkSingleContextTwin();
-        fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassFieldId);
+        fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
         // we will look inside context fields
-        fieldValue = factoryItem.getFactoryContext().getFields().get(lookupTwinClassFieldId);
+        fieldValue = factoryItem.getFactoryContext().getField(lookupTwinClassField);
         if (!TwinService.isFilled(fieldValue))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context fields and in context twins");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " is not present in context fields and in context twins");
         return fieldValue;
     }
 }

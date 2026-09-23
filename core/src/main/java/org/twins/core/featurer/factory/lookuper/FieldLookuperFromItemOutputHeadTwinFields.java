@@ -11,7 +11,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 public class FieldLookuperFromItemOutputHeadTwinFields extends FieldLookuperNearest {
@@ -29,10 +28,10 @@ public class FieldLookuperFromItemOutputHeadTwinFields extends FieldLookuperNear
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException {
+    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         TwinEntity headTwin = twinService.loadHead(factoryItem.getTwin());
         if (headTwin == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] can not be loaded from head twin, because head is null");
-        return getFreshestValue(headTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in head twin fields");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " can not be loaded from head twin, because head is null");
+        return getFreshestValue(headTwin, lookupTwinClassField, factoryItem.getFactoryContext(), lookupTwinClassField.logNormal() + " is not present in head twin fields");
     }
 }

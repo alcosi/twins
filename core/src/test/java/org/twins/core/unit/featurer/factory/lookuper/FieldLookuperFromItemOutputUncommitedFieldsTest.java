@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -20,7 +19,7 @@ import java.lang.reflect.Field;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 class FieldLookuperFromItemOutputUncommitedFieldsTest extends BaseUnitTest {
 
@@ -45,12 +44,13 @@ class FieldLookuperFromItemOutputUncommitedFieldsTest extends BaseUnitTest {
         @Test
         void lookupFieldValue_fieldPresentInOutput_returnsValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
             var expected = fieldValue(fieldId, "uncommitted-val");
             var output = new TwinCreate();
             output.addField(expected);
             var factoryItem = new FactoryItem().setOutput(output);
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field);
 
             assertSame(expected, result);
             verifyNoInteractions(twinService);
@@ -58,12 +58,12 @@ class FieldLookuperFromItemOutputUncommitedFieldsTest extends BaseUnitTest {
 
         @Test
         void lookupFieldValue_fieldAbsentInOutput_throwsFactoryPipelineError() {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var output = new TwinCreate();
             var factoryItem = new FactoryItem().setOutput(output);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
