@@ -13,6 +13,7 @@ import org.twins.core.featurer.factory.filler.FillerAtomic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -103,5 +104,43 @@ class FillerAtomicTest extends BaseUnitTest {
         assertEquals(2, batch.size());
         assertEquals(List.of(item1.getOutput().getTwinEntity(), item2.getOutput().getTwinEntity()), batch.getTwins());
         assertEquals(1, batch.getTwinIds().size()); // only item1 has an id
+    }
+
+    @Test
+    void sharedContextTwinIsReturnedOnce_noMatterHowManyItemsReferenceIt() {
+        // multiplier copies share ONE input item as their context — its twin must be returned
+        // once, not once per referencing item
+        var sharedContextOutput = new TwinCreate();
+        var sharedContextTwin = new TwinEntity();
+        sharedContextOutput.setTwinEntity(sharedContextTwin);
+        var sharedContextItem = new FactoryItem().setOutput(sharedContextOutput);
+        var item1 = buildFactoryItem().setContextFactoryItemList(List.of(sharedContextItem));
+        var item2 = buildFactoryItem().setContextFactoryItemList(List.of(sharedContextItem));
+        var item3 = buildFactoryItem().setContextFactoryItemList(List.of(sharedContextItem));
+
+        var batch = new FactoryItemsBatch().add(item1).add(item2).add(item3);
+
+        assertEquals(Set.of(sharedContextTwin), batch.getContextTwins()); // one entry, same instance
+    }
+
+    @Test
+    void contextTwinsDefaultToLevel1_andDeeperLevelIsExplicit() {
+        // level 2 (context item's own context twin) is what the "look deeper" step of
+        // FieldLookuperFromContextFieldsAndContextTwinDbFields reads — everyone else stays on level 1
+        // and must not pay for loading it
+        var level2Output = new TwinCreate();
+        var level2Twin = new TwinEntity().setId(java.util.UUID.randomUUID()); // distinct ids: field-based TwinEntity.equals treats two bare twins as equal
+        level2Output.setTwinEntity(level2Twin);
+        var level2Item = new FactoryItem().setOutput(level2Output);
+        var level1Output = new TwinCreate();
+        var level1Twin = new TwinEntity().setId(java.util.UUID.randomUUID());
+        level1Output.setTwinEntity(level1Twin);
+        var level1Item = new FactoryItem().setOutput(level1Output).setContextFactoryItemList(List.of(level2Item));
+        var item = buildFactoryItem().setContextFactoryItemList(List.of(level1Item));
+
+        var batch = new FactoryItemsBatch().add(item);
+
+        assertEquals(Set.of(level1Twin), batch.getContextTwins());      // default = level 1 only
+        assertEquals(Set.of(level1Twin, level2Twin), batch.getContextTwins(2));
     }
 }

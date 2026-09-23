@@ -198,8 +198,14 @@ Implementers must read these getters instead of re-collecting the same sets from
 re-deriving them in every featurer re-does the caller's work N times per chunk.
 
 `FactoryItemsBatch` (factory pipeline steps) is the pre-derived-view half of this shape: the step's
-items plus `getTwins()` / `getTwinIds()` maintained incrementally by the idempotent `add(item)`.
-Fillers write results into the items themselves, so it carries no accumulator.
+items plus `getTwins()` / `getTwinIds()` / level-1 `getContextTwins()` maintained incrementally by
+the idempotent `add(item)` (plain field reads), and `getContextTwins(level)` for deeper context
+levels computed on demand — requested only by the lookupers that actually walk deeper. Fillers
+write results into the items themselves, so it carries no accumulator.
+The field lookupers follow the same template on their own bases (`FieldLookuperNearest`,
+`FieldLookuperLinkedTwinByField`, `FieldLookuperLinkedTwinByLink`): a batch entry returning
+`Map<FactoryItem, FieldValue>` + a `beforeLookup(FactoryItemsBatch, ...)` bulk-preload hook + the
+unchanged per-item method.
 
 ### How to write a batch featurer
 

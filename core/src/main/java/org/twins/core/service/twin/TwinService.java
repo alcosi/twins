@@ -376,6 +376,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public void loadTwinFields(Collection<TwinEntity> twinEntityList, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        Kit<TwinEntity, UUID> needFieldLoad = new Kit<>(TwinEntity::getId);
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+        //storage hashCode is important here, this will help to do bulk load
+        TwinFieldStorage fieldStorage = fieldTyper.getStorage(twinClassFieldEntity);
+        for (TwinEntity twinEntity : twinEntityList) {
+            if (!fieldStorage.isLoaded(twinEntity)) {
+                needFieldLoad.add(twinEntity);
+            }
+        }
+
+        if (needFieldLoad.isEmpty())
+            return;
+
+        fieldStorage.load(needFieldLoad);
+    }
+
     public TwinField wrapField(TwinEntity twinEntity, UUID twinClassFieldId) throws ServiceException {
         TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(twinClassFieldId);
         if (twinClassField == null)
@@ -1608,7 +1625,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private record LoadedReferences(Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users, Map<UUID, TwinClassEntity> twinClasses) {
+    private record LoadedReferences(Map<UUID, TwinEntity> twins, Map<UUID, UserEntity> users,
+                                    Map<UUID, TwinClassEntity> twinClasses) {
     }
 
     private static final LoadedReferences EMPTY_REFERENCES = new LoadedReferences(Map.of(), Map.of(), Map.of());
