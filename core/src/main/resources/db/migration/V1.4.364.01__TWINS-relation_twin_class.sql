@@ -16,8 +16,19 @@ ADD COLUMN IF NOT EXISTS relation_twin_id UUID REFERENCES twin(id) ON DELETE CAS
 CREATE INDEX IF NOT EXISTS idx_twin_link_relation_twin_id ON twin_link (relation_twin_id);
 
 -- Defensive: enforce the redundancy invariant (relation_twin_id, when set, equals the twin_link's own id).
-ALTER TABLE twin_link
-ADD CONSTRAINT twin_link_relation_twin_id_eq_id CHECK (relation_twin_id IS NULL OR relation_twin_id = id);
+-- Idempotent: the check may already exist if this script ran via app Flyway first.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conrelid = 'twin_link'::regclass
+          AND conname = 'twin_link_relation_twin_id_eq_id'
+    ) THEN
+        ALTER TABLE twin_link
+        ADD CONSTRAINT twin_link_relation_twin_id_eq_id
+        CHECK (relation_twin_id IS NULL OR relation_twin_id = id);
+    END IF;
+END $$;
 
 -- 3) AFTER DELETE trigger: deleting a twin_link removes its relation twin (forward direction).
 --    The FK above only cascades relation-twin -> twin_link; this trigger covers twin_link -> relation twin.
