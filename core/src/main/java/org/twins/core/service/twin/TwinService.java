@@ -1525,14 +1525,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     /**
      * Parses a string field value WITHOUT loading the referenced entities: reference types (link, user, twin
-     * class list) come back as {@link FieldValueReference} — a pure id carrier with no entity accessors.
-     * Simple types are returned fully parsed — there is nothing to load for them. Callers iterating a batch
-     * must finish with {@link #materializeFieldValues} over the whole batch before using the values.
+     * class list) with ids come back as {@link FieldValueReference} — a pure id carrier with no entity accessors.
+     * A null or empty reference is born already cleared: there are no ids to load, and a carrier left in place
+     * survives materialize and fails the serialize cast. Simple types are returned fully parsed. Callers
+     * iterating a batch must finish with {@link #materializeFieldValues} over the whole batch before using the values.
      */
     public FieldValue parseFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
         Class<? extends FieldValue> valueType = fieldValueType(twinClassFieldEntity);
-        if (REFERENCE_VALUE_TYPES.contains(valueType))
-            return new FieldValueReference(twinClassFieldEntity, valueType, parseReferenceUuidList(twinClassFieldEntity, value));
+        if (REFERENCE_VALUE_TYPES.contains(valueType)) {
+            List<UUID> ids = parseReferenceUuidList(twinClassFieldEntity, value);
+            if (ids.isEmpty())
+                return createFieldValue(twinClassFieldEntity).clear();
+            return new FieldValueReference(twinClassFieldEntity, valueType, ids);
+        }
         var fieldValue = createFieldValue(twinClassFieldEntity);
         setFieldValue(fieldValue, value);
         return fieldValue;
