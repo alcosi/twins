@@ -34,8 +34,8 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
     @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 5)
     public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
 
-    @FeaturerParam(name = "Dst field lookupper", description = "Dst field lookupper", order = 6, optional = true)
-    public static final FeaturerParamStringTwinsFactoryFieldLookuper dstFieldLookupper = new FeaturerParamStringTwinsFactoryFieldLookuper("dstFieldLookupper");
+    @FeaturerParam(name = "Dst field lookuper", description = "Dst field lookuper", order = 6, optional = true)
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper dstFieldLookuper = new FeaturerParamStringTwinsFactoryFieldLookuper("dstFieldLookuper");
 
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 7)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
@@ -49,7 +49,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
     @Override
     public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        FieldLookuperNearest dstLookuper = (FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties));
+        FieldLookuperNearest dstLookuper = (FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookuper.extract(properties));
         LookupResult dstFieldValue = dstLookuper.lookupFieldValue(batch, dstFieldId);
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
@@ -63,7 +63,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
     @Override
     protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
+        FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookuper.extract(properties)))
                 .lookupFieldValue(factoryItem, dstFieldId);
         return FieldValueLink.getSingleLinkedTwinSafe(dstFieldValue);
     }

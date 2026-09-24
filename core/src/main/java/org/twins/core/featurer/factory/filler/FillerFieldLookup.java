@@ -19,6 +19,10 @@ import java.util.UUID;
  * is invoked per factory item with the pre-resolved value. The item's own lookup failure is
  * re-thrown inside the loop, so the optional-step semantics are identical to the old per-item
  * caller: a failing item of an optional step is logged and skipped, a mandatory failure aborts.
+ * <p>The value source is the {@code fieldLookuper} step param — each concrete filler declares its
+ * own {@link FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam} with the appropriate
+ * {@code defaultValue}, so subclasses that used to exist only to pin a different lookuper are
+ * replaced by a param value on this single filler.
  */
 @Slf4j
 public abstract class FillerFieldLookup extends Filler {
@@ -38,7 +42,16 @@ public abstract class FillerFieldLookup extends Filler {
         }
     }
 
-    /** Lookuper source of this filler — override to read the value from another source. */
+    /**
+     * Value source of this filler, resolved from the filler's own {@code fieldLookuperParam} —
+     * each concrete filler declares the param (with its default value) and binds it here:
+     * <pre>{@code
+     * @Override
+     * protected FieldLookuperNearest lookuper(Properties properties) {
+     *     return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+     * }
+     * }</pre>
+     */
     protected abstract FieldLookuperNearest lookuper(Properties properties);
 
     /** Field id to look up, extracted from the step params once per batch. */

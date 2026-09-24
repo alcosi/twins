@@ -14,6 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -33,6 +34,9 @@ public class FillerFieldFromContext extends FillerFieldLookup {
     @FeaturerParam(name = "Dst twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Lazy
     @Autowired
     TwinService twinService;
@@ -43,7 +47,7 @@ public class FillerFieldFromContext extends FillerFieldLookup {
 
     @Override
     protected FieldLookuperNearest lookuper(Properties properties) {
-        return fieldLookupers.getFromContextFieldsAndContextTwinDbFields();
+        return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
     }
 
     @Override

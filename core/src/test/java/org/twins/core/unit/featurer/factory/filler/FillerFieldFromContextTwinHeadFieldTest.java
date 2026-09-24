@@ -54,7 +54,7 @@ class FillerFieldFromContextTwinHeadFieldTest extends BaseUnitTest {
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
         inject(filler, "twinClassFieldService", twinClassFieldService);
-        when(fieldLookupers.getFromContextTwinHeadTwinDbFields()).thenReturn(lookuper);
+        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextTwinHeadTwinDbFields)).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -78,6 +78,7 @@ class FillerFieldFromContextTwinHeadFieldTest extends BaseUnitTest {
         var p = new Properties();
         p.setProperty("srcTwinClassFieldId", SRC_FIELD_ID.toString());
         p.setProperty("dstTwinClassFieldId", DST_FIELD_ID.toString());
+        p.setProperty("fieldLookuper", "fromContextTwinHeadTwinDbFields"); // mimic extractProperties applying the param defaultValue
         return p;
     }
 
@@ -115,7 +116,7 @@ class FillerFieldFromContextTwinHeadFieldTest extends BaseUnitTest {
 
             filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
-            verify(fieldLookupers).getFromContextTwinHeadTwinDbFields();
+            verify(fieldLookupers).getByType(FieldLookupers.Type.fromContextTwinHeadTwinDbFields);
             assertSame(dstClone, factoryItem.getOutput().getField(DST_FIELD_ID));
         }
 

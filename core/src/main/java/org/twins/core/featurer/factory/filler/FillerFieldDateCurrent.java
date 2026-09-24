@@ -14,6 +14,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.time.LocalDateTime;
@@ -34,9 +35,12 @@ public class FillerFieldDateCurrent extends FillerFieldLookup {
     @FeaturerParam(name = "Twin class field id", description = "Date field to set to the current date-time when empty", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromItemOutputFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Override
     protected FieldLookuperNearest lookuper(Properties properties) {
-        return fieldLookupers.getFromItemOutputFields();
+        return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
     }
 
     @Override
