@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Slf4j
-public abstract class FillerFieldFromItemOutputLinked extends FillerAtomic {
+public abstract class FillerFieldFromItemOutputLinked extends FillerFieldLookupLinked {
     @Lazy
     @Autowired
     TwinService twinService;
@@ -37,12 +37,26 @@ public abstract class FillerFieldFromItemOutputLinked extends FillerAtomic {
     @FeaturerParam(name = "dstTwinClassFieldId", description = "")
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
-    protected void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperLinkedTwinByField fieldLookuperLinkedTwinByField) throws ServiceException {
+    /** Lookuper source of this filler — override to read the value from another source. */
+    @Override
+    protected abstract FieldLookuperLinkedTwinByField lookuper();
+
+    @Override
+    protected UUID linkedById(Properties properties) throws ServiceException {
+        return linkedTwinByTwinClassFieldId.extract(properties);
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return lookupTwinClassFieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue fieldValue = fieldLookuperLinkedTwinByField.lookupFieldValue(factoryItem, linkedTwinByTwinClassFieldId.extract(properties), lookupTwinClassFieldId.extract(properties));
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
         if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId +"]");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId + "]");
         factoryItem.getOutput().addField(clone);
     }
 }

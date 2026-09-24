@@ -12,6 +12,7 @@ import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamBasicsTwinBasicField;
@@ -25,7 +26,7 @@ import java.util.UUID;
         name = "Basic user field from twin field",
         description = "Maps a custom user field to output twin assignee/creator basics via dstBasicsUserFiledName")
 @Slf4j
-public class FillerBasicsFieldUserFromTwinField extends FillerAtomic {
+public class FillerBasicsFieldUserFromTwinField extends FillerFieldLookup {
     @FeaturerParam(name = "Field id", description = "", order = 1)
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
@@ -33,11 +34,19 @@ public class FillerBasicsFieldUserFromTwinField extends FillerAtomic {
     public static final FeaturerParamBasicsTwinBasicField dstBasicsUserFiledName = new FeaturerParamBasicsTwinBasicField("dstBasicsUserFiledName");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getFromContextTwinDbFields();
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return fieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        UUID sourceFieldId = fieldId.extract(properties);
         TwinBasicFields.Basics dstUserBasic = dstBasicsUserFiledName.extract(properties);
-        FieldValue fieldValue = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, sourceFieldId);
         UserEntity user = FieldValueUser.getSingleUserSafe(fieldValue);
         String fieldName = applyUserToOutputBasics(outputTwinEntity, user, dstUserBasic);
         log.info("{} with field[{}] will be filled from context {}", outputTwinEntity.logShort(), fieldName, fieldValue.getTwinClassField().logShort());

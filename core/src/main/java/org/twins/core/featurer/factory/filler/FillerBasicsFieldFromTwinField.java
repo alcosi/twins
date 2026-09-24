@@ -26,23 +26,27 @@ import java.util.UUID;
         name = "Basic field from twin field",
         description = "")
 @Slf4j
-public class FillerBasicsFieldFromTwinField extends FillerAtomic {
+public class FillerBasicsFieldFromTwinField extends FillerFieldLookup {
     @FeaturerParam(name = "Field id", description = "", order = 1)
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextTwinDbFields());
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getFromContextTwinDbFields();
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return fieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        UUID sourceFieldId = fieldId.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, sourceFieldId);
         String fieldName;
         switch (fieldValue) {
-            case FieldValueText fieldValueText -> fieldName = handleTextField(sourceFieldId, fieldValueText, outputTwinEntity);
-            case FieldValueUser fieldValueUser -> fieldName = handleUserField(fieldValueUser, outputTwinEntity, fieldValue, sourceFieldId);
+            case FieldValueText fieldValueText -> fieldName = handleTextField(fieldValueText, outputTwinEntity);
+            case FieldValueUser fieldValueUser -> fieldName = handleUserField(fieldValueUser, outputTwinEntity);
             default -> throw new ServiceException(
                     ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE,
                     fieldValue.getTwinClassField().logShort() + " is incorrect field type"
@@ -52,30 +56,30 @@ public class FillerBasicsFieldFromTwinField extends FillerAtomic {
         );
     }
 
-    private String handleTextField(UUID sourceFieldId, FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
-        if (sourceFieldId.equals(SystemIds.TwinClassField.Base.NAME)) {
+    private String handleTextField(FieldValueText fieldValueText, TwinEntity outputTwinEntity) {
+        if (fieldValueText.getTwinClassFieldId().equals(SystemIds.TwinClassField.Base.NAME)) {
             outputTwinEntity.setName(fieldValueText.getValue());
             return TwinEntity.Fields.name;
-        } else if (sourceFieldId.equals(SystemIds.TwinClassField.Base.DESCRIPTION)) {
+        } else if (fieldValueText.getTwinClassFieldId().equals(SystemIds.TwinClassField.Base.DESCRIPTION)) {
             outputTwinEntity.setDescription(fieldValueText.getValue());
             return TwinEntity.Fields.description;
         }
         return null;
     }
 
-    private String handleUserField(FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue, UUID sourceFieldId) throws ServiceException {
+    private String handleUserField(FieldValueUser fieldValueUser, TwinEntity outputTwinEntity) throws ServiceException {
         if (fieldValueUser.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValueUser.getTwinClassField().logShort() + " is not filled");
         } else if (fieldValueUser.size() > 1) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValueUser.getTwinClassField().logShort() + " is filled by multiple users");
         } else {
             UserEntity user = fieldValueUser.getItems().getFirst();
-            if (sourceFieldId.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)) {
+            if (fieldValueUser.getTwinClassFieldId().equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)) {
                 outputTwinEntity
                         .setAssignerUser(user)
                         .setAssignerUserId(user.getId());
                 return TwinEntity.Fields.assignerUserId;
-            } else if (sourceFieldId.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID)) {
+            } else if (fieldValueUser.getTwinClassFieldId().equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID)) {
                 outputTwinEntity
                         .setCreatedByUser(user)
                         .setCreatedByUserId(user.getId());

@@ -11,6 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromContextFieldTwinAssignee;
@@ -95,7 +96,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var fieldValue = new FieldValueLink(buildField()).add(linkedTwin); // items carry the far twins
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: assignee FROM the linked twin's assignee.
@@ -108,8 +109,10 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(new HashMap<>()); // no field for LINK_FIELD_ID
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
+            // a null value surfaces from FieldValueLink.getSingleLinkedTwinSafe as TYPE_INCORRECT
+            // ("TwinClassField value is empty") — same as the original per-item behavior
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
 
@@ -119,7 +122,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -130,7 +133,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -140,7 +143,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem(Map.of(LINK_FIELD_ID, fieldValue));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }

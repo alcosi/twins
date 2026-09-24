@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -34,6 +36,31 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldLinkDst extends Fi
     @Lazy
     @Autowired
     private TwinClassFieldService twinClassFieldService;
+
+    /**
+     * Direct batch override (not the default per-item loop of {@code FillerLinks}): one lookuper
+     * batch call per step (bulk preloads + entity resolution once), then the per-item distribution —
+     * the lookup failure is re-thrown at the exact point where the per-item body resolved the dst
+     * twin — see featurer_design_pattern.md.
+     */
+    @Override
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        UUID dstFieldId = dstTwinClassFieldId.extract(properties);
+        LookupResult dstFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(batch, dstFieldId);
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                fillWith(properties, factoryItem, templateTwin, dstFieldValue);
+            } catch (Exception ex) {
+                if (optionalStep) {
+                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                            factoryItem.logShort(),
+                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+                } else {
+                    throw ex;
+                }
+            }
+        }
+    }
 
     @Override
     protected UUID getLinkId(Properties properties) throws ServiceException {

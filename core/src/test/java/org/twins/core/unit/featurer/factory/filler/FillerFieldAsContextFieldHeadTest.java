@@ -9,32 +9,36 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldAsContextFieldHead;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
 
-import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
 
     @Mock
+    private TwinService twinService;
+
+    @Mock
     private FieldLookupers fieldLookupers;
 
     @Mock
-    private FieldLookuperFromContextFields lookuper;
-
-    @Mock
-    private TwinService twinService;
+    private FieldLookuperFromContextFields fromContextFields;
 
     private FillerFieldAsContextFieldHead filler;
 
@@ -42,28 +46,32 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
     private static final UUID DST_FIELD_ID = UUID.randomUUID();
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         filler = new FillerFieldAsContextFieldHead();
-        inject(filler, "fieldLookupers", fieldLookupers);
-        inject(filler, "twinService", twinService);
-        when(fieldLookupers.getFromContextFields()).thenReturn(lookuper);
+        inject("twinService", twinService);
+        inject("fieldLookupers", fieldLookupers);
+        when(fieldLookupers.getFromContextFields()).thenReturn(fromContextFields);
     }
 
-    private void inject(Object target, String name, Object value) throws Exception {
-        Field f = findField(target.getClass(), name);
-        f.setAccessible(true);
-        f.set(target, value);
+    private void inject(String fieldName, Object value) {
+        try {
+            var f = findField(filler.getClass(), fieldName);
+            f.setAccessible(true);
+            f.set(filler, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private Field findField(Class<?> clazz, String name) {
+    private java.lang.reflect.Field findField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
         while (clazz != null) {
             try {
-                return clazz.getDeclaredField(name);
+                return clazz.getDeclaredField(fieldName);
             } catch (NoSuchFieldException e) {
                 clazz = clazz.getSuperclass();
             }
         }
-        throw new RuntimeException("field not found: " + name);
+        throw new NoSuchFieldException(fieldName);
     }
 
     private Properties props() {
@@ -83,6 +91,11 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         return new TwinClassFieldEntity().setId(id);
     }
 
+    private void stubLookupValue(FactoryItem factoryItem, FieldValue value) throws ServiceException {
+        when(fromContextFields.lookupFieldValue(any(FactoryItemsBatch.class), eq(SRC_FIELD_ID)))
+                .thenReturn(new LookupResult(Map.of(factoryItem, value), Map.of()));
+    }
+
     @Nested
     class Fill {
 
@@ -93,11 +106,11 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             var dstTwin = new TwinEntity().setHeadTwin(headTwin);
             var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(dstTwin); // items carry the far twins
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
+            stubLookupValue(factoryItem, srcValue);
             var createdHeadLink = new FieldValueLink(field(DST_FIELD_ID));
             when(twinService.createFieldValue(DST_FIELD_ID, headTwin)).thenReturn(createdHeadLink);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             assertSame(createdHeadLink, factoryItem.getOutput().getField(DST_FIELD_ID));
         }
@@ -105,11 +118,11 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         @Test
         void fill_nonLinkField_throwsStepError() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID))
-                    .thenReturn(new FieldValueText(field(SRC_FIELD_ID)).setValue("v"));
+            var srcValue = new FieldValueText(field(SRC_FIELD_ID)).setValue("v");
+            stubLookupValue(factoryItem, srcValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -118,10 +131,11 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         void fill_emptyLink_throwsStepError() throws ServiceException {
             var factoryItem = buildFactoryItem();
             // FieldValueLink with no items -> isEmpty()==true (isUndefined since collection==null).
-            when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(new FieldValueLink(field(SRC_FIELD_ID)));
+            var srcValue = new FieldValueLink(field(SRC_FIELD_ID));
+            stubLookupValue(factoryItem, srcValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
@@ -131,12 +145,13 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
             var dstTwin = new TwinEntity(); // headTwin == null
             var srcValue = new FieldValueLink(field(SRC_FIELD_ID)).add(dstTwin); // items carry the far twins
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, SRC_FIELD_ID)).thenReturn(srcValue);
+            stubLookupValue(factoryItem, srcValue);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verify(twinService).loadHead(dstTwin); // loaded before the null check throws
+            // one bulk loadHead covers the whole batch — loaded before the null check throws
+            verify(twinService).loadHead(argThat((java.util.Collection<TwinEntity> col) -> col.size() == 1 && col.contains(dstTwin)));
         }
     }
 }

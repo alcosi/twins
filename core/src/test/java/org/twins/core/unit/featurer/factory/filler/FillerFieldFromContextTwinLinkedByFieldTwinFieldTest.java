@@ -10,11 +10,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldFromContextTwinLinkedByFieldTwinField;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByFieldDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -92,6 +95,12 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
         return new TwinClassFieldEntity().setId(id).setTwinClassId(UUID.randomUUID());
     }
 
+    private LookupResult result(FactoryItem item, FieldValue value) {
+        LookupResult result = LookupResult.empty(1);
+        result.values().put(item, value);
+        return result;
+    }
+
     @Nested
     class Fill {
 
@@ -101,15 +110,16 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem();
             var srcValue = new FieldValueText(field(SRC_FIELD_ID)).setValue("v");
             var dstClone = new FieldValueText(field(DST_FIELD_ID)).setValue("v");
-            when(lookuper.lookupFieldValue(factoryItem, CONTEXT_TWIN_FIELD_ID, SRC_FIELD_ID)).thenReturn(srcValue);
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(CONTEXT_TWIN_FIELD_ID), eq(SRC_FIELD_ID)))
+                    .thenReturn(result(factoryItem, srcValue));
             when(twinService.copyToField(srcValue, DST_FIELD_ID)).thenReturn(dstClone);
             when(twinClassFieldService.isInvalidForClass(any(TwinClassEntity.class), eq(dstClone.getTwinClassField())))
                     .thenReturn(false);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             // Lookuper is invoked with both the context-twin field id and the src field id — order matters.
-            verify(lookuper).lookupFieldValue(factoryItem, CONTEXT_TWIN_FIELD_ID, SRC_FIELD_ID);
+            verify(lookuper).lookupFieldValue(any(FactoryItemsBatch.class), eq(CONTEXT_TWIN_FIELD_ID), eq(SRC_FIELD_ID));
             assertSame(dstClone, factoryItem.getOutput().getField(DST_FIELD_ID));
         }
 
@@ -118,13 +128,14 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
             var factoryItem = buildFactoryItem();
             var srcValue = new FieldValueText(field(SRC_FIELD_ID)).setValue("v");
             var dstClone = new FieldValueText(field(DST_FIELD_ID)).setValue("v");
-            when(lookuper.lookupFieldValue(factoryItem, CONTEXT_TWIN_FIELD_ID, SRC_FIELD_ID)).thenReturn(srcValue);
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(CONTEXT_TWIN_FIELD_ID), eq(SRC_FIELD_ID)))
+                    .thenReturn(result(factoryItem, srcValue));
             when(twinService.copyToField(srcValue, DST_FIELD_ID)).thenReturn(dstClone);
             when(twinClassFieldService.isInvalidForClass(any(TwinClassEntity.class), eq(dstClone.getTwinClassField())))
                     .thenReturn(true);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

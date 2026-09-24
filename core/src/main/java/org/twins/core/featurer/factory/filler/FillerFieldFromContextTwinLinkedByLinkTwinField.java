@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByLinkDbFields;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
@@ -25,7 +26,7 @@ import java.util.UUID;
         name = "Field from context twin linked twin by link field",
         description = "")
 @Slf4j
-public class FillerFieldFromContextTwinLinkedByLinkTwinField extends FillerAtomic {
+public class FillerFieldFromContextTwinLinkedByLinkTwinField extends FillerFieldLookupLinked {
     @FeaturerParam(name = "Link id", description = "", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsTwinClassFieldId("linkId");
 
@@ -43,14 +44,27 @@ public class FillerFieldFromContextTwinLinkedByLinkTwinField extends FillerAtomi
     @Autowired
     TwinClassFieldService twinClassFieldService;
 
+    @Override
+    protected FieldLookuperFromContextTwinLinkedTwinByLinkDbFields lookuper() {
+        return fieldLookupers.getFromContextTwinLinkedByLinkTwinFields();
+    }
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    protected UUID linkedById(Properties properties) throws ServiceException {
+        return linkId.extract(properties);
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return srcTwinClassFieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue fieldValue = fieldLookupers.getFromContextTwinLinkedByLinkTwinFields().lookupFieldValue(factoryItem, linkId.extract(properties), srcTwinClassFieldId.extract(properties));
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
         if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId +"]");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId + "]");
         factoryItem.getOutput().addField(clone);
     }
 }

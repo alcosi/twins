@@ -13,26 +13,17 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldMathSumFromContextField;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFieldsAndContextTwinDbFields;
-import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
-
-    @Mock
-    private FieldLookupers fieldLookupers;
-
-    @Mock
-    private FieldLookuperFromContextFieldsAndContextTwinDbFields lookuper;
 
     @Mock
     private TwinService twinService;
@@ -43,28 +34,9 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
     private static final UUID AUGEND_FIELD_ID = UUID.randomUUID(); // from output
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         // Math fillers use constructor injection (@RequiredArgsConstructor with final TwinService).
         filler = new FillerFieldMathSumFromContextField(twinService);
-        inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getFromContextFieldsAndContextTwinDbFields()).thenReturn(lookuper);
-    }
-
-    private void inject(Object target, String name, Object value) throws Exception {
-        Field f = findField(target.getClass(), name);
-        f.setAccessible(true);
-        f.set(target, value);
-    }
-
-    private Field findField(Class<?> clazz, String name) {
-        while (clazz != null) {
-            try {
-                return clazz.getDeclaredField(name);
-            } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass();
-            }
-        }
-        throw new RuntimeException("field not found: " + name);
     }
 
     private Properties props(boolean allowNegative) {
@@ -99,9 +71,8 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             var augend = new FieldValueText(field(AUGEND_FIELD_ID)).setValue("10");
             var factoryItem = buildFactoryItem(augend);
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
-            when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), factoryItem, null, addend);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(AUGEND_FIELD_ID);
             assertEquals(new BigDecimal("15"), new BigDecimal(result.getValue()));
@@ -112,10 +83,9 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             var augend = new FieldValueText(field(AUGEND_FIELD_ID)).setValue("-10");
             var factoryItem = buildFactoryItem(augend);
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
-            when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), factoryItem, null, addend));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -124,9 +94,8 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             var augend = new FieldValueText(field(AUGEND_FIELD_ID)).setValue("-10");
             var factoryItem = buildFactoryItem(augend);
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
-            when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), factoryItem, null, addend);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(AUGEND_FIELD_ID);
             assertEquals(new BigDecimal("-5"), new BigDecimal(result.getValue()));
@@ -137,15 +106,10 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             // NAME + contract: both operands must be text-representable numbers.
             var augend = new FieldValueText(field(AUGEND_FIELD_ID)).setValue("10");
             var factoryItem = buildFactoryItem(augend);
-            // Return a non-FieldValueText from the lookuper by stubbing with a spy that returns a marker subclass.
-            // Simpler: stub lookuper to return a FieldValueText that we cast — to exercise the not-text branch we
-            // pass a FieldValueUser-like value via a FieldValueText subclass is not possible; instead rely on the
-            // instanceof check using a real non-text FieldValue.
             var nonText = new org.twins.core.featurer.fieldtyper.value.FieldValueUser(field(ADDEND_FIELD_ID));
-            when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(nonText);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), factoryItem, null, nonText));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -154,10 +118,9 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             // On TwinCreate, missing augend on output is an error (cannot sum against unknown value).
             var factoryItem = buildFactoryItem(null);
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
-            when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), factoryItem, null, addend));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -169,10 +132,9 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(null);
             factoryItem.getOutput().addField(nonTextAugend);
             var addend = new FieldValueText(field(ADDEND_FIELD_ID)).setValue("5");
-            when(lookuper.lookupFieldValue(factoryItem, ADDEND_FIELD_ID)).thenReturn(addend);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(false), factoryItem, null));
+                    () -> filler.fill(props(false), factoryItem, null, addend));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

@@ -5,8 +5,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinlink.TwinLinkCUD;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -17,7 +19,7 @@ import org.twins.core.service.twinlink.TwinLinkService;
 import java.util.*;
 
 @Slf4j
-public abstract class FillerLinks extends FillerAtomic {
+public abstract class FillerLinks extends Filler {
     @Lazy
     @Autowired
     TwinLinkService twinLinkService;
@@ -25,6 +27,36 @@ public abstract class FillerLinks extends FillerAtomic {
     @Lazy
     @Autowired
     LinkService linkService;
+
+    /**
+     * Default batch loop (the {@code FillerAtomic} shape): the per-item
+     * {@link #fill(Properties, FactoryItem, TwinEntity)} under optional-step isolation. Subclasses
+     * that read their source through a field lookuper override this with a batch lookuper call —
+     * see featurer_design_pattern.md.
+     */
+    @Override
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                fill(properties, factoryItem, templateTwin);
+            } catch (Exception ex) {
+                if (optionalStep) {
+                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                            factoryItem.logShort(),
+                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+                } else {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    /**
+     * Per-item fill. Public so concrete fillers stay directly unit-testable.
+     */
+    public abstract void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException;
 
     protected void addLinks(FactoryItem factoryItem, Collection<TwinLinkEntity> twinLinkList) throws ServiceException {
         twinLinkService.loadDstTwin(twinLinkList);

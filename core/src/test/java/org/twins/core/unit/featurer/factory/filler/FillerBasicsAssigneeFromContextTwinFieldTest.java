@@ -10,11 +10,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromContextTwinField;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 
 import java.lang.reflect.Field;
@@ -22,7 +25,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 class FillerBasicsAssigneeFromContextTwinFieldTest extends BaseUnitTest {
@@ -86,6 +90,12 @@ class FillerBasicsAssigneeFromContextTwinFieldTest extends BaseUnitTest {
         return field;
     }
 
+    private LookupResult result(FactoryItem item, FieldValue value) {
+        LookupResult result = LookupResult.empty(1);
+        result.values().put(item, value);
+        return result;
+    }
+
     @Nested
     class Fill {
 
@@ -94,15 +104,16 @@ class FillerBasicsAssigneeFromContextTwinFieldTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem();
             var user = new UserEntity().setId(UUID.randomUUID());
             var fieldValue = new FieldValueUser(buildField()).add(user);
-            when(fromContextTwinDbFields.lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID)).thenReturn(fieldValue);
+            when(fromContextTwinDbFields.lookupFieldValue(any(FactoryItemsBatch.class), eq(ASSIGNEE_FIELD_ID)))
+                    .thenReturn(result(factoryItem, fieldValue));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             assertSame(user, outputTwin.getAssignerUser());
             assertEquals(user.getId(), outputTwin.getAssignerUserId());
             // NAME promises "FromContextTwinField" — must use the context-twin db-fields lookuper only.
-            verify(fromContextTwinDbFields).lookupFieldValue(factoryItem, ASSIGNEE_FIELD_ID);
+            verify(fromContextTwinDbFields).lookupFieldValue(any(FactoryItemsBatch.class), eq(ASSIGNEE_FIELD_ID));
             verifyNoInteractions(fromContextFields);
         }
     }

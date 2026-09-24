@@ -8,8 +8,10 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
@@ -37,6 +39,32 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
 
     @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 7)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
+
+    /**
+     * Direct batch override (not the default per-item loop of {@code FillerLinks}): the dynamic
+     * lookuper is resolved once and called once per batch (bulk preloads + entity resolution once),
+     * then the per-item distribution — the lookup failure is re-thrown at the exact point where the
+     * per-item body resolved the dst twin — see featurer_design_pattern.md.
+     */
+    @Override
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        UUID dstFieldId = dstTwinClassFieldId.extract(properties);
+        FieldLookuperNearest dstLookuper = (FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties));
+        LookupResult dstFieldValue = dstLookuper.lookupFieldValue(batch, dstFieldId);
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                fillWith(properties, factoryItem, templateTwin, dstFieldValue);
+            } catch (Exception ex) {
+                if (optionalStep) {
+                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                            factoryItem.logShort(),
+                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+                } else {
+                    throw ex;
+                }
+            }
+        }
+    }
 
     @Override
     protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {

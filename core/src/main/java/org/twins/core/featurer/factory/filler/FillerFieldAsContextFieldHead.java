@@ -10,13 +10,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -26,7 +28,7 @@ import java.util.UUID;
         name = "Field as context field head",
         description = "Get head for twin from src field(link). Set this head to dst field(link)")
 @Slf4j
-public class FillerFieldAsContextFieldHead extends FillerAtomic {
+public class FillerFieldAsContextFieldHead extends Filler {
 
     @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
@@ -38,17 +40,41 @@ public class FillerFieldAsContextFieldHead extends FillerAtomic {
     @Autowired
     TwinService twinService;
 
+    /**
+     * Direct batch override, two-phase (not a {@code FillerFieldLookup} subclass — the linked twins
+     * are discovered per item, so the head load can only be bulk after collecting them): one
+     * lookuper batch call, then an isolated per-item collection loop (no db access), then ONE bulk
+     * {@code loadHead}, then the in-memory distribution — see featurer_design_pattern.md.
+     */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
-        FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
-        var linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue);
-        twinService.loadHead(linkedTwin);
-        var detectedHeadTwin = linkedTwin.getHeadTwin();
-        if (detectedHeadTwin == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for " + linkedTwin.logDetailed());
-
-        FieldValue dstFieldValue = twinService.createFieldValue(dstTwinClassFieldId.extract(properties), detectedHeadTwin);
-        factoryItem.getOutput().addField(dstFieldValue);
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
+        LookupResult result = fieldLookupers.getFromContextFields().lookupFieldValue(batch, srcTwinClassFieldId.extract(properties));
+        var linkedTwins = new HashMap<FactoryItem, TwinEntity>();
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                result.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
+                linkedTwins.put(factoryItem, FieldValueLink.getSingleLinkedTwinSafe(result.value(factoryItem)));
+            } catch (Exception ex) {
+                if (optionalStep) {
+                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                            factoryItem.logShort(),
+                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+                } else {
+                    throw ex;
+                }
+            }
+        }
+        twinService.loadHead(linkedTwins.values()); // one query for the whole batch
+        UUID dstFieldId = dstTwinClassFieldId.extract(properties);
+        for (var entry : linkedTwins.entrySet()) {
+            FactoryItem factoryItem = entry.getKey();
+            TwinEntity linkedTwin = entry.getValue();
+            var detectedHeadTwin = linkedTwin.getHeadTwin();
+            if (detectedHeadTwin == null)
+                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for " + linkedTwin.logDetailed());
+            factoryItem.getOutput().addField(twinService.createFieldValue(dstFieldId, detectedHeadTwin));
+        }
     }
 }

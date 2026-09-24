@@ -41,7 +41,8 @@ public class FillerHeadFromTemplateTwinHead extends Filler {
         twinService.loadHead(templateTwin); // once per batch
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
-                fill(properties, factoryItem, templateTwin);
+                var outputTwin = factoryItem.getOutput().getTwinEntity();
+                TwinHeadService.setHead(outputTwin, templateTwin.getHeadTwin());
             } catch (Exception ex) {
                 if (optionalStep) {
                     log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
@@ -52,18 +53,5 @@ public class FillerHeadFromTemplateTwinHead extends Filler {
                 }
             }
         }
-    }
-
-    /**
-     * Single-item convenience (also used by tests): template checks, head load and head wiring.
-     */
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        if (templateTwin == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template twin");
-        if (templateTwin.getHeadTwinId() == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template head twin");
-        twinService.loadHead(templateTwin);
-        var outputTwin = factoryItem.getOutput().getTwinEntity();
-        TwinHeadService.setHead(outputTwin, templateTwin.getHeadTwin());
     }
 }

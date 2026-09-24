@@ -7,19 +7,21 @@ import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.twinlink.TwinLinkService;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-public abstract class FieldLookuperLinkedTwinByField extends FieldLookuper {
+public abstract class FieldLookuperLinkedTwinByField extends FieldLookuper implements FieldLookuperLinked {
     @Autowired
     protected TwinLinkService twinLinkService;
 
-    public Map<FactoryItem, FieldValue> lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
-        var ret = new HashMap<FactoryItem, FieldValue>(factoryItemsBatch.size());
+    public LookupResult lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
+        var ret = LookupResult.empty(factoryItemsBatch.size());
         beforeLookup(factoryItemsBatch);
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
-            ret.put(factoryItem, lookupFieldValue(factoryItem, linkedTwinByTwinClassFieldId, lookupTwinClassFieldId));
+            try {
+                ret.values().put(factoryItem, lookupFieldValue(factoryItem, linkedTwinByTwinClassFieldId, lookupTwinClassFieldId));
+            } catch (ServiceException ex) {
+                ret.failures().put(factoryItem, ex); // per-item isolation — the caller re-throws per item
+            }
         }
         return ret;
     }

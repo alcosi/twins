@@ -17,6 +17,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -32,7 +33,7 @@ import java.util.UUID;
         description = "")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldMathDifferenceFromContextField extends FillerAtomic {
+public class FillerFieldMathDifferenceFromContextField extends FillerFieldLookup {
     @FeaturerParam(name = "Minuend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID minuendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("minuendTwinClassFieldId");
     @FeaturerParam(name = "Subtrahend twin class field id", description = "Value from this field will be ", order = 2)
@@ -49,23 +50,30 @@ public class FillerFieldMathDifferenceFromContextField extends FillerAtomic {
     @Lazy
     private final TwinService twinService;
 
+    @Override
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getFromContextFieldsAndContextTwinDbFields();
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return subtrahendTwinClassFieldId.extract(properties);
+    }
+
     /**
-     * Populates specified properties and fields for a given factory item and template twin entity.
-     * This method determines the subtraction result of two field values (minuend and subtrahend),
-     * checks constraints like non-negative results if required, and updates the factory output
-     * field with the resulting value.
+     * Determines the subtraction result of two field values (minuend and subtrahend), checks
+     * constraints like non-negative results if required, and updates the factory output field with
+     * the resulting value.
      *
      * @param properties Configuration properties that provide additional parameters for the operation.
      *                   These properties include information such as field identifiers and allowable constraints.
      * @param factoryItem The factory item containing context and output data, which will be modified based on the operation logic.
-     * @param templateTwin The template twin entity associated with the factory item. It serves as a reference for certain operations.
      * @throws ServiceException If an error occurs during field value extraction, type conversion, or constraint validation.
      */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue subtrahendFieldValue) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
-        FieldValue subtrahendFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId);
         if (!(subtrahendFieldValue instanceof FieldValueText)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "subtrahendTwinClassField[" + paramSubtrahendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         }

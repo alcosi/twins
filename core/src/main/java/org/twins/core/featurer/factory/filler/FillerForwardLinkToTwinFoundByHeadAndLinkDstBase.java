@@ -18,6 +18,8 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchServiceV2;
@@ -46,14 +48,26 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+        fillWith(properties, factoryItem, templateTwin, null);
+    }
+
+    /**
+     * Per-item body. {@code preResolvedDstTwinField} carries the batch-resolved dst field value (the
+     * batch override of a lookuper-based subclass) — {@code null} resolves the dst twin per item via
+     * {@link #resolveDstTwin(Properties, FactoryItem, TwinEntity)}. The pre-resolved failure is
+     * re-thrown at the exact point where the per-item body performs the lookup.
+     */
+    protected final void fillWith(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, LookupResult preResolvedDstTwinField) throws ServiceException {
         TwinEntity outputTwin = factoryItem.getTwin();
         if (outputTwin == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory output twin is empty");
         }
 
-        TwinEntity foundTwin = findTwin(properties, factoryItem)
-                .orElseThrow(() -> new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
-                        "Twin of class[" + twinClassId.extract(properties) + "] not found by head and link dst"));
+        Optional<TwinEntity> foundTwinOptional = findTwin(properties, factoryItem, preResolvedDstTwinField);
+        if (foundTwinOptional.isEmpty())
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
+                    "Twin of class[" + twinClassId.extract(properties) + "] not found by head and link dst");
+        TwinEntity foundTwin = foundTwinOptional.get();
 
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
         TwinLinkEntity newLink = new TwinLinkEntity()
@@ -66,7 +80,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
         addLink(factoryItem.getOutput(), newLink);
     }
 
-    private Optional<TwinEntity> findTwin(Properties properties, FactoryItem factoryItem) throws ServiceException {
+    private Optional<TwinEntity> findTwin(Properties properties, FactoryItem factoryItem, LookupResult preResolvedDstTwinField) throws ServiceException {
         TwinEntity rootTwin;
         if (factoryItemElseContext.extract(properties)) {
             rootTwin = factoryItem.getTwin();
@@ -81,7 +95,13 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
         UUID extractedTwinClassId = twinClassId.extract(properties);
         UUID linkId = getLinkId(properties);
-        TwinEntity dstTwin = resolveDstTwin(properties, factoryItem, rootTwin);
+        TwinEntity dstTwin;
+        if (preResolvedDstTwinField != null) {
+            preResolvedDstTwinField.rethrowFailureIfPresent(factoryItem); // original error, at the original point of the per-item flow
+            dstTwin = FieldValueLink.getSingleLinkedTwinSafe(preResolvedDstTwinField.value(factoryItem));
+        } else {
+            dstTwin = resolveDstTwin(properties, factoryItem, rootTwin);
+        }
         UUID dstTwinId = dstTwin != null ? dstTwin.getId() : null;
         if (dstTwinId == null) {
             log.info("Link dst twin id is not resolved, twin found by head and link dst search skipped");

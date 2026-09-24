@@ -6,20 +6,27 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public abstract class FieldLookuperNearest extends FieldLookuper {
-    // twinClassFieldService is inherited (protected) from FieldLookuper — do not re-declare it here
+    public LookupResult lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID lookupTwinClassFieldId) throws ServiceException {
+        return lookupFieldValue(factoryItemsBatch, twinClassFieldService.findEntitySafe(lookupTwinClassFieldId));
+    }
 
-    public Map<FactoryItem, FieldValue> lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID lookupTwinClassFieldId) throws ServiceException {
-        var ret =  new HashMap<FactoryItem, FieldValue>(factoryItemsBatch.size());
-        var twinClassField = twinClassFieldService.findEntitySafe(lookupTwinClassFieldId);
+    public LookupResult lookupFieldValue(FactoryItemsBatch factoryItemsBatch, TwinClassFieldEntity twinClassField) throws ServiceException {
+        var ret = LookupResult.empty(factoryItemsBatch.size());
         if (!factoryItemsBatch.getTwins().isEmpty())
             beforeLookup(factoryItemsBatch, twinClassField);
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
-            ret.put(factoryItem, lookupFieldValue(factoryItem, twinClassField));
+            try {
+                var value = lookupFieldValue(factoryItem, twinClassField);
+                if (value == null) {
+                    value = twinService.createFieldValue(twinClassField); //create field as undefined
+                }
+                ret.values().put(factoryItem, value);
+            } catch (ServiceException ex) {
+                ret.failures().put(factoryItem, ex); // per-item isolation — the caller re-throws per item
+            }
         }
         return ret;
     }

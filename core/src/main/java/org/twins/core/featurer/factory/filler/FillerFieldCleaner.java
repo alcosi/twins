@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
@@ -20,14 +21,22 @@ import java.util.UUID;
         name = "Field cleaner",
         description = "")
 @Slf4j
-public class FillerFieldCleaner extends FillerAtomic {
+public class FillerFieldCleaner extends FillerFieldLookup {
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, twinClassFieldIdExtracted);
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getFromItemOutputFields();
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return twinClassFieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) {
         fieldValue.clear();
         factoryItem.getOutput().addField(fieldValue);
     }

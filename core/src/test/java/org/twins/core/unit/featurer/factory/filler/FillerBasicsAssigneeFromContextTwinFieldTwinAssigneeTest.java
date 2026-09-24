@@ -10,10 +10,12 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromContextTwinFieldTwinAssignee;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.twin.TwinService;
 
@@ -100,15 +102,22 @@ class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitT
                     .setAssignerUser(assignee)
                     .setAssignerUserId(assignee.getId());
             var fieldValue = new FieldValueLink(buildField()).add(linkedTwin); // items carry the far twins
-            when(lookuper.lookupFieldValue(factoryItem, LINK_FIELD_ID)).thenReturn(fieldValue);
+            var batch = new FactoryItemsBatch().add(factoryItem);
+            when(lookuper.lookupFieldValue(batch, LINK_FIELD_ID)).thenReturn(result(factoryItem, fieldValue));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), batch, null, false);
 
             var outputTwin = factoryItem.getOutput().getTwinEntity();
             // NAME promises: field resolved from the CONTEXT TWIN (db fields), assignee from linked twin.
             assertSame(assignee, outputTwin.getAssignerUser());
             assertEquals(assignee.getId(), outputTwin.getAssignerUserId());
-            verify(lookuper).lookupFieldValue(factoryItem, LINK_FIELD_ID);
+            verify(lookuper).lookupFieldValue(batch, LINK_FIELD_ID);
+        }
+
+        private LookupResult result(FactoryItem item, org.twins.core.featurer.fieldtyper.value.FieldValue value) {
+            LookupResult result = LookupResult.empty(1);
+            result.values().put(item, value);
+            return result;
         }
     }
 }

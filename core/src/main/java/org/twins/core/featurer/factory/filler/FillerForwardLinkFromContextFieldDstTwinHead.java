@@ -1,5 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -12,8 +13,10 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
@@ -31,6 +34,7 @@ import java.util.UUID;
                 "Resolves dst twin (by entity or id). " +
                 "Creates new forward link from output twin pointing to dst twin or its head"
 )
+@Slf4j
 public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
 
     @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
@@ -46,10 +50,43 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
     @Autowired
     TwinService twinService;
 
+    /**
+     * Direct batch override (not the default per-item loop of {@link FillerLinks}): one lookuper
+     * batch call per step (bulk preloads + entity resolution once), then the per-item distribution —
+     * see featurer_design_pattern.md.
+     */
+    @Override
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
+        LookupResult srcResult = fieldLookupers.getFromContextFields().lookupFieldValue(batch, extractedSrcTwinClassFieldId);
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                srcResult.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
+                fillWith(factoryItem, properties, srcResult.value(factoryItem));
+            } catch (Exception ex) {
+                if (optionalStep) {
+                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                            factoryItem.logShort(),
+                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+                } else {
+                    throw ex;
+                }
+            }
+        }
+    }
+
+    /**
+     * Per-item path of the {@link FillerLinks} template: resolves the src field via the lookuper
+     * and applies {@link #fillWith}. The batch override above is the production entry.
+     */
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
         FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
+        fillWith(factoryItem, properties, srcFieldValue);
+    }
+
+    private void fillWith(FactoryItem factoryItem, Properties properties, FieldValue srcFieldValue) throws ServiceException {
         TwinEntity dstTwin = FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue);
         TwinEntity linkDstTwin;
         if (useDstTwinHead.extract(properties)) {

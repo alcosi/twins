@@ -9,10 +9,13 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerFieldDateShiftByDuration;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
@@ -23,7 +26,8 @@ import java.time.LocalDateTime;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
@@ -98,18 +102,24 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         return text;
     }
 
+    private LookupResult result(FactoryItem item, FieldValue value) {
+        LookupResult result = LookupResult.empty(1);
+        result.values().put(item, value);
+        return result;
+    }
+
     @Nested
     class Fill {
         @Test
         void fill_plusInclusiveDays() throws ServiceException {
             var factoryItem = buildFactoryItem();
             LocalDateTime start = LocalDateTime.of(2024, 1, 1, 10, 0);
-            when(lookuper.lookupFieldValue(factoryItem, TARGET_ID)).thenReturn(date(TARGET_ID, null));
-            when(lookuper.lookupFieldValue(factoryItem, SOURCE_ID)).thenReturn(date(SOURCE_ID, start));
-            when(lookuper.lookupFieldValue(factoryItem, DURATION_ID)).thenReturn(duration("5"));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_ID))).thenReturn(result(factoryItem, date(SOURCE_ID, start)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID))).thenReturn(result(factoryItem, duration("5")));
             when(twinService.createFieldValue(TARGET_FIELD)).thenReturn(date(TARGET_ID, null));
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), new FactoryItemsBatch().add(factoryItem), null, false);
 
             FieldValueDate written = (FieldValueDate) factoryItem.getOutput().getField(TARGET_ID);
             assertEquals(LocalDateTime.of(2024, 1, 5, 10, 0), written.getDate());
@@ -119,12 +129,12 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         void fill_minusInclusiveDays() throws ServiceException {
             var factoryItem = buildFactoryItem();
             LocalDateTime end = LocalDateTime.of(2024, 1, 5, 10, 0);
-            when(lookuper.lookupFieldValue(factoryItem, TARGET_ID)).thenReturn(date(TARGET_ID, null));
-            when(lookuper.lookupFieldValue(factoryItem, SOURCE_ID)).thenReturn(date(SOURCE_ID, end));
-            when(lookuper.lookupFieldValue(factoryItem, DURATION_ID)).thenReturn(duration("5"));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_ID))).thenReturn(result(factoryItem, date(SOURCE_ID, end)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID))).thenReturn(result(factoryItem, duration("5")));
             when(twinService.createFieldValue(TARGET_FIELD)).thenReturn(date(TARGET_ID, null));
 
-            filler.fill(props(true), factoryItem, null);
+            filler.fill(props(true), new FactoryItemsBatch().add(factoryItem), null, false);
 
             FieldValueDate written = (FieldValueDate) factoryItem.getOutput().getField(TARGET_ID);
             assertEquals(LocalDateTime.of(2024, 1, 1, 10, 0), written.getDate());
@@ -133,10 +143,10 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         @Test
         void fill_skipsWhenTargetFilled() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, TARGET_ID))
-                    .thenReturn(date(TARGET_ID, LocalDateTime.of(2024, 2, 1, 0, 0)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID)))
+                    .thenReturn(result(factoryItem, date(TARGET_ID, LocalDateTime.of(2024, 2, 1, 0, 0))));
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), new FactoryItemsBatch().add(factoryItem), null, false);
 
             assertNull(factoryItem.getOutput().getField(TARGET_ID));
             verify(twinService, never()).createFieldValue(any(TwinClassFieldEntity.class));
@@ -145,12 +155,12 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         @Test
         void fill_skipsWhenDurationMissing() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, TARGET_ID)).thenReturn(date(TARGET_ID, null));
-            when(lookuper.lookupFieldValue(factoryItem, SOURCE_ID))
-                    .thenReturn(date(SOURCE_ID, LocalDateTime.of(2024, 1, 1, 0, 0)));
-            when(lookuper.lookupFieldValue(factoryItem, DURATION_ID)).thenReturn(duration(null));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_ID)))
+                    .thenReturn(result(factoryItem, date(SOURCE_ID, LocalDateTime.of(2024, 1, 1, 0, 0))));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID))).thenReturn(result(factoryItem, duration(null)));
 
-            filler.fill(props(false), factoryItem, null);
+            filler.fill(props(false), new FactoryItemsBatch().add(factoryItem), null, false);
 
             assertNull(factoryItem.getOutput().getField(TARGET_ID));
         }

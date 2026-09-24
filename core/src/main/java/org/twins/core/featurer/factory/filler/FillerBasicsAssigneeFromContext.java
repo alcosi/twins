@@ -23,21 +23,26 @@ import java.util.UUID;
         name = "Basics assignee from context",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeFromContext extends FillerAtomic {
+public class FillerBasicsAssigneeFromContext extends FillerFieldLookup {
     @FeaturerParam(name = "Assignee field", description = "", order = 1)
     public static final FeaturerParamUUID assigneeField = new FeaturerParamUUIDTwinsTwinClassFieldId("assigneeField");
 
+    /** Lookuper source of this filler — override to read the value from another source. */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFieldsAndContextTwinDbFields());
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getFromContextFieldsAndContextTwinDbFields();
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return assigneeField.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        UUID assigneeFieldId = assigneeField.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, assigneeFieldId);
         UserEntity assignee = FieldValueUser.getSingleUserSafe(fieldValue);
-        log.info(outputTwinEntity.logShort() + " [assignee] will be filled from " + fieldValue.getTwinClassField().logShort());
+        log.info("{} [assignee] will be filled from {}", outputTwinEntity.logShort(), fieldValue.getTwinClassField().logShort());
         outputTwinEntity
                 .setAssignerUser(assignee)
                 .setAssignerUserId(assignee.getId());

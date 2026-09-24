@@ -9,10 +9,13 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerFieldDurationBetweenDates;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
@@ -23,7 +26,8 @@ import java.time.LocalDateTime;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 class FillerFieldDurationBetweenDatesTest extends BaseUnitTest {
@@ -90,21 +94,28 @@ class FillerFieldDurationBetweenDatesTest extends BaseUnitTest {
         return field;
     }
 
+    private LookupResult result(FactoryItem item, FieldValue value) {
+        LookupResult result = LookupResult.empty(1);
+        result.values().put(item, value);
+        return result;
+    }
+
     @Nested
     class Fill {
+
         @Test
         void fill_setsInclusiveDays() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, DURATION_ID))
-                    .thenReturn(new FieldValueText(DURATION_FIELD));
-            when(lookuper.lookupFieldValue(factoryItem, START_ID))
-                    .thenReturn(date(START_ID, LocalDateTime.of(2024, 1, 1, 0, 0)));
-            when(lookuper.lookupFieldValue(factoryItem, END_ID))
-                    .thenReturn(date(END_ID, LocalDateTime.of(2024, 1, 5, 0, 0)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID)))
+                    .thenReturn(result(factoryItem, new FieldValueText(DURATION_FIELD)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(START_ID)))
+                    .thenReturn(result(factoryItem, date(START_ID, LocalDateTime.of(2024, 1, 1, 0, 0))));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(END_ID)))
+                    .thenReturn(result(factoryItem, date(END_ID, LocalDateTime.of(2024, 1, 5, 0, 0))));
             when(twinService.createFieldValue(DURATION_FIELD))
                     .thenReturn(new FieldValueText(DURATION_FIELD));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             FieldValueText written = (FieldValueText) factoryItem.getOutput().getField(DURATION_ID);
             assertEquals("5", written.getValue());
@@ -113,10 +124,10 @@ class FillerFieldDurationBetweenDatesTest extends BaseUnitTest {
         @Test
         void fill_skipsWhenDurationFilled() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, DURATION_ID))
-                    .thenReturn(new FieldValueText(DURATION_FIELD).setValue("3"));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID)))
+                    .thenReturn(result(factoryItem, new FieldValueText(DURATION_FIELD).setValue("3")));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             assertNull(factoryItem.getOutput().getField(DURATION_ID));
             verify(twinService, never()).createFieldValue(any(TwinClassFieldEntity.class));
@@ -125,13 +136,14 @@ class FillerFieldDurationBetweenDatesTest extends BaseUnitTest {
         @Test
         void fill_skipsWhenEndMissing() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(factoryItem, DURATION_ID))
-                    .thenReturn(new FieldValueText(DURATION_FIELD));
-            when(lookuper.lookupFieldValue(factoryItem, START_ID))
-                    .thenReturn(date(START_ID, LocalDateTime.of(2024, 1, 1, 0, 0)));
-            when(lookuper.lookupFieldValue(factoryItem, END_ID)).thenReturn(date(END_ID, null));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID)))
+                    .thenReturn(result(factoryItem, new FieldValueText(DURATION_FIELD)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(START_ID)))
+                    .thenReturn(result(factoryItem, date(START_ID, LocalDateTime.of(2024, 1, 1, 0, 0))));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(END_ID)))
+                    .thenReturn(result(factoryItem, date(END_ID, null)));
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             assertNull(factoryItem.getOutput().getField(DURATION_ID));
         }
