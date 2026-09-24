@@ -25,6 +25,26 @@ public interface PermissionRepository extends CrudRepository<PermissionEntity, U
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 
+    @Query(value = "select * from permission_check_mater_batch(cast(:permissionSchemaIds as uuid[]), cast(:permissionIds as uuid[]), " +
+            "cast(:permissionSpaceIds as uuid[]), cast(:twinClassIds as uuid[]), :isCreator, :isAssignee, :userId, :userGroupFootprintId)", nativeQuery = true)
+    List<PermissionMaterBatchResult> hasPermissionBatch(
+            @Param("permissionSchemaIds") String permissionSchemaIds,
+            @Param("permissionIds") String permissionIds,
+            @Param("permissionSpaceIds") String permissionSpaceIds,
+            @Param("twinClassIds") String twinClassIds,
+            @Param("isCreator") boolean isCreator,
+            @Param("isAssignee") boolean isAssignee,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
+
+    interface PermissionMaterBatchResult {
+        UUID getPermissionSchemaId();
+        UUID getPermissionId();
+        UUID getPermissionSpaceId();
+        UUID getTwinClassId();
+        boolean isAllowed();
+    }
+
     boolean existsByIdAndPermissionGroup_DomainId(UUID permissionId, UUID domainId);
 
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM PermissionEntity p " +

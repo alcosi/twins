@@ -181,6 +181,71 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return result;
     }
 
+    public Map<PermissionDetectKey, Boolean> hasPermissionBatch(Map<PermissionDetectKey, UUID> permissionDetectKeys) throws ServiceException {
+        if (permissionDetectKeys.isEmpty())
+            return new HashMap<>();
+        ApiUser apiUser = authService.getApiUser();
+        userGroupService.loadGroupsForCurrentUser();
+        UUID userGroupsFootprint = apiUser.getUser().getUserGroupsFootprint();
+        Map<PermissionDetectKey, Boolean> result = new HashMap<>();
+        Map<PermissionDetectKey, UUID> sqlNeeded = new LinkedHashMap<>();
+        for (var permissionDetectKey : permissionDetectKeys.entrySet()) {
+            if (currentUserHasPermission(permissionDetectKey.getValue())) {
+                result.put(permissionDetectKey.getKey(), true);
+                continue;
+            }
+            Boolean cached = permissionCheckRequestCache.get(new PermissionCheckRequestCache.Key(
+                    apiUser.getUserId(), userGroupsFootprint, permissionDetectKey.getKey(), permissionDetectKey.getValue()));
+            if (cached != null)
+                result.put(permissionDetectKey.getKey(), cached);
+            else
+                sqlNeeded.put(permissionDetectKey.getKey(), permissionDetectKey.getValue());
+        }
+        if (sqlNeeded.isEmpty())
+            return result;
+        Map<Boolean, Map<Boolean, List<PermissionDetectKey>>> sqlNeededByRoles = new HashMap<>();
+        for (var permissionDetectKey : sqlNeeded.entrySet()) {
+            sqlNeededByRoles
+                    .computeIfAbsent(permissionDetectKey.getKey().isAssignee, k -> new HashMap<>())
+                    .computeIfAbsent(permissionDetectKey.getKey().isCreator, k -> new ArrayList<>())
+                    .add(permissionDetectKey.getKey());
+        }
+        for (var assigneeEntry : sqlNeededByRoles.entrySet()) {
+            for (var creatorEntry : assigneeEntry.getValue().entrySet()) {
+                List<PermissionDetectKey> keys = creatorEntry.getValue();
+                List<PermissionRepository.PermissionMaterBatchResult> batchResults = permissionRepository.hasPermissionBatch(
+                        toUuidArray(keys, PermissionDetectKey::getPermissionSchemaId),
+                        toUuidArray(keys, key -> sqlNeeded.get(key)),
+                        toUuidArray(keys, PermissionDetectKey::getPermissionSchemaSpaceId),
+                        toUuidArray(keys, PermissionDetectKey::getTwinClassId),
+                        creatorEntry.getKey(),
+                        assigneeEntry.getKey(),
+                        apiUser.getUserId(),
+                        userGroupsFootprint);
+                for (PermissionRepository.PermissionMaterBatchResult batchResult : batchResults) {
+                    PermissionDetectKey permissionDetectKey = new PermissionDetectKey(
+                            batchResult.getTwinClassId(),
+                            batchResult.getPermissionSchemaId(),
+                            batchResult.getPermissionSpaceId(),
+                            assigneeEntry.getKey(),
+                            creatorEntry.getKey());
+                    boolean allowed = batchResult.isAllowed();
+                    result.put(permissionDetectKey, allowed);
+                    permissionCheckRequestCache.put(new PermissionCheckRequestCache.Key(
+                            apiUser.getUserId(), userGroupsFootprint, permissionDetectKey, sqlNeeded.get(permissionDetectKey)), allowed);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static String toUuidArray(Collection<PermissionDetectKey> keys, Function<PermissionDetectKey, UUID> extractor) {
+        return keys.stream()
+                .map(extractor)
+                .map(uuid -> uuid == null ? "NULL" : uuid.toString())
+                .collect(Collectors.joining(",", "{", "}"));
+    }
+
     public Map<PermissionDetectKey, List<TwinEntity>> convertToDetectKeys(Collection<TwinEntity> twinEntities) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Map<PermissionDetectKey, List<TwinEntity>> detectKeys = new HashMap<>();

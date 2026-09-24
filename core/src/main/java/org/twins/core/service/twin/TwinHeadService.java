@@ -24,10 +24,14 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.service.SystemIdLookup;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,6 +45,8 @@ public class TwinHeadService {
     private final TwinClassService twinClassService;
     @Lazy
     private final TwinService twinService;
+    @Lazy
+    private final PermissionService permissionService;
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
     private final TwinRepository twinRepository;
@@ -138,19 +144,45 @@ public class TwinHeadService {
             needLoad.add(twinEntity);
         }
         twinClassService.loadHeadHierarchyChildClasses(needLoad.getGroupingObjectMap().values());
+        boolean createAnyGranted = permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY);
+        Map<TwinEntity, Kit<TwinClassEntity, UUID>> headHunterApproved = new LinkedHashMap<>();
+        Map<PermissionService.PermissionDetectKey, UUID> createPermissionsToCheck = new LinkedHashMap<>();
         for (TwinEntity twinEntity : needLoad.getList()) {
-            Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
+            Kit<TwinClassEntity, UUID> twinApprovedChildClasses = new Kit<>(TwinClassEntity::getId);
             for (TwinClassEntity childTwinClassEntity : twinEntity.getTwinClass().getHeadHierarchyChildClassKit().getList()) {
                 if (childTwinClassEntity.getHeadHunterFeaturerId() == null)
                     continue;
                 HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturerId(), HeadHunter.class);
-                if (headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity)) {
-                    //todo check permission
-                    creatableChildTwinClasses.add(childTwinClassEntity);
-                }
+                if (!headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity))
+                    continue;
+                twinApprovedChildClasses.add(childTwinClassEntity);
+                if (!createAnyGranted && childTwinClassEntity.getCreatePermissionId() != null)
+                    createPermissionsToCheck.putIfAbsent(buildChildCreateDetectKey(twinEntity, childTwinClassEntity), childTwinClassEntity.getCreatePermissionId());
+            }
+            headHunterApproved.put(twinEntity, twinApprovedChildClasses);
+        }
+        Map<PermissionService.PermissionDetectKey, Boolean> createPermissionsChecked = permissionService.hasPermissionBatch(createPermissionsToCheck);
+        for (var approvedEntry : headHunterApproved.entrySet()) {
+            TwinEntity twinEntity = approvedEntry.getKey();
+            Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
+            for (TwinClassEntity childTwinClassEntity : approvedEntry.getValue().getList()) {
+                if (!createAnyGranted
+                        && childTwinClassEntity.getCreatePermissionId() != null
+                        && Boolean.FALSE.equals(createPermissionsChecked.get(buildChildCreateDetectKey(twinEntity, childTwinClassEntity))))
+                    continue;
+                creatableChildTwinClasses.add(childTwinClassEntity);
             }
             twinEntity.setCreatableChildTwinClasses(creatableChildTwinClasses);
         }
+    }
+
+    private static PermissionService.PermissionDetectKey buildChildCreateDetectKey(TwinEntity headTwin, TwinClassEntity childTwinClass) {
+        return new PermissionService.PermissionDetectKey(
+                childTwinClass.getId(),
+                headTwin.getPermissionSchemaId(),
+                TwinService.getPermissionSchemaSpaceId(headTwin),
+                false,
+                true);
     }
 
     public static void setHead(TwinEntity twin, TwinEntity headTwin) {
