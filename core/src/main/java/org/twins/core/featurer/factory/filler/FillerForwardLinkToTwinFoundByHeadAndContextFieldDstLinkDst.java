@@ -55,13 +55,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
             try {
                 fillWith(properties, factoryItem, templateTwin, dstFieldValue);
             } catch (Exception ex) {
-                if (optionalStep) {
-                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
-                            factoryItem.logShort(),
-                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
-                } else {
-                    throw ex;
-                }
+                handleItemError(factoryItem, optionalStep, ex);
             }
         }
     }

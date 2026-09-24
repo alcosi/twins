@@ -55,13 +55,7 @@ public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
                 result.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
                 linkedTwins.put(factoryItem, FieldValueLink.getSingleLinkedTwinSafe(result.value(factoryItem)));
             } catch (Exception ex) {
-                if (optionalStep) {
-                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
-                            factoryItem.logShort(),
-                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
-                } else {
-                    throw ex;
-                }
+                handleItemError(factoryItem, optionalStep, ex);
             }
         }
         twinService.loadHead(linkedTwins.values()); // one query for the whole batch

@@ -46,9 +46,9 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
         return new FactoryItem().setOutput(output).setContextFactoryItemList(List.of(contextItem));
     }
 
-    private TwinClassFieldEntity buildField() {
+    private TwinClassFieldEntity buildField(UUID id) {
         var field = new TwinClassFieldEntity();
-        field.setId(UUID.randomUUID());
+        field.setId(id);
         field.setKey("field");
         return field;
     }
@@ -60,7 +60,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
         void fill_nameField_setsOutputName() throws ServiceException {
             var fieldId = SystemIds.TwinClassField.Base.NAME;
             var factoryItem = buildFactoryItem();
-            var fieldValue = new FieldValueText(buildField()).setValue("my name");
+            var fieldValue = new FieldValueText(buildField(fieldId)).setValue("my name");
 
             filler.fill(props(fieldId), factoryItem, null, fieldValue);
 
@@ -71,7 +71,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
         void fill_descriptionField_setsOutputDescription() throws ServiceException {
             var fieldId = SystemIds.TwinClassField.Base.DESCRIPTION;
             var factoryItem = buildFactoryItem();
-            var fieldValue = new FieldValueText(buildField()).setValue("a description");
+            var fieldValue = new FieldValueText(buildField(fieldId)).setValue("a description");
 
             filler.fill(props(fieldId), factoryItem, null, fieldValue);
 
@@ -83,7 +83,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             var fieldId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
             var factoryItem = buildFactoryItem();
             var user = new UserEntity().setId(UUID.randomUUID());
-            var fieldValue = new FieldValueUser(buildField()).add(user);
+            var fieldValue = new FieldValueUser(buildField(fieldId)).add(user);
 
             filler.fill(props(fieldId), factoryItem, null, fieldValue);
 
@@ -97,7 +97,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
             var fieldId = SystemIds.TwinClassField.Base.CREATOR_USER_ID;
             var factoryItem = buildFactoryItem();
             var user = new UserEntity().setId(UUID.randomUUID());
-            var fieldValue = new FieldValueUser(buildField()).add(user);
+            var fieldValue = new FieldValueUser(buildField(fieldId)).add(user);
 
             filler.fill(props(fieldId), factoryItem, null, fieldValue);
 
@@ -111,7 +111,7 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
         void fill_emptyUserField_throwsRequired() throws ServiceException {
             var fieldId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
             var factoryItem = buildFactoryItem();
-            var fieldValue = new FieldValueUser(buildField()); // undefined -> empty
+            var fieldValue = new FieldValueUser(buildField(fieldId)); // undefined -> empty
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(fieldId), factoryItem, null, fieldValue));

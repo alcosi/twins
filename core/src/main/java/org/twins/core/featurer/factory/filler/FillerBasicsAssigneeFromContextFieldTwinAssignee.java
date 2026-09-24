@@ -57,13 +57,7 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
                 TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(assigneeField);
                 linkedTwins.put(outputTwinEntity, linkedTwin);
             } catch (Exception ex) {
-                if (optionalStep) {
-                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
-                            factoryItem.logShort(),
-                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
-                } else {
-                    throw ex;
-                }
+                handleItemError(factoryItem, optionalStep, ex);
             }
         }
         assignFromLinkedTwins(linkedTwins);

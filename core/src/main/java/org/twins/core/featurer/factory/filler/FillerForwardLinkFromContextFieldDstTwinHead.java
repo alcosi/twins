@@ -64,13 +64,7 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
                 srcResult.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
                 fillWith(factoryItem, properties, srcResult.value(factoryItem));
             } catch (Exception ex) {
-                if (optionalStep) {
-                    log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
-                            factoryItem.logShort(),
-                            ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
-                } else {
-                    throw ex;
-                }
+                handleItemError(factoryItem, optionalStep, ex);
             }
         }
     }

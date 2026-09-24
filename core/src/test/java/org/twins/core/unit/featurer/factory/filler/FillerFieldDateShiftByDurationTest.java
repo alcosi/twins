@@ -47,6 +47,8 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
     private static final UUID SOURCE_ID = UUID.randomUUID();
     private static final UUID DURATION_ID = UUID.randomUUID();
     private static final TwinClassFieldEntity TARGET_FIELD = new TwinClassFieldEntity().setId(TARGET_ID);
+    private static final TwinClassFieldEntity SOURCE_FIELD = new TwinClassFieldEntity().setId(SOURCE_ID);
+    private static final TwinClassFieldEntity DURATION_FIELD = new TwinClassFieldEntity().setId(DURATION_ID);
 
     @BeforeEach
     void setUp() throws Exception {
@@ -54,6 +56,8 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         inject(filler, "fieldLookupers", fieldLookupers);
         when(fieldLookupers.getFromItemOutputFields()).thenReturn(lookuper);
         lenient().when(twinClassFieldService.findEntitySafe(TARGET_ID)).thenReturn(TARGET_FIELD);
+        lenient().when(twinClassFieldService.findEntitySafe(SOURCE_ID)).thenReturn(SOURCE_FIELD);
+        lenient().when(twinClassFieldService.findEntitySafe(DURATION_ID)).thenReturn(DURATION_FIELD);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -114,9 +118,9 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         void fill_plusInclusiveDays() throws ServiceException {
             var factoryItem = buildFactoryItem();
             LocalDateTime start = LocalDateTime.of(2024, 1, 1, 10, 0);
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_ID))).thenReturn(result(factoryItem, date(SOURCE_ID, start)));
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID))).thenReturn(result(factoryItem, duration("5")));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_FIELD))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_FIELD))).thenReturn(result(factoryItem, date(SOURCE_ID, start)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_FIELD))).thenReturn(result(factoryItem, duration("5")));
             when(twinService.createFieldValue(TARGET_FIELD)).thenReturn(date(TARGET_ID, null));
 
             filler.fill(props(false), new FactoryItemsBatch().add(factoryItem), null, false);
@@ -129,9 +133,9 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         void fill_minusInclusiveDays() throws ServiceException {
             var factoryItem = buildFactoryItem();
             LocalDateTime end = LocalDateTime.of(2024, 1, 5, 10, 0);
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_ID))).thenReturn(result(factoryItem, date(SOURCE_ID, end)));
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID))).thenReturn(result(factoryItem, duration("5")));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_FIELD))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_FIELD))).thenReturn(result(factoryItem, date(SOURCE_ID, end)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_FIELD))).thenReturn(result(factoryItem, duration("5")));
             when(twinService.createFieldValue(TARGET_FIELD)).thenReturn(date(TARGET_ID, null));
 
             filler.fill(props(true), new FactoryItemsBatch().add(factoryItem), null, false);
@@ -143,7 +147,7 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         @Test
         void fill_skipsWhenTargetFilled() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID)))
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_FIELD)))
                     .thenReturn(result(factoryItem, date(TARGET_ID, LocalDateTime.of(2024, 2, 1, 0, 0))));
 
             filler.fill(props(false), new FactoryItemsBatch().add(factoryItem), null, false);
@@ -155,10 +159,10 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
         @Test
         void fill_skipsWhenDurationMissing() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_ID))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_ID)))
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(TARGET_FIELD))).thenReturn(result(factoryItem, date(TARGET_ID, null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(SOURCE_FIELD)))
                     .thenReturn(result(factoryItem, date(SOURCE_ID, LocalDateTime.of(2024, 1, 1, 0, 0))));
-            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_ID))).thenReturn(result(factoryItem, duration(null)));
+            when(lookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DURATION_FIELD))).thenReturn(result(factoryItem, duration(null)));
 
             filler.fill(props(false), new FactoryItemsBatch().add(factoryItem), null, false);
 

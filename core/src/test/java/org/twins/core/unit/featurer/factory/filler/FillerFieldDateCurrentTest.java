@@ -4,7 +4,6 @@ import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -12,8 +11,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.filler.FillerFieldDateCurrent;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,14 +18,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class FillerFieldDateCurrentTest extends BaseUnitTest {
-
-    @Mock
-    private TwinService twinService;
-    @Mock
-    private TwinClassFieldService twinClassFieldService;
 
     private FillerFieldDateCurrent filler;
 
@@ -37,8 +28,7 @@ class FillerFieldDateCurrentTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        filler = new FillerFieldDateCurrent(twinService, twinClassFieldService);
-        lenient().when(twinClassFieldService.findEntitySafe(FIELD_ID)).thenReturn(FIELD);
+        filler = new FillerFieldDateCurrent(); // field-injection era: no constructor args, value comes pre-resolved
     }
 
     private Properties props() {
@@ -66,7 +56,6 @@ class FillerFieldDateCurrentTest extends BaseUnitTest {
         @Test
         void fill_setsNowWhenEmpty() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(twinService.createFieldValue(FIELD)).thenReturn(emptyDate());
 
             filler.fill(props(), factoryItem, null, emptyDate());
 
@@ -83,7 +72,6 @@ class FillerFieldDateCurrentTest extends BaseUnitTest {
             filler.fill(props(), factoryItem, null, filledDate(existing));
 
             assertNull(factoryItem.getOutput().getField(FIELD_ID));
-            verify(twinService, never()).createFieldValue(any(TwinClassFieldEntity.class));
         }
     }
 }

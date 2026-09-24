@@ -6,7 +6,9 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 
@@ -32,6 +34,25 @@ public abstract class Filler extends FeaturerTwins {
     }
 
     public abstract void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException;
+
+    /**
+     * Optional-step error isolation of one factory item, shared by every batch loop: a failing item
+     * of an optional step is logged and skipped, a failing item of a mandatory step aborts the batch
+     * (fail-fast — end state identical to the old per-item caller after rollback).
+     */
+    protected void handleItemError(FactoryItem factoryItem, boolean optionalStep, Exception ex) throws ServiceException {
+        if (optionalStep) {
+            log.warn("Step is optional and unsuccessful for {}: {}. Pipeline will not be aborted",
+                    factoryItem.logShort(),
+                    ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage());
+        } else {
+            if (ex instanceof ServiceException serviceException)
+                throw serviceException;
+            if (ex instanceof RuntimeException runtimeException)
+                throw runtimeException;
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, ex.getMessage());
+        }
+    }
 
     public boolean canBeOptional() {
         return true; // most steps can be option by default. otherwise method must be overridden
