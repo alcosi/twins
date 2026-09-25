@@ -210,7 +210,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2325 = 2325;
     public static final int ID_2326 = 2326;
     public static final int ID_2327 = 2327;
-    public static final int ID_2328 = 2328;
+    public static final int ID_2328 = 2328; //free id
     public static final int ID_2329 = 2329;
     public static final int ID_2330 = 2330;
     public static final int ID_2331 = 2331;
@@ -225,7 +225,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2340 = 2340;
     public static final int ID_2341 = 2341;
     public static final int ID_2342 = 2342;
-    public static final int ID_2343 = 2343;
+    public static final int ID_2343 = 2343; //free id
     public static final int ID_2344 = 2344;
     public static final int ID_2345 = 2345;
     public static final int ID_2346 = 2346;

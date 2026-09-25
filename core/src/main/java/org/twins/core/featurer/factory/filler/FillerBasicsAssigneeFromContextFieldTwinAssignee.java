@@ -14,8 +14,11 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
@@ -26,36 +29,42 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2322,
-        name = "Basics assignee from context field twin assignee",
-        description = "If value of context field is an id of other twin (link) we will get assignee from that twin")
+        name = "Basics assignee from linked twin",
+        description = "If value of the link field is an id of other twin (link) we will get assignee from that twin. "
+                + "The value source is the optional fieldLookuper param")
 @Slf4j
 public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
     @FeaturerParam(name = "Link field", description = "", order = 1)
     public static final FeaturerParamUUID linkField = new FeaturerParamUUIDTwinsTwinClassFieldId("linkField");
+
+    @FeaturerParam(name = "Field lookuper", description = "Source of the link field value", order = 99, optional = true, defaultValue = "fromContextFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
 
     @Lazy
     @Autowired
     TwinService twinService;
 
     /**
-     * Direct batch override (not a {@code FillerAtomic} subclass): two-phase — first an isolated
-     * per-item loop collects the linked twins discovered from the field values (no db access), then
-     * ONE bulk {@code loadUser} covers the whole batch, then the in-memory distribution runs; the
-     * lookuper-based subclass pre-resolves its field in its own batch override and reuses
-     * {@link #assignFromLinkedTwins} — see featurer_design_pattern.md.
+     * Direct batch override, two-phase: one lookuper batch call (bulk preloads + entity resolution
+     * once), then an isolated per-item loop collecting the linked twins from the resolved values
+     * (no db access), then ONE bulk {@code loadUser} + the in-memory distribution — see
+     * featurer_design_pattern.md.
      */
     @Override
     public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         if (batch == null || batch.isEmpty())
             return;
         UUID assigneeFieldId = linkField.extract(properties);
+        LookupResult result = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties)))
+                .lookupFieldValue(batch, assigneeFieldId);
         var linkedTwins = new HashMap<TwinEntity, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
-                FieldValue assigneeField = factoryItem.getFactoryContext().getFields().get(assigneeFieldId);
+                result.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
+                FieldValue assigneeField = result.value(factoryItem);
+                assigneeField.assertIsDefined(assigneeField.getTwinClassField().logNormal() + " is not found by fieldLookuper");
                 TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-                TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(assigneeField);
-                linkedTwins.put(outputTwinEntity, linkedTwin);
+                linkedTwins.put(outputTwinEntity, FieldValueLink.getSingleLinkedTwinSafe(assigneeField));
             } catch (Exception ex) {
                 handleItemError(factoryItem, optionalStep, ex);
             }
@@ -63,8 +72,8 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
         assignFromLinkedTwins(linkedTwins);
     }
 
-    /** Bulk phase shared with the lookuper-based subclass: one loadUser for the whole batch, then the in-memory distribution. */
-    protected void assignFromLinkedTwins(Map<TwinEntity, TwinEntity> linkedTwins) throws ServiceException {
+    /** Bulk phase: one loadUser for the whole batch, then the in-memory distribution. */
+    private void assignFromLinkedTwins(Map<TwinEntity, TwinEntity> linkedTwins) throws ServiceException {
         twinService.loadUser(linkedTwins.values());
         for (var entry : linkedTwins.entrySet()) {
             TwinEntity outputTwinEntity = entry.getKey();
