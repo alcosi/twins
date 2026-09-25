@@ -34,6 +34,8 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
     private final TwinClassFieldConditionService twinClassFieldConditionService;
     @Lazy
     private final TwinClassFieldRuleService twinClassFieldRuleService;
+    @Lazy
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public CrudRepository<TwinClassFieldRuleMapEntity, UUID> entityRepository() {
@@ -140,5 +142,18 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
                 TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId,
                 TwinClassFieldRuleMapEntity::getTwinClassFieldRule,
                 TwinClassFieldRuleMapEntity::setTwinClassFieldRule);
+    }
+
+    public void loadTwinClassField(TwinClassFieldRuleMapEntity src) throws ServiceException {
+        if (src.getTwinClassField() != null)
+            return;
+        loadTwinClassField(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassField(Collection<TwinClassFieldRuleMapEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                TwinClassFieldRuleMapEntity::getTwinClassFieldId,
+                TwinClassFieldRuleMapEntity::getTwinClassField,
+                TwinClassFieldRuleMapEntity::setTwinClassField);
     }
 }

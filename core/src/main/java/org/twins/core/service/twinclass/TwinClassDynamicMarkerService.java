@@ -139,6 +139,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
                 TwinClassDynamicMarkerEntity::getTwinValidatorSetId);
 
         twinValidatorSetService.loadTwinValidatorSet(markersByValidatorSet.getCollection());
+        loadMarkerDataListOption(markersByValidatorSet.getCollection());
 
         List<TwinEntity> twinsToValidate = new ArrayList<>();
         for (TwinClassDynamicMarkerEntity twinClassDynamicMarkerEntity : markersByValidatorSet.getCollection()) { //todo perhaps we could iterate by validatorSet in future

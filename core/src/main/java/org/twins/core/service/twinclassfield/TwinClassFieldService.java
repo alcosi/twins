@@ -269,6 +269,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 TwinClassFieldRuleMapEntity::getId,
                 TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId
         );
+        twinClassFieldRuleMapService.loadTwinClassField(ruleMaps.getCollection());
 
         if (ruleMaps.isEmpty()) {
             needLoad.forEach(rule -> rule.setFieldKit(Kit.EMPTY));
@@ -583,6 +584,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(TwinClassFieldEntity.Fields.twinClassId, dbTwinClassFieldEntity.getTwinClassId(), newTwinClassId))
             return;
+        loadTwinClass(dbTwinClassFieldEntity);
         if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity) &&
                 !twinClassService.isInstanceOf(dbTwinClassFieldEntity.getTwinClass(), newTwinClassId))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "twin-class of twin-class-field can not be updated, because some twins with fields of given class are already exist, " +

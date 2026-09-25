@@ -168,13 +168,13 @@ public void beforeCollectionConversion(...) {
 | 57 | `TierEntity` | domain | 4 | 4 | 0 | 0 | 0 | ready |
 | 58 | `TwinBusinessAccountAliasCounterEntity` | twin | 0 | 0 | 0 | 0 | 0 | done |
 | 59 | `TwinChangeTaskEntity` | twin | 1 | 1 | 0 | 0 | 0 | ready |
-| 60 | `TwinClassDynamicMarkerEntity` | twinclass | 2 | 2 | 0 | 0 | 0 | ready |
+| 60 | `TwinClassDynamicMarkerEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
 | 61 | `TwinClassEntity` | twinclass | 1 | 1 | 0 | 0 | 0 | partial |
-| 62 | `TwinClassFieldConditionEntity` | twinclass | 1 | 1 | 0 | 0 | 0 | ready |
-| 63 | `TwinClassFieldEntity` | twinclass | 1 | 1 | 0 | 0 | 0 | ready |
-| 64 | `TwinClassFieldRuleMapEntity` | twinclass | 2 | 2 | 0 | 0 | 0 | ready |
+| 62 | `TwinClassFieldConditionEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
+| 63 | `TwinClassFieldEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
+| 64 | `TwinClassFieldRuleMapEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
 | 65 | `TwinClassFieldSearchPredicateEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
-| 66 | `TwinClassFreezeEntity` | twinclass | 1 | 1 | 0 | 0 | 0 | ready |
+| 66 | `TwinClassFreezeEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
 | 67 | `TwinClassSchemaEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
 | 68 | `TwinClassSchemaMapEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
 | 69 | `TwinClassSearchPredicateEntity` | twinclass | 0 | 0 | 0 | 0 | 0 | done |
@@ -232,11 +232,12 @@ public void beforeCollectionConversion(...) {
 | audit | 3 |
 | blocked | 4 |
 
-**Итого полей:** legacy=103, simple=82, business=16, blocked=5
+**Итого полей:** legacy=96, simple=75, business=16, blocked=5
 
 **Примечание к переаудиту 2026-09-22:** сущности, созданные после внедрения конвенции (`TwinCommentEntity`, `LinkEntity`, `TwinAttachmentEntity`, `TwinActionEntity`, `SchedulerLogEntity`, `TwinAliasEntity`, `ProjectionEntity`, `TwinFactoryEntity`, `TwinFactoryConditionSetEntity`, `DataListEntity`, `DataListSubsetEntity`, `NotificationSchemaEntity`, `NotificationContext*Entity`, `NotificationChannelEventEntity`, `HistoryNotificationRecipient*Entity`, `I18nTranslationBin/StyleEntity`, `TwinStatusTriggerEntity`, `TwinValidatorEntity`, `TwinClassFieldValidatorEntity`, `DraftEntity`, `TwinRecompute*Entity` и др.), пишутся сразу по SpecOnly-паттерну и в дорожную карту не входят.
 
 **История обновлений:**
+- 2026-09-22 (4): **Twinclass batch** — мигрированы 5 сущностей / 7 полей (все ready из кластера twinclass): `TwinClassDynamicMarkerEntity` (`markerDataListOption`, `twinClass` — оба EAGER), `TwinClassFieldConditionEntity` (`twinClassFieldRule`), `TwinClassFieldEntity` (`twinClass` — EAGER), `TwinClassFieldRuleMapEntity` (`twinClassFieldRule`, `twinClassField` — оба EAGER), `TwinClassFreezeEntity` (`twinStatus` — EAGER). Load-методы: `TwinClassDynamicMarkerService.loadTwinClass/loadMarkerDataListOption` (single+collection, target — `twinClassService`/`dataListOptionService`), `TwinClassFreezeService.loadTwinStatus`, `TwinClassFieldRuleMapService.loadTwinClassFieldRule` (bulk — внутри `loadRules` сразу после `findByTwinClassFieldIdIn`); `TwinClassFieldService.loadTwinClass` уже существовал — сигнатура расширена `List` → `Collection` для beforeCollectionConversion. `TwinClassFieldConditionEntity.twinClassFieldRule` — новых load-методов не потребовалось: население уже делает существующий `loadConditions` (loadKit). `TwinClassFieldRuleMapEntity.twinClassField` — геттер не читается, load не нужен (прецедент SchemaMap). Спеки (по чек-листу «grep `Fields.<oldName>`»): `TwinClassDynamicMarkerSearchService:40`, `TwinClassFieldSearchService:90` (фильтр) и `:146` (сортировка twinClassName), `TwinClassFieldValidatorSearchService:65` — `Fields.twinClass` → `Fields.twinClassSpecOnly`. Бизнес-логика: `TwinClassDynamicMarkerService.isEntityReadDenied` + `processValidatorSet`, `TwinClassFieldService.isEntityReadDenied` — load-if-null; `FieldTyperSpaceRoleUsers.serializeValue` и `FieldTyperLink.allowMultiply` — load перед `getTwinClassField().getTwinClass()` (пропуск allowMultiply найден при повторном аудите без head-усечения grep'а; FieldTyperLinkTest получил @Mock TwinClassFieldService). Мапперы: `TwinClassDynamicMarkerDTOMapper`, `TwinClassFieldRestDTOMapper`, `TwinClassFreezeDTOMapper` — fallback в `map()` + `beforeCollectionConversion`; `TwinClassFieldCountRestDTOMapper` уже имел load. Новый @Lazy-цикл: `TwinClassFieldRuleMapService → TwinClassFieldRuleService` (обратное ребро существовало). compileJava + compileTestJava чистые; grep устаревших `Fields.<oldName>` — пусто.
 - 2026-09-22 (3): **Twinflow batch — merge-note по итогам expert-panel ревью** (полный протокол: `ai/review/PR-TWINS-836-twinflow-load.md`). (а) **Контракт load (теперь официальный):** чтение runtime-поля (`@Transient`-дубля) требует предшествующего load-вызова; компилятор это не проверяет — сигнатуры геттеров не изменились, забытый load = тихий null/NPE. Related-objects drain (`RelatedObjectsRestDTOConverter.drain()`) конвертирует postponed-объекты **поштучно**, минуя `beforeCollectionConversion` → per-entity load в `map()` обязателен всегда, bulk в `beforeCollectionConversion` — оптимизация, не замена. (б) **Новые @Lazy-циклы этим батчем:** `TwinflowTransitionService ↔ TwinflowTransitionTriggerService`, `TwinflowTransitionService → FactoryService` (обратное ребро существовало) — новые рёбра сервисов домена без нужды не добавлять, при росте клубка — интерфейсный срез Loader. (в) **Чек-лист миграции поля (расширенный):** после раскола поля grep'ать не только вызовы геттеров, но и СТРОЧНЫЕ ссылки на старое имя — `Fields.<oldName>` в specifications/JPQL и `root.join("<oldName>")`: `git grep -n "Fields.<oldName>" -- "*.java"`. Кейс: `TransitionSpecification.checkAliasLikeIn` делал `root.join(Fields.twinflowTransitionAlias)` по @Transient-полю → `IllegalArgumentException` на каждом transition search (P1 ревью; компилятор и lombok `@FieldNameConstants` это не ловят). Фикс — оба метода `TransitionSpecification` заменены на generic-хелперы `CommonSpecification` (`checkFieldLikeIn`/`checkFieldIn`, путь через `twinflowTransitionAliasSpecOnly`), файл удалён: меньше специализированного spec-кода — меньше мест для «забытого SpecOnly». Остаточные условия merge: integration-тест transition search (alias непустой/пустой + DETAILED-маппер) и смоук остальных twinflow search-endpoint'ов. (г) likeList-конвенция: `checkFieldLikeContainsIn` оборачивает термы в `%…%` (сырые подстроки: name/key/alias), `checkFieldLikeIn` — паттерны как есть (regexp/type-поля).
 - 2026-09-22 (2): **Twinflow batch** — мигрированы 5 сущностей / 16 полей: `TwinflowEntity` (`twinClass`, `initialTwinStatus`, `initialSketchTwinStatus`), `TwinflowTransitionEntity` (`twinflowTransitionAlias`, `twinflow`, `srcTwinStatus`, `dstTwinStatus`, `inbuiltFactory`, `draftingFactory`), `TwinflowFactoryEntity` (`twinflow`, `twinFactory`), `TwinflowSchemaMapEntity` (`twinflowSchema`, `twinClass`, `twinflow`), `TwinflowTransitionTriggerEntity` (`twinflowTransition`, `twinTrigger` — был EAGER). Load-методы: `TwinflowService.loadTwinClass/loadInitialTwinStatus/loadInitialSketchTwinStatus`, `TwinflowTransitionService.loadTwinflow/loadSrcTwinStatus/loadDstTwinStatus/loadInbuiltFactory/loadDraftingFactory/loadTwinflowTransitionAlias` (alias — вручную через репозиторий, своего сервиса у alias-энтити нет), `TwinflowTransitionTriggerService.loadTwinflowTransition(s)`; в `TwinflowFactoryService` loadTwinflow/loadTwinFactory уже были. `TwinflowSchemaMapEntity` — геттеры нигде не читаются, load-методы не нужны. Мапперы: `TwinflowBaseV1`, `TransitionBaseV1/V2`, `TwinflowFactoryRestDTOMapperV1`, `TransitionTrigger` — fallback в `map()` + `beforeCollectionConversion` (в `TransitionBaseV1` alias грузится без mode-гварда — используется во всех режимах, после миграции null-safe). Спеки: 4 `*SearchService` + JPQL `TwinflowRepository.findAllByBusinessAccountIdAndDomainId` (`t.twinClassSpecOnly.domainId`) + `TwinflowTransitionRepository.findTransitionByAlias` (`tt.twinflowTransitionAliasSpecOnly.alias`). Бизнес-логика: `validateEntity` в Twinflow/TwinflowTransition сервисах — load-if-null в default-ветке (иначе NPE в afterRead); `loadTwinflow(Collection<TwinEntity>)` батч-предзагружает twinClass+initialTwinStatus перед `validateEntityAndThrow`; `updateTransitionSrc/DstStatus` + `updateTwinflowTransitions` cacheEvict — load-if-null (хелпер `loadTwinflowWithTwinClass`); `performTransitions`/`draftTransitions` — батч `loadDstTwinStatus`; `runTriggers` — батч `loadSrcTwinStatus`/`loadDstTwinStatus` + батч `loadTriggers` для sync-триггеров; `TwinService.setInitStatus` — load initialTwinStatus; `LogSupportService.generateSubstitutionsConfig` — батч-загрузки twinClass/statuses/twinflow перед лог-циклами; `isEntityReadDenied`: TwinflowService — load-if-null twinClass, TwinflowFactoryService — load-if-null twinflow+twinFactory (паттерн FactoryTriggerService, без TODO-комментирования). Цикл зависимостей TwinflowTransitionService ↔ TwinflowTransitionTriggerService разорван `@Lazy`.
 - 2026-09-22: полный переаудит кодовой базы (grep `@ManyToOne` без `SpecOnly` по `dao/`). Статусная таблица приведена к фактическому состоянию: done 22→52, ready 61→34, partial 15→19, audit 9→3, blocked 4. Новые done: `BusinessAccountEntity` (`ownerUserGroup` закомментирован), `DataListOptionProjectionEntity` (4 поля), `DraftHistoryEntity` (2), `HistoryEntity`, `HistoryNotificationEntity`, `HistoryNotificationTaskEntity`, `TwinClassSchemaEntity` (`domain`, `createdByUser` закомментированы), `TwinFactoryTriggerEntity`, `TwinTriggerEntity`, `TwinTriggerTaskEntity`, batch `DraftTwinFieldBoolean/DataList/Simple/SimpleNonIndexed/Link/Marker/Tag` (`draft` → `draftSpecOnly` + `@Transient`; `twinId` остаётся raw UUID намеренно — «we can not create @ManyToOne relation, because it can be new twin here»), batch `TwinFieldBoolean/Decimal/I18n/Simple/SimpleNonIndexed/Timestamp` — миграция выполнена один раз в базовом `TwinFieldBaseEntity` (`twinSpecOnly`, `twinClassFieldSpecOnly` + `@Transient` runtime). Также в таблицу наконец внесён Factory batch 2026-07-08 (7 сущностей → done). Новые partial: `TwinEntity` (из 7 полей мигрированы `headTwin`, `ownerBusinessAccount` — закомментированы с `@Transient` runtime; остались `viewPermission`, `twinClass` (EAGER!), `twinStatus`, `assignerUser`, `ownerUser`), `DraftTwinEraseEntity` (`reasonTwin` закомментирован, остался `twin`), `DraftTwinPersistEntity` (остался `twinStatus`; `draft`/`twinClass`/`assignerUser`/`createdByUser` уже SpecOnly), `TwinFieldAttribute` (остался `twinClassFieldAttribute`), `TwinFieldDataList` (остался `dataListOption`), `TwinFieldTwinClass` (остался `twinClass`), `TwinClassEntity` (`domain` закомментирован, остался `twinClassFreeze`). Псевдо-audit-поля `twinId` (UUID) у draft-сущностей исключены из счётчика legacy — это целевое состояние по конвенции, а не долг.
@@ -756,8 +757,8 @@ public void beforeCollectionConversion(...) {
 
 | Поле | Тип | spec | mapper | validate | service/ctrl | denied | bidir | Вердикт |
 |---|---|---|---|---|---|---|---|---|
-| `markerDataListOption` | DataListOptionEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
-| `twinClass` | TwinClassEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
+| `markerDataListOption` | DataListOptionEntity | 0 | 0 | 0 | 0 | 0 | - | migrated |
+| `twinClass` | TwinClassEntity | 0 | 0 | 0 | 0 | 0 | - | migrated |
 
 #### `TwinClassEntity` (twinclass) — 2 полей
 
@@ -770,26 +771,26 @@ public void beforeCollectionConversion(...) {
 
 | Поле | Тип | spec | mapper | validate | service/ctrl | denied | bidir | Вердикт |
 |---|---|---|---|---|---|---|---|---|
-| `twinClassFieldRule` | TwinClassFieldRuleEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
+| `twinClassFieldRule` | TwinClassFieldRuleEntity | 0 | 0 | 0 | 0 | 0 | - | migrated (население — существующий `loadConditions` через loadKit) |
 
 #### `TwinClassFieldEntity` (twinclass) — 1 полей
 
 | Поле | Тип | spec | mapper | validate | service/ctrl | denied | bidir | Вердикт |
 |---|---|---|---|---|---|---|---|---|
-| `twinClass` | TwinClassEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
+| `twinClass` | TwinClassEntity | 0 | 0 | 0 | 0 | 0 | - | migrated |
 
 #### `TwinClassFieldRuleMapEntity` (twinclass) — 2 полей
 
 | Поле | Тип | spec | mapper | validate | service/ctrl | denied | bidir | Вердикт |
 |---|---|---|---|---|---|---|---|---|
-| `twinClassFieldRule` | TwinClassFieldRuleEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
-| `twinClassField` | TwinClassFieldEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
+| `twinClassFieldRule` | TwinClassFieldRuleEntity | 0 | 0 | 0 | 0 | 0 | - | migrated (bulk в `loadRules`) |
+| `twinClassField` | TwinClassFieldEntity | 0 | 0 | 0 | 0 | 0 | - | migrated (геттер не читается, load не нужен — прецедент SchemaMap) |
 
 #### `TwinClassFreezeEntity` (twinclass) — 1 полей
 
 | Поле | Тип | spec | mapper | validate | service/ctrl | denied | bidir | Вердикт |
 |---|---|---|---|---|---|---|---|---|
-| `twinStatus` | TwinStatusEntity | 0 | 0 | 0 | 0 | 0 | - | simple |
+| `twinStatus` | TwinStatusEntity | 0 | 0 | 0 | 0 | 0 | - | migrated |
 
 #### `TwinClassSchemaEntity` (twinclass) — 2 полей
 

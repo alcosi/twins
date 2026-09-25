@@ -28,7 +28,6 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpaceRoleUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.space.SpaceRoleUserService;
-import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
 
@@ -60,9 +59,6 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     private SpaceRoleUserService spaceRoleUserService;
     @Autowired
     private AuthService authService;
-    @Autowired
-    @Lazy
-    private TwinClassFieldService twinClassFieldService;
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {

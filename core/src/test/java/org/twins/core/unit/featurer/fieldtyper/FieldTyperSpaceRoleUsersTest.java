@@ -19,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
 
@@ -28,7 +29,8 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class FieldTyperSpaceRoleUsersTest extends BaseUnitTest {
 
@@ -47,6 +49,9 @@ class FieldTyperSpaceRoleUsersTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldTyperSpaceRoleUsers fieldTyper;
 
     @BeforeEach
@@ -57,6 +62,7 @@ class FieldTyperSpaceRoleUsersTest extends BaseUnitTest {
         setField(fieldTyper, "spaceRoleUserService", spaceRoleUserService);
         setField(fieldTyper, "authService", authService);
         setField(fieldTyper, "twinService", twinService);
+        setField(fieldTyper, "twinClassFieldService", twinClassFieldService);
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
