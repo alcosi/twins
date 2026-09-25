@@ -6,7 +6,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 @Component
@@ -30,10 +29,6 @@ public class FieldLookuperFromContextTwinFields extends FieldLookuperNearest {
             return fieldValue;
         }
         TwinEntity contextTwin = contextItem.getTwin();
-        fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
-        if (fieldValue == null) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " is not present in context twin uncommitted fields and db fields");
-        }
-        return fieldValue;
+        return twinService.getTwinFieldValue(contextTwin, lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
     }
 }

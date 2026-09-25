@@ -29,6 +29,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
@@ -125,8 +126,15 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
             var target = new FieldValueText(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, target);
-            // divisor not on output -> its db batch result carries no value and no failure.
-            stubDbBatchResults();
+            // divisor not on output -> its db batch result carries the undefined value the batch
+            // entry creates for a not-found lookup (new lookuper contract).
+            var undefinedDivisor = new FieldValueText(field(DIVISOR_FIELD_ID)); // undefined
+            var divisorResult = LookupResult.empty(1);
+            divisorResult.values().put(factoryItem, undefinedDivisor);
+            when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), any(UUID.class)))
+                    .thenReturn(LookupResult.empty(1));
+            when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DIVISOR_FIELD_ID)))
+                    .thenReturn(divisorResult);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));

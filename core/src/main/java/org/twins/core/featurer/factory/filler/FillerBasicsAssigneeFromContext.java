@@ -43,6 +43,7 @@ public class FillerBasicsAssigneeFromContext extends FillerFieldLookup {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in context fields and in context twins");
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         UserEntity assignee = FieldValueUser.getSingleUserSafe(fieldValue);
         log.info("{} [assignee] will be filled from {}", outputTwinEntity.logShort(), fieldValue.getTwinClassField().logShort());

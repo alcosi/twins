@@ -9,6 +9,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 
 import java.util.HashMap;
@@ -39,7 +40,9 @@ public class FillerBasicsAssigneeFromContextTwinFieldTwinAssignee extends Filler
             try {
                 result.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
                 TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-                TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(result.value(factoryItem));
+                FieldValue srcFieldValue = result.value(factoryItem);
+                srcFieldValue.assertIsDefined(srcFieldValue.getTwinClassField().logNormal() + " is not present in context twin db fields");
+                TwinEntity linkedTwin = FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue);
                 linkedTwins.put(outputTwinEntity, linkedTwin);
             } catch (Exception ex) {
                 handleItemError(factoryItem, optionalStep, ex);

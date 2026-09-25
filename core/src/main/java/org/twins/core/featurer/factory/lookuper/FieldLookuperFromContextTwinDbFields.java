@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 @Component
@@ -19,9 +18,6 @@ public class FieldLookuperFromContextTwinDbFields extends FieldLookuperNearest {
 
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
-        FieldValue fieldValue = twinService.getTwinFieldValue(twinService.wrapField(factoryItem.checkSingleContextTwin(), lookupTwinClassField));
-        if (fieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " is not present in context twin db fields");
-        return fieldValue;
+        return twinService.getTwinFieldValue(twinService.wrapField(factoryItem.checkSingleContextTwin(), lookupTwinClassField)); // null when not found — batch entry turns it into an undefined value
     }
 }

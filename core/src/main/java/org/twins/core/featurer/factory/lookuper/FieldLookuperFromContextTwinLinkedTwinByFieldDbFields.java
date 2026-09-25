@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 
@@ -26,11 +25,6 @@ public class FieldLookuperFromContextTwinLinkedTwinByFieldDbFields extends Field
         twinService.loadFieldsValues(contextTwin);
         var fieldValue = contextTwin.getFieldValuesKit().get(linkedTwinByTwinClassFieldId);
         TwinEntity fromTwin = FieldValueLink.getSingleLinkedTwinSafe(fieldValue);
-        FieldValue fieldValueForCopy = twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId);
-        if (fieldValueForCopy == null) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in linked twin fields");
-        }
-
-        return fieldValueForCopy;
+        return twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId); // null when not found — batch entry turns it into an undefined value
     }
 }

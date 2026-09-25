@@ -9,7 +9,6 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFields;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -18,7 +17,8 @@ import org.twins.core.service.twin.TwinService;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 class FieldLookuperFromContextFieldsTest extends BaseUnitTest {
@@ -57,30 +57,24 @@ class FieldLookuperFromContextFieldsTest extends BaseUnitTest {
         }
 
         @Test
-        void lookupFieldValue_fieldAbsentInContext_throwsFactoryPipelineError() {
+        void lookupFieldValue_fieldAbsentInContext_returnsNull() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
             var factoryItem = new FactoryItem().setFactoryContext(new FactoryContext(null, null));
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
             verifyNoInteractions(twinService);
         }
 
         @Test
-        void lookupFieldValue_wrongFieldIdPresent_throwsForRequestedIdOnly() {
+        void lookupFieldValue_wrongFieldIdPresent_returnsNullForRequestedId() throws ServiceException {
             var requestedId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(requestedId);
             var otherId = UUID.randomUUID();
             var factoryItem = new FactoryItem().setFactoryContext(new FactoryContext(null, null));
             factoryItem.getFactoryContext().getFields().put(otherId, fieldValue(otherId, "other"));
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
             verifyNoInteractions(twinService);
         }
     }

@@ -71,13 +71,15 @@ class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
         }
 
         @Test
-        void fill_emptyUserField_throwsRequired() throws ServiceException {
+        void fill_undefinedUserField_throwsStepError() throws ServiceException {
+            // the new lookuper contract: a not-found lookup arrives as an undefined value, and this
+            // filler has no default for that scenario, so the item fails itself.
             var factoryItem = buildFactoryItem();
-            var fieldValue = new FieldValueUser(buildField()); // undefined -> empty
+            var fieldValue = new FieldValueUser(buildField()); // undefined
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null, fieldValue));
-            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
         @Test
@@ -95,7 +97,7 @@ class FillerBasicsAssigneeFromContextTest extends BaseUnitTest {
         @Test
         void fill_nonUserField_throwsIncorrectType() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            var fieldValue = new FieldValueText(buildField());
+            var fieldValue = new FieldValueText(buildField()).setValue("not-a-user"); // defined — the type check is what fails
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null, fieldValue));

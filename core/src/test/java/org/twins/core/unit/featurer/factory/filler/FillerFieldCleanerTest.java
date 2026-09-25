@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldCleaner;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -16,8 +17,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FillerFieldCleanerTest extends BaseUnitTest {
 
@@ -62,17 +62,16 @@ class FillerFieldCleanerTest extends BaseUnitTest {
         }
 
         @Test
-        void fill_emptyField_isClearedAndAddedToOutput() throws ServiceException {
-            // the lookuper returns a (possibly empty) field value; the cleaner clears it and adds it to output.
+        void fill_undefinedField_throwsStepError() throws ServiceException {
+            // the new lookuper contract: a not-found lookup arrives as an undefined value, and the
+            // cleaner has no default for that scenario, so the item fails itself.
             var factoryItem = buildFactoryItem();
             var fieldEntity = new TwinClassFieldEntity().setId(FIELD_ID);
-            var fieldValue = new FieldValueText(fieldEntity); // undefined/empty
+            var fieldValue = new FieldValueText(fieldEntity); // undefined
 
-            filler.fill(props(), factoryItem, null, fieldValue);
-
-            var stored = factoryItem.getOutput().getField(FIELD_ID);
-            assertSame(fieldValue, stored);
-            assertTrue(stored.isCleared());
+            var ex = assertThrows(ServiceException.class,
+                    () -> filler.fill(props(), factoryItem, null, fieldValue));
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }
 }

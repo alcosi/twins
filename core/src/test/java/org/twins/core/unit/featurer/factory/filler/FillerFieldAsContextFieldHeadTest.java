@@ -130,13 +130,14 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         @Test
         void fill_emptyLink_throwsStepError() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            // FieldValueLink with no items -> isEmpty()==true (isUndefined since collection==null).
+            // FieldValueLink with no items -> isEmpty()==true (isUndefined since collection==null);
+            // under the new lookuper contract the filler fails the item itself on an undefined source.
             var srcValue = new FieldValueLink(field(SRC_FIELD_ID));
             stubLookupValue(factoryItem, srcValue);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
-            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
 

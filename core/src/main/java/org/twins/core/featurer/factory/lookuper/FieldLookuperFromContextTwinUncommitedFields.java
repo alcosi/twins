@@ -4,7 +4,6 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 @Component
@@ -12,9 +11,6 @@ public class FieldLookuperFromContextTwinUncommitedFields extends FieldLookuperN
 
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
-        FieldValue fieldValue = factoryItem.checkSingleContextItem().getOutput().getField(lookupTwinClassField);
-        if (fieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " is not present in context twin uncommited fields");
-        return fieldValue;
+        return factoryItem.checkSingleContextItem().getOutput().getField(lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
     }
 }

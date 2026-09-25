@@ -18,7 +18,11 @@ public abstract class FieldLookuperLinkedTwinByLink extends FieldLookuper implem
         beforeLookup(factoryItemsBatch, linkedTwinByLinkId, lookupTwinClassFieldId);
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
             try {
-                ret.values().put(factoryItem, lookupFieldValue(factoryItem, linkedTwinByLinkId, lookupTwinClassFieldId));
+                var value = lookupFieldValue(factoryItem, linkedTwinByLinkId, lookupTwinClassFieldId);
+                if (value == null) {
+                    value = twinService.createFieldValue(twinClassFieldService.findEntitySafe(lookupTwinClassFieldId)); //create field as undefined
+                }
+                ret.values().put(factoryItem, value);
             } catch (ServiceException ex) {
                 ret.failures().put(factoryItem, ex); // per-item isolation — the caller re-throws per item
             }

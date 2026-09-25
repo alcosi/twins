@@ -67,7 +67,7 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
         }
 
         @Test
-        void lookupFieldValue_fieldAbsentInContextTwinDb_throwsFactoryPipelineError() throws ServiceException {
+        void lookupFieldValue_fieldAbsentInContextTwinDb_returnsNull() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
@@ -77,10 +77,7 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
             when(twinService.wrapField(eq(contextTwin), eq(field))).thenReturn(wrapped);
             when(twinService.getTwinFieldValue(wrapped)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
 
         @Test

@@ -44,6 +44,7 @@ public class FillerComment extends FillerFieldLookup {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue commentField) throws ServiceException {
+        commentField.assertIsDefined(commentField.getTwinClassField().logNormal() + " is not present in context twin db fields");
         if (commentField instanceof FieldValueText fieldValueText) {
             factoryItem.getOutput().addComment(fieldValueText.getValue());
         } else {

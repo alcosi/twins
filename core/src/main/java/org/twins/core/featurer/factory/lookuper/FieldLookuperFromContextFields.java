@@ -4,16 +4,12 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 @Component
 public class FieldLookuperFromContextFields extends FieldLookuperNearest {
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
-        FieldValue fieldValue = factoryItem.getFactoryContext().getField(lookupTwinClassField);
-        if (fieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " is not present in context fields");
-        return fieldValue;
+        return factoryItem.getFactoryContext().getField(lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
     }
 }

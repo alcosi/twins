@@ -56,6 +56,7 @@ public class FillerFieldIncrementFromContextField extends FillerFieldLookup {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in context fields");
         if (!(fieldValue instanceof FieldValueText fieldValueText)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} is incorrect type and can not be used as increment delta", fieldValue.getTwinClassField().logShort());
         } else if (fieldValue.isEmpty()) {

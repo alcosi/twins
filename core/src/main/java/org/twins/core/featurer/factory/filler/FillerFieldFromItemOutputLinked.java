@@ -53,6 +53,7 @@ public abstract class FillerFieldFromItemOutputLinked extends FillerFieldLookupL
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not found by fieldLookuper"); // the concrete source wording lives in the pinned lookuper subclass
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
         if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))

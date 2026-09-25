@@ -19,6 +19,7 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
@@ -98,7 +99,9 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
         TwinEntity dstTwin;
         if (preResolvedDstTwinField != null) {
             preResolvedDstTwinField.rethrowFailureIfPresent(factoryItem); // original error, at the original point of the per-item flow
-            dstTwin = FieldValueLink.getSingleLinkedTwinSafe(preResolvedDstTwinField.value(factoryItem));
+            FieldValue dstFieldValue = preResolvedDstTwinField.value(factoryItem);
+            dstFieldValue.assertIsDefined(dstFieldValue.getTwinClassField().logNormal() + " is not found by fieldLookuper");
+            dstTwin = FieldValueLink.getSingleLinkedTwinSafe(dstFieldValue);
         } else {
             dstTwin = resolveDstTwin(properties, factoryItem, rootTwin);
         }

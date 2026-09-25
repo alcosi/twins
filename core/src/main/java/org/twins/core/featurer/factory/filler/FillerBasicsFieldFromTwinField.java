@@ -46,6 +46,7 @@ public class FillerBasicsFieldFromTwinField extends FillerFieldLookup {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in context twin db fields");
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         String fieldName;
         switch (fieldValue) {

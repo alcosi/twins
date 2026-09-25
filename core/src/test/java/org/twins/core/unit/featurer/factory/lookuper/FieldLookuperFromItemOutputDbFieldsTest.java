@@ -10,7 +10,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -19,7 +18,8 @@ import org.twins.core.service.twin.TwinService;
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +60,7 @@ class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
         }
 
         @Test
-        void lookupFieldValue_fieldAbsentInOutputTwinDb_throwsFactoryPipelineError() throws ServiceException {
+        void lookupFieldValue_fieldAbsentInOutputTwinDb_returnsNull() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
             var outputTwin = new TwinEntity().setId(UUID.randomUUID());
@@ -68,10 +68,7 @@ class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
 
             when(twinService.getTwinFieldValue(outputTwin, field)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
     }
 

@@ -34,6 +34,7 @@ public class ConditionerContextValueEquals extends Conditioner {
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookuperNearest fieldLookuper) throws ServiceException {
         FieldValue fieldValue = fieldLookuper.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        FieldValue.assertIsDefined(fieldValue, "TwinClassField[" + twinClassFieldId.extract(properties) + "] is not present in context fields and in context twins"); // static form: the per-item convenience returns a raw null
         return fieldValue.hasValue(value.extract(properties));
     }
 }

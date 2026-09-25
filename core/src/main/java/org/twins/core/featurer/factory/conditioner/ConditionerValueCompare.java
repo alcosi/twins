@@ -39,6 +39,7 @@ public class ConditionerValueCompare extends Conditioner {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         FieldValue fieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuper.extract(properties))).lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        FieldValue.assertIsDefined(fieldValue, "TwinClassField[" + twinClassFieldId.extract(properties) + "] is not found by fieldLookuper"); // static form: the per-item convenience returns a raw null
         String actual = ConditionEvaluator.normalizeValue(fieldValue);
         return ConditionEvaluator.evaluateOperator(actual, conditionOperator.extract(properties), valueToCompareWith.extract(properties));
     }

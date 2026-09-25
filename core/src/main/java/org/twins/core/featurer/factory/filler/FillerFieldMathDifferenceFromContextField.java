@@ -76,6 +76,7 @@ public class FillerFieldMathDifferenceFromContextField extends FillerFieldLookup
      */
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue subtrahendFieldValue) throws ServiceException {
+        subtrahendFieldValue.assertIsDefined(subtrahendFieldValue.getTwinClassField().logNormal() + " is not present in context fields and in context twins");
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
         if (!(subtrahendFieldValue instanceof FieldValueText)) {

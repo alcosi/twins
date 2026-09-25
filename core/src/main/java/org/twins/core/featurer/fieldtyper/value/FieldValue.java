@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.ValidationResult;
+import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.UUID;
 
@@ -79,6 +81,23 @@ public abstract class FieldValue implements Cloneable {
 
     public boolean isDefined() {
         return !isUndefined();
+    }
+
+    /**
+     * Lookuper contract guard: a not-found lookup arrives as an undefined value, and a filler that
+     * has no default for that scenario fails the item itself (the lookuper no longer throws).
+     */
+    public FieldValue assertIsDefined(String onUndefinedMsg) throws ServiceException {
+        if (isUndefined())
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, onUndefinedMsg);
+        return this;
+    }
+
+    /** Null-tolerant variant for paths that bypass the batch conversion (per-item UUID convenience). */
+    public static FieldValue assertIsDefined(FieldValue fieldValue, String onUndefinedMsg) throws ServiceException {
+        if (fieldValue == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, onUndefinedMsg);
+        return fieldValue.assertIsDefined(onUndefinedMsg);
     }
 
     public abstract void copyValueTo(FieldValue dst);

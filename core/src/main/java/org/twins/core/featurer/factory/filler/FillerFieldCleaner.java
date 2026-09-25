@@ -40,7 +40,8 @@ public class FillerFieldCleaner extends FillerFieldLookup {
     }
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) {
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in item output fields");
         fieldValue.clear();
         factoryItem.getOutput().addField(fieldValue);
     }

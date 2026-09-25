@@ -14,6 +14,7 @@ import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
@@ -53,7 +54,9 @@ public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
                 result.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
-                linkedTwins.put(factoryItem, FieldValueLink.getSingleLinkedTwinSafe(result.value(factoryItem)));
+                FieldValue srcFieldValue = result.value(factoryItem);
+                srcFieldValue.assertIsDefined(srcFieldValue.getTwinClassField().logNormal() + " is not present in item output fields");
+                linkedTwins.put(factoryItem, FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue));
             } catch (Exception ex) {
                 handleItemError(factoryItem, optionalStep, ex);
             }

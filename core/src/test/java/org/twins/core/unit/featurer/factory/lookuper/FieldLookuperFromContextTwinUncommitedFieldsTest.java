@@ -61,16 +61,13 @@ class FieldLookuperFromContextTwinUncommitedFieldsTest extends BaseUnitTest {
         }
 
         @Test
-        void lookupFieldValue_fieldAbsentInContextItemOutput_throwsFactoryPipelineError() {
+        void lookupFieldValue_fieldAbsentInContextItemOutput_returnsNull() throws ServiceException {
             var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var output = new TwinCreate();
             var contextItem = new FactoryItem().setOutput(output);
             var factoryItem = new FactoryItem().setContextFactoryItemList(List.of(contextItem));
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
             verifyNoInteractions(twinService);
         }
 

@@ -108,8 +108,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             divisorDbResult.rethrowFailureIfPresent(factoryItem);
             divisorFieldValue = divisorDbResult.value(factoryItem);
         }
-        if (divisorFieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] can not be detected");
+        divisorFieldValue.assertIsDefined("divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] is not present in output twin fields");
 
         if (divisorFieldValue instanceof FieldValueText divisorFieldValueText) {
             BigDecimal dividendNumber = new BigDecimal(((FieldValueText) dividendFieldValue).getValue());

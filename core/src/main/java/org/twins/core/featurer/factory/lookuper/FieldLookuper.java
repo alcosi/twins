@@ -10,7 +10,6 @@ import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinSave;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.twin.TwinService;
@@ -35,11 +34,16 @@ public abstract class FieldLookuper {
      * UUID-based convenience for callers that did not resolve the field entity yet — the Linked
      * lookuper family still uses it; prefer the entity variant.
      */
-    public FieldValue getFreshestValue(TwinEntity twinEntity, UUID twinClassFieldId, FactoryContext factoryContext, String onExceptionMsg) throws ServiceException {
-        return getFreshestValue(twinEntity, twinClassFieldService.findEntitySafe(twinClassFieldId), factoryContext, onExceptionMsg);
+    public FieldValue getFreshestValue(TwinEntity twinEntity, UUID twinClassFieldId, FactoryContext factoryContext) throws ServiceException {
+        return getFreshestValue(twinEntity, twinClassFieldService.findEntitySafe(twinClassFieldId), factoryContext);
     }
 
-    public FieldValue getFreshestValue(TwinEntity twinEntity, TwinClassFieldEntity twinClassField, FactoryContext factoryContext, String onExceptionMsg) throws ServiceException {
+    /**
+     * Resolves the freshest value of the field across uncommitted output, output links and the db.
+     * Returns null when nothing is found — the lookuper contract: not-found is reported to the
+     * caller (undefined value at the batch boundary), not thrown here.
+     */
+    public FieldValue getFreshestValue(TwinEntity twinEntity, TwinClassFieldEntity twinClassField, FactoryContext factoryContext) throws ServiceException {
         FactoryItem factoryItem = factoryContext.getFactoryItem(twinEntity.getId());
         FieldValue fieldValue = null;
         if (factoryItem != null) {
@@ -50,8 +54,6 @@ public abstract class FieldLookuper {
         }
         if (fieldValue == null) {
             fieldValue = twinService.getTwinFieldValue(twinEntity, twinClassField);
-            if (fieldValue == null)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, onExceptionMsg);
         }
         return fieldValue;
     }

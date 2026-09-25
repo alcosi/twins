@@ -11,7 +11,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextFieldsAndContextTwinDbFields;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -21,7 +20,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 class FieldLookuperFromContextFieldsAndContextTwinDbFieldsTest extends BaseUnitTest {
@@ -83,7 +83,7 @@ class FieldLookuperFromContextFieldsAndContextTwinDbFieldsTest extends BaseUnitT
         }
 
         @Test
-        void lookupFieldValue_absentEverywhere_throwsFactoryPipelineError() throws ServiceException {
+        void lookupFieldValue_absentEverywhere_returnsNull() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
@@ -93,10 +93,7 @@ class FieldLookuperFromContextFieldsAndContextTwinDbFieldsTest extends BaseUnitT
             when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
             when(twinService.getTwinFieldValue(deeperTwin, field)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
     }
 

@@ -108,14 +108,16 @@ class FillerBasicsFieldFromTwinFieldTest extends BaseUnitTest {
         }
 
         @Test
-        void fill_emptyUserField_throwsRequired() throws ServiceException {
+        void fill_undefinedUserField_throwsStepError() throws ServiceException {
+            // the new lookuper contract: a not-found lookup arrives as an undefined value, and this
+            // filler has no default for that scenario, so the item fails itself.
             var fieldId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
             var factoryItem = buildFactoryItem();
-            var fieldValue = new FieldValueUser(buildField(fieldId)); // undefined -> empty
+            var fieldValue = new FieldValueUser(buildField(fieldId)); // undefined
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(fieldId), factoryItem, null, fieldValue));
-            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }
 }

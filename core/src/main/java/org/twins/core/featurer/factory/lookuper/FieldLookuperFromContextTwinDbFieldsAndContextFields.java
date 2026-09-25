@@ -6,7 +6,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.twin.TwinService;
 
@@ -33,8 +32,8 @@ public class FieldLookuperFromContextTwinDbFieldsAndContextFields extends FieldL
             return fieldValue;
         // we will look inside context fields
         fieldValue = factoryItem.getFactoryContext().getField(lookupTwinClassField);
-        if (!TwinService.isFilled(fieldValue))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, lookupTwinClassField.logNormal() + " is not present in context fields and in context twins");
-        return fieldValue;
+        if (TwinService.isFilled(fieldValue))
+            return fieldValue;
+        return null; // not found — the batch entry turns it into an undefined value
     }
 }

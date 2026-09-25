@@ -50,9 +50,6 @@ public class FieldLookuperFromContextTwinLinkedTwinByLinkDbFields extends FieldL
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context twin linked twins fields");
         }
-        FieldValue fieldValue = twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId);
-        if (fieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in head twin fields");
-        return fieldValue;
+        return twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId); // null when not found — batch entry turns it into an undefined value
     }
 }

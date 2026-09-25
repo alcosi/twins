@@ -60,6 +60,7 @@ public class FillerFieldMathSumFromContextField extends FillerFieldLookup {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue addendFieldValue) throws ServiceException {
+        addendFieldValue.assertIsDefined(addendFieldValue.getTwinClassField().logNormal() + " is not present in context fields and in context twins");
         UUID paramAddendTwinClassFieldId = addendTwinClassFieldId.extract(properties);
         UUID paramAugendTwinClassFieldId = augendTwinClassFieldId.extract(properties);
         if (!(addendFieldValue instanceof FieldValueText)) {

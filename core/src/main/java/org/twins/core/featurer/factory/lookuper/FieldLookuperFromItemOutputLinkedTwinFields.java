@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 
@@ -22,8 +23,10 @@ public class FieldLookuperFromItemOutputLinkedTwinFields extends FieldLookuperLi
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
         TwinEntity twinEntity = factoryItem.getTwin();
-        FieldValue itemOutputField = getFreshestValue(twinEntity, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item fields");
+        FieldValue itemOutputField = getFreshestValue(twinEntity, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext());
+        if (itemOutputField == null) // navigation field missing — the lookuper cannot even reach the linked twin
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item fields");
         TwinEntity linkDstTwin = FieldValueLink.getSingleLinkedTwinSafe(itemOutputField);
-        return getFreshestValue(linkDstTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item linked twin fields");
+        return getFreshestValue(linkDstTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext()); // null when not found — batch entry turns it into an undefined value
     }
 }

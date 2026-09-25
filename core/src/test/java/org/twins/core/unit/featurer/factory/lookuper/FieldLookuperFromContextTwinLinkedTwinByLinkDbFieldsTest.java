@@ -89,7 +89,7 @@ class FieldLookuperFromContextTwinLinkedTwinByLinkDbFieldsTest extends BaseUnitT
         }
 
         @Test
-        void lookupFieldValue_lookupFieldAbsentOnDst_throwsFactoryPipelineError() throws Exception {
+        void lookupFieldValue_lookupFieldAbsentOnDst_returnsNull() throws Exception {
             var linkId = UUID.randomUUID();
             var lookupFieldId = UUID.randomUUID();
             var dstTwin = new TwinEntity().setId(UUID.randomUUID());
@@ -100,10 +100,7 @@ class FieldLookuperFromContextTwinLinkedTwinByLinkDbFieldsTest extends BaseUnitT
             doNothing().when(twinLinkService).loadTwinLinks(contextTwin);
             when(twinService.getTwinFieldValue(dstTwin, lookupFieldId)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, linkId, lookupFieldId));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.lookupFieldValue(factoryItem, linkId, lookupFieldId)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
     }
 

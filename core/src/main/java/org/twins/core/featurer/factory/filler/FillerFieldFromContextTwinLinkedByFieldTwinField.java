@@ -61,6 +61,7 @@ public class FillerFieldFromContextTwinLinkedByFieldTwinField extends FillerFiel
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in linked twin fields");
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
         if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))

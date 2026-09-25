@@ -12,7 +12,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -50,10 +49,11 @@ class FieldLookuperTest extends BaseUnitTest {
         setField(lookuper, "twinLinkService", twinLinkService);
     }
 
-    // contract for FieldLookuper.getFreshestValue(twinEntity, twinClassFieldId, factoryContext, msg):
+    // contract for FieldLookuper.getFreshestValue(twinEntity, twinClassFieldId, factoryContext):
     //   1. If factoryContext has an output FactoryItem for twinEntity.id, return its uncommitted field.
     //   2. Otherwise (or if that field is null), fall back to twinService.getTwinFieldValue(twinEntity, fieldId).
-    //   3. If both are null, throw ServiceException(FACTORY_PIPELINE_STEP_ERROR) with the supplied msg.
+    //   3. If both are null, return null — not-found is the caller's decision (undefined value at the
+    //      batch boundary), not an exception.
 
     @Nested
     class GetFreshestValue {
@@ -67,7 +67,7 @@ class FieldLookuperTest extends BaseUnitTest {
             registerOutputFieldInContext(ctx, twin.getId(), uncommitted);
             when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
 
-            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx, "msg");
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx);
 
             assertSame(uncommitted, result);
             verifyNoInteractions(twinService);
@@ -83,14 +83,14 @@ class FieldLookuperTest extends BaseUnitTest {
             when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
             when(twinService.getTwinFieldValue(twin, field)).thenReturn(dbValue);
 
-            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx, "msg");
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx);
 
             assertSame(dbValue, result);
             verify(twinService).getTwinFieldValue(twin, field);
         }
 
         @Test
-        void getFreshestValue_uncommittedNullAndDbNull_throwsWithSuppliedMessage() throws ServiceException {
+        void getFreshestValue_uncommittedNullAndDbNull_returnsNull() throws ServiceException {
             var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
@@ -98,10 +98,7 @@ class FieldLookuperTest extends BaseUnitTest {
             when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
             when(twinService.getTwinFieldValue(twin, field)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.callGetFreshestValue(twin, field.getId(), ctx, "custom-msg"));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.callGetFreshestValue(twin, field.getId(), ctx));
         }
     }
 
@@ -175,8 +172,8 @@ class FieldLookuperTest extends BaseUnitTest {
 
     /** Minimal same-package stub so we can invoke the public getFreshestValue directly. */
     static class StubLookuper extends FieldLookuper {
-        public FieldValue callGetFreshestValue(TwinEntity twinEntity, UUID fieldId, FactoryContext ctx, String msg) throws ServiceException {
-            return getFreshestValue(twinEntity, fieldId, ctx, msg);
+        public FieldValue callGetFreshestValue(TwinEntity twinEntity, UUID fieldId, FactoryContext ctx) throws ServiceException {
+            return getFreshestValue(twinEntity, fieldId, ctx);
         }
 
         public FieldValue callGetValueFromOutputLinks(UUID fieldId, org.twins.core.domain.twinoperation.TwinSave twinSave) throws ServiceException {

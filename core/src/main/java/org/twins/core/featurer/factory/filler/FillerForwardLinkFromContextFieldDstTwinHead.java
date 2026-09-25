@@ -81,6 +81,7 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
     }
 
     private void fillWith(FactoryItem factoryItem, Properties properties, FieldValue srcFieldValue) throws ServiceException {
+        FieldValue.assertIsDefined(srcFieldValue, "Src twin class field[" + srcTwinClassFieldId.extract(properties) + "] is not present in context fields"); // static form: the per-item path passes a raw null
         TwinEntity dstTwin = FieldValueLink.getSingleLinkedTwinSafe(srcFieldValue);
         TwinEntity linkDstTwin;
         if (useDstTwinHead.extract(properties)) {
