@@ -12,12 +12,14 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.AttachmentModification;
@@ -32,8 +34,11 @@ import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
@@ -134,7 +139,10 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             var url = STR."\{fileHandlerUri.extract(properties)}/api/storage/delete";
             var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
-            var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
+            var resp = exchangeWithRetry(
+                    "Delete " + dirs,
+                    () -> restTemplate.exchange(url, HttpMethod.POST, request, Void.class)
+            );
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
@@ -181,7 +189,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var detectedMime = tika.detect(tikaStream);
                 var pipelineJson = preparePipelineJson(properties, fileId, storageDir, detectedMime);
 
-                var resp = sendWithRetry(fileHandlerUri.extract(properties) + fileHandlerUploadPath.extract(properties), pipelineJson, tikaStream, fileName, fileSize, FHSyncProcessRsDTO.class);
+                var resp = sendWithRetry(fileHandlerUri.extract(properties) + fileHandlerUploadPath.extract(properties), pipelineJson, tikaStream, fileName, FHSyncProcessRsDTO.class);
 
                 if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                     log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
@@ -270,13 +278,16 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return dirs;
     }
 
-    private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, InputStream fileStream, String fileName, Long fileSize) {
+    private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, Resource fileResource) {
+        var fileHeaders = new HttpHeaders();
+        fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
         var body = new LinkedMultiValueMap<String, Object>();
 
         body.add("data", prepareDataPart(rqData));
-        body.add("file", prepareFilePart(fileStream, fileName, fileSize));
+        body.add("file", new HttpEntity<>(fileResource, fileHeaders));
 
-        HttpHeaders headers = new HttpHeaders();
+        var headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         return new HttpEntity<>(body, headers);
@@ -287,26 +298,6 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         dataHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         return new HttpEntity<>(rqData, dataHeaders);
-    }
-
-    @SneakyThrows
-    private HttpEntity<Resource> prepareFilePart(InputStream fileStream, String fileName, Long fileSize) {
-        var fileHeaders = new HttpHeaders();
-        fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        var fileResource = new InputStreamResource(fileStream) {
-            @Override
-            public String getFilename() {
-                return fileName;
-            }
-
-            @Override
-            public long contentLength() {
-                return fileSize;
-            }
-        };
-
-        return new HttpEntity<>(fileResource, fileHeaders);
     }
 
     @SneakyThrows
@@ -322,26 +313,46 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return size;
     }
 
-    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, long fileSize, Class<T> clazz) {
+    @SneakyThrows
+    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, Class<T> clazz) {
+        // RestTemplate closes the part stream after the first write, so the file is spooled to a temp
+        // file and re-opened by FileSystemResource on every attempt — an InputStreamResource would be
+        // dead after attempt one
+        var tempFile = Files.createTempFile("file-handler-upload", null);
+        Files.copy(tikaStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+        try {
+            var fileResource = new FileSystemResource(tempFile) {
+                @Override
+                public String getFilename() {
+                    return fileName;
+                }
+            };
+
+            return exchangeWithRetry(
+                    STR."Upload \{fileName}",
+                    () -> restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, fileResource), clazz)
+            );
+        } finally {
+            Files.deleteIfExists(tempFile);
+        }
+    }
+
+    private <T> ResponseEntity<T> exchangeWithRetry(String what, Supplier<ResponseEntity<T>> exchangeCall) {
         var maxRetries = 3;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                return restTemplate.exchange(
-                        url,
-                        HttpMethod.POST,
-                        prepareMultipartRq(rqData, tikaStream, fileName, fileSize),
-                        clazz
-                );
-            } catch (ResourceAccessException e) {
-                log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+                return exchangeCall.get();
+            } catch (ResourceAccessException | HttpClientErrorException.TooManyRequests | HttpServerErrorException e) {
+                log.warn("{}: attempt {}/{} failed: {}", what, attempt, maxRetries, e.getMessage());
 
                 if (attempt == maxRetries) {
                     throw e;
                 }
 
                 try {
-                    Thread.sleep(500L * attempt);
+                    Thread.sleep(retryDelayMs(e, attempt));
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw e;
@@ -350,5 +361,13 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         }
 
         return null;
+    }
+
+    private long retryDelayMs(Exception e, int attempt) {
+        if (e instanceof HttpClientErrorException.TooManyRequests) {
+            return 2000L * attempt; // cumulative 12s outlasts the 10s FH rate window
+        }
+
+        return 500L * attempt; // network error / 5xx: 0.5s, 1s, 1.5s
     }
 }

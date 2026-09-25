@@ -6,8 +6,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.ApiUser;
@@ -20,7 +23,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
@@ -219,6 +222,48 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
             assertThrows(ServiceException.class,
                     () -> storager.deleteFile("businessAccount/fileId/file.png", params));
+        }
+    }
+
+    @Nested
+    class Retry {
+
+        @Test
+        void deleteFile_rateLimitedOnce_retriesAndSucceeds() throws ServiceException {
+            stubApiUser(UUID.randomUUID(), UUID.randomUUID());
+            stubProperties(buildParams());
+
+            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
+                    .thenThrow(HttpClientErrorException.create(HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded", HttpHeaders.EMPTY, null, null))
+                    .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+            assertDoesNotThrow(() -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            verify(restTemplate, times(2)).exchange(anyString(), any(), any(), eq(Void.class));
+        }
+
+        @Test
+        void deleteFile_serverErrorOnce_retriesAndSucceeds() throws ServiceException {
+            stubApiUser(UUID.randomUUID(), UUID.randomUUID());
+            stubProperties(buildParams());
+
+            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
+                    .thenThrow(HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "oops", HttpHeaders.EMPTY, null, null))
+                    .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+            assertDoesNotThrow(() -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            verify(restTemplate, times(2)).exchange(anyString(), any(), any(), eq(Void.class));
+        }
+
+        @Test
+        void deleteFile_clientError_failsWithoutRetry() throws ServiceException {
+            stubApiUser(UUID.randomUUID(), UUID.randomUUID());
+            stubProperties(buildParams());
+
+            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
+                    .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+
+            assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            verify(restTemplate, times(1)).exchange(anyString(), any(), any(), eq(Void.class));
         }
     }
 
