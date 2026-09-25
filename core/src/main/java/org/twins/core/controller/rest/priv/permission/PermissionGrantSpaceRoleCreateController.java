@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.ServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class PermissionGrantSpaceRoleCreateController extends ApiController {
     @PostMapping(value = "/private/permission_grant/space_role/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleCreateV1(
             @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapper.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody PermissionGrantSpaceRoleCreateRqDTOv1 request, ServletRequest servletRequest) {
+            @RequestBody @Valid PermissionGrantSpaceRoleCreateRqDTOv1 request, ServletRequest servletRequest) {
         PermissionGrantSpaceRoleRsDTOv1 rs = new PermissionGrantSpaceRoleRsDTOv1();
         try {
             PermissionGrantSpaceRoleEntity permissionGrantSpaceRole = permissionGrantSpaceRoleService

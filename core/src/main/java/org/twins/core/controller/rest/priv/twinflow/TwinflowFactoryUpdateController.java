@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class TwinflowFactoryUpdateController extends ApiController {
     @PutMapping(value = "/private/twinflow/factory/v1")
     public ResponseEntity<?> twinflowFactoryUpdateV1(
             @MapperContextBinding(roots = TwinflowFactoryRestDTOMapperV1.class, response = TwinflowFactoryUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinflowFactoryUpdateRqDTOv1 request) {
+            @RequestBody @Valid TwinflowFactoryUpdateRqDTOv1 request) {
         TwinflowFactoryUpdateRsDTOv1 rs = new TwinflowFactoryUpdateRsDTOv1();
 
         try {

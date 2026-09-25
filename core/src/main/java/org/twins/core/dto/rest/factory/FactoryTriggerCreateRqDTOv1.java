@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "TwinFactoryTriggerCreateRqV1")
 public class FactoryTriggerCreateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "twin factory triggers")
     public List<FactoryTriggerCreateDTOv1> twinFactoryTriggers;
 }

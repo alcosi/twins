@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class FactoryTriggerUpdateController extends ApiController {
     @PutMapping(value = "/private/twin_factory/trigger/v1")
     public ResponseEntity<?> twinFactoryTriggerUpdateV1(
             @MapperContextBinding(roots = FactoryTriggerRestDTOMapper.class, response = FactoryTriggerListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryTriggerUpdateRqDTOv1 request) {
+            @RequestBody @Valid FactoryTriggerUpdateRqDTOv1 request) {
         FactoryTriggerListRsDTOv1 rs = new FactoryTriggerListRsDTOv1();
         try {
             List<TwinFactoryTriggerEntity> factoryTriggerEntities = factoryTriggerUpdateDTOReverseMapper.convertCollection(request.getTwinFactoryTriggers());

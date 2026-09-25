@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.usergroup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "UserGroupInvolveActAsUserUpdateRqV1")
 public class UserGroupInvolveActAsUserUpdateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "usergroup by act as user update(batch)")
     public List<UserGroupInvolveActAsUserUpdateDTOv1> userGroupInvolves;
 }

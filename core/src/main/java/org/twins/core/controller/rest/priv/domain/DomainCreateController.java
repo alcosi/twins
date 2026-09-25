@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -61,7 +62,7 @@ public class DomainCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/domain/v1", consumes = "application/json")
     public ResponseEntity<?> domainCreateV1(
-            @RequestBody DomainCreateRqDTOv1 request) {
+            @RequestBody @Valid DomainCreateRqDTOv1 request) {
         return processCreationRequest(request, null, null);
     }
 

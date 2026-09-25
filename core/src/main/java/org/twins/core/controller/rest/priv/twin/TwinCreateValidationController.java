@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.exception.TwinFieldValidationException;
@@ -49,7 +50,7 @@ public class TwinCreateValidationController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/validate/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinValidate(@RequestBody TwinCreateRqDTOv2 request) {
+    public ResponseEntity<?> twinValidate(@RequestBody @Valid TwinCreateRqDTOv2 request) {
         return validateTwin(request);
     }
 

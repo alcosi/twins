@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class ActionRestrictionReasonUpdateController extends ApiController {
     public ResponseEntity<?> actionRestrictionReasonUpdateV1(
             @MapperContextBinding(roots = ActionRestrictionReasonRestDTOMapper.class, response = ActionRestrictionReasonListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody ActionRestrictionReasonUpdateRqDTOv1 request) {
+            @RequestBody @Valid ActionRestrictionReasonUpdateRqDTOv1 request) {
         ActionRestrictionReasonListRsDTOv1 rs = new ActionRestrictionReasonListRsDTOv1();
         try {
             List<ActionRestrictionReasonUpdate> updateList = actionRestrictionReasonUpdateRestDTOReverseMapper.convertCollection(request.getActionRestrictionReasons());

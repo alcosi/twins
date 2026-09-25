@@ -1,7 +1,7 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -58,6 +58,7 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "twin id")
     public UUID twinId;
 
+    @Valid
     @Schema(description = "fields attributes")
     public TwinFieldAttributeCudDTOv1 fieldsAttributes;
 

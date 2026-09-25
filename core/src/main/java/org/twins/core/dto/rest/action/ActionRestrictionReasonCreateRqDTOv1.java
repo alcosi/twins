@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.action;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "ActionRestrictionReasonCreateRqV1")
 public class ActionRestrictionReasonCreateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "action restriction reason list")
     public List<ActionRestrictionReasonCreateDTOv1> actionRestrictionReasons;
 }

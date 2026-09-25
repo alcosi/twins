@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -32,6 +33,7 @@ public class TwinClassFieldRuleCreateDTOv1 {
     @Schema(description = "priority – lower value means the rule will be evaluated earlier")
     public Integer rulePriority;
 
+    @Valid
     @Schema(description = "list of atomic conditions that make up the rule")
     public List<TwinClassFieldConditionTreeCreateDTOv1> conditions;
 

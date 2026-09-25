@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.projection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name =  "ProjectionCreateRqV1")
 public class ProjectionCreateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "projection list")
     public List<ProjectionCreateDTOv1> projectionList;
 }

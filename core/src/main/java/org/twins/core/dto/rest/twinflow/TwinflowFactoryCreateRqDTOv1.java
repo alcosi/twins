@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twinflow;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -14,6 +15,7 @@ import java.util.List;
 @Schema(name =  "TwinflowFactoryCreateRqV1")
 public class TwinflowFactoryCreateRqDTOv1 extends Request {
 
+    @Valid
     @Schema(description = "Twinflow factory list")
     private List<TwinflowFactoryCreateDTOv1> twinflowFactories;
 }

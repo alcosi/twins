@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -48,7 +49,7 @@ public class TierCreateController extends ApiController {
     @PostMapping(value = "/private/tier/v1")
     public ResponseEntity<?> tierCreateV1(
             @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TierCreateRqDTOv1 request) {
+            @RequestBody @Valid TierCreateRqDTOv1 request) {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();
         try {
             TierEntity tierEntity = tierService.createTier(tierCreateDTOReverseMapper.convert(request.getTier()));

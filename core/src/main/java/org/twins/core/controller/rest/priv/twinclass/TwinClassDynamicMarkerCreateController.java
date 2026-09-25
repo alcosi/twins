@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -55,7 +56,7 @@ public class TwinClassDynamicMarkerCreateController extends ApiController {
     public ResponseEntity<?> twinClassDynamicMarkerCreateV1(
             @MapperContextBinding(roots = TwinClassDynamicMarkerDTOMapper.class, response = TwinClassDynamicMarkerListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassDynamicMarkerCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassDynamicMarkerCreateRqDTOv1 request) {
         TwinClassDynamicMarkerListRsDTOv1 rs = new TwinClassDynamicMarkerListRsDTOv1();
         try {
             List<TwinClassDynamicMarkerEntity> twinClassDynamicMarkerEntityList = twinClassDynamicMarkerService.createTwinClassDynamicMarkerList(

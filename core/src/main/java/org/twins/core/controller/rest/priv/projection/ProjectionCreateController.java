@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class ProjectionCreateController extends ApiController {
     @PostMapping(value = "/private/projection/v1", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> projectionCreateV1(
             @MapperContextBinding(roots = ProjectionRestDTOMapper.class, response = ProjectionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody ProjectionCreateRqDTOv1 request) {
+            @RequestBody @Valid ProjectionCreateRqDTOv1 request) {
         ProjectionCreateRsDTOv1 rs = new ProjectionCreateRsDTOv1();
         try {
             List<ProjectionEntity> projectionEntityList = projectionService.createProjectionList(projectionCreateRestDTOReverseMapper.convertCollection(request.getProjectionList()));

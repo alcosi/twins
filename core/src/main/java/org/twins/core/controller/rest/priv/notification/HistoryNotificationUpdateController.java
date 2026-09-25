@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -54,7 +55,7 @@ public class HistoryNotificationUpdateController extends ApiController {
     @PutMapping(value = "/private/history_notification/v1")
     public ResponseEntity<?> historyNotificationUpdateV1(
             @MapperContextBinding(roots = HistoryNotificationDTOMapperV1.class, response = HistoryNotificationListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody HistoryNotificationUpdateRqDTOv1 request) {
+            @RequestBody @Valid HistoryNotificationUpdateRqDTOv1 request) {
         HistoryNotificationListRsDTOv1 rs = new HistoryNotificationListRsDTOv1();
         try {
             List<HistoryNotificationUpdate> updateList = historyNotificationUpdateDTOReverseMapper.convertCollection(request.getHistoryNotifications());

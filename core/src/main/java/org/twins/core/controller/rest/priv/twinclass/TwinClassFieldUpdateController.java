@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -83,7 +84,7 @@ public class TwinClassFieldUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_field/v1")
     public ResponseEntity<?> twinClassFieldUpdateV2(
-            @RequestBody TwinClassFieldUpdateRqDTOv2 request) {
+            @RequestBody @Valid TwinClassFieldUpdateRqDTOv2 request) {
         Response rs = new Response();
         try {
             List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldUpdateRestDTOReverseMapperV2.convertCollection(request.getTwinClassFields());

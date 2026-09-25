@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
@@ -54,7 +55,7 @@ public class TwinUpdateValidationController extends ApiController {
     })
     @PostMapping(value = "/private/twin/{twinId}/validate/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinValidate(@Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-                                          @RequestBody TwinUpdateRqDTOv1 request) {
+                                          @RequestBody @Valid TwinUpdateRqDTOv1 request) {
         return validateTwin(request, twinId);
     }
 

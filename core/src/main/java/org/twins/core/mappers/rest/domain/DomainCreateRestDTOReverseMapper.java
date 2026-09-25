@@ -7,6 +7,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainCreateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class DomainCreateRestDTOReverseMapper extends RestSimpleDTOMapper<DomainCreateDTOv1, DomainEntity> {
-    private final DomainSaveRestDTOReverseMapper domainSaveRestDTOReverseMapper;
+    private final I18nService i18nService;
 
     @Value(("${domain.resource.storage.default:00000000-0000-0000-0007-000000000001}"))
     private UUID defaultResourceStorageId;
@@ -23,10 +24,12 @@ public class DomainCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Domain
 
     @Override
     public void map(DomainCreateDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
-        domainSaveRestDTOReverseMapper.map(src, dst, mapperContext);
         dst
                 .setKey(src.getKey())
                 .setDomainType(src.getType())
+                .setName(src.getName())
+                .setDescription(src.getDescription())
+                .setDefaultI18nLocaleId(i18nService.localeFromTagOrSystemDefault(src.getDefaultLocale()))
                 .setResourcesStorageId(src.getResourceStorageId() == null ? defaultResourceStorageId : src.getResourceStorageId())
                 .setAttachmentsStorageId(src.getAttachmentStorageId() == null ? defaultAttachmentStorageId : src.getAttachmentStorageId());
     }

@@ -1,18 +1,35 @@
 package org.twins.core.dto.rest.twinpointer;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinPointerUpdateV1")
-public class TwinPointerUpdateDTOv1 extends TwinPointerSaveDTOv1 {
+public class TwinPointerUpdateDTOv1 {
+
+    @NotNull
     @Schema(description = "id", example = DTOExamples.UUID_ID)
     public UUID id;
+
+    @Schema(description = "twin class id. null means the pointer is shared / global", example = DTOExamples.TWIN_CLASS_ID)
+    public UUID twinClassId;
+
+    @Schema(description = "pointer featurer id", example = DTOExamples.FEATURER_ID)
+    public Integer pointerFeaturerId;
+
+    @Schema(description = "pointer params (hstore)", example = DTOExamples.FEATURER_PARAM)
+    public HashMap<String, String> pointerParams;
+
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
+
+    @Schema(description = "optional. When true, a pointer resolution failure is swallowed (log + cached null) instead of failing the recompute batch. Default: false (strict fail-fast)", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean optional;
 }

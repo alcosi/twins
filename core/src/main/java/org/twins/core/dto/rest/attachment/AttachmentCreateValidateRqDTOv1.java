@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.attachment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
@@ -15,6 +16,7 @@ public class AttachmentCreateValidateRqDTOv1 {
     @Schema(description = "Twin class id")
     public UUID twinClassId;
 
+    @Valid
     @Schema(description = "Attachments for adding")
     public List<AttachmentCreateDTOv1> create;
 

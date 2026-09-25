@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,8 +22,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassFreezeListRsDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFreezeCreateRqDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFreezeListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFreezeCreateRestDTOReverseMapper;
@@ -53,7 +54,7 @@ public class TwinClassFreezeCreateController extends ApiController {
     @PostMapping(value = "/private/twin_class_freeze/v1", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinClassFreezeCreateV1(
             @MapperContextBinding(roots = TwinClassFreezeDTOMapper.class, response = TwinClassFreezeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassFreezeCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFreezeCreateRqDTOv1 request) {
         TwinClassFreezeListRsDTOv1 rs = new TwinClassFreezeListRsDTOv1();
         try {
             List<TwinClassFreezeEntity> twinClassFreezeEntityList = twinClassFreezeService.createTwinClassFreezeList(twinClassFreezeCreateRestDTOReverseMapper.convertCollection(request.getTwinClassFreezes()));

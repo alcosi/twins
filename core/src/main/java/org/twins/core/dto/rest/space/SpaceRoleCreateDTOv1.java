@@ -1,13 +1,36 @@
 package org.twins.core.dto.rest.space;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "SpaceRoleCreateV1")
-public class SpaceRoleCreateDTOv1 extends SpaceRoleSaveDTOv1 {
+public class SpaceRoleCreateDTOv1 {
+    @NotNull
+    @Schema(description = "twin class id", example = DTOExamples.TWIN_CLASS_ID)
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
+    public UUID twinClassId;
+
+    @Schema(description = "key", example = "Member")
+    public String key;
+
+    @Schema(description = "nameI18n")
+    public I18nSaveDTOv1 nameI18n;
+
+    @Schema(description = "descriptionI18n")
+    public I18nSaveDTOv1 descriptionI18n;
+
+    @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
+    public UUID businessAccountId;
 }

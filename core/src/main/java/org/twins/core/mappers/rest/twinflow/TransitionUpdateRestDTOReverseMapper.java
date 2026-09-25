@@ -2,9 +2,13 @@ package org.twins.core.mappers.rest.twinflow;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.domain.twinflow.TransitionUpdate;
 import org.twins.core.dto.rest.twinflow.TransitionUpdateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
@@ -12,12 +16,25 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @RequiredArgsConstructor
 public class TransitionUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TransitionUpdateDTOv1, TransitionUpdate> {
 
-    private final TransitionSaveRestDTOReverseMapper transitionSaveRestDTOReverseMapper;
-
+    private final I18nSaveRestDTOReverseMapper i18nSaveRestDTOReverseMapper;
 
     @Override
     public void map(TransitionUpdateDTOv1 src, TransitionUpdate dst, MapperContext mapperContext) throws Exception {
-        transitionSaveRestDTOReverseMapper.map(src, dst, mapperContext);
+        I18nEntity nameI18n = i18nSaveRestDTOReverseMapper.convert(src.getNameI18n(), mapperContext);
+        I18nEntity descriptionI18n = i18nSaveRestDTOReverseMapper.convert(src.getDescriptionI18n(), mapperContext);
+        TwinflowTransitionEntity entity = new TwinflowTransitionEntity()
+                .setSrcTwinStatusId(src.getSrcStatusId())
+                .setDstTwinStatusId(src.getDstStatusId())
+                .setPermissionId(src.getPermissionId())
+                .setTwinflowId(src.getTwinflowId())
+                .setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId())
+                .setDraftingTwinFactoryId(src.getDraftingTwinFactoryId())
+                .setTwinflowTransitionTypeId(src.getTwinflowTransitionTypeId())
+                .setTwinflowTransitionAlias(new TwinflowTransitionAliasEntity().setAlias(src.getAlias()));
         dst.setId(src.getId());
+        dst
+                .setEntity(entity)
+                .setNameI18n(nameI18n)
+                .setDescriptionI18n(descriptionI18n);
     }
 }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class TransitionTriggerUpdateController extends ApiController {
     @PutMapping(value = "/private/transition_trigger/v1")
     public ResponseEntity<?> transitionTriggerUpdateV1(
             @MapperContextBinding(roots = TransitionTriggerRestDTOMapper.class, response = TransitionTriggerListRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody TransitionTriggerUpdateRqDTOv1 request) {
+            @RequestBody @Valid TransitionTriggerUpdateRqDTOv1 request) {
         TransitionTriggerListRsDTOv1 rs = new TransitionTriggerListRsDTOv1();
         try {
             List<TwinflowTransitionTriggerEntity> triggerEntities = transitionTriggerUpdateDTOReverseMapper.convertCollection(request.getTransitionTriggers());

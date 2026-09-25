@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class PermissionGrantSpaceRoleUpdateController extends ApiController {
     public ResponseEntity<?> permissionGrantSpaceRoleV1(
             @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapper.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_SPACE_ROLE_ID) @PathVariable UUID permissionGrantSpaceRoleId,
-            @RequestBody PermissionGrantSpaceRoleUpdateRqDTOv1 request) {
+            @RequestBody @Valid PermissionGrantSpaceRoleUpdateRqDTOv1 request) {
 
         PermissionGrantSpaceRoleRsDTOv1 rs = new PermissionGrantSpaceRoleRsDTOv1();
         try {

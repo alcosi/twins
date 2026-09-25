@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,12 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dto.rest.projection.ProjectionTypeCreateRqDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeListRsDTOv1;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.projection.ProjectionTypeCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.projection.ProjectionTypeService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.projection.ProjectionTypeService;
 
 import java.util.List;
 
@@ -53,7 +54,7 @@ public class ProjectionTypeCreateController extends ApiController {
     @PostMapping(value = "/private/projection_type/v1")
     public ResponseEntity<?> projectionTypeCreateV1(
             @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody ProjectionTypeCreateRqDTOv1 request) {
+            @RequestBody @Valid ProjectionTypeCreateRqDTOv1 request) {
         ProjectionTypeListRsDTOv1 rs = new ProjectionTypeListRsDTOv1();
         try {
             List<ProjectionTypeEntity> projectionTypeEntities = projectionTypeService.createProjectionTypes(projectionTypeCreateDTOReverseMapper.convertCollection(request.getProjectionTypes()));

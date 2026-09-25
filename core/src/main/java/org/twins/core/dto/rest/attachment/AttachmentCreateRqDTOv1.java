@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.attachment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name =  "AttachmentCreateRqV1")
 public class AttachmentCreateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "attachments list")
     public List<AttachmentCreateDTOv1> attachments;
 }

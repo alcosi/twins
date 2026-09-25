@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -54,7 +55,7 @@ public class TwinClassFieldConditionUpdateController extends ApiController {
     @PutMapping(value = "/private/twin_class_field_condition/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinClassFieldConditionUpdateV1(
             @MapperContextBinding(roots = TwinClassFieldConditionRestDTOMapper.class, response = TwinClassFieldConditionRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody TwinClassFieldConditionUpdateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFieldConditionUpdateRqDTOv1 request) {
         TwinClassFieldConditionRsDTOv1 rs = new TwinClassFieldConditionRsDTOv1();
         try {
             List<TwinClassFieldConditionEntity> conditionEntities = twinClassFieldConditionService.updateConditions(

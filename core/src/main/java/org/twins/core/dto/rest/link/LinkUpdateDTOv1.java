@@ -4,13 +4,48 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.common.BasicUpdateOperationDTOv1;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "LinkUpdateV1")
-public class LinkUpdateDTOv1 extends LinkSaveDTOv1 {
+public class LinkUpdateDTOv1 extends Request {
+
+    @Schema(description = "Forward name i18n (if target twin-class as src)")
+    public I18nSaveDTOv1 forwardNameI18n;
+
+    @Schema(description = "Backward name i18n (if target twin-class as dst)")
+    public I18nSaveDTOv1 backwardNameI18n;
+
+    @Schema(description = "Link type (Many-to-one, Many-to-many, One-to-one)")
+    public LinkType type;
+
+    @Schema(description = "Link strength (MANDATORY, OPTIONAL, OPTIONAL_BUT_DELETE_CASCADE)")
+    public LinkStrength linkStrength;
+
+    @Schema(description = "[optional] an id of linker featurer", example = "")
+    public Integer linkerFeaturerId;
+
+    @Schema(description = "[optional] linker featurer params", example = "")
+    public HashMap<String, String> linkerParams;
+
+    @Schema(description = "[optional] source twin class inheritable")
+    public Boolean srcTwinClassInheritable;
+
+    @Schema(description = "[optional] destination twin class inheritable")
+    public Boolean dstTwinClassInheritable;
+
+    @Schema(description = "[optional] relation twin class id. When set, creating a twin_link of this link "
+            + "auto-creates a shadow twin of that class carrying the relation's extra attributes")
+    public UUID relationTwinClassId;
 
     @Schema(description = "[optional] should be filled on change source twin class id of link")
     public BasicUpdateOperationDTOv1 srcTwinClassUpdate;

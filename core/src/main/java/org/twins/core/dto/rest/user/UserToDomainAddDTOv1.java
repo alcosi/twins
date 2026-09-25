@@ -2,7 +2,6 @@ package org.twins.core.dto.rest.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
@@ -10,11 +9,10 @@ import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.UUID;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-@Schema(name =  "UserToDomainAddV1")
-public class UserToDomainAddDTOv1 extends UserSaveDTOv1 {
+@Schema(name = "UserToDomainAddV1")
+public class UserToDomainAddDTOv1 {
     @Schema(description = "id", example = DTOExamples.USER_ID)
     public UUID id;
 
@@ -27,6 +25,13 @@ public class UserToDomainAddDTOv1 extends UserSaveDTOv1 {
 
     @Schema(description = "locale [optional]", example = DTOExamples.LOCALE)
     public String locale;
+
+    @Schema(description = "fullName", example = "John Doe")
+    public String fullName;
+
+    @Schema(description = "email", example = "some@email.com")
+    public String email;
+
+    @Schema(description = "avatar url", example = "http://twins.org/a/avatar/carkikrefmkawfwfwg.png")
+    public String avatar;
 }
-
-

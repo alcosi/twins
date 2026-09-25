@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -82,7 +83,7 @@ public class TwinClassFieldCreateController extends ApiController {
     @PostMapping(value = "/private/twin_class_field/v1")
     public ResponseEntity<?> twinClassFieldCreateV2(
             @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldCreateRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassFieldCreateRqDTOv2 request) {
+            @RequestBody @Valid TwinClassFieldCreateRqDTOv2 request) {
         TwinClassFieldCreateRsDTOv2 rs = new TwinClassFieldCreateRsDTOv2();
         try {
             List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldCreateRestDTOReverseMapperV2.convertCollection(request.getTwinClassFields());

@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.datalist;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "DataListOptionUpdateRqV2")
 public class DataListOptionUpdateRqDTOv2 extends Request {
+    @Valid
     @Schema(description = "data list options")
     public List<DataListOptionUpdateDTOv1> dataListOptions;
 }

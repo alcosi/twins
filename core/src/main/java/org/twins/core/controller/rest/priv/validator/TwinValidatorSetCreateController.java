@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -55,7 +56,7 @@ public class TwinValidatorSetCreateController extends ApiController {
     public ResponseEntity<?> twinValidatorSetCreateV1(
             @MapperContextBinding(roots = TwinValidatorSetRestDTOMapper.class, response = TwinValidatorSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinValidatorSetCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinValidatorSetCreateRqDTOv1 request) {
         TwinValidatorSetListRsDTOv1 rs = new TwinValidatorSetListRsDTOv1();
         try {
             List<TwinValidatorSetCreate> createList = twinValidatorSetCreateRestDTOReverseMapper.convertCollection(request.getValidatorSets());

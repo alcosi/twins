@@ -29,28 +29,38 @@ The DTO hierarchy is built around an abstract business entity (for example, `Res
 
 ### 2.1 Base DTOs
 
-| DTO                 | Purpose                                         |
-| ------------------- | ----------------------------------------------- |
-| `ResourceDTO`       | Resource representation                         |
-| `ResourceSaveDTO`   | Abstract class for create and update operations |
-| `ResourceCreateDTO` | Creating a new resource                         |
-| `ResourceUpdateDTO` | Updating an existing resource                   |
-| `ResourceSearchDTO` | Search parameters                               |
-| `ResourceCountDTO`  | Count result with groupable fields              |
+| DTO                 | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `ResourceDTO`       | Resource representation                        |
+| `ResourceCreateDTO` | Creating a new resource (self-contained)       |
+| `ResourceUpdateDTO` | Updating an existing resource (self-contained) |
+| `ResourceSearchDTO` | Search parameters                              |
+| `ResourceCountDTO`  | Count result with groupable fields             |
 
 ---
 
 ### 2.2 DTOs for Create and Update Operations
 
-All DTOs used for adding and updating data **must inherit** from `ResourceSaveDTO`.
+Create and update DTOs are **self-contained**: each declares all of its own fields. There is **no shared `SaveDTO` base class**.
 
-`ResourceSaveDTO` contains fields common to create and update operations.
+Rationale: required-ness diverges between the two operations. A field that is mandatory at create (a parent reference, a business key) is usually optional at update (`null` = do not change, PATCH semantics). A shared base class cannot express this — validation constraints on shared fields leak into both operations. Duplicating field declarations in `ResourceCreateDTO` and `ResourceUpdateDTO` is deliberate and accepted.
 
 #### Create
 
 ```java
 @Schema(name = "ResourceCreate")
-public class ResourceCreateDTO extends ResourceSaveDTO {
+public class ResourceCreateDTO {
+
+    @NotNull
+    @Schema(description = "Parent resource id. Immutable after creation")
+    public UUID parentResourceId;      // required at create only
+
+    @NotBlank
+    @Schema(description = "Unique business key")
+    public String key;                 // required at create only
+
+    @Schema(description = "Name translations")
+    public I18nSaveDTOv1 nameI18n;     // optional
 }
 ```
 
@@ -58,14 +68,23 @@ public class ResourceCreateDTO extends ResourceSaveDTO {
 
 ```java
 @Schema(name = "ResourceUpdate")
-public class ResourceUpdateDTO extends ResourceSaveDTO {
+public class ResourceUpdateDTO {
 
-    @Schema
-    private UUID id;
+    @NotNull
+    @Schema(description = "Resource id")
+    public UUID id;                    // always required
+
+    @Schema(description = "Business key. null = do not change")
+    public String key;                 // optional (PATCH semantics)
 }
 ```
 
-> ⚠️ The identifier (`id`) **must** be present only in update DTOs.
+Rules:
+
+* The identifier (`id`) **must** be present only in update DTOs, annotated `@NotNull`
+* Bean validation on required create fields: `@NotNull` (UUID, enum, object), `@NotBlank` (String that must not be empty), `@NotEmpty` (collection)
+* Update DTOs carry no required-constraints except `id` — update is partial, `null` field = do not change
+* Nested value structures (e.g. `I18nSaveDTOv1`) are shared value objects, not operation DTOs — this rule does not apply to them
 
 ---
 

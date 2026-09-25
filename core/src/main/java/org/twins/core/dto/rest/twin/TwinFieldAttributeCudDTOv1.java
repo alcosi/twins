@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -12,9 +13,11 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinFieldAttributeCudV1")
 public class TwinFieldAttributeCudDTOv1 {
+    @Valid
     @Schema(description = "twin field attribute create list")
     public List<TwinFieldAttributeCreateDTOv1> creates;
 
+    @Valid
     @Schema(description = "twin field attribute update list")
     public List<TwinFieldAttributeUpdateDTOv1> updates;
 

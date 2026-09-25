@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class UserGroupInvolveActAsUserUpdateController extends ApiController {
     @PutMapping(value = "/private/user_group/involve_act_as_user/v1")
     public ResponseEntity<?> userGroupInvolveActAsUserBatchUpdateV1(
             @MapperContextBinding(roots = UserGroupInvolveActAsUserRestDTOMapper.class, response = UserGroupInvolveActAsUserListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody UserGroupInvolveActAsUserUpdateRqDTOv1 request) {
+            @RequestBody @Valid UserGroupInvolveActAsUserUpdateRqDTOv1 request) {
         UserGroupInvolveActAsUserListRsDTOv1 rs = new UserGroupInvolveActAsUserListRsDTOv1();
         try {
             List<UserGroupInvolveActAsUserEntity> updateList = userGroupInvolveActAsUserUpdateDTOReverseMapper.convertCollection(request.getUserGroupInvolves());

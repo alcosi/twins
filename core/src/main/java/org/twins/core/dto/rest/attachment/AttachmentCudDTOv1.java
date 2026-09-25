@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.attachment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "AttachmentCudV1")
 public class AttachmentCudDTOv1 {
+    @Valid
     @Schema(description = "Attachments for adding")
     public List<AttachmentCreateDTOv1> create;
 

@@ -1,9 +1,7 @@
 package org.twins.core.dto.rest.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Transient;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
@@ -11,9 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "UserAddV1")
-public class UserAddDTOv1 extends UserSaveDTOv1 {
+@Schema(name = "UserAddV1")
+public class UserAddDTOv1 {
     @Schema(description = "User ID")
     private UUID id;
 
@@ -25,4 +22,13 @@ public class UserAddDTOv1 extends UserSaveDTOv1 {
 
     @Schema(description = "Locale [optional]", example = DTOExamples.LOCALE)
     private String locale;
+
+    @Schema(description = "fullName", example = "John Doe")
+    private String fullName;
+
+    @Schema(description = "email", example = "some@email.com")
+    private String email;
+
+    @Schema(description = "avatar url", example = "http://twins.org/a/avatar/carkikrefmkawfwfwg.png")
+    private String avatar;
 }

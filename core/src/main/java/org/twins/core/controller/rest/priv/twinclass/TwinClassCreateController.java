@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
@@ -85,7 +86,7 @@ public class TwinClassCreateController extends ApiController {
     @PostMapping(value = "/private/twin_class/v2")
     public ResponseEntity<?> twinClassCreateV2(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassCreateRqDTOv2 request) {
+            @RequestBody @Valid TwinClassCreateRqDTOv2 request) {
         return processBatch(request, mapperContext, null, null);
     }
 

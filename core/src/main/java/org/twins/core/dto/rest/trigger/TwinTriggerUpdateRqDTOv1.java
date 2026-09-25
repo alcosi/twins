@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.trigger;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
@@ -11,6 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "TwinTriggerUpdateRqV1")
 public class TwinTriggerUpdateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "trigger")
     public List<TwinTriggerUpdateDTOv1> triggers;
 }

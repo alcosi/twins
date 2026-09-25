@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -85,7 +86,7 @@ public class DataListOptionCreateController extends ApiController {
     @PostMapping(value = "/private/data_list_option/v2")
     public ResponseEntity<?> dataListOptionCreateV2(
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListOptionCreateRqDTOv2 request) {
+            @RequestBody @Valid DataListOptionCreateRqDTOv2 request) {
         DataListOptionCreateRsDTOv1 rs = new DataListOptionCreateRsDTOv1();
         try {
             List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapperV2.convertCollection(request.getDataListOptions());

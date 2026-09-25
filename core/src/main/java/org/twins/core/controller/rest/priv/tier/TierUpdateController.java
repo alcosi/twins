@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class TierUpdateController extends ApiController {
     public ResponseEntity<?> tierUpdateV1(
             @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TIER_ID) @PathVariable UUID tierId,
-            @RequestBody TierUpdateRqDTOv1 request) {
+            @RequestBody @Valid TierUpdateRqDTOv1 request) {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();
         try {
             TierEntity tierEntity = tierService.updateTier(tierUpdateDTOReverseMapper.convert(request.getTier()).setId(tierId));

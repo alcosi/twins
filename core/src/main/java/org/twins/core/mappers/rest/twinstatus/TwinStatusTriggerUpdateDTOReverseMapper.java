@@ -10,11 +10,16 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class TwinStatusTriggerUpdateDTOReverseMapper extends RestSimpleDTOMapper<TwinStatusTriggerUpdateDTOv1, TwinStatusTriggerEntity> {
-    private final TwinStatusTriggerSaveDTOReverseMapper twinStatusTriggerSaveDTOReverseMapper;
 
     @Override
     public void map(TwinStatusTriggerUpdateDTOv1 src, TwinStatusTriggerEntity dst, MapperContext mapperContext) throws Exception {
-        twinStatusTriggerSaveDTOReverseMapper.map(src, dst, mapperContext);
-        dst.setId(src.getId());
+        dst
+                .setTwinStatusId(src.getTwinStatusId())
+                .setIncomingElseOutgoing(src.getIncomingElseOutgoing())
+                .setOrder(src.getOrder())
+                .setTwinTriggerId(src.getTwinTriggerId())
+                .setAsync(src.getAsync())
+                .setActive(src.getActive() != null ? src.getActive() : true)
+                .setId(src.getId());
     }
 }
